@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.service.exceptions.ApiKeyAlreadyExpiredException;
 import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiKeyServiceImpl;
@@ -155,11 +156,24 @@ public class ApiKeyServiceTest {
         verify(apiKeyRepository, times(1)).update(any());
     }
 
-    @Test
+    @Test(expected = ApiKeyAlreadyExpiredException.class)
     public void shouldNotRevokeBecauseAlreadyRevoked() throws Exception {
-        // Verify
-        verify(apiKeyRepository, never()).update(any());
-        verify(emailService, never()).sendEmailNotification(any());
+        apiKey = new ApiKey();
+        apiKey.setRevoked(true);
+
+        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
+
+        apiKeyService.revoke(API_KEY, true);
+    }
+
+    @Test(expected = ApiKeyAlreadyExpiredException.class)
+    public void shouldNotRevokeBecauseAlreadyExpired() throws Exception {
+        apiKey = new ApiKey();
+        apiKey.setExpireAt(Date.from(new Date().toInstant().minus(1, ChronoUnit.DAYS)));
+
+        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
+
+        apiKeyService.revoke(API_KEY, true);
     }
 
     @Test(expected = ApiKeyNotFoundException.class)
