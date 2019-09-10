@@ -23,6 +23,7 @@ import java.util.Set;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Application {
@@ -50,12 +51,17 @@ public class Application {
     private String description;
 
     /**
-     * The team creation date
+     * The application picture
+     */
+    private String picture;
+    
+    /**
+     * The application creation date
      */
     private Date createdAt;
 
     /**
-     * The team last updated date
+     * The application last updated date
      */
     private Date updatedAt;
 
@@ -81,6 +87,7 @@ public class Application {
         this.updatedAt = cloned.updatedAt;
         this.groups = cloned.groups;
         this.status = cloned.status;
+        this.picture = cloned.picture;
     }
 
     public Date getCreatedAt() {
@@ -137,6 +144,14 @@ public class Application {
 
     public void setGroups(Set<String> groups) {
         this.groups = groups;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     public ApplicationStatus getStatus() {
