@@ -145,9 +145,9 @@
             <tbody md-body>
             <tr md-row ng-repeat="key in $ctrl.keys track by key.key">
               <td md-cell style="line-height: 30px;">
-                <ng-md-icon icon="{{$ctrl.isValid(key)?'done':'clear'}}" ng-style="{'fill': $ctrl.isValid(key)?'#107F20':'#BE2628'}"></ng-md-icon>
+                <ng-md-icon icon="{{$ctrl.isExpired(key)?'clear':'done'}}" ng-style="{'fill': $ctrl.isExpired(key)?'#BE2628':'#107F20'}"></ng-md-icon>
                 <code>{{key.key}}</code>
-                <span ng-if="!key.revoked && $ctrl.subscription.status === 'accepted'">
+                <span ng-if="!$ctrl.isExpired(key) && $ctrl.subscription.status === 'accepted'">
                   <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
                   <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{key.key}}"
                               ngclipboard-success="$ctrl.onCopyApiKeySuccess(e);" role="button"></ng-md-icon>
@@ -156,12 +156,12 @@
               <td md-cell>{{key.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
               <td md-cell>{{key.revoked_at || key.expire_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
               <td md-cell>
-                <span ng-if="!key.revoked && $ctrl.subscription.status === 'accepted'">
+                <span ng-if="!$ctrl.isExpired(key) && $ctrl.subscription.status === 'accepted'">
                   <md-tooltip md-direction="left">Revoke</md-tooltip>
                   <ng-md-icon permission permission-only="'api-subscription-u'" style="top: 0;" icon="not_interested"
                               ng-click="$ctrl.revokeApiKey(key.key)"></ng-md-icon>
                 </span>
-                <span ng-if="!key.revoked && $ctrl.subscription.status === 'accepted'">
+                <span ng-if="!$ctrl.isExpired(key) && $ctrl.subscription.status === 'accepted'">
                   <md-tooltip md-direction="left">Set expiration date</md-tooltip>
                   <ng-md-icon permission permission-only="'api-subscription-u'" style="top: 0;" icon="schedule"
                               ng-click="$ctrl.expireApiKey(key)"></ng-md-icon>

@@ -18,7 +18,6 @@ import _ = require('lodash');
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
-import moment = require("moment");
 
 const ApiSubscriptionComponent: ng.IComponentOptions = {
   bindings: {
@@ -272,8 +271,8 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
       });
     }
 
-    isValid(key) {
-      return !key.revoked && !key.expired ;
+    isExpired(key) {
+      return key.revoked || key.expired ;
     }
   }
 };
