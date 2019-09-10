@@ -30,6 +30,8 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.alert.AlertEntity;
+import io.gravitee.management.model.alert.AlertReferenceType;
 import io.gravitee.management.model.api.*;
 import io.gravitee.management.model.api.header.ApiHeaderEntity;
 import io.gravitee.management.model.documentation.PageQuery;
@@ -49,6 +51,7 @@ import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.management.service.search.query.Query;
 import io.gravitee.management.service.search.query.QueryBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.AlertRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -159,6 +162,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private HttpClientService httpClientService;
     @Autowired
     private VirtualHostService virtualHostService;
+    @Autowired
+    private AlertService alertService;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
@@ -947,6 +952,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiRepository.delete(apiId);
                 // Delete top API
                 topApiService.delete(apiId);
+                // Delete alerts
+                final List<AlertEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
+                alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
                 // Audit
                 auditService.createApiAuditLog(
                         apiId,
