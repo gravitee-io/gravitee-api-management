@@ -100,6 +100,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         when(updatedApplication.getEnvironment()).thenReturn("new_DEFAULT");
         when(updatedApplication.getName()).thenReturn("updated-app");
         when(updatedApplication.getDescription()).thenReturn("Updated description");
+        when(updatedApplication.getPicture()).thenReturn("New picture");
         when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);
         when(updatedApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(updatedApplication.getCreatedAt()).thenReturn(parse("11/02/2016"));

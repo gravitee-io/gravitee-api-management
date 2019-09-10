@@ -22,6 +22,7 @@
     "type": "SIMPLE",
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883",
+    "picture": "New picture",
     "metadata": {
       "client_id": "my-client-id",
       "type": "Web"
