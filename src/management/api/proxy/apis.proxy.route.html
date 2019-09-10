@@ -32,7 +32,7 @@
                 <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.proxy.cors'><a class="execute">CORS</a></li>
                 <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.proxy.deployments'><a class="execute">Deployments</a></li>
               <li class="iterable-item"
-                  permission permission-only="['api-response_templates-c']"
+                  permission permission-only="['api-response_templates-r']"
                   ng-class='{"aui-nav-selected": apiCtrl.$state.includes("management.apis.detail.proxy.responsetemplates.list") || apiCtrl.$state.includes("management.apis.detail.proxy.responsetemplates.new") || apiCtrl.$state.includes("management.apis.detail.proxy.responsetemplates.edit") || apiCtrl.$state.includes("management.apis.detail.proxy.healthcheck.log") }'
                   ui-sref='management.apis.detail.proxy.responsetemplates.list'><a class="execute">Response Templates</a></li>
             </ul>
@@ -45,7 +45,7 @@
                     ui-sref='management.apis.detail.proxy.endpoints'><a class="execute">Endpoints</a></li>
                 <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.proxy.failover'><a class="execute">Failover</a></li>
                 <li class="iterable-item"
-                    permission permission-only="['api-health-c']"
+                    permission permission-only="['api-health-r']"
                     ng-class='{"aui-nav-selected": apiCtrl.$state.includes("management.apis.detail.proxy.healthcheck") || apiCtrl.$state.includes("management.apis.detail.proxy.healthcheck.configure") || apiCtrl.$state.includes("management.apis.detail.proxy.healthcheck.log") }'
                     ui-sref='management.apis.detail.proxy.healthcheck.visualize'><a class="execute">Health-check</a></li>
             </ul>
