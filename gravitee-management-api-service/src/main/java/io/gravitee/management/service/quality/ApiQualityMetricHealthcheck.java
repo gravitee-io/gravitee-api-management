@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.quality;
 
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.parameters.Key;
@@ -32,10 +33,22 @@ public class ApiQualityMetricHealthcheck implements ApiQualityMetric {
 
     @Override
     public boolean isValid(ApiEntity api) {
-        return api.getServices() != null &&
+        boolean globalHC = api.getServices() != null &&
                 api.getServices().getAll() != null &&
                 api.getServices().getAll()
                         .stream()
                         .anyMatch(service -> service.isEnabled() && service instanceof HealthCheckService);
+        if (globalHC) {
+            return true;
+        } else {
+            return api.getProxy().getGroups().stream().allMatch(group -> group.getEndpoints().stream().allMatch(endpoint -> {
+                if (endpoint instanceof HttpEndpoint) {
+                    return ((HttpEndpoint) endpoint).getHealthCheck() != null &&
+                            ((HttpEndpoint) endpoint).getHealthCheck().isEnabled();
+                } else {
+                    return false;
+                }
+            }));
+        }
     }
 }
