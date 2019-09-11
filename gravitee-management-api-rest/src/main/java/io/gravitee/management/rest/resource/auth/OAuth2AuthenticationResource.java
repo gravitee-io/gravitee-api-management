@@ -117,7 +117,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         final boolean trustAllEnabled = environment.getProperty("security.trustAll", Boolean.class, false);
         final ClientBuilder builder = ClientBuilder.newBuilder();
         if (trustAllEnabled) {
-            SSLContext sc = SSLContext.getInstance("ssl");
+            SSLContext sc = SSLContext.getInstance("TLSv1.2");
             sc.init(null, new TrustManager[]{new BlindTrustManager()}, null);
             builder.sslContext(sc);
         }
