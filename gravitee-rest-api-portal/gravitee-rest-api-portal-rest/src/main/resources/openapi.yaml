@@ -765,6 +765,8 @@ paths:
       tags: 
         - Authentication
       responses:
+        200:
+          $ref: '#/components/responses/LoginSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
   /auth/logout:
@@ -772,6 +774,8 @@ paths:
       tags: 
         - Authentication
       responses:
+        200:
+          $ref: '#/components/responses/LogoutSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
   
@@ -785,10 +789,33 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        $ref: '#/components/requestBodies/oauth2InputBody'
       responses:
+        200:
+          $ref: '#/components/responses/LoginSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
-  
+  /auth/oauth2/{identity}/_exchange:
+    post:
+      tags: 
+        - Authentication
+      parameters:
+        - name: identity
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          $ref: '#/components/responses/LoginSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
 components:
   requestBodies:
     ratingInputBody:
@@ -872,6 +899,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/User'
+    oauth2InputBody:
+      description: oauth2 payload for authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PayloadInput'
   parameters:
     apiIdParam: 
       name: apiId
@@ -1556,6 +1589,14 @@ components:
               type: string
             _links:
               $ref: '#/components/schemas/UserLinks'
+    Token:
+      properties:
+        token_type:
+          type: string
+          enum:
+            - BEARER
+        token:
+          type: string
     #################
     # Input Objects #
     #################
@@ -1608,6 +1649,19 @@ components:
         new_primary_owner:
          type: string
         primary_owner_newrole:
+          type: string
+    PayloadInput:
+      properties:
+        client_id:
+          type: string
+          minLength: 1
+        redirect_uri:
+          type: string
+          minLength: 1
+        code:
+          type: string
+          minLength: 1
+        state:
           type: string
     #######################
     # Composition Objects #
@@ -1838,6 +1892,7 @@ components:
           type: string
         notifications:
           type: string
+
   responses:
     GeneralError:
       description: General Error
@@ -1980,7 +2035,26 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DatasResponse'
-    
+    LoginSuccess:
+      description: Auth token in payload and bearer in cookie
+      headers:
+        set-sookie:
+          description: auth cookie
+          schema:
+            type: string
+            example: Auth-Graviteeio-APIM=Bearer%20xxxxxx;Path=/;HttpOnly
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Token'
+    LogoutSuccess:
+      description: An empty cookie
+      headers:
+        set-cookie:
+          description: empty cookie
+          schema:
+            type: string
+            example: Auth-Graviteeio-APIM=;Path=/;Expires=Thu, 01-Jan-1970 00:00:00 GMT;Max-Age=0;HttpOnly
   securitySchemes:
     BasicAuth:
       type: http

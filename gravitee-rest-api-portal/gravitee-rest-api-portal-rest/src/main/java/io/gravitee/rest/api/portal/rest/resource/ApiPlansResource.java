@@ -59,7 +59,6 @@ public class ApiPlansResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
-
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)

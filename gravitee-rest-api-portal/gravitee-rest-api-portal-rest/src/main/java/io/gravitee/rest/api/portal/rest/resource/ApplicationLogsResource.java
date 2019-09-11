@@ -18,7 +18,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static java.lang.String.format;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -41,7 +40,6 @@ import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.LogMapper;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.resource.param.LogsParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;

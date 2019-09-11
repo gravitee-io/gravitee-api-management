@@ -45,7 +45,6 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Data;
 import io.gravitee.rest.api.portal.rest.model.DatasResponse;
-import io.gravitee.rest.api.portal.rest.model.Plan;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

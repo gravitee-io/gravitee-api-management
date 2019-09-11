@@ -107,7 +107,7 @@ public class ApisResource extends AbstractResource {
                 .map(apiMapper::convert)
                 .map(this::addApiLinks)
                 .collect(Collectors.toList());
-        
+
         return createListResponse(apisList, paginationParam, uriInfo, filteredApis.getMetadata());
     }
 

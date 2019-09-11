@@ -147,7 +147,7 @@ public class AnalyticsParam {
                     .entity("Query parameter 'type' must be present and one of : GROUP_BY, DATE_HISTO, COUNT")
                     .build());
         }
-        
+
         if (type.getValue() == null) {
             throw new WebApplicationException(Response
                     .status(Response.Status.BAD_REQUEST)
