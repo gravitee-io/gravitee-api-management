@@ -2,7 +2,6 @@
   "description" : "Gravitee.io",
   "paths" : { },
   "resources" : [ ],
-  "path_mappings":[],
   "groups" : [ "My Group" ],
   "members" : [ {
     "username" : "johndoe",
@@ -23,7 +22,7 @@
     "security" : "API_KEY",
     "type" : "API",
     "status" : "PUBLISHED",
-    "apis" : [ "id-api" ],
+    "api" : "id-api",
     "order" : 0,
     "paths" : {
       "/" : [ {
@@ -39,9 +38,13 @@
       } ]
     }
   } ],
+  "path_mappings":[],
   "proxy": {
-    "context_path": "/test",
+    "virtual_hosts": [{
+      "path": "/test"
+    }],
     "strip_context_path": false,
+    "preserve_host":false,
     "loggingMode": "NONE",
     "groups": [
       {
@@ -61,7 +64,8 @@
               "pipelining": false,
               "maxConcurrentConnections": 100,
               "useCompression": true,
-              "followRedirects": false
+              "followRedirects": false,
+              "encodeURI":false
             }
           }
         ],

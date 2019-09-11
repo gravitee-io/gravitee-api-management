@@ -17,25 +17,23 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.rest.api.management.rest.resource.param.ApisParam;
+import io.gravitee.rest.api.management.rest.resource.param.VerifyApiParam;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.resource.param.ApisParam;
-import io.gravitee.rest.api.management.rest.resource.param.VerifyApiParam;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.RatingService;
-import io.gravitee.rest.api.service.SwaggerService;
-import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -51,9 +49,9 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.gravitee.repository.management.model.View.ALL_ID;
 import static io.gravitee.rest.api.model.Visibility.PUBLIC;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
+import static io.gravitee.repository.management.model.View.ALL_ID;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
@@ -78,6 +76,8 @@ public class ApisResource extends AbstractResource {
     private TopApiService topApiService;
     @Inject
     private RatingService ratingService;
+    @Inject
+    private VirtualHostService virtualHostService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -214,13 +214,9 @@ public class ApisResource extends AbstractResource {
             @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE)
     })
     public Response verify(@Valid VerifyApiParam verifyApiParam) {
-        try {
-            // TODO : create verify service to query repository with criteria
-            apiService.checkContextPath(verifyApiParam.getContextPath());
-            return Response.ok().entity("API context [" + verifyApiParam.getContextPath() + "] is available").build();
-        } catch (TechnicalException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("The api context path [" + verifyApiParam.getContextPath() + "] already exists.").build();
-        }
+        // TODO : create verify service to query repository with criteria
+        virtualHostService.validate(Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath())));
+        return Response.ok().entity("API context [" + verifyApiParam.getContextPath() + "] is available").build();
     }
 
     @GET
@@ -307,7 +303,7 @@ public class ApisResource extends AbstractResource {
         }
 
         if (api.getProxy() != null) {
-            apiItem.setContextPath(api.getProxy().getContextPath());
+            apiItem.setVirtualHosts(api.getProxy().getVirtualHosts());
         }
 
         if (ratingService.isEnabled()) {

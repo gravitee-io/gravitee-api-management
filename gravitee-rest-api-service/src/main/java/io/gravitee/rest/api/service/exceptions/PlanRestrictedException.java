@@ -18,24 +18,24 @@ package io.gravitee.rest.api.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author Azize Elamrani (azize at gravitee.io)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiContextPathAlreadyExistsException extends AbstractManagementException {
+public class PlanRestrictedException extends AbstractManagementException {
 
-    private final String apiContextPath;
+    private final String plan;
 
-    public ApiContextPathAlreadyExistsException(String apiContextPath) {
-        this.apiContextPath = apiContextPath;
+    public PlanRestrictedException(String plan) {
+        this.plan = plan;
+    }
+
+    @Override
+    public String getMessage() {
+        return "This plan is restricted and cannot be subscribed by the user.";
     }
 
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
-    }
-
-    @Override
-    public String getMessage() {
-        return "The path [" + apiContextPath + "] is already covered by an other API.";
     }
 }

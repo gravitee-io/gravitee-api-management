@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.idp.ldap.authentication;
 
+import io.gravitee.rest.api.idp.ldap.LdapIdentityProvider;
+import io.gravitee.rest.api.idp.ldap.utils.LdapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +27,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
-
-import io.gravitee.rest.api.idp.ldap.LdapIdentityProvider;
-import io.gravitee.rest.api.idp.ldap.utils.LdapUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,7 +39,7 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class UserDetailsContextPropertiesMapper implements UserDetailsContextMapper {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsContextPropertiesMapper.class);
 
 	private final static String LDAP_ATTRIBUTE_UID = "uid";
@@ -71,7 +70,7 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 		try {
 			for (GrantedAuthority granted : authorities) {
 				String mappedAuthority = environment.getProperty("authentication.group.role.mapper."+granted.getAuthority());
-				if (!StringUtils.isEmpty(mappedAuthority)) {
+				if (mappedAuthority != null && !mappedAuthority.isEmpty()) {
 					mappedAuthorities.add(new SimpleGrantedAuthority(mappedAuthority));
 				}
 			}
@@ -83,11 +82,17 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 				new io.gravitee.rest.api.idp.api.authentication.UserDetails(
 						ctx.getStringAttribute(identifierAttribute), "", mappedAuthorities);
 
+		String userPhotoAttribute = environment.getProperty("authentication.user.photo-attribute");
+        if(userPhotoAttribute == null) {
+            userPhotoAttribute = "jpegPhoto";
+        }
+
 		userDetails.setFirstname(ctx.getStringAttribute(LDAP_ATTRIBUTE_FIRSTNAME));
 		userDetails.setLastname(ctx.getStringAttribute(LDAP_ATTRIBUTE_LASTNAME));
 		userDetails.setEmail(ctx.getStringAttribute(LDAP_ATTRIBUTE_MAIL));
 		userDetails.setSource(LdapIdentityProvider.PROVIDER_TYPE);
 		userDetails.setSourceId(ctx.getNameInNamespace());
+		userDetails.setPicture((byte [])ctx.getObjectAttribute(userPhotoAttribute));
 
 		return userDetails;
 	}

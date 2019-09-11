@@ -17,6 +17,13 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.model.Pageable;
+import io.gravitee.rest.api.management.rest.model.PagedResult;
+import io.gravitee.rest.api.management.rest.model.Subscription;
+import io.gravitee.rest.api.management.rest.resource.param.ListStringParam;
+import io.gravitee.rest.api.management.rest.resource.param.ListSubscriptionStatusParam;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PlanEntity;
@@ -25,13 +32,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.management.rest.model.Pageable;
-import io.gravitee.rest.api.management.rest.model.PagedResult;
-import io.gravitee.rest.api.management.rest.model.Subscription;
-import io.gravitee.rest.api.management.rest.resource.param.ListStringParam;
-import io.gravitee.rest.api.management.rest.resource.param.ListSubscriptionStatusParam;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.*;
 import io.swagger.annotations.*;
 
@@ -90,7 +90,7 @@ public class ApplicationSubscriptionsResource {
         }
 
         PlanEntity planEntity = planService.findById(plan);
-        
+
         if (planEntity.isCommentRequired() &&
                 (newSubscriptionEntity.getRequest() == null || newSubscriptionEntity.getRequest().isEmpty())) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -255,7 +255,7 @@ public class ApplicationSubscriptionsResource {
         subscription.setStatus(subscriptionEntity.getStatus());
         subscription.setSubscribedBy(
                 new Subscription.User(subscriptionEntity.getSubscribedBy(),
-                userService.findById(subscriptionEntity.getSubscribedBy()).getDisplayName()
+                        userService.findById(subscriptionEntity.getSubscribedBy()).getDisplayName()
                 ));
 
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
@@ -297,6 +297,9 @@ public class ApplicationSubscriptionsResource {
         @ApiModelProperty(dataType = "string", allowableValues = "accepted, pending, rejected, closed", value = "Subscription status")
         private ListSubscriptionStatusParam status;
 
+        @QueryParam("api_key")
+        private String apiKey;
+
         public ListStringParam getPlans() {
             return plans;
         }
@@ -329,6 +332,14 @@ public class ApplicationSubscriptionsResource {
             this.status = status;
         }
 
+        public String getApiKey() {
+            return apiKey;
+        }
+
+        public void setApiKey(String apiKey) {
+            this.apiKey = apiKey;
+        }
+
         private SubscriptionQuery toQuery() {
             SubscriptionQuery query = new SubscriptionQuery();
 
@@ -346,6 +357,9 @@ public class ApplicationSubscriptionsResource {
                 query.setStatuses(status.getStatus());
             }
 
+            if (apiKey != null) {
+                query.setApiKey(apiKey);
+            }
             return query;
         }
     }

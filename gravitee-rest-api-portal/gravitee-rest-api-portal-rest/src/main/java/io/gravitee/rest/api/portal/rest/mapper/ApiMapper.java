@@ -20,8 +20,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.rest.api.model.EntrypointEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -117,24 +122,34 @@ public class ApiMapper {
         List<String> params = parameterService.findAll(Key.PORTAL_ENTRYPOINT);
         if(params != null && !params.isEmpty()) {
             defaultEntrypoint = params.get(0);
-            if(api.getProxy() != null) {
-                defaultEntrypoint += api.getProxy().getContextPath();
+            if (api.getProxy() != null) {
+                defaultEntrypoint += api.getProxy().getVirtualHosts().iterator().next().getPath();
             }
         }
         return defaultEntrypoint;
     }
 
     private List<String> getSpecificEntrypoints(ApiEntity api, EntrypointService entrypointService) {
-        return entrypointService.findAll()
-                .stream()
-                .map(e -> {
-                    if(api.getProxy() != null) {
-                        return e.getValue() + api.getProxy().getContextPath();
+        List<String> graviteeUrls = new ArrayList<>();
+        String portalEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
+        if (portalEntrypoint != null) {
+            api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
+                @Override
+                public void accept(VirtualHost virtualHost) {
+                    if (virtualHost.getHost() == null) {
+                        graviteeUrls.add(portalEntrypoint + virtualHost.getPath());
                     } else {
-                        return e.getValue();
+                        graviteeUrls.add(virtualHost.getHost() + virtualHost.getPath());
                     }
-                })
-                .collect(Collectors.toList());
+                }
+            });
+        }
+
+        List<EntrypointEntity> entrypoints = entrypointService.findAll();
+        entrypoints.stream().flatMap((Function<EntrypointEntity, Stream<String>>) entrypoint ->
+                api.getProxy().getVirtualHosts().stream()
+                        .map(virtualHost -> entrypoint.getValue() + virtualHost.getPath())).forEach(graviteeUrls::add);
+        return graviteeUrls;
     }
 
     public ApiLinks computeApiLinks(String basePath) {

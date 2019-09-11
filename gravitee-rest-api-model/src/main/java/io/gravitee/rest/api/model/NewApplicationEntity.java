@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
-
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.Set;
 
 /**
@@ -29,6 +29,7 @@ import java.util.Set;
 public class NewApplicationEntity {
 
     @NotNull(message = "Application's name must not be null")
+    @NotEmpty(message = "Application's name must not be empty")
     private String name;
 
     @NotNull(message = "Application's description must not be null")

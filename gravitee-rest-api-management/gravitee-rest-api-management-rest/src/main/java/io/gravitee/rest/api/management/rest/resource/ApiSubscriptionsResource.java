@@ -17,10 +17,6 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.model.Subscription;
@@ -28,6 +24,10 @@ import io.gravitee.rest.api.management.rest.resource.param.ListStringParam;
 import io.gravitee.rest.api.management.rest.resource.param.ListSubscriptionStatusParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -40,9 +40,12 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Date;
+
+import static java.lang.String.format;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -123,6 +126,25 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 .build();
     }
 
+    @GET
+    @Path("export")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Export API logs as CSV")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API logs as CSV"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
+    public Response exportAPILogsAsCSV(
+            @PathParam("api") String api,
+            @BeanParam SubscriptionParam subscriptionParam,
+            @Valid @BeanParam Pageable pageable) {
+        final PagedResult<SubscriptionEntity> subscriptions = listApiSubscriptions(subscriptionParam, pageable);
+        return Response
+                .ok(subscriptionService.exportAsCsv(subscriptions.getData(), subscriptions.getMetadata()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=subscriptions-%s-%s.csv", api, System.currentTimeMillis()))
+                .build();
+    }
+
     @Path("{subscription}")
     public ApiSubscriptionResource getApiSubscriptionResource() {
         return resourceContext.getResource(ApiSubscriptionResource.class);
@@ -183,6 +205,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @ApiModelProperty(dataType = "string", allowableValues = "accepted, pending, rejected, closed", value = "Subscription status")
         private ListSubscriptionStatusParam status;
 
+        @QueryParam("api_key")
+        private String apiKey;
+
         public String getApi() {
             return api;
         }
@@ -215,6 +240,14 @@ public class ApiSubscriptionsResource extends AbstractResource {
             this.status = status;
         }
 
+        public String getApiKey() {
+            return apiKey;
+        }
+
+        public void setApiKey(String apiKey) {
+            this.apiKey = apiKey;
+        }
+
         private SubscriptionQuery toQuery() {
             SubscriptionQuery query = new SubscriptionQuery();
 
@@ -231,6 +264,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
             if (applications != null && applications.getValue() != null) {
                 query.setApplications(applications.getValue());
             }
+
+            query.setApiKey(this.apiKey);
 
             return query;
         }

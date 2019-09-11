@@ -24,14 +24,12 @@ import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
 import io.gravitee.rest.api.security.filter.JWTAuthenticationFilter;
 import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
@@ -64,7 +62,6 @@ import static java.util.Arrays.asList;
 @Configuration
 @Profile("basic")
 @EnableWebSecurity
-@Order(100)
 public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
@@ -80,8 +77,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        LOGGER.info("--------------------------------------------------------------");
-        LOGGER.info("Management API BasicSecurity Config");
         LOGGER.info("Loading authentication identity providers for Basic authentication");
 
         List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers =
@@ -118,8 +113,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 LOGGER.error("No authentication provider found for type: {}", provider.type());
             }
         }
-        LOGGER.info("--------------------------------------------------------------");
-
     }
 
     @Bean
@@ -200,8 +193,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
-        String uriPrefix = "/management/env/**";
-        
+        String mainResource = "/env/**";
+        String apiType = "/management";
+        String uriPrefix = mainResource + apiType;
+
         return security.authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/user/login").permitAll()
@@ -271,12 +266,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                 // Entrypoints
                 .antMatchers(HttpMethod.GET, uriPrefix + "/entrypoints/**").permitAll()
-                .anyRequest().authenticated()
-                .and();
+                .anyRequest().authenticated().and();
     }
 
     private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails> authenticationDetailsSource() {
-        return GraviteeAuthenticationDetails::new;
+        return request -> new GraviteeAuthenticationDetails(request);
     }
 
     private HttpSecurity hsts(HttpSecurity security) throws Exception {

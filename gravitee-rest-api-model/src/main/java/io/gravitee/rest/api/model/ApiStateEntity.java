@@ -13,29 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.exceptions;
+package io.gravitee.rest.api.model;
 
-import io.gravitee.common.http.HttpStatusCode;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Azize Elamrani (azize at gravitee.io)
- * @author GraviteeSource Team
+ * @author Titouan COMPIEGNE
  */
-public class ApiContextPathAlreadyExistsException extends AbstractManagementException {
+public class ApiStateEntity {
 
-    private final String apiContextPath;
+    @JsonProperty("api_id")
+    private String apiId;
 
-    public ApiContextPathAlreadyExistsException(String apiContextPath) {
-        this.apiContextPath = apiContextPath;
+    @JsonProperty("is_synchronized")
+    private boolean isSynchronized;
+
+    public String getApiId() {
+        return apiId;
     }
 
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
     }
 
-    @Override
-    public String getMessage() {
-        return "The path [" + apiContextPath + "] is already covered by an other API.";
+    public boolean getIsSynchronized() {
+        return isSynchronized;
     }
+
+    public void setIsSynchronized(boolean isSynchronized) {
+        this.isSynchronized = isSynchronized;
+    }
+
 }

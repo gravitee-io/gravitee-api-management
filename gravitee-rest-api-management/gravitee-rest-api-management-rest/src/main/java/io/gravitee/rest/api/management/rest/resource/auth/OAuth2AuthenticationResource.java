@@ -21,15 +21,12 @@ import com.jayway.jsonpath.ReadContext;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.spel.function.JsonPathFunction;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.management.rest.utils.BlindTrustManager;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
-import io.gravitee.rest.api.management.rest.utils.BlindTrustManager;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
@@ -37,8 +34,10 @@ import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.Api;
-
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,7 +116,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         final boolean trustAllEnabled = environment.getProperty("security.trustAll", Boolean.class, false);
         final ClientBuilder builder = ClientBuilder.newBuilder();
         if (trustAllEnabled) {
-            SSLContext sc = SSLContext.getInstance("ssl");
+            SSLContext sc = SSLContext.getInstance("TLSv1.2");
             sc.init(null, new TrustManager[]{new BlindTrustManager()}, null);
             builder.sslContext(sc);
         }

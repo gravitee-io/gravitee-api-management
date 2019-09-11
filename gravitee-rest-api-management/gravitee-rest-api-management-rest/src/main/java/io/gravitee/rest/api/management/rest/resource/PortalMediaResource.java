@@ -16,16 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.swagger.annotations.Api;
-
-import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -35,7 +33,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 
 @Api(tags = {"Portal"})
 public class PortalMediaResource extends AbstractResource {
@@ -54,14 +51,11 @@ public class PortalMediaResource extends AbstractResource {
             @FormDataParam("file") FormDataContentDisposition fileDetail,
             @FormDataParam("file") final FormDataBodyPart body
     ) throws IOException {
-        String mediaId = null;
-
-        if (!body.getMediaType().getType().equals("image")) {
-            throw new UploadUnauthorized("File format unauthorized " + body.getMediaType().getType()+"/"+body.getMediaType().getSubtype());
-        } else if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
+        String mediaId;
+        checkImageFormat(body.getMediaType());
+        if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
             throw new UploadUnauthorized("Max size achieved " + fileDetail.getSize());
         } else {
-            checkImageContent(IOUtils.toString(uploadedInputStream, Charset.defaultCharset()));
             mediaId = mediaService.savePortalMedia(new MediaEntity(
                     uploadedInputStream,
                     body.getMediaType().getType(),

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.idp.api.authentication;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.gravitee.rest.api.idp.api.authentication.UserDetailRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -27,7 +28,7 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UserDetails extends User {
+public class UserDetails extends User implements org.springframework.security.core.userdetails.UserDetails {
 
     private String id;
     private String email;
@@ -37,10 +38,17 @@ public class UserDetails extends User {
     private String sourceId;
     private List<UserDetailRole> roles;
     private String username;
+    private byte[] picture;
+
 
     public UserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
         this.username = username;
+    }
+
+    public UserDetails(String username, String password, String email, Collection<? extends GrantedAuthority> authorities) {
+        this(username,password,authorities);
+        this.email = email;
     }
 
     public String getId() {
@@ -161,5 +169,17 @@ public class UserDetails extends User {
                 ", source='" + lastname + '\'' +
                 ", external_reference='" + lastname + '\'' +
                 "}";
+    }
+
+    public byte[] getPicture() {
+        return picture;
+    }
+
+    public void setPicture(byte[] picture) {
+        this.picture = picture;
+    }
+
+    public void setPassword(String password) {
+        throw new UnsupportedOperationException();
     }
 }

@@ -25,7 +25,6 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
-
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.imageio.ImageIO;
@@ -33,6 +32,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -40,8 +40,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Iterator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,7 +51,6 @@ public abstract class AbstractResource {
 
     public final static String MANAGEMENT_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
     public final static String PORTAL_ADMIN = RoleScope.PORTAL.name() + ':' + SystemRole.ADMIN.name();
-    private final static Pattern PATTERN = Pattern.compile("<script");
 
     @Context
     protected SecurityContext securityContext;
@@ -158,12 +155,20 @@ public abstract class AbstractResource {
         if (!mediaType.startsWith("image/")) {
             throw new UploadUnauthorized("Image file format unauthorized " + mediaType);
         }
+
+        if (mediaType.contains("svg")) {
+            throw new UploadUnauthorized("SVG format is not supported");
+        }
     }
 
-    void checkImageContent(final String picture) {
-        final Matcher matcher = PATTERN.matcher(picture);
-        if (matcher.find()) {
-            throw new UploadUnauthorized("Invalid content in the image");
+    void checkImageFormat(final MediaType mediaType) {
+
+        if (!"image".equals(mediaType.getType())) {
+            throw new UploadUnauthorized("Image file format unauthorized " + mediaType);
+        }
+
+        if (mediaType.getSubtype() != null && mediaType.getSubtype().contains("svg")) {
+            throw new UploadUnauthorized("SVG format is not supported");
         }
     }
 }

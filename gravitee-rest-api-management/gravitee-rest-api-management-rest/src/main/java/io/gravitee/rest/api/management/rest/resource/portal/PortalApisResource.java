@@ -17,15 +17,15 @@ package io.gravitee.rest.api.management.rest.resource.portal;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiListItem;
 import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -135,7 +135,7 @@ public class PortalApisResource extends AbstractResource {
         }
 
         if (api.getProxy() != null) {
-            apiItem.setContextPath(api.getProxy().getContextPath());
+            apiItem.setVirtualHosts(api.getProxy().getVirtualHosts());
         }
 
         if (ratingService.isEnabled()) {

@@ -20,9 +20,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Path;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.plan.PlanQuery;
@@ -32,7 +29,9 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.processor.PlanSynchronizationProcessor;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Plan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,28 +53,22 @@ import static java.util.Collections.emptySet;
 @Component
 public class PlanServiceImpl extends TransactionalService implements PlanService {
 
-    /**
-     * Logger.
-     */
     private final Logger logger = LoggerFactory.getLogger(PlanServiceImpl.class);
 
     @Autowired
     private PlanRepository planRepository;
-
     @Autowired
     private SubscriptionService subscriptionService;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @Autowired
     private AuditService auditService;
-
     @Autowired
     private ParameterService parameterService;
-
     @Autowired
     private PlanSynchronizationProcessor planSynchronizationProcessor;
+    @Autowired
+    private ApiService apiService;
 
     private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST =
             Collections.unmodifiableList(Arrays.asList(
@@ -152,6 +145,12 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApi());
 
             assertPlanSecurityIsAllowed(newPlan.getSecurity());
+
+            final ApiEntity api = apiService.findById(newPlan.getApi());
+            if (ApiLifecycleState.DEPRECATED.equals(api.getLifecycleState())) {
+                throw new ApiDeprecatedException(api.getName());
+            }
+
             Plan plan = new Plan();
 
             plan.setId(UUID.toString(UUID.random()));
@@ -202,6 +201,11 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to create a plan %s for API %s", newPlan.getName(), newPlan.getApi()), jse);
         }
+    }
+
+    @Override
+    public PlanEntity create(final String apiId, final PlanEntity planEntity) {
+        return create(convert(planEntity, apiId));
     }
 
     @Override
@@ -311,23 +315,17 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setUpdatedAt(plan.getClosedAt());
             plan.setNeedRedeployAt(plan.getClosedAt());
 
-            // Close active subscriptions and reject pending
+            // Close subscriptions
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
                 subscriptionService.findByPlan(planId)
                         .stream()
-                        .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED)
-                        .forEach(subscription -> subscriptionService.close(subscription.getId()));
-
-                final String planName = plan.getName();
-                subscriptionService.findByPlan(planId)
-                        .stream()
-                        .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.PENDING)
                         .forEach(subscription -> {
-                            ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
-                            processSubscriptionEntity.setId(subscription.getId());
-                            processSubscriptionEntity.setAccepted(false);
-                            processSubscriptionEntity.setReason("Plan " + planName + " has been closed.");
-                            subscriptionService.process(processSubscriptionEntity, userId);
+                            try {
+                                subscriptionService.close(subscription.getId());
+                            } catch (SubscriptionNotClosableException snce) {
+                                // subscription status could not be closed (already closed or rejected)
+                                // ignore it
+                            }
                         });
             }
 
@@ -610,6 +608,26 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         entity.setSelectionRule(plan.getSelectionRule());
 
         return entity;
+    }
+
+    private NewPlanEntity convert(final PlanEntity planEntity, final String apiId) {
+        final NewPlanEntity newPlanEntity = new NewPlanEntity();
+        newPlanEntity.setName(planEntity.getName());
+        newPlanEntity.setType(planEntity.getType());
+        newPlanEntity.setCharacteristics(planEntity.getCharacteristics());
+        newPlanEntity.setCommentMessage(planEntity.getCommentMessage());
+        newPlanEntity.setCommentRequired(planEntity.isCommentRequired());
+        newPlanEntity.setDescription(planEntity.getDescription());
+        newPlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
+        newPlanEntity.setPaths(planEntity.getPaths());
+        newPlanEntity.setSecurity(planEntity.getSecurity());
+        newPlanEntity.setSecurityDefinition(planEntity.getSecurityDefinition());
+        newPlanEntity.setSelectionRule(planEntity.getSelectionRule());
+        newPlanEntity.setStatus(planEntity.getStatus());
+        newPlanEntity.setTags(planEntity.getTags());
+        newPlanEntity.setValidation(planEntity.getValidation());
+        newPlanEntity.setApi(apiId);
+        return newPlanEntity;
     }
 
     private void assertPlanSecurityIsAllowed(PlanSecurityType securityType) {

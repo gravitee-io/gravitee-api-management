@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
+import io.gravitee.repository.exceptions.TechnicalException;
 
 import java.util.*;
 
@@ -78,8 +78,6 @@ public interface ApiService {
 
     void deleteTagFromAPIs(String tagId);
 
-    void checkContextPath(String newContextPath) throws TechnicalException;
-
     ApiModelEntity findByIdForTemplates(String apiId);
 
     boolean exists(String apiId);
@@ -117,4 +115,6 @@ public interface ApiService {
     ApiEntity askForReview(String apiId, String userId, ReviewEntity reviewEntity);
     ApiEntity acceptReview(String apiId, String userId, ReviewEntity reviewEntity);
     ApiEntity rejectReview(String apiId, String userId, ReviewEntity reviewEntity);
+
+    ApiEntity duplicate(String apiId, DuplicateApiEntity duplicateApiEntity);
 }

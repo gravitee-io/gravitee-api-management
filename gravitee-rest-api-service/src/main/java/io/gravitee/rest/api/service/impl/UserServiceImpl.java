@@ -19,11 +19,6 @@ import com.auth0.jwt.JWTSigner;
 import com.auth0.jwt.JWTVerifier;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.UserRepository;
-import io.gravitee.repository.management.api.search.UserCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
@@ -41,7 +36,11 @@ import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -61,11 +60,11 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.*;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
@@ -106,6 +105,12 @@ public class UserServiceImpl extends AbstractService implements UserService {
     private SearchEngineService searchEngineService;
     @Autowired
     private InvitationService invitationService;
+    @Autowired
+    private PortalNotificationService portalNotificationService;
+    @Autowired
+    private PortalNotificationConfigService portalNotificationConfigService;
+    @Autowired
+    private GenericNotificationConfigService genericNotificationConfigService;
 
     @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
     private String defaultAvatar;
@@ -622,7 +627,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 builder.noStatus();
             }
             UserCriteria newCriteria = builder.build();
-            
+
             Page<User> users = userRepository.search(newCriteria, new PageableBuilder()
                     .pageNumber(pageable.getPageNumber() - 1)
                     .pageSize(pageable.getPageSize())
@@ -666,19 +671,34 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             membershipService.removeUser(id);
-
             User user = optionalUser.get();
+
+            //remove notifications
+            portalNotificationService.deleteAll(user.getId());
+            portalNotificationConfigService.deleteByUser(user.getId());
+            genericNotificationConfigService.deleteByUser(user);
+
+            // change user datas
             user.setSourceId("deleted-" + user.getSourceId());
             user.setStatus(UserStatus.ARCHIVED);
             user.setUpdatedAt(new Date());
 
             if (anonymizeOnDelete) {
-                user.setFirstname("Unknown");
-                user.setLastname("");
-                user.setEmail("");
+                User anonym = new User();
+                anonym.setId(user.getId());
+                anonym.setCreatedAt(user.getCreatedAt());
+                anonym.setUpdatedAt(user.getUpdatedAt());
+                anonym.setStatus(user.getStatus());
+                anonym.setSource(user.getSource());
+                anonym.setLastConnectionAt(user.getLastConnectionAt());
+                anonym.setSourceId("deleted-" + user.getId());
+                anonym.setFirstname("Unknown");
+                anonym.setLastname("");
+                user = anonym;
             }
 
             userRepository.update(user);
+
 
             final UserEntity userEntity = convert(optionalUser.get(), false);
             searchEngineService.delete(userEntity, false);
@@ -742,6 +762,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         user.setSource(newExternalUserEntity.getSource());
         user.setSourceId(newExternalUserEntity.getSourceId());
         user.setStatus(UserStatus.ACTIVE);
+        user.setPicture(newExternalUserEntity.getPicture());
         return user;
     }
 

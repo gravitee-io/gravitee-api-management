@@ -19,6 +19,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -26,15 +32,6 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
-import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,6 +71,8 @@ public class ApiService_FindByIdTest {
     private UserService userService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private EntrypointService entrypointService;
 
     @Before
     public void setUp() {

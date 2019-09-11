@@ -16,20 +16,18 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
-import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -39,7 +37,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 
 /**
  * @author Guillaume Gillon
@@ -68,12 +65,10 @@ public class ApiMediaResource extends AbstractResource {
             @FormDataParam("file") final FormDataBodyPart body
     ) throws IOException {
         final String mediaId;
-        if (!body.getMediaType().getType().equals("image")) {
-            throw new UploadUnauthorized("File format unauthorized " + body.getMediaType().getType()+"/"+body.getMediaType().getSubtype());
-        } else if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
+        checkImageFormat(body.getMediaType());
+        if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
             throw new UploadUnauthorized("Max size achieved " + fileDetail.getSize());
         } else {
-            checkImageContent(IOUtils.toString(uploadedInputStream, Charset.defaultCharset()));
             mediaId = mediaService.saveApiMedia(api, new MediaEntity(
                     uploadedInputStream,
                     body.getMediaType().getType(),

@@ -17,29 +17,22 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
-import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.util.Collections;
 import java.util.Date;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
@@ -71,7 +64,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setName(API);
-        mockApi.setProxy(new Proxy());
+        Proxy proxy = new Proxy();
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
+        mockApi.setProxy(proxy);
         mockApi.setUpdatedAt(new Date());
         doReturn(mockApi).when(apiService).findById(API);
         doThrow(ApiNotFoundException.class).when(apiService).findById(UNKNOWN_API);
@@ -81,7 +76,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         updateApiEntity.setVisibility(Visibility.PUBLIC);
         updateApiEntity.setName(API);
         updateApiEntity.setVersion("v1");
-        updateApiEntity.setProxy(new Proxy());
+        proxy = new Proxy();
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
+        updateApiEntity.setProxy(proxy);
         updateApiEntity.setLifecycleState(ApiLifecycleState.CREATED);
         doReturn(mockApi).when(apiService).update(eq(API), any());
     }
@@ -169,6 +166,26 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertTrue(message, message.contains("The image is not in a valid format"));
     }
 
+    @Test
+    public void shouldNotUpdateApiBecauseSVGImage() {
+        updateApiEntity.setPicture("data:image/svg+xml;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("SVG format is not supported"));
+    }
+
+    @Test
+    public void shouldNotUpdateApiBecauseNotAnImage() {
+        updateApiEntity.setPicture("data:text/plain;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("Image file format unauthorized text/plain"));
+    }
+
     public void shouldUploadApiMedia() {
         StreamDataBodyPart filePart = new StreamDataBodyPart("file",
                 this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.valueOf("image/svg+xml"));
@@ -219,6 +236,6 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Invalid content in the image"));
+        assertTrue(message, message.contains("SVG format is not supported"));
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.api;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +28,7 @@ import java.util.Set;
 public class NewApiEntity {
 
     @NotNull
+    @NotEmpty(message = "Api's name must not be empty")
     private String name;
 
     @NotNull

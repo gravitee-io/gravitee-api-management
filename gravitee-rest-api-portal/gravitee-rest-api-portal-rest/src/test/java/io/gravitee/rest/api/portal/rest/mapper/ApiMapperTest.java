@@ -24,15 +24,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import io.gravitee.definition.model.VirtualHost;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -111,7 +105,7 @@ public class ApiMapperTest {
         doReturn(ratingSummaryEntity).when(ratingService).findSummaryByApi(API);
         
         Proxy proxy = new Proxy();
-        proxy.setContextPath("/foo");
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/foo")));
         apiEntity.setProxy(proxy);
         apiEntity.setVisibility(Visibility.PUBLIC);
         apiEntity.setUpdatedAt(new Date());
@@ -173,6 +167,9 @@ public class ApiMapperTest {
         apiEntity = new ApiEntity();
         apiEntity.setId(API);
         apiEntity.setDescription(API);
+        Proxy proxy = new Proxy();
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/foo")));
+        apiEntity.setProxy(proxy);
         
         doReturn(false).when(ratingService).isEnabled();
         
@@ -203,8 +200,8 @@ public class ApiMapperTest {
         List<String> entrypoints = responseApi.getEntrypoints();
         assertNotNull(API, entrypoints);
         assertEquals(2, entrypoints.size());
-        assertEquals("http://foo.bar", entrypoints.get(0));
-        assertEquals(API, entrypoints.get(1));
+        assertEquals("http://foo.bar/foo", entrypoints.get(0));
+        assertEquals(API + "/foo", entrypoints.get(1));
         
         List<String> labels = responseApi.getLabels();
         assertNotNull(labels);

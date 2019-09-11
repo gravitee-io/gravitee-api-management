@@ -19,23 +19,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
-import io.gravitee.rest.api.service.search.SearchEngineService;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -96,6 +88,8 @@ public class ApiService_UpdateWithDefinitionTest {
     private SearchEngineService searchEngineService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private VirtualHostService virtualHostService;
 
     @Before
     public void init() {

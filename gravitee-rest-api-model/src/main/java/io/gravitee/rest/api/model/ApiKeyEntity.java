@@ -50,6 +50,8 @@ public class ApiKeyEntity {
 
     private boolean paused;
 
+    private boolean expired;
+
     public String getKey() {
         return key;
     }
@@ -128,6 +130,14 @@ public class ApiKeyEntity {
 
     public void setPaused(boolean paused) {
         this.paused = paused;
+    }
+
+    public boolean isExpired() {
+        return expired;
+    }
+
+    public void setExpired(boolean expired) {
+        this.expired = expired;
     }
 
     @Override

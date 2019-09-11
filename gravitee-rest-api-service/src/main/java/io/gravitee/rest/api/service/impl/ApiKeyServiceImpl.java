@@ -15,9 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
@@ -25,7 +22,9 @@ import io.gravitee.rest.api.service.exceptions.SubscriptionClosedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.ApiKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,7 +116,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             // Get previously generated keys to set their expiration date
             Set<ApiKey> oldKeys = apiKeyRepository.findBySubscription(subscription);
             for (ApiKey oldKey : oldKeys) {
-                if (! oldKey.equals(newApiKey)) {
+                if (! oldKey.equals(newApiKey) && !convert(oldKey).isExpired()) {
                     setExpiration(expirationDate, oldKey);
                 }
             }
@@ -191,44 +190,49 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             }
 
             ApiKey key = optKey.get();
-            if (!key.isRevoked()) {
-                ApiKey previousApiKey = new ApiKey(key);
-                key.setRevoked(true);
-                key.setUpdatedAt(new Date());
-                key.setRevokedAt(key.getUpdatedAt());
 
-                apiKeyRepository.update(key);
+            checkApiKeyExpired(key);
 
-                final PlanEntity plan = planService.findById(key.getPlan());
-                // Audit
-                auditService.createApiAuditLog(
-                        plan.getApi(),
-                        Collections.singletonMap(API_KEY, key.getKey()),
-                        APIKEY_REVOKED,
-                        key.getUpdatedAt(),
-                        previousApiKey,
-                        key);
+            ApiKey previousApiKey = new ApiKey(key);
+            key.setRevoked(true);
+            key.setUpdatedAt(new Date());
+            key.setRevokedAt(key.getUpdatedAt());
 
-                // notify
-                if (notify) {
-                    final ApplicationEntity application = applicationService.findById(key.getApplication());
-                    final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
-                    final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-                    final Map<String, Object> params = new NotificationParamsBuilder()
-                            .application(application)
-                            .plan(plan)
-                            .api(api)
-                            .owner(owner)
-                            .apikey(key)
-                            .build();
-                    notifierService.trigger(ApiHook.APIKEY_REVOKED, api.getId(), params);
-                }
-            } else {
-                LOGGER.info("API Key {} already revoked. Skipping...", apiKey);
+            apiKeyRepository.update(key);
+
+            final PlanEntity plan = planService.findById(key.getPlan());
+            // Audit
+            auditService.createApiAuditLog(
+                    plan.getApi(),
+                    Collections.singletonMap(API_KEY, key.getKey()),
+                    APIKEY_REVOKED,
+                    key.getUpdatedAt(),
+                    previousApiKey,
+                    key);
+
+            // notify
+            if (notify) {
+                final ApplicationEntity application = applicationService.findById(key.getApplication());
+                final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
+                final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+                final Map<String, Object> params = new NotificationParamsBuilder()
+                        .application(application)
+                        .plan(plan)
+                        .api(api)
+                        .owner(owner)
+                        .apikey(key)
+                        .build();
+                notifierService.trigger(ApiHook.APIKEY_REVOKED, api.getId(), params);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to revoke a key {}", apiKey, ex);
             throw new TechnicalManagementException("An error occurs while trying to revoke a key " + apiKey, ex);
+        }
+    }
+
+    private void checkApiKeyExpired(ApiKey key) {
+        if (key.isRevoked() || convert(key).isExpired()) {
+            throw new ApiKeyAlreadyExpiredException("The API key is already expired");
         }
     }
 
@@ -277,6 +281,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             ApiKey key = optKey.get();
 
+            checkApiKeyExpired(key);
+
             key.setPaused(apiKeyEntity.isPaused());
             key.setPlan(apiKeyEntity.getPlan());
             setExpiration(apiKeyEntity.getExpireAt(), key);
@@ -312,10 +318,15 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     private void setExpiration(Date expirationDate, ApiKey key) throws TechnicalException {
+        final Date now = new Date();
+
+        if (now.after(expirationDate)) {
+            expirationDate = now;
+        }
+
+        key.setUpdatedAt(now);
         if (!key.isRevoked()) {
             ApiKey oldkey = new ApiKey(key);
-
-            key.setUpdatedAt(new Date());
             key.setExpireAt(expirationDate);
             apiKeyRepository.update(key);
 
@@ -332,7 +343,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                     .apikey(key)
                     .plan(plan)
                     .owner(owner);
-            if (key.getExpireAt() != null && new Date().before(key.getExpireAt())) {
+            if (key.getExpireAt() != null && now.before(key.getExpireAt())) {
                 paramsBuilder.expirationDate(key.getExpireAt());
             }
 
@@ -349,7 +360,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                     oldkey,
                     key);
         } else {
-            key.setUpdatedAt(new Date());
             apiKeyRepository.update(key);
         }
     }
@@ -360,6 +370,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         apiKeyEntity.setKey(apiKey.getKey());
         apiKeyEntity.setCreatedAt(apiKey.getCreatedAt());
         apiKeyEntity.setExpireAt(apiKey.getExpireAt());
+        apiKeyEntity.setExpired(apiKey.getExpireAt() != null && new Date().after(apiKey.getExpireAt()));
         apiKeyEntity.setRevoked(apiKey.isRevoked());
         apiKeyEntity.setRevokedAt(apiKey.getRevokedAt());
         apiKeyEntity.setUpdatedAt(apiKey.getUpdatedAt());

@@ -17,14 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.RatingAnswerRepository;
-import io.gravitee.repository.management.api.RatingRepository;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.Rating;
-import io.gravitee.repository.management.model.RatingAnswer;
-import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.*;
@@ -34,6 +26,14 @@ import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.RatingAnswerRepository;
+import io.gravitee.repository.management.api.RatingRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.Rating;
+import io.gravitee.repository.management.model.RatingAnswer;
+import io.gravitee.repository.management.model.RatingReferenceType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,7 +143,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            final Page<Rating> pageRating = ratingRepository.findByReferenceIdAndReferenceTypePageable(api, RatingReferenceType.API, 
+            final Page<Rating> pageRating = ratingRepository.findByReferenceIdAndReferenceTypePageable(api, RatingReferenceType.API,
                     new PageableBuilder().pageNumber(pageable.pageNumber() - 1).pageSize(pageable.pageSize()).build());
             final List<RatingEntity> ratingEntities =
                     pageRating.getContent().stream().map(this::convert).collect(toList());
@@ -282,13 +282,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
         final UserEntity user = userService.findById(rating.getUser());
         ratingEntity.setUser(user.getId());
-
-        if (user.getFirstname() != null && user.getLastname() != null) {
-            ratingEntity.setUserDisplayName(user.getFirstname() + ' ' + user.getLastname());
-        } else {
-            ratingEntity.setUserDisplayName(user.getEmail());
-        }
-
+        ratingEntity.setUserDisplayName(user.getDisplayName());
         ratingEntity.setId(rating.getId());
         ratingEntity.setApi(rating.getReferenceId());
         ratingEntity.setTitle(rating.getTitle());

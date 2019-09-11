@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.NewApiEntity;
-
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -40,6 +39,22 @@ public class ApisResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotCreateApi_noContent() {
         final Response response = target().request().post(null);
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotCreateApi_emptyName() {
+        final NewApiEntity apiEntity = new NewApiEntity();
+        apiEntity.setName("");
+        apiEntity.setVersion("v1");
+        apiEntity.setDescription("my description");
+
+        ApiEntity returnedApi = new ApiEntity();
+        returnedApi.setId("my-beautiful-api");
+        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
+                Mockito.eq(USER_NAME));
+
+        final Response response = target().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 

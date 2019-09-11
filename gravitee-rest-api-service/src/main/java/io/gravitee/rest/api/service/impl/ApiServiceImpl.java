@@ -27,17 +27,9 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiLifecycleState;
-import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
@@ -57,8 +49,16 @@ import io.gravitee.rest.api.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
-import io.vertx.core.buffer.Buffer;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.*;
+import io.vertx.core.buffer.Buffer;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,25 +66,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
-import org.springframework.util.CollectionUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.gravitee.repository.management.model.Api.AuditEvent.*;
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
+import static io.gravitee.repository.management.model.Api.AuditEvent.*;
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static java.util.Collections.*;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
@@ -101,8 +102,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
 
+    private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
+
+    private static final String URI_PATH_SEPARATOR = "/";
+
     @Autowired
     private ApiRepository apiRepository;
+    @Autowired
+    private ApiQualityRuleRepository apiQualityRuleRepository;
     @Autowired
     private MembershipRepository membershipRepository;
     @Autowired
@@ -153,11 +160,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private WorkflowService workflowService;
     @Autowired
     private HttpClientService httpClientService;
-    
+    @Autowired
+    private VirtualHostService virtualHostService;
+    @Autowired
+    private AlertService alertService;
+    @Autowired
+    private RoleService roleService;
+
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
     private static final String ENDPOINTS_DELIMITER = "\n";
-    
+
     @Override
     public ApiEntity create(final NewApiEntity newApiEntity, final String userId) throws ApiAlreadyExistsException {
         return create(newApiEntity, userId, null, null);
@@ -196,7 +209,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setGroups(newApiEntity.getGroups());
 
         Proxy proxy = new Proxy();
-        proxy.setContextPath(newApiEntity.getContextPath());
+        proxy.setVirtualHosts(singletonList(new VirtualHost(newApiEntity.getContextPath())));
         EndpointGroup group = new EndpointGroup();
         group.setName("default-group");
 
@@ -240,7 +253,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ApiEntity createdApi = create0(apiEntity, userId);
 
         createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
-        
+
         return createdApi;
     }
 
@@ -251,15 +264,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 .type(PageType.SWAGGER)
                 .build()
                 );
-        
+
         if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
-            if(isForCreation || (apiDocs == null || apiDocs.isEmpty())) { 
+            if(isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
                 final NewPageEntity page = new NewPageEntity();
                 page.setName("Swagger");
                 page.setType(SWAGGER);
                 page.setOrder(1);
                 if (INLINE.equals(swaggerDescriptor.getType())) {
-                    String modifiedApi = addGraviteeUrl(api.getProxy().getContextPath(), swaggerDescriptor.getPayload());
+                    String modifiedApi = addGraviteeUrl(api.getProxy().getVirtualHosts(), swaggerDescriptor.getPayload());
                     page.setContent(modifiedApi);
                 } else {
                     final PageSourceEntity source = new PageSourceEntity();
@@ -274,7 +287,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 page.setName(pageToUpdate.getName());
                 page.setOrder(pageToUpdate.getOrder());
                 if (INLINE.equals(swaggerDescriptor.getType())) {
-                    String modifiedApi = addGraviteeUrl(api.getProxy().getContextPath(), swaggerDescriptor.getPayload());
+                    String modifiedApi = addGraviteeUrl(api.getProxy().getVirtualHosts(), swaggerDescriptor.getPayload());
                     page.setContent(modifiedApi);
                 } else {
                     final PageSourceEntity source = new PageSourceEntity();
@@ -305,7 +318,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiEntity.setPathMappings(swaggerPaths.stream().map(SwaggerPath::getPath).collect(toSet()));
         }
     }
-    
+
     private void addMockToPath(SwaggerPath swaggerPath, final Path path) {
         final List<Rule> rules = new ArrayList<>();
         swaggerPath.getVerbs().forEach(swaggerVerb -> {
@@ -325,10 +338,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 responseStatus = "200";
             }
             configuration.put("status", responseStatus);
-            final Map<Object, Object> header = new HashMap<>(2);
-            header.put("name", "Content-Type");
-            header.put("value", "application/json");
-            configuration.put("headers", singletonList(header));
+            if (swaggerVerb.getContentType() != null) {
+                final Map<Object, Object> header = new HashMap<>(2);
+                header.put("name", "Content-Type");
+                header.put("value", swaggerVerb.getContentType());
+                configuration.put("headers", singletonList(header));
+            }
             try {
                 final Object responseProperties = swaggerVerb.getResponseProperties();
                 if (responseProperties != null) {
@@ -347,16 +362,30 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         path.setRules(rules);
     }
 
-    private String addGraviteeUrl(String apiContextPath, String payload) {
+    private String addGraviteeUrl(List<VirtualHost> virtualHosts, String payload) {
         List<String> graviteeUrls = new ArrayList<>();
         String portalEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
         if (portalEntrypoint != null) {
-            graviteeUrls.add(portalEntrypoint + apiContextPath);
+            virtualHosts.forEach(new Consumer<VirtualHost>() {
+                @Override
+                public void accept(VirtualHost virtualHost) {
+                    if (virtualHost.getHost() == null) {
+                        graviteeUrls.add(portalEntrypoint + virtualHost.getPath());
+                    } else {
+                        graviteeUrls.add(virtualHost.getHost() + virtualHost.getPath());
+                    }
+                }
+            });
         }
-        
+
         List<EntrypointEntity> entrypoints = entrypointService.findAll();
-        entrypoints.stream().map(entrypoint -> entrypoint.getValue() + apiContextPath).forEach(graviteeUrls::add);
-        
+        entrypoints.stream().flatMap(new Function<EntrypointEntity, Stream<String>>() {
+            @Override
+            public Stream<String> apply(EntrypointEntity entrypoint) {
+                return virtualHosts.stream().map(virtualHost -> entrypoint.getValue() + virtualHost.getPath());
+            }
+        }).forEach(graviteeUrls::add);
+
         return swaggerService.replaceServerList(payload, graviteeUrls);
     }
 
@@ -374,12 +403,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             checkShardingTags(api, null);
 
             // format context-path and check if context path is unique
-            checkContextPath(api.getProxy().getContextPath());
+            virtualHostService.validate(api.getProxy().getVirtualHosts());
 
             // check endpoints name
             checkEndpointsName(api);
 
             addLoggingMaxDuration(api.getProxy().getLogging());
+
+            // check if there is regex errors in plaintext fields
+            validateRegexfields(api);
 
             Api repoApi = convert(id, api);
 
@@ -411,7 +443,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 repoApi.setApiLifecycleState(ApiLifecycleState.CREATED);
                 if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED)) {
-                    workflowService.create(API, id, REVIEW, userId, DRAFT, "");
+                    workflowService.create(WorkflowReferenceType.API, id, REVIEW, userId, DRAFT, "");
                 }
 
                 Api createdApi = apiRepository.create(repoApi);
@@ -431,17 +463,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 membership.setCreatedAt(repoApi.getCreatedAt());
                 membership.setUpdatedAt(repoApi.getCreatedAt());
                 membershipRepository.create(membership);
+
                 // create the default mail notification
-                if (primaryOwner.getEmail() != null && !primaryOwner.getEmail().isEmpty()) {
-                    GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
-                    notificationConfigEntity.setName("Default Mail Notifications");
-                    notificationConfigEntity.setReferenceType(HookScope.API.name());
-                    notificationConfigEntity.setReferenceId(createdApi.getId());
-                    notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
-                    notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
-                    notificationConfigEntity.setConfig(primaryOwner.getEmail());
-                    genericNotificationConfigService.create(notificationConfigEntity);
-                }
+                GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
+                notificationConfigEntity.setName("Default Mail Notifications");
+                notificationConfigEntity.setReferenceType(HookScope.API.name());
+                notificationConfigEntity.setReferenceId(createdApi.getId());
+                notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
+                notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
+                notificationConfigEntity.setConfig("${api.primaryOwner.email}");
+                genericNotificationConfigService.create(notificationConfigEntity);
 
                 //TODO add membership log
                 ApiEntity apiEntity = convert(createdApi, primaryOwner);
@@ -454,37 +485,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + userId, ex);
-        }
-    }
-
-    public void checkContextPath(final String newContextPath) throws TechnicalException {
-        checkContextPath(newContextPath, null);
-    }
-
-    private void checkContextPath(String newContextPath, final String apiId) throws TechnicalException {
-        if (newContextPath.charAt(0) != '/') {
-            newContextPath = '/' + newContextPath;
-        }
-        if (newContextPath.charAt(newContextPath.length() - 1) == '/') {
-            newContextPath = newContextPath.substring(0, newContextPath.length() - 1);
-        }
-
-        final int indexOfEndOfNewSubContextPath = newContextPath.lastIndexOf('/', 1);
-        final String newSubContextPath = newContextPath.substring(0, indexOfEndOfNewSubContextPath <= 0 ?
-                newContextPath.length() : indexOfEndOfNewSubContextPath) + '/';
-
-        final boolean contextPathExists = apiRepository.search(new ApiCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).build()).stream()
-                .filter(api -> !api.getId().equals(apiId))
-                .anyMatch(api -> {
-                    final String contextPath = convert(api, null).getProxy().getContextPath();
-                    final int indexOfEndOfSubContextPath = contextPath.lastIndexOf('/', 1);
-                    final String subContextPath = contextPath.substring(0, indexOfEndOfSubContextPath <= 0 ?
-                            contextPath.length() : indexOfEndOfSubContextPath) + '/';
-
-                    return subContextPath.startsWith(newSubContextPath) || newSubContextPath.startsWith(subContextPath);
-                });
-        if (contextPathExists) {
-            throw new ApiContextPathAlreadyExistsException(newSubContextPath);
         }
     }
 
@@ -560,7 +560,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     throw new TechnicalException("The API " + apiId + " doesn't have any primary owner.");
                 }
 
-                return convert(api.get(), userService.findById(primaryOwnerMembership.get().getUserId()));
+                ApiEntity apiEntity = convert(api.get(), userService.findById(primaryOwnerMembership.get().getUserId()));
+
+                // Compute entrypoints
+                calculateEntrypoints(apiEntity);
+
+                return apiEntity;
             }
 
             throw new ApiNotFoundException(apiId);
@@ -568,6 +573,56 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
+    }
+
+    private void calculateEntrypoints(ApiEntity api) {
+        List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
+
+        if (api.getProxy() != null) {
+            if (api.getTags() != null && !api.getTags().isEmpty()) {
+                List<EntrypointEntity> entrypoints = entrypointService.findAll();
+                entrypoints.forEach(new Consumer<EntrypointEntity>() {
+                    @Override
+                    public void accept(EntrypointEntity entrypoint) {
+                        Set<String> tagEntrypoints = new HashSet<>(Arrays.asList(entrypoint.getTags()));
+                        tagEntrypoints.retainAll(api.getTags());
+
+                        if (tagEntrypoints.size() == entrypoint.getTags().length) {
+                            api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
+                                @Override
+                                public void accept(VirtualHost virtualHost) {
+                                    apiEntrypoints.add(new ApiEntrypointEntity(
+                                            tagEntrypoints,
+                                            DUPLICATE_SLASH_REMOVER
+                                                    .matcher(entrypoint.getValue() + URI_PATH_SEPARATOR + virtualHost.getPath())
+                                                    .replaceAll(URI_PATH_SEPARATOR),
+                                            virtualHost.getHost())
+                                    );
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+
+            // If empty, get the default entrypoint
+            if (apiEntrypoints.isEmpty()) {
+                String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
+
+                api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
+                    @Override
+                    public void accept(VirtualHost virtualHost) {
+                        apiEntrypoints.add(new ApiEntrypointEntity(
+                                DUPLICATE_SLASH_REMOVER
+                                        .matcher(defaultEntrypoint + URI_PATH_SEPARATOR + virtualHost.getPath())
+                                        .replaceAll(URI_PATH_SEPARATOR), virtualHost.getHost())
+                        );
+                    }
+                });
+            }
+        }
+
+        api.setEntrypoints(apiEntrypoints);
     }
 
     @Override
@@ -651,32 +706,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
         return apiEntityStream
                 .filter(api -> query.getTag() == null || (api.getTags() != null && api.getTags().contains(query.getTag())))
-                .filter(api -> query.getContextPath() == null || query.getContextPath().equals(api.getProxy().getContextPath()));
-
+                .filter(api -> query.getContextPath() == null || api.getProxy().getVirtualHosts().stream().anyMatch(
+                        virtualHost -> query.getContextPath().equals(virtualHost.getPath())));
     }
 
     @Override
     public ApiEntity update(String apiId, UpdateSwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        final ApiEntity apiEntityToUpdate = this.findById(apiId);
+        final UpdateApiEntity updateApiEntity = convert(apiEntityToUpdate);
 
-        final UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        ApiEntity apiEntityToUpdate = this.findById(apiId);
-        
-        //init update From existing api
-        updateApiEntity.setLabels(apiEntityToUpdate.getLabels());
-        updateApiEntity.setLifecycleState(apiEntityToUpdate.getLifecycleState());
-        updateApiEntity.setPicture(apiEntityToUpdate.getPicture());
-        updateApiEntity.setProperties(apiEntityToUpdate.getProperties());
-        updateApiEntity.setProxy(apiEntityToUpdate.getProxy());
-        updateApiEntity.setResources(apiEntityToUpdate.getResources());
-        updateApiEntity.setResponseTemplates(apiEntityToUpdate.getResponseTemplates());
-        updateApiEntity.setServices(apiEntityToUpdate.getServices());
-        updateApiEntity.setTags(apiEntityToUpdate.getTags());
-        updateApiEntity.setViews(apiEntityToUpdate.getViews());
-        updateApiEntity.setVisibility(apiEntityToUpdate.getVisibility());
-        updateApiEntity.setPaths(apiEntityToUpdate.getPaths());
-        updateApiEntity.setPathMappings(apiEntityToUpdate.getPathMappings());
-        
-        
         //overwrite from swagger
         updateApiEntity.setVersion(swaggerApiEntity.getVersion());
         updateApiEntity.setName(swaggerApiEntity.getName());
@@ -690,7 +728,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         return update(apiId, updateApiEntity);
     }
-    
+
     @Override
     public ApiEntity update(String apiId, UpdateApiEntity updateApiEntity) {
         try {
@@ -701,20 +739,23 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 throw new ApiNotFoundException(apiId);
             }
 
-            // check if context path is unique
-            checkContextPath(updateApiEntity.getProxy().getContextPath(), apiId);
+            // check if entrypoints are unique
+            virtualHostService.validate(updateApiEntity.getProxy().getVirtualHosts(), apiId);
 
             // check endpoints name
             checkEndpointsName(updateApiEntity);
 
             addLoggingMaxDuration(updateApiEntity.getProxy().getLogging());
 
+            // check if there is regex errors in plaintext fields
+            validateRegexfields(updateApiEntity);
+
             final ApiEntity apiToCheck = convert(optApiToUpdate.get());
 
             // if user changes sharding tags, then check if he is allowed to do it
             checkShardingTags(updateApiEntity, apiToCheck);
 
-            // if lifecycle state not provide, set the saved one
+            // if lifecycle state not provided, set the saved one
             if (updateApiEntity.getLifecycleState() == null) {
                 updateApiEntity.setLifecycleState(apiToCheck.getLifecycleState());
             }
@@ -754,7 +795,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (updateApiEntity.getViews() == null) {
                     api.setViews(apiToUpdate.getViews());
                 }
-                
+
+                if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
+                    planService.findByApi(api.getId()).forEach(plan -> {
+                        if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
+                            planService.depreciate(plan.getId());
+                        }
+                    });
+                    notifierService.trigger(ApiHook.API_DEPRECATED, apiId,
+                            new NotificationParamsBuilder()
+                                    .api(apiToCheck)
+                                    .user(userService.findById(getAuthenticatedUsername()))
+                                    .build());
+                }
+
                 Api updatedApi = apiRepository.update(api);
 
                 // Audit
@@ -805,16 +859,41 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    private void validateRegexfields(final UpdateApiEntity updateApiEntity) {
+        // validate regex on paths
+        if (updateApiEntity.getPaths() != null) {
+            updateApiEntity.getPaths().forEach((path, v) -> {
+                try {
+                    Pattern.compile(path);
+                } catch (java.util.regex.PatternSyntaxException pse) {
+                    LOGGER.error("An error occurs while trying to parse the path {}", path, pse);
+                    throw new TechnicalManagementException("An error occurs while trying to parse the path " + path, pse);
+                }
+            });
+        }
+
+        // validate regex on pathMappings
+        if (updateApiEntity.getPathMappings() != null) {
+            updateApiEntity.getPathMappings().forEach( pathMapping -> {
+                try {
+                    Pattern.compile(pathMapping);
+                } catch (java.util.regex.PatternSyntaxException pse) {
+                    LOGGER.error("An error occurs while trying to parse the path mapping {}", pathMapping, pse);
+                    throw new TechnicalManagementException("An error occurs while trying to parse the path mapping" + pathMapping, pse);
+                }
+            });
+        }
+    }
+
     private void checkLifecycleState(final UpdateApiEntity updateApiEntity, final ApiEntity existingAPI) {
+        if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED.equals(existingAPI.getLifecycleState())) {
+            throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
+        }
         if (existingAPI.getLifecycleState().name().equals(updateApiEntity.getLifecycleState().name())) {
             return;
         }
         if (io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED.equals(existingAPI.getLifecycleState())) {
             if (!io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED.equals(updateApiEntity.getLifecycleState())) {
-                throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
-            }
-        } else if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED.equals(existingAPI.getLifecycleState())) {
-            if (!io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED.equals(updateApiEntity.getLifecycleState())) {
                 throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
             }
         } else if (io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED.equals(existingAPI.getLifecycleState())) {
@@ -870,6 +949,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiRepository.delete(apiId);
                 // Delete top API
                 topApiService.delete(apiId);
+                // Delete alerts
+                final List<AlertTriggerEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
+                alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
+                // delete all reference on api quality rule
+                apiQualityRuleRepository.deleteByApi(apiId);
                 // Audit
                 auditService.createApiAuditLog(
                         apiId,
@@ -1104,12 +1188,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public ApiEntity createOrUpdateWithDefinition(final ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
-        
+
         String apiDefinition = apiDefinitionOrURL;
         if(apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
             apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         }
-        
+
         try {
             final UpdateApiEntity importedApi = objectMapper
                     // because definition could contains other values than the api itself (pages, members)
@@ -1386,7 +1470,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiModelEntity.setPicture(apiEntity.getPicture());
         apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
         apiModelEntity.setProperties(apiEntity.getProperties());
-        apiModelEntity.setProxy(apiEntity.getProxy());
+        apiModelEntity.setProxy(convert(apiEntity.getProxy()));
         apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
 
         final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(apiId);
@@ -1454,7 +1538,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Map<String, Object> model = new HashMap<>();
             model.put("api", apiEntity);
             entities.forEach(entity -> {
-                if (entity.getValue().contains("${")) {
+                // Skip api.endpoint which is no more required for entrypoints
+                // this avoid exception with existing header which is trying to get value from context-path
+                if (! entity.getName().equals("api.endpoint") && entity.getValue().contains("${")) {
                     try {
                         Template template = new Template(entity.getId() + entity.getUpdatedAt().toString(), entity.getValue(), freemarkerConfiguration);
                         entity.setValue(FreeMarkerTemplateUtils.processTemplateIntoString(template, model));
@@ -1485,9 +1571,81 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return updateWorkflowReview(apiId, userId, ApiHook.REQUEST_FOR_CHANGES, WorkflowState.REQUEST_FOR_CHANGES, reviewEntity.getMessage());
     }
 
+    @Override
+    public ApiEntity duplicate(final String apiId, final DuplicateApiEntity duplicateApiEntity) {
+        LOGGER.debug("Duplicate API {}", apiId);
+        final ApiEntity apiEntity = findById(apiId);
+
+        final UpdateApiEntity newApiEntity = convert(apiEntity);
+        final Proxy proxy = apiEntity.getProxy();
+        proxy.setVirtualHosts(singletonList(new VirtualHost(duplicateApiEntity.getContextPath())));
+        newApiEntity.setProxy(proxy);
+        newApiEntity.setVersion(duplicateApiEntity.getVersion() == null? apiEntity.getVersion(): duplicateApiEntity.getVersion());
+
+        if (duplicateApiEntity.getFilteredFields().contains("groups")) {
+            newApiEntity.setGroups(null);
+        } else {
+            newApiEntity.setGroups(apiEntity.getGroups());
+        }
+        final ApiEntity duplicatedApi = create0(newApiEntity, getAuthenticatedUsername());
+
+        if (!duplicateApiEntity.getFilteredFields().contains("members")) {
+            final Set<MemberEntity> membersToDuplicate =
+                    membershipService.getMembers(MembershipReferenceType.API, apiId, RoleScope.API);
+            final MemberEntity primaryOwner =
+                    membershipService.getMember(MembershipReferenceType.API, duplicatedApi.getId(), duplicatedApi.getPrimaryOwner().getId(), RoleScope.API);
+            membersToDuplicate.forEach(member -> {
+                if (!primaryOwner.equals(member)) {
+                    String role = member.getRole();
+                    if (SystemRole.PRIMARY_OWNER.name().equals(role)) {
+                        role = roleService.findDefaultRoleByScopes(RoleScope.API).iterator().next().getName();
+                    }
+                    membershipService.addOrUpdateMember(
+                            new MembershipService.MembershipReference(MembershipReferenceType.API, duplicatedApi.getId()),
+                            new MembershipService.MembershipUser(member.getId(), null),
+                            new MembershipService.MembershipRole(RoleScope.API, role));
+                }
+            });
+        }
+
+        if (!duplicateApiEntity.getFilteredFields().contains("pages")) {
+            final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build());
+            pages.forEach(page -> pageService.create(duplicatedApi.getId(), page));
+        }
+
+        if (!duplicateApiEntity.getFilteredFields().contains("plans")) {
+            final Set<PlanEntity> plans = planService.findByApi(apiId);
+            plans.forEach(plan -> planService.create(duplicatedApi.getId(), plan));
+        }
+
+        return duplicatedApi;
+    }
+
+    private UpdateApiEntity convert(final ApiEntity apiEntity) {
+        final UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setDescription(apiEntity.getDescription());
+        updateApiEntity.setName(apiEntity.getName());
+        updateApiEntity.setVersion(apiEntity.getVersion());
+        updateApiEntity.setGroups(apiEntity.getGroups());
+        updateApiEntity.setLabels(apiEntity.getLabels());
+        updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
+        updateApiEntity.setPicture(apiEntity.getPicture());
+        updateApiEntity.setProperties(apiEntity.getProperties());
+        updateApiEntity.setProxy(apiEntity.getProxy());
+        updateApiEntity.setResources(apiEntity.getResources());
+        updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
+        updateApiEntity.setServices(apiEntity.getServices());
+        updateApiEntity.setTags(apiEntity.getTags());
+        updateApiEntity.setViews(apiEntity.getViews());
+        updateApiEntity.setVisibility(apiEntity.getVisibility());
+        updateApiEntity.setPaths(apiEntity.getPaths());
+        updateApiEntity.setPathMappings(apiEntity.getPathMappings());
+        return updateApiEntity;
+    }
+
     private ApiEntity updateWorkflowReview(final String apiId, final String userId, final ApiHook hook,
                                            final WorkflowState workflowState, final String workflowMessage) {
-        workflowService.create(API, apiId, REVIEW, userId, workflowState, workflowMessage);
+        workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
         final ApiEntity apiEntity = findById(apiId);
         apiEntity.setWorkflowState(workflowState);
 
@@ -1729,8 +1887,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (updateApiEntity.getVisibility() != null) {
             api.setVisibility(Visibility.valueOf(updateApiEntity.getVisibility().toString()));
         }
-        
-        api.setEnvironment(GraviteeContext.getCurrentEnvironment());
+
         api.setVersion(updateApiEntity.getVersion().trim());
         api.setName(updateApiEntity.getName().trim());
         api.setDescription(updateApiEntity.getDescription().trim());
@@ -1749,18 +1906,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiDefinition.setName(updateApiEntity.getName());
             apiDefinition.setVersion(updateApiEntity.getVersion());
             apiDefinition.setProxy(updateApiEntity.getProxy());
-            
+
             apiDefinition.setPaths(updateApiEntity.getPaths());
             if (updateApiEntity.getPathMappings() != null) {
                 apiDefinition.setPathMappings(updateApiEntity.getPathMappings().stream()
                         .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(""))));
             }
-            
+
             apiDefinition.setServices(updateApiEntity.getServices());
             apiDefinition.setResources(updateApiEntity.getResources());
             apiDefinition.setProperties(updateApiEntity.getProperties());
             apiDefinition.setTags(updateApiEntity.getTags());
-            
+
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
 
             String definition = objectMapper.writeValueAsString(apiDefinition);
@@ -1845,5 +2002,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             result = 31 * result + sourceId.hashCode();
             return result;
         }
+    }
+
+    private ProxyModelEntity convert(Proxy proxy) {
+        ProxyModelEntity proxyModelEntity = new ProxyModelEntity();
+
+        proxyModelEntity.setCors(proxy.getCors());
+        proxyModelEntity.setFailover(proxy.getFailover());
+        proxyModelEntity.setGroups(proxy.getGroups());
+        proxyModelEntity.setLogging(proxy.getLogging());
+        proxyModelEntity.setPreserveHost(proxy.isPreserveHost());
+        proxyModelEntity.setStripContextPath(proxy.isStripContextPath());
+        proxyModelEntity.setVirtualHosts(proxy.getVirtualHosts());
+
+        //add a default context-path to preserve compatibility on old templates
+        if (proxy.getVirtualHosts() != null && !proxy.getVirtualHosts().isEmpty()) {
+            proxyModelEntity.setContextPath(proxy.getVirtualHosts().get(0).getPath());
+        }
+
+        return proxyModelEntity;
     }
 }

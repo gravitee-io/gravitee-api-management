@@ -15,20 +15,10 @@
  */
 package io.gravitee.rest.api.service.jackson.ser.api;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-
 import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
@@ -37,6 +27,12 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -55,7 +51,13 @@ public class Api1_15VersionSerializer extends ApiSerializer {
         // proxy part
         if (apiEntity.getProxy() != null) {
             jsonGenerator.writeObjectFieldStart("proxy");
-            jsonGenerator.writeObjectField("context_path", apiEntity.getProxy().getContextPath());
+
+            // We assume that the API is containing a single virtual host
+            Iterator<VirtualHost> virtualHostIterator = apiEntity.getProxy().getVirtualHosts().iterator();
+            if (virtualHostIterator.hasNext()) {
+                jsonGenerator.writeObjectField("context_path", virtualHostIterator.next().getPath());
+            }
+
             jsonGenerator.writeObjectField("strip_context_path", apiEntity.getProxy().isStripContextPath());
             if (apiEntity.getProxy().getLogging() == null) {
                 jsonGenerator.writeObjectField("loggingMode", LoggingMode.NONE);
@@ -80,8 +82,6 @@ public class Api1_15VersionSerializer extends ApiSerializer {
 
             jsonGenerator.writeEndObject();
         }
-
-
 
         // handle filtered fields list
         List<String> filteredFieldsList = (List<String>) apiEntity.getMetadata().get(METADATA_FILTERED_FIELDS_LIST);

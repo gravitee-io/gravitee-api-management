@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
@@ -59,8 +60,8 @@ public class ApiListItem {
     @JsonProperty(value = "picture_url")
     private String pictureUrl;
 
-    @JsonProperty(value = "context_path")
-    private String contextPath;
+    @JsonProperty(value = "virtual_hosts")
+    private List<VirtualHost> virtualHosts;
 
     private Set<String> views;
 
@@ -168,12 +169,12 @@ public class ApiListItem {
         this.pictureUrl = pictureUrl;
     }
 
-    public String getContextPath() {
-        return contextPath;
+    public List<VirtualHost> getVirtualHosts() {
+        return virtualHosts;
     }
 
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
+    public void setVirtualHosts(List<VirtualHost> virtualHosts) {
+        this.virtualHosts = virtualHosts;
     }
 
     public Set<String> getViews() {
@@ -183,7 +184,7 @@ public class ApiListItem {
     public void setViews(Set<String> views) {
         this.views = views;
     }
-    
+
     public List<String> getLabels() {
         return labels;
     }
@@ -256,22 +257,22 @@ public class ApiListItem {
 
     public String toString() {
         return "ApiListItem{" +
-            "id='" + id + '\'' +
-            ", name='" + name + '\'' +
-            ", version='" + version + '\'' +
-            ", description='" + description + '\'' +
-            ", createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
-            ", visibility=" + visibility +
-            ", state=" + state +
-            ", primaryOwner=" + primaryOwner +
-            ", role=" + role +
-            ", manageable=" + manageable +
-            ", rate=" + rate +
-            ", numberOfRatings=" + numberOfRatings +
-            ", tags=" + tags +
-            ", lifecycleState=" + lifecycleState +
-            ", workflowState=" + workflowState +
-            '}';
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", version='" + version + '\'' +
+                ", description='" + description + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", visibility=" + visibility +
+                ", state=" + state +
+                ", primaryOwner=" + primaryOwner +
+                ", role=" + role +
+                ", manageable=" + manageable +
+                ", rate=" + rate +
+                ", numberOfRatings=" + numberOfRatings +
+                ", tags=" + tags +
+                ", lifecycleState=" + lifecycleState +
+                ", workflowState=" + workflowState +
+                '}';
     }
 }

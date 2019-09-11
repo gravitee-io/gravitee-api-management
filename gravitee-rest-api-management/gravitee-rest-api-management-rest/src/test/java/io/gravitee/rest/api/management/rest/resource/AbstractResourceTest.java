@@ -20,8 +20,6 @@ import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
 import io.gravitee.rest.api.service.*;
-
-import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -122,14 +120,17 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected ParameterService parameterService;
 
+    @Autowired
+    protected VirtualHostService virtualHostService;
+
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
     static class ContextConfiguration {
 
-    	@Bean
-    	public ApiService apiService() {
-    		return mock(ApiService.class);
-    	}
+        @Bean
+        public ApiService apiService() {
+            return mock(ApiService.class);
+        }
 
         @Bean
         public ApplicationService applicationService() {
@@ -203,7 +204,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
         @Bean
         public JWTCookieGenerator jwtCookieGenerator() {
-    	    return mock(JWTCookieGenerator.class);
+            return mock(JWTCookieGenerator.class);
         }
 
         @Bean
@@ -239,6 +240,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ParameterService parameterService() {
             return mock(ParameterService.class);
+        }
+
+        @Bean
+        public VirtualHostService virtualHostService() {
+            return mock(VirtualHostService.class);
         }
     }
 }

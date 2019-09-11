@@ -19,13 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.NewPageEntity;
@@ -33,17 +26,15 @@ import io.gravitee.rest.api.model.NewPlanEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.IdentityService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,6 +95,11 @@ public class ApiService_CreateWithDefinitionTest {
     private SearchEngineService searchEngineService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private VirtualHostService virtualHostService;
+
+    @Mock
+    private  GenericNotificationConfigService  genericNotificationConfigService;
 
     @Before
     public void init() {
@@ -114,7 +110,7 @@ public class ApiService_CreateWithDefinitionTest {
 
     @Test
     public void shouldCreateImportApiWithMembersAndPages() throws IOException, TechnicalException {
-        URL url =  Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members+pages.json");
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+members+pages.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
         Api api = new Api();
@@ -159,6 +155,7 @@ public class ApiService_CreateWithDefinitionTest {
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
+        verify(genericNotificationConfigService, times(1)).create(any());
     }
 
     @Test
@@ -207,6 +204,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(membershipService, never()).transferApiOwnership(any(), any(), any());
+        verify(genericNotificationConfigService, times(1)).create(any());
     }
 
     @Test
@@ -239,7 +237,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
-
+        verify(genericNotificationConfigService, times(1)).create(any());
     }
 
     @Test
@@ -272,6 +270,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
+        verify(genericNotificationConfigService, times(1)).create(any());
     }
 
     @Test
@@ -304,7 +303,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
-
+        verify(genericNotificationConfigService, times(1)).create(any());
     }
 
     private static class IdOnlySearchableUser implements SearchableUser {
@@ -332,6 +331,11 @@ public class ApiService_CreateWithDefinitionTest {
 
         @Override
         public String getLastname() {
+            return null;
+        }
+
+        @Override
+        public String getEmail() {
             return null;
         }
     }

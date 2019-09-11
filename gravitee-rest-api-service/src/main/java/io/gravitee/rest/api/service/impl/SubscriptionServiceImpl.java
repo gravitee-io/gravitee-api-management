@@ -17,13 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.SubscriptionRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.ApplicationType;
-import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -35,7 +28,14 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.ApplicationType;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Subscription;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,10 +45,14 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.*;
+import static java.lang.System.lineSeparator;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -63,33 +67,30 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private final Logger logger = LoggerFactory.getLogger(SubscriptionServiceImpl.class);
 
     private static final String SUBSCRIPTION_SYSTEM_VALIDATOR = "system";
+    private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
+    private static final char separator = ';';
 
     @Autowired
     private PlanService planService;
-
     @Autowired
     private SubscriptionRepository subscriptionRepository;
-
     @Autowired
     private ApiKeyService apiKeyService;
-
     @Autowired
     private ApplicationService applicationService;
-
     @Autowired
     private ApiService apiService;
-
     @Autowired
     private EmailService emailService;
-
     @Autowired
     private ConfigurableEnvironment environment;
-
     @Autowired
     private AuditService auditService;
-
     @Autowired
     private NotifierService notifierService;
+    @Autowired
+    private GroupService groupService;
 
     @Override
     public SubscriptionEntity findById(String subscription) {
@@ -123,7 +124,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             query.setApplication(application);
         } else if (isAuthenticated()) {
             Set<ApplicationListItem> applications = applicationService.findByUser(getAuthenticatedUsername());
-            query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
+            query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toList()));
         }
 
         return search(query);
@@ -174,7 +175,19 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 throw new PlanNotSubscribableException("A key_less plan is not subscribable !");
             }
 
+            if (planEntity.getExcludedGroups() != null && !planEntity.getExcludedGroups().isEmpty()) {
+                final Set<GroupEntity> groups = groupService.findByUser(getAuthenticatedUsername());
+                groups.stream().map(GroupEntity::getId).forEach(group -> {
+                    if (planEntity.getExcludedGroups().contains(group)) {
+                        throw new PlanRestrictedException(plan);
+                    }
+                });
+            }
+
             ApplicationEntity applicationEntity = applicationService.findById(application);
+            if (ApplicationStatus.ARCHIVED.name().equals(applicationEntity.getStatus())) {
+                throw new ApplicationArchivedException(applicationEntity.getName());
+            }
 
             // Check existing subscriptions
             List<Subscription> subscriptions = subscriptionRepository.search(
@@ -385,7 +398,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
 
             subscription.setProcessedBy(userId);
-            subscription.setProcessedAt(new Date());
+            Date now = new Date();
+            subscription.setProcessedAt(now);
+            subscription.setUpdatedAt(now);
 
             if (processSubscription.isAccepted()) {
                 subscription.setStatus(Subscription.Status.ACCEPTED);
@@ -458,56 +473,63 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             Subscription subscription = optSubscription.get();
 
-            if (subscription.getStatus() == Subscription.Status.ACCEPTED ||
-                    subscription.getStatus() == Subscription.Status.PAUSED) {
-                Subscription previousSubscription = new Subscription(subscription);
-                final Date now = new Date();
-                subscription.setUpdatedAt(now);
-                subscription.setStatus(Subscription.Status.CLOSED);
+            switch (subscription.getStatus()) {
+                case ACCEPTED:
+                case PAUSED:
+                    Subscription previousSubscription = new Subscription(subscription);
+                    final Date now = new Date();
+                    subscription.setUpdatedAt(now);
+                    subscription.setStatus(Subscription.Status.CLOSED);
 
-                subscription.setClosedAt(new Date());
+                    subscription.setClosedAt(new Date());
 
-                subscription = subscriptionRepository.update(subscription);
+                    subscription = subscriptionRepository.update(subscription);
 
-                // Send an email to subscriber
-                final ApplicationEntity application = applicationService.findById(subscription.getApplication());
-                final PlanEntity plan = planService.findById(subscription.getPlan());
-                String apiId = plan.getApi();
-                final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
-                final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-                final Map<String, Object> params = new NotificationParamsBuilder()
-                        .owner(owner)
-                        .api(api)
-                        .plan(plan)
-                        .application(application)
-                        .build();
+                    // Send an email to subscriber
+                    final ApplicationEntity application = applicationService.findById(subscription.getApplication());
+                    final PlanEntity plan = planService.findById(subscription.getPlan());
+                    String apiId = plan.getApi();
+                    final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
+                    final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+                    final Map<String, Object> params = new NotificationParamsBuilder()
+                            .owner(owner)
+                            .api(api)
+                            .plan(plan)
+                            .application(application)
+                            .build();
 
-                notifierService.trigger(ApiHook.SUBSCRIPTION_CLOSED, apiId, params);
-                notifierService.trigger(ApplicationHook.SUBSCRIPTION_CLOSED, application.getId(), params);
-                createAudit(
-                        apiId,
-                        subscription.getApplication(),
-                        SUBSCRIPTION_CLOSED,
-                        subscription.getUpdatedAt(),
-                        previousSubscription,
-                        subscription);
+                    notifierService.trigger(ApiHook.SUBSCRIPTION_CLOSED, apiId, params);
+                    notifierService.trigger(ApplicationHook.SUBSCRIPTION_CLOSED, application.getId(), params);
+                    createAudit(
+                            apiId,
+                            subscription.getApplication(),
+                            SUBSCRIPTION_CLOSED,
+                            subscription.getUpdatedAt(),
+                            previousSubscription,
+                            subscription);
 
-                // API Keys are automatically revoked
-                Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
-                for (ApiKeyEntity apiKey : apiKeys) {
-                    Date expireAt = apiKey.getExpireAt();
-                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
-                        apiKey.setExpireAt(now);
-                        apiKey.setRevokedAt(now);
-                        apiKey.setRevoked(true);
-                        apiKeyService.revoke(apiKey.getKey(), false);
+                    // API Keys are automatically revoked
+                    Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                    for (ApiKeyEntity apiKey : apiKeys) {
+                        Date expireAt = apiKey.getExpireAt();
+                        if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
+                            apiKey.setExpireAt(now);
+                            apiKey.setRevokedAt(now);
+                            apiKey.setRevoked(true);
+                            apiKeyService.revoke(apiKey.getKey(), false);
+                        }
                     }
-                }
 
-                return convert(subscription);
+                    return convert(subscription);
+                case PENDING:
+                    ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
+                    processSubscriptionEntity.setId(subscription.getId());
+                    processSubscriptionEntity.setAccepted(false);
+                    processSubscriptionEntity.setReason("Subscription has been closed.");
+                    return this.process(processSubscriptionEntity, getAuthenticatedUsername());
+                default:
+                    throw new SubscriptionNotClosableException(subscription);
             }
-
-            throw new SubscriptionNotClosableException(subscription);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to close subscription {}", subscriptionId, ex);
             throw new TechnicalManagementException(String.format(
@@ -697,10 +719,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         .collect(Collectors.toSet()));
             }
 
-            List<SubscriptionEntity> subscriptions = subscriptionRepository.search(builder.build())
-                    .stream().map(this::convert).collect(Collectors.toList());
-            return subscriptions;
-
+            Stream<SubscriptionEntity> subscriptionsStream =
+                    subscriptionRepository.search(builder.build()).stream().map(this::convert);
+            if (query.getApiKey() != null && !query.getApiKey().isEmpty()) {
+                subscriptionsStream = subscriptionsStream.filter(subscriptionEntity -> {
+                    final Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscriptionEntity.getId());
+                    return apiKeys.stream().anyMatch(apiKeyEntity -> apiKeyEntity.getKey().equals(query.getApiKey()));
+                });
+            }
+            return subscriptionsStream.collect(toList());
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to search for subscriptions: {}", query, ex);
             throw new TechnicalManagementException(
@@ -734,11 +761,20 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                                     .pageSize(pageable.getPageSize())
                                     .build());
 
-            List<SubscriptionEntity> content = pageSubscription.getContent()
-                    .stream().map(this::convert).collect(Collectors.toList());
+            Stream<SubscriptionEntity> subscriptionsStream = pageSubscription.getContent().stream().map(this::convert);
 
-            return new Page<>(content, pageSubscription.getPageNumber() + 1,
-                    (int) pageSubscription.getPageElements(), pageSubscription.getTotalElements());
+            if (query.getApiKey() != null && !query.getApiKey().isEmpty()) {
+                subscriptionsStream = subscriptionsStream.filter(subscriptionEntity -> {
+                    final Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscriptionEntity.getId());
+                    return apiKeys.stream().anyMatch(apiKeyEntity -> apiKeyEntity.getKey().equals(query.getApiKey()));
+                });
+                final Optional<SubscriptionEntity> sub = subscriptionsStream.findAny();
+                List<SubscriptionEntity> subscriptionEntities = sub.map(Collections::singletonList).orElse(emptyList());
+                return new Page<>(subscriptionEntities, 1, subscriptionEntities.size(), subscriptionEntities.size());
+            } else {
+                return new Page<>(subscriptionsStream.collect(toList()), pageSubscription.getPageNumber() + 1,
+                        (int) pageSubscription.getPageElements(), pageSubscription.getTotalElements());
+            }
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to search for pageable subscriptions: {}", query, ex);
             throw new TechnicalManagementException(
@@ -808,6 +844,61 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     "An error occurs while trying to transfer subscription %s by %s",
                     transferSubscription.getId(), userId), ex);
         }
+    }
+
+    @Override
+    public String exportAsCsv(Collection<SubscriptionEntity> subscriptions, Map<String, Map<String, Object>> metadata) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("Plan");
+        sb.append(separator);
+        sb.append("Application");
+        sb.append(separator);
+        sb.append("Creation date");
+        sb.append(separator);
+        sb.append("Process date");
+        sb.append(separator);
+        sb.append("Start date");
+        sb.append(separator);
+        sb.append("End date date");
+        sb.append(separator);
+        sb.append("Status");
+        sb.append(lineSeparator());
+
+        if (subscriptions == null || subscriptions.isEmpty()) {
+            return sb.toString();
+        }
+        for (final SubscriptionEntity subscription : subscriptions) {
+            final Object plan = metadata.get(subscription.getPlan());
+            sb.append(getName(plan));
+            sb.append(separator);
+
+            final Object application = metadata.get(subscription.getApplication());
+            sb.append(getName(application));
+            sb.append(separator);
+
+            sb.append(dateFormatter.format(subscription.getCreatedAt()));
+            sb.append(separator);
+
+            sb.append(dateFormatter.format(subscription.getProcessedAt()));
+            sb.append(separator);
+
+            sb.append(dateFormatter.format(subscription.getStartingAt()));
+            sb.append(separator);
+
+            if (subscription.getEndingAt() != null) {
+                sb.append(dateFormatter.format(subscription.getEndingAt()));
+            }
+
+            sb.append(separator);
+            sb.append(subscription.getStatus());
+
+            sb.append(lineSeparator());
+        }
+        return sb.toString();
+    }
+
+    private String getName(Object map) {
+        return map == null ? "" : ((Map) map).get("name").toString();
     }
 
     public Metadata getMetadata(List<SubscriptionEntity> subscriptions) {

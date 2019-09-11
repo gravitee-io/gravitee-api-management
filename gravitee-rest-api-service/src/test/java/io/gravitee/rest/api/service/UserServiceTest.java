@@ -16,33 +16,21 @@
 package io.gravitee.rest.api.service;
 
 import com.auth0.jwt.JWTSigner;
-
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.UserRepository;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.EmailService;
-import io.gravitee.rest.api.service.InvitationService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.NotifierService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.JWTHelper;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.UserAlreadyExistsException;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import io.gravitee.rest.api.service.exceptions.UserNotInternallyManagedException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.UserServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.*;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -55,6 +43,7 @@ import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRA
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -86,18 +75,14 @@ public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private ApplicationService applicationService;
-
     @Mock
     private RoleService roleService;
-
-    @Mock MembershipService membershipService;
-
+    @Mock
+    private MembershipService membershipService;
     @Mock
     private ConfigurableEnvironment environment;
-
     @Mock
     private NewExternalUserEntity newUser;
     @Mock
@@ -116,6 +101,14 @@ public class UserServiceTest {
     private SearchEngineService searchEngineService;
     @Mock
     private InvitationService invitationService;
+    @Mock
+    private ApiService apiService;
+    @Mock
+    private PortalNotificationService portalNotificationService;
+    @Mock
+    private PortalNotificationConfigService portalNotificationConfigService;
+    @Mock
+    private GenericNotificationConfigService genericNotificationConfigService;
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
@@ -356,5 +349,131 @@ public class UserServiceTest {
         claims.put(JWTHelper.Claims.ACTION, USER_REGISTRATION);
         claims.put("exp", expirationSeconds);
         return new JWTSigner(JWT_SECRET).sign(claims);
+    }
+
+    @Test
+    public void shouldNotDeleteIfAPIPO() throws TechnicalException {
+        ApiEntity apiEntity = mock(ApiEntity.class);
+        PrimaryOwnerEntity primaryOwnerEntity = mock(PrimaryOwnerEntity.class);
+        when(apiEntity.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
+        when(primaryOwnerEntity.getId()).thenReturn(USER_NAME);
+        when(apiService.findByUser(USER_NAME, null)).thenReturn(Collections.singleton(apiEntity));
+
+        try {
+            userService.delete(USER_NAME);
+            fail("should throw StillPrimaryOwnerException");
+        } catch (StillPrimaryOwnerException e) {
+            //success
+            verify(membershipService, never()).removeUser(USER_NAME);
+            verify(userRepository, never()).update(any());
+            verify(searchEngineService, never()).delete(any(), eq(false));
+        }
+
+    }
+
+    @Test
+    public void shouldNotDeleteIfApplicationPO() throws TechnicalException {
+        ApplicationListItem applicationListItem = mock(ApplicationListItem.class);
+        PrimaryOwnerEntity primaryOwnerEntity = mock(PrimaryOwnerEntity.class);
+        when(applicationListItem.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
+        when(primaryOwnerEntity.getId()).thenReturn(USER_NAME);
+        when(applicationService.findByUser(USER_NAME)).thenReturn(Collections.singleton(applicationListItem));
+
+        try {
+            userService.delete(USER_NAME);
+            fail("should throw StillPrimaryOwnerException");
+        } catch (StillPrimaryOwnerException e) {
+            //success
+            verify(membershipService, never()).removeUser(USER_NAME);
+            verify(userRepository, never()).update(any());
+            verify(searchEngineService, never()).delete(any(), eq(false));
+        }
+
+    }
+
+    @Test
+    public void shouldDeleteUnanonymize() throws TechnicalException {
+        String userId = "userId";
+        String firstName = "first";
+        String lastName = "last";
+        String email = "email";
+        when(apiService.findByUser(userId, null)).thenReturn(Collections.emptySet());
+        when(applicationService.findByUser(userId)).thenReturn(Collections.emptySet());
+        User user = new User();
+        user.setId(userId);
+        user.setSourceId("sourceId");
+        Date updatedAt = new Date(1234567890L);
+        user.setUpdatedAt(updatedAt);
+        user.setFirstname(firstName);
+        user.setLastname(lastName);
+        user.setEmail(email);
+        when(userRepository.findById(userId)).thenReturn(of(user));
+
+        userService.delete(userId);
+
+        verify(apiService, times(1)).findByUser(userId, null);
+        verify(applicationService, times(1)).findByUser(userId);
+        verify(membershipService, times(1)).removeUser(userId);
+        verify(userRepository, times(1)).update(argThat(new ArgumentMatcher<User>() {
+            @Override
+            public boolean matches(User user) {
+                return userId.equals(user.getId())
+                        && UserStatus.ARCHIVED.equals(user.getStatus())
+                        && "deleted-sourceId".equals(user.getSourceId())
+                        && !updatedAt.equals(user.getUpdatedAt())
+                        && firstName.equals(user.getFirstname())
+                        && lastName.equals(user.getLastname())
+                        && email.equals(user.getEmail());
+            }
+        }));
+        verify(searchEngineService, times(1)).delete(any(), eq(false));
+        verify(portalNotificationService, times(1)).deleteAll(user.getId());
+        verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
+        verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
+    }
+
+    @Test
+    public void shouldDeleteAnonymize() throws TechnicalException {
+        setField(userService, "anonymizeOnDelete", true);
+
+        String userId = "userId";
+        String firstName = "first";
+        String lastName = "last";
+        String email = "email";
+        when(apiService.findByUser(userId, null)).thenReturn(Collections.emptySet());
+        when(applicationService.findByUser(userId)).thenReturn(Collections.emptySet());
+        User user = new User();
+        user.setId(userId);
+        user.setSourceId("sourceId");
+        Date updatedAt = new Date(1234567890L);
+        user.setUpdatedAt(updatedAt);
+        user.setFirstname(firstName);
+        user.setLastname(lastName);
+        user.setEmail(email);
+        user.setPicture("picture");
+        when(userRepository.findById(userId)).thenReturn(of(user));
+
+        userService.delete(userId);
+
+        verify(apiService, times(1)).findByUser(userId, null);
+        verify(applicationService, times(1)).findByUser(userId);
+        verify(membershipService, times(1)).removeUser(userId);
+        verify(userRepository, times(1)).update(argThat(new ArgumentMatcher<User>() {
+            @Override
+            public boolean matches(User user) {
+                return userId.equals(user.getId())
+                        && UserStatus.ARCHIVED.equals(user.getStatus())
+                        && ("deleted-" + userId).equals(user.getSourceId())
+                        && !updatedAt.equals(user.getUpdatedAt())
+                        && "Unknown".equals(user.getFirstname())
+                        && user.getLastname().isEmpty()
+                        && user.getEmail() == null
+                        && user.getPicture() == null;
+            }
+        }));
+        verify(searchEngineService, times(1)).delete(any(), eq(false));
+        verify(portalNotificationService, times(1)).deleteAll(user.getId());
+        verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
+        verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
     }
 }

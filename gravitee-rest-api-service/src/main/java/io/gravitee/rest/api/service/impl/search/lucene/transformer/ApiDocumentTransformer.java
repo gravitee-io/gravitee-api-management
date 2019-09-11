@@ -15,19 +15,21 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
-
 import org.apache.lucene.document.*;
 import org.springframework.stereotype.Component;
+
+import java.util.function.Consumer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class ApiDocumentTransformer implements DocumentTransformer {
+public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
 
     private final static String FIELD_ID = "id";
     private final static String FIELD_TYPE = "type";
@@ -42,14 +44,15 @@ public class ApiDocumentTransformer implements DocumentTransformer {
     private final static String FIELD_VIEWS = "views";
     private final static String FIELD_CREATED_AT = "createdAt";
     private final static String FIELD_UPDATED_AT = "updatedAt";
-    private final static String FIELD_PATH = "path";
-    private final static String FIELD_PATH_SPLIT = "path_split";
+    private final static String FIELD_PATHS = "paths";
+    private final static String FIELD_HOSTS = "hosts";
+    private final static String FIELD_PATHS_SPLIT = "paths_split";
+    private final static String FIELD_HOSTS_SPLIT = "hosts_split";
     private final static String FIELD_TAGS = "tags";
 
     @Override
-    public Document transform(Indexable indexable) {
+    public Document transform(io.gravitee.rest.api.model.api.ApiEntity api) {
         Document doc = new Document();
-        ApiEntity api = (ApiEntity) indexable;
 
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
@@ -61,8 +64,19 @@ public class ApiDocumentTransformer implements DocumentTransformer {
         if (api.getPrimaryOwner().getEmail() != null) {
             doc.add(new TextField(FIELD_OWNER_MAIL, api.getPrimaryOwner().getEmail(), Field.Store.NO));
         }
-        doc.add(new StringField(FIELD_PATH, api.getProxy().getContextPath(), Field.Store.NO));
-        doc.add(new TextField(FIELD_PATH_SPLIT, api.getProxy().getContextPath(), Field.Store.NO));
+
+        api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
+            @Override
+            public void accept(VirtualHost virtualHost) {
+                doc.add(new StringField(FIELD_PATHS, virtualHost.getPath(), Field.Store.NO));
+                doc.add(new TextField(FIELD_PATHS_SPLIT, virtualHost.getPath(), Field.Store.NO));
+
+                if (virtualHost.getHost() != null && !virtualHost.getHost().isEmpty()) {
+                    doc.add(new StringField(FIELD_HOSTS, virtualHost.getHost(), Field.Store.NO));
+                    doc.add(new TextField(FIELD_HOSTS_SPLIT, virtualHost.getHost(), Field.Store.NO));
+                }
+            }
+        });
 
         // labels
         if (api.getLabels() != null) {

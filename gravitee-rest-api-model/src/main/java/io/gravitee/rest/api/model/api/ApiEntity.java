@@ -37,7 +37,7 @@ import java.util.*;
 /**
  * --------------------------------------------------------------------------------------------------------------
  * --------------------------------------------------------------------------------------------------------------
- * /!\ Do not forget to update {@see io.gravitee.rest.api.service.jackson.ser.api.ApiDefaultSerializer}
+ * /!\ Do not forget to update {@see io.gravitee.management.service.jackson.ser.api.ApiDefaultSerializer}
  * for each modification of the ApiEntity class to apply export API changes /!\
  * --------------------------------------------------------------------------------------------------------------
  * --------------------------------------------------------------------------------------------------------------
@@ -56,9 +56,6 @@ public class ApiEntity implements Indexable {
     private String description;
     private Set<String> groups;
 
-    @JsonProperty(value = "context_path")
-    private String contextPath;
-
     @NotNull
     @DeploymentRequired
     @JsonProperty(value = "proxy", required = true)
@@ -67,7 +64,7 @@ public class ApiEntity implements Indexable {
     @DeploymentRequired
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
-    
+
     @JsonProperty("deployed_at")
     private Date deployedAt;
 
@@ -76,7 +73,7 @@ public class ApiEntity implements Indexable {
 
     @JsonProperty("updated_at")
     private Date updatedAt;
-    
+
     private Visibility visibility;
 
     private Lifecycle.State state;
@@ -94,7 +91,7 @@ public class ApiEntity implements Indexable {
 
     @DeploymentRequired
     private Set<String> tags;
-    
+
     private String picture;
 
     @JsonProperty(value = "picture_url")
@@ -124,6 +121,8 @@ public class ApiEntity implements Indexable {
 
     @JsonProperty(value = "workflow_state")
     private WorkflowState workflowState;
+
+    private List<ApiEntrypointEntity> entrypoints;
 
     public String getId() {
         return id;
@@ -236,7 +235,7 @@ public class ApiEntity implements Indexable {
     public void setTags(Set<String> tags) {
         this.tags = tags;
     }
-    
+
     public Date getDeployedAt() {
         return deployedAt;
     }
@@ -244,7 +243,7 @@ public class ApiEntity implements Indexable {
     public void setDeployedAt(Date deployedAt) {
         this.deployedAt = deployedAt;
     }
-    
+
     public String getPicture() {
         return picture;
     }
@@ -293,14 +292,6 @@ public class ApiEntity implements Indexable {
         this.labels = labels;
     }
 
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
-    }
-
     public Set<String> getPathMappings() {
         return pathMappings;
     }
@@ -341,6 +332,14 @@ public class ApiEntity implements Indexable {
         this.workflowState = workflowState;
     }
 
+    public List<ApiEntrypointEntity> getEntrypoints() {
+        return entrypoints;
+    }
+
+    public void setEntrypoints(List<ApiEntrypointEntity> entrypoints) {
+        this.entrypoints = entrypoints;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -357,23 +356,23 @@ public class ApiEntity implements Indexable {
 
     public String toString() {
         return "ApiEntity{" +
-            "id='" + id + '\'' +
-            ", name='" + name + '\'' +
-            ", version='" + version + '\'' +
-            ", description='" + description + '\'' +
-            ", proxy=" + proxy +
-            ", paths=" + paths +
-            ", createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
-            ", visibility=" + visibility +
-            ", state=" + state +
-            ", primaryOwner=" + primaryOwner +
-            ", tags=" + tags +
-            ", view=" + views +
-            ", groups=" + groups +
-            ", pathMappings=" + pathMappings +
-            ", lifecycleState=" + lifecycleState +
-            ", workflowState=" + workflowState +
-            '}';
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", version='" + version + '\'' +
+                ", description='" + description + '\'' +
+                ", proxy=" + proxy +
+                ", paths=" + paths +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", visibility=" + visibility +
+                ", state=" + state +
+                ", primaryOwner=" + primaryOwner +
+                ", tags=" + tags +
+                ", view=" + views +
+                ", groups=" + groups +
+                ", pathMappings=" + pathMappings +
+                ", lifecycleState=" + lifecycleState +
+                ", workflowState=" + workflowState +
+                '}';
     }
 }

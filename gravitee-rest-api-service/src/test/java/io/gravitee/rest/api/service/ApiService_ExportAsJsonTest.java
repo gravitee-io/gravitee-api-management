@@ -15,21 +15,29 @@
  */
 package io.gravitee.rest.api.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.rest.api.service.jackson.ser.api.*;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,56 +48,14 @@ import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
 
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.Cors;
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.Failover;
-import io.gravitee.definition.model.LoadBalancer;
-import io.gravitee.definition.model.LoadBalancerType;
-import io.gravitee.definition.model.Logging;
-import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.ResponseTemplate;
-import io.gravitee.definition.model.ResponseTemplates;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanSecurityType;
-import io.gravitee.rest.api.model.PlanStatus;
-import io.gravitee.rest.api.model.PlanType;
-import io.gravitee.rest.api.model.PlanValidationType;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
-import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
-import io.gravitee.rest.api.service.jackson.ser.api.Api1_15VersionSerializer;
-import io.gravitee.rest.api.service.jackson.ser.api.Api1_20VersionSerializer;
-import io.gravitee.rest.api.service.jackson.ser.api.Api1_25VersionSerializer;
-import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
-import io.gravitee.rest.api.service.jackson.ser.api.ApiDefaultSerializer;
-import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
@@ -161,7 +127,7 @@ public class ApiService_ExportAsJsonTest {
 
         // set proxy
         Proxy proxy = new Proxy();
-        proxy.setContextPath("/test");
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
         proxy.setStripContextPath(false);
         Logging logging = new Logging();
         logging.setMode(LoggingMode.CLIENT_PROXY);
@@ -355,7 +321,7 @@ public class ApiService_ExportAsJsonTest {
 
         // set proxy
         Proxy proxy = new Proxy();
-        proxy.setContextPath("/test");
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
         proxy.setStripContextPath(false);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
@@ -400,7 +366,7 @@ public class ApiService_ExportAsJsonTest {
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
+        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
     }
 
     private void shouldConvertAsJsonForExport(ApiSerializer.Version version, String filename) throws TechnicalException, IOException {
@@ -410,7 +376,7 @@ public class ApiService_ExportAsJsonTest {
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
+        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
     }
 
     private void shouldConvertAsJsonWithoutMembers(ApiSerializer.Version version, String filename) throws IOException {
@@ -420,7 +386,7 @@ public class ApiService_ExportAsJsonTest {
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
+        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
     }
 
     private void shouldConvertAsJsonWithoutPages(ApiSerializer.Version version, String filename) throws IOException {
@@ -430,7 +396,7 @@ public class ApiService_ExportAsJsonTest {
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
+        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
     }
 
     private void shouldConvertAsJsonWithoutPlans(ApiSerializer.Version version, String filename) throws IOException {
@@ -440,6 +406,6 @@ public class ApiService_ExportAsJsonTest {
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
+        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
     }
 }

@@ -19,7 +19,6 @@ import io.gravitee.rest.api.model.ApiPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
-
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -31,7 +30,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class PageDocumentTransformer implements DocumentTransformer {
+public class PageDocumentTransformer implements DocumentTransformer<PageEntity> {
 
     private final static String FIELD_ID = "id";
     private final static String FIELD_TYPE = "type";
@@ -41,9 +40,8 @@ public class PageDocumentTransformer implements DocumentTransformer {
     private final static String FIELD_CONTENT = "content";
 
     @Override
-    public Document transform(Indexable indexable) {
+    public Document transform(PageEntity page) {
         Document doc = new Document();
-        PageEntity page = (PageEntity) indexable;
 
         doc.add(new StringField(FIELD_ID, page.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));

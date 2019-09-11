@@ -15,23 +15,13 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.service.ApiKeyGenerator;
-import io.gravitee.rest.api.service.ApiKeyService;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.EmailService;
-import io.gravitee.rest.api.service.NotifierService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiKeyServiceImpl;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.ApiKey;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -165,11 +155,24 @@ public class ApiKeyServiceTest {
         verify(apiKeyRepository, times(1)).update(any());
     }
 
-    @Test
+    @Test(expected = ApiKeyAlreadyExpiredException.class)
     public void shouldNotRevokeBecauseAlreadyRevoked() throws Exception {
-        // Verify
-        verify(apiKeyRepository, never()).update(any());
-        verify(emailService, never()).sendEmailNotification(any());
+        apiKey = new ApiKey();
+        apiKey.setRevoked(true);
+
+        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
+
+        apiKeyService.revoke(API_KEY, true);
+    }
+
+    @Test(expected = ApiKeyAlreadyExpiredException.class)
+    public void shouldNotRevokeBecauseAlreadyExpired() throws Exception {
+        apiKey = new ApiKey();
+        apiKey.setExpireAt(Date.from(new Date().toInstant().minus(1, ChronoUnit.DAYS)));
+
+        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
+
+        apiKeyService.revoke(API_KEY, true);
     }
 
     @Test(expected = ApiKeyNotFoundException.class)
@@ -224,6 +227,48 @@ public class ApiKeyServiceTest {
 
         // Old API Key has been revoked
         verify(apiKeyRepository, times(1)).update(apiKey);
+        assertFalse(apiKey.isRevoked());
+        assertNotNull(apiKey.getExpireAt());
+    }
+
+    @Test
+    public void shouldRenewWithoutRenewingExpiredKeys() throws TechnicalException {
+        // Prepare data
+        // apiKey object is not a mock since its state is updated by the call to apiKeyService.renew()
+        apiKey = new ApiKey();
+        apiKey.setKey("123-456-789");
+        apiKey.setSubscription(SUBSCRIPTION_ID);
+        apiKey.setCreatedAt(new Date());
+        apiKey.setPlan(PLAN_ID);
+        apiKey.setApplication(APPLICATION_ID);
+        apiKey.setExpireAt(Date.from(new Date().toInstant().minus(1, ChronoUnit.DAYS)));
+        final ApiModelEntity api = mock(ApiModelEntity.class);
+
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+
+        // Stub
+        when(apiKeyGenerator.generate()).thenReturn(API_KEY);
+        when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+        when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
+        when(applicationService.findById(subscription.getApplication())).thenReturn(application);
+        when(planService.findById(subscription.getPlan())).thenReturn(plan);
+        when(apiService.findByIdForTemplates(any())).thenReturn(api);
+
+        // Run
+        final ApiKeyEntity apiKeyEntity = apiKeyService.renew(SUBSCRIPTION_ID);
+
+        // Verify
+        // A new API Key has been created
+        verify(apiKeyRepository, times(1)).create(any());
+        assertEquals(API_KEY, apiKeyEntity.getKey());
+
+        // Old API Key has been revoked
+        verify(apiKeyRepository, times(0)).update(apiKey);
         assertFalse(apiKey.isRevoked());
         assertNotNull(apiKey.getExpireAt());
     }
