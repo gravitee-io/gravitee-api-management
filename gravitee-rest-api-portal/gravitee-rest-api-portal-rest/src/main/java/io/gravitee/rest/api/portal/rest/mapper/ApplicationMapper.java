@@ -17,18 +17,18 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationListItemSettings;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationLinks;
-import io.gravitee.rest.api.portal.rest.model.Person;
+import io.gravitee.rest.api.portal.rest.model.User;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -43,44 +43,25 @@ public class ApplicationMapper {
         application.setApplicationType(applicationListItem.getType());
         application.setCreatedAt(applicationListItem.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
         application.setDescription(applicationListItem.getDescription());
-        application.setGroups(new ArrayList<String>(applicationListItem.getGroups()));
+        Set<String> groups = applicationListItem.getGroups();
+        if(groups != null) {
+            application.setGroups(new ArrayList<String>(groups));
+        }
         application.setId(applicationListItem.getId());
         application.setName(applicationListItem.getName());
-        application.setOwner(new Person().id(applicationListItem.getPrimaryOwner().getId()));
-        application.setStatus(applicationListItem.getStatus());
+        User owner = new User();
+        owner.id(applicationListItem.getPrimaryOwner().getId());
+        application.setOwner(owner);
         application.setUpdatedAt(applicationListItem.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        
-        final ApplicationListItemSettings applicationListItemSettings = applicationListItem.getSettings();
-        if(applicationListItemSettings != null) {
-            application.setSettings(new io.gravitee.rest.api.portal.rest.model.ApplicationSettings()
-                    .app(new io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings()
-                            .clientId(applicationListItemSettings.getClientId())
-                            .type(applicationListItemSettings.getType())
-                            )
-                    )
-                    ;
-        }
-        
-        //With include param only
-        application.setAnalytics(null);
-        application.setLogs(null);
-        application.setMembers(null);
-        application.setMetrics(null);
-        application.setNotifications(null);
-        application.setPlans(null);
         
         return application;
     }
 
     public ApplicationLinks computeApplicationLinks(String basePath) {
         ApplicationLinks applicationLinks = new ApplicationLinks();
-        applicationLinks.setAnalytics(basePath+"/analytics");
-        applicationLinks.setLogs(basePath+"/logs");
         applicationLinks.setMembers(basePath+"/members");
-        applicationLinks.setMetrics(basePath+"/metrics");
         applicationLinks.setNotifications(basePath+"/notifications");
         applicationLinks.setPicture(basePath+"/picture");
-        applicationLinks.setPlans(basePath+"/plans");
         applicationLinks.setSelf(basePath);
         
         return applicationLinks;
@@ -88,16 +69,19 @@ public class ApplicationMapper {
     
     public Application convert(ApplicationEntity applicationEntity) {
         final Application application = new Application();
-        //APIPortal: complete the mapping
         
         application.setApplicationType(applicationEntity.getType());
         application.setCreatedAt(applicationEntity.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
         application.setDescription(applicationEntity.getDescription());
-        application.setGroups(new ArrayList<String>(applicationEntity.getGroups()));
+        Set<String> groups = applicationEntity.getGroups();
+        if(groups != null) {
+            application.setGroups(new ArrayList<String>(groups));
+        }
         application.setId(applicationEntity.getId());
         application.setName(applicationEntity.getName());
-        application.setOwner(new Person().id(applicationEntity.getPrimaryOwner().getId()));
-        application.setStatus(applicationEntity.getStatus());
+        User owner = new User();
+        owner.id(applicationEntity.getPrimaryOwner().getId());
+        application.setOwner(owner);
         application.setUpdatedAt(applicationEntity.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         
         
@@ -130,15 +114,6 @@ public class ApplicationMapper {
             }
             application.setSettings(appSettings);
         }
-        
-        //With include param only
-        application.setAnalytics(null);
-        application.setLogs(null);
-        application.setMembers(null);
-        application.setMetrics(null);
-        application.setNotifications(null);
-        application.setPlans(null);
-        
         
         return application;
     }

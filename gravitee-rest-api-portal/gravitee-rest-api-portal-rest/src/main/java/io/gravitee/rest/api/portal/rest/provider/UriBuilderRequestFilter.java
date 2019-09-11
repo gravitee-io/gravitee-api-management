@@ -15,15 +15,16 @@
  */
 package io.gravitee.rest.api.portal.rest.provider;
 
-import io.gravitee.common.http.HttpHeaders;
+import java.io.IOException;
+import java.util.List;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.ext.Provider;
-import java.io.IOException;
-import java.util.List;
+
+import io.gravitee.common.http.HttpHeaders;
 
 /**
  * @author David BRASSELY (david at gravitee.io)

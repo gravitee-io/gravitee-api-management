@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -44,7 +43,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationInput;
-import io.gravitee.rest.api.portal.rest.model.ApplicationsResponse;
+import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.OAuthClientSettings;
@@ -65,15 +64,13 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() {
+        resetAllMocks();
+        
         ApplicationListItem applicationListItem1 = new ApplicationListItem();
         applicationListItem1.setId("A");
 
         ApplicationListItem applicationListItem2 = new ApplicationListItem();
         applicationListItem2.setId("B");
-
-
-        reset(applicationService);
-        reset(applicationMapper);
 
         Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2));
         doReturn(mockApplications).when(applicationService).findByUser(any());
@@ -103,7 +100,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertTrue(bastPathList.contains(expectedBasePath+"/A"));
         assertTrue(bastPathList.contains(expectedBasePath+"/B"));
 
-        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        DatasResponse applicationsResponse = response.readEntity(DatasResponse.class);
         assertEquals(2, applicationsResponse.getData().size());
         assertEquals("A", applicationsResponse.getData().get(0).getId());
         assertEquals("B", applicationsResponse.getData().get(1).getId());
@@ -116,8 +113,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     public void shouldGetApplicationsWithPaginatedLink() {
         final Response response = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        DatasResponse applicationsResponse = response.readEntity(DatasResponse.class);
         assertEquals(1, applicationsResponse.getData().size());
         assertEquals("B", applicationsResponse.getData().get(0).getId());
 
@@ -145,8 +141,8 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         //Test with default limit
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        
+        DatasResponse applicationsResponse = response.readEntity(DatasResponse.class);
         assertEquals(0, applicationsResponse.getData().size());
 
         Links links = applicationsResponse.getLinks();
@@ -155,8 +151,8 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         //Test with small limit
         final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
-
-        applicationsResponse = anotherResponse.readEntity(ApplicationsResponse.class);
+        
+        applicationsResponse = anotherResponse.readEntity(DatasResponse.class);
         assertEquals(0, applicationsResponse.getData().size());
 
         links = applicationsResponse.getLinks();

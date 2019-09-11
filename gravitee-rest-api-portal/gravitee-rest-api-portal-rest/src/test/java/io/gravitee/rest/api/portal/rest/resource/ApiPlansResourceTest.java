@@ -19,9 +19,7 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -39,9 +37,9 @@ import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Data;
+import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.Plan;
-import io.gravitee.rest.api.portal.rest.model.PlansResponse;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -61,9 +59,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() throws IOException {
-        reset(apiService);
-        reset(planService);
-        reset(planMapper);
+        resetAllMocks();
         
         mockApi = new ApiEntity();
         mockApi.setId(API);
@@ -95,8 +91,6 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         forbiddenApi.setVisibility(Visibility.PRIVATE);
         doReturn(forbiddenApi).when(apiService).findById(FORBIDDEN_API);
 
-        doReturn(new Plan()).when(planMapper).convert(any());
-
     }
 
     
@@ -116,27 +110,14 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     
     @Test
     public void shouldGetApiPlans() {
-        final Response response = target(API).path("plans").queryParam("status", "published").request().get();
+        final Response response = target(API).path("plans").request().get();
 
         assertEquals(OK_200, response.getStatus());
 
-        final PlansResponse plansResponse = response.readEntity(PlansResponse.class);
-        List<Plan> plans = plansResponse.getData();
+        final DatasResponse plansResponse = response.readEntity(DatasResponse.class);
+        List<Data> plans = plansResponse.getData();
         assertNotNull(plans);
         assertEquals(2, plans.size());
-        
-    }
-    
-    @Test
-    public void shouldGetNoApiPlan() {
-        final Response response = target(API).path("plans").queryParam("status", "closed").request().get();
-
-        assertEquals(OK_200, response.getStatus());
-
-        final PlansResponse plansResponse = response.readEntity(PlansResponse.class);
-        List<Plan> plans = plansResponse.getData();
-        assertNotNull(plans);
-        assertEquals(0, plans.size());
         
     }
 }

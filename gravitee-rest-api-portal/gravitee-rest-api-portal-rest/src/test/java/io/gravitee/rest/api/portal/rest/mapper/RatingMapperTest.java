@@ -18,6 +18,8 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -27,13 +29,16 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import io.gravitee.rest.api.model.RatingAnswerEntity;
 import io.gravitee.rest.api.model.RatingEntity;
-import io.gravitee.rest.api.portal.rest.model.Author;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingAnswer;
+import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.service.UserService;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -42,39 +47,70 @@ import io.gravitee.rest.api.portal.rest.model.RatingAnswer;
 @RunWith(MockitoJUnitRunner.class)
 public class RatingMapperTest {
 
-    private static final String API = "my-api";
-    private static final String RATING = "my-rating";
+    private static final String RATING_API = "my-rating-api";
+    private static final String RATING_ID = "my-rating-id";
+    private static final String RATING_COMMENT = "my-rating-comment";
+    private static final String RATING_AUTHOR = "my-rating-author";
+    private static final String RATING_AUTHOR_DISPLAY_NAME = "my-rating-author-display-name";
+    private static final String RATING_TITLE = "my-rating-title";
 
-    private RatingEntity ratingEntity;
+    private static final String RATING_RESPONSE_AUTHOR = "my-rating-response-author";
+    private static final String RATING_RESPONSE_COMMENT = "my-rating-response-comment";
+    private static final String RATING_RESPONSE_AUTHOR_DISPLAY_NAME = "my-rating-response-author-display-name";
+    private static final String RATING_RESPONSE_ID = "my-rating-response_ID";
 
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private UserMapper userMapper;
+    
     @InjectMocks
     private RatingMapper ratingMapper;
     
     @Test
     public void testConvert() {
+        reset(userService);
+        reset(userMapper);
+        
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
 
         //init
-        ratingEntity = new RatingEntity();
+        RatingEntity ratingEntity = new RatingEntity();
        
         RatingAnswerEntity ratingAnswerEntity = new RatingAnswerEntity();
-        ratingAnswerEntity.setComment(RATING);
+        ratingAnswerEntity.setComment(RATING_RESPONSE_COMMENT);
         ratingAnswerEntity.setCreatedAt(nowDate);
-        ratingAnswerEntity.setId(RATING);
-        ratingAnswerEntity.setUser(RATING);
-        ratingAnswerEntity.setUserDisplayName(RATING);
+        ratingAnswerEntity.setId(RATING_RESPONSE_ID);
+        ratingAnswerEntity.setUser(RATING_RESPONSE_AUTHOR);
+        ratingAnswerEntity.setUserDisplayName(RATING_RESPONSE_AUTHOR_DISPLAY_NAME);
         
         ratingEntity.setAnswers(Arrays.asList(ratingAnswerEntity));
-        ratingEntity.setApi(API);
-        ratingEntity.setComment(RATING);
+        ratingEntity.setApi(RATING_API);
+        ratingEntity.setComment(RATING_COMMENT);
         ratingEntity.setCreatedAt(nowDate);
-        ratingEntity.setId(RATING);
+        ratingEntity.setId(RATING_ID);
         ratingEntity.setRate((byte)1);
-        ratingEntity.setTitle(RATING);
+        ratingEntity.setTitle(RATING_TITLE);
         ratingEntity.setUpdatedAt(nowDate);
-        ratingEntity.setUser(RATING);
-        ratingEntity.setUserDisplayName(RATING);
+        ratingEntity.setUser(RATING_AUTHOR);
+        ratingEntity.setUserDisplayName(RATING_AUTHOR_DISPLAY_NAME);
+        
+        UserEntity authorEntity = new UserEntity();
+        authorEntity.setId(RATING_AUTHOR);
+        UserEntity responseAuthorEntity = new UserEntity();
+        responseAuthorEntity.setId(RATING_RESPONSE_AUTHOR);
+        
+        User author = new User();
+        author.setId(RATING_AUTHOR);
+        User responseAuthor = new User();
+        responseAuthor.setId(RATING_RESPONSE_AUTHOR);
+        
+        doReturn(authorEntity).when(userService).findById(RATING_AUTHOR);
+        doReturn(responseAuthorEntity).when(userService).findById(RATING_RESPONSE_AUTHOR);
+        doReturn(author).when(userMapper).convert(authorEntity);
+        doReturn(responseAuthor).when(userMapper).convert(responseAuthorEntity);
         
         Rating responseRating = ratingMapper.convert(ratingEntity);
         assertNotNull(responseRating);
@@ -84,25 +120,15 @@ public class RatingMapperTest {
         assertEquals(1, answers.size());
         RatingAnswer ratingAnswer = answers.get(0);
         assertNotNull(ratingAnswer);
-        assertEquals(RATING, ratingAnswer.getComment());
+        assertEquals(RATING_RESPONSE_COMMENT, ratingAnswer.getComment());
         assertEquals(now.toEpochMilli(), ratingAnswer.getDate().toInstant().toEpochMilli());
-        Author ratingAnswerAuthor = ratingAnswer.getAuthor();
-        assertNotNull(ratingAnswerAuthor);
-        assertEquals(RATING, ratingAnswerAuthor.getId());
-        assertEquals(RATING, ratingAnswerAuthor.getName());
-        //APIPortal:[test]:add a test for ratingAnswer author's email
-        assertNull(ratingAnswerAuthor.getEmail());
+        assertEquals(responseAuthor, ratingAnswer.getAuthor());
         
-        Author author = responseRating.getAuthor();
-        assertNotNull(author);
-        assertEquals(RATING, author.getId());
-        assertEquals(RATING, author.getName());
-        //APIPortal:[test]:add a test for rating author's email
-        assertNull(author.getEmail());
-        
-        assertEquals(RATING, responseRating.getComment());
+        assertEquals(author, responseRating.getAuthor());
+        assertEquals(RATING_COMMENT, responseRating.getComment());
+        assertEquals(RATING_TITLE, responseRating.getTitle());
         assertEquals(now.toEpochMilli(), responseRating.getDate().toInstant().toEpochMilli());
-        assertEquals(RATING, responseRating.getId());
+        assertEquals(RATING_ID, responseRating.getId());
         assertEquals(Integer.valueOf(1), responseRating.getValue());
     }
  

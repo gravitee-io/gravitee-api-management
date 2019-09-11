@@ -20,22 +20,24 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
-import javax.ws.rs.DefaultValue;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.Plan;
-import io.gravitee.rest.api.portal.rest.model.PlansResponse;
+import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -57,37 +59,27 @@ public class ApiPlansResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
+
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getApiPlansByApiId(@PathParam("apiId") String apiId, @DefaultValue(PAGE_QUERY_PARAM_DEFAULT) @QueryParam("page") Integer page, @DefaultValue(SIZE_QUERY_PARAM_DEFAULT) @QueryParam("size") Integer size, @QueryParam("status") String status) {
+    public Response getApiPlansByApiId(@PathParam("apiId") String apiId, @BeanParam PaginationParam paginationParam) {
         ApiEntity apiEntity = apiService.findById(apiId);
-
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())) {
-            
+        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
+                || hasPermission(RolePermission.API_PLAN, apiId, RolePermissionAction.READ)) {
+            String user = getAuthenticatedUserOrNull();
             List<Plan> plans = planService.findByApi(apiId).stream()
-                    .filter(plan -> (
-                            (status!=null && status.equalsIgnoreCase(plan.getStatus().name())) ||
-                            status==null
-                    ))
+                    .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
                     .filter(plan -> (
                             isAuthenticated() || 
                             groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())
                     ))
                     .sorted(Comparator.comparingInt(PlanEntity::getOrder))
-                    .map(planMapper::convert)
+                    .map(p-> planMapper.convert(p,  user))
                     .collect(Collectors.toList());
             
-            int totalItems = plans.size();
+            return createListResponse(plans, paginationParam, uriInfo);
 
-            plans = this.paginateResultList(plans, page, size);
-            
-            PlansResponse response = new PlansResponse()
-                    .data(plans)
-                    .links(this.computePaginatedLinks(uriInfo, page, size, totalItems))
-                    ;
-            
-            return Response.ok(response).build();
         }
 
         throw new ForbiddenAccessException();

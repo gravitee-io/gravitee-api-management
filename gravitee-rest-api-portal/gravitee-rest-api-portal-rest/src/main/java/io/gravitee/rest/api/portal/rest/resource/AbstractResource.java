@@ -21,8 +21,11 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,20 +35,32 @@ import javax.imageio.stream.ImageInputStream;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.glassfish.jersey.message.internal.HttpHeaderReader;
+import org.glassfish.jersey.message.internal.MatchingEntityTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.portal.rest.model.Data;
+import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
+import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 
@@ -53,6 +68,7 @@ import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class AbstractResource {
@@ -61,20 +77,23 @@ public abstract class AbstractResource {
     public static final String PORTAL_ADMIN = RoleScope.PORTAL.name() + ':' + SystemRole.ADMIN.name();
     private static final Pattern PATTERN = Pattern.compile("<script");
 
+    protected static final String METADATA_LIST_TOTAL_KEY = "total";
+    protected static final String METADATA_LIST_KEY = "data";
+
     protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractResource.class);
     
-    protected static final String PAGE_QUERY_PARAM_NAME = "page";
-    protected static final String SIZE_QUERY_PARAM_NAME = "size";
-    protected static final String PAGE_QUERY_PARAM_DEFAULT = "1";
-    protected static final String SIZE_QUERY_PARAM_DEFAULT = "10";
-
     @Context
     protected SecurityContext securityContext;
 
     @Inject
     MembershipService membershipService;
+    
+    @Inject
+    PermissionService permissionService;
+    
     @Inject
     RoleService roleService;
+    
     @Inject
     ApiService apiService;
 
@@ -92,6 +111,31 @@ public abstract class AbstractResource {
 
     protected boolean isAuthenticated() {
         return securityContext.getUserPrincipal() != null;
+    }
+
+    protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
+        return isAuthenticated() && (permissionService.hasPermission(permission, referenceId, acls));
+    }
+
+    Response.ResponseBuilder evaluateIfMatch(final HttpHeaders headers, final String etagValue) {
+        String ifMatch = headers.getHeaderString(HttpHeaders.IF_MATCH);
+        if (ifMatch == null || ifMatch.isEmpty()) {
+            return null;
+        }
+
+        // Handle case for -gzip appended automatically (and sadly) by Apache
+        ifMatch = ifMatch.replaceAll("-gzip", "");
+
+        try {
+            Set<MatchingEntityTag> matchingTags = HttpHeaderReader.readMatchingEntityTag(ifMatch);
+            MatchingEntityTag ifMatchHeader = matchingTags.iterator().next();
+            EntityTag eTag = new EntityTag(etagValue, ifMatchHeader.isWeak());
+
+            return matchingTags != MatchingEntityTag.ANY_MATCH
+                    && !matchingTags.contains(eTag) ? Response.status(Status.PRECONDITION_FAILED) : null;
+        } catch (java.text.ParseException e) {
+            return null;
+        }
     }
 
     String checkAndScaleImage(final String encodedPicture) {
@@ -170,14 +214,14 @@ public abstract class AbstractResource {
                 paginatedLinks = new Links().self(uriInfo.getRequestUri().toString());
             } else if(totalPages > 1) {
                 final MultivaluedMap<String, String> queryParameters = uriInfo.getQueryParameters();
-                final String querySize = queryParameters.getFirst(SIZE_QUERY_PARAM_NAME);
+                final String querySize = queryParameters.getFirst(PaginationParam.SIZE_QUERY_PARAM_NAME);
                 
                 final String pageToken = "{page}";
                 final String sizeToken = "{size}";
-                String linkTemplate = uriInfo.getAbsolutePath().toString()+"?"+PAGE_QUERY_PARAM_NAME+"="+pageToken;
+                String linkTemplate = uriInfo.getAbsolutePath().toString()+"?"+PaginationParam.PAGE_QUERY_PARAM_NAME+"="+pageToken;
                 
                 if(querySize != null) {
-                    linkTemplate += "&"+SIZE_QUERY_PARAM_NAME+"="+sizeToken;
+                    linkTemplate += "&"+PaginationParam.SIZE_QUERY_PARAM_NAME+"="+sizeToken;
                 }
                 
                 Integer firstPage = 1;
@@ -216,5 +260,50 @@ public abstract class AbstractResource {
             }
         }
         return list;
+    }
+    
+    protected DatasResponse createDatasResponse(List<? extends Data> dataList, PaginationParam paginationParam, UriInfo uriInfo, Map<String, Map<String, String>> metadata, boolean withPagination) {
+        int totalItems = dataList.size();
+        
+        List<Data> paginatedList;
+        if(withPagination ) {
+            paginatedList = this.paginateResultList(dataList, paginationParam.getPage(), paginationParam.getSize());
+        } else {
+            paginatedList = (List<Data>)dataList;
+        }
+        
+        return new DatasResponse()
+                .data(paginatedList)
+                .metadata(this.computeMetadata(paginatedList, metadata))
+                .links(this.computePaginatedLinks(uriInfo, paginationParam.getPage(), paginationParam.getSize(), totalItems))
+                ;
+    }
+
+    protected Map<String, Map<String, String>> computeMetadata(List paginatedList, Map<String, Map<String, String>> metadata) {
+        if(metadata == null) {
+            metadata = new HashMap<>();
+        }
+        Map<String, String> listMetadata = new HashMap<>();
+        listMetadata.put(METADATA_LIST_TOTAL_KEY, String.valueOf(paginatedList.size()));
+        metadata.put(METADATA_LIST_KEY, listMetadata);
+        return metadata;
+    }
+    
+    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, UriInfo uriInfo) {
+        return createListResponse(dataList, paginationParam, uriInfo, null, true);
+    }
+    
+    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, UriInfo uriInfo, boolean withPagination) {
+        return createListResponse(dataList, paginationParam, uriInfo, null, withPagination);
+    }
+    
+    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, UriInfo uriInfo, Map<String, Map<String, String>> metadata) {
+        return createListResponse(dataList, paginationParam, uriInfo, metadata, true);
+    }
+    
+    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, UriInfo uriInfo, Map<String, Map<String, String>> metadata, boolean withPagination) {
+        return Response
+                .ok(createDatasResponse(dataList, paginationParam, uriInfo, metadata, withPagination))
+                .build();
     }
 }

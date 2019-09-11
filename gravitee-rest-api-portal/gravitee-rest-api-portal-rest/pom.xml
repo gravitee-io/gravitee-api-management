@@ -60,6 +60,9 @@
                           <configOptions>
                              <dateLibrary>java8</dateLibrary>
                           </configOptions>
+                          <typeMappings>
+                              <typeMapping>BigDecimal=Number</typeMapping>
+                          </typeMappings>
                       </configuration>
                   </execution>
                   <execution>

@@ -16,13 +16,10 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -31,7 +28,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Priority;
-import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
@@ -94,10 +90,7 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
     
     @Before
     public void init() {
-        reset(apiService);
-        reset(groupService);
-        reset(pageService);
-        reset(pageMapper);
+        resetAllMocks();
         
         mockApi = new ApiEntity();
         mockApi.setId(API);

@@ -780,6 +780,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 api.setUpdatedAt(new Date());
 
                 // Copy fields from existing values
+                api.setEnvironment(apiToUpdate.getEnvironment());
                 api.setDeployedAt(apiToUpdate.getDeployedAt());
                 api.setCreatedAt(apiToUpdate.getCreatedAt());
                 api.setLifecycleState(apiToUpdate.getLifecycleState());

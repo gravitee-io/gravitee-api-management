@@ -23,6 +23,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
 import io.gravitee.rest.api.portal.rest.filter.GraviteeContextFilter;
+import io.gravitee.rest.api.portal.rest.filter.PermissionsFilter;
 import io.gravitee.rest.api.portal.rest.filter.SecurityContextFilter;
 import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.provider.BadRequestExceptionMapper;
@@ -67,6 +68,7 @@ public class GraviteePortalApplication extends ResourceConfig {
 
         register(SecurityContextFilter.class);
         register(GraviteeContextFilter.class);
+        register(PermissionsFilter.class);
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);

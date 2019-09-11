@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -36,9 +35,10 @@ import org.junit.Test;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Data;
+import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.Page;
-import io.gravitee.rest.api.portal.rest.model.PagesResponse;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -58,9 +58,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() throws IOException {
-        reset(apiService);
-        reset(pageService);
-        reset(pageMapper);
+        resetAllMocks();
         
         mockApi = new ApiEntity();
         mockApi.setId(API);
@@ -100,9 +98,9 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         final Response response = target(API).path("pages").request().get();
         assertEquals(OK_200, response.getStatus());
 
-        PagesResponse pagesResponse = response.readEntity(PagesResponse.class);
+        DatasResponse pagesResponse = response.readEntity(DatasResponse.class);
 
-        List<Page> pages = pagesResponse.getData();
+        List<Data> pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(1, pages.size());
     }
@@ -118,8 +116,8 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         Response response = request.get();
         assertEquals(OK_200, response.getStatus());
 
-        PagesResponse pagesResponse = response.readEntity(PagesResponse.class);
-        List<Page> pages = pagesResponse.getData();
+        DatasResponse pagesResponse = response.readEntity(DatasResponse.class);
+        List<Data> pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(0, pages.size());
         
@@ -130,7 +128,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         response = request.get();
         assertEquals(OK_200, response.getStatus());
 
-        pagesResponse = response.readEntity(PagesResponse.class);
+        pagesResponse = response.readEntity(DatasResponse.class);
         pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(0, pages.size());
@@ -142,7 +140,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         response = request.get();
         assertEquals(OK_200, response.getStatus());
 
-        pagesResponse = response.readEntity(PagesResponse.class);
+        pagesResponse = response.readEntity(DatasResponse.class);
         pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(0, pages.size());

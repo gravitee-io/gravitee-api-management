@@ -17,12 +17,13 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.doThrow;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -38,10 +39,12 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Data;
+import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingInput;
-import io.gravitee.rest.api.portal.rest.model.RatingsResponse;
+import io.gravitee.rest.api.service.exceptions.ApiRatingUnavailableException;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -63,9 +66,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() throws IOException {
-        reset(apiService);
-        reset(ratingService);
-        reset(ratingMapper);
+        resetAllMocks();
         
         mockApi = new ApiEntity();
         mockApi.setId(API);
@@ -82,10 +83,12 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         forbiddenApi.setVisibility(Visibility.PRIVATE);
         doReturn(forbiddenApi).when(apiService).findById(FORBIDDEN_API);
 
-        doReturn(new Rating()
-                .id(RATING)
-                .comment(RATING)
-                .value(1)).when(ratingMapper).convert(any());
+        Rating rating = new Rating();
+        rating.setId(RATING);
+        rating.setComment(RATING);
+        rating.setValue(1);
+        
+        doReturn(rating).when(ratingMapper).convert(any());
         
         RatingEntity createdRating = new RatingEntity();
         createdRating.setId(RATING);
@@ -110,13 +113,33 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
     }
     
     @Test
+    public void shouldGetServiceUnavailable() {
+        doThrow(ApiRatingUnavailableException.class).when(ratingService).create(any());
+        
+        RatingInput ratingInput = new RatingInput()
+                .comment(RATING)
+                .value(1)
+                ;
+        
+        final Response response = target(API).path("ratings").request().post(Entity.json(ratingInput));
+        assertEquals(SERVICE_UNAVAILABLE_503, response.getStatus());
+        
+        final Error error = response.readEntity(Error.class);
+        
+        assertNotNull(error);
+        assertEquals("503", error.getCode());
+        assertEquals("io.gravitee.rest.api.service.exceptions.ApiRatingUnavailableException", error.getTitle());
+        assertEquals("API rating service is unavailable.", error.getDetail());
+    }
+    
+    @Test
     public void shouldGetApiRatings() {
         final Response response = target(API).path("ratings").request().get();
 
         assertEquals(OK_200, response.getStatus());
 
-        final RatingsResponse ratingsResponse = response.readEntity(RatingsResponse.class);
-        List<Rating> ratings = ratingsResponse.getData();
+        final DatasResponse ratingsResponse = response.readEntity(DatasResponse.class);
+        List<Data> ratings = ratingsResponse.getData();
         assertNotNull(ratings);
         assertEquals(2, ratings.size());
         

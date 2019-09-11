@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.portal.rest.model.Member;
-import io.gravitee.rest.api.portal.rest.model.RoleEnum;
+import io.gravitee.rest.api.portal.rest.model.User;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -34,10 +34,13 @@ public class MemberMapper {
         final Member memberItem = new Member();
         
         memberItem.setCreatedAt(member.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        memberItem.setDisplayName(member.getDisplayName());
-        memberItem.setEmail(member.getEmail());
-        memberItem.setId(member.getId());
-        memberItem.setRole(RoleEnum.fromValue(member.getRole()));
+        
+        User memberUser = new User();
+        memberUser.setId(member.getId());
+        memberUser.setEmail(member.getEmail());
+        memberUser.setDisplayName(member.getDisplayName());
+        memberItem.setUser(memberUser);
+        memberItem.setRole(member.getRole());
         memberItem.setUpdatedAt(member.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         
         return memberItem;

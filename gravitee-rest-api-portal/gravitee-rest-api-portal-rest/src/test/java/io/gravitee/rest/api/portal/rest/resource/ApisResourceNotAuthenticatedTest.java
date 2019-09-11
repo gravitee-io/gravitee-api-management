@@ -18,7 +18,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -41,7 +40,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.portal.rest.model.Api;
-import io.gravitee.rest.api.portal.rest.model.ApisResponse;
+import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -82,6 +81,8 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Before
     public void init() {
+        resetAllMocks();
+        
         ApiEntity publishedApi = new ApiEntity();
         publishedApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
         publishedApi.setName("A");
@@ -97,9 +98,6 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         anotherPublishedApi.setName("C");
         anotherPublishedApi.setId("C");
         
-        reset(apiService);
-        reset(ratingService);
-        reset(apiMapper);
         
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi, anotherPublishedApi));
         doReturn(mockApis).when(apiService).findByUser(any(), any());
@@ -120,9 +118,9 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         
         Mockito.verify(apiService).search(any());
         
-        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
         assertEquals(2, apiResponse.getData().size());
-        assertEquals("A", apiResponse.getData().get(0).getName());
-        assertEquals("C", apiResponse.getData().get(1).getName());
+        assertEquals("A", ((Api)apiResponse.getData().get(0)).getName());
+        assertEquals("C", ((Api)apiResponse.getData().get(1)).getName());
     }
 }

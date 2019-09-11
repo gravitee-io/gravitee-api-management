@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -85,9 +84,7 @@ public class PageResourceNotAuthenticatedTest extends AbstractResourceTest {
     
     @Before
     public void init() {
-        reset(groupService);
-        reset(pageService);
-        reset(pageMapper);
+        resetAllMocks();
         
         mockAnotherPage = new PageEntity();
         mockAnotherPage.setPublished(true);

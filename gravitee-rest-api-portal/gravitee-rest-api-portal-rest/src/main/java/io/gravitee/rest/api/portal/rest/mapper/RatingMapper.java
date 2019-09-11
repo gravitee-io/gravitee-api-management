@@ -19,12 +19,14 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.gravitee.rest.api.model.RatingEntity;
-import io.gravitee.rest.api.portal.rest.model.Author;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingAnswer;
+import io.gravitee.rest.api.service.UserService;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -33,14 +35,18 @@ import io.gravitee.rest.api.portal.rest.model.RatingAnswer;
 @Component
 public class RatingMapper {
     
+    @Autowired
+    UserService userService;
+    
+    @Autowired
+    UserMapper userMapper;
+    
     public Rating convert(RatingEntity ratingEntity) {
         final Rating rating = new Rating();
 
-        
-        rating.setAuthor(new Author()
-                .id(ratingEntity.getUser())
-                .name(ratingEntity.getUserDisplayName())
-                );
+        UserEntity author = userService.findById(ratingEntity.getUser());
+        rating.setAuthor(userMapper.convert(author));
+        rating.setTitle(ratingEntity.getTitle());
         rating.setComment(ratingEntity.getComment());
         if(ratingEntity.getCreatedAt() != null) {
             rating.setDate(ratingEntity.getCreatedAt().toInstant().atOffset( ZoneOffset.UTC ));
@@ -51,13 +57,13 @@ public class RatingMapper {
         if(ratingEntity.getAnswers() != null) {
             List<RatingAnswer> ratingsAnswer = 
                     ratingEntity.getAnswers().stream()
-                        .map(rae -> new RatingAnswer()
-                                    .author(new Author()
-                                            .id(rae.getUser())
-                                            .name(rae.getUserDisplayName())
-                                            )
+                        .map(rae -> {
+                            UserEntity responseAuthor = userService.findById(rae.getUser());
+                            return new RatingAnswer()
+                                    .author(userMapper.convert(responseAuthor))
                                     .comment(rae.getComment())
-                                    .date(rae.getCreatedAt().toInstant().atOffset( ZoneOffset.UTC ))
+                                    .date(rae.getCreatedAt().toInstant().atOffset( ZoneOffset.UTC ));
+                        }
                         )
                         .collect(Collectors.toList());
             rating.setAnswers(ratingsAnswer);

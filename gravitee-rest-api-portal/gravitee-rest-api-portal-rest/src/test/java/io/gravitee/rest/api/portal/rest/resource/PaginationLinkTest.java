@@ -33,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import io.gravitee.rest.api.portal.rest.model.Links;
+import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -60,8 +61,8 @@ public class PaginationLinkTest {
         Integer totalItems = 120;
         
         MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<String, String>();
-        queryParameters.putSingle(AbstractResource.PAGE_QUERY_PARAM_NAME, page.toString());
-        queryParameters.putSingle(AbstractResource.SIZE_QUERY_PARAM_NAME, size.toString());
+        queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
+        queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
         doReturn(new URI(path+"?page="+page+"&size="+size)).when(uriInfo).getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
@@ -83,8 +84,8 @@ public class PaginationLinkTest {
         Integer totalItems = 120;
         
         MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<String, String>();
-        queryParameters.putSingle(AbstractResource.PAGE_QUERY_PARAM_NAME, page.toString());
-        queryParameters.putSingle(AbstractResource.SIZE_QUERY_PARAM_NAME, size.toString());
+        queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
+        queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
         doReturn(new URI(path+"?page="+page+"&size="+size)).when(uriInfo).getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
@@ -106,8 +107,8 @@ public class PaginationLinkTest {
         Integer totalItems = 120;
         
         MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<String, String>();
-        queryParameters.putSingle(AbstractResource.PAGE_QUERY_PARAM_NAME, page.toString());
-        queryParameters.putSingle(AbstractResource.SIZE_QUERY_PARAM_NAME, size.toString());
+        queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
+        queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
         doReturn(new URI(path+"?page="+page+"&size="+size)).when(uriInfo).getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
@@ -129,7 +130,7 @@ public class PaginationLinkTest {
         Integer totalItems = 120;
         
         MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<String, String>();
-        queryParameters.putSingle(AbstractResource.PAGE_QUERY_PARAM_NAME, page.toString());
+        queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
 
         doReturn(new URI(path+"?page="+page)).when(uriInfo).getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
@@ -151,7 +152,7 @@ public class PaginationLinkTest {
         Integer totalItems = 120;
         
         MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<String, String>();
-        queryParameters.putSingle(AbstractResource.SIZE_QUERY_PARAM_NAME, size.toString());
+        queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
         doReturn(new URI(path+"?size="+size)).when(uriInfo).getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();

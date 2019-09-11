@@ -21,12 +21,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
@@ -36,10 +37,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.RatingSummaryEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.portal.rest.model.Api;
-import io.gravitee.rest.api.portal.rest.model.ApisResponse;
+import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.Links;
 
@@ -56,84 +62,260 @@ public class ApisResourceTest extends AbstractResourceTest {
     
     @Before
     public void init() {
+        resetAllMocks();
+        
         ApiEntity publishedApi1 = new ApiEntity();
         publishedApi1.setLifecycleState(ApiLifecycleState.PUBLISHED);
-        publishedApi1.setName("A");
-        publishedApi1.setId("A");
+        publishedApi1.setName("1");
+        publishedApi1.setId("1");
         
         ApiEntity unpublishedApi = new ApiEntity();
         unpublishedApi.setLifecycleState(ApiLifecycleState.UNPUBLISHED);
-        unpublishedApi.setName("B");
-        unpublishedApi.setId("B");
+        unpublishedApi.setName("2");
+        unpublishedApi.setId("2");
         
         ApiEntity publishedApi2 = new ApiEntity();
         publishedApi2.setLifecycleState(ApiLifecycleState.PUBLISHED);
-        publishedApi2.setName("C");
-        publishedApi2.setId("C");
+        publishedApi2.setName("3");
+        publishedApi2.setId("3");
         
         
         ApiEntity publishedApi3 = new ApiEntity();
         publishedApi3.setLifecycleState(ApiLifecycleState.PUBLISHED);
-        publishedApi3.setName("D");
-        publishedApi3.setId("D");
+        publishedApi3.setName("4");
+        publishedApi3.setId("4");
         
         ApiEntity publishedApi4 = new ApiEntity();
         publishedApi4.setLifecycleState(ApiLifecycleState.PUBLISHED);
-        publishedApi4.setName("E");
-        publishedApi4.setId("E");
+        publishedApi4.setName("5");
+        publishedApi4.setId("5");
         
         ApiEntity publishedApi5 = new ApiEntity();
         publishedApi5.setLifecycleState(ApiLifecycleState.PUBLISHED);
-        publishedApi5.setName("F");
-        publishedApi5.setId("F");
+        publishedApi5.setName("6");
+        publishedApi5.setId("6");
         
-        
-        reset(apiService);
-        reset(ratingService);
-        reset(apiMapper);
-        
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi1, publishedApi2, publishedApi3, publishedApi4, publishedApi5));
+        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi5, publishedApi2, publishedApi1, publishedApi3, publishedApi4));
         doReturn(mockApis).when(apiService).findByUser(any(), any());
         doReturn(mockApis).when(apiService).search(any());
         
         doReturn(false).when(ratingService).isEnabled();
 
-        doReturn(new Api().id("A").name("A")).when(apiMapper).convert(publishedApi1);
-        doReturn(new Api().id("B").name("B")).when(apiMapper).convert(unpublishedApi);
-        doReturn(new Api().id("C").name("C")).when(apiMapper).convert(publishedApi2);
-        doReturn(new Api().id("D").name("D")).when(apiMapper).convert(publishedApi3);
-        doReturn(new Api().id("E").name("E")).when(apiMapper).convert(publishedApi4);
-        doReturn(new Api().id("F").name("F")).when(apiMapper).convert(publishedApi5);
+        doReturn(new Api().name("1").id("1")).when(apiMapper).convert(publishedApi1);
+        doReturn(new Api().name("2").id("2")).when(apiMapper).convert(unpublishedApi);
+        doReturn(new Api().name("3").id("3")).when(apiMapper).convert(publishedApi2);
+        doReturn(new Api().name("4").id("4")).when(apiMapper).convert(publishedApi3);
+        doReturn(new Api().name("5").id("5")).when(apiMapper).convert(publishedApi4);
+        doReturn(new Api().name("6").id("6")).when(apiMapper).convert(publishedApi5);
         
     }
     
     @Test
     public void shouldGetPublishedApi() {
-        final Response response = target().request().get();
+        final Response response = target()
+                .queryParam("context-path", "context-path")
+                .queryParam("label", "label")
+                .queryParam("version", "version")
+                .queryParam("name", "name")
+                .queryParam("tag", "tag")
+                .request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        Mockito.verify(apiService).findByUser(any(), any());
+        ArgumentCaptor<ApiQuery> queryCaptor = ArgumentCaptor.forClass(ApiQuery.class);
+        Mockito.verify(apiService).findByUser(any(), queryCaptor.capture());
+        final ApiQuery query = queryCaptor.getValue();
+        assertEquals("context-path", query.getContextPath());
+        assertEquals("label", query.getLabel());
+        assertEquals("version", query.getVersion());
+        assertEquals("name", query.getName());
+        assertEquals("tag", query.getTag());
         
-        ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).computeApiLinks(ac.capture());
+        ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(apiMapper, Mockito.times(5)).computeApiLinks(basePathCaptor.capture());
+        final String expectedBasePath = target().getUri().toString();
+        final List<String> bastPathList = basePathCaptor.getAllValues();
+        assertTrue(bastPathList.contains(expectedBasePath+"/1"));
+        assertTrue(bastPathList.contains(expectedBasePath+"/3"));
+        assertTrue(bastPathList.contains(expectedBasePath+"/4"));
+        assertTrue(bastPathList.contains(expectedBasePath+"/5"));
+        assertTrue(bastPathList.contains(expectedBasePath+"/6"));
         
-        String expectedBasePath = target().getUri().toString();
-        List<String> bastPathList = ac.getAllValues();
-        assertTrue(bastPathList.contains(expectedBasePath+"/A"));
-        assertTrue(bastPathList.contains(expectedBasePath+"/C"));
-        assertTrue(bastPathList.contains(expectedBasePath+"/D"));
-        assertTrue(bastPathList.contains(expectedBasePath+"/E"));
-        assertTrue(bastPathList.contains(expectedBasePath+"/F"));
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a->a.getName()).collect(Collectors.toList());
+        assertEquals(5, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
         
-        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
         assertEquals(5, apiResponse.getData().size());
-        assertEquals("A", apiResponse.getData().get(0).getName());
-        assertEquals("C", apiResponse.getData().get(1).getName());
-        assertEquals("D", apiResponse.getData().get(2).getName());
-        assertEquals("E", apiResponse.getData().get(3).getName());
-        assertEquals("F", apiResponse.getData().get(4).getName());
+        
+    }
+    
+    @Test
+    public void shouldGetMineApi() {
+        ApplicationListItem appA = new ApplicationListItem();
+        appA.setId("A");
+        ApplicationListItem appB = new ApplicationListItem();
+        appB.setId("B");
+        ApplicationListItem appC = new ApplicationListItem();
+        appC.setId("C");
+        doReturn(new HashSet<ApplicationListItem>(Arrays.asList(appC, appB, appA))).when(applicationService).findByUser(USER_NAME);
+        
+        SubscriptionEntity subA1 = new SubscriptionEntity();
+        subA1.setApplication("A");
+        subA1.setApi("1");
+        SubscriptionEntity subA2 = new SubscriptionEntity();
+        subA2.setApplication("A");
+        subA2.setApi("2");
+        SubscriptionEntity subB1 = new SubscriptionEntity();
+        subB1.setApplication("B");
+        subB1.setApi("1");
+        SubscriptionEntity subC4 = new SubscriptionEntity();
+        subC4.setApplication("C");
+        subC4.setApi("4");
+        SubscriptionEntity subC8 = new SubscriptionEntity();
+        subC8.setApplication("C");
+        subC8.setApi("8");
+        doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1)).when(subscriptionService).search(any());
+        
+        final Response response = target()
+                .queryParam("cat", "MINE")
+                .request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        
+        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        assertEquals(2, apiResponse.getData().size());
+        assertEquals("1", ((Api)apiResponse.getData().get(0)).getId());
+        assertEquals("4", ((Api)apiResponse.getData().get(1)).getId());
+        
+    }
+    
+    @Test
+    public void shouldNotGetStarredApi() {
+        final Response response = target()
+                .queryParam("cat", "STARRED")
+                .request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
         
+        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        assertEquals(5, apiResponse.getData().size());
+        assertEquals("1", ((Api)apiResponse.getData().get(0)).getId());
+        assertEquals("3", ((Api)apiResponse.getData().get(1)).getId());
+        assertEquals("4", ((Api)apiResponse.getData().get(2)).getId());
+        assertEquals("5", ((Api)apiResponse.getData().get(3)).getId());
+        assertEquals("6", ((Api)apiResponse.getData().get(4)).getId());
+    }
+    
+    @Test
+    public void shouldGetStarredApi() {
+        doReturn(true).when(ratingService).isEnabled();
+        
+        RatingSummaryEntity ratingSummary1 = new RatingSummaryEntity();
+        ratingSummary1.setApi("1");
+        ratingSummary1.setAverageRate(4.5);
+        ratingSummary1.setNumberOfRatings(3);
+        doReturn(ratingSummary1).when(ratingService).findSummaryByApi("1");
+        
+        RatingSummaryEntity ratingSummary3 = new RatingSummaryEntity();
+        ratingSummary3.setApi("3");
+        ratingSummary3.setAverageRate(5.0);
+        ratingSummary3.setNumberOfRatings(10);
+        doReturn(ratingSummary3).when(ratingService).findSummaryByApi("3");
+        
+        RatingSummaryEntity ratingSummary4 = new RatingSummaryEntity();
+        ratingSummary4.setApi("4");
+        ratingSummary4.setAverageRate(5.0);
+        ratingSummary4.setNumberOfRatings(1);
+        doReturn(ratingSummary4).when(ratingService).findSummaryByApi("4");
+        
+        RatingSummaryEntity ratingSummary5 = new RatingSummaryEntity();
+        ratingSummary5.setApi("5");
+        ratingSummary5.setAverageRate(4.5);
+        ratingSummary5.setNumberOfRatings(3);
+        doReturn(ratingSummary5).when(ratingService).findSummaryByApi("5");
+        
+        final Response response = target()
+                .queryParam("cat", "STARRED")
+                .request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        
+        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        assertEquals(4, apiResponse.getData().size());
+        assertEquals("3", ((Api)apiResponse.getData().get(0)).getId());
+        assertEquals("4", ((Api)apiResponse.getData().get(1)).getId());
+        assertEquals("1", ((Api)apiResponse.getData().get(2)).getId());
+        assertEquals("5", ((Api)apiResponse.getData().get(3)).getId());
+        
+    }
+    
+    @Test
+    public void shouldGetTrendingsApi() {
+        
+        SubscriptionEntity subA1 = new SubscriptionEntity();
+        subA1.setApplication("A");
+        subA1.setApi("1");
+        SubscriptionEntity subA2 = new SubscriptionEntity();
+        subA2.setApplication("A");
+        subA2.setApi("2");
+        SubscriptionEntity subB1 = new SubscriptionEntity();
+        subB1.setApplication("B");
+        subB1.setApi("1");
+        SubscriptionEntity subC4 = new SubscriptionEntity();
+        subC4.setApplication("C");
+        subC4.setApi("4");
+        SubscriptionEntity subC8 = new SubscriptionEntity();
+        subC8.setApplication("C");
+        subC8.setApi("8");
+        doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1)).when(subscriptionService).search(any());
+        
+        final Response response = target()
+                .queryParam("cat", "TRENDINGS")
+                .request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        
+        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        assertEquals(2, apiResponse.getData().size());
+        assertEquals("1", ((Api)apiResponse.getData().get(0)).getId());
+        assertEquals("4", ((Api)apiResponse.getData().get(1)).getId());
+        Map<String, Map<String, String>> metadata = apiResponse.getMetadata();
+        assertNotNull(metadata);
+        assertEquals(2, metadata.size());
+        
+        Map<String, String> listMetadata = metadata.get(AbstractResource.METADATA_LIST_KEY);
+        assertNotNull(listMetadata);
+        assertEquals(1, listMetadata.size());
+        Map<String, String> subscriptionsMetadata = metadata.get("subscriptions");
+        assertNotNull(subscriptionsMetadata);
+        assertEquals(2, subscriptionsMetadata.size());
+        assertEquals("2", subscriptionsMetadata.get("1")); // 2 subscriptions for API 1
+        assertEquals("1", subscriptionsMetadata.get("4")); // 1 subscription for API 4
+    }
+    
+    @Test
+    public void shouldGetFeaturedApis() {
+        TopApiEntity topApi5 = new TopApiEntity();
+        topApi5.setApi("5");
+        TopApiEntity topApi6 = new TopApiEntity();
+        topApi6.setApi("6");
+        doReturn(Arrays.asList(topApi5, topApi6)).when(topApiService).findAll();
+        
+        final Response response = target()
+                .queryParam("cat", "FEATURED")
+                .request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        
+        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        assertEquals(2, apiResponse.getData().size());
+        assertEquals("5", ((Api)apiResponse.getData().get(0)).getId());
+        assertEquals("6", ((Api)apiResponse.getData().get(1)).getId());
+        Map<String, Map<String, String>> metadata = apiResponse.getMetadata();
+        assertNotNull(metadata);
+        assertEquals(1, metadata.size());
+        
+        Map<String, String> listMetadata = metadata.get(AbstractResource.METADATA_LIST_KEY);
+        assertNotNull(listMetadata);
+        assertEquals(1, listMetadata.size());
     }
     
     @Test
@@ -141,9 +323,14 @@ public class ApisResourceTest extends AbstractResourceTest {
         final Response response = target().queryParam("page", 3).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a->a.getName()).collect(Collectors.toList());
+        assertEquals(5, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
+
+        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
         assertEquals(1, apiResponse.getData().size());
-        assertEquals("D", apiResponse.getData().get(0).getName());
     
         Links links = apiResponse.getLinks();
         assertNotNull(links);
@@ -170,7 +357,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
         assertEquals(0, apiResponse.getData().size());
         
         Links links = apiResponse.getLinks();
@@ -180,7 +367,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        apiResponse = anotherResponse.readEntity(ApisResponse.class);
+        apiResponse = anotherResponse.readEntity(DatasResponse.class);
         assertEquals(0, apiResponse.getData().size());
         
         links = apiResponse.getLinks();

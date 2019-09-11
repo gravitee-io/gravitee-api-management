@@ -17,10 +17,13 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -105,5 +108,39 @@ public class PaginationFilteringTest {
     
     private List<Integer> initIntegerList(int n) {
         return IntStream.rangeClosed(0, n-1).boxed().collect(Collectors.toList());
+    }
+    
+    @Test
+    public void testComputeMetadataWithoutInitList() {
+        initList = initIntegerList(13);
+
+        Map<String, Map<String, String>> metadata = paginatedResourceForTest.computeMetadata(initList, null);
+        assertNotNull(metadata);
+        assertEquals(1, metadata.size());
+        Map<String, String> listMetadata = metadata.get(AbstractResource.METADATA_LIST_KEY);
+        assertNotNull(listMetadata);
+        assertEquals(1, listMetadata.size());
+        assertEquals("13", listMetadata.get(AbstractResource.METADATA_LIST_TOTAL_KEY));
+
+    }
+    
+    @Test
+    public void testComputeMetadataWithInitList() {
+        initList = initIntegerList(13);
+        Map<String, Map<String, String>> initMetadata = new HashMap<>();
+        Map<String, String> testMetadata = new HashMap<>();
+        testMetadata.put("foo", "bar");
+        initMetadata.put("test", testMetadata);
+        
+        Map<String, Map<String, String>> metadata = paginatedResourceForTest.computeMetadata(initList, initMetadata);
+        assertNotNull(metadata);
+        assertEquals(2, metadata.size());
+        Map<String, String> listMetadata = metadata.get(AbstractResource.METADATA_LIST_KEY);
+        assertNotNull(listMetadata);
+        assertEquals(1, listMetadata.size());
+        assertEquals("13", listMetadata.get(AbstractResource.METADATA_LIST_TOTAL_KEY));
+        
+        assertEquals(testMetadata, metadata.get("test"));
+
     }
 }

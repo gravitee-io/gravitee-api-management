@@ -20,8 +20,9 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -37,17 +38,21 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
-import io.gravitee.rest.api.portal.rest.model.SubscriptionsResponse;
+import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+//APIPortal: review Permissions
 public class SubscriptionsResource extends AbstractResource {
 
     @Context
@@ -66,29 +71,39 @@ public class SubscriptionsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createSubscription(@Valid SubscriptionInput subscriptionInput) {
-        NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
-        newSubscriptionEntity.setApplication(subscriptionInput.getApplication());
-        newSubscriptionEntity.setPlan(subscriptionInput.getPlan());
-        newSubscriptionEntity.setRequest(subscriptionInput.getRequest());
-        
-        SubscriptionEntity createdSubscription = subscriptionService.create(newSubscriptionEntity);
-        
-        return Response
-                .ok(subscriptionMapper.convert(createdSubscription))
-                .build();
+        if(hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionInput.getApplication(), RolePermissionAction.CREATE)) {
+            NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
+            newSubscriptionEntity.setApplication(subscriptionInput.getApplication());
+            newSubscriptionEntity.setPlan(subscriptionInput.getPlan());
+            newSubscriptionEntity.setRequest(subscriptionInput.getRequest());
+            
+            SubscriptionEntity createdSubscription = subscriptionService.create(newSubscriptionEntity);
+            
+            return Response
+                    .ok(subscriptionMapper.convert(createdSubscription))
+                    .build();
+        }
+        throw new ForbiddenAccessException();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getSubscriptions(@QueryParam("api") String api, @QueryParam("application") String application, @DefaultValue(PAGE_QUERY_PARAM_DEFAULT) @QueryParam("page") Integer page, @DefaultValue(SIZE_QUERY_PARAM_DEFAULT) @QueryParam("size") Integer size) {
-        
-        //APIPortal: check if currentUuser is allowed to manage this application / api ?
+    public Response getSubscriptions(@QueryParam("apiId") String apiId, @QueryParam("applicationId") String applicationId, @BeanParam PaginationParam paginationParam) {
+        if(apiId == null && applicationId == null) {
+            throw new BadRequestException("At least an api or an application must be provided.");
+        }
+        if((applicationId == null && !hasPermission(RolePermission.API_SUBSCRIPTION, apiId, RolePermissionAction.READ)) 
+                || (apiId == null && !hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ))
+                || (!hasPermission(RolePermission.API_SUBSCRIPTION, apiId, RolePermissionAction.READ) && !hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ))
+            ) {
+            throw new ForbiddenAccessException();
+        }
         
         SubscriptionQuery query = new SubscriptionQuery();
-        query.setApi(api);
-        query.setApplication(application);
+        query.setApi(apiId);
+        query.setApplication(applicationId);
         
-        final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(query, new PageableImpl(page, size));
+        final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(query, new PageableImpl(paginationParam.getPage(), paginationParam.getSize()));
         
         List<Subscription> subscriptionList = pagedSubscriptions.getContent()
                 .stream()
@@ -96,18 +111,8 @@ public class SubscriptionsResource extends AbstractResource {
                 .collect(Collectors.toList());
         
         
-        int totalItems = subscriptionList.size();
-        
-        subscriptionList = this.paginateResultList(subscriptionList, page, size);
-
-        SubscriptionsResponse subscriptionResponse = new SubscriptionsResponse()
-                .data(subscriptionList)
-                .links(this.computePaginatedLinks(uriInfo, page, size, totalItems))
-                ;
-        
-        return Response
-                .ok(subscriptionResponse)
-                .build();
+        //No pagination, because subscriptionService did it already
+        return createListResponse(subscriptionList, paginationParam, uriInfo, false);
     }
 
     @Path("{subscriptionId}")

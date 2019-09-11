@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -39,12 +38,11 @@ import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Member;
 import io.gravitee.rest.api.portal.rest.model.MemberInput;
-import io.gravitee.rest.api.portal.rest.model.MembersResponse;
-import io.gravitee.rest.api.portal.rest.model.RoleEnum;
 import io.gravitee.rest.api.portal.rest.model.TransferOwnershipInput;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
@@ -70,15 +68,13 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() {
+        resetAllMocks();
+        
         MemberEntity memberEntity1 = new MemberEntity();
         memberEntity1.setId(MEMBER_1);
 
         MemberEntity memberEntity2 = new MemberEntity();
         memberEntity2.setId(MEMBER_2);
-        
-        
-        reset(membershipService);
-        reset(memberMapper);
         
         doReturn(new HashSet<>(Arrays.asList(memberEntity1, memberEntity2))).when(membershipService).getMembers(MembershipReferenceType.APPLICATION, APPLICATION, RoleScope.APPLICATION);
         doReturn(memberEntity1).when(membershipService).getMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_1, RoleScope.APPLICATION);
@@ -96,7 +92,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        MembersResponse membersResponse = response.readEntity(MembersResponse.class);
+        DatasResponse membersResponse = response.readEntity(DatasResponse.class);
         assertEquals(2, membersResponse.getData().size());
         assertEquals(MEMBER_1, membersResponse.getData().get(0).getId());
         assertEquals(MEMBER_2, membersResponse.getData().get(1).getId());
@@ -110,7 +106,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        MembersResponse membersResponse = response.readEntity(MembersResponse.class);
+        DatasResponse membersResponse = response.readEntity(DatasResponse.class);
         assertEquals(1, membersResponse.getData().size());
         assertEquals(MEMBER_2, membersResponse.getData().get(0).getId());
     
@@ -139,7 +135,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        MembersResponse membersResponse = response.readEntity(MembersResponse.class);
+        DatasResponse membersResponse = response.readEntity(DatasResponse.class);
         assertEquals(0, membersResponse.getData().size());
         
         Links links = membersResponse.getLinks();
@@ -149,7 +145,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target(APPLICATION).path("members").queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        membersResponse = anotherResponse.readEntity(MembersResponse.class);
+        membersResponse = anotherResponse.readEntity(DatasResponse.class);
         assertEquals(0, membersResponse.getData().size());
         
         links = membersResponse.getLinks();
@@ -177,7 +173,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     
     @Test
     public void shouldCreateMember() {
-        MemberInput memberInput = new MemberInput().role(RoleEnum.USER).user(MEMBER_1);
+        MemberInput memberInput = new MemberInput().role("USER").user(MEMBER_1);
         final Response response = target(APPLICATION).path("members").request().post(Entity.json(memberInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
@@ -187,13 +183,13 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         Mockito.verify(membershipService).addOrUpdateMember(memberShipRefCaptor.capture(), memberShipUserCaptor.capture(), memberShipRoleCaptor.capture());
         assertEquals(APPLICATION, memberShipRefCaptor.getValue().getId());
-        assertEquals(RoleEnum.USER.getValue(), memberShipRoleCaptor.getValue().getName());
+        assertEquals("USER", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getId());
     }
     
     @Test
     public void shouldUpdateMember() {
-        MemberInput memberInput = new MemberInput().role(RoleEnum.USER);
+        MemberInput memberInput = new MemberInput().role("USER");
         final Response response = target(APPLICATION).path("members").path(MEMBER_2).request().put(Entity.json(memberInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
@@ -203,7 +199,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         Mockito.verify(membershipService).addOrUpdateMember(memberShipRefCaptor.capture(), memberShipUserCaptor.capture(), memberShipRoleCaptor.capture());
         assertEquals(APPLICATION, memberShipRefCaptor.getValue().getId());
-        assertEquals(RoleEnum.USER.getValue(), memberShipRoleCaptor.getValue().getName());
+        assertEquals("USER", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_2, memberShipUserCaptor.getValue().getId());
     }
     
@@ -212,7 +208,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         RoleEntity mockRoleEntity = new RoleEntity();
         doReturn(mockRoleEntity).when(roleService).findById(any(), any());
         
-        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(MEMBER_1).primaryOwnerNewrole(RoleEnum.OWNER);
+        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(MEMBER_1).primaryOwnerNewrole("OWNER");
         final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
         
@@ -228,9 +224,9 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     
     @Test
     public void shouldTransferOwnerShipWithWrongRole() {
-        doThrow(new RoleNotFoundException(RoleScope.APPLICATION, RoleEnum.OWNER.getValue())).when(roleService).findById(any(), any());
+        doThrow(new RoleNotFoundException(RoleScope.APPLICATION, "OWNER")).when(roleService).findById(any(), any());
         
-        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(MEMBER_1).primaryOwnerNewrole(RoleEnum.OWNER);
+        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(MEMBER_1).primaryOwnerNewrole("OWNER");
         final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
         
@@ -254,14 +250,14 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     //404 POST /members
     @Test
     public void shouldHaveNotFoundWhileCreatingNewMemberUnknonwnApplication() {
-        MemberInput memberInput = new MemberInput().role(RoleEnum.USER).user(MEMBER_1);
+        MemberInput memberInput = new MemberInput().role("USER").user(MEMBER_1);
         final Response response = target(UNKNOWN_APPLICATION).path("members").request().post(Entity.json(memberInput));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
     
     @Test
     public void shouldHaveNotFoundWhileCreatingNewMemberUnknownMember() {
-        MemberInput memberInput = new MemberInput().role(RoleEnum.USER).user(UNKNOWN_MEMBER);
+        MemberInput memberInput = new MemberInput().role("USER").user(UNKNOWN_MEMBER);
         final Response response = target(APPLICATION).path("members").request().post(Entity.json(memberInput));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
@@ -269,7 +265,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     //400 POST /members
     @Test
     public void shouldHaveBadRequestWhileCreatingNewMemberAsPrimaryOwner() {
-        MemberInput memberInput = new MemberInput().role(RoleEnum.PRIMARY_OWNER).user(MEMBER_1);
+        MemberInput memberInput = new MemberInput().role("PRIMARY_OWNER").user(MEMBER_1);
         final Response response = target(APPLICATION).path("members").request().post(Entity.json(memberInput));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         Error error = response.readEntity(Error.class);
@@ -279,14 +275,14 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     //404 PUT /members/{memberId}
     @Test
     public void shouldHaveNotFoundWhileUpdatingNewMemberUnknonwnApplication() {
-        MemberInput memberInput = new MemberInput().role(RoleEnum.USER).user(MEMBER_1);
+        MemberInput memberInput = new MemberInput().role("USER").user(MEMBER_1);
         final Response response = target(UNKNOWN_APPLICATION).path("members").path(MEMBER_1).request().put(Entity.json(memberInput));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
     
     @Test
     public void shouldHaveNotFoundWhileUpdatingNewMemberUnknownMember() {
-        MemberInput memberInput = new MemberInput().role(RoleEnum.USER).user(UNKNOWN_MEMBER);
+        MemberInput memberInput = new MemberInput().role("USER").user(UNKNOWN_MEMBER);
         final Response response = target(APPLICATION).path("members").path(UNKNOWN_MEMBER).request().put(Entity.json(memberInput));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
@@ -294,13 +290,13 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     //400 PUT /members/{memberId}
     @Test
     public void shouldHaveBadRequestWhileUpdatingWrongMember() {
-        MemberInput memberInput = new MemberInput().role(RoleEnum.USER).user(MEMBER_1);
+        MemberInput memberInput = new MemberInput().role("USER").user(MEMBER_1);
         final Response response = target(APPLICATION).path("members").path(MEMBER_2).request().put(Entity.json(memberInput));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
     @Test
     public void shouldHaveBadRequestWhileUpdatingMemberToPrimaryOwner() {
-        MemberInput memberInput = new MemberInput().role(RoleEnum.PRIMARY_OWNER).user(MEMBER_1);
+        MemberInput memberInput = new MemberInput().role("PRIMARY_OWNER").user(MEMBER_1);
         final Response response = target(APPLICATION).path("members").path(MEMBER_1).request().put(Entity.json(memberInput));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         Error error = response.readEntity(Error.class);
@@ -354,7 +350,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     //400 POST /members/_transfer_ownership
     @Test
     public void shouldHaveBadRequestWhileTransferingOwnerShipToPrimaryOwner() {
-        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(MEMBER_1).primaryOwnerNewrole(RoleEnum.PRIMARY_OWNER);
+        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(MEMBER_1).primaryOwnerNewrole("PRIMARY_OWNER");
         final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         Error error = response.readEntity(Error.class);

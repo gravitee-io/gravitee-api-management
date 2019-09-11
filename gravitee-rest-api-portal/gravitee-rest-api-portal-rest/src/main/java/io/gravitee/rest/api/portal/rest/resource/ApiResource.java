@@ -37,9 +37,12 @@ import javax.ws.rs.core.UriInfo;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
@@ -84,7 +87,8 @@ public class ApiResource extends AbstractResource {
     public Response getApiByApiId(@PathParam("apiId") String apiId, @QueryParam("include") List<String> include) {
         
         ApiEntity apiEntity = apiService.findById(apiId);
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())) {
+        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
+                || hasPermission(RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)) {
 
             Api api = apiMapper.convert(apiEntity);
             
@@ -101,11 +105,13 @@ public class ApiResource extends AbstractResource {
                 api.setPages(pages);
             }
             if(include.contains(INCLUDE_PLANS)) {
+                String user = getAuthenticatedUserOrNull();
                 List<Plan> plans = planService.findByApi(apiId).stream()
+                        .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
                         .filter(plan -> (isAuthenticated() || groupService.
                                 isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())))
                         .sorted(Comparator.comparingInt(PlanEntity::getOrder))
-                        .map(planMapper::convert)
+                        .map(p->planMapper.convert(p, user))
                         .collect(Collectors.toList());
                 api.setPlans(plans);
             }
@@ -132,7 +138,8 @@ public class ApiResource extends AbstractResource {
     @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
     public Response getPictureByApiId(@Context Request request, @PathParam("apiId") String apiId) {
         ApiEntity apiEntity = apiService.findById(apiId);
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())) {
+        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
+                || hasPermission(RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)) {
 
             CacheControl cc = new CacheControl();
             cc.setNoTransform(true);

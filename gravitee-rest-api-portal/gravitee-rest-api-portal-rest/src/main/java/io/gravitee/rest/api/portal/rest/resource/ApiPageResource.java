@@ -27,6 +27,8 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
@@ -53,7 +55,8 @@ public class ApiPageResource extends AbstractResource {
     public Response getPageByApiIdAndPageId(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         final ApiEntity apiEntity = apiService.findById(apiId);
 
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())) {
+        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
+                || hasPermission(RolePermission.API_DOCUMENTATION, apiId, RolePermissionAction.READ)) {
             
             PageEntity pageEntity = pageService.findById(pageId);
             pageService.transformSwagger(pageEntity, apiId);

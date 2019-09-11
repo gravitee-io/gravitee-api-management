@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.spring;
 
+import java.io.IOException;
+import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
@@ -23,9 +26,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableAsync;
-
-import java.io.IOException;
-import java.util.Properties;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

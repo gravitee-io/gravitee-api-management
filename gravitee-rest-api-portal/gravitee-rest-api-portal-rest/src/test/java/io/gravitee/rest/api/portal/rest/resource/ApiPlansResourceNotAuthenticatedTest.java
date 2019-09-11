@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -40,11 +39,13 @@ import org.junit.Test;
 
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Data;
+import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 import io.gravitee.rest.api.portal.rest.model.Plan;
-import io.gravitee.rest.api.portal.rest.model.PlansResponse;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -89,9 +90,7 @@ public class ApiPlansResourceNotAuthenticatedTest extends AbstractResourceTest {
     
     @Before
     public void init() {
-        reset(apiService);
-        reset(planService);
-        reset(planMapper);
+        resetAllMocks();
         
         mockApi = new ApiEntity();
         mockApi.setId(API);
@@ -102,15 +101,22 @@ public class ApiPlansResourceNotAuthenticatedTest extends AbstractResourceTest {
         plan1.setId("A");
         plan1.setSecurity(PlanSecurityType.API_KEY);
         plan1.setValidation(PlanValidationType.AUTO);
+        plan1.setStatus(PlanStatus.PUBLISHED);
         
         PlanEntity plan2 = new PlanEntity();
         plan2.setId("B");
         plan2.setSecurity(PlanSecurityType.KEY_LESS);
         plan2.setValidation(PlanValidationType.MANUAL);
+        plan2.setStatus(PlanStatus.PUBLISHED);
 
-        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2))).when(planService).findByApi(API);
+        PlanEntity plan3 = new PlanEntity();
+        plan3.setId("C");
+        plan3.setSecurity(PlanSecurityType.KEY_LESS);
+        plan3.setValidation(PlanValidationType.MANUAL);
+        plan3.setStatus(PlanStatus.CLOSED);
         
-        doReturn(new Plan()).when(planMapper).convert(any());
+        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3))).when(planService).findByApi(API);
+        
     }
     
     @Test
@@ -120,9 +126,9 @@ public class ApiPlansResourceNotAuthenticatedTest extends AbstractResourceTest {
         final Response response = target(API).path("plans").request().get();
         assertEquals(OK_200, response.getStatus());
 
-        PlansResponse plansResponse = response.readEntity(PlansResponse.class);
+        DatasResponse plansResponse = response.readEntity(DatasResponse.class);
 
-        List<Plan> plans = plansResponse.getData();
+        List<Data> plans = plansResponse.getData();
         assertNotNull(plans);
         assertEquals(2, plans.size());
     }
@@ -134,9 +140,9 @@ public class ApiPlansResourceNotAuthenticatedTest extends AbstractResourceTest {
         final Response response = target(API).path("plans").request().get();
         assertEquals(OK_200, response.getStatus());
 
-        PlansResponse plansResponse = response.readEntity(PlansResponse.class);
+        DatasResponse plansResponse = response.readEntity(DatasResponse.class);
 
-        List<Plan> plans = plansResponse.getData();
+        List<Data> plans = plansResponse.getData();
         assertNotNull(plans);
         assertEquals(0, plans.size());
     }

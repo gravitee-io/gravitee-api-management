@@ -21,13 +21,12 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -39,10 +38,14 @@ import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationInput;
-import io.gravitee.rest.api.portal.rest.model.ApplicationsResponse;
+import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.security.Permission;
+import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 
 /**
@@ -66,6 +69,9 @@ public class ApplicationsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+        @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.CREATE),
+    })
     public Response createApplication(@Valid ApplicationInput applicationInput) {
         NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
         newApplicationEntity.setDescription(applicationInput.getDescription());
@@ -116,7 +122,11 @@ public class ApplicationsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getApplications(@DefaultValue(PAGE_QUERY_PARAM_DEFAULT) @QueryParam("page") Integer page, @DefaultValue(SIZE_QUERY_PARAM_DEFAULT) @QueryParam("size") Integer size) {
+    @Permissions({
+        @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.PORTAL_APPLICATION, acls = RolePermissionAction.READ)
+    })
+    public Response getApplications(@BeanParam PaginationParam paginationParam) {
         
         List<Application> applicationsList = applicationService.findByUser(getAuthenticatedUser())
                 .stream()
@@ -125,18 +135,7 @@ public class ApplicationsResource extends AbstractResource {
                 .collect(Collectors.toList())
                 ;
         
-        int totalItems = applicationsList.size();
-        
-        applicationsList = this.paginateResultList(applicationsList, page, size);
-        
-        ApplicationsResponse applicationsResponse = new ApplicationsResponse()
-                .data(applicationsList)
-                .links(this.computePaginatedLinks(uriInfo, page, size, totalItems))
-                ;
-        
-        return Response
-                .ok(applicationsResponse)
-                .build();
+        return createListResponse(applicationsList, paginationParam, uriInfo);
     }
     
     private Application addApplicationLinks(Application application) {

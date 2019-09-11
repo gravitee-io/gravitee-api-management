@@ -22,13 +22,12 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -41,10 +40,14 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.rest.api.model.NewRatingEntity;
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.RatingMapper;
 import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingInput;
-import io.gravitee.rest.api.portal.rest.model.RatingsResponse;
+import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.security.Permission;
+import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 
@@ -52,7 +55,6 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-//APIPortal: only if ratings is activated ?
 public class ApiRatingsResource extends AbstractResource {
     
     @Context
@@ -66,26 +68,22 @@ public class ApiRatingsResource extends AbstractResource {
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getApiRatingsByApiId(@PathParam("apiId") String apiId, @DefaultValue(PAGE_QUERY_PARAM_DEFAULT) @QueryParam("page") Integer page, @DefaultValue(SIZE_QUERY_PARAM_DEFAULT) @QueryParam("size") Integer size) {
+    public Response getApiRatingsByApiId(@PathParam("apiId") String apiId, @BeanParam PaginationParam paginationParam) {
         final ApiEntity apiEntity = apiService.findById(apiId);
-        if (PUBLIC.equals(apiEntity.getVisibility())) {
-            final Page<RatingEntity> ratingEntityPage = ratingService.findByApi(apiId, new PageableBuilder().pageNumber(page).pageSize(size).build());
+        if (PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(RolePermission.API_RATING, apiId, RolePermissionAction.READ)) {
+            final Page<RatingEntity> ratingEntityPage = ratingService.findByApi(apiId, 
+                    new PageableBuilder()
+                        .pageNumber(paginationParam.getPage())
+                        .pageSize(paginationParam.getSize())
+                        .build()
+                    );
             
             List<Rating> ratings = ratingEntityPage.getContent().stream()
                     .map(ratingMapper::convert)
                     .collect(toList());
-            
-            int totalItems = ratings.size();
-            
-            //No Need to paginate since the entity list has been filtered yet
-            //ratings = this.paginateResultList(ratings, page, size)           
-            
-            RatingsResponse response = new RatingsResponse()
-                    .data(ratings)
-                    .links(this.computePaginatedLinks(uriInfo, page, size, totalItems))
-                    ;
-            
-            return Response.ok(response).build();
+
+            //No pagination, because ratingService did it already
+            return createListResponse(ratings, paginationParam, uriInfo, false);
         }
         
         throw new ForbiddenAccessException();
@@ -95,12 +93,14 @@ public class ApiRatingsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+        @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE)
+    })
     public Response createApiRatingForApi(@PathParam("apiId") String apiId, @Valid RatingInput ratingInput) {
         NewRatingEntity rating = new NewRatingEntity();
         rating.setApi(apiId);
         rating.setComment(ratingInput.getComment());
-        // APIPortal: missing 'Title' in ratingInput
-        // rating.setTitle()
+        rating.setTitle(ratingInput.getTitle());
         rating.setRate(ratingInput.getValue().byteValue());
         
         RatingEntity createdRating = ratingService.create(rating);
@@ -109,5 +109,4 @@ public class ApiRatingsResource extends AbstractResource {
                 .ok(ratingMapper.convert(createdRating))
                 .build();
     }
-
 }

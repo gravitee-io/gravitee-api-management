@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.eq;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -40,6 +40,7 @@ import org.junit.Test;
 
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Api;
@@ -89,13 +90,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
     
     @Before
     public void init() {
-        reset(apiService);
-        reset(groupService);
-        reset(pageService);
-        reset(planService);
-        reset(apiMapper);
-        reset(pageMapper);
-        reset(planMapper);
+        resetAllMocks();
         
         
         mockApi = new ApiEntity();
@@ -107,16 +102,22 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         
         PlanEntity plan1 = new PlanEntity();
         plan1.setId("A");
+        plan1.setStatus(PlanStatus.PUBLISHED);
 
         PlanEntity plan2 = new PlanEntity();
         plan2.setId("B");
+        plan2.setStatus(PlanStatus.PUBLISHED);
         
-        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2))).when(planService).findByApi(API);        
+        PlanEntity plan3 = new PlanEntity();
+        plan3.setId("C");
+        plan3.setStatus(PlanStatus.CLOSED);
+        
+        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3))).when(planService).findByApi(API);        
         
         
         doReturn(new Api()).when(apiMapper).convert(any());
         doReturn(new Page()).when(pageMapper).convert(any());
-        doReturn(new Plan()).when(planMapper).convert(any());
+        doReturn(new Plan()).when(planMapper).convert(any(), eq(USER_NAME));
 
     }
     

@@ -27,7 +27,7 @@ import io.swagger.annotations.Api;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/env/{envId}")
+@Path("/{envId}")
 @Api
 public class EnvironmentResource extends AbstractResource {
     

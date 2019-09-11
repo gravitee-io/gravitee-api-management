@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
-import javax.ws.rs.DefaultValue;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -33,7 +33,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
-import io.gravitee.rest.api.portal.rest.model.PagesResponse;
+import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 
@@ -60,30 +60,21 @@ public class PagesResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPages(@DefaultValue(PAGE_QUERY_PARAM_DEFAULT) @QueryParam("page") Integer page, @DefaultValue(SIZE_QUERY_PARAM_DEFAULT) @QueryParam("size") Integer size, @QueryParam("homepage") Boolean homepage, @QueryParam("root") Boolean root, @QueryParam("parent") String parent) {
+    public Response getPages(@BeanParam PaginationParam paginationParam, @QueryParam("homepage") Boolean homepage, @QueryParam("parent") String parent) {
 
             List<Page> pages = pageService
                     .search(new PageQuery.Builder()
                             .homepage(homepage)
                             .parent(parent)
-                            .rootParent(root)
                             .build())
+
                     .stream()
                     .filter(pageEntity -> isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups()))
                     .map(pageMapper::convert)
                     .map(pageResult -> pageResult.content(null))
                     .collect(Collectors.toList());
             
-            int totalItems = pages.size();
-            
-            pages = this.paginateResultList(pages, page, size);
-            
-            PagesResponse response = new PagesResponse()
-                    .data(pages)
-                    .links(this.computePaginatedLinks(uriInfo, page, size, totalItems))
-                    ;
-            
-            return Response.ok(response).build();
+            return createListResponse(pages, paginationParam, uriInfo);
     }
 
     @Path("{pageId}")

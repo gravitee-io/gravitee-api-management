@@ -17,32 +17,22 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.rest.api.model.EntrypointEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
-import io.gravitee.rest.api.service.EntrypointService;
-import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.RatingService;
-import io.gravitee.rest.api.service.SubscriptionService;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -55,35 +45,39 @@ public class ApiMapper {
     @Autowired
     private RatingService ratingService;
     
-    @Autowired
-    private SubscriptionService subscriptionService;
-    
-    @Autowired
-    private EntrypointService entrypointService;
-    
-    @Autowired
-    private ParameterService parameterService;
-    
     public Api convert(ApiEntity api) {
         final Api apiItem = new Api();
-
         apiItem.setDescription(api.getDescription());
         
-        List<String> entrypoints = getSpecificEntrypoints(api, entrypointService);
-        String defaultEntrypoint = getDefaultEntrypoint(api, parameterService);
-        if(defaultEntrypoint != null) {
-            entrypoints.add(defaultEntrypoint);
+        List<ApiEntrypointEntity> apiEntrypoints = api.getEntrypoints();
+        if(apiEntrypoints != null) {
+            List<String> entrypoints = apiEntrypoints.stream()
+                    .map(ApiEntrypointEntity::getTarget)
+                    .collect(Collectors.toList());
+            apiItem.setEntrypoints(entrypoints);
         }
-        apiItem.setEntrypoints(entrypoints);
+        
+        apiItem.setDraft(api.getLifecycleState() == ApiLifecycleState.UNPUBLISHED || api.getLifecycleState() == ApiLifecycleState.CREATED);
         
         apiItem.setId(api.getId());
-        if(api.getLabels() != null) {
-            apiItem.setLabels(new ArrayList<String>(api.getLabels()));
+        
+        List<String> apiLabels = api.getLabels();
+        if(apiLabels != null) {
+            apiItem.setLabels(new ArrayList<String>(apiLabels));
         } else {
             apiItem.setLabels(new ArrayList<String>());
         }
+        
         apiItem.setName(api.getName());
         
+        PrimaryOwnerEntity primaryOwner = api.getPrimaryOwner();
+        if(primaryOwner != null) {
+            User owner = new User();
+            owner.setId(primaryOwner.getId());
+            owner.setDisplayName(primaryOwner.getDisplayName());
+            owner.setEmail(primaryOwner.getEmail());
+            apiItem.setOwner(owner);
+        }
         apiItem.setPages(null);
         apiItem.setPlans(null);
         
@@ -96,17 +90,6 @@ public class ApiMapper {
             apiItem.setRatingSummary(ratingSummary);
         }
         
-        SubscriptionQuery query = new SubscriptionQuery();
-        query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
-        query.setApi(api.getId());
-        Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
-        apiItem.setSubscribed(subscriptions != null && !subscriptions.isEmpty());
-        
-        if(api.getTags() != null) {
-            apiItem.setTags(new ArrayList<String>(api.getTags()));
-        } else {
-            apiItem.setTags(new ArrayList<String>());
-        }
         apiItem.setVersion(api.getVersion());
         if(api.getViews() != null) {
             apiItem.setViews(new ArrayList<String>(api.getViews()));
@@ -115,41 +98,6 @@ public class ApiMapper {
         }
         
         return apiItem;
-    }
-
-    private String getDefaultEntrypoint(ApiEntity api, ParameterService parameterService) {
-        String defaultEntrypoint = null;
-        List<String> params = parameterService.findAll(Key.PORTAL_ENTRYPOINT);
-        if(params != null && !params.isEmpty()) {
-            defaultEntrypoint = params.get(0);
-            if (api.getProxy() != null) {
-                defaultEntrypoint += api.getProxy().getVirtualHosts().iterator().next().getPath();
-            }
-        }
-        return defaultEntrypoint;
-    }
-
-    private List<String> getSpecificEntrypoints(ApiEntity api, EntrypointService entrypointService) {
-        List<String> graviteeUrls = new ArrayList<>();
-        String portalEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
-        if (portalEntrypoint != null) {
-            api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
-                @Override
-                public void accept(VirtualHost virtualHost) {
-                    if (virtualHost.getHost() == null) {
-                        graviteeUrls.add(portalEntrypoint + virtualHost.getPath());
-                    } else {
-                        graviteeUrls.add(virtualHost.getHost() + virtualHost.getPath());
-                    }
-                }
-            });
-        }
-
-        List<EntrypointEntity> entrypoints = entrypointService.findAll();
-        entrypoints.stream().flatMap((Function<EntrypointEntity, Stream<String>>) entrypoint ->
-                api.getProxy().getVirtualHosts().stream()
-                        .map(virtualHost -> entrypoint.getValue() + virtualHost.getPath())).forEach(graviteeUrls::add);
-        return graviteeUrls;
     }
 
     public ApiLinks computeApiLinks(String basePath) {

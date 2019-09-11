@@ -15,10 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.spring;
 
-import io.gravitee.plugin.core.spring.PluginConfiguration;
-import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
-import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
-import io.gravitee.rest.api.service.spring.ServiceConfiguration;
+import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -28,7 +25,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 
-import java.util.Properties;
+import io.gravitee.plugin.core.spring.PluginConfiguration;
+import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
+import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
+import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

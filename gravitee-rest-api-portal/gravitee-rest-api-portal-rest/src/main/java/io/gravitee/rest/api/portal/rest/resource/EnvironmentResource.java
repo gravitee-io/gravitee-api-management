@@ -48,4 +48,14 @@ public class EnvironmentResource extends AbstractResource {
     public SubscriptionsResource getSubscriptionsResource() {
         return resourceContext.getResource(SubscriptionsResource.class);
     }
+    
+    @Path("users")
+    public UsersResource getUsersResource() {
+        return resourceContext.getResource(UsersResource.class);
+    }
+    
+    @Path("user")
+    public UserResource getUserResource() {
+        return resourceContext.getResource(UserResource.class);
+    }
 }

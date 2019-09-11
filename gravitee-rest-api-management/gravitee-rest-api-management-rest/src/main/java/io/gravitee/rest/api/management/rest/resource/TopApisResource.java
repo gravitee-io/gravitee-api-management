@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,7 +101,7 @@ public class TopApisResource extends AbstractResource  {
     private Consumer<TopApiEntity> addPictureUrl() {
         return topApiEntity -> {
             final UriBuilder ub = uriInfo.getBaseUriBuilder();
-            final UriBuilder uriBuilder = ub.path("apis").path(topApiEntity.getApi()).path("picture");
+            final UriBuilder uriBuilder = ub.path(GraviteeContext.getCurrentEnvironment()).path("apis").path(topApiEntity.getApi()).path("picture");
             topApiEntity.setPictureUrl(uriBuilder.build().toString());
         };
     }

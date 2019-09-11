@@ -18,6 +18,8 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
@@ -29,6 +31,9 @@ import org.mockito.Mockito;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.model.Key;
 
 /**
@@ -44,26 +49,33 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
     private static final String SUBSCRIPTION = "my-subscription";
     private static final String ANOTHER_SUBSCRIPTION = "my-other-ubscription";
     private static final String KEY = "my-key";
+    private static final String API = "my-api";
+    private static final String APPLICATION = "my-application";
 
     private ApiKeyEntity apiKeyEntity;
     
     @Before
     public void init() {
-        reset(apiKeyService);
-        reset(keyMapper);
+        resetAllMocks();
         
-        
-    }
-    
-    @Test
-    public void shouldRenewSubscription() {
         apiKeyEntity = new ApiKeyEntity();
         apiKeyEntity.setKey(KEY);
         apiKeyEntity.setSubscription(SUBSCRIPTION);
         
         doReturn(apiKeyEntity).when(apiKeyService).renew(SUBSCRIPTION);
+        doReturn(apiKeyEntity).when(apiKeyService).findByKey(KEY);
+
         doReturn(new Key().id(KEY)).when(keyMapper).convert(apiKeyEntity);
         
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setApi(API);
+        subscriptionEntity.setApplication(APPLICATION);
+        doReturn(subscriptionEntity).when(subscriptionService).findById(eq(SUBSCRIPTION));
+        doReturn(true).when(permissionService).hasPermission(any(),  any(),  any());
+    }
+    
+    @Test
+    public void shouldRenewSubscription() {
         final Response response = target(SUBSCRIPTION).path("keys/_renew").request().post(null);
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         
@@ -75,13 +87,28 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
     }
     
     @Test
+    public void testPermissionsForRenewingSubscription() {
+        reset(permissionService);
+        
+        doReturn(true).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.UPDATE);
+        doReturn(true).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.UPDATE);
+        assertEquals(HttpStatusCode.CREATED_201, target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
+        
+        doReturn(true).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.UPDATE);
+        doReturn(false).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.UPDATE);
+        assertEquals(HttpStatusCode.CREATED_201, target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
+        
+        doReturn(false).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.UPDATE);
+        doReturn(true).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.UPDATE);
+        assertEquals(HttpStatusCode.CREATED_201, target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
+        
+        doReturn(false).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.UPDATE);
+        doReturn(false).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.UPDATE);
+        assertEquals(HttpStatusCode.FORBIDDEN_403, target(SUBSCRIPTION).path("keys/_renew").request().post(null).getStatus());
+    }
+    
+    @Test
     public void shouldRevokeKey() {
-        apiKeyEntity = new ApiKeyEntity();
-        apiKeyEntity.setKey(KEY);
-        apiKeyEntity.setSubscription(SUBSCRIPTION);
-        
-        doReturn(apiKeyEntity).when(apiKeyService).findByKey(KEY);
-        
         final Response response = target(SUBSCRIPTION).path("keys/"+KEY+"/_revoke").request().post(null);
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
         
@@ -119,5 +146,24 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         assertEquals("'keyId' parameter does not correspond to the subscription", response.readEntity(String.class));
     }
 
-    
+    @Test
+    public void testPermissionsForRevokingKeys() {
+        reset(permissionService);
+        
+        doReturn(true).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.UPDATE);
+        doReturn(true).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.UPDATE);
+        assertEquals(HttpStatusCode.NO_CONTENT_204, target(SUBSCRIPTION).path("keys/"+KEY+"/_revoke").request().post(null).getStatus());
+        
+        doReturn(true).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.UPDATE);
+        doReturn(false).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.UPDATE);
+        assertEquals(HttpStatusCode.NO_CONTENT_204, target(SUBSCRIPTION).path("keys/"+KEY+"/_revoke").request().post(null).getStatus());
+        
+        doReturn(false).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.UPDATE);
+        doReturn(true).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.UPDATE);
+        assertEquals(HttpStatusCode.NO_CONTENT_204, target(SUBSCRIPTION).path("keys/"+KEY+"/_revoke").request().post(null).getStatus());
+        
+        doReturn(false).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.UPDATE);
+        doReturn(false).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.UPDATE);
+        assertEquals(HttpStatusCode.FORBIDDEN_403, target(SUBSCRIPTION).path("keys/"+KEY+"/_revoke").request().post(null).getStatus());
+    }    
 }

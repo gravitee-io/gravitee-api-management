@@ -15,9 +15,16 @@
  */
 package io.gravitee.rest.api.portal.rest;
 
-import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
-import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
-import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
+import java.io.IOException;
+import java.security.Principal;
+
+import javax.annotation.Priority;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.SecurityContext;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
@@ -31,15 +38,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import javax.annotation.Priority;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.SecurityContext;
-import java.io.IOException;
-import java.security.Principal;
+import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
+import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
+import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

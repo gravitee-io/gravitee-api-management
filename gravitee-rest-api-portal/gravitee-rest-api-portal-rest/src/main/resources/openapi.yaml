@@ -45,7 +45,13 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: Get an API List, filtered with queryparam if present
+        - $ref: '#/components/parameters/apiContextPathQueryParam'
+        - $ref: '#/components/parameters/apiLabelQueryParam'
+        - $ref: '#/components/parameters/apiVersionQueryParam'
+        - $ref: '#/components/parameters/apiNameQueryParam'
+        - $ref: '#/components/parameters/apiViewQueryParam'
+        - $ref: '#/components/parameters/apiCategoryQueryParam'
+      description: Get an API List, filtered and sorted with queryparam if present
       operationId: getApis
       security: []
       responses:
@@ -80,7 +86,6 @@ paths:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
         - $ref: '#/components/parameters/homePageQueryParam'
-        - $ref: '#/components/parameters/rootPageQueryParam'
         - $ref: '#/components/parameters/parentPageQueryParam'
       description: Get documentation of an API
       operationId: getPagesByApiId
@@ -129,7 +134,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-        - $ref: '#/components/parameters/statusPlanQueryParam'
       description: Get plans of an API
       operationId: getApiPlansByApiId
       security: []
@@ -141,14 +145,13 @@ paths:
   /apis/{apiId}/ratings:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
-
     get:
       tags:
         - API
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: Get plans of an API
+      description: Get ratings of an API
       operationId: getApiRatingsByApiId
       security: []
       responses:
@@ -178,7 +181,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: Get an application List
+      description: Get an application List of the current user
       operationId: getApplications
       responses:
         200:
@@ -203,8 +206,6 @@ paths:
     get:
       tags:
         - Applications
-      parameters:
-        - $ref: '#/components/parameters/applicationIncludeParam'
       description: Get an application
       operationId: getApplicationByApplicationId
       responses:
@@ -266,9 +267,6 @@ paths:
     get:
       tags:
         - Applications
-      parameters:
-        - $ref: '#/components/parameters/pageNumberParam'
-        - $ref: '#/components/parameters/pageSizeParam'
       description: Get application notifications
       operationId: getNotificationsByApplicationId
       responses:
@@ -288,27 +286,30 @@ paths:
           $ref: '#/components/responses/NotificationSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
-  /applications/{applicationId}/notifications/{notificationId}:
-    parameters:
-      - $ref: '#/components/parameters/applicationIdParam'
-      - $ref: '#/components/parameters/notificationIdParam'
-    get:
+    put:
       tags:
         - Applications
-      description: Get an application notification
-      operationId: getApplicationNotificationByNotificationIdAndApplicationId
+      requestBody:
+        $ref: '#/components/requestBodies/notificationPortalUpdateInputBody'
+      description: Update a portal notification for an application
+      operationId: updatePortalApplicationNotification
       responses:
         200:
           $ref: '#/components/responses/NotificationSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
+    
+  /applications/{applicationId}/notifications/{notificationId}:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+      - $ref: '#/components/parameters/notificationIdParam'
     put:
       tags:
         - Applications
       requestBody:
-        $ref: '#/components/requestBodies/notificationUpdateInputBody'
-      description: Update notification for an application
-      operationId: updateApplicationNotification
+        $ref: '#/components/requestBodies/notificationGenericUpdateInputBody'
+      description: Update a generic notification for an application
+      operationId: updateGenericApplicationNotification
       responses:
         200:
           $ref: '#/components/responses/NotificationSuccess'
@@ -415,6 +416,17 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/fromQueryParam'
+        - $ref: '#/components/parameters/toQueryParam'
+        - $ref: '#/components/parameters/intervalQueryParam'
+        - $ref: '#/components/parameters/queryQueryParam'
+        - $ref: '#/components/parameters/keyQueryParam'
+        - $ref: '#/components/parameters/fieldQueryParam'
+        - $ref: '#/components/parameters/analyticTypeQueryParam'
+        - $ref: '#/components/parameters/analyticRangeQueryParam'
+        - $ref: '#/components/parameters/analyticAggregationQueryParam'
+        - $ref: '#/components/parameters/analyticOrderQueryParam'
+
       description: Get application analytics
       operationId: getApplicationAnalytics
       responses:
@@ -422,23 +434,7 @@ paths:
           $ref: '#/components/responses/AnalyticsSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
-  /applications/{applicationId}/metrics:
-    parameters:
-      - $ref: '#/components/parameters/applicationIdParam'
-    get:
-      tags:
-        - Applications
-        - Analytics
-      parameters:
-        - $ref: '#/components/parameters/pageNumberParam'
-        - $ref: '#/components/parameters/pageSizeParam'
-      description: Get application metrics
-      operationId: getApplicationMetrics
-      responses:
-        200:
-          $ref: '#/components/responses/MetricsSuccess'
-        500:
-          $ref: '#/components/responses/GeneralError'
+
   /applications/{applicationId}/logs:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -449,6 +445,11 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/fromQueryParam'
+        - $ref: '#/components/parameters/toQueryParam'
+        - $ref: '#/components/parameters/queryQueryParam'
+        - $ref: '#/components/parameters/fieldQueryParam'
+        - $ref: '#/components/parameters/orderQueryParam'
       description: Get application logs
       operationId: getApplicationLogs
       responses:
@@ -463,6 +464,14 @@ paths:
       tags:
         - Applications
         - Analytics
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/fromQueryParam'
+        - $ref: '#/components/parameters/toQueryParam'
+        - $ref: '#/components/parameters/queryQueryParam'
+        - $ref: '#/components/parameters/fieldQueryParam'
+        - $ref: '#/components/parameters/orderQueryParam'
       description: Export logs in CSV format
       operationId: exportApplicationLogsByApplicationId
       responses:
@@ -474,10 +483,13 @@ paths:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
       - $ref: '#/components/parameters/logIdParam'
+
     get:
       tags:
         - Applications
         - Analytics
+      parameters:
+        - $ref: '#/components/parameters/logTimestampQueryParam'
       description: get a single log of an application
       operationId: getApplicationLogByApplicationIdAndLogId
       responses:
@@ -507,7 +519,6 @@ paths:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
         - $ref: '#/components/parameters/homePageQueryParam'
-        - $ref: '#/components/parameters/rootPageQueryParam'
         - $ref: '#/components/parameters/parentPageQueryParam'
       description: Get all the documention pages of the portal
       operationId: getPages
@@ -524,8 +535,7 @@ paths:
       tags:
         - Documentation
       parameters:
-      - $ref: '#/components/parameters/apiIdParam'
-      - $ref: '#/components/parameters/pageIdParam'
+        - $ref: '#/components/parameters/pageIdParam'
       description: Get a documention page of the portal
       operationId: getPageByPageId
       security: []
@@ -544,7 +554,7 @@ paths:
         - $ref: '#/components/parameters/subscriptionApplicationQueryParam'
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: get a list of subscriptions, filtered by api and/or by application
+      description: get a list of subscriptions, filtered by api and/or by application. At least an api or an application must be provided
       operationId: getSubscriptions
       responses:
         200:
@@ -643,6 +653,8 @@ paths:
     get:
       tags:
         - User
+      parameters:
+        - $ref: '#/components/parameters/userIncludeParam'
       description: Retrieve user's information
       operationId: getCurrentUser
       responses:
@@ -662,20 +674,7 @@ paths:
           $ref: '#/components/responses/UserSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
-  /user/tasks:
-    get:
-      tags:
-        - User
-      parameters:
-        - $ref: '#/components/parameters/pageNumberParam'
-        - $ref: '#/components/parameters/pageSizeParam'
-      description: Retrieve user's tasks
-      operationId: getCurrentUserTasks
-      responses:
-        200:
-          $ref: '#/components/responses/TasksSuccess'
-        500:
-          $ref: '#/components/responses/GeneralError'
+
   /user/notifications:
     get:
       tags:
@@ -822,13 +821,19 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/NotificationInput'
-    notificationUpdateInputBody:
-      description: use to update an notification
+            $ref: '#/components/schemas/GenericNotificationConfig'
+    notificationGenericUpdateInputBody:
+      description: use to update a generic notification
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Notification'
+            $ref: '#/components/schemas/GenericNotificationConfig'
+    notificationPortalUpdateInputBody:
+      description: use to update a generic notification
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PortalNotificationConfig'
     memberCreateInputBody:
       description: use to create a member
       content:
@@ -875,6 +880,54 @@ components:
       description: id of an API
       schema:
         type: string
+    apiContextPathQueryParam:
+      name: context-path
+      in: query
+      required: false
+      description: the context-path of an API
+      schema:
+        type: string
+    apiLabelQueryParam:
+      name: label
+      in: query
+      required: false
+      description: one of the labels of an API
+      schema:
+        type: string
+    apiVersionQueryParam:
+      name: version
+      in: query
+      required: false
+      description: the version of an API
+      schema:
+        type: string
+    apiNameQueryParam:
+      name: name
+      in: query
+      required: false
+      description: the name of an API
+      schema:
+        type: string
+    apiViewQueryParam:
+      name: view
+      in: query
+      required: false
+      description: one of the view linked with an API
+      schema:
+        type: string
+    apiCategoryQueryParam:
+      name: cat
+      in: query
+      required: false
+      description: |
+        name of a static filter to use.
+        <ul>
+          <li>MINE : apis of the current user. Sorted alphabetically</li>
+          <li>STARRED: only rated apis. Sorted by Ratings DESC</li>
+          <li>TRENDINGS: only apis with subscriptions. Sorted by number of subscriptions DESC</li>
+        </ul>
+      schema:
+        $ref: '#/components/schemas/CategoryApiQuery'
     pageIdParam: 
       name: pageId
       in: path
@@ -917,13 +970,6 @@ components:
       description: if true, only the documentation page homepage of the portal is returned
       schema:
         type: boolean
-    rootPageQueryParam:
-      name: root
-      in: query
-      required: false
-      description: if true, only the root documentation page of the portal is returned
-      schema:
-        type: boolean
     parentPageQueryParam:
       name: parent
       in: query
@@ -931,14 +977,6 @@ components:
       description: the name of the parent documentation page. If not null, only this page and its children are returned
       schema:
         type: string
-    statusPlanQueryParam:  
-      name: status
-      in: query
-      required: false
-      schema:
-        type: string
-        enum: 
-          - published
     applicationIdParam: 
       name: applicationId
       in: path
@@ -946,23 +984,100 @@ components:
       description: id of an Application
       schema:
         type: string
-    applicationIncludeParam:
-      name: include
+    fromQueryParam:
+      name: from
       in: query
       required: false
-      description: comma-separated list of related object to include in the response
+      description: lower bound of timestamp for filtering
       schema:
-        type: array
-        items:
-          type: string
-          enum:
-            - analytics
-            - logs
-            - members
-            - metrics
-            - notifications
-            - plans
-
+        type: integer
+        format: int64
+    toQueryParam:
+      name: to
+      in: query
+      required: false
+      description: upper bound of timestamp for filtering
+      schema:
+        type: integer
+        format: int64
+    queryQueryParam:
+      name: query
+      in: query
+      required: false
+      description: query used for filtering
+      schema:
+        type: string
+    fieldQueryParam:
+      name: field
+      in: query
+      required: false
+      description: field used for filtering
+      schema:
+        type: string
+    orderQueryParam:
+      name: order
+      in: query
+      required: false
+      description: order used to filter the result list
+      schema:
+        type: string
+        enum:
+          - ASC
+          - DESC
+        default: ASC
+    intervalQueryParam:
+      name: interval
+      in: query
+      required: false
+      description : interval for time search
+      schema:
+        type: integer
+        minimum: 1000
+        maximum: 1000000000
+        exclusiveMinimum: true
+        exclusiveMaximum: true
+    keyQueryParam:
+      name: key
+      in: query
+      required: false
+      schema:
+        type: string
+    analyticTypeQueryParam:
+      name: type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - GROUP_BY
+          - DATE_HISTO
+          - COUNT
+    analyticRangeQueryParam:
+      name: range
+      in: query
+      required: false
+      schema:
+        type: string
+    analyticAggregationQueryParam:
+      name: aggs
+      in: query
+      required: false
+      schema:
+        type: string
+    analyticOrderQueryParam:
+      name: order
+      in: query
+      required: false
+      schema:
+        type: string
+    logTimestampQueryParam:
+      name: timestamp
+      in: query
+      required: false
+      description: used to select the right index
+      schema:
+        type: integer
+        format: int64
     notificationIdParam: 
       name: notificationId
       in: path
@@ -994,19 +1109,31 @@ components:
       schema:
         type: string
     subscriptionApiQueryParam:
-      name: api
+      name: apiId
       in: query
       required: false
       description: id of an api
       schema:
         type: string
     subscriptionApplicationQueryParam:
-      name: application
+      name: applicationId
       in: query
       required: false
       description: id of an application
       schema:
         type: string
+    userIncludeParam:
+      name: include
+      in: query
+      required: false
+      description: comma-separated list of related object to include in the response
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - tasks
+            - notifications
   schemas:
     #####################
     # Responses Objects #
@@ -1016,123 +1143,23 @@ components:
       items:
         $ref: '#/components/schemas/Error'
     
-    ApisResponse:
+    DatasResponse:
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Api'
+            $ref: '#/components/schemas/Data'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     
-    PagesResponse:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Page'
-        links:
-          $ref: '#/components/schemas/Links'
-    
-    PlansResponse:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Plan'
-        links:
-          $ref: '#/components/schemas/Links'
-    
-    RatingsResponse:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Rating'
-        links:
-          $ref: '#/components/schemas/Links'
-
-    ApplicationsResponse:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Application'
-        links:
-          $ref: '#/components/schemas/Links'
-
     NotificationsResponse:
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Notification'
-        links:
-          $ref: '#/components/schemas/Links'
-
-    MembersResponse:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Member'
-        links:
-          $ref: '#/components/schemas/Links'
-    
-    AnalyticsResponse:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Analytic'
-        links:
-          $ref: '#/components/schemas/Links'
-
-    MetricsResponse:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Metric'
-        links:
-          $ref: '#/components/schemas/Links'
-    
-    LogsResponse:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Log'
-        links:
-          $ref: '#/components/schemas/Links'
-    
-    SubscriptionsResponse:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Subscription'
-        links:
-          $ref: '#/components/schemas/Links'
-    
-    UsersResponse:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-        links:
-          $ref: '#/components/schemas/Links'
-    
-    TasksResponse:
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Task'
-        links:
-          $ref: '#/components/schemas/Links'
-
+            $ref: '#/components/schemas/NotificationConfig'
     #####################
     # Resources Objects #
     #####################
@@ -1144,314 +1171,398 @@ components:
           type: string
         detail:
           type: string
+    Data:
+      properties:
+        id: 
+          type: string
+        dataType: 
+          type: string
+      discriminator:
+        propertyName: dataType
     Api:
-      required:
-        - id
-        - name
-        - version
-        - description
-        - owner
-      properties:
-        id: 
-          type: string
-        name: 
-          type: string
-        version: 
-          type: string
-        description:
-          type: string
-        entrypoints:
-          type: array
-          items:
-            type: string
-        labels: 
-          type: array
-          items:
-            type: string
-        tags: 
-          type: array
-          items:
-            type: string
-        views: 
-          type: array
-          items:
-            type: string
-        subscribed:
-          type: boolean
-        rating_summary: 
-          $ref: '#/components/schemas/RatingSummary'
-        _links:
-          $ref: '#/components/schemas/ApiLinks'
-        
-        ###################
-        # may be included #
-        ###################
-        pages:
-          type: array
-          items:
-            $ref: '#/components/schemas/Page'
-        plans:
-          type: array
-          items:
-            $ref: '#/components/schemas/Plan'
-        
+      allOf:
+        - $ref: "#/components/schemas/Data"
+        - type: object
+          required:
+            - name
+            - version
+            - description
+            - owner
+          properties:
+            name: 
+              type: string
+            version: 
+              type: string
+            description:
+              type: string
+            draft:
+              type: boolean
+              description: wether or not the API is public 
+            entrypoints:
+              type: array
+              items:
+                type: string
+            labels: 
+              type: array
+              items:
+                type: string
+            owner:
+              $ref: '#/components/schemas/User'
+            views: 
+              type: array
+              items:
+                type: string
+            rating_summary: 
+              $ref: '#/components/schemas/RatingSummary'
+            _links:
+              $ref: '#/components/schemas/ApiLinks'
+            
+            ###################
+            # may be included #
+            ###################
+            pages:
+              type: array
+              items:
+                $ref: '#/components/schemas/Page'
+            plans:
+              type: array
+              items:
+                $ref: '#/components/schemas/Plan'
     Page:
-      required:
-        - id
-        - name
-        - type
-        - order
-      properties:
-        id: 
-          type: string
-        name:
-          type: string
-        type:
-          type: string
-          enum:
-           - SWAGGER
-           - MARKDOWN
-           - FOLDER
-           - ROOT
-        order:
-          type: integer
-        parent:
-          type: string
-        updated_at:
-          type: string
-          format: date-time
-        content:
-          type: string
-        configuraton:
-          type: array
-          items:
-            $ref: '#/components/schemas/PageConfiguration'
-        metadata:
-          type: array
-          items:
-            $ref: '#/components/schemas/Metadata'
+      allOf:
+        - $ref: "#/components/schemas/Data"
+        - type: object
+          required:
+            - name
+            - type
+            - order
+          properties:
+            name:
+              type: string
+            type:
+              type: string
+              enum:
+              - SWAGGER
+              - MARKDOWN
+              - FOLDER
+              - ROOT
+            order:
+              type: integer
+            parent:
+              type: string
+            updated_at:
+              type: string
+              format: date-time
+            content:
+              type: string
+            configuraton:
+              type: array
+              items:
+                $ref: '#/components/schemas/PageConfiguration'
+            metadata:
+              type: array
+              items:
+                $ref: '#/components/schemas/Metadata'
     Plan:
-      required:
-        - id
-        - name
-        - security
-        - type
-        - description
-        - validation
-        - order
-        - comment_required
-      properties:
-        id: 
-          type: string
-        name:
-          type: string
-        security:
-          type: string
-          enum:
-            - API_KEY
-            - KEY_LESS
-            - JWT
-            - OAUTH2
-        description:
-          type: string
-        characteristics:
-          type: array
-          items:
-            type: string
-        validation:
-          type: string
-          enum:
-            - AUTO
-            - MANUAL
-        order:
-          type: integer
-        subscribed:
-          type: boolean
-        comment_required:
-          type: boolean
-        comment_question:
-          type: string
+      allOf:
+        - $ref: "#/components/schemas/Data"
+        - type: object
+          required:
+            - name
+            - security
+            - type
+            - description
+            - validation
+            - order
+            - comment_required
+          properties:
+            name:
+              type: string
+            security:
+              type: string
+              enum:
+                - API_KEY
+                - KEY_LESS
+                - JWT
+                - OAUTH2
+            description:
+              type: string
+            characteristics:
+              type: array
+              items:
+                type: string
+            validation:
+              type: string
+              enum:
+                - AUTO
+                - MANUAL
+            order:
+              type: integer
+            subscribed:
+              type: boolean
+              description: true if at least one application linked to the current user has subscribed to this plan
+            comment_required:
+              type: boolean
+            comment_question:
+              type: string
     Rating:
-      required:
-        - id
-        - value
-        - comment
-      properties:
-        id: 
-          type: string
-        value:
-          type: integer
-        author:
-          $ref: '#/components/schemas/Author'
-        date:
-          type: string
-          format: date-time
-        comment:
-          type: string
-        answers: 
-          type: array
-          items:
-            $ref: '#/components/schemas/RatingAnswer'
+      allOf:
+        - $ref: "#/components/schemas/Data"
+        - type: object
+          required:
+            - title
+            - value
+            - comment
+          properties:
+            title:
+              type: string
+            value:
+              type: integer
+            author:
+              $ref: '#/components/schemas/User'
+            date:
+              type: string
+              format: date-time
+            comment:
+              type: string
+            answers: 
+              type: array
+              items:
+                $ref: '#/components/schemas/RatingAnswer'
     Application:
-      required:
-        - id
+      allOf:
+        - $ref: "#/components/schemas/Data"
+        - type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            applicationType:
+              type: string
+            owner:
+              $ref: '#/components/schemas/User'
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            groups:
+              type: array
+              items:
+                type: string
+            settings:
+              $ref: '#/components/schemas/ApplicationSettings'
+            _links:
+              $ref: '#/components/schemas/ApplicationLinks'
+    NotificationConfig:
       properties:
-        id:
+        configType:
           type: string
         name:
           type: string
-        description:
+        reference_type:
           type: string
-        applicationType:
+        reference_id:
           type: string
-        owner:
-          $ref: '#/components/schemas/Person'
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        groups:
+        hooks:
           type: array
           items:
             type: string
-        status:
-          type: string
-        settings:
-          $ref: '#/components/schemas/ApplicationSettings'
-        _links:
-          $ref: '#/components/schemas/ApplicationLinks'
-
-        ###################
-        # may be included #
-        ###################
-        analytics:
-          type: array
-          items:
-            $ref: '#/components/schemas/Analytic'
-        logs:
-          type: array
-          items:
-            $ref: '#/components/schemas/Log'
-        members:
-          type: array
-          items:
-            $ref: '#/components/schemas/Member'
-        metrics:
-          type: array
-          items:
-            $ref: '#/components/schemas/Metric'
-        notifications:
-          type: array
-          items:
-            $ref: '#/components/schemas/Notification'
-        plans:
-          type: array
-          items:
-            $ref: '#/components/schemas/Plan'
-    Notification:
-      properties:
-        content:
-          type: string
+      discriminator:
+        propertyName: configType
+        mapping:
+          GENERIC: '#/components/schemas/GenericNotificationConfig'
+          PORTAL: '#/components/schemas/PortalNotificationConfig'
+    GenericNotificationConfig:
+      allOf:
+        - $ref: "#/components/schemas/NotificationConfig"
+        - type: object
+          properties:
+            id:
+              type: string
+            notifier:
+              type: string
+            config:
+              type: string
+            use_system_proxy:
+              type: boolean
+    PortalNotificationConfig:
+      allOf:
+        - $ref: "#/components/schemas/NotificationConfig"
+        - type: object
+          properties:
+            user:
+              type: string
     Member:
-      required:
-       - id
-      properties:
-        created_at:
-          type: string
-          format: date-time
-        display_name:
-          type: string
-        email:
-          type: string
-        id:
-          type: string
-        role:
-          $ref: '#/components/schemas/RoleEnum'
-        updated_at:
-          type: string
-          format: date-time
+      allOf:
+        - $ref: "#/components/schemas/Data"
+        - type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            role:
+              type: string
 
-    Analytic:
+    Analytics:
+      type: object
+      required:
+        - analyticsType
       properties:
-        content:
+        analyticType:
           type: string
-    Metric:
-      properties:
-        content:
-          type: string
+      discriminator:
+        propertyName: analyticsType
+    DateHistoAnalytics:
+      allOf:
+        - $ref: '#/components/schemas/Analytics'
+        - type: object
+          properties:
+            timestamp:
+              $ref: '#/components/schemas/Timerange'
+            values:
+              type: array
+              items:
+                $ref: '#/components/schemas/Bucket'
+    GroupByAnalytics:
+      allOf:
+        - $ref: '#/components/schemas/Analytics'
+        - type: object
+          properties:
+            values:
+              type: object
+              additionalProperties:
+                type: integer
+                format: int64
+            metadata:
+              $ref: '#/components/schemas/MetadataMap'
+    CountAnalytics:
+      allOf:
+        - $ref: '#/components/schemas/Analytics'
+        - type: object
+          properties:
+            name:
+              type: string
+            hits:
+              type: integer
+              format: int64
     Log:
-      required:
-        - id
-      properties:
-        id:
-          type: string
-        content:
-          type: string
-    
+      allOf:
+        - $ref: "#/components/schemas/Data"
+        - type: object
+          properties:
+            timestamp:
+              type: integer
+              format: int64
+            transactionId:
+              type: string
+            path:
+              type: string
+            method:
+              $ref: '#/components/schemas/HttpMethod'
+            status:
+              type: integer
+            responseTime:
+              type: integer
+              format: int64
+            requestContentLength:
+              type: integer
+              format: int64
+            responseContentLength:
+              type: integer
+              format: int64
+            plan:
+              type: string
+            api:
+              type: string
+            request:
+              $ref: '#/components/schemas/Request'
+            response:
+              $ref: '#/components/schemas/Response'
+            metadata:
+              $ref: '#/components/schemas/MetadataMap'
+            host:
+              type: string
+            user:
+              type: string
+            securityType:
+              type: string
+            securityToken:
+              type: string
     Subscription:
-      required:
-        - id
-        - api
-        - application
-        - plan
-        - status
-      properties:
-        id:
-          type: string
-        api:
-          type: string
-        application:
-          type: string
-        plan:
-          type: string
-        request:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-        processed_at:
-          type: string
-          format: date-time
-        start_at:
-          type: string
-          format: date-time
-        end_at:
-          type: string
-          format: date-time
-        status:
-          type: string
-          enum:
-            - PENDING
-            - ACCEPTED
-            - REJECTED
-        ###################
-        # may be included #
-        ###################
-        keys:
-          type: array
-          items:
-            $ref: '#/components/schemas/Key'
+      allOf:
+        - $ref: "#/components/schemas/Data"
+        - type: object
+          required:
+            - api
+            - application
+            - plan
+            - status
+          properties:
+            api:
+              type: string
+            application:
+              type: string
+            plan:
+              type: string
+            request:
+              type: string
+            created_at:
+              type: string
+              format: date-time
+            processed_at:
+              type: string
+              format: date-time
+            start_at:
+              type: string
+              format: date-time
+            end_at:
+              type: string
+              format: date-time
+            status:
+              type: string
+              enum:
+                - PENDING
+                - ACCEPTED
+                - REJECTED
+            ###################
+            # may be included #
+            ###################
+            keys:
+              type: array
+              items:
+                $ref: '#/components/schemas/Key'
     User:
-      required:
-        - id
-      properties:
-        id: 
-          type: string
-        name:
-          type: string
-        avatar:
-          type: string
-    Task:
-      properties:
-        content:
-          type: string
+      allOf:
+        - $ref: "#/components/schemas/Data"
+        - type: object
+          properties:
+            first_name:
+              type: string
+            last_name:
+              type: string
+            display_name:
+              type: string
+            email:
+              type: string
+            avatar:
+              type: string
+            _links:
+              $ref: '#/components/schemas/UserLinks'
     #################
     # Input Objects #
     #################
     RatingInput:
       properties:
+        title:
+          type: string
         value:
           type: integer
           minimum: 0
@@ -1470,17 +1581,17 @@ components:
             type: string
         settings:
           $ref: '#/components/schemas/ApplicationSettings'
-
-    NotificationInput:
-      properties:
-        content:
-          type: string
     MemberInput:
       properties:
         user:
-         type: string
+          type: string
+          description: User's technical identifier.
+        reference:
+          type: string
+          description: User's reference for user providing from an identity provider.
         role:
-          $ref: '#/components/schemas/RoleEnum'
+          type: string
+          description: Role's name
     SubscriptionInput:
       properties:
         application:
@@ -1497,16 +1608,10 @@ components:
         new_primary_owner:
          type: string
         primary_owner_newrole:
-          $ref: '#/components/schemas/RoleEnum'
+          type: string
     #######################
     # Composition Objects #
     #######################
-    RoleEnum:
-      type: string
-      enum:
-        - PRIMARY_OWNER
-        - OWNER
-        - USER 
     ApplicationSettings:
       properties:
         app:
@@ -1545,17 +1650,6 @@ components:
           type: string
         renew_client_secret_supported:
           type: boolean
-    Author:
-      required:
-        - id
-        - name
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        email:
-          type: string
     Metadata:
       properties:
         name:
@@ -1563,10 +1657,6 @@ components:
         value:
           type: string
         order:
-          type: string
-    Person:
-      properties:
-        id:
           type: string
     RatingSummary:
       properties:
@@ -1599,7 +1689,7 @@ components:
     RatingAnswer:
       properties: 
         author:
-          $ref: '#/components/schemas/Author'
+          $ref: '#/components/schemas/User'
         date:
           type: string
           format: date-time
@@ -1625,6 +1715,84 @@ components:
         revoked_at:
           type: string
           format: date-time
+    HttpMethod:
+      type: string
+      enum:
+        - CONNECT
+        - DELETE
+        - GET
+        - HEAD
+        - OPTIONS
+        - PATCH
+        - POST
+        - PUT
+        - TRACE
+        - OTHER
+      default: OTHER
+    HttpHeaders:
+      type: array
+      additionalProperties:
+        type: array
+        items:
+          type: string
+    Request:
+      properties:
+        method:
+          $ref: '#/components/schemas/HttpMethod'
+        headers:
+          $ref: '#/components/schemas/HttpHeaders'
+        uri:
+          type: string
+        body:
+          type: string
+    Response:
+      properties:
+        status:
+          type: integer
+        headers:
+          $ref: '#/components/schemas/HttpHeaders'
+        body:
+          type: string
+    MetadataMap:
+      type: object
+      additionalProperties:
+        type: object
+        additionalProperties: 
+          type: string
+    Bucket:
+      properties:
+        buckets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bucket'
+        field:
+          type: string
+        name:
+          type: string
+        data:
+          type: array
+          items:
+            type: number
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+    Timerange:
+      properties:
+        from:
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
+        interval:
+          type: integer
+          format: int64
+    CategoryApiQuery:
+      type: string
+      enum:
+        - MINE
+        - STARRED
+        - TRENDINGS
+        - FEATURED
     #####################
     # Structure Objects #
     #####################
@@ -1656,19 +1824,19 @@ components:
       properties:
         self:
           type: string
-        analytics:
-          type: string
-        logs:
-          type: string
         members:
-          type: string
-        metrics:
           type: string
         notifications:
           type: string
         picture:
           type: string
-        plans:
+    UserLinks:
+      properties:
+        self:
+          type: string
+        avatar:
+          type: string
+        notifications:
           type: string
   responses:
     GeneralError:
@@ -1688,7 +1856,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ApisResponse'
+            $ref: '#/components/schemas/DatasResponse'
     PageSuccess:
       description: One page
       content:
@@ -1700,7 +1868,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/PagesResponse'
+            $ref: '#/components/schemas/DatasResponse'
     PictureSuccess:
       description: an API picture
       content:
@@ -1713,7 +1881,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/PlansResponse'
+            $ref: '#/components/schemas/DatasResponse'
     RatingSuccess:
       description: One rating
       content:
@@ -1725,7 +1893,7 @@ components:
       content:
         application/json:
           schema:  
-            $ref: '#/components/schemas/RatingsResponse'
+            $ref: '#/components/schemas/DatasResponse'
     ApplicationSuccess:
       description: One Application
       content:
@@ -1737,7 +1905,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ApplicationsResponse'
+            $ref: '#/components/schemas/DatasResponse'
     MemberSuccess:
       description: A member
       content:
@@ -1749,13 +1917,15 @@ components:
       content:
         application/json:
           schema:  
-            $ref: '#/components/schemas/MembersResponse'
+            $ref: '#/components/schemas/DatasResponse'
     NotificationSuccess:
       description: A notification
       content:
         application/json:
-          schema:  
-            $ref: '#/components/schemas/Notification'
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/PortalNotificationConfig'
+              - $ref: '#/components/schemas/GenericNotificationConfig'
     NotificationsSuccess:
       description: List of notifications
       content:
@@ -1763,17 +1933,11 @@ components:
           schema:  
             $ref: '#/components/schemas/NotificationsResponse'
     AnalyticsSuccess:
-      description: List of analytics
+      description: Analytics
       content:
         application/json:
           schema:  
-            $ref: '#/components/schemas/AnalyticsResponse'
-    MetricsSuccess:
-      description: List of metrics
-      content:
-        application/json:
-          schema:  
-            $ref: '#/components/schemas/MetricsResponse'
+            $ref: '#/components/schemas/Analytics'
     LogSuccess:
       description: A log
       content:
@@ -1785,7 +1949,7 @@ components:
       content:
         application/json:
           schema:  
-            $ref: '#/components/schemas/LogsResponse'
+            $ref: '#/components/schemas/DatasResponse'
     LogsExportSuccess:
       description: CSV export of the logs
       content:
@@ -1803,7 +1967,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/SubscriptionsResponse'
+            $ref: '#/components/schemas/DatasResponse'
     UserSuccess:
       description: The current user
       content:
@@ -1815,13 +1979,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/UsersResponse'
-    TasksSuccess:
-      description: List of current tasks
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/TasksResponse'
+            $ref: '#/components/schemas/DatasResponse'
     
   securitySchemes:
     BasicAuth:

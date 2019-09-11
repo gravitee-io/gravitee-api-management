@@ -35,13 +35,12 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationListItemSettings;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationLinks;
-import io.gravitee.rest.api.portal.rest.model.Person;
+import io.gravitee.rest.api.portal.rest.model.User;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -51,6 +50,23 @@ import io.gravitee.rest.api.portal.rest.model.Person;
 public class ApplicationMapperTest {
 
     private static final String APPLICATION = "my-application";
+    private static final String APPLICATION_ID = "my-application-id";
+    private static final String APPLICATION_DESCRIPTION = "my-application-description";
+    private static final String APPLICATION_NAME = "my-application-name";
+    private static final String APPLICATION_GROUP = "my-application-group";
+    private static final String APPLICATION_STATUS = "my-application-status";
+    private static final String APPLICATION_TYPE = "my-application-type";
+    private static final String APPLICATION_USER_ID = "my-application-user-id";
+    private static final String APPLICATION_SIMPLE_CLIENT_ID = "my-application-simple-client-id";
+    private static final String APPLICATION_SIMPLE_TYPE = "my-application-simple-type";
+    private static final String APPLICATION_OAUTH_APPLICATION_TYPE = "my-application-oauth-application-type";
+    private static final String APPLICATION_OAUTH_CLIENT_ID = "my-application-oauth-client-id";
+    private static final String APPLICATION_OAUTH_CLIENT_SECRET = "my-application-oauth-client-secret";
+    private static final String APPLICATION_OAUTH_CLIENT_URI = "my-application-oauth--client-uri";
+    private static final String APPLICATION_OAUTH_GRANT_TYPE = "my-application-oauth-grant-type";
+    private static final String APPLICATION_OAUTH_LOGO_URI = "my-application-oauth-logo-uri";
+    private static final String APPLICATION_OAUTH_REDIRECT_URI = "my-application-oauth-redirect-uri";
+    private static final String APPLICATION_OAUTH_RESPONSE_TYPE = "my-application-oauth-response-type";
 
         
     @InjectMocks
@@ -69,48 +85,16 @@ public class ApplicationMapperTest {
         //init
         applicationListItem = new ApplicationListItem();
         applicationListItem.setCreatedAt(nowDate);
-        applicationListItem.setDescription(APPLICATION);
-        applicationListItem.setGroups(new HashSet<String>(Arrays.asList(APPLICATION)));
-        applicationListItem.setId(APPLICATION);
-        applicationListItem.setName(APPLICATION);
-        applicationListItem.setStatus(APPLICATION);
-        applicationListItem.setType(APPLICATION);
+        applicationListItem.setDescription(APPLICATION_DESCRIPTION);
+        applicationListItem.setGroups(new HashSet<String>(Arrays.asList(APPLICATION_GROUP)));
+        applicationListItem.setId(APPLICATION_ID);
+        applicationListItem.setName(APPLICATION_NAME);
+        applicationListItem.setStatus(APPLICATION_STATUS);
+        applicationListItem.setType(APPLICATION_TYPE);
         applicationListItem.setUpdatedAt(nowDate);
         
         UserEntity userEntity = new UserEntity();
-        userEntity.setId(APPLICATION);
-        PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
-        applicationListItem.setPrimaryOwner(primaryOwner);
-        
-        ApplicationListItemSettings settings = new ApplicationListItemSettings();
-        settings.setClientId(APPLICATION);
-        settings.setType(APPLICATION);
-        applicationListItem.setSettings(settings);
-        
-        //Test
-        Application responseApplication = applicationMapper.convert(applicationListItem);
-        checkApplication(now, responseApplication, AppSettingsEnum.SIMPLE_SETTINGS);
-    }
-    
-    @Test
-    public void testConvertFromAppListItemWithoutSettings() {
-        Instant now = Instant.now();
-        Date nowDate = Date.from(now);
-        ApplicationListItem applicationListItem;
-
-        //init
-        applicationListItem = new ApplicationListItem();
-        applicationListItem.setCreatedAt(nowDate);
-        applicationListItem.setDescription(APPLICATION);
-        applicationListItem.setGroups(new HashSet<String>(Arrays.asList(APPLICATION)));
-        applicationListItem.setId(APPLICATION);
-        applicationListItem.setName(APPLICATION);
-        applicationListItem.setStatus(APPLICATION);
-        applicationListItem.setType(APPLICATION);
-        applicationListItem.setUpdatedAt(nowDate);
-        
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId(APPLICATION);
+        userEntity.setId(APPLICATION_USER_ID);
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
         applicationListItem.setPrimaryOwner(primaryOwner);
         
@@ -128,13 +112,9 @@ public class ApplicationMapperTest {
         assertNotNull(links);
         
         assertEquals(basePath, links.getSelf());
-        assertEquals(basePath+"/analytics", links.getAnalytics());
-        assertEquals(basePath+"/logs", links.getLogs());
         assertEquals(basePath+"/members", links.getMembers());
-        assertEquals(basePath+"/metrics", links.getMetrics());
         assertEquals(basePath+"/notifications", links.getNotifications());
         assertEquals(basePath+"/picture", links.getPicture());
-        assertEquals(basePath+"/plans", links.getPlans());
     }
     
     @Test
@@ -146,16 +126,16 @@ public class ApplicationMapperTest {
         //init
         applicationEntity = new ApplicationEntity();
         applicationEntity.setCreatedAt(nowDate);
-        applicationEntity.setDescription(APPLICATION);
-        applicationEntity.setGroups(new HashSet<String>(Arrays.asList(APPLICATION)));
-        applicationEntity.setId(APPLICATION);
-        applicationEntity.setName(APPLICATION);
-        applicationEntity.setStatus(APPLICATION);
-        applicationEntity.setType(APPLICATION);
+        applicationEntity.setDescription(APPLICATION_DESCRIPTION);
+        applicationEntity.setGroups(new HashSet<String>(Arrays.asList(APPLICATION_GROUP)));
+        applicationEntity.setId(APPLICATION_ID);
+        applicationEntity.setName(APPLICATION_NAME);
+        applicationEntity.setStatus(APPLICATION_STATUS);
+        applicationEntity.setType(APPLICATION_TYPE);
         applicationEntity.setUpdatedAt(nowDate);
         
         UserEntity userEntity = new UserEntity();
-        userEntity.setId(APPLICATION);
+        userEntity.setId(APPLICATION_USER_ID);
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
         applicationEntity.setPrimaryOwner(primaryOwner);
         
@@ -173,23 +153,23 @@ public class ApplicationMapperTest {
         //init
         applicationEntity = new ApplicationEntity();
         applicationEntity.setCreatedAt(nowDate);
-        applicationEntity.setDescription(APPLICATION);
-        applicationEntity.setGroups(new HashSet<String>(Arrays.asList(APPLICATION)));
-        applicationEntity.setId(APPLICATION);
-        applicationEntity.setName(APPLICATION);
-        applicationEntity.setStatus(APPLICATION);
-        applicationEntity.setType(APPLICATION);
+        applicationEntity.setDescription(APPLICATION_DESCRIPTION);
+        applicationEntity.setGroups(new HashSet<String>(Arrays.asList(APPLICATION_GROUP)));
+        applicationEntity.setId(APPLICATION_ID);
+        applicationEntity.setName(APPLICATION_NAME);
+        applicationEntity.setStatus(APPLICATION_STATUS);
+        applicationEntity.setType(APPLICATION_TYPE);
         applicationEntity.setUpdatedAt(nowDate);
         
         UserEntity userEntity = new UserEntity();
-        userEntity.setId(APPLICATION);
+        userEntity.setId(APPLICATION_USER_ID);
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
         applicationEntity.setPrimaryOwner(primaryOwner);
         
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings simpleAppEntitySetings = new SimpleApplicationSettings();
-        simpleAppEntitySetings.setClientId(APPLICATION);
-        simpleAppEntitySetings.setType(APPLICATION);
+        simpleAppEntitySetings.setClientId(APPLICATION_SIMPLE_CLIENT_ID);
+        simpleAppEntitySetings.setType(APPLICATION_SIMPLE_TYPE);
         settings.setApp(simpleAppEntitySetings);
         applicationEntity.setSettings(settings);
         
@@ -207,30 +187,30 @@ public class ApplicationMapperTest {
         //init
         applicationEntity = new ApplicationEntity();
         applicationEntity.setCreatedAt(nowDate);
-        applicationEntity.setDescription(APPLICATION);
-        applicationEntity.setGroups(new HashSet<String>(Arrays.asList(APPLICATION)));
-        applicationEntity.setId(APPLICATION);
-        applicationEntity.setName(APPLICATION);
-        applicationEntity.setStatus(APPLICATION);
-        applicationEntity.setType(APPLICATION);
+        applicationEntity.setDescription(APPLICATION_DESCRIPTION );
+        applicationEntity.setGroups(new HashSet<String>(Arrays.asList(APPLICATION_GROUP)));
+        applicationEntity.setId(APPLICATION_ID);
+        applicationEntity.setName(APPLICATION_NAME);
+        applicationEntity.setStatus(APPLICATION_STATUS);
+        applicationEntity.setType(APPLICATION_TYPE);
         applicationEntity.setUpdatedAt(nowDate);
         
         UserEntity userEntity = new UserEntity();
-        userEntity.setId(APPLICATION);
+        userEntity.setId(APPLICATION_USER_ID);
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);
         applicationEntity.setPrimaryOwner(primaryOwner);
         
         ApplicationSettings settings = new ApplicationSettings();
         OAuthClientSettings oAuthClientEntitySettings = new OAuthClientSettings();
-        oAuthClientEntitySettings.setApplicationType(APPLICATION);
-        oAuthClientEntitySettings.setClientId(APPLICATION);
-        oAuthClientEntitySettings.setClientSecret(APPLICATION);
-        oAuthClientEntitySettings.setClientUri(APPLICATION);
-        oAuthClientEntitySettings.setGrantTypes(Arrays.asList(APPLICATION));
-        oAuthClientEntitySettings.setLogoUri(APPLICATION);
-        oAuthClientEntitySettings.setRedirectUris(Arrays.asList(APPLICATION));
+        oAuthClientEntitySettings.setApplicationType(APPLICATION_OAUTH_APPLICATION_TYPE);
+        oAuthClientEntitySettings.setClientId(APPLICATION_OAUTH_CLIENT_ID);
+        oAuthClientEntitySettings.setClientSecret(APPLICATION_OAUTH_CLIENT_SECRET);
+        oAuthClientEntitySettings.setClientUri(APPLICATION_OAUTH_CLIENT_URI);
+        oAuthClientEntitySettings.setGrantTypes(Arrays.asList(APPLICATION_OAUTH_GRANT_TYPE));
+        oAuthClientEntitySettings.setLogoUri(APPLICATION_OAUTH_LOGO_URI);
+        oAuthClientEntitySettings.setRedirectUris(Arrays.asList(APPLICATION_OAUTH_REDIRECT_URI));
         oAuthClientEntitySettings.setRenewClientSecretSupported(true);
-        oAuthClientEntitySettings.setResponseTypes(Arrays.asList(APPLICATION));
+        oAuthClientEntitySettings.setResponseTypes(Arrays.asList(APPLICATION_OAUTH_RESPONSE_TYPE));
         
         settings.setoAuthClient(oAuthClientEntitySettings);
         applicationEntity.setSettings(settings);
@@ -243,31 +223,23 @@ public class ApplicationMapperTest {
     private void checkApplication(Instant now, Application responseApplication, AppSettingsEnum appSettingsType) {
         assertNotNull(responseApplication);
         
-        assertNull(responseApplication.getAnalytics());
-        assertNull(responseApplication.getLogs());
-        assertNull(responseApplication.getMembers());
-        assertNull(responseApplication.getMetrics());
-        assertNull(responseApplication.getNotifications());
-        assertNull(responseApplication.getPlans());
-        
         assertNull(responseApplication.getLinks());
         
-        assertEquals(APPLICATION, responseApplication.getApplicationType());
+        assertEquals(APPLICATION_TYPE, responseApplication.getApplicationType());
         assertEquals(now.toEpochMilli(), responseApplication.getCreatedAt().toInstant().toEpochMilli());
-        assertEquals(APPLICATION, responseApplication.getDescription());
-        assertEquals(APPLICATION, responseApplication.getId());
-        assertEquals(APPLICATION, responseApplication.getName());
-        assertEquals(APPLICATION, responseApplication.getStatus());
+        assertEquals(APPLICATION_DESCRIPTION, responseApplication.getDescription());
+        assertEquals(APPLICATION_ID, responseApplication.getId());
+        assertEquals(APPLICATION_NAME, responseApplication.getName());
         assertEquals(now.toEpochMilli(), responseApplication.getUpdatedAt().toInstant().toEpochMilli());
         
         List<String> groups = responseApplication.getGroups();
         assertNotNull(groups);
         assertEquals(1, groups.size());
-        assertEquals(APPLICATION, groups.get(0));
+        assertEquals(APPLICATION_GROUP, groups.get(0));
         
-        Person owner = responseApplication.getOwner();
+        User owner = responseApplication.getOwner();
         assertNotNull(owner);
-        assertEquals(APPLICATION, owner.getId());
+        assertEquals(APPLICATION_USER_ID, owner.getId());
         
         io.gravitee.rest.api.portal.rest.model.ApplicationSettings applicationSettings = responseApplication.getSettings();
         if(AppSettingsEnum.NO_SETTINGS == appSettingsType) {
@@ -279,32 +251,32 @@ public class ApplicationMapperTest {
             if(AppSettingsEnum.OAUTH_SETTINGS == appSettingsType) {
                     assertNull(sas);
                     assertNotNull(oacs);
-                    assertEquals(APPLICATION, oacs.getApplicationType());
-                    assertEquals(APPLICATION, oacs.getClientId());
-                    assertEquals(APPLICATION, oacs.getClientSecret());
-                    assertEquals(APPLICATION, oacs.getClientUri());
-                    assertEquals(APPLICATION, oacs.getLogoUri());
+                    assertEquals(APPLICATION_OAUTH_APPLICATION_TYPE, oacs.getApplicationType());
+                    assertEquals(APPLICATION_OAUTH_CLIENT_ID, oacs.getClientId());
+                    assertEquals(APPLICATION_OAUTH_CLIENT_SECRET, oacs.getClientSecret());
+                    assertEquals(APPLICATION_OAUTH_CLIENT_URI, oacs.getClientUri());
+                    assertEquals(APPLICATION_OAUTH_LOGO_URI, oacs.getLogoUri());
                     assertEquals(Boolean.TRUE, oacs.getRenewClientSecretSupported());
                     
                     final List<String> grantTypes = oacs.getGrantTypes();
                     assertNotNull(grantTypes);
                     assertFalse(grantTypes.isEmpty());
-                    assertEquals(APPLICATION, grantTypes.get(0));
+                    assertEquals(APPLICATION_OAUTH_GRANT_TYPE, grantTypes.get(0));
                     
                     final List<String> redirectUris = oacs.getRedirectUris();
                     assertNotNull(redirectUris);
                     assertFalse(redirectUris.isEmpty());
-                    assertEquals(APPLICATION, redirectUris.get(0));
+                    assertEquals(APPLICATION_OAUTH_REDIRECT_URI, redirectUris.get(0));
                     
                     final List<String> responseTypes = oacs.getResponseTypes();
                     assertNotNull(responseTypes);
                     assertFalse(responseTypes.isEmpty());
-                    assertEquals(APPLICATION, responseTypes.get(0));
+                    assertEquals(APPLICATION_OAUTH_RESPONSE_TYPE, responseTypes.get(0));
             } else if(AppSettingsEnum.SIMPLE_SETTINGS == appSettingsType) {
                     assertNotNull(sas);
                     assertNull(oacs);
-                    assertEquals(APPLICATION, sas.getClientId());
-                    assertEquals(APPLICATION, sas.getType());
+                    assertEquals(APPLICATION_SIMPLE_CLIENT_ID, sas.getClientId());
+                    assertEquals(APPLICATION_SIMPLE_TYPE, sas.getType());
             }
         }
     }

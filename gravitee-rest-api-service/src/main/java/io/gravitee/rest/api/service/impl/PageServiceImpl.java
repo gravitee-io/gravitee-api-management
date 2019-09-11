@@ -1145,8 +1145,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		final PageCriteria.Builder builder = new PageCriteria.Builder();
 		if (query != null) {
 			builder.homepage(query.getHomepage());
-			builder.referenceId(query.getApi());
-			builder.referenceType(PageReferenceType.API.name());
+			if(query.getApi() != null) {
+    			builder.referenceId(query.getApi());
+    			builder.referenceType(PageReferenceType.API.name());
+			} else {
+			    builder.referenceId(GraviteeContext.getCurrentEnvironment());
+                builder.referenceType(PageReferenceType.ENVIRONMENT.name());
+			}
 			builder.name(query.getName());
 			builder.parent(query.getParent());
 			builder.published(query.getPublished());

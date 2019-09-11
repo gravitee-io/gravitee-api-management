@@ -15,42 +15,91 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_ARCHIVED;
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_UPDATED;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonMap;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.xml.bind.DatatypeConverter;
+
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.application.*;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
+import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.NewApplicationEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationListItemSettings;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.OAuthClientSettings;
+import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationRenewClientSecretException;
+import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationTypeException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.Application.AuditEvent.*;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonMap;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -92,6 +141,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     @Autowired
     private ParameterService parameterService;
 
+    @Value("${configuration.default-icon:${gravitee.home}/assets/default_application_logo.png}")
+    private String defaultIcon;
+    
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
@@ -647,6 +699,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             applicationEntity.setType(application.getType().name());
         }
         applicationEntity.setStatus(application.getStatus().toString());
+        applicationEntity.setPicture(application.getPicture());
         applicationEntity.setGroups(application.getGroups());
         applicationEntity.setCreatedAt(application.getCreatedAt());
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
@@ -726,6 +779,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         Application application = new Application();
 
         application.setName(updateApplicationEntity.getName().trim());
+        application.setPicture(updateApplicationEntity.getPicture());
         application.setDescription(updateApplicationEntity.getDescription().trim());
         application.setGroups(updateApplicationEntity.getGroups());
         Map<String, String> metadata = new HashMap<>();
@@ -742,5 +796,32 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         application.setMetadata(metadata);
 
         return application;
+    }
+    
+    @Override
+    public InlinePictureEntity getPicture(String applicationId) {
+        ApplicationEntity applicationEntity = findById(applicationId);
+        InlinePictureEntity imageEntity = new InlinePictureEntity();
+        if (applicationEntity.getPicture() == null) {
+            imageEntity.setType("image/png");
+            imageEntity.setContent(getDefaultPicture());
+        } else {
+            String[] parts = applicationEntity.getPicture().split(";", 2);
+            imageEntity.setType(parts[0].split(":")[1]);
+            String base64Content = applicationEntity.getPicture().split(",", 2)[1];
+            imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
+        }
+
+        return imageEntity;
+    }
+
+    @Override
+    public byte[] getDefaultPicture() {
+        try {
+            return IOUtils.toByteArray(new FileInputStream(defaultIcon));
+        } catch (IOException ioe) {
+            LOGGER.error("Default icon for API does not exist", ioe);
+        }
+        return null;
     }
 }

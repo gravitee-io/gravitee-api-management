@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -32,8 +31,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.portal.rest.model.Data;
+import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
-import io.gravitee.rest.api.portal.rest.model.PagesResponse;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -47,9 +47,7 @@ public class PagesResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() throws IOException {
-        reset(groupService);
-        reset(pageService);
-        reset(pageMapper);
+        resetAllMocks();
         
         PageEntity publishedPage = new PageEntity();
         publishedPage.setPublished(true);
@@ -72,8 +70,8 @@ public class PagesResourceTest extends AbstractResourceTest {
 
         assertEquals(OK_200, response.getStatus());
 
-        final PagesResponse pagesResponse = response.readEntity(PagesResponse.class);
-        List<Page> pages = pagesResponse.getData();
+        final DatasResponse pagesResponse = response.readEntity(DatasResponse.class);
+        List<Data> pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(1, pages.size());
         
@@ -86,9 +84,9 @@ public class PagesResourceTest extends AbstractResourceTest {
         Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());
 
-        PagesResponse pagesResponse = response.readEntity(PagesResponse.class);
+        DatasResponse pagesResponse = response.readEntity(DatasResponse.class);
 
-        List<Page> pages = pagesResponse.getData();
+        List<Data> pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(0, pages.size());
         

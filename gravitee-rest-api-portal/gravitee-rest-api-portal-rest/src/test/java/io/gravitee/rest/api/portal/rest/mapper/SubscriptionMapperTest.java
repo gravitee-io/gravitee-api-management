@@ -38,10 +38,15 @@ import io.gravitee.rest.api.portal.rest.model.Subscription.StatusEnum;
 @RunWith(MockitoJUnitRunner.class)
 public class SubscriptionMapperTest {
 
-    private static final String API = "my-api";
-    private static final String APPLICATION = "my-application";
-    private static final String PLAN = "my-plan";
-    private static final String SUBSCRIPTION = "my-subscription";
+    private static final String SUBSCRIPTION_API = "my-subscription-api";
+    private static final String SUBSCRIPTION_APPLICATION = "my-subscription-application";
+    private static final String SUBSCRIPTION_PLAN = "my-subscription-plan";
+    private static final String SUBSCRIPTION_ID = "my-subscription-id";
+    private static final String SUBSCRIPTION_CLIENT_ID = "my-subscription-client-id";
+    private static final String SUBSCRIPTION_PROCESSED_BY = "my-subscription-processed-by";
+    private static final String SUBSCRIPTION_REASON = "my-subscription-reason";
+    private static final String SUBSCRIPTION_REQUEST = "my-subscription-request";
+    private static final String SUBSCRIPTION_SUBSCRIBED_BY = "my-subscription-subscribed-by";
 
     private SubscriptionEntity subscriptionEntity;
 
@@ -56,22 +61,22 @@ public class SubscriptionMapperTest {
         //init
         subscriptionEntity = new SubscriptionEntity();
        
-        subscriptionEntity.setApi(API);
-        subscriptionEntity.setApplication(APPLICATION);
-        subscriptionEntity.setClientId(SUBSCRIPTION);
+        subscriptionEntity.setApi(SUBSCRIPTION_API);
+        subscriptionEntity.setApplication(SUBSCRIPTION_APPLICATION);
+        subscriptionEntity.setClientId(SUBSCRIPTION_CLIENT_ID);
         subscriptionEntity.setClosedAt(nowDate);
         subscriptionEntity.setCreatedAt(nowDate);
         subscriptionEntity.setEndingAt(nowDate);
-        subscriptionEntity.setId(SUBSCRIPTION);
+        subscriptionEntity.setId(SUBSCRIPTION_ID);
         subscriptionEntity.setPausedAt(nowDate);
-        subscriptionEntity.setPlan(PLAN);
+        subscriptionEntity.setPlan(SUBSCRIPTION_PLAN);
         subscriptionEntity.setProcessedAt(nowDate);
-        subscriptionEntity.setProcessedBy(SUBSCRIPTION);
-        subscriptionEntity.setReason(SUBSCRIPTION);
-        subscriptionEntity.setRequest(SUBSCRIPTION);
+        subscriptionEntity.setProcessedBy(SUBSCRIPTION_PROCESSED_BY);
+        subscriptionEntity.setReason(SUBSCRIPTION_REASON);
+        subscriptionEntity.setRequest(SUBSCRIPTION_REQUEST);
         subscriptionEntity.setStartingAt(nowDate);
         subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
-        subscriptionEntity.setSubscribedBy(SUBSCRIPTION);
+        subscriptionEntity.setSubscribedBy(SUBSCRIPTION_SUBSCRIBED_BY);
         subscriptionEntity.setUpdatedAt(nowDate);
         
         
@@ -79,14 +84,14 @@ public class SubscriptionMapperTest {
         Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
         assertNotNull(subscription);
         
-        assertEquals(API, subscription.getApi());
-        assertEquals(APPLICATION, subscription.getApplication());
+        assertEquals(SUBSCRIPTION_API, subscription.getApi());
+        assertEquals(SUBSCRIPTION_APPLICATION, subscription.getApplication());
         assertEquals(now.toEpochMilli(), subscription.getCreatedAt().toInstant().toEpochMilli());
         assertEquals(now.toEpochMilli(), subscription.getEndAt().toInstant().toEpochMilli());
-        assertEquals(SUBSCRIPTION, subscription.getId());
-        assertEquals(PLAN, subscription.getPlan());
+        assertEquals(SUBSCRIPTION_ID, subscription.getId());
+        assertEquals(SUBSCRIPTION_PLAN, subscription.getPlan());
         assertEquals(now.toEpochMilli(), subscription.getProcessedAt().toInstant().toEpochMilli());
-        assertEquals(SUBSCRIPTION, subscription.getRequest());
+        assertEquals(SUBSCRIPTION_REQUEST, subscription.getRequest());
         assertEquals(now.toEpochMilli(), subscription.getStartAt().toInstant().toEpochMilli());
         assertEquals(StatusEnum.ACCEPTED, subscription.getStatus());
         

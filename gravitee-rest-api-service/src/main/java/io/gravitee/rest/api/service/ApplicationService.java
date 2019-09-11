@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -47,4 +48,8 @@ public interface ApplicationService {
     ApplicationEntity renewClientSecret(String applicationId);
 
     void archive(String applicationId);
+    
+    InlinePictureEntity getPicture(String apiId);
+
+    byte[] getDefaultPicture();
 }

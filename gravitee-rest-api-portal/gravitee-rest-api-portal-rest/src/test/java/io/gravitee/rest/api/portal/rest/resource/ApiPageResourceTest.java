@@ -25,7 +25,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -68,9 +67,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() throws IOException {
-        reset(apiService);
-        reset(pageService);
-        reset(pageMapper);
+        resetAllMocks();
         
         mockApi = new ApiEntity();
         mockApi.setId(API);

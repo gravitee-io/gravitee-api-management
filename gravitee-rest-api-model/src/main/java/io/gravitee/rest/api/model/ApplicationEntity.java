@@ -36,6 +36,7 @@ public class ApplicationEntity {
     private Set<String> groups;
     private String status;
     private String type;
+    private String picture;
 
     @JsonProperty("created_at")
     private Date createdAt;
@@ -127,6 +128,14 @@ public class ApplicationEntity {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     @Override

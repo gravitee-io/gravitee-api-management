@@ -15,13 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.spring;
 
-import freemarker.cache.ConditionalTemplateConfigurationFactory;
-import freemarker.cache.FileExtensionMatcher;
-import freemarker.cache.FileTemplateLoader;
-import freemarker.core.HTMLOutputFormat;
-import freemarker.core.TemplateClassResolver;
-import freemarker.core.TemplateConfiguration;
-import io.gravitee.common.util.EnvironmentUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Properties;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +30,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
+import freemarker.cache.ConditionalTemplateConfigurationFactory;
+import freemarker.cache.FileExtensionMatcher;
+import freemarker.cache.FileTemplateLoader;
+import freemarker.core.HTMLOutputFormat;
+import freemarker.core.TemplateClassResolver;
+import freemarker.core.TemplateConfiguration;
+import io.gravitee.common.util.EnvironmentUtils;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

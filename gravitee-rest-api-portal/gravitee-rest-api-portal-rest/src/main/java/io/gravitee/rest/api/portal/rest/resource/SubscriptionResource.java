@@ -32,12 +32,15 @@ import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -69,28 +72,33 @@ public class SubscriptionResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSubscriptionBySubscriptionId(@PathParam("subscriptionId") String subscriptionId, @QueryParam("include") List<String> include) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
-        
-        
-        Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
-        if(include.contains(INCLUDE_KEYS)) {
-            List<Key> keys = apiKeyService.findBySubscription(subscriptionId).stream()
-                .map(keyMapper::convert)
-                .collect(Collectors.toList())
-            ;
-            subscription.setKeys(keys);
+        if(hasPermission(RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.READ) ||
+                hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.READ)) {
+            Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
+            if(include.contains(INCLUDE_KEYS)) {
+                List<Key> keys = apiKeyService.findBySubscription(subscriptionId).stream()
+                    .map(keyMapper::convert)
+                    .collect(Collectors.toList())
+                ;
+                subscription.setKeys(keys);
+            }
+            return Response.ok(subscription).build();
         }
-        return Response.ok(subscription).build();
+        throw new ForbiddenAccessException();
     }
     
     @POST
     @Path("/_close")
     @Produces(MediaType.APPLICATION_JSON)
     public Response closeSubscription(@PathParam("subscriptionId") String subscriptionId) {
-        //APIPortal: what if SubscriptionNotClosableException ?
-        subscriptionService.close(subscriptionId);
-        return Response
-                .noContent()
-                .build();
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+        if(hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.DELETE)) {
+            subscriptionService.close(subscriptionId);
+            return Response
+                    .noContent()
+                    .build();
+        }
+        throw new ForbiddenAccessException();
     }
     
     @Path("keys")

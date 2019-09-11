@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.time.Instant;
 import java.util.Date;
@@ -28,7 +29,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.portal.rest.model.Member;
-import io.gravitee.rest.api.portal.rest.model.RoleEnum;
+import io.gravitee.rest.api.portal.rest.model.User;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -37,7 +38,9 @@ import io.gravitee.rest.api.portal.rest.model.RoleEnum;
 @RunWith(MockitoJUnitRunner.class)
 public class MemberMapperTest {
 
-    private static final String MEMBER = "my-member";
+    private static final String MEMBER_DISPLAYNAME = "my-member-display-name";
+    private static final String MEMBER_EMAIL = "my-member-email";
+    private static final String MEMBER_ID = "my-member-id";
 
     private MemberEntity memberEntity;
 
@@ -53,22 +56,26 @@ public class MemberMapperTest {
         memberEntity = new MemberEntity();
        
         memberEntity.setCreatedAt(nowDate);
-        memberEntity.setDisplayName(MEMBER);
-        memberEntity.setEmail(MEMBER);
-        memberEntity.setId(MEMBER);
+        memberEntity.setDisplayName(MEMBER_DISPLAYNAME);
+        memberEntity.setEmail(MEMBER_EMAIL);
+        memberEntity.setId(MEMBER_ID);
         memberEntity.setRole("OWNER");
         memberEntity.setUpdatedAt(nowDate);
         
         //Test
         Member responseMember = memberMapper.convert(memberEntity);
         assertNotNull(responseMember);
-        
         assertEquals(now.toEpochMilli(), responseMember.getCreatedAt().toInstant().toEpochMilli());
-        assertEquals(MEMBER, responseMember.getDisplayName());
-        assertEquals(MEMBER, responseMember.getEmail());
-        assertEquals(MEMBER, responseMember.getId());
-        assertEquals(RoleEnum.OWNER, responseMember.getRole());
+        assertNull(responseMember.getId());
+        assertEquals("OWNER", responseMember.getRole());
         assertEquals(now.toEpochMilli(), responseMember.getUpdatedAt().toInstant().toEpochMilli());
+        
+        User user = responseMember.getUser();
+        assertNotNull(user);
+        assertEquals(MEMBER_DISPLAYNAME, user.getDisplayName());
+        assertEquals(MEMBER_EMAIL, user.getEmail());
+        assertEquals(MEMBER_ID, user.getId());
+
     }
     
 }

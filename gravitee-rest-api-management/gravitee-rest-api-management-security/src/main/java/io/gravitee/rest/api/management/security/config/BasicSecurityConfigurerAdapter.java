@@ -193,9 +193,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
-        String mainResource = "/env/**";
-        String apiType = "/management";
-        String uriPrefix = mainResource + apiType;
+        String uriPrefix = "/management/env/**";
 
         return security.authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "**").permitAll()

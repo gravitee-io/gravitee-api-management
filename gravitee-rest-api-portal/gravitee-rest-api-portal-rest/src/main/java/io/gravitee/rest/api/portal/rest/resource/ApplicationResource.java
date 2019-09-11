@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -29,25 +31,29 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
-import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
-import io.gravitee.rest.api.portal.rest.model.Plan;
+import io.gravitee.rest.api.portal.rest.security.Permission;
+import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 
 /**
@@ -66,27 +72,13 @@ public class ApplicationResource extends AbstractResource {
     private ApplicationService applicationService;
     
     @Inject
-    private PlanService planService;
-    
-    @Inject
-    private SubscriptionService subscriptionService;
-    
-    @Inject
     private ApplicationMapper applicationMapper;
-
-    @Inject
-    private PlanMapper planMapper;
-    
-    private static final String INCLUDE_ANALYTICS = "analytics";
-    private static final String INCLUDE_LOGS = "logs";
-    private static final String INCLUDE_MEMBERS = "members";
-    private static final String INCLUDE_METRICS = "metrics";
-    private static final String INCLUDE_NOTIFICATIONS = "notifications";
-    private static final String INCLUDE_PLANS = "plans";
-
     
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE)
+    })
     public Response deleteApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
         applicationService.archive(applicationId);
         return Response
@@ -96,34 +88,11 @@ public class ApplicationResource extends AbstractResource {
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getApplicationByApplicationId(@PathParam("applicationId") String applicationId, @QueryParam("include") List<String> include) {
+    @Permissions({
+        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
+    })
+    public Response getApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
         Application application = applicationMapper.convert(applicationService.findById(applicationId));
-        
-        // APIPortal : include datas
-        if(include.contains(INCLUDE_ANALYTICS)) {
-
-        }
-        if(include.contains(INCLUDE_LOGS)) {
-            
-        }
-        if(include.contains(INCLUDE_MEMBERS)) {
-            
-        }
-        if(include.contains(INCLUDE_METRICS)) {
-            
-        }
-        if(include.contains(INCLUDE_NOTIFICATIONS)) {
-            
-        }
-        if(include.contains(INCLUDE_PLANS)) {
-            List<Plan> plans = subscriptionService.findByApplicationAndPlan(applicationId, null).stream()
-                .map(subscription -> planService.findById(subscription.getPlan()))
-                .map(planMapper::convert)
-                .distinct()
-                .collect(Collectors.toList())
-            ;
-            application.setPlans(plans);
-        }
         
         return Response
                 .ok(addApplicationLinks(application))
@@ -134,6 +103,9 @@ public class ApplicationResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
+    })
     public Response updateApplicationByApplicationId(@PathParam("applicationId") String applicationId, @Valid Application application) {
         
         if(!application.getId().equalsIgnoreCase(applicationId)) {
@@ -182,28 +154,76 @@ public class ApplicationResource extends AbstractResource {
                 .build();
     }
    
-    
-//    APIPortal: /picture ?
-//    @GET
-//    @Path("/picture")
-//    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
-//    public Response getApplicationPictureByApplicationId(@PathParam("applicationId") String applicationId) {
-//        return delegate.getApplicationPictureByApplicationId(applicationId, securityContext);
-//    }
-//    
-//    @PUT
-//    @Path("/picture")
-//    @Consumes(MediaType.WILDCARD)
-//    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
-//    public Response updateApplicationPictureByApplicationId(@PathParam("applicationId") String applicationId, File body) {
-//        return delegate.updateApplicationPictureByApplicationId(applicationId, body, securityContext);
-//    }
+    @GET
+    @Path("picture")
+    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
+    @Permissions({
+        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
+    })
+    public Response getPictureByApplicationId(@Context Request request, @PathParam("applicationId") String applicationId) {
+        applicationService.findById(applicationId);
 
+        CacheControl cc = new CacheControl();
+        cc.setNoTransform(true);
+        cc.setMustRevalidate(false);
+        cc.setNoCache(false);
+        cc.setMaxAge(86400);
+
+        InlinePictureEntity image = applicationService.getPicture(applicationId);
+
+        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
+        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
+
+        if (builder != null) {
+            // Preconditions are not met, returning HTTP 304 'not-modified'
+            return builder
+                    .cacheControl(cc)
+                    .build();
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(image.getContent(), 0, image.getContent().length);
+
+        return Response
+                .ok(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
+    }
+    
+    @PUT
+    @Path("/picture")
+    @Consumes(MediaType.WILDCARD)
+    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
+    public Response updateApplicationPictureByApplicationId(@Context HttpHeaders headers, @PathParam("applicationId") String applicationId, File newPictureFile) throws IOException {
+        String newPicture = new String(Files.readAllBytes(newPictureFile.toPath()));
+        checkAndScaleImage(newPicture);
+        
+        ApplicationEntity applicationEntity = applicationService.findById(applicationId);
+        UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
+        
+        updateApplicationEntity.setSettings(applicationEntity.getSettings());
+        updateApplicationEntity.setName(applicationEntity.getName());
+        updateApplicationEntity.setPicture(newPicture);
+        updateApplicationEntity.setDescription(applicationEntity.getDescription());
+        updateApplicationEntity.setGroups(applicationEntity.getGroups());
+        
+        ApplicationEntity updatedApp = applicationService.update(applicationId, updateApplicationEntity);
+        return Response
+                .ok(applicationMapper.convert(updatedApp))
+                .tag(Long.toString(updatedApp.getUpdatedAt().getTime()))
+                .lastModified(updatedApp.getUpdatedAt())
+                .build();
+    }
 
     @POST
     @Path("/_renew_secret")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
+    })
     public Response renewApplicationSecret(@PathParam("applicationId") String applicationId) {
         
         Application renwedApplication = applicationMapper.convert(applicationService.renewClientSecret(applicationId));
@@ -231,11 +251,19 @@ public class ApplicationResource extends AbstractResource {
         return resourceContext.getResource(ApplicationMembersResource.class);
     }
  
-//    APIPortal: @Path("notifications")
-//    public ApplicationNotificationsResource getApplicationNotificationsResource() {
-//        return resourceContext.getResource(ApplicationNotificationsResource.class);
-//    }    
-    
-//  APIPortal: Logs, metrics, analytics
+    @Path("notifications")
+    public ApplicationNotificationSettingsResource getApplicationNotificationSettingsResource() {
+        return resourceContext.getResource(ApplicationNotificationSettingsResource.class);
+    }
+
+    @Path("logs")
+    public ApplicationLogsResource getApplicationLogsResource() {
+        return resourceContext.getResource(ApplicationLogsResource.class);
+    }
+
+    @Path("analytics")
+    public ApplicationAnalyticsResource getApplicationAnalyticsResource() {
+        return resourceContext.getResource(ApplicationAnalyticsResource.class);
+    }    
 
 }

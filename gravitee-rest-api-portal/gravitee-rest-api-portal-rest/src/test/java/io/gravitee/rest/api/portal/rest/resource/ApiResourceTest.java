@@ -26,11 +26,10 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.eq;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -53,6 +52,7 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -85,12 +85,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() throws IOException, URISyntaxException {
-        reset(apiService);
-        reset(pageService);
-        reset(apiMapper);
-        reset(pageMapper);
-        reset(planMapper);
-        reset(ratingMapper);
+        resetAllMocks();
         
         
         mockApi = new ApiEntity();
@@ -117,13 +112,21 @@ public class ApiResourceTest extends AbstractResourceTest {
         plan1.setId("A");
         plan1.setSecurity(PlanSecurityType.API_KEY);
         plan1.setValidation(PlanValidationType.AUTO);
+        plan1.setStatus(PlanStatus.PUBLISHED);
 
         PlanEntity plan2 = new PlanEntity();
         plan2.setId("B");
         plan2.setSecurity(PlanSecurityType.KEY_LESS);
         plan2.setValidation(PlanValidationType.MANUAL);
-        
-        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2))).when(planService).findByApi(API);
+        plan2.setStatus(PlanStatus.PUBLISHED);
+
+        PlanEntity plan3 = new PlanEntity();
+        plan3.setId("C");
+        plan3.setSecurity(PlanSecurityType.KEY_LESS);
+        plan3.setValidation(PlanValidationType.MANUAL);
+        plan3.setStatus(PlanStatus.CLOSED);
+
+        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3))).when(planService).findByApi(API);
 
         
         forbiddenApi = new ApiEntity();
@@ -132,7 +135,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         doReturn(new Api()).when(apiMapper).convert(any());
         doReturn(new Page()).when(pageMapper).convert(any());
-        doReturn(new Plan()).when(planMapper).convert(any());
+        doReturn(new Plan()).when(planMapper).convert(any(), eq(USER_NAME));
         doReturn(new Rating()).when(ratingMapper).convert(any());
 
 

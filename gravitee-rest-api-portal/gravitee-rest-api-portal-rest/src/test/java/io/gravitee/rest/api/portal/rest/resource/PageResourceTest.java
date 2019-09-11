@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,9 +60,7 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() throws IOException {
-        reset(groupService);
-        reset(pageService);
-        reset(pageMapper);
+        resetAllMocks();
         
         PageEntity publishedPage = new PageEntity();
         publishedPage.setPublished(true);

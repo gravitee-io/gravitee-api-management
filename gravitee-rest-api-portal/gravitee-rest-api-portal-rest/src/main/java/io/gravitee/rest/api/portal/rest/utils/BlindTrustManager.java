@@ -15,9 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.utils;
 
-import javax.net.ssl.X509TrustManager;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+
+import javax.net.ssl.X509TrustManager;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
