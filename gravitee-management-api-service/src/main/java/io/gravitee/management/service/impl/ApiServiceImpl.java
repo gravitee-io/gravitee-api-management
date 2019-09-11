@@ -363,7 +363,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     if (virtualHost.getHost() == null) {
                         graviteeUrls.add(portalEntrypoint + virtualHost.getPath());
                     } else {
-                        graviteeUrls.add(portalEntrypoint + virtualHost.getPath());
+                        graviteeUrls.add(virtualHost.getHost() + virtualHost.getPath());
                     }
                 }
             });
