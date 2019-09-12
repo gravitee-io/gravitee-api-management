@@ -132,6 +132,9 @@
                 "error-key": {
                     "type": "keyword",
                     "index": true
+                },
+                "subscription": {
+                    "type": "keyword"
                 }
                 <#if extendedRequestMappingTemplate??>,<#include "/${extendedRequestMappingTemplate}"></#if>
             }
