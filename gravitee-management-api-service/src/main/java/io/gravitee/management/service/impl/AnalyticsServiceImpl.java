@@ -261,6 +261,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         if (statsResponse.getCount() != null) {
             final long numberOfSeconds = (query.getTo() - query.getFrom()) / 1000;
             statsAnalytics.setRps(statsResponse.getCount() / numberOfSeconds);
+            statsAnalytics.setRpm(statsResponse.getCount() / numberOfSeconds * 60);
+            statsAnalytics.setRph(statsResponse.getCount() / numberOfSeconds * 3600);
         }
         return statsAnalytics;
     }

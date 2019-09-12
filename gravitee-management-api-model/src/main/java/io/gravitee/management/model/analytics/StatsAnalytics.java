@@ -15,8 +15,6 @@
  */
 package io.gravitee.management.model.analytics;
 
-import java.util.Map;
-
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
@@ -29,6 +27,8 @@ public class StatsAnalytics implements Analytics {
     private Float avg;
     private Float sum;
     private Float rps;
+    private Float rpm;
+    private Float rph;
 
     public Float getCount() {
         return count;
@@ -76,5 +76,21 @@ public class StatsAnalytics implements Analytics {
 
     public void setRps(Float rps) {
         this.rps = rps;
+    }
+
+    public Float getRpm() {
+        return rpm;
+    }
+
+    public void setRpm(Float rpm) {
+        this.rpm = rpm;
+    }
+
+    public Float getRph() {
+        return rph;
+    }
+
+    public void setRph(Float rph) {
+        this.rph = rph;
     }
 }
