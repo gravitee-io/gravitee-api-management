@@ -17,7 +17,7 @@
 -->
 <div ng-if="$ctrl.data[$ctrl.parent.widget.chart.data[0].key] !== undefined" class="gv-widget-stats-container" ng-class="{'gv-widget-stats-container-sm': $ctrl.lowResolution}">
   <div layout="row" layout-align="center center" layout-wrap="">
-    <div layout="column" class="gv-widget-stats" ng-class="{'gv-widget-stats-sm': $ctrl.lowResolution}" ng-repeat="data in $ctrl.parent.widget.chart.data" style="color: {{data.color}}">
+    <div layout="column" class="gv-widget-stats" ng-class="{'gv-widget-stats-sm': $ctrl.lowResolution}" ng-repeat="data in $ctrl.parent.widget.chart.data" ng-style="{color: data.color}">
       <div class="gv-widget-stats-value" ng-class="{'gv-widget-stats-value-sm': $ctrl.lowResolution}">{{$ctrl.data[data.key] | number:0}}{{data.unit}}</div>
       <div class="gv-widget-stats-label">{{data.label}}</div>
     </div>

@@ -151,7 +151,7 @@ class ApiAnalyticsController {
           {key: 'min', label: 'min', unit: 'ms', color: '#66bb6a'},
           {key: 'max', label: 'max', unit: 'ms', color: '#ef5350'},
           {key: 'avg', label: 'avg', unit: 'ms', color: '#42a5f5'},
-          {key: 'rps', label: 'requests per second', color: '#ff8f2d'},
+          {key: 'rps', label: 'requests per second', color: '#ff8f2d', fallback: [{key: 'rpm', label: 'requests per minute'}, {key: 'rph', label: 'requests per hour'}]},
           {key: 'count', label: 'total', color: 'black'}
         ],
         request: {

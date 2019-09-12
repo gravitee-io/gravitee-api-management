@@ -49,7 +49,7 @@ class DashboardController {
       row: 0,
       sizeY: 1,
       sizeX: 2,
-      title: 'Top API',
+      title: 'Top APIs',
       subhead: 'Ordered by API calls',
       chart: {
         type: 'table',
@@ -220,7 +220,7 @@ class DashboardController {
       col: 0,
       sizeY: 1,
       sizeX: 2,
-      title: 'Top API',
+      title: 'Top APIs',
       subhead: 'Ordered by API calls',
       chart: {
         type: 'table',

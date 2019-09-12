@@ -98,7 +98,7 @@ const WidgetComponent: ng.IComponentOptions = {
                   let total = _.find(responseTotal.data.values, (v, k) => {
                     return k === key;
                   });
-                  response.data.values[key] = value + '/' + _.ceil((value / total) * 100, 1);
+                  response.data.values[key] = value + '/' + _.round((value / total) * 100, 2);
                 });
                 this.results = response.data;
               });

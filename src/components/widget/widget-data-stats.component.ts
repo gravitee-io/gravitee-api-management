@@ -22,12 +22,29 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget'
   },
-  controller: function($scope, $window) {
+  controller: function($scope, $window, $filter) {
     'ngInject';
     this.$onInit = () => {
+      checkFallback();
       checkResolution();
       $scope.$on('onWidgetResize', () => {
         checkResolution();
+      });
+    };
+    const checkFallback = () => {
+      _.forEach(this.parent.widget.chart.data, (data) => {
+        let hasFallback = false;
+        let value = this.data[data.key];
+        if ($filter('number')(value, 0) === '0' && data.fallback && data.fallback.length) {
+          _.forEach(data.fallback, (fallback) => {
+            let fallbackValue = this.data[fallback.key];
+            if (!hasFallback && $filter('number')(fallbackValue, 0) !== '0') {
+              data.key = fallback.key;
+              data.label = fallback.label;
+              hasFallback = true;
+            }
+          });
+        }
       });
     };
     const checkResolution = () => {
