@@ -104,6 +104,24 @@
                 },
                 "user-agent": {
                     "type": "keyword"
+                },
+                "user": {
+                    "type": "keyword"
+                },
+                "security-type": {
+                    "type": "keyword",
+                "index": true
+                },
+                "security-token": {
+                    "type": "keyword",
+                "index": true
+                },
+                "error-key": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "subscription": {
+                    "type": "keyword"
                 }
             }
         },
