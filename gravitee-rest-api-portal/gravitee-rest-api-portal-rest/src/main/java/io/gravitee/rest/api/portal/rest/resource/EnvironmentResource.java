@@ -63,4 +63,9 @@ public class EnvironmentResource extends AbstractResource {
     public UserResource getUserResource() {
         return resourceContext.getResource(UserResource.class);
     }
+
+    @Path("views")
+    public ViewsResource getViewsResource() {
+        return resourceContext.getResource(ViewsResource.class);
+    }
 }

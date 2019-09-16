@@ -49,6 +49,7 @@ import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.Plan;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
@@ -115,8 +116,8 @@ public class ApiResource extends AbstractResource {
                         .collect(Collectors.toList());
                 api.setPlans(plans);
             }
-        
-            api.links(apiMapper.computeApiLinks(uriInfo.getAbsolutePath().toString()));
+                    
+            api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())));
             
             return Response
                     .ok(api)

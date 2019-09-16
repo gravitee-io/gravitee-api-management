@@ -13,37 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.portal.rest.enhancer;
 
-import java.util.List;
-
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.NewViewEntity;
-import io.gravitee.rest.api.model.UpdateViewEntity;
+import io.gravitee.repository.management.model.View;
 import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+
+import org.springframework.stereotype.Component;
+
+import java.util.Set;
+import java.util.function.Function;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ViewService {
+@Component
+public class ViewEnhancer {
 
-    List<ViewEntity> findAll();
+    public Function<ViewEntity, ViewEntity> enhance(Set<ApiEntity> apis) {
+        return view -> {
+            long totalApis = apis.stream()
+                                    .filter(api -> View.ALL_ID.equals(view.getId())
+                                            || (api.getViews() != null && api.getViews().contains(view.getId())))
+                                    .count();
+            view.setTotalApis(totalApis);
 
-    ViewEntity findById(String id);
-    
-    ViewEntity findNotHiddenById(String id);
-
-    ViewEntity create(NewViewEntity view);
-
-    ViewEntity update(String viewId, UpdateViewEntity view);
-
-    List<ViewEntity> update(List<UpdateViewEntity> views);
-
-    void delete(String viewId);
-
-    void createDefaultView();
-
-    InlinePictureEntity getPicture(String viewId);
+            return view;
+        };
+    }
 }

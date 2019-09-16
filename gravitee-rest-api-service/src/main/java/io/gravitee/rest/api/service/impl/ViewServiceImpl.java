@@ -107,6 +107,23 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     }
 
     @Override
+    public ViewEntity findNotHiddenById(String id) {
+        try {
+            LOGGER.debug("Find not hidden view by id : {}", id);
+            Optional<View> view = viewRepository.findById(id);
+
+            if (view.isPresent() && !view.get().isHidden()) {
+                return convert(view.get());
+            }
+
+            throw new ViewNotFoundException(id);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find a view using its ID: {}", id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find a view using its ID: " + id, ex);
+        }
+    }
+    
+    @Override
     public ViewEntity create(NewViewEntity viewEntity) {
         // First we prevent the duplicate view name
         final Optional<ViewEntity> optionalView = findAll().stream()
@@ -276,6 +293,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     private View convert(final UpdateViewEntity viewEntity) {
         final View view = new View();
         view.setId(viewEntity.getId());
+        view.setEnvironment(GraviteeContext.getCurrentEnvironment());
         view.setName(viewEntity.getName());
         view.setDescription(viewEntity.getDescription());
         view.setDefaultView(viewEntity.isDefaultView());

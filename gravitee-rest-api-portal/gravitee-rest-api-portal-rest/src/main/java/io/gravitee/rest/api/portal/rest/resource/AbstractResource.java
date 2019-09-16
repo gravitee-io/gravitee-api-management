@@ -113,6 +113,10 @@ public abstract class AbstractResource {
         return securityContext.getUserPrincipal() != null;
     }
 
+    protected boolean hasPermission(RolePermission permission, RolePermissionAction... acls) {
+        return hasPermission(permission, null, acls);
+    }
+    
     protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
         return isAuthenticated() && (permissionService.hasPermission(permission, referenceId, acls));
     }

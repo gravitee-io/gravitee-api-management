@@ -27,6 +27,8 @@ tags:
     description: All about applications
   - name: Documentation
     description: All about documentation of the portal
+  - name: Portal
+    description: All about portal configurations
   - name: Subscription
     description: All about subscriptions
   - name: User
@@ -260,7 +262,6 @@ paths:
           $ref: '#/components/responses/PictureSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
-  
   /applications/{applicationId}/notifications:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -297,8 +298,7 @@ paths:
         200:
           $ref: '#/components/responses/NotificationSuccess'
         500:
-          $ref: '#/components/responses/GeneralError'
-    
+          $ref: '#/components/responses/GeneralError' 
   /applications/{applicationId}/notifications/{notificationId}:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -324,8 +324,7 @@ paths:
         204:
           description: No-Content
         500:
-          $ref: '#/components/responses/GeneralError'
-  
+          $ref: '#/components/responses/GeneralError' 
   /applications/{applicationId}/members:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -405,7 +404,6 @@ paths:
           description: No-Content
         500:
           $ref: '#/components/responses/GeneralError'
-  
   /applications/{applicationId}/analytics:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -434,7 +432,6 @@ paths:
           $ref: '#/components/responses/AnalyticsSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
-
   /applications/{applicationId}/logs:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -572,8 +569,7 @@ paths:
         200:
           $ref: '#/components/responses/SubscriptionSuccess'
         500:
-          $ref: '#/components/responses/GeneralError'
-          
+          $ref: '#/components/responses/GeneralError'        
   /subscriptions/{subscriptionId}:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
@@ -586,8 +582,7 @@ paths:
         200:
           $ref: '#/components/responses/SubscriptionSuccess'
         500:
-          $ref: '#/components/responses/GeneralError'
-          
+          $ref: '#/components/responses/GeneralError'        
   /subscriptions/{subscriptionId}/_close:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
@@ -600,8 +595,7 @@ paths:
         204:
           description: No-Content
         500:
-          $ref: '#/components/responses/GeneralError'
-          
+          $ref: '#/components/responses/GeneralError'       
   /subscriptions/{subscriptionId}/keys/_renew:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
@@ -614,8 +608,7 @@ paths:
       operationId: renewKeySubscription
       responses:
         500:
-          $ref: '#/components/responses/GeneralError'
-          
+          $ref: '#/components/responses/GeneralError'       
   /subscriptions/{subscriptionId}/keys/{keyId}/_revoke:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
@@ -674,7 +667,6 @@ paths:
           $ref: '#/components/responses/UserSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
-
   /user/notifications:
     get:
       tags:
@@ -698,8 +690,7 @@ paths:
         204:
           description: No-Content
         500:
-          $ref: '#/components/responses/GeneralError'
-          
+          $ref: '#/components/responses/GeneralError'        
   /user/notifications/{notificationId}:
     parameters:
         - $ref: '#/components/parameters/notificationIdParam'
@@ -737,6 +728,49 @@ paths:
         500:
           $ref: '#/components/responses/GeneralError'
   
+  /views:
+    get:
+      tags:
+        - Portal
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Get a View list
+      operationId: getViews
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/ViewsSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /views/{viewId}:
+    parameters:
+      - $ref: '#/components/parameters/viewIdParam'
+    get:
+      tags:
+        - Portal
+      description: Get a View
+      operationId: getViewByViewId
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/ViewSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /views/{viewId}/picture:
+    parameters:
+      - $ref: '#/components/parameters/viewIdParam'
+    get:
+      tags:
+        - Portal
+      description: Get picture of a View
+      operationId: getPictureByViewId
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/PictureSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
   /configuration:
     get:
       tags: 
@@ -744,7 +778,6 @@ paths:
       responses:
         500:
           $ref: '#/components/responses/GeneralError'
-  
   /configuration/identities:
     get:
       tags: 
@@ -778,7 +811,6 @@ paths:
           $ref: '#/components/responses/LogoutSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
-  
   /auth/oauth2/{identity}:
     post:
       tags: 
@@ -1167,6 +1199,13 @@ components:
           enum:
             - tasks
             - notifications
+    viewIdParam: 
+      name: viewId
+      in: path
+      required: true
+      description: id of a View
+      schema:
+        type: string
   schemas:
     #####################
     # Responses Objects #
@@ -1597,6 +1636,24 @@ components:
             - BEARER
         token:
           type: string
+    View:
+      allOf:
+        - $ref: "#/components/schemas/Data"
+        - type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            default_view:
+              type: boolean
+            order:
+              type: integer
+            total_apis:
+              type: integer
+              format: int64
+            _links:
+              $ref: '#/components/schemas/ViewLinks'
     #################
     # Input Objects #
     #################
@@ -1892,6 +1949,14 @@ components:
           type: string
         notifications:
           type: string
+    ViewLinks:
+      properties:
+        self:
+          type: string
+        highlighted_api:
+          type: string
+        picture:
+          type: string
 
   responses:
     GeneralError:
@@ -2031,6 +2096,18 @@ components:
             $ref: '#/components/schemas/User'
     UsersSuccess:
       description: List of platform users
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasResponse'
+    ViewSuccess:
+      description: One View
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/View'
+    ViewsSuccess:
+      description: List of Views
       content:
         application/json:
           schema:

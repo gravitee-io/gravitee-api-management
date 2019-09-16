@@ -36,6 +36,8 @@ import io.gravitee.rest.api.service.spring.ServiceConfiguration;
  */
 @Configuration
 @ComponentScan({"io.gravitee.rest.api.portal.rest.mapper"})
+@ComponentScan({"io.gravitee.rest.api.portal.rest.enhancer"})
+
 @Import({
         PropertiesConfiguration.class, PluginConfiguration.class, ServiceConfiguration.class,
         SecurityPortalConfiguration.class, EmailConfiguration.class, IdentityProviderPluginConfiguration.class

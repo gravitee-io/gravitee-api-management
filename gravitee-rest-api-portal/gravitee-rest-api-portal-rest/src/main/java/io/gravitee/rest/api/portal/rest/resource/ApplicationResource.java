@@ -53,6 +53,7 @@ import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 
@@ -209,11 +210,12 @@ public class ApplicationResource extends AbstractResource {
         updateApplicationEntity.setDescription(applicationEntity.getDescription());
         updateApplicationEntity.setGroups(applicationEntity.getGroups());
         
-        ApplicationEntity updatedApp = applicationService.update(applicationId, updateApplicationEntity);
+        ApplicationEntity updatedAppEntity = applicationService.update(applicationId, updateApplicationEntity);
+        Application updatedApp = applicationMapper.convert(updatedAppEntity);
         return Response
-                .ok(applicationMapper.convert(updatedApp))
-                .tag(Long.toString(updatedApp.getUpdatedAt().getTime()))
-                .lastModified(updatedApp.getUpdatedAt())
+                .ok(addApplicationLinks(updatedApp))
+                .tag(Long.toString(updatedAppEntity.getUpdatedAt().getTime()))
+                .lastModified(updatedAppEntity.getUpdatedAt())
                 .build();
     }
 
@@ -227,24 +229,17 @@ public class ApplicationResource extends AbstractResource {
     public Response renewApplicationSecret(@PathParam("applicationId") String applicationId) {
         
         Application renwedApplication = applicationMapper.convert(applicationService.renewClientSecret(applicationId));
-
-        String basePath = uriInfo.getAbsolutePathBuilder().build().toString();
-        basePath = basePath.replaceFirst("/_renew_secret", "");
         
         return Response
-                .ok(addApplicationLinks(renwedApplication, basePath))
+                .ok(addApplicationLinks(renwedApplication))
                 .build()
                 ;
     }
     
     private Application addApplicationLinks(Application application) {
-        String basePath = uriInfo.getAbsolutePathBuilder().build().toString();
-        return addApplicationLinks(application, basePath);
+        return application.links(applicationMapper.computeApplicationLinks(PortalApiLinkHelper.applicationsURL(uriInfo.getBaseUriBuilder(), application.getId())));
     }
     
-    private Application addApplicationLinks(Application application, String basePath) {
-        return application.links(applicationMapper.computeApplicationLinks(basePath));
-    }
     
     @Path("members")
     public ApplicationMembersResource getApplicationMembersResource() {

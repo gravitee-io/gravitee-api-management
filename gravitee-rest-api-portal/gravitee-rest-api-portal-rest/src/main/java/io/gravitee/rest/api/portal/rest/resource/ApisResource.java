@@ -49,6 +49,7 @@ import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.CategoryApiQuery;
 import io.gravitee.rest.api.portal.rest.resource.param.ApisParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -244,8 +245,7 @@ public class ApisResource extends AbstractResource {
     }
 
     private Api addApiLinks(Api api) {
-        String basePath = uriInfo.getAbsolutePathBuilder().path(api.getId()).build().toString();
-        return api.links(apiMapper.computeApiLinks(basePath));
+        return api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())));
     }
     
     

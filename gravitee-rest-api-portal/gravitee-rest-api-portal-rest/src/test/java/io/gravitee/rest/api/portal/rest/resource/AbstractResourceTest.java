@@ -33,6 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
+import io.gravitee.rest.api.portal.rest.enhancer.ViewEnhancer;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
@@ -45,6 +46,7 @@ import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.mapper.RatingMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ViewMapper;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
@@ -78,6 +80,7 @@ import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.TaskService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.ViewService;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -118,6 +121,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(portalNotificationConfigService);
         reset(genericNotificationConfigService);
         reset(topApiService);
+        reset(viewService);
         reset(authenticationProvider);
         reset(jwtCookieGenerator);
         reset(apiMapper);
@@ -133,6 +137,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(logMapper);
         reset(analyticsMapper);
         reset(notificationConfigMapper);
+        reset(viewMapper);
+        reset(viewEnhancer);
     }
     
     public AbstractResourceTest() {
@@ -245,6 +251,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected TopApiService topApiService;
     
     @Autowired
+    protected ViewService viewService;
+    
+    @Autowired
     protected JWTCookieGenerator jwtCookieGenerator;
     
     @Autowired
@@ -282,6 +291,12 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected NotificationConfigMapper notificationConfigMapper;
+
+    @Autowired
+    protected ViewMapper viewMapper;
+
+    @Autowired
+    protected ViewEnhancer viewEnhancer;
     
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/portal/rest/resource/jwt.properties")
@@ -448,6 +463,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
+        public ViewService viewService() {
+            return mock(ViewService.class);
+        }
+
+        @Bean
         public ApiMapper apiMapper() {
             return mock(ApiMapper.class);
         }
@@ -505,6 +525,16 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public NotificationConfigMapper notificationConfigMapper() {
             return mock(NotificationConfigMapper.class);
+        }
+
+        @Bean
+        public ViewMapper viewMapper() {
+            return mock(ViewMapper.class);
+        }
+
+        @Bean
+        public ViewEnhancer viewEnhancer() {
+            return mock(ViewEnhancer.class);
         }
     }
 }

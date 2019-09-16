@@ -498,6 +498,8 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         ApplicationEntity updatedApplication = new ApplicationEntity();
         updatedApplication.setUpdatedAt(nowDate);
         doReturn(updatedApplication).when(applicationService).update(eq(APPLICATION), any());
+        doReturn(new Application().id(APPLICATION)).when(applicationMapper).convert(updatedApplication);
+
         
         final Response response = target(APPLICATION).path("picture").request().put(Entity.entity(pictureData, MediaType.MULTIPART_FORM_DATA));
         assertEquals(OK_200, response.getStatus());

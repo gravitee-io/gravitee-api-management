@@ -41,6 +41,7 @@ import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
 import org.eclipse.jetty.http.HttpHeader;
 import org.junit.Before;
@@ -56,11 +57,13 @@ import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.PortalPermission;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.Rating;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 
 /**
@@ -133,7 +136,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         forbiddenApi.setVisibility(Visibility.PRIVATE);
         doReturn(forbiddenApi).when(apiService).findById(FORBIDDEN_API);
 
-        doReturn(new Api()).when(apiMapper).convert(any());
+        Api api = new Api();
+        api.setId(API);
+        doReturn(api).when(apiMapper).convert(any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new Plan()).when(planMapper).convert(any(), eq(USER_NAME));
         doReturn(new Rating()).when(ratingMapper).convert(any());
@@ -153,7 +158,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
         Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(ac.capture());
         
-        String expectedBasePath = target(API).getUri().toString();
+        String expectedBasePath = target(API).getUriBuilder().build().toString();
         List<String> bastPathList = ac.getAllValues();
         assertTrue(bastPathList.contains(expectedBasePath));
         
