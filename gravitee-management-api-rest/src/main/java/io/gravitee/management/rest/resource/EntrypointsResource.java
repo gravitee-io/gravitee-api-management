@@ -57,7 +57,7 @@ public class EntrypointsResource extends AbstractResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.READ)
     })
     public List<EntrypointEntity> list()  {
         return entrypointService.findAll()
