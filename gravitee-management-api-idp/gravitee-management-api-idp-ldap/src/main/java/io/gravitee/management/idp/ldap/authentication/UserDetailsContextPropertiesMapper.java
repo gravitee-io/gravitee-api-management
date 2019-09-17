@@ -17,7 +17,6 @@ package io.gravitee.management.idp.ldap.authentication;
 
 import io.gravitee.management.idp.ldap.LdapIdentityProvider;
 import io.gravitee.management.idp.ldap.utils.LdapUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -70,7 +69,7 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 		try {
 			for (GrantedAuthority granted : authorities) {
 				String mappedAuthority = environment.getProperty("authentication.group.role.mapper."+granted.getAuthority());
-				if (!StringUtils.isEmpty(mappedAuthority)) {
+				if (mappedAuthority != null && !mappedAuthority.isEmpty()) {
 					mappedAuthorities.add(new SimpleGrantedAuthority(mappedAuthority));
 				}
 			}
