@@ -19,13 +19,17 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -38,7 +42,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Page;
 
@@ -94,9 +97,10 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
         
         mockApi = new ApiEntity();
         mockApi.setId(API);
-        mockApi.setVisibility(Visibility.PUBLIC);
         doReturn(mockApi).when(apiService).findById(API);
-
+        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
+        doReturn(mockApis).when(apiService).findPublishedByUser(isNull());
+        
         mockPage = new PageEntity();
         mockPage.setPublished(true);
         mockPage.setExcludedGroups(new ArrayList<String>());

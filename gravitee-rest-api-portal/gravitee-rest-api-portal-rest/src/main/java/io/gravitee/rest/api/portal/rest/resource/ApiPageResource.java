@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -25,14 +26,11 @@ import javax.ws.rs.core.Response;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 
 /**
@@ -53,13 +51,14 @@ public class ApiPageResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPageByApiIdAndPageId(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
-        final ApiEntity apiEntity = apiService.findById(apiId);
-
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-                || hasPermission(RolePermission.API_DOCUMENTATION, apiId, RolePermissionAction.READ)) {
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
             
+            final ApiEntity apiEntity = apiService.findById(apiId);
+
             PageEntity pageEntity = pageService.findById(pageId);
             pageService.transformSwagger(pageEntity, apiId);
+            
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
             }
@@ -69,7 +68,7 @@ public class ApiPageResource extends AbstractResource {
                 throw new UnauthorizedAccessException();
             }
         }
-        throw new ForbiddenAccessException();
+        throw new ApiNotFoundException(apiId);
     }
 
     private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {

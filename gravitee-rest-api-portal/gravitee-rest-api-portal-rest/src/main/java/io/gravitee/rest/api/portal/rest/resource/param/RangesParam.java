@@ -16,9 +16,8 @@
 package io.gravitee.rest.api.portal.rest.resource.param;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-
-import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,28 +25,25 @@ import javax.ws.rs.WebApplicationException;
  */
 public class RangesParam extends AbstractParam<List<Range>> {
 
-    public RangesParam(String param) throws WebApplicationException {
+    public RangesParam(String param) {
         super(param);
     }
 
     @Override
-    protected List<Range> parse(String param) throws Throwable {
-        try {
-            if (param != null) {
-                String [] inputRanges = param.split(";");
-                List<Range> ranges = new ArrayList<>(inputRanges.length);
-                for(String inputRange : inputRanges) {
-                    String [] inputRangeValues = inputRange.trim().split(":");
-                    ranges.add(new Range(
-                            Double.parseDouble(inputRangeValues[0]),
-                            Double.parseDouble(inputRangeValues[1])));
-                }
-
-                return ranges;
+    protected List<Range> parse(String param) {
+        if (param != null) {
+            String [] inputRanges = param.split(";");
+            List<Range> ranges = new ArrayList<>(inputRanges.length);
+            for(String inputRange : inputRanges) {
+                String [] inputRangeValues = inputRange.trim().split(":");
+                ranges.add(new Range(
+                        Double.parseDouble(inputRangeValues[0]),
+                        Double.parseDouble(inputRangeValues[1])));
             }
-        } catch (IllegalArgumentException iae) {
+
+            return ranges;
         }
 
-        return null;
+        return Collections.emptyList();
     }
 }

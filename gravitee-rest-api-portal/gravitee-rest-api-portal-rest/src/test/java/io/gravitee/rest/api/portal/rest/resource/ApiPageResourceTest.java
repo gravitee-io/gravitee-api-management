@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
@@ -28,8 +27,11 @@ import static org.mockito.Mockito.doThrow;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.Response;
@@ -38,7 +40,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.Page;
@@ -51,65 +52,55 @@ import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 public class ApiPageResourceTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
-    private static final String FORBIDDEN_API = "my-forbidden-api";
     private static final String PAGE = "my-page";
-    private static final String ANOTHER_PAGE = "another-page";
     private static final String UNKNOWN_PAGE = "unknown-page";
+    private static final String ANOTHER_PAGE = "another-page";
 
 
     protected String contextPath() {
         return "apis/";
     }
 
-    private ApiEntity mockApi;
-    private ApiEntity forbiddenApi;
-    private PageEntity mockAnotherPage;
-
     @Before
     public void init() throws IOException {
         resetAllMocks();
         
-        mockApi = new ApiEntity();
+        ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        mockApi.setVisibility(Visibility.PUBLIC);
         doReturn(mockApi).when(apiService).findById(API);
+
+        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
+        doReturn(mockApis).when(apiService).findPublishedByUser(any());
 
         PageEntity page1 = new PageEntity();
         page1.setPublished(true);
         page1.setExcludedGroups(new ArrayList<String>());
         doReturn(page1).when(pageService).findById(PAGE);
-        
-        mockAnotherPage = new PageEntity();
-        mockAnotherPage.setPublished(true);
-        mockAnotherPage.setExcludedGroups(new ArrayList<String>());
-        Map<String, String> metadataMap = new HashMap<>();
-        metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
-        mockAnotherPage.setMetadata(metadataMap);
-        doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE);
-        
-        doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE);
-
-        forbiddenApi = new ApiEntity();
-        forbiddenApi.setVisibility(Visibility.PRIVATE);
-        doReturn(forbiddenApi).when(apiService).findById(FORBIDDEN_API);
-        
     }
-
     
     @Test
-    public void shouldGetForbiddenAccess() {
-        final Response response = target(FORBIDDEN_API).path("pages").path(PAGE).request().get();
-        assertEquals(FORBIDDEN_403, response.getStatus());
+    public void shouldNotFoundApiWhileGettingApiPage() {
+        //init
+        ApiEntity userApi = new ApiEntity();
+        userApi.setId("1");
+        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
+        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        
+        //test
+        final Response response = target(API).path("pages").path(PAGE).request().get();
+        assertEquals(NOT_FOUND_404, response.getStatus());
         
         final Error error = response.readEntity(Error.class);
         assertNotNull(error);
-        assertEquals("403", error.getCode());
-        assertEquals("io.gravitee.rest.api.service.exceptions.ForbiddenAccessException", error.getTitle());
-        assertEquals("You do not have sufficient rights to access this resource", error.getDetail());
+        assertEquals("404", error.getCode());
+        assertEquals("io.gravitee.rest.api.service.exceptions.ApiNotFoundException", error.getTitle());
+        assertEquals("Api ["+API+"] can not be found.", error.getDetail());
     }
     
     @Test
-    public void shouldNotGetPage() {
+    public void shouldNotFoundPageWhileGettingApiPage() {
+        doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE);
+
         final Response response = target(API).path("pages").path(UNKNOWN_PAGE).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
         
@@ -161,6 +152,14 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     
     @Test
     public void shouldNotHaveMetadataCleared() {
+        PageEntity mockAnotherPage = new PageEntity();
+        mockAnotherPage.setPublished(true);
+        mockAnotherPage.setExcludedGroups(new ArrayList<String>());
+        Map<String, String> metadataMap = new HashMap<>();
+        metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
+        mockAnotherPage.setMetadata(metadataMap);
+        doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE);
+        
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
         doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        

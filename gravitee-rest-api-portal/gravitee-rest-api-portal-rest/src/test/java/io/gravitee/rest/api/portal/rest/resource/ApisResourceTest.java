@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import java.util.Arrays;
@@ -96,8 +97,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         publishedApi5.setId("6");
         
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi5, publishedApi2, publishedApi1, publishedApi3, publishedApi4));
-        doReturn(mockApis).when(apiService).findByUser(any(), any());
-        doReturn(mockApis).when(apiService).search(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(any(), any());
         
         doReturn(false).when(ratingService).isEnabled();
 
@@ -122,7 +122,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
         ArgumentCaptor<ApiQuery> queryCaptor = ArgumentCaptor.forClass(ApiQuery.class);
-        Mockito.verify(apiService).findByUser(any(), queryCaptor.capture());
+        Mockito.verify(apiService).findPublishedByUser(eq(USER_NAME), queryCaptor.capture());
         final ApiQuery query = queryCaptor.getValue();
         assertEquals("context-path", query.getContextPath());
         assertEquals("label", query.getLabel());
@@ -351,7 +351,7 @@ public class ApisResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
 
-        doReturn(new HashSet<>()).when(apiService).findByUser(any(), any());
+        doReturn(new HashSet<>()).when(apiService).findPublishedByUser(any(), any());
         
         //Test with default limit
         final Response response = target().request().get();

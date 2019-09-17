@@ -69,15 +69,19 @@ abstract class AbstractAuthenticationResource {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    public static final String CLIENT_ID_KEY = "client_id", REDIRECT_URI_KEY = "redirect_uri",
-            CLIENT_SECRET = "client_secret", CODE_KEY = "code", GRANT_TYPE_KEY = "grant_type",
-            AUTH_CODE = "authorization_code", TOKEN = "token";
+    public static final String CLIENT_ID_KEY = "client_id";
+    public static final String REDIRECT_URI_KEY = "redirect_uri";
+    public static final String CLIENT_SECRET = "client_secret";
+    public static final String CODE_KEY = "code";
+    public static final String GRANT_TYPE_KEY = "grant_type";
+    public static final String AUTH_CODE = "authorization_code";
+    public static final String TOKEN = "token";
 
     protected Map<String, Object> getResponseEntity(final Response response) throws IOException {
         return getEntity((getResponseEntityAsString(response)));
     }
 
-    protected String getResponseEntityAsString(final Response response) throws IOException {
+    protected String getResponseEntityAsString(final Response response) {
         return response.readEntity(String.class);
     }
 

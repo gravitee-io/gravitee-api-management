@@ -115,9 +115,10 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     // Dirty hack: only used to force class loading
     static {
         try {
-            LOGGER.trace("Loading class to initialize properly JsonPath Cache provider: " +
+            LOGGER.trace("Loading class to initialize properly JsonPath Cache provider: {}",
                     Class.forName(JsonPathFunction.class.getName()));
         } catch (ClassNotFoundException ignored) {
+            LOGGER.trace("Loading class to initialize properly JsonPath Cache provider : fail");
         }
     }
 
@@ -142,7 +143,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     public Response tokenExchange(
             @PathParam(value = "identity") final String identity,
             @QueryParam(value = "token") final String token,
-            @Context final HttpServletResponse servletResponse) throws IOException {
+            @Context final HttpServletResponse servletResponse) {
         SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity);
 
         if (identityProvider != null) {
@@ -234,7 +235,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
      */
     private Response authenticateUser(final SocialIdentityProviderEntity socialProvider,
                                       final HttpServletResponse servletResponse,
-                                      final String accessToken) throws IOException {
+                                      final String accessToken) {
         // Step 2. Retrieve profile information about the authenticated end-user.
         Response response = client
                 .target(socialProvider.getUserInfoEndpoint())
@@ -265,60 +266,11 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
         String userId = null;
         try {
-            UserEntity registeredUser = userService.findBySource(socialProvider.getId(), attrs.get(SocialIdentityProviderEntity.UserProfile.ID), false);
-            userId = registeredUser.getId();
-
-            // User refresh
-            UpdateUserEntity user = new UpdateUserEntity();
-
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
-                user.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
-            }
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
-                user.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
-            }
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
-                user.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
-            }
-            user.setEmail(email);
-
-            UserEntity updatedUser = userService.update(userId, user);
-
+            userId = refreshExistingUser(socialProvider, attrs, email);
         } catch (UserNotFoundException unfe) {
-            final NewExternalUserEntity newUser = new NewExternalUserEntity();
-            newUser.setEmail(email);
-            newUser.setSource(socialProvider.getId());
-
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.ID) != null) {
-                newUser.setSourceId(attrs.get(SocialIdentityProviderEntity.UserProfile.ID));
-            }
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
-                newUser.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
-            }
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
-                newUser.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
-            }
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
-                newUser.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
-            }
-
-            if (socialProvider.getGroupMappings() != null && !socialProvider.getGroupMappings().isEmpty()) {
-                // Can fail if a group in config does not exist in gravitee --> HTTP 500
-                Set<GroupEntity> groupsToAdd = getGroupsToAddUser(userId, socialProvider.getGroupMappings(), userInfo);
-
-                UserEntity createdUser = userService.create(newUser, true);
-                userId = createdUser.getId();
-                addUserToApiAndAppGroupsWithDefaultRole(createdUser.getId(), groupsToAdd);
-            } else {
-                UserEntity createdUser = userService.create(newUser, true);
-                userId = createdUser.getId();
-            }
-
-            if (socialProvider.getRoleMappings() != null && !socialProvider.getRoleMappings().isEmpty()) {
-                Set<RoleEntity> rolesToAdd = getRolesToAddUser(userId, socialProvider.getRoleMappings(), userInfo);
-                addRolesToUser(userId, rolesToAdd);
-            }
+            userId = createNewExternalUser(socialProvider, userInfo, attrs, email, userId);
         }
+        
         final Set<RoleEntity> roles =
                 membershipService.getRoles(MembershipReferenceType.PORTAL, singleton("DEFAULT"), userId, RoleScope.PORTAL);
         roles.addAll(membershipService.getRoles(MembershipReferenceType.MANAGEMENT, singleton("DEFAULT"), userId, RoleScope.MANAGEMENT));
@@ -337,6 +289,68 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         return connectUser(userId, servletResponse);
     }
 
+    protected String createNewExternalUser(final SocialIdentityProviderEntity socialProvider, final String userInfo,
+            HashMap<String, String> attrs, String email, String userId) {
+        final NewExternalUserEntity newUser = new NewExternalUserEntity();
+        newUser.setEmail(email);
+        newUser.setSource(socialProvider.getId());
+
+        if (attrs.get(SocialIdentityProviderEntity.UserProfile.ID) != null) {
+            newUser.setSourceId(attrs.get(SocialIdentityProviderEntity.UserProfile.ID));
+        }
+        if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
+            newUser.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
+        }
+        if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
+            newUser.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
+        }
+        if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
+            newUser.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
+        }
+
+        if (socialProvider.getGroupMappings() != null && !socialProvider.getGroupMappings().isEmpty()) {
+            // Can fail if a group in config does not exist in gravitee --> HTTP 500
+            Set<GroupEntity> groupsToAdd = getGroupsToAddUser(userId, socialProvider.getGroupMappings(), userInfo);
+
+            UserEntity createdUser = userService.create(newUser, true);
+            userId = createdUser.getId();
+            addUserToApiAndAppGroupsWithDefaultRole(createdUser.getId(), groupsToAdd);
+        } else {
+            UserEntity createdUser = userService.create(newUser, true);
+            userId = createdUser.getId();
+        }
+
+        if (socialProvider.getRoleMappings() != null && !socialProvider.getRoleMappings().isEmpty()) {
+            Set<RoleEntity> rolesToAdd = getRolesToAddUser(userId, socialProvider.getRoleMappings(), userInfo);
+            addRolesToUser(userId, rolesToAdd);
+        }
+        return userId;
+    }
+
+    protected String refreshExistingUser(final SocialIdentityProviderEntity socialProvider,
+            HashMap<String, String> attrs, String email) {
+        String userId;
+        UserEntity registeredUser = userService.findBySource(socialProvider.getId(), attrs.get(SocialIdentityProviderEntity.UserProfile.ID), false);
+        userId = registeredUser.getId();
+
+        // User refresh
+        UpdateUserEntity user = new UpdateUserEntity();
+
+        if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
+            user.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
+        }
+        if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
+            user.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
+        }
+        if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
+            user.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
+        }
+        user.setEmail(email);
+
+        userService.update(userId, user);
+        return userId;
+    }
+
     private HashMap<String, String> getUserProfileAttrs(Map<String, String> userProfileMapping, String userInfo) {
         TemplateEngine templateEngine = TemplateEngine.templateEngine();
         templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
@@ -351,7 +365,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             if (mapping != null) {
                 try {
                     if (mapping.contains("{#")) {
-                        map.put(field, templateEngine.convert(mapping));
+                        map.put(field, templateEngine.getValue(mapping, String.class));
                     } else {
                         map.put(field, userInfoPath.read(mapping));
                     }
@@ -442,28 +456,25 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
             // Get roles
             if (match) {
-                if (mapping.getPortal() != null) {
-                    try {
-                        RoleEntity roleEntity = roleService.findById(RoleScope.PORTAL, mapping.getPortal());
-                        rolesToAdd.add(roleEntity);
-                    } catch (RoleNotFoundException rnfe) {
-                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getPortal());
-                    }
-                }
-
-                if (mapping.getManagement() != null) {
-                    try {
-                        RoleEntity roleEntity = roleService.findById(RoleScope.MANAGEMENT, mapping.getManagement());
-                        rolesToAdd.add(roleEntity);
-                    } catch (RoleNotFoundException rnfe) {
-                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getManagement());
-                    }
-                }
+                addRoleScope(rolesToAdd, mapping.getPortal(), RoleScope.PORTAL);
+                addRoleScope(rolesToAdd, mapping.getManagement(), RoleScope.MANAGEMENT);
             }
         }
         return rolesToAdd;
     }
 
+    protected void addRoleScope(Set<RoleEntity> rolesToAdd, String mappingRole, RoleScope roleScope) {
+        if (mappingRole != null) {
+            try {
+                RoleEntity roleEntity = roleService.findById(roleScope, mappingRole);
+                rolesToAdd.add(roleEntity);
+            } catch (RoleNotFoundException rnfe) {
+                LOGGER.error("Unable to create user, missing role in repository : {}", mappingRole);
+            }
+        }
+    }
+
+    
     private void trace(String userId, boolean match, String condition) {
         if (LOGGER.isDebugEnabled()) {
             if (match) {

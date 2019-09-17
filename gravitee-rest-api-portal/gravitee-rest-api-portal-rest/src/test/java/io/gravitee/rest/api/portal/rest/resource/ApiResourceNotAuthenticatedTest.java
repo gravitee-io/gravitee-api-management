@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -41,7 +43,6 @@ import org.junit.Test;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
-import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.Page;
@@ -95,9 +96,12 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         
         mockApi = new ApiEntity();
         mockApi.setId(API);
-        mockApi.setVisibility(Visibility.PUBLIC);
         doReturn(mockApi).when(apiService).findById(API);
 
+        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
+        doReturn(mockApis).when(apiService).findPublishedByUser(isNull());
+
+        
         doReturn(Arrays.asList(new PageEntity())).when(pageService).search(any());
         
         PlanEntity plan1 = new PlanEntity();

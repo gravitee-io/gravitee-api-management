@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.param;
 
-import javax.ws.rs.WebApplicationException;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -27,7 +25,7 @@ public class OrderParam extends AbstractParam<OrderParam.Order> {
 
         private String field;
 
-        private boolean order;
+        private boolean sorted;
 
         private String type;
 
@@ -39,12 +37,12 @@ public class OrderParam extends AbstractParam<OrderParam.Order> {
             this.field = field;
         }
 
-        public boolean isOrder() {
-            return order;
+        public boolean isSorted() {
+            return sorted;
         }
 
-        public void setOrder(boolean order) {
-            this.order = order;
+        public void setSorted(boolean sorted) {
+            this.sorted = sorted;
         }
 
         public String getType() {
@@ -56,28 +54,25 @@ public class OrderParam extends AbstractParam<OrderParam.Order> {
         }
     }
 
-    public OrderParam(String param) throws WebApplicationException {
+    public OrderParam(String param) {
         super(param);
     }
 
     @Override
-    protected Order parse(String param) throws Throwable {
-        try {
-            if (param != null) {
-                String [] parts = param.split(":");
-                Order order = new Order();
-                order.setOrder(! parts[0].startsWith("-"));
+    protected Order parse(String param) {
+        if (param != null) {
+            String [] parts = param.split(":");
+            Order order = new Order();
+            order.setSorted(! parts[0].startsWith("-"));
 
-                if (parts.length == 2) {
-                    order.setType(order.isOrder() ? parts[0] : parts[0].substring(1));
-                    order.setField(parts[1]);
-                } else {
-                    order.setField(order.isOrder() ? parts[0] : parts[0].substring(1));
-                }
-
-                return order;
+            if (parts.length == 2) {
+                order.setType(order.isSorted() ? parts[0] : parts[0].substring(1));
+                order.setField(parts[1]);
+            } else {
+                order.setField(order.isSorted() ? parts[0] : parts[0].substring(1));
             }
-        } catch (IllegalArgumentException iae) {
+
+            return order;
         }
 
         return null;

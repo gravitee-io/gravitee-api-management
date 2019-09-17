@@ -99,42 +99,37 @@ public class PermissionsFilter implements ContainerRequestFilter {
             if (principal != null) {
                 String username = principal.getName();
                 for (Permission permission : permissions.value()) {
-                    RoleEntity role;
-                    Map<String, char[]> memberPermissions;
-                    switch (permission.value().getScope()) {
-                        case MANAGEMENT:
-                            role = membershipService.getRole(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name(), username, RoleScope.MANAGEMENT);
-                            if (roleService.hasPermission(role.getPermissions(), permission.value().getPermission(), permission.acls())) {
-                                return;
-                            }
-                            break;
-                        case PORTAL:
-                            role = membershipService.getRole(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name(), username, RoleScope.PORTAL);
-                            if (roleService.hasPermission(role.getPermissions(), permission.value().getPermission(), permission.acls())) {
-                                return;
-                            }
-                            break;
-                        case APPLICATION:
-                            ApplicationEntity application = getApplication(requestContext);
-                            memberPermissions = membershipService.getMemberPermissions(application, username);
-                            if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
-                                return;
-                            }
-                            break;
-                        case API:
-                            ApiEntity api = getApi(requestContext);
-                            memberPermissions = membershipService.getMemberPermissions(api, username);
-                            if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
-                                return;
-                            }
-                            break;
-                        default:
-                            sendSecurityError();
+                    if(hasPermission(requestContext, username, permission)) {
+                        return;
                     }
                 }
             }
             sendSecurityError();
         }
+    }
+
+    protected boolean hasPermission(ContainerRequestContext requestContext, String username, Permission permission) {
+        RoleEntity role;
+        Map<String, char[]> memberPermissions;
+        switch (permission.value().getScope()) {
+            case MANAGEMENT:
+                role = membershipService.getRole(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name(), username, RoleScope.MANAGEMENT);
+                return roleService.hasPermission(role.getPermissions(), permission.value().getPermission(), permission.acls());
+            case PORTAL:
+                role = membershipService.getRole(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name(), username, RoleScope.PORTAL);
+                return roleService.hasPermission(role.getPermissions(), permission.value().getPermission(), permission.acls());
+            case APPLICATION:
+                ApplicationEntity application = getApplication(requestContext);
+                memberPermissions = membershipService.getMemberPermissions(application, username);
+                return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
+            case API:
+                ApiEntity api = getApi(requestContext);
+                memberPermissions = membershipService.getMemberPermissions(api, username);
+                return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
+            default:
+                sendSecurityError();
+        }
+        return false;
     }
 
     private ApiEntity getApi(ContainerRequestContext requestContext) {

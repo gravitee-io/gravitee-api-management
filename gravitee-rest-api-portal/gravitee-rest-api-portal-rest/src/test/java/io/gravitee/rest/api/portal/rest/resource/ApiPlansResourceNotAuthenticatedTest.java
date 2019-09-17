@@ -19,6 +19,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -41,7 +43,6 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PlanValidationType;
-import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Data;
 import io.gravitee.rest.api.portal.rest.model.DatasResponse;
@@ -85,17 +86,16 @@ public class ApiPlansResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
 
-    private ApiEntity mockApi;
-    
     @Before
     public void init() {
         resetAllMocks();
         
-        mockApi = new ApiEntity();
+        ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
-        mockApi.setVisibility(Visibility.PUBLIC);
         doReturn(mockApi).when(apiService).findById(API);
-        
+        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
+        doReturn(mockApis).when(apiService).findPublishedByUser(isNull());
+
         PlanEntity plan1 = new PlanEntity();
         plan1.setId("A");
         plan1.setSecurity(PlanSecurityType.API_KEY);

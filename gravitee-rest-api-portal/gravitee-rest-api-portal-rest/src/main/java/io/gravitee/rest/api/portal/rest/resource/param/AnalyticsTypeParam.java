@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.param;
 
-import javax.ws.rs.WebApplicationException;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -29,17 +27,14 @@ public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.Analyti
         COUNT
     }
 
-    public AnalyticsTypeParam(String param) throws WebApplicationException {
+    public AnalyticsTypeParam(String param) {
         super(param);
     }
 
     @Override
-    protected AnalyticsType parse(String param) throws Throwable {
-        try {
-            if (param != null) {
-                return AnalyticsType.valueOf(param.toUpperCase());
-            }
-        } catch (IllegalArgumentException iae) {
+    protected AnalyticsType parse(String param) {
+        if (param != null) {
+            return AnalyticsType.valueOf(param.toUpperCase());
         }
 
         return null;

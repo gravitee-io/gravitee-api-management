@@ -275,13 +275,13 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         Map<String, Object> mapJwt = jwtVerifier.verify(jwt);
 
-        assertEquals(mapJwt.get("sub"),"janedoe@example.com");
+        assertEquals("janedoe@example.com", mapJwt.get("sub"));
 
-        assertEquals(mapJwt.get("firstname"),"Jane");
-        assertEquals(mapJwt.get("iss"),"gravitee-management-auth");
-        assertEquals(mapJwt.get("sub"),"janedoe@example.com");
-        assertEquals(mapJwt.get("email"),"janedoe@example.com");
-        assertEquals(mapJwt.get("lastname"),"Doe");
+        assertEquals("Jane", mapJwt.get("firstname"));
+        assertEquals("gravitee-management-auth", mapJwt.get("iss"));
+        assertEquals("janedoe@example.com", mapJwt.get("sub"));
+        assertEquals("janedoe@example.com", mapJwt.get("email"));
+        assertEquals("Doe", mapJwt.get("lastname"));
     }
 
     private void verifyJwtTokenIsNotPresent(Response response) throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerifyException {

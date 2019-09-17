@@ -15,10 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.rest.api.model.Visibility.PUBLIC;
-import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
-import static java.util.Collections.singletonList;
-
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -81,22 +77,7 @@ public class ApisResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
-        final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setLifecycleStates(singletonList(PUBLISHED));
-        apiQuery.setContextPath(apisParam.getContextPath());
-        apiQuery.setLabel(apisParam.getLabel());
-        apiQuery.setName(apisParam.getName());
-        apiQuery.setTag(apisParam.getTag());
-        apiQuery.setVersion(apisParam.getVersion());
-        apiQuery.setView(apisParam.getView());
-        
-        Collection<ApiEntity> apis;
-        if (isAuthenticated()) {
-            apis = apiService.findByUser(getAuthenticatedUser(), apiQuery);
-        } else {
-            apiQuery.setVisibility(PUBLIC);
-            apis = apiService.search(apiQuery);
-        }
+        Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), createQueryFromParam(apisParam));
 
         FilteredApi filteredApis = filterByCategory(apis, apisParam.getCategory());
         
@@ -108,6 +89,19 @@ public class ApisResource extends AbstractResource {
         return createListResponse(apisList, paginationParam, filteredApis.getMetadata());
     }
 
+    private ApiQuery createQueryFromParam(ApisParam apisParam) {
+        final ApiQuery apiQuery = new ApiQuery();
+        if(apisParam != null) {
+            apiQuery.setContextPath(apisParam.getContextPath());
+            apiQuery.setLabel(apisParam.getLabel());
+            apiQuery.setName(apisParam.getName());
+            apiQuery.setTag(apisParam.getTag());
+            apiQuery.setVersion(apisParam.getVersion());
+            apiQuery.setView(apisParam.getView());
+        }
+        return apiQuery;
+    }
+    
     private FilteredApi filterByCategory(Collection<ApiEntity> apis, CategoryApiQuery category) {
         if(category != null) {
             switch (category) {

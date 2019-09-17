@@ -38,15 +38,6 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
                 .build();
     }
 
-    private String prepareMessage(ConstraintViolationException exception) {
-        StringBuilder message = new StringBuilder();
-
-        for (ConstraintViolation<?> cv : exception.getConstraintViolations()) {
-            message.append(cv.getMessage());
-        }
-        return message.toString();
-    }
-
     static class ConstraintValidationError {
         private final String message;
 

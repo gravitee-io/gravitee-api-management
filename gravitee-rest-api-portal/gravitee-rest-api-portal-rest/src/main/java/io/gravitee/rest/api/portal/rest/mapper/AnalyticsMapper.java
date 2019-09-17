@@ -64,7 +64,7 @@ public class AnalyticsMapper {
                     .collect(Collectors.toList())
                     ;
         }
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
     public CountAnalytics convert(HitsAnalytics analytics) {

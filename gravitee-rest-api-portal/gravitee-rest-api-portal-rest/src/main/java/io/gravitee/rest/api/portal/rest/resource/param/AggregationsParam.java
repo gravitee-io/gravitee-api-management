@@ -16,9 +16,8 @@
 package io.gravitee.rest.api.portal.rest.resource.param;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-
-import javax.ws.rs.WebApplicationException;
 
 import io.gravitee.rest.api.model.analytics.query.AggregationType;
 
@@ -28,28 +27,25 @@ import io.gravitee.rest.api.model.analytics.query.AggregationType;
  */
 public class AggregationsParam extends AbstractParam<List<Aggregation>> {
 
-    public AggregationsParam(String param) throws WebApplicationException {
+    public AggregationsParam(String param) {
         super(param);
     }
 
     @Override
-    protected List<Aggregation> parse(String param) throws Throwable {
-        try {
-            if (param != null) {
-                String [] inputAggs = param.split(";");
-                List<Aggregation> aggregations = new ArrayList<>(inputAggs.length);
-                for(String inputAgg : inputAggs) {
-                    String [] inputRangeValues = inputAgg.trim().split(":");
-                    aggregations.add(new Aggregation(
-                            AggregationType.valueOf(inputRangeValues[0].toUpperCase()),
-                            inputRangeValues[1]));
-                }
-
-                return aggregations;
+    protected List<Aggregation> parse(String param) {
+        if (param != null) {
+            String [] inputAggs = param.split(";");
+            List<Aggregation> aggregations = new ArrayList<>(inputAggs.length);
+            for(String inputAgg : inputAggs) {
+                String [] inputRangeValues = inputAgg.trim().split(":");
+                aggregations.add(new Aggregation(
+                        AggregationType.valueOf(inputRangeValues[0].toUpperCase()),
+                        inputRangeValues[1]));
             }
-        } catch (IllegalArgumentException iae) {
+
+            return aggregations;
         }
 
-        return null;
+        return Collections.emptyList();
     }
 }

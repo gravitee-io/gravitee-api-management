@@ -205,51 +205,39 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
         String uriPrefix = "/portal/**";
         return security.authorizeRequests()
-//              .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
-//              .antMatchers(HttpMethod.POST, uriPrefix + "/user/login").permitAll()
-//              .antMatchers(HttpMethod.GET, uriPrefix + "/user/**").authenticated()
-//              .antMatchers(HttpMethod.POST, uriPrefix + "/auth/**").permitAll()
+                .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
+
+                //  Auth request
+                .antMatchers(HttpMethod.POST, uriPrefix + "/auth/login").permitAll()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**/_echange").authenticated()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**").permitAll()
 
                 // API requests
+                .antMatchers(HttpMethod.POST, uriPrefix + "/apis/ratings").authenticated()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").permitAll()
 
-                // Application requests
-//              .antMatchers(HttpMethod.POST, uriPrefix + "/applications").authenticated()
-//              .antMatchers(HttpMethod.POST, uriPrefix + "/applications/**").authenticated()
-//              .antMatchers(HttpMethod.PUT, uriPrefix + "/applications/**").authenticated()
-//              .antMatchers(HttpMethod.DELETE, uriPrefix + "/applications/**").authenticated()
-
-                // Subscriptions
-//              .antMatchers(HttpMethod.GET, uriPrefix + "/subscriptions/**").authenticated()
-
-                // User management
-                .antMatchers(HttpMethod.GET, uriPrefix + "/users").authenticated()
-                // For GET, PUT, DELETE
-                .antMatchers(uriPrefix + "/user/**").authenticated()
+                // Pages
+                .antMatchers(HttpMethod.GET, uriPrefix + "/pages/**").permitAll()
 
                 // OpenApi
                 .antMatchers(HttpMethod.GET, "/openapi").permitAll()
 
-                // Configuration Groups
-//              .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/groups/**").permitAll()
+                // Portal 
+                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/**").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/info/**").permitAll()
 
-                // Configuration Views
-//              .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/views/**").permitAll()
+                // Views
+                .antMatchers(HttpMethod.GET, uriPrefix + "/views/**").permitAll()
 
-                // Configuration Tags
-//              .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/tags/**").permitAll()
-
-                // Configuration Tenants
-//              .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/tenants/**").permitAll()
-
-                // Configuration role scopes
-//              .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/rolescopes/**").permitAll()
-
-                // Configuration
-//              .antMatchers(uriPrefix + "/configuration/**").authenticated()
-
-                
-                .anyRequest().permitAll().and();
+                /* Others requests
+                 * i.e. : 
+                 *   - /auth/logout
+                 *   - /applications/**
+                 *   - /subscriptions/**
+                 *   - /users
+                 *   - /user/**
+                 */
+                .anyRequest().authenticated().and();
     }
 
     private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails> authenticationDetailsSource() {

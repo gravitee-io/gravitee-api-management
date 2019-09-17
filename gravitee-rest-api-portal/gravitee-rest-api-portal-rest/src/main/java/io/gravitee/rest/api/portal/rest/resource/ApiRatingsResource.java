@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.rest.api.model.Visibility.PUBLIC;
 import static java.util.stream.Collectors.toList;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -47,7 +47,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.RatingService;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -64,8 +64,8 @@ public class ApiRatingsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiRatingsByApiId(@PathParam("apiId") String apiId, @BeanParam PaginationParam paginationParam) {
-        final ApiEntity apiEntity = apiService.findById(apiId);
-        if (PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(RolePermission.API_RATING, apiId, RolePermissionAction.READ)) {
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
             final Page<RatingEntity> ratingEntityPage = ratingService.findByApi(apiId, 
                     new PageableBuilder()
                         .pageNumber(paginationParam.getPage())
@@ -80,9 +80,7 @@ public class ApiRatingsResource extends AbstractResource {
             //No pagination, because ratingService did it already
             return createListResponse(ratings, paginationParam, false);
         }
-        
-        throw new ForbiddenAccessException();
-        
+        throw new ApiNotFoundException(apiId);
     }
 
     @POST

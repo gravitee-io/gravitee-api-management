@@ -15,14 +15,14 @@
  */
 package io.gravitee.rest.api.portal.rest.enhancer;
 
-import io.gravitee.repository.management.model.View;
-import io.gravitee.rest.api.model.ViewEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
+import java.util.Set;
+import java.util.function.Function;
 
 import org.springframework.stereotype.Component;
 
-import java.util.Set;
-import java.util.function.Function;
+import io.gravitee.repository.management.model.View;
+import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)

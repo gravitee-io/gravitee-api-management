@@ -140,7 +140,7 @@ public class AnalyticsParam {
         return (order == null) ? null : order.getValue();
     }
 
-    public void validate() throws WebApplicationException {
+    public void validate() {
         if(type == null) {
             throw new WebApplicationException(Response
                     .status(Response.Status.BAD_REQUEST)
@@ -190,14 +190,11 @@ public class AnalyticsParam {
                     .build());
         }
 
-        if (type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY) {
-            // we need a field and, optionally, a list of ranges
-            if (field == null || field.trim().isEmpty()) {
+        if (type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY && (field == null || field.trim().isEmpty())) { // we need a field and, optionally, a list of ranges
                 throw new WebApplicationException(Response
                         .status(Response.Status.BAD_REQUEST)
                         .entity("'field' query parameter is required for 'group_by' request")
                         .build());
-            }
-        }
+       }
     }
 }

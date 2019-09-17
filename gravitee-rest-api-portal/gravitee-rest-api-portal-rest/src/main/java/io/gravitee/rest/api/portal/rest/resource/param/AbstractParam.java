@@ -25,11 +25,11 @@ public abstract class AbstractParam<V> {
     private final V value;
     private final String originalParam;
 
-    public AbstractParam(String param) throws WebApplicationException {
+    public AbstractParam(String param) {
         this.originalParam = param;
         try {
             this.value = parse(param);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw new WebApplicationException(onError(param, e));
         }
     }
@@ -47,7 +47,7 @@ public abstract class AbstractParam<V> {
         return value.toString();
     }
 
-    protected abstract V parse(String param) throws Throwable;
+    protected abstract V parse(String param);
 
     protected Response onError(String param, Throwable e) {
         return Response

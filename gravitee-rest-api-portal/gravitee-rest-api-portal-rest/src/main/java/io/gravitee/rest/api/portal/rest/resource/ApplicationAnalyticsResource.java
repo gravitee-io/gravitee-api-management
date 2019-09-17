@@ -145,7 +145,7 @@ public class ApplicationAnalyticsResource extends AbstractResource {
             GroupByQuery.Order order = new GroupByQuery.Order();
             order.setField(analyticsParam.getOrder().getField());
             order.setType(analyticsParam.getOrder().getType());
-            order.setOrder(analyticsParam.getOrder().isOrder());
+            order.setOrder(analyticsParam.getOrder().isSorted());
             query.setOrder(order);
         }
 

@@ -700,6 +700,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    @Override
+    public Set<ApiEntity> findPublishedByUser(String userId, ApiQuery apiQuery) {
+        if(apiQuery == null) {
+            apiQuery = new ApiQuery();
+        }
+        apiQuery.setLifecycleStates(Arrays.asList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
+        
+        return findByUser(userId, apiQuery);
+        
+    }
+    
+    @Override
+    public Set<ApiEntity> findPublishedByUser(String userId) {
+        return findPublishedByUser(userId, null);
+    }
+    
     private Stream<ApiEntity> filterApiByQuery(Stream<ApiEntity> apiEntityStream, ApiQuery query) {
         if (query == null) {
             return apiEntityStream;

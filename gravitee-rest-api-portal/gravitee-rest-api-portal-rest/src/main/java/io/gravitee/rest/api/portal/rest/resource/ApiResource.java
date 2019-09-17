@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,11 +35,8 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
-import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
@@ -49,7 +47,7 @@ import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -80,11 +78,10 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getApiByApiId(@PathParam("apiId") String apiId, @QueryParam("include") List<String> include) {
-        
-        ApiEntity apiEntity = apiService.findById(apiId);
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-                || hasPermission(RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)) {
-
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
+            
+            ApiEntity apiEntity = apiService.findById(apiId);
             Api api = apiMapper.convert(apiEntity);
             
             if(include.contains(INCLUDE_PAGES)) {
@@ -117,7 +114,7 @@ public class ApiResource extends AbstractResource {
                     .ok(api)
                     .build();
         }
-        throw new ForbiddenAccessException();
+        throw new ApiNotFoundException(apiId);
     }
 
     private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {
@@ -132,15 +129,14 @@ public class ApiResource extends AbstractResource {
     @Path("picture")
     @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
     public Response getPictureByApiId(@Context Request request, @PathParam("apiId") String apiId) {
-        ApiEntity apiEntity = apiService.findById(apiId);
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-                || hasPermission(RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)) {
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
 
             InlinePictureEntity image = apiService.getPicture(apiId);
 
             return createPictureReponse(request, image);
         }
-        throw new ForbiddenAccessException();
+        throw new ApiNotFoundException(apiId);
     }
 
     @Path("pages")

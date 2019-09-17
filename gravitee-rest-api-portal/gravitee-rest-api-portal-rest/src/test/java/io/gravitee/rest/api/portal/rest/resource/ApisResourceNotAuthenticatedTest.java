@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
@@ -39,6 +40,7 @@ import org.mockito.Mockito;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.DatasResponse;
 
@@ -100,8 +102,7 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         
         
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi, anotherPublishedApi));
-        doReturn(mockApis).when(apiService).findByUser(any(), any());
-        doReturn(mockApis).when(apiService).search(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(isNull(), any(ApiQuery.class));
         
         doReturn(false).when(ratingService).isEnabled();
         
@@ -116,7 +117,7 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        Mockito.verify(apiService).search(any());
+        Mockito.verify(apiService).findPublishedByUser(isNull(), any(ApiQuery.class));
         
         DatasResponse apiResponse = response.readEntity(DatasResponse.class);
         assertEquals(2, apiResponse.getData().size());

@@ -80,7 +80,7 @@ public class LogsParam {
         this.order = order;
     }
 
-    public void validate() throws WebApplicationException {
+    public void validate() {
         if (from == -1) {
             throw new WebApplicationException(Response
                     .status(Response.Status.BAD_REQUEST)
