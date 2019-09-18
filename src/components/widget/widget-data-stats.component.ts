@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import * as _ from 'lodash';
 const WidgetDataStatsComponent: ng.IComponentOptions = {
   template: require('./widget-data-stats.html'),
   bindings: {
@@ -25,6 +25,7 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
   controller: function($scope, $window, $filter) {
     'ngInject';
     this.$onInit = () => {
+      this.chartData = _.cloneDeep(this.parent.widget.chart.data);
       checkFallback();
       checkResolution();
       $scope.$on('onWidgetResize', () => {
@@ -32,7 +33,7 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
       });
     };
     const checkFallback = () => {
-      _.forEach(this.parent.widget.chart.data, (data) => {
+      _.forEach(this.chartData, (data) => {
         let hasFallback = false;
         let value = this.data[data.key];
         if ($filter('number')(value, 0) === '0' && data.fallback && data.fallback.length) {
