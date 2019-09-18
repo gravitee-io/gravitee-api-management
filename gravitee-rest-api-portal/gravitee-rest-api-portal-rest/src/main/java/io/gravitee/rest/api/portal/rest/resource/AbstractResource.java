@@ -15,17 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.rest.api.model.Visibility.PUBLIC;
-import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
-import static java.util.Collections.singletonList;
-
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -57,17 +52,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.portal.rest.model.Data;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
-import io.gravitee.rest.api.portal.rest.resource.param.ApisParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -142,7 +134,7 @@ public abstract class AbstractResource {
         }
 
         // Handle case for -gzip appended automatically (and sadly) by Apache
-        ifMatch = ifMatch.replaceAll("-gzip", "");
+        ifMatch = ifMatch.replace("-gzip", "");
 
         try {
             Set<MatchingEntityTag> matchingTags = HttpHeaderReader.readMatchingEntityTag(ifMatch);
@@ -280,7 +272,7 @@ public abstract class AbstractResource {
         return list;
     }
     
-    protected DatasResponse createDatasResponse(List<? extends Data> dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata, boolean withPagination) {
+    protected DataResponse createDataResponse(List<? extends Data> dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata, boolean withPagination) {
         int totalItems = dataList.size();
         
         List<Data> paginatedList;
@@ -290,7 +282,7 @@ public abstract class AbstractResource {
             paginatedList = (List<Data>)dataList;
         }
         
-        return new DatasResponse()
+        return new DataResponse()
                 .data(paginatedList)
                 .metadata(this.computeMetadata(paginatedList, metadata))
                 .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems))
@@ -321,7 +313,7 @@ public abstract class AbstractResource {
     
     protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata, boolean withPagination) {
         return Response
-                .ok(createDatasResponse(dataList, paginationParam, metadata, withPagination))
+                .ok(createDataResponse(dataList, paginationParam, metadata, withPagination))
                 .build();
     }
     

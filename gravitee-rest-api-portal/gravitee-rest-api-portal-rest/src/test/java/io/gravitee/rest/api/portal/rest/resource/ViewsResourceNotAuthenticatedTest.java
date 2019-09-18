@@ -41,7 +41,7 @@ import org.mockito.Mockito;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ViewEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -121,7 +121,7 @@ public class ViewsResourceNotAuthenticatedTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
         Mockito.verify(apiService).findByVisibility(any());
-        DatasResponse viewsResponse = response.readEntity(DatasResponse.class);
+        DataResponse viewsResponse = response.readEntity(DataResponse.class);
         assertEquals(2, viewsResponse.getData().size());
         
     }

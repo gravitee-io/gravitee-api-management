@@ -74,7 +74,6 @@ import io.swagger.annotations.Api;
  * @author GraviteeSource Team
  */
 @Singleton
-@Api(tags = {"Portal", "OAuth2 Authentication"})
 public class OAuth2AuthenticationResource extends AbstractAuthenticationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2AuthenticationResource.class);

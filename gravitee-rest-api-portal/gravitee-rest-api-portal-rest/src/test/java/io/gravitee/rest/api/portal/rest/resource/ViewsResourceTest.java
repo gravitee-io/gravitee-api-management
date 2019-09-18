@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -36,8 +37,9 @@ import org.mockito.Mockito;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ViewEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 
 /**
@@ -90,7 +92,7 @@ public class ViewsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
         Mockito.verify(apiService).findByUser(any(), any());
-        DatasResponse viewsResponse = response.readEntity(DatasResponse.class);
+        DataResponse viewsResponse = response.readEntity(DataResponse.class);
         assertEquals(2, viewsResponse.getData().size());
         
     }
@@ -100,10 +102,14 @@ public class ViewsResourceTest extends AbstractResourceTest {
         final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         
-        Error errorResponse = response.readEntity(Error.class);
-        assertEquals("400", errorResponse.getCode());
-        assertEquals("javax.ws.rs.BadRequestException", errorResponse.getTitle());
-        assertEquals("page is not valid", errorResponse.getDetail());
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        Error error = errors.get(0);
+        assertEquals("400", error.getCode());
+        assertEquals("javax.ws.rs.BadRequestException", error.getTitle());
+        assertEquals("page is not valid", error.getDetail());
     }
     
     @Test
@@ -115,7 +121,7 @@ public class ViewsResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse viewsResponse = response.readEntity(DatasResponse.class);
+        DataResponse viewsResponse = response.readEntity(DataResponse.class);
         assertEquals(0, viewsResponse.getData().size());
         
         Links links = viewsResponse.getLinks();
@@ -125,7 +131,7 @@ public class ViewsResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        viewsResponse = anotherResponse.readEntity(DatasResponse.class);
+        viewsResponse = anotherResponse.readEntity(DataResponse.class);
         assertEquals(0, viewsResponse.getData().size());
         
         links = viewsResponse.getLinks();

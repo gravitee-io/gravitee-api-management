@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -47,6 +48,7 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.ViewEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.View;
 import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
 
@@ -114,7 +116,11 @@ public class ViewResourceTest extends AbstractResourceTest {
         final Response response = target(UNKNOWN_VIEW).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
         
-        final Error error = response.readEntity(Error.class);
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("404", error.getCode());
         assertEquals("io.gravitee.rest.api.service.exceptions.ViewNotFoundException", error.getTitle());

@@ -18,27 +18,29 @@ package io.gravitee.rest.api.portal.rest.provider;
 import javax.ws.rs.ext.ExceptionMapper;
 
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 
 public abstract class AbstractExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
     
-    protected Error convert(AbstractManagementException e) {
+    protected ErrorResponse convert(AbstractManagementException e) {
         return convert(e.getHttpStatusCode(), e.getClass().getCanonicalName(), e.getMessage());
     }
     
-    protected Error convert(final Throwable t, final int status) {
+    protected ErrorResponse convert(final Throwable t, final int status) {
         String detail = t.getCause() != null ? t.getCause().getMessage() : t.getMessage();
         return convert(status, t.getClass().getName(), detail);
     }
     
-    protected Error convert(final int status, final String title, final String detail) {
+    protected ErrorResponse convert(final int status, final String title, final String detail) {
         
         final Error error = new Error();
         error.setCode(String.valueOf(status));
         error.setTitle(title);
         error.setDetail(detail);
         
-        
-        return error;
+        ErrorResponse response = new ErrorResponse();
+        response.addErrorsItem(error);
+        return response;
     }
 }

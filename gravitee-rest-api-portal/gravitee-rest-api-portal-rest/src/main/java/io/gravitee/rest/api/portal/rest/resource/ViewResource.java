@@ -17,16 +17,13 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 
-import java.io.ByteArrayOutputStream;
 import java.util.Set;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 

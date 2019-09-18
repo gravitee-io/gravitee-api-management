@@ -24,6 +24,7 @@ import static org.mockito.Mockito.doThrow;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -38,8 +39,9 @@ import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Member;
 import io.gravitee.rest.api.portal.rest.model.MemberInput;
@@ -92,7 +94,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse membersResponse = response.readEntity(DatasResponse.class);
+        DataResponse membersResponse = response.readEntity(DataResponse.class);
         assertEquals(2, membersResponse.getData().size());
         assertEquals(MEMBER_1, membersResponse.getData().get(0).getId());
         assertEquals(MEMBER_2, membersResponse.getData().get(1).getId());
@@ -106,7 +108,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse membersResponse = response.readEntity(DatasResponse.class);
+        DataResponse membersResponse = response.readEntity(DataResponse.class);
         assertEquals(1, membersResponse.getData().size());
         assertEquals(MEMBER_2, membersResponse.getData().get(0).getId());
     
@@ -120,10 +122,15 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         
-        Error errorResponse = response.readEntity(Error.class);
-        assertEquals("400", errorResponse.getCode());
-        assertEquals("javax.ws.rs.BadRequestException", errorResponse.getTitle());
-        assertEquals("page is not valid", errorResponse.getDetail());
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        
+        Error error = errors.get(0);
+        assertEquals("400", error.getCode());
+        assertEquals("javax.ws.rs.BadRequestException", error.getTitle());
+        assertEquals("page is not valid", error.getDetail());
     }
     
     @Test
@@ -135,7 +142,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse membersResponse = response.readEntity(DatasResponse.class);
+        DataResponse membersResponse = response.readEntity(DataResponse.class);
         assertEquals(0, membersResponse.getData().size());
         
         Links links = membersResponse.getLinks();
@@ -145,7 +152,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target(APPLICATION).path("members").queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        membersResponse = anotherResponse.readEntity(DatasResponse.class);
+        membersResponse = anotherResponse.readEntity(DataResponse.class);
         assertEquals(0, membersResponse.getData().size());
         
         links = membersResponse.getLinks();
@@ -175,7 +182,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     public void shouldCreateMember() {
         MemberInput memberInput = new MemberInput().role("USER").user(MEMBER_1);
         final Response response = target(APPLICATION).path("members").request().post(Entity.json(memberInput));
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         
         ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor = ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
         ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(MembershipService.MembershipRole.class);
@@ -268,7 +275,13 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         MemberInput memberInput = new MemberInput().role("PRIMARY_OWNER").user(MEMBER_1);
         final Response response = target(APPLICATION).path("members").request().post(Entity.json(memberInput));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        Error error = response.readEntity(Error.class);
+        
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        
+        Error error = errors.get(0);
         assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getDetail());
     }
     
@@ -299,7 +312,13 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         MemberInput memberInput = new MemberInput().role("PRIMARY_OWNER").user(MEMBER_1);
         final Response response = target(APPLICATION).path("members").path(MEMBER_1).request().put(Entity.json(memberInput));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        Error error = response.readEntity(Error.class);
+        
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        
+        Error error = errors.get(0);
         assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getDetail());
     }
     
@@ -353,7 +372,12 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(MEMBER_1).primaryOwnerNewrole("PRIMARY_OWNER");
         final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        Error error = response.readEntity(Error.class);
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        
+        Error error = errors.get(0);
         assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getDetail());
     }
 }

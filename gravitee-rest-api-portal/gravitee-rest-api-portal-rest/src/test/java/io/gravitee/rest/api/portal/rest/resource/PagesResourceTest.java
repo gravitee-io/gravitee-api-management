@@ -32,7 +32,7 @@ import org.junit.Test;
 
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.model.Data;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
 
 /**
@@ -70,7 +70,7 @@ public class PagesResourceTest extends AbstractResourceTest {
 
         assertEquals(OK_200, response.getStatus());
 
-        final DatasResponse pagesResponse = response.readEntity(DatasResponse.class);
+        final DataResponse pagesResponse = response.readEntity(DataResponse.class);
         List<Data> pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(1, pages.size());
@@ -84,7 +84,7 @@ public class PagesResourceTest extends AbstractResourceTest {
         Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());
 
-        DatasResponse pagesResponse = response.readEntity(DatasResponse.class);
+        DataResponse pagesResponse = response.readEntity(DataResponse.class);
 
         List<Data> pages = pagesResponse.getData();
         assertNotNull(pages);

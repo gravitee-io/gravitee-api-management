@@ -28,6 +28,7 @@ import static org.mockito.Mockito.doThrow;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.Response;
@@ -37,6 +38,7 @@ import org.junit.Test;
 
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 
@@ -89,7 +91,12 @@ public class PageResourceTest extends AbstractResourceTest {
         final Response response = target(UNKNOWN_PAGE).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
         
-        final Error error = response.readEntity(Error.class);
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        
+        Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("404", error.getCode());
         assertEquals("io.gravitee.rest.api.service.exceptions.PageNotFoundException", error.getTitle());

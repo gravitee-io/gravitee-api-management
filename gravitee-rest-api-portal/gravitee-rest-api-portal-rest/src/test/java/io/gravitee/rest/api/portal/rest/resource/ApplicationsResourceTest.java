@@ -43,8 +43,9 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationInput;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.OAuthClientSettings;
 import io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings;
@@ -100,7 +101,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertTrue(bastPathList.contains(expectedBasePath+"/A"));
         assertTrue(bastPathList.contains(expectedBasePath+"/B"));
 
-        DatasResponse applicationsResponse = response.readEntity(DatasResponse.class);
+        DataResponse applicationsResponse = response.readEntity(DataResponse.class);
         assertEquals(2, applicationsResponse.getData().size());
         assertEquals("A", applicationsResponse.getData().get(0).getId());
         assertEquals("B", applicationsResponse.getData().get(1).getId());
@@ -113,7 +114,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     public void shouldGetApplicationsWithPaginatedLink() {
         final Response response = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        DatasResponse applicationsResponse = response.readEntity(DatasResponse.class);
+        DataResponse applicationsResponse = response.readEntity(DataResponse.class);
         assertEquals(1, applicationsResponse.getData().size());
         assertEquals("B", applicationsResponse.getData().get(0).getId());
 
@@ -127,10 +128,15 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
 
-        Error errorResponse = response.readEntity(Error.class);
-        assertEquals("400", errorResponse.getCode());
-        assertEquals("javax.ws.rs.BadRequestException", errorResponse.getTitle());
-        assertEquals("page is not valid", errorResponse.getDetail());
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        
+        Error error = errors.get(0);
+        assertEquals("400", error.getCode());
+        assertEquals("javax.ws.rs.BadRequestException", error.getTitle());
+        assertEquals("page is not valid", error.getDetail());
     }
 
     @Test
@@ -142,7 +148,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse applicationsResponse = response.readEntity(DatasResponse.class);
+        DataResponse applicationsResponse = response.readEntity(DataResponse.class);
         assertEquals(0, applicationsResponse.getData().size());
 
         Links links = applicationsResponse.getLinks();
@@ -152,7 +158,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        applicationsResponse = anotherResponse.readEntity(DatasResponse.class);
+        applicationsResponse = anotherResponse.readEntity(DataResponse.class);
         assertEquals(0, applicationsResponse.getData().size());
 
         links = applicationsResponse.getLinks();

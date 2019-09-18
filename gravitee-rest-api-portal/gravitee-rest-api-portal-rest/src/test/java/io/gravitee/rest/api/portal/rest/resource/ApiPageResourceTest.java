@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,6 +43,7 @@ import org.junit.Test;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 
@@ -90,7 +92,11 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         final Response response = target(API).path("pages").path(PAGE).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
         
-        final Error error = response.readEntity(Error.class);
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("404", error.getCode());
         assertEquals("io.gravitee.rest.api.service.exceptions.ApiNotFoundException", error.getTitle());
@@ -104,8 +110,11 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         final Response response = target(API).path("pages").path(UNKNOWN_PAGE).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
         
-        final Error error = response.readEntity(Error.class);
-        assertNotNull(error);
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        Error error = errors.get(0);
         assertEquals("404", error.getCode());
         assertEquals("io.gravitee.rest.api.service.exceptions.PageNotFoundException", error.getTitle());
         assertEquals("Page[" + UNKNOWN_PAGE + "] can not be found.", error.getDetail());

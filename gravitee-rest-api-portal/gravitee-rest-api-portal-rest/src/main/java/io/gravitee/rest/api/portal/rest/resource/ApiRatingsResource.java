@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -29,6 +30,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -90,16 +92,24 @@ public class ApiRatingsResource extends AbstractResource {
         @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE)
     })
     public Response createApiRatingForApi(@PathParam("apiId") String apiId, @Valid RatingInput ratingInput) {
-        NewRatingEntity rating = new NewRatingEntity();
-        rating.setApi(apiId);
-        rating.setComment(ratingInput.getComment());
-        rating.setTitle(ratingInput.getTitle());
-        rating.setRate(ratingInput.getValue().byteValue());
-        
-        RatingEntity createdRating = ratingService.create(rating);
-        
-        return Response
-                .ok(ratingMapper.convert(createdRating))
-                .build();
+        if(ratingInput == null) {
+            throw new BadRequestException("Input must not be null.");
+        }
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
+            NewRatingEntity rating = new NewRatingEntity();
+            rating.setApi(apiId);
+            rating.setComment(ratingInput.getComment());
+            rating.setTitle(ratingInput.getTitle());
+            rating.setRate(ratingInput.getValue().byteValue());
+            
+            RatingEntity createdRating = ratingService.create(rating);
+            
+            return Response
+                    .status(Status.CREATED)
+                    .entity(ratingMapper.convert(createdRating))
+                    .build();
+        }
+        throw new ApiNotFoundException(apiId);
     }
 }

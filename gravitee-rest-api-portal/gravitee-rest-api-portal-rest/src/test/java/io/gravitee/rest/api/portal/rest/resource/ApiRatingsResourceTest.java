@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -41,8 +43,9 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Data;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingInput;
 import io.gravitee.rest.api.service.exceptions.ApiRatingUnavailableException;
@@ -103,7 +106,12 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         final Response response = target(API).path("ratings").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
         
-        final Error error = response.readEntity(Error.class);
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        
+        Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("404", error.getCode());
         assertEquals("io.gravitee.rest.api.service.exceptions.ApiNotFoundException", error.getTitle());
@@ -122,8 +130,12 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         final Response response = target(API).path("ratings").request().post(Entity.json(ratingInput));
         assertEquals(SERVICE_UNAVAILABLE_503, response.getStatus());
         
-        final Error error = response.readEntity(Error.class);
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
         
+        Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("503", error.getCode());
         assertEquals("io.gravitee.rest.api.service.exceptions.ApiRatingUnavailableException", error.getTitle());
@@ -136,7 +148,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
 
         assertEquals(OK_200, response.getStatus());
 
-        final DatasResponse ratingsResponse = response.readEntity(DatasResponse.class);
+        final DataResponse ratingsResponse = response.readEntity(DataResponse.class);
         List<Data> ratings = ratingsResponse.getData();
         assertNotNull(ratings);
         assertEquals(2, ratings.size());
@@ -151,7 +163,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
                 ;
         
         final Response response = target(API).path("ratings").request().post(Entity.json(ratingInput));
-        assertEquals(OK_200, response.getStatus());
+        assertEquals(CREATED_201, response.getStatus());
 
         final Rating ratingResponse = response.readEntity(Rating.class);
         assertNotNull(ratingResponse);
@@ -159,5 +171,59 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         assertEquals(Integer.valueOf(1), ratingResponse.getValue());
         assertEquals(RATING, ratingResponse.getId());
         
+    }
+    
+    @Test
+    public void shouldNotFoundWhileCreatingApiRatings() {
+      //init
+        ApiEntity userApi = new ApiEntity();
+        userApi.setId("1");
+        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
+        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        
+        //test
+        RatingInput ratingInput = new RatingInput()
+                .comment(RATING)
+                .value(1)
+                ;
+        
+        final Response response = target(API).path("ratings").request().post(Entity.json(ratingInput));
+        assertEquals(NOT_FOUND_404, response.getStatus());
+        
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        
+        Error error = errors.get(0);
+        assertNotNull(error);
+        assertEquals("404", error.getCode());
+        assertEquals("io.gravitee.rest.api.service.exceptions.ApiNotFoundException", error.getTitle());
+        assertEquals("Api ["+API+"] can not be found.", error.getDetail());
+    }
+    
+    @Test
+    public void shouldBadRequestWhileCreatingApiRatings() {
+      //init
+        ApiEntity userApi = new ApiEntity();
+        userApi.setId("1");
+        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
+        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        
+        //test
+        
+        final Response response = target(API).path("ratings").request().post(Entity.json(null));
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        
+        Error error = errors.get(0);
+        assertNotNull(error);
+        assertEquals("400", error.getCode());
+        assertEquals("javax.ws.rs.BadRequestException", error.getTitle());
+        assertEquals("Input must not be null.", error.getDetail());
     }
 }

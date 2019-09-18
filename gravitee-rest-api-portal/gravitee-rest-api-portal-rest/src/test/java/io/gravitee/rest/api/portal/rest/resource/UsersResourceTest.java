@@ -33,7 +33,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.User;
 
@@ -74,7 +74,7 @@ public class UsersResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse usersResponse = response.readEntity(DatasResponse.class);
+        DataResponse usersResponse = response.readEntity(DataResponse.class);
         assertEquals(2, usersResponse.getData().size());
         
         Links links = usersResponse.getLinks();
@@ -90,7 +90,7 @@ public class UsersResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse usersResponse = response.readEntity(DatasResponse.class);
+        DataResponse usersResponse = response.readEntity(DataResponse.class);
         assertEquals(0, usersResponse.getData().size());
         
         Links links = usersResponse.getLinks();
@@ -100,7 +100,7 @@ public class UsersResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        usersResponse = anotherResponse.readEntity(DatasResponse.class);
+        usersResponse = anotherResponse.readEntity(DataResponse.class);
         assertEquals(0, usersResponse.getData().size());
         
         links = usersResponse.getLinks();

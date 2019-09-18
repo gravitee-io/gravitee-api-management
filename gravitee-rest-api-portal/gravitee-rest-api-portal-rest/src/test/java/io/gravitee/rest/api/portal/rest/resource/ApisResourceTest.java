@@ -46,8 +46,9 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.portal.rest.model.Api;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 
 /**
@@ -146,7 +147,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
         
-        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        DataResponse apiResponse = response.readEntity(DataResponse.class);
         assertEquals(5, apiResponse.getData().size());
         
     }
@@ -183,7 +184,7 @@ public class ApisResourceTest extends AbstractResourceTest {
                 .request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        DataResponse apiResponse = response.readEntity(DataResponse.class);
         assertEquals(2, apiResponse.getData().size());
         assertEquals("1", ((Api)apiResponse.getData().get(0)).getId());
         assertEquals("4", ((Api)apiResponse.getData().get(1)).getId());
@@ -198,7 +199,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
         
-        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        DataResponse apiResponse = response.readEntity(DataResponse.class);
         assertEquals(5, apiResponse.getData().size());
         assertEquals("1", ((Api)apiResponse.getData().get(0)).getId());
         assertEquals("3", ((Api)apiResponse.getData().get(1)).getId());
@@ -240,7 +241,7 @@ public class ApisResourceTest extends AbstractResourceTest {
                 .request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        DataResponse apiResponse = response.readEntity(DataResponse.class);
         assertEquals(4, apiResponse.getData().size());
         assertEquals("3", ((Api)apiResponse.getData().get(0)).getId());
         assertEquals("4", ((Api)apiResponse.getData().get(1)).getId());
@@ -274,7 +275,7 @@ public class ApisResourceTest extends AbstractResourceTest {
                 .request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        DataResponse apiResponse = response.readEntity(DataResponse.class);
         assertEquals(2, apiResponse.getData().size());
         assertEquals("1", ((Api)apiResponse.getData().get(0)).getId());
         assertEquals("4", ((Api)apiResponse.getData().get(1)).getId());
@@ -305,7 +306,7 @@ public class ApisResourceTest extends AbstractResourceTest {
                 .request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        DataResponse apiResponse = response.readEntity(DataResponse.class);
         assertEquals(2, apiResponse.getData().size());
         assertEquals("5", ((Api)apiResponse.getData().get(0)).getId());
         assertEquals("6", ((Api)apiResponse.getData().get(1)).getId());
@@ -329,7 +330,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
 
-        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        DataResponse apiResponse = response.readEntity(DataResponse.class);
         assertEquals(1, apiResponse.getData().size());
     
         Links links = apiResponse.getLinks();
@@ -342,10 +343,15 @@ public class ApisResourceTest extends AbstractResourceTest {
         final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         
-        Error errorResponse = response.readEntity(Error.class);
-        assertEquals("400", errorResponse.getCode());
-        assertEquals("javax.ws.rs.BadRequestException", errorResponse.getTitle());
-        assertEquals("page is not valid", errorResponse.getDetail());
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        
+        Error error = errors.get(0);
+        assertEquals("400", error.getCode());
+        assertEquals("javax.ws.rs.BadRequestException", error.getTitle());
+        assertEquals("page is not valid", error.getDetail());
     }
     
     @Test
@@ -357,7 +363,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        DataResponse apiResponse = response.readEntity(DataResponse.class);
         assertEquals(0, apiResponse.getData().size());
         
         Links links = apiResponse.getLinks();
@@ -367,7 +373,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        apiResponse = anotherResponse.readEntity(DatasResponse.class);
+        apiResponse = anotherResponse.readEntity(DataResponse.class);
         assertEquals(0, apiResponse.getData().size());
         
         links = apiResponse.getLinks();

@@ -34,6 +34,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
@@ -114,7 +115,8 @@ public class ApplicationMembersResource extends AbstractResource {
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole()));
 
         return Response
-                .ok(memberMapper.convert(membership))
+                .status(Status.CREATED)
+                .entity(memberMapper.convert(membership))
                 .build();
     }
 

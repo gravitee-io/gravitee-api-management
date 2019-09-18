@@ -220,7 +220,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.GET, uriPrefix + "/pages/**").permitAll()
 
                 // OpenApi
-                .antMatchers(HttpMethod.GET, "/openapi").permitAll()
+                .antMatchers(HttpMethod.GET, "/portal/openapi").permitAll()
 
                 // Portal 
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/**").permitAll()

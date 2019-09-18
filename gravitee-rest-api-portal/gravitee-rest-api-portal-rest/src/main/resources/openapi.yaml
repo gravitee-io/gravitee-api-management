@@ -1,4 +1,4 @@
-openapi: 3.0.1
+openapi: 3.0.0
 info:
   title: Gravitee.io Portal Rest API
   description: API dedicated to the devportal part of Gravitee
@@ -10,7 +10,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
-  version: "0.5.2"
+  version: "3.0.0"
 servers:
   - url: http://demo.gravitee.io/portal/{envId}
     description: The portal API for a given environment
@@ -53,14 +53,26 @@ paths:
         - $ref: '#/components/parameters/apiNameQueryParam'
         - $ref: '#/components/parameters/apiViewQueryParam'
         - $ref: '#/components/parameters/apiCategoryQueryParam'
-      description: Get an API List, filtered and sorted with queryparam if present
+      summary: List APIs
+      description: |
+        List public APIs for anonymous requests.
+        List all the APIs the current user is allowed to view for authenticated requests.
+        
+        The list can be filtered according to query parameters.
+        
+        By default the list is sorted by alphabetic order.
+        If a **cat** query param is sent, a specific sorting can be applied. Please refer to **cat** description for detail.
       operationId: getApis
       security: []
       responses:
         200:
-          $ref: '#/components/responses/ApisSuccess'
+          description: List accessible APIs for current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
@@ -69,14 +81,24 @@ paths:
         - API
       parameters:
         - $ref: '#/components/parameters/apiIncludeParam'
-      description: Get an API
+      summary: Get the API definition
+      description:  |
+        Get the detail of an API.
+        
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getApiByApiId
       security: []
       responses:
         200:
-          $ref: '#/components/responses/ApiSuccess'
+          description: API definition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Api'
+        404:
+          $ref: '#/components/responses/APINotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}/pages:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
@@ -89,14 +111,20 @@ paths:
         - $ref: '#/components/parameters/pageSizeParam'
         - $ref: '#/components/parameters/homePageQueryParam'
         - $ref: '#/components/parameters/parentPageQueryParam'
-      description: Get documentation of an API
+      summary: List API pages
+      description: |
+        List all documentation pages of an API.
+        
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getPagesByApiId
       security: []
       responses:
         200:
           $ref: '#/components/responses/PagesSuccess'
+        404:
+          $ref: '#/components/responses/APINotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}/pages/{pageId}:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
@@ -105,28 +133,44 @@ paths:
       tags:
         - API
         - Documentation
-      description: Get a single documentation page of an API
+      summary: Get an API page
+      description: |
+        Get an API page.
+        
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getPageByApiIdAndPageId
       security: []
       responses:
         200:
           $ref: '#/components/responses/PageSuccess'
+        404:
+          description: API or Page not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}/picture:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
     get:
       tags:
         - API
-      description: Get picture of an API
+      summary: Get the API's picture
+      description: |
+        Get the API's picture.
+        
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getPictureByApiId
       security: []
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
+        404:
+          $ref: '#/components/responses/APINotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}/plans:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
@@ -136,14 +180,25 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: Get plans of an API
+        
+      summary: List plans for an API
+      description: |
+        List plans for an API.
+        
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getApiPlansByApiId
       security: []
       responses:
         200:
-          $ref: '#/components/responses/PlansSuccess'
+          description: List accessible plans for current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataResponse'
+        404:
+          $ref: '#/components/responses/APINotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}/ratings:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
@@ -153,28 +208,64 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: Get ratings of an API
+      summary: List ratings for an API
+      description: |
+        List ratings for an API.
+        
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getApiRatingsByApiId
       security: []
       responses:
         200:
-          $ref: '#/components/responses/RatingsSuccess'
+          description: List of subscriptions
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/DataResponse'
+        404:
+          $ref: '#/components/responses/APINotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     post:
       tags:
         - API
-      description: Create a rating for an API
+      summary: Create a rating for an API
+      description: |
+        Create a rating for an API.
+        
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
+        
+        The current must have API_RATING[CREATE] permission to create a rating.
       operationId: createApiRatingForApi
       requestBody:
-        $ref: '#/components/requestBodies/ratingInputBody'
-      security:
-        - BasicAuth: []
+        description: Use to add a rating to an api
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingInput'
       responses:
-        200:
-          $ref: '#/components/responses/RatingSuccess'
+        201:
+          description: Created Rating
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/Rating'
+        400:
+          description: Rating for this api and this user already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: Rating service is not activated or user does not have sufficient rights to access this resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          $ref: '#/components/responses/APINotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
 
   /applications:
     get:
@@ -183,122 +274,260 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: Get an application List of the current user
+      summary: List all the applications accessible to authenticated user.
+      description: |
+        List all the applications accessible to authenticated user.
+        
+        User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission.
       operationId: getApplications
       responses:
         200:
-          $ref: '#/components/responses/ApplicationsSuccess'
+          description: List of Applications.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     post:
       tags:
         - Applications
       requestBody:
-        $ref: '#/components/requestBodies/applicationCreateInputBody'
-      description: Create an application
+        description: Use to create an application.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationInput'
+      summary: Create an application
+      description: |
+        Create an application.
+        
+        User must have MANAGEMENT_APPLICATION[CREATE] permission.
       operationId: createApplication
       responses:
         201:
-          $ref: '#/components/responses/ApplicationSuccess'
+          description: Created application.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        400:
+          description: Bad Request if body is empty.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
     get:
       tags:
         - Applications
-      description: Get an application
+      summary: Get an application.
+      description: |
+        Get an application.
+        
+        User must have the APPLICATION_DEFINITION[READ] permission.
       operationId: getApplicationByApplicationId
       responses:
         200:
-          $ref: '#/components/responses/ApplicationSuccess'
+          description: One application.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     put:
       tags:
         - Applications
       requestBody:
-        $ref: '#/components/requestBodies/applicationUpdateInputBody'
-      description: Update an application
+        description: Use to update an application.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Application'
+      summary: Update an application.
+      description: |
+        Update an application.
+        
+        User must have APPLICATION_DEFINITION[UPDATE] permission.
       operationId: updateApplicationByApplicationId
       responses:
         200:
-          $ref: '#/components/responses/ApplicationSuccess'
+          description: Updated application.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        400:
+          description: Bad Request if body is empty.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     delete: 
       tags:
         - Applications
-      description: Delete an application
+      summary: Delete an application
+      description: |
+        Delete an application.
+        
+        User must have the APPLICATION_DEFINITION[DELETE] permission.
       operationId: deleteApplicationByApplicationId
       responses:
         204:
           description: No-Content
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/picture:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
     get:
       tags:
         - Applications
-      description: Get an application picture
+      summary: Get the application's picture
+      description: |
+        Get the application's picture.
+        
+        User must have APPLICATION_DEFINITION[READ] permission.
       operationId: getApplicationPictureByApplicationId
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     put:
       tags:
         - Applications
       requestBody:
         $ref: '#/components/requestBodies/pictureUpdateInputBody'
-      description: Update an application picture
+      summary: Update an application picture
+      description: |
+        Update the application's picture.
+        
+        User must have APPLICATION_DEFINITION[UPDATE] permission.
       operationId: updateApplicationPictureByApplicationId
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/notifications:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
     get:
       tags:
         - Applications
-      description: Get application notifications
+      summary: Get application notifications settings
+      description: |
+        Get application notifications settings.
+        
+        User must **at least** have APPLICATION_NOTIFICATION[READ] permission to get **portal** notification settings.
+        
+        User must **also** have APPLICATION_NOTIFICATION[CREATE | UPDATE | DELETE] permission to get **generic** notification settings.
       operationId: getNotificationsByApplicationId
       responses:
         200:
-          $ref: '#/components/responses/NotificationConfigsSuccess'
+          description: List of notification configs
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/NotificationConfigsResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     post:
       tags:
         - Applications
       requestBody:
-        $ref: '#/components/requestBodies/notificationCreateInputBody'
-      description: Create a notification for an application
+        description: Use to create an notification
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericNotificationConfig'
+      summary: Create notification settings.
+      description: |
+        Create notification settings.
+        
+        User must have APPLICATION_NOTIFICATION[READ] permission to create a **portal** notification.
+        
+        User must have APPLICATION_NOTIFICATION[CREATE] permission to create a **generic** notification.
       operationId: createApplicationNotification
       responses:
         200:
-          $ref: '#/components/responses/NotificationConfigSuccess'
+          description: Created notification config.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/PortalNotificationConfig'
+                  - $ref: '#/components/schemas/GenericNotificationConfig'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     put:
       tags:
         - Applications
       requestBody:
-        $ref: '#/components/requestBodies/notificationPortalUpdateInputBody'
-      description: Update a portal notification for an application
+        description: Use to update a portal notification config.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PortalNotificationConfig'
+      summary: Update a portal notification for an application.
+      description: |
+        Update a portal notification for an application.
+        
+        User must have APPLICATION_NOTIFICATION[READ] permission to update a **portal** notification.
       operationId: updatePortalApplicationNotification
       responses:
         200:
-          $ref: '#/components/responses/NotificationConfigSuccess'
+          description: Updated portal notification config.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortalNotificationConfig'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError' 
+          $ref: '#/components/responses/InternalServerError' 
   /applications/{applicationId}/notifications/{notificationId}:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -307,24 +536,56 @@ paths:
       tags:
         - Applications
       requestBody:
-        $ref: '#/components/requestBodies/notificationGenericUpdateInputBody'
-      description: Update a generic notification for an application
+        description: Use to update a generic notification.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericNotificationConfig'
+      summary: Update a generic notification for an application.
+      description: |
+        Update a generic notification for an application.
+        
+        User must have APPLICATION_NOTIFICATION[UPDATE] permission to update a **generic** notification.
       operationId: updateGenericApplicationNotification
       responses:
         200:
-          $ref: '#/components/responses/NotificationConfigSuccess'
+          description: Updated generic notification config.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericNotificationConfig'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Application or Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     delete: 
       tags:
         - Applications
-      description: Delete a notification
+      summary: Delete a notification
+      description: |
+        Delete a notification.
+        
+        User must have APPLICATION_NOTIFICATION[DELETE] permission to delete a **generic** notification.
       operationId: deleteApplicationNotificationByNotificationId
       responses:
         204:
           description: No-Content
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Application or Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError' 
+          $ref: '#/components/responses/InternalServerError' 
   /applications/{applicationId}/members:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -334,25 +595,53 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: Get application members
+      summary: List application members
+      description: |
+        List application members.
+        
+        User must have the APPLICATION_MEMBER[READ] permission.
       operationId: getMembersByApplicationId
       responses:
         200:
-          $ref: '#/components/responses/MembersSuccess'
+          description: List of members
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/DataResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     post:
       tags:
         - Applications
       requestBody:
-        $ref: '#/components/requestBodies/memberCreateInputBody'
-      description: Create a member for an application
+        description: Use to create a member.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberInput'
+      summary: Create an application member
+      description: |
+        Create an application member.
+        
+        User must have the APPLICATION_MEMBER[CREATE] permission.
       operationId: createApplicationMember
       responses:
-        200:
-          $ref: '#/components/responses/MemberSuccess'
+        201:
+          description: Created member
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/Member'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/members/_transfer_ownership:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -360,14 +649,26 @@ paths:
       tags:
         - Applications
       requestBody:
-        $ref: '#/components/requestBodies/memberTransferOwnershipInputBody'
-      description: transfer ownership of an application
+        description: Use to transfer ownership of an application.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferOwnershipInput'
+      summary: Transfer the ownership of the application
+      description: |
+        Transfer the ownership of the application.
+        
+        User must have the APPLICATION_MEMBER[UPDATE] permission.
       operationId: transferMemberOwnership
       responses:
         204:
           description: No-Content
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/members/{memberId}:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -375,35 +676,83 @@ paths:
     get:
       tags:
         - Applications
-      description: get a member
+      summary: Get an application member
+      description: |
+        Get an application member.
+        
+        User must have the APPLICATION_MEMBER[READ] permission.
       operationId: getApplicationMemberByApplicationIdAndMemberId
       responses:
         200:
-          $ref: '#/components/responses/MemberSuccess'
+          description: A member
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/Member'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Application or Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     put:
       tags:
         - Applications
       requestBody:
-        $ref: '#/components/requestBodies/memberUpdateInputBody'
-      description: update a member
+        description: Use to update a member.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberInput'
+      summary: Update an application member.
+      description: |
+        Update an application member.
+        
+        User must have the APPLICATION_MEMBER[UPDATE] permission.
       operationId: updateApplicationMemberByApplicationIdAndMemberId
       responses:
         200:
-          $ref: '#/components/responses/MemberSuccess'
+          description: Updated member.
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/Member'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Application or Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
         - Applications
-      description: delete a member
+      summary: Remove an application member
+      description: |
+        Remove an application member.
+        
+        User must have the APPLICATION_MEMBER[DELETE] permission.
       operationId: deleteApplicationMember
       responses:
         204:
           description: No-Content
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Application or Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/analytics:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -418,20 +767,36 @@ paths:
         - $ref: '#/components/parameters/toQueryParam'
         - $ref: '#/components/parameters/intervalQueryParam'
         - $ref: '#/components/parameters/queryQueryParam'
-        - $ref: '#/components/parameters/keyQueryParam'
         - $ref: '#/components/parameters/fieldQueryParam'
         - $ref: '#/components/parameters/analyticTypeQueryParam'
         - $ref: '#/components/parameters/analyticRangeQueryParam'
         - $ref: '#/components/parameters/analyticAggregationQueryParam'
         - $ref: '#/components/parameters/analyticOrderQueryParam'
-
-      description: Get application analytics
+      summary: Get Application analytics
+      description: |
+        Get the application analytics.
+        
+        User must have the APPLICATION_ANALYTICS[READ] permission.
       operationId: getApplicationAnalytics
       responses:
         200:
-          $ref: '#/components/responses/AnalyticsSuccess'
+          description: Analytics
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/Analytics'
+        400:
+          description: Invalid query params.
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/logs:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -446,14 +811,32 @@ paths:
         - $ref: '#/components/parameters/toQueryParam'
         - $ref: '#/components/parameters/queryQueryParam'
         - $ref: '#/components/parameters/fieldQueryParam'
-        - $ref: '#/components/parameters/orderQueryParam'
-      description: Get application logs
+        - $ref: '#/components/parameters/logOrderQueryParam'
+      summary: Get Application logs
+      description: |
+        Get the application logs.
+        
+        User must have the APPLICATION_LOG[READ] permission.
       operationId: getApplicationLogs
       responses:
         200:
-          $ref: '#/components/responses/LogsSuccess'
+          description: List of logs
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/DataResponse'
+        400:
+          description: Invalid query params.
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/logs/_export:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -468,45 +851,90 @@ paths:
         - $ref: '#/components/parameters/toQueryParam'
         - $ref: '#/components/parameters/queryQueryParam'
         - $ref: '#/components/parameters/fieldQueryParam'
-        - $ref: '#/components/parameters/orderQueryParam'
-      description: Export logs in CSV format
+        - $ref: '#/components/parameters/logOrderQueryParam'
+      summary: Export application logs as CSV
+      description: |
+        Export application logs as CSV.
+        
+        User must have the APPLICATION_LOG[READ] permission.
       operationId: exportApplicationLogsByApplicationId
       responses:
         200:
-          $ref: '#/components/responses/LogsExportSuccess'
+          description: CSV export of the logs
+          content:
+            text/plain:
+              schema:  
+                type: string
+        400:
+          description: Invalid query params.
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/logs/{logId}:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
       - $ref: '#/components/parameters/logIdParam'
-
     get:
       tags:
         - Applications
         - Analytics
       parameters:
         - $ref: '#/components/parameters/logTimestampQueryParam'
-      description: get a single log of an application
+      summary: Get a specific log of an application
+      description: |
+        Get a specific log of an application.
+        
+        User must have the APPLICATION_LOG[READ] permission.
       operationId: getApplicationLogByApplicationIdAndLogId
       responses:
         200:
-          $ref: '#/components/responses/LogSuccess'
+          description: A log
+          content:
+            application/json:
+              schema:  
+               $ref: '#/components/schemas/Log'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Application or Log not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'      
+          $ref: '#/components/responses/InternalServerError'      
   /applications/{applicationId}/_renew_secret:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
     post:
       tags:
         - Applications
-      description: Renew secret of this application
+      summary: Renew the client secret for an OAuth2 application
+      description: |
+        Renew the client secret for an OAuth2 application.
+        
+        User must have the APPLICATION_DEFINITION[UPDATE] permission.
       operationId: renewApplicationSecret
       responses:
         200:
-          $ref: '#/components/responses/ApplicationSuccess'
+          description: Updated application with a new secret.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
 
   /pages:
     get:
@@ -517,14 +945,16 @@ paths:
         - $ref: '#/components/parameters/pageSizeParam'
         - $ref: '#/components/parameters/homePageQueryParam'
         - $ref: '#/components/parameters/parentPageQueryParam'
-      description: Get all the documention pages of the portal
+      summary: List portal pages
+      description: |
+        List all portal documentation pages
       operationId: getPages
       security: []
       responses:
         200:
           $ref: '#/components/responses/PagesSuccess'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /pages/{pageId}:
     parameters:
       - $ref: '#/components/parameters/pageIdParam'
@@ -533,14 +963,22 @@ paths:
         - Documentation
       parameters:
         - $ref: '#/components/parameters/pageIdParam'
-      description: Get a documention page of the portal
+      summary: Get a portal page
+      description: |
+        Get a specific portal documentation page.
       operationId: getPageByPageId
       security: []
       responses:
         200:
           $ref: '#/components/responses/PageSuccess'
+        404:
+          description: Page not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   
   /subscriptions:
     get:
@@ -551,51 +989,119 @@ paths:
         - $ref: '#/components/parameters/subscriptionApplicationQueryParam'
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: get a list of subscriptions, filtered by api and/or by application. At least an api or an application must be provided
+      description: |
+        List all subscriptions, filtered by api and/or by application. At least an api or an application must be provided.
+        
+        User must have the APPLICATION_SUBSCRIPTION[READ] permission to list subscription with application query param.\
+        User must have the API_SUBSCRIPTION[READ] permission to list subscription with api query param.
+        
       operationId: getSubscriptions
       responses:
         200:
-          $ref: '#/components/responses/SubscriptionsSuccess'
+          description: List of Subscriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataResponse'
+        400:
+          description: At least an api or an application must be provided.
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     post:
       tags:
         - Subscription
       requestBody:
-        $ref: '#/components/requestBodies/subscriptionCreateInputBody'
-      description: create a subscription
+        description: Use to create a subscription.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionInput'
+      summary: Create a subscription.
+      description: |
+        Create a new subscription.
+        
+        User must have APPLICATION_SUBSCRIPTION[CREATE] permission.
       operationId: createSubscription
       responses:
         200:
-          $ref: '#/components/responses/SubscriptionSuccess'
+          description: Created subscription.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        400:
+          description: Input must not be null.
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
         500:
-          $ref: '#/components/responses/GeneralError'        
+          $ref: '#/components/responses/InternalServerError'        
   /subscriptions/{subscriptionId}:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
     get:
       tags:
         - Subscription
-      description: get a subscription
+      parameters:
+        - $ref: '#/components/parameters/subscriptionIncludeQueryParam'
+
+      summary: Get a subscription.
+      description: |
+        Get a subscription.
+        
+        User must have API_SUBSCRIPTION[CREATE] or APPLICATION_SUBSCRIPTION[CREATE] permission.
       operationId: getSubscriptionBuySubscriptionId
       responses:
         200:
-          $ref: '#/components/responses/SubscriptionSuccess'
+          description: One subscription.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'        
+          $ref: '#/components/responses/InternalServerError'        
   /subscriptions/{subscriptionId}/_close:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
     post:
       tags:
         - Subscription
-      description: close a subscription
+      summary: Close a subscription
+      description: |
+        Close a subscription.
+        
+        User must have APPLICATION_SUBSCRIPTION[DELETE] permission.
       operationId: closeSubscription
       responses:
         204:
           description: No-Content
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'       
+          $ref: '#/components/responses/InternalServerError'       
   /subscriptions/{subscriptionId}/keys/_renew:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
@@ -603,12 +1109,36 @@ paths:
       tags:
         - Subscription
       requestBody:
-        $ref: '#/components/requestBodies/subscriptionKeysRenewInputBody'
-      description: renew a key subscription
+        description: Use to renew keys of a subscription.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+      summary: Renew a key subscription.
+      description: |
+        Renew a key subscription.
+        
+        User must have API_SUBSCRIPTION[UPDATE] or APPLICATION_SUBSCRIPTION[UPDATE] permission.
       operationId: renewKeySubscription
       responses:
+        201:
+          description: Renewed Key.
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/Key'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'       
+          $ref: '#/components/responses/InternalServerError'       
   /subscriptions/{subscriptionId}/keys/{keyId}/_revoke:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
@@ -620,13 +1150,25 @@ paths:
     post:
       tags:
         - Subscription
-      description: revoke a key subscription
+      summary: Revoke a key subscription.
+      description: |
+        Revoke a key subscription.
+        
+        User must have API_SUBSCRIPTION[UPDATE] or APPLICATION_SUBSCRIPTION[UPDATE] permission.
       operationId: revokeKeySubscription
       responses:
         204:
           description: No-Content
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Subscription or Key not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
 
   /users:
     get:
@@ -635,38 +1177,76 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: Retrieve all user
+      summary: List platform users.
+      description: |
+        List platform users.
+        
+        User must have the MANAGEMENT_USERS[READ] permission.
       operationId: getUsers
       responses:
         200:
-          $ref: '#/components/responses/UsersSuccess'
+          description: List of platform users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /user:
     get:
       tags:
         - User
-      parameters:
-        - $ref: '#/components/parameters/userIncludeParam'
-      description: Retrieve user's information
+      summary: Get the authenticated user
+      description: |
+        Get information about the authenticated user.
       operationId: getCurrentUser
       responses:
         200:
-          $ref: '#/components/schemas/User'
+          description: The current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     put:
       tags:
         - User
       requestBody:
-        $ref: '#/components/requestBodies/userUpdateInputBody'
-      description: Modify user's information
+        description: Use to update a user.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      summary: Modify current user information.
+      description: |
+        Modify current user information.
+        
+        Only the current user can modify his/her information.
       operationId: updateCurrentUser
       responses:
         200:
-          $ref: '#/components/responses/UserSuccess'
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Input must not be null.
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: Not allowed to modify another user.
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /user/notifications:
     get:
       tags:
@@ -674,47 +1254,66 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: Retrieve user's notifications
+      summary: Retrieve user's notifications
+      description: |
+        Retrieve current user's notifications.
       operationId: getCurrentUserNotifications
       responses:
         200:
-          $ref: '#/components/responses/NotificationsSuccess'
+          description: List of notifications
+          content:
+            application/json:
+              schema:  
+                $ref: '#/components/schemas/DataResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
        - User
-      description: Delete all notifications of the current user
+      summary: Delete all notifications of the current user
+      description: |
+        Delete all notifications of the current user.
       operationId: deleteAllCurrentUserNotifications
       responses:
         204:
           description: No-Content
         500:
-          $ref: '#/components/responses/GeneralError'        
+          $ref: '#/components/responses/InternalServerError'        
   /user/notifications/{notificationId}:
     parameters:
         - $ref: '#/components/parameters/notificationIdParam'
     delete:
       tags:
        - User
-      description: Delete a specific notification from the current user
+      summary: Delete a specific notification of the current user
+      description: |
+        Delete a specific notification of the current user.
       operationId: deleteCurrentUserNotificationByNotificationId
       responses:
         204:
           description: No-Content
+        404:
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /user/avatar:
     get:
       tags:
         - User
-      description: Retrieve user's avatar
+      summary: Retrieve user's avatar
+      description: |
+        Retrieve user's avatar.
       operationId: getCurrentUserAvatar
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
+
   /tickets:
     post:
       tags:
@@ -726,14 +1325,19 @@ paths:
             schema:
               $ref: '#/components/schemas/TicketInput'
       summary: Create a ticket.
-      description: User must be authenticated to use this service.
+      description: |
+        Create a ticket. This ticket can aim :
+          * a specific application
+          * a specific API
+          * the gravitee portal
+        
+        User must be authenticated to use this service.
       operationId: createTicket
-      security: []
       responses:
           201:
             description: Created
           500:
-            $ref: '#/components/responses/GeneralError'
+            $ref: '#/components/responses/InternalServerError'
   /views:
     get:
       tags:
@@ -741,276 +1345,284 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      description: Get a View list
+      summary: Get a View list
+      description: |
+        Get all views of the platform.
       operationId: getViews
       security: []
       responses:
         200:
-          $ref: '#/components/responses/ViewsSuccess'
+          description: List of Views
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /views/{viewId}:
     parameters:
       - $ref: '#/components/parameters/viewIdParam'
     get:
       tags:
         - Portal
-      description: Get a View
+      summary: Get a View
+      description: |
+        Get a specific view.
       operationId: getViewByViewId
       security: []
       responses:
         200:
-          $ref: '#/components/responses/ViewSuccess'
+          description: One View
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/View'
+        404:
+          description: View not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /views/{viewId}/picture:
     parameters:
       - $ref: '#/components/parameters/viewIdParam'
     get:
       tags:
         - Portal
-      description: Get picture of a View
+      summary: Get picture of a View
+      description: |
+        Get the picture of a view.
       operationId: getPictureByViewId
       security: []
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
+        404:
+          description: View not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /configuration:
     get:
       tags: 
         - Portal
+      summary: Get portal configuration.
+      description: |
+        Get all the portal configuration from the platform settings.
+      security: []
       responses:
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /configuration/identities:
     get:
       tags: 
         - Portal
+      summary: Get the identity provider list.
+      description: |
+        Get all the identity providers that can used in the portal.
+      security: []
       responses:
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /info:
     get:
       tags: 
         - Portal
+      summary: Get portal information.
+      description: |
+        Get some information about the portal (version, ...).
+      security: []
       responses:
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
+
 
   /auth/login:
     post:
       tags: 
         - Authentication
+      operationId: login
+      description: |
+        Used to get a Gravitee token. This token is mandatory for all the secured resources of the Portal API.
+      parameters: 
+        - name: Authorization
+          in: header
+          required: true
+          description: Basic authentication.
+          schema:
+            type: string
       responses:
         200:
-          $ref: '#/components/responses/LoginSuccess'
+          $ref: '#/components/responses/AuthSuccess'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /auth/logout:
     post:
       tags: 
         - Authentication
+      operationId: logout
+      description: |
+        User need to be authenticated to logout.
       responses:
         200:
-          $ref: '#/components/responses/LogoutSuccess'
+          description: An empty cookie
+          headers:
+            set-cookie:
+              description: Empty cookie
+              schema:
+                type: string
+                example: Auth-Graviteeio-APIM=;Path=/;Expires=Thu, 01-Jan-1970 00:00:00 GMT;Max-Age=0;HttpOnly        
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /auth/oauth2/{identity}:
     post:
       tags: 
         - Authentication
+      security: []
       parameters:
-        - name: identity
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/authIdentityParam'
+      operationId: exchangeAuthorizationCode
+      description: |
+        Used to get a gravitee token from an Authorization code (PayloadInput.code). Portal API authenticates the user with the specified IDP ({identity} path param).
       requestBody:
-        $ref: '#/components/requestBodies/oauth2InputBody'
+        description: OAuth2 payload for authentication.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayloadInput'
       responses:
         200:
-          $ref: '#/components/responses/LoginSuccess'
+          $ref: '#/components/responses/AuthSuccess'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        404:
+          description: Identity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
   /auth/oauth2/{identity}/_exchange:
     post:
       tags: 
         - Authentication
+      security: []
       parameters:
-        - name: identity
-          in: path
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/authIdentityParam'
         - name: token
           in: query
           required: true
           schema:
             type: string
+      operationId: tokenExchange
+      description: |
+        Used to get a gravitee token from a IdentityProvider token. Portal API authenticates the user with the specified IDP ({identity} path param).
       responses:
         200:
-          $ref: '#/components/responses/LoginSuccess'
+          $ref: '#/components/responses/AuthSuccess'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        404:
+          description: Identity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/GeneralError'
+          $ref: '#/components/responses/InternalServerError'
 components:
   requestBodies:
-    ratingInputBody:
-      description: use to add a rating to an api
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/RatingInput'
-    applicationCreateInputBody:
-      description: use to create an application
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApplicationInput'
-    applicationUpdateInputBody:
-      description: use to update an application
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Application'
     pictureUpdateInputBody:
-      description: use to update an application
+      description: Use to update a picture.
       content:
         'image/*':
           schema:
             type: string
             format: binary
-    notificationCreateInputBody:
-      description: use to create an notification
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/GenericNotificationConfig'
-    notificationGenericUpdateInputBody:
-      description: use to update a generic notification
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/GenericNotificationConfig'
-    notificationPortalUpdateInputBody:
-      description: use to update a generic notification
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/PortalNotificationConfig'
-    memberCreateInputBody:
-      description: use to create a member
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/MemberInput'
-    memberUpdateInputBody:
-      description: use to update a member
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/MemberInput'
-    memberTransferOwnershipInputBody:
-      description: use to transfer ownership of an application
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/TransferOwnershipInput'
-    subscriptionCreateInputBody:
-      description: use to create a subscription
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/SubscriptionInput'
-    subscriptionKeysRenewInputBody:
-      description: use to renew keys of a subscription
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              type: string
-    userUpdateInputBody:
-      description: use to update a user
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/User'
-    oauth2InputBody:
-      description: oauth2 payload for authentication
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/PayloadInput'
   parameters:
+    ##############
+    # Path Param #
+    ##############
     apiIdParam: 
       name: apiId
       in: path
       required: true
-      description: id of an API
+      description: Id of an API.
       schema:
         type: string
-    apiContextPathQueryParam:
-      name: context-path
-      in: query
-      required: false
-      description: the context-path of an API
+    applicationIdParam: 
+      name: applicationId
+      in: path
+      required: true
+      description: Id of an application.
       schema:
         type: string
-    apiLabelQueryParam:
-      name: label
-      in: query
-      required: false
-      description: one of the labels of an API
+    logIdParam: 
+      name: logId
+      in: path
+      required: true
+      description: Id of a log.
       schema:
         type: string
-    apiVersionQueryParam:
-      name: version
-      in: query
-      required: false
-      description: the version of an API
+    memberIdParam: 
+      name: memberId
+      in: path
+      required: true
+      description: Id of a member.
       schema:
         type: string
-    apiNameQueryParam:
-      name: name
-      in: query
-      required: false
-      description: the name of an API
+    notificationIdParam: 
+      name: notificationId
+      in: path
+      required: true
+      description: Id of a notification.
       schema:
         type: string
-    apiViewQueryParam:
-      name: view
-      in: query
-      required: false
-      description: one of the view linked with an API
-      schema:
-        type: string
-    apiCategoryQueryParam:
-      name: cat
-      in: query
-      required: false
-      description: |
-        name of a static filter to use.
-        <ul>
-          <li>MINE : apis of the current user. Sorted alphabetically</li>
-          <li>STARRED: only rated apis. Sorted by Ratings DESC</li>
-          <li>TRENDINGS: only apis with subscriptions. Sorted by number of subscriptions DESC</li>
-        </ul>
-      schema:
-        $ref: '#/components/schemas/CategoryApiQuery'
     pageIdParam: 
       name: pageId
       in: path
       required: true
-      description: id of a documentation page
+      description: Id of a documentation page.
       schema:
         type: string
+    subscriptionIdParam: 
+      name: subscriptionId
+      in: path
+      required: true
+      description: Id of a subscription.
+      schema:
+        type: string
+    viewIdParam: 
+      name: viewId
+      in: path
+      required: true
+      description: Id of a View.
+      schema:
+        type: string
+    authIdentityParam:
+      name: identity
+      in: path
+      required: true
+      schema:
+        type: string
+    ###############
+    # Query Param #
+    ###############
+    
+    #Pagination
     pageNumberParam:
       name: page
       in: query
       required: false
-      description: the page number for pagination
+      description: The page number for pagination.
       schema:
         type: integer
         default: 1
@@ -1018,15 +1630,64 @@ components:
       name: size
       in: query
       required: false
-      description: the number of items per page required, for pagination
+      description: The number of items per page for pagination.
       schema:
         type: integer
         default: 10
+        
+    #Apis filtering
+    apiContextPathQueryParam:
+      name: context-path
+      in: query
+      required: false
+      description: The context-path of an API.
+      schema:
+        type: string
+    apiLabelQueryParam:
+      name: label
+      in: query
+      required: false
+      description: One of the labels of an API.
+      schema:
+        type: string
+    apiVersionQueryParam:
+      name: version
+      in: query
+      required: false
+      description: The version of an API.
+      schema:
+        type: string
+    apiNameQueryParam:
+      name: name
+      in: query
+      required: false
+      description: The name of an API.
+      schema:
+        type: string
+    apiViewQueryParam:
+      name: view
+      in: query
+      required: false
+      description: One of the view linked with an API.
+      schema:
+        type: string
+    apiCategoryQueryParam:
+      name: cat
+      in: query
+      required: false
+      description: |
+        Name of a CATEGORY. A category is a static filter used to pre-select some APIs. It can be combined with others query params.
+          - FEATURED : top APIs. Sorted by alphabetical order.
+          - MINE : APIs subscribed by the current user. Sorted by alphabetical order.
+          - STARRED: Rated APIs. Sorted by Ratings DESC, nb of ratings DESC, alphabetic order.
+          - TRENDINGS: Subscribed APIs. Sorted by number of subscriptions DESC, alphabetic order.
+      schema:
+        $ref: '#/components/schemas/CategoryApiQuery'
     apiIncludeParam:
       name: include
       in: query
       required: false
-      description: comma-separated list of related object to include in the response
+      description: Comma-separated list of related objects to include in the response.
       schema:
         type: array
         items:
@@ -1034,32 +1695,29 @@ components:
           enum:
             - pages
             - plans
+    
+    #Pages filtering
     homePageQueryParam:
       name: homepage
       in: query
       required: false
-      description: if true, only the documentation page homepage of the portal is returned
+      description: If true, only the documentation homepage of the portal is returned.
       schema:
         type: boolean
     parentPageQueryParam:
       name: parent
       in: query
       required: false
-      description: the name of the parent documentation page. If not null, only this page and its children are returned
+      description: The name of the parent documentation page. If not null, only this page and its children are returned.
       schema:
         type: string
-    applicationIdParam: 
-      name: applicationId
-      in: path
-      required: true
-      description: id of an Application
-      schema:
-        type: string
+    
+    #Analytics & logs filtering
     fromQueryParam:
       name: from
       in: query
       required: false
-      description: lower bound of timestamp for filtering
+      description: Lower bound of timestamp for filtering.
       schema:
         type: integer
         format: int64
@@ -1067,7 +1725,7 @@ components:
       name: to
       in: query
       required: false
-      description: upper bound of timestamp for filtering
+      description: Upper bound of timestamp for filtering. Must be greater than *from* query param.
       schema:
         type: integer
         format: int64
@@ -1075,48 +1733,56 @@ components:
       name: query
       in: query
       required: false
-      description: query used for filtering
+      description: Query used for filtering.
       schema:
         type: string
     fieldQueryParam:
       name: field
       in: query
       required: false
-      description: field used for filtering
+      description: Field used for filtering. **required** when type is **GROUP_BY**.
       schema:
         type: string
-    orderQueryParam:
-      name: order
-      in: query
-      required: false
-      description: order used to filter the result list
-      schema:
-        type: string
-        enum:
-          - ASC
-          - DESC
-        default: ASC
     intervalQueryParam:
       name: interval
       in: query
       required: false
-      description : interval for time search
+      description: Interval for time search. Must be >= 1 000 and <= 1 000 000 000.
       schema:
         type: integer
         minimum: 1000
         maximum: 1000000000
-        exclusiveMinimum: true
-        exclusiveMaximum: true
-    keyQueryParam:
-      name: key
-      in: query
-      required: false
-      schema:
-        type: string
     analyticTypeQueryParam:
       name: type
       in: query
       required: false
+      description: |
+        Type of analytics that is expected :
+          - GROUP_BY :
+              Used to group total hits by a specific field (Application, Status, Path, ...).\
+              Query params :
+              - from
+              - to
+              - interval
+              - query
+              - field
+              - order
+              - ranges
+          - DATE_HISTO : 
+              Used to retrieve total hits per range of time, on a specific time interval.\
+              Query params :
+              - from
+              - to
+              - interval
+              - query
+              - aggs
+          - COUNT : 
+              Used to retrieve total hits, on a specific time interval.\
+              Query params :
+              - from
+              - to
+              - interval
+              - query
       schema:
         type: string
         enum:
@@ -1127,103 +1793,100 @@ components:
       name: range
       in: query
       required: false
+      description: |
+        Used with GROUP_BY type only.
+        
+        A semicolon separated list of "from:to" elements. **/!\\ Different from *from* and *to* query params**
+      example: "ranges=100:199;200:299;300;599"
       schema:
         type: string
     analyticAggregationQueryParam:
       name: aggs
       in: query
       required: false
+      description: |
+        Used with DATE_HISTO type only.
+        
+        A semicolon separated list of "type:field" elements. **/!\\ Different from *type* and *field* query params**\
+        Type can be **FIELD**, **AVG**, **MIN**, **MAX**
+      example: "aggs=avg:response-time;avg:api-response-time"
       schema:
         type: string
     analyticOrderQueryParam:
       name: order
       in: query
       required: false
+      description: |
+        Used with GROUP_BY type only. 
+        
+        A colon separated list of "type:field" elements. **/!\\ Different from *type* and *field* query params**\
+        By default, sort is ASC. If *type* starts with '-', the order sort is DESC.\
+        Currently, only **AVG** is supported.
+      example: "order=-avg:response-time"
       schema:
         type: string
+    logOrderQueryParam:
+      name: order
+      in: query
+      required: false
+      description: Order used to sort the result list.
+      schema:
+        type: string
+        enum:
+          - ASC
+          - DESC
+        default: ASC
     logTimestampQueryParam:
       name: timestamp
       in: query
       required: false
-      description: used to select the right index
+      description: Used to select the right index
       schema:
         type: integer
         format: int64
-    notificationIdParam: 
-      name: notificationId
-      in: path
-      required: true
-      description: id of a notification
-      schema:
-        type: string
-        
-    memberIdParam: 
-      name: memberId
-      in: path
-      required: true
-      description: id of a member
-      schema:
-        type: string
-    logIdParam: 
-      name: logId
-      in: path
-      required: true
-      description: id of a log
-      schema:
-        type: string
-
-    subscriptionIdParam: 
-      name: subscriptionId
-      in: path
-      required: true
-      description: id of a subscription
-      schema:
-        type: string
+    
+    #Subscriptions filtering
     subscriptionApiQueryParam:
       name: apiId
       in: query
       required: false
-      description: id of an api
+      description: Id of an api.
       schema:
         type: string
     subscriptionApplicationQueryParam:
       name: applicationId
       in: query
       required: false
-      description: id of an application
+      description: Id of an application.
       schema:
         type: string
-    userIncludeParam:
+    subscriptionIncludeQueryParam:
       name: include
       in: query
       required: false
-      description: comma-separated list of related object to include in the response
+      description: Comma-separated list of related objects to include in the response.
       schema:
         type: array
         items:
           type: string
           enum:
-            - tasks
-            - notifications
-    viewIdParam: 
-      name: viewId
-      in: path
-      required: true
-      description: id of a View
-      schema:
-        type: string
+            - keys
   schemas:
     #####################
     # Responses Objects #
     #####################
     ErrorResponse:
-      type: array
-      items:
-        $ref: '#/components/schemas/Error'
+      properties:
+        errors : 
+          description: List of errors
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
     
-    DatasResponse:
+    DataResponse:
       properties:
         data:
+          description: List of data.
           type: array
           items:
             $ref: '#/components/schemas/Data'
@@ -1235,6 +1898,7 @@ components:
     NotificationConfigsResponse:
       properties:
         data:
+          description: List of NotificationConfig. It can be either GenericNotificationConfig or PersonalNotificationConfig
           type: array
           items:
             $ref: '#/components/schemas/NotificationConfig'
@@ -1244,20 +1908,29 @@ components:
     Error:
       properties:
         code:
+          description: Code of the error
           type: string
         title:
+          description: Title of the error
           type: string
         detail:
+          description: Detail of the error
           type: string
     Data:
+      description: A data is a generic object. Inherited object of Data are to be returned by this API.
       properties:
         id: 
+          description: Unique identifier of a data
           type: string
-        dataType: 
+        dataType:
+          description: Type of the data. Used for inheritance.
           type: string
       discriminator:
         propertyName: dataType
     Api:
+      description: |
+        Inherited from Data.\
+        Describes an API.
       allOf:
         - $ref: "#/components/schemas/Data"
         - type: object
@@ -1268,25 +1941,31 @@ components:
             - owner
           properties:
             name: 
+              description: Name of the API.
               type: string
             version: 
+              description: Version of the API.
               type: string
             description:
+              description: Description of the API.
               type: string
             draft:
               type: boolean
-              description: wether or not the API is public 
+              description: Whether or not the API is public.
             entrypoints:
+              description: List of all the avaible endpoints to call the API.
               type: array
               items:
                 type: string
             labels: 
+              description: List of labels linked to this API.
               type: array
               items:
                 type: string
             owner:
               $ref: '#/components/schemas/User'
             views: 
+              description: List of views this API belongs to.
               type: array
               items:
                 type: string
@@ -1299,10 +1978,20 @@ components:
             # may be included #
             ###################
             pages:
+              description: |
+                Only returned with */apis/{apiId}*.
+                Need *include* query param to contain 'pages'.
+                
+                The documentation pages of this API. Same as */apis/{apiId}/pages*.
               type: array
               items:
                 $ref: '#/components/schemas/Page'
             plans:
+              description: |
+                Only returned with */apis/{apiId}*.
+                Need *include* query param to contain 'plans'.
+
+                The plans of this API. Same as */apis/{apiId}/plans*.
               type: array
               items:
                 $ref: '#/components/schemas/Plan'
@@ -1316,8 +2005,10 @@ components:
             - order
           properties:
             name:
+              description: Name of the page.
               type: string
             type:
+              description: Type of documentation.
               type: string
               enum:
               - SWAGGER
@@ -1325,19 +2016,25 @@ components:
               - FOLDER
               - ROOT
             order:
+              description: Order of the documentation page in its folder.
               type: integer
             parent:
+              description: Parent page. MAY be null.
               type: string
             updated_at:
+              description: Last update date and time.
               type: string
               format: date-time
             content:
+              description: Raw content of the page.
               type: string
             configuraton:
+              description: Array of key-value about the page.
               type: array
               items:
                 $ref: '#/components/schemas/PageConfiguration'
             metadata:
+              description: Array of metadata about the page. This array is filled when the page has been fetched from a distant source (GitHub, GitLab, etc...).
               type: array
               items:
                 $ref: '#/components/schemas/Metadata'
@@ -1355,8 +2052,10 @@ components:
             - comment_required
           properties:
             name:
+              description: Name of the plan.
               type: string
             security:
+              description: Security used with this plan.
               type: string
               enum:
                 - API_KEY
@@ -1364,24 +2063,30 @@ components:
                 - JWT
                 - OAUTH2
             description:
+              description: Description of the plan.
               type: string
             characteristics:
+              description: List of additionnal terms to describe the plan.
               type: array
               items:
                 type: string
             validation:
+              description: Type of validation for subscription requests.
               type: string
               enum:
                 - AUTO
                 - MANUAL
             order:
+              description: Priority order
               type: integer
             subscribed:
+              description: True if at least one application linked to the current user has subscribed to this plan.
               type: boolean
-              description: true if at least one application linked to the current user has subscribed to this plan
             comment_required:
+              description: True if a comment is required when a subscription is created.
               type: boolean
             comment_question:
+              description: Content of the message sent to a user creating a subscription.
               type: string
     Rating:
       allOf:
@@ -1393,17 +2098,22 @@ components:
             - comment
           properties:
             title:
+              description: Title of a rating.
               type: string
             value:
+              description: Value of the rating. Integer between 1 and 5. 
               type: integer
             author:
               $ref: '#/components/schemas/User'
             date:
+              description: Date and time of the rating.
               type: string
               format: date-time
             comment:
+              description: Comment left by the author to explain the rating.
               type: string
-            answers: 
+            answers:
+              description: Array of answers.
               type: array
               items:
                 $ref: '#/components/schemas/RatingAnswer'
@@ -1413,20 +2123,26 @@ components:
         - type: object
           properties:
             name:
+              description: Name of the application.
               type: string
             description:
+              description: Description of the application.
               type: string
             applicationType:
+              description: Type of the application (Web, Mobile, ...).
               type: string
             owner:
               $ref: '#/components/schemas/User'
             created_at:
+              description: Creation date and time of the application.
               type: string
               format: date-time
             updated_at:
+              description: Last update date and time of the application.
               type: string
               format: date-time
             groups:
+              description: Array of groups associated to the application.
               type: array
               items:
                 type: string
@@ -1435,16 +2151,22 @@ components:
             _links:
               $ref: '#/components/schemas/ApplicationLinks'
     NotificationConfig:
+      description: A notificationConfig is a generic object that can represent either a GenericNotificationConfig or a PortalNotificationConfig.
       properties:
         configType:
+          description: Configuration type. Can be GENERIC, or PORTAL. Used for inheritance.
           type: string
         name:
+          description: Name of the notification config.
           type: string
         reference_type:
+          description: Type of the subject of the notification configuration. For this API, it's always APPLICATION.
           type: string
         reference_id:
+          description: Id of the subject of the notification configuration aka application identifier.
           type: string
         hooks:
+          description: List of event that can be notified.
           type: array
           items:
             type: string
@@ -1459,12 +2181,16 @@ components:
         - type: object
           properties:
             id:
+              description: Unique identifier of the generic notification config.
               type: string
             notifier:
+              description: Type of notification system (Email, WebHook, ...).
               type: string
             config:
+              description: Configuration of the notifier.
               type: string
             use_system_proxy:
+              description: True if the notifier should use system proxy.
               type: boolean
     PortalNotificationConfig:
       allOf:
@@ -1472,6 +2198,7 @@ components:
         - type: object
           properties:
             user:
+              description: User id of the creator of the notification config.
               type: string
     PortalNotification:
       allOf:
@@ -1479,10 +2206,13 @@ components:
         - type: object
           properties:
             title:
+              description: Title of the portal notification.
               type: string
             message:
+              description: Content of the notification.
               type: string
             created_at:
+              description: Creation date and time of the notification.
               type: string
               format: date-time
     Member:
@@ -1493,20 +2223,28 @@ components:
             user:
               $ref: '#/components/schemas/User'
             created_at:
+              description: Creation date and time of the member.
               type: string
               format: date-time
             updated_at:
+              description: Last update date and time of the member.
               type: string
               format: date-time
             role:
+              description: Role of the member. (OWNER, USER, ...).
               type: string
 
     Analytics:
+      description: Analytics is a generic object used to manage inheritance for the /application/{applicationId}/analytics resource.
       type: object
       required:
         - analyticsType
       properties:
         analyticType:
+          description: |
+            Type of the analytics (DateHistoAnalytics, GroupByAnalytics or CountAnalytics). 
+            
+            Used for inheritance.
           type: string
       discriminator:
         propertyName: analyticsType
@@ -1518,6 +2256,7 @@ components:
             timestamp:
               $ref: '#/components/schemas/Timerange'
             values:
+              description: List of data buckets.
               type: array
               items:
                 $ref: '#/components/schemas/Bucket'
@@ -1527,6 +2266,7 @@ components:
         - type: object
           properties:
             values:
+              description: Total hits by terms.
               type: object
               additionalProperties:
                 type: integer
@@ -1549,28 +2289,37 @@ components:
         - type: object
           properties:
             timestamp:
+              description: Instant of the log.
               type: integer
               format: int64
             transactionId:
+              description: Request identifier.
               type: string
             path:
+              description: Path of the request.
               type: string
             method:
               $ref: '#/components/schemas/HttpMethod'
             status:
+              description: HTTP status code of the request.
               type: integer
             responseTime:
+              description: Request duration.
               type: integer
               format: int64
             requestContentLength:
+              description: Request content length.
               type: integer
               format: int64
             responseContentLength:
+              description: Response content length.
               type: integer
               format: int64
             plan:
+              description: Plan used by the request.
               type: string
             api:
+              description: API called by the request.
               type: string
             request:
               $ref: '#/components/schemas/Request'
@@ -1579,12 +2328,16 @@ components:
             metadata:
               $ref: '#/components/schemas/MetadataMap'
             host:
+              description: API Gateway host.
               type: string
             user:
+              description: User identifier.
               type: string
             securityType:
+              description: Security type of the request.
               type: string
             securityToken:
+              description: Token used by the request.
               type: string
     Subscription:
       allOf:
@@ -1597,26 +2350,35 @@ components:
             - status
           properties:
             api:
+              description: Subscribed API.
               type: string
             application:
+              description: Subscribing application.
               type: string
             plan:
+              description: Subscribed plan.
               type: string
             request:
+              description: Comment of the user when asking for a subscription.
               type: string
             created_at:
+              description: Creation date and time of the subscription.
               type: string
               format: date-time
             processed_at:
+              description: Date and time when the subscription request was processed.
               type: string
               format: date-time
             start_at:
+              description: Start date and time of the subscription.
               type: string
               format: date-time
             end_at:
+              description: Expiration date and time of the subscription.
               type: string
               format: date-time
             status:
+              description: Status of the subscription.
               type: string
               enum:
                 - PENDING
@@ -1626,6 +2388,11 @@ components:
             # may be included #
             ###################
             keys:
+              description: |
+                Only returned with */subscriptions/{subscriptionId}*.
+                Need *include* query param to contain 'keys'.
+                
+                List of APIKeys of the subscription.
               type: array
               items:
                 $ref: '#/components/schemas/Key'
@@ -1711,19 +2478,21 @@ components:
     SubscriptionInput:
       properties:
         application:
-          description: id of the application which subscribe
+          description: Id of the application which subscribe
           type: string
         plan:
-          description: id of the plan to which the application subscribe
+          description: Id of the plan to which the application subscribe
           type: string
         request:
-          description: a request message to the api owner why a user want to subscribe
+          description: A request message to the api owner why a user want to subscribe
           type: string
     TransferOwnershipInput:
       properties:
         new_primary_owner:
-         type: string
+          description: User identifier of the new Primary Owner of the application.
+          type: string
         primary_owner_newrole:
+          description: New role to be affected to the current PrimaryOwner.
           type: string
     PayloadInput:
       properties:
@@ -1800,6 +2569,7 @@ components:
         renew_client_secret_supported:
           type: boolean
     Metadata:
+      description: Information about the page, if this page is from an external source.
       properties:
         name:
           type: string
@@ -1830,6 +2600,7 @@ components:
           type: number
           format: double
     PageConfiguration:
+      description: Technical information about the page
       properties:
         key:
           type: string
@@ -1845,6 +2616,7 @@ components:
         comment:
           type: string
     Key:
+      description: Subscription Key
       properties:
         id:
           type: string
@@ -1879,12 +2651,14 @@ components:
         - OTHER
       default: OTHER
     HttpHeaders:
+      description: List of String List
       type: array
       additionalProperties:
         type: array
         items:
           type: string
     Request:
+      description: Request logged by the API Gateway
       properties:
         method:
           $ref: '#/components/schemas/HttpMethod'
@@ -1895,6 +2669,7 @@ components:
         body:
           type: string
     Response:
+      description: Response logged by the API Gateway
       properties:
         status:
           type: integer
@@ -1903,6 +2678,7 @@ components:
         body:
           type: string
     MetadataMap:
+      description: Map of Map of String
       type: object
       additionalProperties:
         type: object
@@ -1938,13 +2714,14 @@ components:
     CategoryApiQuery:
       type: string
       enum:
+        - FEATURED
         - MINE
         - STARRED
         - TRENDINGS
-        - FEATURED
-    #####################
-    # Structure Objects #
-    #####################
+
+    #################
+    # Links Objects #
+    #################
     Links:
       properties:
         self:
@@ -1997,26 +2774,50 @@ components:
           type: string
 
   responses:
-    GeneralError:
-      description: General Error
+    InternalServerError:
+      description: Internal Server Error
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
-    ApiSuccess:
-      description: One API
+    PermissionError:
+      description: Insufficient rights to access this resource
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Api'
-    ApisSuccess:
-      description: List of APIs
+            $ref: '#/components/schemas/ErrorResponse'
+    UnauthorizedError:
+      description: Unauthorized
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/DatasResponse'
+            $ref: '#/components/schemas/ErrorResponse'
+    APINotFoundError:
+      description: API not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ApplicationNotFoundError:
+      description: Application not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    AuthSuccess:
+      description: Auth token in payload and bearer in cookie
+      headers:
+        set-cookie:
+          description: Auth cookie
+          schema:
+            type: string
+            example: Auth-Graviteeio-APIM=Bearer%20xxxxxx;Path=/;HttpOnly
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Token'
     PageSuccess:
-      description: One page
+      description: One documentation page
       content:
         application/json:
           schema:
@@ -2026,162 +2827,15 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/DatasResponse'
+            $ref: '#/components/schemas/DataResponse'
     PictureSuccess:
-      description: an API picture
+      description: A picture
       content:
         'image/*':
           schema:
             type: string
             format: binary
-    PlansSuccess:
-      description: List of plans
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/DatasResponse'
-    RatingSuccess:
-      description: One rating
-      content:
-        application/json:
-          schema:  
-            $ref: '#/components/schemas/Rating'
-    RatingsSuccess:
-      description: List of subscriptions
-      content:
-        application/json:
-          schema:  
-            $ref: '#/components/schemas/DatasResponse'
-    ApplicationSuccess:
-      description: One Application
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Application'
-    ApplicationsSuccess:
-      description: List of Applications
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/DatasResponse'
-    MemberSuccess:
-      description: A member
-      content:
-        application/json:
-          schema:  
-            $ref: '#/components/schemas/Member'
-    MembersSuccess:
-      description: List of members
-      content:
-        application/json:
-          schema:  
-            $ref: '#/components/schemas/DatasResponse'
-    NotificationConfigSuccess:
-      description: A notification config
-      content:
-        application/json:
-          schema:
-            oneOf:
-              - $ref: '#/components/schemas/PortalNotificationConfig'
-              - $ref: '#/components/schemas/GenericNotificationConfig'
-    NotificationConfigsSuccess:
-      description: List of notification configs
-      content:
-        application/json:
-          schema:  
-            $ref: '#/components/schemas/NotificationConfigsResponse'
-    NotificationSuccess:
-      description: A notification
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/PortalNotification'
-    NotificationsSuccess:
-      description: List of notifications
-      content:
-        application/json:
-          schema:  
-            $ref: '#/components/schemas/DatasResponse'
-    AnalyticsSuccess:
-      description: Analytics
-      content:
-        application/json:
-          schema:  
-            $ref: '#/components/schemas/Analytics'
-    LogSuccess:
-      description: A log
-      content:
-        application/json:
-          schema:  
-           $ref: '#/components/schemas/Log'
-    LogsSuccess:
-      description: List of logs
-      content:
-        application/json:
-          schema:  
-            $ref: '#/components/schemas/DatasResponse'
-    LogsExportSuccess:
-      description: CSV export of the logs
-      content:
-        text/plain:
-          schema:  
-            type: string
-    SubscriptionSuccess:
-      description: One subscription
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Subscription'
-    SubscriptionsSuccess:
-      description: List of Subscriptions
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/DatasResponse'
-    UserSuccess:
-      description: The current user
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/User'
-    UsersSuccess:
-      description: List of platform users
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/DatasResponse'
-    ViewSuccess:
-      description: One View
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/View'
-    ViewsSuccess:
-      description: List of Views
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/DatasResponse'
-    LoginSuccess:
-      description: Auth token in payload and bearer in cookie
-      headers:
-        set-sookie:
-          description: auth cookie
-          schema:
-            type: string
-            example: Auth-Graviteeio-APIM=Bearer%20xxxxxx;Path=/;HttpOnly
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Token'
-    LogoutSuccess:
-      description: An empty cookie
-      headers:
-        set-cookie:
-          description: empty cookie
-          schema:
-            type: string
-            example: Auth-Graviteeio-APIM=;Path=/;Expires=Thu, 01-Jan-1970 00:00:00 GMT;Max-Age=0;HttpOnly
+
   securitySchemes:
     BasicAuth:
       type: http

@@ -39,8 +39,9 @@ import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Data;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -97,7 +98,12 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         final Response response = target(API).path("plans").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
         
-        final Error error = response.readEntity(Error.class);
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        
+        Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("404", error.getCode());
         assertEquals("io.gravitee.rest.api.service.exceptions.ApiNotFoundException", error.getTitle());
@@ -110,7 +116,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         assertEquals(OK_200, response.getStatus());
 
-        final DatasResponse plansResponse = response.readEntity(DatasResponse.class);
+        final DataResponse plansResponse = response.readEntity(DataResponse.class);
         List<Data> plans = plansResponse.getData();
         assertNotNull(plans);
         assertEquals(2, plans.size());

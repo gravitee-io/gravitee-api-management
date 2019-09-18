@@ -27,6 +27,7 @@ import static org.mockito.Mockito.reset;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -43,8 +44,9 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
@@ -101,7 +103,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         final Response response = target().queryParam("apiId", API).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse subscriptionResponse = response.readEntity(DatasResponse.class);
+        DataResponse subscriptionResponse = response.readEntity(DataResponse.class);
         assertEquals(2, subscriptionResponse.getData().size());
     }
     
@@ -110,10 +112,14 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         
-        Error errorResponse = response.readEntity(Error.class);
-        assertEquals("400", errorResponse.getCode());
-        assertEquals("javax.ws.rs.BadRequestException", errorResponse.getTitle());
-        assertEquals("At least an api or an application must be provided.", errorResponse.getDetail());
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        Error error = errors.get(0);
+        assertEquals("400", error.getCode());
+        assertEquals("javax.ws.rs.BadRequestException", error.getTitle());
+        assertEquals("At least an api or an application must be provided.", error.getDetail());
     }
     
     @Test
@@ -124,7 +130,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         final Response response = target().queryParam("apiId", API).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DatasResponse subscriptionResponse = response.readEntity(DatasResponse.class);
+        DataResponse subscriptionResponse = response.readEntity(DataResponse.class);
         assertEquals(0, subscriptionResponse.getData().size());
         
         Links links = subscriptionResponse.getLinks();
@@ -134,7 +140,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target().queryParam("apiId", API).queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        subscriptionResponse = anotherResponse.readEntity(DatasResponse.class);
+        subscriptionResponse = anotherResponse.readEntity(DataResponse.class);
         assertEquals(0, subscriptionResponse.getData().size());
         
         links = subscriptionResponse.getLinks();

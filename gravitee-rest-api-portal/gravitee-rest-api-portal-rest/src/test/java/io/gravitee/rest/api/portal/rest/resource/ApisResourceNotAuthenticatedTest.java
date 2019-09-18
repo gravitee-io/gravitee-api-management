@@ -42,7 +42,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.portal.rest.model.Api;
-import io.gravitee.rest.api.portal.rest.model.DatasResponse;
+import io.gravitee.rest.api.portal.rest.model.DataResponse;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -119,7 +119,7 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         
         Mockito.verify(apiService).findPublishedByUser(isNull(), any(ApiQuery.class));
         
-        DatasResponse apiResponse = response.readEntity(DatasResponse.class);
+        DataResponse apiResponse = response.readEntity(DataResponse.class);
         assertEquals(2, apiResponse.getData().size());
         assertEquals("A", ((Api)apiResponse.getData().get(0)).getName());
         assertEquals("C", ((Api)apiResponse.getData().get(1)).getName());

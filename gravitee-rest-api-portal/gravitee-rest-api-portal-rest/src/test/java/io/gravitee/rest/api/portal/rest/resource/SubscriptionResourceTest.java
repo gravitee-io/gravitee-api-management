@@ -26,6 +26,7 @@ import static org.mockito.Mockito.reset;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.ws.rs.core.Response;
 
@@ -39,6 +40,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
@@ -137,8 +139,9 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
         final Response response = target(UNKNOWN_SUBSCRIPTION).request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
         
-        Error error = response.readEntity(Error.class);
-        assertNotNull(error);
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
     }
     
     @Test
