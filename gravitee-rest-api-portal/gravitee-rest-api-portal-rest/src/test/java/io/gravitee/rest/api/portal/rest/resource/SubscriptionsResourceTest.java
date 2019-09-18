@@ -44,7 +44,7 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.portal.rest.model.DataResponse;
+import io.gravitee.rest.api.portal.rest.model.SubscriptionsResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
@@ -103,7 +103,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         final Response response = target().queryParam("apiId", API).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DataResponse subscriptionResponse = response.readEntity(DataResponse.class);
+        SubscriptionsResponse subscriptionResponse = response.readEntity(SubscriptionsResponse.class);
         assertEquals(2, subscriptionResponse.getData().size());
     }
     
@@ -130,7 +130,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         final Response response = target().queryParam("apiId", API).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DataResponse subscriptionResponse = response.readEntity(DataResponse.class);
+        SubscriptionsResponse subscriptionResponse = response.readEntity(SubscriptionsResponse.class);
         assertEquals(0, subscriptionResponse.getData().size());
         
         Links links = subscriptionResponse.getLinks();
@@ -140,7 +140,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target().queryParam("apiId", API).queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        subscriptionResponse = anotherResponse.readEntity(DataResponse.class);
+        subscriptionResponse = anotherResponse.readEntity(SubscriptionsResponse.class);
         assertEquals(0, subscriptionResponse.getData().size());
         
         links = subscriptionResponse.getLinks();

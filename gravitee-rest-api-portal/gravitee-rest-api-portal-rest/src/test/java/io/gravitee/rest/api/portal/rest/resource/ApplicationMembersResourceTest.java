@@ -39,7 +39,7 @@ import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.portal.rest.model.DataResponse;
+import io.gravitee.rest.api.portal.rest.model.MembersResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
@@ -94,7 +94,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DataResponse membersResponse = response.readEntity(DataResponse.class);
+        MembersResponse membersResponse = response.readEntity(MembersResponse.class);
         assertEquals(2, membersResponse.getData().size());
         assertEquals(MEMBER_1, membersResponse.getData().get(0).getId());
         assertEquals(MEMBER_2, membersResponse.getData().get(1).getId());
@@ -108,7 +108,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DataResponse membersResponse = response.readEntity(DataResponse.class);
+        MembersResponse membersResponse = response.readEntity(MembersResponse.class);
         assertEquals(1, membersResponse.getData().size());
         assertEquals(MEMBER_2, membersResponse.getData().get(0).getId());
     
@@ -142,7 +142,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DataResponse membersResponse = response.readEntity(DataResponse.class);
+        MembersResponse membersResponse = response.readEntity(MembersResponse.class);
         assertEquals(0, membersResponse.getData().size());
         
         Links links = membersResponse.getLinks();
@@ -152,7 +152,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target(APPLICATION).path("members").queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        membersResponse = anotherResponse.readEntity(DataResponse.class);
+        membersResponse = anotherResponse.readEntity(MembersResponse.class);
         assertEquals(0, membersResponse.getData().size());
         
         links = membersResponse.getLinks();

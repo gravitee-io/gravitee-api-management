@@ -36,11 +36,10 @@ import org.junit.Test;
 
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Data;
-import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.PagesResponse;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -101,9 +100,9 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         final Response response = target(API).path("pages").request().get();
         assertEquals(OK_200, response.getStatus());
 
-        DataResponse pagesResponse = response.readEntity(DataResponse.class);
+        PagesResponse pagesResponse = response.readEntity(PagesResponse.class);
 
-        List<Data> pages = pagesResponse.getData();
+        List<Page> pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(1, pages.size());
     }
@@ -119,8 +118,8 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         Response response = request.get();
         assertEquals(OK_200, response.getStatus());
 
-        DataResponse pagesResponse = response.readEntity(DataResponse.class);
-        List<Data> pages = pagesResponse.getData();
+        PagesResponse pagesResponse = response.readEntity(PagesResponse.class);
+        List<Page> pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(0, pages.size());
         
@@ -131,7 +130,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         response = request.get();
         assertEquals(OK_200, response.getStatus());
 
-        pagesResponse = response.readEntity(DataResponse.class);
+        pagesResponse = response.readEntity(PagesResponse.class);
         pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(0, pages.size());
@@ -143,7 +142,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         response = request.get();
         assertEquals(OK_200, response.getStatus());
 
-        pagesResponse = response.readEntity(DataResponse.class);
+        pagesResponse = response.readEntity(PagesResponse.class);
         pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(0, pages.size());

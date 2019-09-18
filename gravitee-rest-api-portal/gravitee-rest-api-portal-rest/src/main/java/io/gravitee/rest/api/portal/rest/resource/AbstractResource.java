@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,14 +52,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.portal.rest.model.Data;
-import io.gravitee.rest.api.portal.rest.model.DataResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.ApiService;
@@ -272,14 +273,14 @@ public abstract class AbstractResource {
         return list;
     }
     
-    protected DataResponse createDataResponse(List<? extends Data> dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata, boolean withPagination) {
+    protected DataResponse createDataResponse(List dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata, boolean withPagination) {
         int totalItems = dataList.size();
         
-        List<Data> paginatedList;
+        List paginatedList;
         if(withPagination ) {
             paginatedList = this.paginateResultList(dataList, paginationParam.getPage(), paginationParam.getSize());
         } else {
-            paginatedList = (List<Data>)dataList;
+            paginatedList = dataList;
         }
         
         return new DataResponse()
@@ -299,19 +300,19 @@ public abstract class AbstractResource {
         return metadata;
     }
     
-    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam) {
+    protected Response createListResponse(List dataList, PaginationParam paginationParam) {
         return createListResponse(dataList, paginationParam, null, true);
     }
     
-    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, boolean withPagination) {
+    protected Response createListResponse(List dataList, PaginationParam paginationParam, boolean withPagination) {
         return createListResponse(dataList, paginationParam, null, withPagination);
     }
     
-    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata) {
+    protected Response createListResponse(List dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata) {
         return createListResponse(dataList, paginationParam, metadata, true);
     }
     
-    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata, boolean withPagination) {
+    protected Response createListResponse(List dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata, boolean withPagination) {
         return Response
                 .ok(createDataResponse(dataList, paginationParam, metadata, withPagination))
                 .build();
@@ -343,5 +344,64 @@ public abstract class AbstractResource {
                 .tag(etag)
                 .type(image.getType())
                 .build();
+    }
+    
+    private class DataResponse {
+        private List data = null;
+        private Map<String, Map<String, String>> metadata = null;
+        private Links links;
+
+        public DataResponse data(List data) {
+          this.data = data;
+          return this;
+        }
+
+        @javax.annotation.Nullable
+        @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+        public List getData() {
+          return data;
+        }
+
+        public DataResponse metadata(Map<String, Map<String, String>> metadata) {
+          this.metadata = metadata;
+          return this;
+        }
+
+        @javax.annotation.Nullable
+        @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+        public Map<String, Map<String, String>> getMetadata() {
+          return metadata;
+        }
+
+        public DataResponse links(Links links) {
+          this.links = links;
+          return this;
+        }
+
+        @javax.annotation.Nullable
+        @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
+        public Links getLinks() {
+          return links;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object o) {
+          if (this == o) {
+            return true;
+          }
+          if (o == null || getClass() != o.getClass()) {
+            return false;
+          }
+          DataResponse dataResponse = (DataResponse) o;
+          return Objects.equals(this.data, dataResponse.data) &&
+              Objects.equals(this.metadata, dataResponse.metadata) &&
+              Objects.equals(this.links, dataResponse.links);
+        }
+
+        @Override
+        public int hashCode() {
+          return Objects.hash(data, metadata, links);
+        }
+        
     }
 }

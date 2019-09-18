@@ -35,8 +35,8 @@ import org.mockito.Mockito;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
-import io.gravitee.rest.api.portal.rest.model.Data;
-import io.gravitee.rest.api.portal.rest.model.DataResponse;
+import io.gravitee.rest.api.portal.rest.model.PortalNotification;
+import io.gravitee.rest.api.portal.rest.model.PortalNotificationsResponse;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -74,9 +74,9 @@ public class UserNotificationsResourceTest extends AbstractResourceTest {
         final Response response = target().path("notifications").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DataResponse notificationsResponse = response.readEntity(DataResponse.class);
+        PortalNotificationsResponse notificationsResponse = response.readEntity(PortalNotificationsResponse.class);
         assertNotNull(notificationsResponse);
-        List<Data> data = notificationsResponse.getData();
+        List<PortalNotification> data = notificationsResponse.getData();
         assertEquals(3, data.size());
         assertEquals("3", data.get(0).getId());
         assertEquals("2", data.get(1).getId());

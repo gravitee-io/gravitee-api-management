@@ -42,7 +42,7 @@ import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
-import io.gravitee.rest.api.portal.rest.model.DataResponse;
+import io.gravitee.rest.api.portal.rest.model.LogsResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Log;
 
@@ -114,7 +114,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         assertEquals(100, logQuery.getTo());
         assertTrue(logQuery.isOrder());
         
-        DataResponse logsResponse = response.readEntity(DataResponse.class);
+        LogsResponse logsResponse = response.readEntity(LogsResponse.class);
         assertEquals(2, logsResponse.getData().size());
         assertEquals(metadata, logsResponse.getMetadata());
         Links links = logsResponse.getLinks();
@@ -139,7 +139,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
                 .request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DataResponse logsResponse = response.readEntity(DataResponse.class);
+        LogsResponse logsResponse = response.readEntity(LogsResponse.class);
         assertEquals(0, logsResponse.getData().size());
         
         Links links = logsResponse.getLinks();

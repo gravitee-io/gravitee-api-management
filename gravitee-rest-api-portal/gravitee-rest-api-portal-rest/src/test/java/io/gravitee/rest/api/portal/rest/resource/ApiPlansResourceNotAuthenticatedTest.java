@@ -44,8 +44,8 @@ import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Data;
-import io.gravitee.rest.api.portal.rest.model.DataResponse;
+import io.gravitee.rest.api.portal.rest.model.Plan;
+import io.gravitee.rest.api.portal.rest.model.PlansResponse;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -125,9 +125,9 @@ public class ApiPlansResourceNotAuthenticatedTest extends AbstractResourceTest {
         final Response response = target(API).path("plans").request().get();
         assertEquals(OK_200, response.getStatus());
 
-        DataResponse plansResponse = response.readEntity(DataResponse.class);
+        PlansResponse plansResponse = response.readEntity(PlansResponse.class);
 
-        List<Data> plans = plansResponse.getData();
+        List<Plan> plans = plansResponse.getData();
         assertNotNull(plans);
         assertEquals(2, plans.size());
     }
@@ -139,9 +139,9 @@ public class ApiPlansResourceNotAuthenticatedTest extends AbstractResourceTest {
         final Response response = target(API).path("plans").request().get();
         assertEquals(OK_200, response.getStatus());
 
-        DataResponse plansResponse = response.readEntity(DataResponse.class);
+        PlansResponse plansResponse = response.readEntity(PlansResponse.class);
 
-        List<Data> plans = plansResponse.getData();
+        List<Plan> plans = plansResponse.getData();
         assertNotNull(plans);
         assertEquals(0, plans.size());
     }

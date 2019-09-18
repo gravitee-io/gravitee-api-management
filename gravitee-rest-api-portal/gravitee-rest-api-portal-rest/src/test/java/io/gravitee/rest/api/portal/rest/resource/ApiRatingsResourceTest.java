@@ -42,8 +42,8 @@ import org.junit.Test;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Data;
-import io.gravitee.rest.api.portal.rest.model.DataResponse;
+import io.gravitee.rest.api.portal.rest.model.Rating;
+import io.gravitee.rest.api.portal.rest.model.RatingsResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Rating;
@@ -148,8 +148,8 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
 
         assertEquals(OK_200, response.getStatus());
 
-        final DataResponse ratingsResponse = response.readEntity(DataResponse.class);
-        List<Data> ratings = ratingsResponse.getData();
+        final RatingsResponse ratingsResponse = response.readEntity(RatingsResponse.class);
+        List<Rating> ratings = ratingsResponse.getData();
         assertNotNull(ratings);
         assertEquals(2, ratings.size());
         

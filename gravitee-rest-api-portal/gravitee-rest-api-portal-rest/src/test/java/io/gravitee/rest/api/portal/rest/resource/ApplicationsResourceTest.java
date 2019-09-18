@@ -43,7 +43,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationInput;
-import io.gravitee.rest.api.portal.rest.model.DataResponse;
+import io.gravitee.rest.api.portal.rest.model.ApplicationsResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
@@ -101,7 +101,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertTrue(bastPathList.contains(expectedBasePath+"/A"));
         assertTrue(bastPathList.contains(expectedBasePath+"/B"));
 
-        DataResponse applicationsResponse = response.readEntity(DataResponse.class);
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
         assertEquals(2, applicationsResponse.getData().size());
         assertEquals("A", applicationsResponse.getData().get(0).getId());
         assertEquals("B", applicationsResponse.getData().get(1).getId());
@@ -114,7 +114,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     public void shouldGetApplicationsWithPaginatedLink() {
         final Response response = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        DataResponse applicationsResponse = response.readEntity(DataResponse.class);
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
         assertEquals(1, applicationsResponse.getData().size());
         assertEquals("B", applicationsResponse.getData().get(0).getId());
 
@@ -148,7 +148,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DataResponse applicationsResponse = response.readEntity(DataResponse.class);
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
         assertEquals(0, applicationsResponse.getData().size());
 
         Links links = applicationsResponse.getLinks();
@@ -158,7 +158,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        applicationsResponse = anotherResponse.readEntity(DataResponse.class);
+        applicationsResponse = anotherResponse.readEntity(ApplicationsResponse.class);
         assertEquals(0, applicationsResponse.getData().size());
 
         links = applicationsResponse.getLinks();

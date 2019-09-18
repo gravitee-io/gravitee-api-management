@@ -37,7 +37,7 @@ import org.mockito.Mockito;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ViewEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.DataResponse;
+import io.gravitee.rest.api.portal.rest.model.ViewsResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
@@ -92,7 +92,7 @@ public class ViewsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
         Mockito.verify(apiService).findByUser(any(), any());
-        DataResponse viewsResponse = response.readEntity(DataResponse.class);
+        ViewsResponse viewsResponse = response.readEntity(ViewsResponse.class);
         assertEquals(2, viewsResponse.getData().size());
         
     }
@@ -121,7 +121,7 @@ public class ViewsResourceTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        DataResponse viewsResponse = response.readEntity(DataResponse.class);
+        ViewsResponse viewsResponse = response.readEntity(ViewsResponse.class);
         assertEquals(0, viewsResponse.getData().size());
         
         Links links = viewsResponse.getLinks();
@@ -131,7 +131,7 @@ public class ViewsResourceTest extends AbstractResourceTest {
         final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        viewsResponse = anotherResponse.readEntity(DataResponse.class);
+        viewsResponse = anotherResponse.readEntity(ViewsResponse.class);
         assertEquals(0, viewsResponse.getData().size());
         
         links = viewsResponse.getLinks();

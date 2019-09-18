@@ -38,8 +38,8 @@ import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PlanValidationType;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Data;
-import io.gravitee.rest.api.portal.rest.model.DataResponse;
+import io.gravitee.rest.api.portal.rest.model.Plan;
+import io.gravitee.rest.api.portal.rest.model.PlansResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 
@@ -116,8 +116,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         assertEquals(OK_200, response.getStatus());
 
-        final DataResponse plansResponse = response.readEntity(DataResponse.class);
-        List<Data> plans = plansResponse.getData();
+        final PlansResponse plansResponse = response.readEntity(PlansResponse.class);
+        List<Plan> plans = plansResponse.getData();
         assertNotNull(plans);
         assertEquals(2, plans.size());
         

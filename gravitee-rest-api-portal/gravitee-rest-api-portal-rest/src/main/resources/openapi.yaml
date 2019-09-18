@@ -70,7 +70,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataResponse'
+                $ref: '#/components/schemas/ApisResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}:
@@ -194,7 +194,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataResponse'
+                $ref: '#/components/schemas/PlansResponse'
         404:
           $ref: '#/components/responses/APINotFoundError'
         500:
@@ -221,7 +221,7 @@ paths:
           content:
             application/json:
               schema:  
-                $ref: '#/components/schemas/DataResponse'
+                $ref: '#/components/schemas/RatingsResponse'
         404:
           $ref: '#/components/responses/APINotFoundError'
         500:
@@ -286,7 +286,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataResponse'
+                $ref: '#/components/schemas/ApplicationsResponse'
         403:
           $ref: '#/components/responses/PermissionError'
         500:
@@ -587,7 +587,7 @@ paths:
           content:
             application/json:
               schema:  
-                $ref: '#/components/schemas/DataResponse'
+                $ref: '#/components/schemas/MembersResponse'
         403:
           $ref: '#/components/responses/PermissionError'
         404:
@@ -763,8 +763,11 @@ paths:
           description: Analytics
           content:
             application/json:
-              schema:  
-                $ref: '#/components/schemas/Analytics'
+              schema:
+                oneOf:
+                  -  $ref: '#/components/schemas/DateHistoAnalytics'
+                  -  $ref: '#/components/schemas/GroupByAnalytics'
+                  -  $ref: '#/components/schemas/CountAnalytics'
         400:
           description: Invalid query params.
           content:
@@ -804,7 +807,7 @@ paths:
           content:
             application/json:
               schema:  
-                $ref: '#/components/schemas/DataResponse'
+                $ref: '#/components/schemas/LogsResponse'
         400:
           description: Invalid query params.
           content:
@@ -982,7 +985,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataResponse'
+                $ref: '#/components/schemas/SubscriptionsResponse'
         400:
           description: At least an api or an application must be provided.
           content:
@@ -1169,7 +1172,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataResponse'
+                $ref: '#/components/schemas/UsersResponse'
         403:
           $ref: '#/components/responses/PermissionError'
         500:
@@ -1244,7 +1247,7 @@ paths:
           content:
             application/json:
               schema:  
-                $ref: '#/components/schemas/DataResponse'
+                $ref: '#/components/schemas/PortalNotificationsResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
     delete:
@@ -1336,7 +1339,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataResponse'
+                $ref: '#/components/schemas/ViewsResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
   /views/{viewId}:
@@ -1863,18 +1866,127 @@ components:
           items:
             $ref: '#/components/schemas/Error'
     
-    DataResponse:
+    ApisResponse:
+      properties:
+        data:
+          description: List of API.
+          type: array
+          items:
+            $ref: '#/components/schemas/Api'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
+    ApplicationsResponse:
+      properties:
+        data:
+          description: List of applications.
+          type: array
+          items:
+            $ref: '#/components/schemas/Application'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
+    PagesResponse:
+      properties:
+        data:
+          description: List of pages.
+          type: array
+          items:
+            $ref: '#/components/schemas/Page'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
+    RatingsResponse:
+      properties:
+        data:
+          description: List of ratings.
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
+    PlansResponse:
       properties:
         data:
           description: List of data.
           type: array
           items:
-            $ref: '#/components/schemas/Data'
+            $ref: '#/components/schemas/Plan'
         metadata:
             $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
-    
+    MembersResponse:
+      properties:
+        data:
+          description: List of members.
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
+    UsersResponse:
+      properties:
+        data:
+          description: List of users.
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
+    ViewsResponse:
+      properties:
+        data:
+          description: List of views.
+          type: array
+          items:
+            $ref: '#/components/schemas/View'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
+    PortalNotificationsResponse:
+      properties:
+        data:
+          description: List of portal notifications.
+          type: array
+          items:
+            $ref: '#/components/schemas/PortalNotification'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
+    LogsResponse:
+      properties:
+        data:
+          description: List of logs.
+          type: array
+          items:
+            $ref: '#/components/schemas/Log'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
+    SubscriptionsResponse:
+      properties:
+        data:
+          description: List of subscriptions.
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
     NotificationConfigsResponse:
       properties:
         data:
@@ -1896,243 +2008,238 @@ components:
         detail:
           description: Detail of the error
           type: string
-    Data:
-      description: A data is a generic object. Inherited object of Data are to be returned by this API.
-      properties:
-        id: 
-          description: Unique identifier of a data
-          type: string
-        dataType:
-          description: Type of the data. Used for inheritance.
-          type: string
-      discriminator:
-        propertyName: dataType
     Api:
       description: |
-        Inherited from Data.\
         Describes an API.
-      allOf:
-        - $ref: "#/components/schemas/Data"
-        - type: object
-          required:
-            - name
-            - version
-            - description
-            - owner
-          properties:
-            name: 
-              description: Name of the API.
-              type: string
-            version: 
-              description: Version of the API.
-              type: string
-            description:
-              description: Description of the API.
-              type: string
-            draft:
-              type: boolean
-              description: Whether or not the API is public.
-            entrypoints:
-              description: List of all the avaible endpoints to call the API.
-              type: array
-              items:
-                type: string
-            labels: 
-              description: List of labels linked to this API.
-              type: array
-              items:
-                type: string
-            owner:
-              $ref: '#/components/schemas/User'
-            views: 
-              description: List of views this API belongs to.
-              type: array
-              items:
-                type: string
-            rating_summary: 
-              $ref: '#/components/schemas/RatingSummary'
-            _links:
-              $ref: '#/components/schemas/ApiLinks'
+      required:
+        - id
+        - name
+        - version
+        - description
+        - owner
+      properties:
+        id: 
+          description: Unique identifier of an API.
+          type: string
+        name: 
+          description: Name of the API.
+          type: string
+        version: 
+          description: Version of the API.
+          type: string
+        description:
+          description: Description of the API.
+          type: string
+        draft:
+          type: boolean
+          description: Whether or not the API is public.
+        entrypoints:
+          description: List of all the avaible endpoints to call the API.
+          type: array
+          items:
+            type: string
+        labels: 
+          description: List of labels linked to this API.
+          type: array
+          items:
+            type: string
+        owner:
+          $ref: '#/components/schemas/User'
+        views: 
+          description: List of views this API belongs to.
+          type: array
+          items:
+            type: string
+        rating_summary: 
+          $ref: '#/components/schemas/RatingSummary'
+        _links:
+          $ref: '#/components/schemas/ApiLinks'
+        
+        ###################
+        # may be included #
+        ###################
+        pages:
+          description: |
+            Only returned with */apis/{apiId}*.
+            Need *include* query param to contain 'pages'.
             
-            ###################
-            # may be included #
-            ###################
-            pages:
-              description: |
-                Only returned with */apis/{apiId}*.
-                Need *include* query param to contain 'pages'.
-                
-                The documentation pages of this API. Same as */apis/{apiId}/pages*.
-              type: array
-              items:
-                $ref: '#/components/schemas/Page'
-            plans:
-              description: |
-                Only returned with */apis/{apiId}*.
-                Need *include* query param to contain 'plans'.
+            The documentation pages of this API. Same as */apis/{apiId}/pages*.
+          type: array
+          items:
+            $ref: '#/components/schemas/Page'
+        plans:
+          description: |
+            Only returned with */apis/{apiId}*.
+            Need *include* query param to contain 'plans'.
 
-                The plans of this API. Same as */apis/{apiId}/plans*.
-              type: array
-              items:
-                $ref: '#/components/schemas/Plan'
+            The plans of this API. Same as */apis/{apiId}/plans*.
+          type: array
+          items:
+            $ref: '#/components/schemas/Plan'
     Page:
-      allOf:
-        - $ref: "#/components/schemas/Data"
-        - type: object
-          required:
-            - name
-            - type
-            - order
-          properties:
-            name:
-              description: Name of the page.
-              type: string
-            type:
-              description: Type of documentation.
-              type: string
-              enum:
-              - SWAGGER
-              - MARKDOWN
-              - FOLDER
-              - ROOT
-            order:
-              description: Order of the documentation page in its folder.
-              type: integer
-            parent:
-              description: Parent page. MAY be null.
-              type: string
-            updated_at:
-              description: Last update date and time.
-              type: string
-              format: date-time
-            content:
-              description: Raw content of the page.
-              type: string
-            configuraton:
-              description: Array of key-value about the page.
-              type: array
-              items:
-                $ref: '#/components/schemas/PageConfiguration'
-            metadata:
-              description: Array of metadata about the page. This array is filled when the page has been fetched from a distant source (GitHub, GitLab, etc...).
-              type: array
-              items:
-                $ref: '#/components/schemas/Metadata'
+      required:
+        - id
+        - name
+        - type
+        - order
+      properties:
+        id: 
+          description: Unique identifier of a page.
+          type: string
+        name:
+          description: Name of the page.
+          type: string
+        type:
+          description: Type of documentation.
+          type: string
+          enum:
+          - SWAGGER
+          - MARKDOWN
+          - FOLDER
+          - ROOT
+        order:
+          description: Order of the documentation page in its folder.
+          type: integer
+        parent:
+          description: Parent page. MAY be null.
+          type: string
+        updated_at:
+          description: Last update date and time.
+          type: string
+          format: date-time
+        content:
+          description: Raw content of the page.
+          type: string
+        configuraton:
+          description: Array of key-value about the page.
+          type: array
+          items:
+            $ref: '#/components/schemas/PageConfiguration'
+        metadata:
+          description: Array of metadata about the page. This array is filled when the page has been fetched from a distant source (GitHub, GitLab, etc...).
+          type: array
+          items:
+            $ref: '#/components/schemas/Metadata'
     Plan:
-      allOf:
-        - $ref: "#/components/schemas/Data"
-        - type: object
-          required:
-            - name
-            - security
-            - type
-            - description
-            - validation
-            - order
-            - comment_required
-          properties:
-            name:
-              description: Name of the plan.
-              type: string
-            security:
-              description: Security used with this plan.
-              type: string
-              enum:
-                - API_KEY
-                - KEY_LESS
-                - JWT
-                - OAUTH2
-            description:
-              description: Description of the plan.
-              type: string
-            characteristics:
-              description: List of additionnal terms to describe the plan.
-              type: array
-              items:
-                type: string
-            validation:
-              description: Type of validation for subscription requests.
-              type: string
-              enum:
-                - AUTO
-                - MANUAL
-            order:
-              description: Priority order
-              type: integer
-            subscribed:
-              description: True if at least one application linked to the current user has subscribed to this plan.
-              type: boolean
-            comment_required:
-              description: True if a comment is required when a subscription is created.
-              type: boolean
-            comment_question:
-              description: Content of the message sent to a user creating a subscription.
-              type: string
+      required:
+        - id
+        - name
+        - security
+        - type
+        - description
+        - validation
+        - order
+        - comment_required
+      properties:
+        id: 
+          description: Unique identifier of a plan.
+          type: string
+        name:
+          description: Name of the plan.
+          type: string
+        security:
+          description: Security used with this plan.
+          type: string
+          enum:
+            - API_KEY
+            - KEY_LESS
+            - JWT
+            - OAUTH2
+        description:
+          description: Description of the plan.
+          type: string
+        characteristics:
+          description: List of additionnal terms to describe the plan.
+          type: array
+          items:
+            type: string
+        validation:
+          description: Type of validation for subscription requests.
+          type: string
+          enum:
+            - AUTO
+            - MANUAL
+        order:
+          description: Priority order
+          type: integer
+        subscribed:
+          description: True if at least one application linked to the current user has subscribed to this plan.
+          type: boolean
+        comment_required:
+          description: True if a comment is required when a subscription is created.
+          type: boolean
+        comment_question:
+          description: Content of the message sent to a user creating a subscription.
+          type: string
     Rating:
-      allOf:
-        - $ref: "#/components/schemas/Data"
-        - type: object
-          required:
-            - title
-            - value
-            - comment
-          properties:
-            title:
-              description: Title of a rating.
-              type: string
-            value:
-              description: Value of the rating. Integer between 1 and 5. 
-              type: integer
-            author:
-              $ref: '#/components/schemas/User'
-            date:
-              description: Date and time of the rating.
-              type: string
-              format: date-time
-            comment:
-              description: Comment left by the author to explain the rating.
-              type: string
-            answers:
-              description: Array of answers.
-              type: array
-              items:
-                $ref: '#/components/schemas/RatingAnswer'
+      required:
+        - id
+        - title
+        - value
+        - comment
+      properties:
+        id: 
+          description: Unique identifier of a rating.
+          type: string
+        title:
+          description: Title of a rating.
+          type: string
+        value:
+          description: Value of the rating. Integer between 1 and 5. 
+          type: integer
+        author:
+          $ref: '#/components/schemas/User'
+        date:
+          description: Date and time of the rating.
+          type: string
+          format: date-time
+        comment:
+          description: Comment left by the author to explain the rating.
+          type: string
+        answers:
+          description: Array of answers.
+          type: array
+          items:
+            $ref: '#/components/schemas/RatingAnswer'
     Application:
-      allOf:
-        - $ref: "#/components/schemas/Data"
-        - type: object
-          properties:
-            name:
-              description: Name of the application.
-              type: string
-            description:
-              description: Description of the application.
-              type: string
-            applicationType:
-              description: Type of the application (Web, Mobile, ...).
-              type: string
-            owner:
-              $ref: '#/components/schemas/User'
-            created_at:
-              description: Creation date and time of the application.
-              type: string
-              format: date-time
-            updated_at:
-              description: Last update date and time of the application.
-              type: string
-              format: date-time
-            groups:
-              description: Array of groups associated to the application.
-              type: array
-              items:
-                type: string
-            picture:
-                type: string
-                writeOnly: true
-            settings:
-              $ref: '#/components/schemas/ApplicationSettings'
-            _links:
-              $ref: '#/components/schemas/ApplicationLinks'
+      properties:
+        id: 
+          description: Unique identifier of an application.
+          type: string
+        name:
+          description: Name of the application.
+          type: string
+        description:
+          description: Description of the application.
+          type: string
+        applicationType:
+          description: Type of the application (Web, Mobile, ...).
+          type: string
+        owner:
+          $ref: '#/components/schemas/User'
+        created_at:
+          description: Creation date and time of the application.
+          type: string
+          format: date-time
+        updated_at:
+          description: Last update date and time of the application.
+          type: string
+          format: date-time
+        groups:
+          description: Array of groups associated to the application.
+          type: array
+          items:
+            type: string
+        picture:
+          description: |
+            Picture of the application. This attribute is only used to update a picture.\
+            To get the application picture, use /application/{applicationId}/picture.
+          type: string
+          writeOnly: true
+        settings:
+          $ref: '#/components/schemas/ApplicationSettings'
+        _links:
+          $ref: '#/components/schemas/ApplicationLinks'
     NotificationConfig:
       description: A notificationConfig is a generic object that can represent either a GenericNotificationConfig or a PortalNotificationConfig.
       properties:
@@ -2184,219 +2291,198 @@ components:
               description: User id of the creator of the notification config.
               type: string
     PortalNotification:
-      allOf:
-        - $ref: "#/components/schemas/Data"
-        - type: object
-          properties:
-            title:
-              description: Title of the portal notification.
-              type: string
-            message:
-              description: Content of the notification.
-              type: string
-            created_at:
-              description: Creation date and time of the notification.
-              type: string
-              format: date-time
+        properties:
+          id: 
+            description: Unique identifier of a portal notification.
+            type: string
+          title:
+            description: Title of the portal notification.
+            type: string
+          message:
+            description: Content of the notification.
+            type: string
+          created_at:
+            description: Creation date and time of the notification.
+            type: string
+            format: date-time
     Member:
-      allOf:
-        - $ref: "#/components/schemas/Data"
-        - type: object
-          properties:
-            user:
-              $ref: '#/components/schemas/User'
-            created_at:
-              description: Creation date and time of the member.
-              type: string
-              format: date-time
-            updated_at:
-              description: Last update date and time of the member.
-              type: string
-              format: date-time
-            role:
-              description: Role of the member. (OWNER, USER, ...).
-              type: string
-
-    Analytics:
-      description: Analytics is a generic object used to manage inheritance for the /application/{applicationId}/analytics resource.
-      type: object
-      required:
-        - analyticsType
       properties:
-        analyticType:
-          description: |
-            Type of the analytics (DateHistoAnalytics, GroupByAnalytics or CountAnalytics). 
-            
-            Used for inheritance.
+        id: 
+          description: Unique identifier of a member (user).
           type: string
-      discriminator:
-        propertyName: analyticsType
+        user:
+          $ref: '#/components/schemas/User'
+        created_at:
+          description: Creation date and time of the member.
+          type: string
+          format: date-time
+        updated_at:
+          description: Last update date and time of the member.
+          type: string
+          format: date-time
+        role:
+          description: Role of the member. (OWNER, USER, ...).
+          type: string
+
     DateHistoAnalytics:
-      allOf:
-        - $ref: '#/components/schemas/Analytics'
-        - type: object
-          properties:
-            timestamp:
-              $ref: '#/components/schemas/Timerange'
-            values:
-              description: List of data buckets.
-              type: array
-              items:
-                $ref: '#/components/schemas/Bucket'
+      properties:
+        timestamp:
+          $ref: '#/components/schemas/Timerange'
+        values:
+          description: List of data buckets.
+          type: array
+          items:
+            $ref: '#/components/schemas/Bucket'
     GroupByAnalytics:
-      allOf:
-        - $ref: '#/components/schemas/Analytics'
-        - type: object
-          properties:
-            values:
-              description: Total hits by terms.
-              type: object
-              additionalProperties:
-                type: integer
-                format: int64
-            metadata:
-              $ref: '#/components/schemas/MetadataMap'
+      properties:
+        values:
+          description: Total hits by terms.
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+        metadata:
+          $ref: '#/components/schemas/MetadataMap'
     CountAnalytics:
-      allOf:
-        - $ref: '#/components/schemas/Analytics'
-        - type: object
-          properties:
-            name:
-              type: string
-            hits:
-              type: integer
-              format: int64
+      properties:
+        name:
+          type: string
+        hits:
+          type: integer
+          format: int64
     Log:
-      allOf:
-        - $ref: "#/components/schemas/Data"
-        - type: object
-          properties:
-            timestamp:
-              description: Instant of the log.
-              type: integer
-              format: int64
-            transactionId:
-              description: Request identifier.
-              type: string
-            path:
-              description: Path of the request.
-              type: string
-            method:
-              $ref: '#/components/schemas/HttpMethod'
-            status:
-              description: HTTP status code of the request.
-              type: integer
-            responseTime:
-              description: Request duration.
-              type: integer
-              format: int64
-            requestContentLength:
-              description: Request content length.
-              type: integer
-              format: int64
-            responseContentLength:
-              description: Response content length.
-              type: integer
-              format: int64
-            plan:
-              description: Plan used by the request.
-              type: string
-            api:
-              description: API called by the request.
-              type: string
-            request:
-              $ref: '#/components/schemas/Request'
-            response:
-              $ref: '#/components/schemas/Response'
-            metadata:
-              $ref: '#/components/schemas/MetadataMap'
-            host:
-              description: API Gateway host.
-              type: string
-            user:
-              description: User identifier.
-              type: string
-            securityType:
-              description: Security type of the request.
-              type: string
-            securityToken:
-              description: Token used by the request.
-              type: string
+      properties:
+        id: 
+          description: Unique identifier of a log.
+          type: string
+        timestamp:
+          description: Instant of the log.
+          type: integer
+          format: int64
+        transactionId:
+          description: Request identifier.
+          type: string
+        path:
+          description: Path of the request.
+          type: string
+        method:
+          $ref: '#/components/schemas/HttpMethod'
+        status:
+          description: HTTP status code of the request.
+          type: integer
+        responseTime:
+          description: Request duration.
+          type: integer
+          format: int64
+        requestContentLength:
+          description: Request content length.
+          type: integer
+          format: int64
+        responseContentLength:
+          description: Response content length.
+          type: integer
+          format: int64
+        plan:
+          description: Plan used by the request.
+          type: string
+        api:
+          description: API called by the request.
+          type: string
+        request:
+          $ref: '#/components/schemas/Request'
+        response:
+          $ref: '#/components/schemas/Response'
+        metadata:
+          $ref: '#/components/schemas/MetadataMap'
+        host:
+          description: API Gateway host.
+          type: string
+        user:
+          description: User identifier.
+          type: string
+        securityType:
+          description: Security type of the request.
+          type: string
+        securityToken:
+          description: Token used by the request.
+          type: string
     Subscription:
-      allOf:
-        - $ref: "#/components/schemas/Data"
-        - type: object
-          required:
-            - api
-            - application
-            - plan
-            - status
-          properties:
-            api:
-              description: Subscribed API.
-              type: string
-            application:
-              description: Subscribing application.
-              type: string
-            plan:
-              description: Subscribed plan.
-              type: string
-            request:
-              description: Comment of the user when asking for a subscription.
-              type: string
-            created_at:
-              description: Creation date and time of the subscription.
-              type: string
-              format: date-time
-            processed_at:
-              description: Date and time when the subscription request was processed.
-              type: string
-              format: date-time
-            start_at:
-              description: Start date and time of the subscription.
-              type: string
-              format: date-time
-            end_at:
-              description: Expiration date and time of the subscription.
-              type: string
-              format: date-time
-            status:
-              description: Status of the subscription.
-              type: string
-              enum:
-                - PENDING
-                - ACCEPTED
-                - REJECTED
-            ###################
-            # may be included #
-            ###################
-            keys:
-              description: |
-                Only returned with */subscriptions/{subscriptionId}*.
-                Need *include* query param to contain 'keys'.
-                
-                List of APIKeys of the subscription.
-              type: array
-              items:
-                $ref: '#/components/schemas/Key'
+      required:
+        - id
+        - api
+        - application
+        - plan
+        - status
+      properties:
+        id: 
+          description: Unique identifier of a subscription.
+          type: string
+        api:
+          description: Subscribed API.
+          type: string
+        application:
+          description: Subscribing application.
+          type: string
+        plan:
+          description: Subscribed plan.
+          type: string
+        request:
+          description: Comment of the user when asking for a subscription.
+          type: string
+        created_at:
+          description: Creation date and time of the subscription.
+          type: string
+          format: date-time
+        processed_at:
+          description: Date and time when the subscription request was processed.
+          type: string
+          format: date-time
+        start_at:
+          description: Start date and time of the subscription.
+          type: string
+          format: date-time
+        end_at:
+          description: Expiration date and time of the subscription.
+          type: string
+          format: date-time
+        status:
+          description: Status of the subscription.
+          type: string
+          enum:
+            - PENDING
+            - ACCEPTED
+            - REJECTED
+        ###################
+        # may be included #
+        ###################
+        keys:
+          description: |
+            Only returned with */subscriptions/{subscriptionId}*.
+            Need *include* query param to contain 'keys'.
+            
+            List of APIKeys of the subscription.
+          type: array
+          items:
+            $ref: '#/components/schemas/Key'
     User:
-      allOf:
-        - $ref: "#/components/schemas/Data"
-        - type: object
-          properties:
-            first_name:
-              type: string
-            last_name:
-              type: string
-            display_name:
-              type: string
-            email:
-              type: string
-            avatar:
-              type: string
-              writeOnly: true
-            _links:
-              $ref: '#/components/schemas/UserLinks'
+      properties:
+        id: 
+          description: Unique identifier of a user.
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        display_name:
+          type: string
+        email:
+          type: string
+        avatar:
+          description: Avatar of the user. Used only for update.
+          type: string
+          writeOnly: true
+        _links:
+          $ref: '#/components/schemas/UserLinks'
     Token:
       properties:
         token_type:
@@ -2406,23 +2492,23 @@ components:
         token:
           type: string
     View:
-      allOf:
-        - $ref: "#/components/schemas/Data"
-        - type: object
-          properties:
-            name:
-              type: string
-            description:
-              type: string
-            default_view:
-              type: boolean
-            order:
-              type: integer
-            total_apis:
-              type: integer
-              format: int64
-            _links:
-              $ref: '#/components/schemas/ViewLinks'
+      properties:
+        id: 
+          description: Unique identifier of a view.
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        default_view:
+          type: boolean
+        order:
+          type: integer
+        total_apis:
+          type: integer
+          format: int64
+        _links:
+          $ref: '#/components/schemas/ViewLinks'
     #################
     # Input Objects #
     #################
@@ -2811,7 +2897,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/DataResponse'
+            $ref: '#/components/schemas/PagesResponse'
     PictureSuccess:
       description: A picture
       content:

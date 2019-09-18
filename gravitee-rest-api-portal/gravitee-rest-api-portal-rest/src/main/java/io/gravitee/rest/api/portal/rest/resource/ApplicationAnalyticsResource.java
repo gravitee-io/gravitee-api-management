@@ -70,8 +70,7 @@ public class ApplicationAnalyticsResource extends AbstractResource {
             @BeanParam AnalyticsParam analyticsParam) {
         analyticsParam.validate();
 
-        io.gravitee.rest.api.portal.rest.model.Analytics analytics = null;
-
+        Object analytics = null;
         switch(analyticsParam.getTypeParam().getValue()) {
             case DATE_HISTO:
                 analytics = analyticsMapper.convert((HistogramAnalytics) executeDateHisto(applicationId, analyticsParam));
