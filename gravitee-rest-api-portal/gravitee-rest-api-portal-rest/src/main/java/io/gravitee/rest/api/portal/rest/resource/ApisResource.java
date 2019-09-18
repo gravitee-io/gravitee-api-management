@@ -34,7 +34,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
@@ -64,9 +63,6 @@ public class ApisResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Context
-    private UriInfo uriInfo;
-    
     @Inject
     private ApiMapper apiMapper;
     
@@ -109,7 +105,7 @@ public class ApisResource extends AbstractResource {
                 .map(this::addApiLinks)
                 .collect(Collectors.toList());
 
-        return createListResponse(apisList, paginationParam, uriInfo, filteredApis.getMetadata());
+        return createListResponse(apisList, paginationParam, filteredApis.getMetadata());
     }
 
     private FilteredApi filterByCategory(Collection<ApiEntity> apis, CategoryApiQuery category) {

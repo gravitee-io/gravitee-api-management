@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.io.ByteArrayOutputStream;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,12 +26,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -63,8 +59,6 @@ public class ApiResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-    @Context
-    private UriInfo uriInfo;
     
     @Inject
     private ApiMapper apiMapper;
@@ -142,33 +136,9 @@ public class ApiResource extends AbstractResource {
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)) {
 
-            CacheControl cc = new CacheControl();
-            cc.setNoTransform(true);
-            cc.setMustRevalidate(false);
-            cc.setNoCache(false);
-            cc.setMaxAge(86400);
-
             InlinePictureEntity image = apiService.getPicture(apiId);
 
-            EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
-            Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
-
-            if (builder != null) {
-                // Preconditions are not met, returning HTTP 304 'not-modified'
-                return builder
-                        .cacheControl(cc)
-                        .build();
-            }
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            baos.write(image.getContent(), 0, image.getContent().length);
-
-            return Response
-                    .ok(baos)
-                    .cacheControl(cc)
-                    .tag(etag)
-                    .type(image.getType())
-                    .build();
+            return createPictureReponse(request, image);
         }
         throw new ForbiddenAccessException();
     }

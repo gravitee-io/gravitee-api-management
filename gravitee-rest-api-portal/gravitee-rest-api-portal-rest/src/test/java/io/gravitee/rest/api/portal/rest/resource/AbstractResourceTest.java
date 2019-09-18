@@ -43,6 +43,7 @@ import io.gravitee.rest.api.portal.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.portal.rest.mapper.NotificationConfigMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
+import io.gravitee.rest.api.portal.rest.mapper.PortalNotificationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.RatingMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
@@ -70,6 +71,7 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.QualityMetricsService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.RoleService;
@@ -119,6 +121,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(logsService);
         reset(analyticsService);
         reset(portalNotificationConfigService);
+        reset(portalNotificationService);
         reset(genericNotificationConfigService);
         reset(topApiService);
         reset(viewService);
@@ -137,6 +140,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(logMapper);
         reset(analyticsMapper);
         reset(notificationConfigMapper);
+        reset(portalNotificationMapper);
         reset(viewMapper);
         reset(viewEnhancer);
     }
@@ -245,6 +249,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected PortalNotificationConfigService portalNotificationConfigService;
 
     @Autowired
+    protected PortalNotificationService portalNotificationService;
+
+    @Autowired
     protected GenericNotificationConfigService genericNotificationConfigService;
 
     @Autowired
@@ -297,6 +304,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ViewEnhancer viewEnhancer;
+    
+    @Autowired
+    protected PortalNotificationMapper portalNotificationMapper;
+    
+    
     
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/portal/rest/resource/jwt.properties")
@@ -458,6 +470,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
+        public PortalNotificationService portalNotificationService() {
+            return mock(PortalNotificationService.class);
+        }
+
+        @Bean
         public GenericNotificationConfigService genericNotificationConfigService() {
             return mock(GenericNotificationConfigService.class);
         }
@@ -527,6 +544,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
             return mock(NotificationConfigMapper.class);
         }
 
+        @Bean
+        public PortalNotificationMapper portalNotificationMapper() {
+            return mock(PortalNotificationMapper.class);
+        }
+        
         @Bean
         public ViewMapper viewMapper() {
             return mock(ViewMapper.class);

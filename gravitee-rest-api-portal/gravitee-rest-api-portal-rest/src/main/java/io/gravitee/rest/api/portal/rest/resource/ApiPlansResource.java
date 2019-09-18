@@ -24,9 +24,7 @@ import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PlanEntity;
@@ -48,9 +46,6 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
  */
 public class ApiPlansResource extends AbstractResource {
 
-    @Context
-    private UriInfo uriInfo;
-    
     @Inject
     private PlanMapper planMapper;
     
@@ -77,7 +72,7 @@ public class ApiPlansResource extends AbstractResource {
                     .map(p-> planMapper.convert(p,  user))
                     .collect(Collectors.toList());
             
-            return createListResponse(plans, paginationParam, uriInfo);
+            return createListResponse(plans, paginationParam);
 
         }
 

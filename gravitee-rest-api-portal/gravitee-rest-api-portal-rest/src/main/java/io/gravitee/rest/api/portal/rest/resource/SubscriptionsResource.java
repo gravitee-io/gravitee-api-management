@@ -31,7 +31,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -58,9 +57,6 @@ public class SubscriptionsResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Context
-    private UriInfo uriInfo;
-    
     @Inject
     private SubscriptionService subscriptionService;
     
@@ -112,7 +108,7 @@ public class SubscriptionsResource extends AbstractResource {
         
         
         //No pagination, because subscriptionService did it already
-        return createListResponse(subscriptionList, paginationParam, uriInfo, false);
+        return createListResponse(subscriptionList, paginationParam, false);
     }
 
     @Path("{subscriptionId}")

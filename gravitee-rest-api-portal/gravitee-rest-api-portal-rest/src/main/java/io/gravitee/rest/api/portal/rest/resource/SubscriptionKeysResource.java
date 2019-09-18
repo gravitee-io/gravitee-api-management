@@ -24,7 +24,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApiKeyEntity;
@@ -46,9 +45,6 @@ public class SubscriptionKeysResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Context
-    private UriInfo uriInfo;
-    
     @Inject
     private ApiKeyService apiKeyService;
 

@@ -29,6 +29,7 @@ import javax.ws.rs.core.UriInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -42,6 +43,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 @RunWith(MockitoJUnitRunner.class)
 public class PaginationLinkTest {
 
+    @InjectMocks
     AbstractResource paginatedResourceForTest = new AbstractResource() {};
     
     @Mock
@@ -248,7 +250,7 @@ public class PaginationLinkTest {
         Integer size = 10;
         Integer totalItems = 0;
         
-        Links links = paginatedResourceForTest.computePaginatedLinks(uriInfo, page, size, totalItems);
+        Links links = paginatedResourceForTest.computePaginatedLinks(page, size, totalItems);
         assertNull(links);
     }
     
@@ -258,7 +260,7 @@ public class PaginationLinkTest {
         Integer size = 10;
         Integer totalItems = 100;
         
-        Links links = paginatedResourceForTest.computePaginatedLinks(uriInfo, page, size, totalItems);
+        Links links = paginatedResourceForTest.computePaginatedLinks(page, size, totalItems);
         assertNull(links);
     }
     
@@ -268,13 +270,13 @@ public class PaginationLinkTest {
         Integer size = 10;
         Integer totalItems = 100;
         
-        Links links = paginatedResourceForTest.computePaginatedLinks(uriInfo, page, size, totalItems);
+        Links links = paginatedResourceForTest.computePaginatedLinks(page, size, totalItems);
         assertNull(links);
     }
     
     private void testGenericPaginatedLinks(Integer page, Integer size, Integer totalItems, String expectedSelf,
             String expectedFirst, String expectedPrev, String expectedNext, String expectedLast) {
-        Links links = paginatedResourceForTest.computePaginatedLinks(uriInfo, page, size, totalItems);
+        Links links = paginatedResourceForTest.computePaginatedLinks(page, size, totalItems);
         assertEquals(expectedSelf, links.getSelf());
         assertEquals(expectedFirst, links.getFirst());
         assertEquals(expectedPrev, links.getPrev());

@@ -28,7 +28,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.Visibility;
@@ -49,9 +48,6 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
  */
 public class ApiPagesResource extends AbstractResource {
 
-    @Context
-    private UriInfo uriInfo;
-    
     @Inject
     private PageMapper pageMapper;
     
@@ -83,7 +79,7 @@ public class ApiPagesResource extends AbstractResource {
                     .map(pageResult -> pageResult.content(null))
                     .collect(Collectors.toList());
             
-            return createListResponse(pages, paginationParam, uriInfo);
+            return createListResponse(pages, paginationParam);
         }
         throw new ForbiddenAccessException();
     }

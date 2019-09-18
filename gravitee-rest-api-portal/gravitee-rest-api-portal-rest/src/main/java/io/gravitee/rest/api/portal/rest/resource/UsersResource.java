@@ -24,9 +24,7 @@ import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.api.search.UserCriteria;
@@ -46,9 +44,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
  */
 public class UsersResource extends AbstractResource {
 
-    @Context
-    private UriInfo uriInfo;
-    
     @Inject
     private UserMapper userMapper;
     
@@ -70,7 +65,7 @@ public class UsersResource extends AbstractResource {
                 .collect(Collectors.toList());
         
         //No pagination, because userService did it already
-        return createListResponse(users, paginationParam, uriInfo, false);
+        return createListResponse(users, paginationParam, false);
     }
 
     

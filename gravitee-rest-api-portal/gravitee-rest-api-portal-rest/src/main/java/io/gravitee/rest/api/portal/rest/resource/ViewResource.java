@@ -29,7 +29,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,9 +46,6 @@ import io.gravitee.rest.api.service.ViewService;
  */
 public class ViewResource extends AbstractResource {
 
-    @Context
-    private UriInfo uriInfo;
-    
     @Autowired
     private ViewService viewService;
 
@@ -80,38 +76,12 @@ public class ViewResource extends AbstractResource {
 
     @GET
     @Path("picture")
-    public Response picture(
-            @Context Request request,
-            @PathParam("viewId") String viewId) {
+    public Response picture(@Context Request request, @PathParam("viewId") String viewId) {
         viewService.findNotHiddenById(viewId);
-
-        CacheControl cc = new CacheControl();
-        cc.setNoTransform(true);
-        cc.setMustRevalidate(false);
-        cc.setNoCache(false);
-        cc.setMaxAge(86400);
 
         InlinePictureEntity image = viewService.getPicture(viewId);
 
-        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
-        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
-
-        if (builder != null) {
-            // Preconditions are not met, returning HTTP 304 'not-modified'
-            return builder
-                    .cacheControl(cc)
-                    .build();
-        }
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        baos.write(image.getContent(), 0, image.getContent().length);
-
-        return Response
-                .ok(baos)
-                .cacheControl(cc)
-                .tag(etag)
-                .type(image.getType())
-                .build();
+        return createPictureReponse(request, image);
     }
 
 }

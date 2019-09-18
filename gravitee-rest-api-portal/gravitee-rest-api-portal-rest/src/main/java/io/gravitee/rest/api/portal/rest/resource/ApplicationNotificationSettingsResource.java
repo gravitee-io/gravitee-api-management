@@ -40,7 +40,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.NotificationConfigMapper;
 import io.gravitee.rest.api.portal.rest.model.GenericNotificationConfig;
 import io.gravitee.rest.api.portal.rest.model.NotificationConfig;
-import io.gravitee.rest.api.portal.rest.model.NotificationsResponse;
+import io.gravitee.rest.api.portal.rest.model.NotificationConfigsResponse;
 import io.gravitee.rest.api.portal.rest.model.PortalNotificationConfig;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
@@ -81,7 +81,7 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
             .forEach(settings::add);
         }
         return Response
-                .ok(new NotificationsResponse().data(settings))
+                .ok(new NotificationConfigsResponse().data(settings))
                 .build();
     }
 

@@ -32,7 +32,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -65,8 +64,6 @@ public class AuthResource extends AbstractResource {
     private ResourceContext resourceContext;
     @Context
     private HttpServletResponse response;
-    @Context
-    private UriInfo uriInfo;
     
     @Autowired
     private ConfigurableEnvironment environment;

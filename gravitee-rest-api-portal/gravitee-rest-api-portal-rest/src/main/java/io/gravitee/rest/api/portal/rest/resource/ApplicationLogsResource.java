@@ -28,10 +28,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
@@ -59,9 +57,6 @@ public class ApplicationLogsResource extends AbstractResource {
     @Inject
     private LogMapper logMapper;
     
-    @Context
-    private UriInfo uriInfo;
-    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
@@ -79,7 +74,7 @@ public class ApplicationLogsResource extends AbstractResource {
                 .collect(Collectors.toList());
         
         //No pagination, because logsService did it already
-        return createListResponse(logs, paginationParam, uriInfo, searchLogResponse.getMetadata(), false);
+        return createListResponse(logs, paginationParam, searchLogResponse.getMetadata(), false);
     }
 
     protected SearchLogResponse<ApplicationRequestItem> getSearchLogResponse(String applicationId,

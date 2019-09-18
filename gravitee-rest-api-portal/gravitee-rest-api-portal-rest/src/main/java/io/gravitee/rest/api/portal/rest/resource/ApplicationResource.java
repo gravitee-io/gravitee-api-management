@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,13 +31,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -66,9 +62,6 @@ public class ApplicationResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Context
-    private UriInfo uriInfo;
-    
     @Inject
     private ApplicationService applicationService;
     
@@ -164,33 +157,9 @@ public class ApplicationResource extends AbstractResource {
     public Response getPictureByApplicationId(@Context Request request, @PathParam("applicationId") String applicationId) {
         applicationService.findById(applicationId);
 
-        CacheControl cc = new CacheControl();
-        cc.setNoTransform(true);
-        cc.setMustRevalidate(false);
-        cc.setNoCache(false);
-        cc.setMaxAge(86400);
-
         InlinePictureEntity image = applicationService.getPicture(applicationId);
-
-        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
-        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
-
-        if (builder != null) {
-            // Preconditions are not met, returning HTTP 304 'not-modified'
-            return builder
-                    .cacheControl(cc)
-                    .build();
-        }
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        baos.write(image.getContent(), 0, image.getContent().length);
-
-        return Response
-                .ok(baos)
-                .cacheControl(cc)
-                .tag(etag)
-                .type(image.getType())
-                .build();
+        
+        return createPictureReponse(request, image);
     }
     
     @PUT

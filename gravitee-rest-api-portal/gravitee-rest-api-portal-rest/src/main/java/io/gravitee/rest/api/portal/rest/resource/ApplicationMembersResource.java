@@ -34,7 +34,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
@@ -66,9 +65,6 @@ public class ApplicationMembersResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Context
-    private UriInfo uriInfo;
-    
     @Inject
     private ApplicationService applicationService;
     
@@ -91,7 +87,7 @@ public class ApplicationMembersResource extends AbstractResource {
                 .map(memberMapper::convert)
                 .collect(Collectors.toList());
         
-        return createListResponse(membersList, paginationParam, uriInfo);
+        return createListResponse(membersList, paginationParam);
     }
     
     @POST

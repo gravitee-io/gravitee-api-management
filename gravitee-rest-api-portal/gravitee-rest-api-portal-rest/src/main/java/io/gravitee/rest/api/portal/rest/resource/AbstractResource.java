@@ -34,10 +34,12 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
@@ -50,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -85,6 +88,9 @@ public abstract class AbstractResource {
     @Context
     protected SecurityContext securityContext;
 
+    @Context
+    protected UriInfo uriInfo;
+    
     @Inject
     MembershipService membershipService;
     
@@ -209,7 +215,7 @@ public abstract class AbstractResource {
         }
     }
     
-    protected Links computePaginatedLinks(UriInfo uriInfo, Integer page, Integer size, Integer totalItems) {
+    protected Links computePaginatedLinks(Integer page, Integer size, Integer totalItems) {
         Links paginatedLinks = null;
         
         Integer totalPages = (int) Math.ceil((double)totalItems/size);
@@ -266,7 +272,7 @@ public abstract class AbstractResource {
         return list;
     }
     
-    protected DatasResponse createDatasResponse(List<? extends Data> dataList, PaginationParam paginationParam, UriInfo uriInfo, Map<String, Map<String, String>> metadata, boolean withPagination) {
+    protected DatasResponse createDatasResponse(List<? extends Data> dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata, boolean withPagination) {
         int totalItems = dataList.size();
         
         List<Data> paginatedList;
@@ -279,7 +285,7 @@ public abstract class AbstractResource {
         return new DatasResponse()
                 .data(paginatedList)
                 .metadata(this.computeMetadata(paginatedList, metadata))
-                .links(this.computePaginatedLinks(uriInfo, paginationParam.getPage(), paginationParam.getSize(), totalItems))
+                .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems))
                 ;
     }
 
@@ -293,21 +299,49 @@ public abstract class AbstractResource {
         return metadata;
     }
     
-    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, UriInfo uriInfo) {
-        return createListResponse(dataList, paginationParam, uriInfo, null, true);
+    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam) {
+        return createListResponse(dataList, paginationParam, null, true);
     }
     
-    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, UriInfo uriInfo, boolean withPagination) {
-        return createListResponse(dataList, paginationParam, uriInfo, null, withPagination);
+    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, boolean withPagination) {
+        return createListResponse(dataList, paginationParam, null, withPagination);
     }
     
-    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, UriInfo uriInfo, Map<String, Map<String, String>> metadata) {
-        return createListResponse(dataList, paginationParam, uriInfo, metadata, true);
+    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata) {
+        return createListResponse(dataList, paginationParam, metadata, true);
     }
     
-    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, UriInfo uriInfo, Map<String, Map<String, String>> metadata, boolean withPagination) {
+    protected Response createListResponse(List<? extends Data> dataList, PaginationParam paginationParam, Map<String, Map<String, String>> metadata, boolean withPagination) {
         return Response
-                .ok(createDatasResponse(dataList, paginationParam, uriInfo, metadata, withPagination))
+                .ok(createDatasResponse(dataList, paginationParam, metadata, withPagination))
+                .build();
+    }
+    
+    protected Response createPictureReponse(Request request, InlinePictureEntity image) {
+        CacheControl cc = new CacheControl();
+        cc.setNoTransform(true);
+        cc.setMustRevalidate(false);
+        cc.setNoCache(false);
+        cc.setMaxAge(86400);
+
+        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
+        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
+
+        if (builder != null) {
+            // Preconditions are not met, returning HTTP 304 'not-modified'
+            return builder
+                    .cacheControl(cc)
+                    .build();
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(image.getContent(), 0, image.getContent().length);
+
+        return Response
+                .ok(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
                 .build();
     }
 }

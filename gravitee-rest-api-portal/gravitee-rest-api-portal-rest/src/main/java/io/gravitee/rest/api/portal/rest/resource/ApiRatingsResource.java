@@ -28,9 +28,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,9 +55,6 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
  */
 public class ApiRatingsResource extends AbstractResource {
     
-    @Context
-    private UriInfo uriInfo;
-    
     @Autowired
     private RatingService ratingService;
     
@@ -83,7 +78,7 @@ public class ApiRatingsResource extends AbstractResource {
                     .collect(toList());
 
             //No pagination, because ratingService did it already
-            return createListResponse(ratings, paginationParam, uriInfo, false);
+            return createListResponse(ratings, paginationParam, false);
         }
         
         throw new ForbiddenAccessException();

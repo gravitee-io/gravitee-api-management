@@ -27,7 +27,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -38,7 +37,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.enhancer.ViewEnhancer;
 import io.gravitee.rest.api.portal.rest.mapper.ViewMapper;
 import io.gravitee.rest.api.portal.rest.model.View;
-import io.gravitee.rest.api.portal.rest.resource.param.ApisParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.ViewService;
 
@@ -50,9 +48,6 @@ public class ViewsResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-
-    @Context
-    private UriInfo uriInfo;
     
     @Autowired
     private ViewService viewService;
@@ -81,7 +76,7 @@ public class ViewsResource extends AbstractResource {
                 .map(v-> viewMapper.convert(v, uriInfo.getBaseUriBuilder()))
                 .collect(Collectors.toList());
         
-        return createListResponse(viewsList, paginationParam, uriInfo);
+        return createListResponse(viewsList, paginationParam);
     }
 
 

@@ -223,11 +223,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 //              .antMatchers(HttpMethod.GET, uriPrefix + "/subscriptions/**").authenticated()
 
                 // User management
-//              .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**").permitAll()
-//              .antMatchers(HttpMethod.GET, uriPrefix + "/users").authenticated()
-//              .antMatchers(HttpMethod.GET, uriPrefix + "/users/**").authenticated()
-//              .antMatchers(HttpMethod.PUT, uriPrefix + "/users/**").authenticated()
-//              .antMatchers(HttpMethod.DELETE, uriPrefix + "/users/**").authenticated()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/users").authenticated()
+                // For GET, PUT, DELETE
+                .antMatchers(uriPrefix + "/user/**").authenticated()
 
                 // OpenApi
                 .antMatchers(HttpMethod.GET, "/openapi").permitAll()

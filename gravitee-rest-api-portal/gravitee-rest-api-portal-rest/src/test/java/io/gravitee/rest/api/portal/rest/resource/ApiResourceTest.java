@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
-import static io.gravitee.common.http.HttpStatusCode.NOT_MODIFIED_304;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -28,7 +27,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -39,11 +37,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import org.eclipse.jetty.http.HttpHeader;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -230,24 +226,6 @@ public class ApiResourceTest extends AbstractResourceTest {
     public void shouldGetApiPicture() throws IOException {
         final Response response = target(API).path("picture").request().get();
         assertEquals(OK_200, response.getStatus());
-
-        MultivaluedMap<String, Object> headers = response.getHeaders();
-        String contentType = (String) headers.getFirst(HttpHeader.CONTENT_TYPE.asString());
-        String etag = (String) headers.getFirst("ETag");
-
-        assertEquals(mockImage.getType(), contentType);
-
-        File result = response.readEntity(File.class);
-        byte[] fileContent = Files.readAllBytes(Paths.get(result.getAbsolutePath()));
-        assertTrue(Arrays.equals(fileContent, apiLogoContent));
-        
-        String expectedTag = '"'+Integer.toString(new String(fileContent).hashCode())+'"';
-        assertEquals(expectedTag, etag);
-        
-        
-        // test Cache
-        final Response cachedResponse = target(API).path("picture").request().header(HttpHeader.IF_NONE_MATCH.asString(), etag).get();
-        assertEquals(NOT_MODIFIED_304, cachedResponse.getStatus());
     }
     
 }

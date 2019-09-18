@@ -123,7 +123,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             identityProvider.setType(idpToUpdate.getType());
             identityProvider.setCreatedAt(idpToUpdate.getCreatedAt());
             identityProvider.setUpdatedAt(new Date());
-
+            identityProvider.setReferenceId(optIdentityProvider.get().getReferenceId());
+            identityProvider.setReferenceType(optIdentityProvider.get().getReferenceType());
             IdentityProvider updatedIdentityProvider =  identityProviderRepository.update(identityProvider);
 
             // Audit

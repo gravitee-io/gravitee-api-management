@@ -39,7 +39,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.model.GenericNotificationConfig;
 import io.gravitee.rest.api.portal.rest.model.NotificationConfig;
-import io.gravitee.rest.api.portal.rest.model.NotificationsResponse;
+import io.gravitee.rest.api.portal.rest.model.NotificationConfigsResponse;
 import io.gravitee.rest.api.portal.rest.model.PortalNotificationConfig;
 
 /**
@@ -74,7 +74,7 @@ public class ApplicationNotificationSettingsResourceTest extends AbstractResourc
         Mockito.verify(notificationConfigMapper, Mockito.never()).convert(any(GenericNotificationConfigEntity.class));
         Mockito.verify(notificationConfigMapper).convert(any(PortalNotificationConfigEntity.class));
         
-        NotificationsResponse notificationsResponse = response.readEntity(NotificationsResponse.class);
+        NotificationConfigsResponse notificationsResponse = response.readEntity(NotificationConfigsResponse.class);
         assertNotNull(notificationsResponse);
         List<NotificationConfig> notifs = notificationsResponse.getData();
         assertNotNull(notifs);
@@ -95,7 +95,7 @@ public class ApplicationNotificationSettingsResourceTest extends AbstractResourc
         Mockito.verify(notificationConfigMapper).convert(any(GenericNotificationConfigEntity.class));
         Mockito.verify(notificationConfigMapper).convert(any(PortalNotificationConfigEntity.class));
         
-        NotificationsResponse notificationsResponse = response.readEntity(NotificationsResponse.class);
+        NotificationConfigsResponse notificationsResponse = response.readEntity(NotificationConfigsResponse.class);
         assertNotNull(notificationsResponse);
         List<NotificationConfig> notifs = notificationsResponse.getData();
         assertNotNull(notifs);

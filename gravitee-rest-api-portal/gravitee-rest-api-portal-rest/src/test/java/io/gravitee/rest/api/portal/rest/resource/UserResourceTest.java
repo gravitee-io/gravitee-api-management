@@ -15,12 +15,19 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -31,7 +38,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.UpdateUserEntity;
+import io.gravitee.rest.api.model.UrlPictureEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.User;
 
 /**
@@ -46,11 +56,16 @@ public class UserResourceTest extends AbstractResourceTest {
     }
 
     @Before
-    public void init() {
+    public void init() throws IOException, URISyntaxException {
         resetAllMocks();
         
         doReturn(new User()).when(userMapper).convert(any());
 
+        InlinePictureEntity mockImage = new InlinePictureEntity();
+        byte[] apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
+        mockImage.setContent(apiLogoContent);
+        mockImage.setType("image/svg");
+        doReturn(mockImage).when(userService).getPicture(any());
     }
     
     @Test
@@ -181,5 +196,28 @@ public class UserResourceTest extends AbstractResourceTest {
         
         User user = response.readEntity(User.class);
         assertNotNull(user);
+    }
+    
+    @Test
+    public void shouldGetUserAvatar() throws IOException {
+        doReturn(new UserEntity()).when(userService).findById(any());
+        final Response response = target().path("avatar").request().get();
+        assertEquals(OK_200, response.getStatus());
+    }
+    
+    @Test
+    public void shouldGetUserAvatarRedirectUrl() throws IOException {
+        doReturn(new UserEntity()).when(userService).findById(any());
+        doReturn(new UrlPictureEntity(target().getUri().toURL().toString())).when(userService).getPicture(any());
+        final Response response = target().path("avatar").request().get();
+        assertEquals(OK_200, response.getStatus());
+    }
+    
+    @Test
+    public void shouldGetNotFound() throws IOException {
+        doReturn(new UserEntity()).when(userService).findById(any());
+        doReturn(null).when(userService).getPicture(any());
+        final Response response = target().path("avatar").request().get();
+        assertEquals(NOT_FOUND_404, response.getStatus());
     }
 }

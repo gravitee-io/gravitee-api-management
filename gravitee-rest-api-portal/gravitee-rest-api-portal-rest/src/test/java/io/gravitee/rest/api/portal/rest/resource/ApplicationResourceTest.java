@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.NOT_MODIFIED_304;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -28,7 +27,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -423,24 +421,6 @@ public class ApplicationResourceTest extends AbstractResourceTest {
     public void shouldGetApplicationPicture() throws IOException {
         final Response response = target(APPLICATION).path("picture").request().get();
         assertEquals(OK_200, response.getStatus());
-
-        MultivaluedMap<String, Object> headers = response.getHeaders();
-        String contentType = (String) headers.getFirst(HttpHeader.CONTENT_TYPE.asString());
-        String etag = (String) headers.getFirst("ETag");
-
-        assertEquals(mockImage.getType(), contentType);
-
-        File result = response.readEntity(File.class);
-        byte[] fileContent = Files.readAllBytes(Paths.get(result.getAbsolutePath()));
-        assertTrue(Arrays.equals(fileContent, applicationLogoContent));
-        
-        String expectedTag = '"'+Integer.toString(new String(fileContent).hashCode())+'"';
-        assertEquals(expectedTag, etag);
-        
-        
-        // test Cache
-        final Response cachedResponse = target(APPLICATION).path("picture").request().header(HttpHeader.IF_NONE_MATCH.asString(), etag).get();
-        assertEquals(NOT_MODIFIED_304, cachedResponse.getStatus());
     }
     
     @Test

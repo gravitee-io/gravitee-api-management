@@ -111,6 +111,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
             final Optional<Entrypoint> entrypointOptional = entrypointRepository.findById(entrypointEntity.getId());
             if (entrypointOptional.isPresent()) {
                 final Entrypoint entrypoint = convert(entrypointEntity);
+                entrypoint.setEnvironment(entrypointOptional.get().getEnvironment());
                 final EntrypointEntity savedEntryPoint = convert(entrypointRepository.update(entrypoint));
                 auditService.createPortalAuditLog(
                         Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),

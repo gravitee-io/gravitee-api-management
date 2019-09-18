@@ -15,19 +15,26 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import java.net.URI;
+
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.PictureEntity;
 import io.gravitee.rest.api.model.UpdateUserEntity;
+import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.model.User;
@@ -42,9 +49,6 @@ public class UserResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-
-    @Context
-    private UriInfo uriInfo;
 
     @Inject
     private UserService userService;
@@ -81,5 +85,27 @@ public class UserResource extends AbstractResource {
                 .ok(userMapper.convert(updatedUser))
                 .build();
 
+    }
+    
+    @GET
+    @Path("avatar")
+    public Response getCurrentUserAvatar(@Context Request request) {
+        String userId = userService.findById(getAuthenticatedUser()).getId();
+        PictureEntity picture = userService.getPicture(userId);
+
+        if (picture == null) {
+            throw new NotFoundException();
+        }
+
+        if (picture instanceof UrlPictureEntity) {
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
+        }
+
+        return createPictureReponse(request, (InlinePictureEntity) picture);
+    }
+    
+    @Path("notifications")
+    public UserNotificationsResource getUserNotificationsResource() {
+        return resourceContext.getResource(UserNotificationsResource.class);
     }
 }

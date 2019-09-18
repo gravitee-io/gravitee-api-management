@@ -272,7 +272,7 @@ paths:
       operationId: getNotificationsByApplicationId
       responses:
         200:
-          $ref: '#/components/responses/NotificationsSuccess'
+          $ref: '#/components/responses/NotificationConfigsSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
     post:
@@ -284,7 +284,7 @@ paths:
       operationId: createApplicationNotification
       responses:
         200:
-          $ref: '#/components/responses/NotificationSuccess'
+          $ref: '#/components/responses/NotificationConfigSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
     put:
@@ -296,7 +296,7 @@ paths:
       operationId: updatePortalApplicationNotification
       responses:
         200:
-          $ref: '#/components/responses/NotificationSuccess'
+          $ref: '#/components/responses/NotificationConfigSuccess'
         500:
           $ref: '#/components/responses/GeneralError' 
   /applications/{applicationId}/notifications/{notificationId}:
@@ -312,7 +312,7 @@ paths:
       operationId: updateGenericApplicationNotification
       responses:
         200:
-          $ref: '#/components/responses/NotificationSuccess'
+          $ref: '#/components/responses/NotificationConfigSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
     delete: 
@@ -709,7 +709,7 @@ paths:
       tags:
         - User
       description: Retrieve user's avatar
-      operationId: getUserAvatar
+      operationId: getCurrentUserAvatar
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
@@ -1226,7 +1226,7 @@ components:
         links:
           $ref: '#/components/schemas/Links'
     
-    NotificationsResponse:
+    NotificationConfigsResponse:
       properties:
         data:
           type: array
@@ -1467,6 +1467,18 @@ components:
           properties:
             user:
               type: string
+    PortalNotification:
+      allOf:
+        - $ref: "#/components/schemas/Data"
+        - type: object
+          properties:
+            title:
+              type: string
+            message:
+              type: string
+            created_at:
+              type: string
+              format: date-time
     Member:
       allOf:
         - $ref: "#/components/schemas/Data"
@@ -2038,20 +2050,32 @@ components:
         application/json:
           schema:  
             $ref: '#/components/schemas/DatasResponse'
-    NotificationSuccess:
-      description: A notification
+    NotificationConfigSuccess:
+      description: A notification config
       content:
         application/json:
           schema:
             oneOf:
               - $ref: '#/components/schemas/PortalNotificationConfig'
               - $ref: '#/components/schemas/GenericNotificationConfig'
+    NotificationConfigsSuccess:
+      description: List of notification configs
+      content:
+        application/json:
+          schema:  
+            $ref: '#/components/schemas/NotificationConfigsResponse'
+    NotificationSuccess:
+      description: A notification
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PortalNotification'
     NotificationsSuccess:
       description: List of notifications
       content:
         application/json:
           schema:  
-            $ref: '#/components/schemas/NotificationsResponse'
+            $ref: '#/components/schemas/DatasResponse'
     AnalyticsSuccess:
       description: Analytics
       content:
