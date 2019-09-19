@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.core.endpoint.resolver.impl;
 
-import com.google.common.net.UrlEscapers;
 import io.gravitee.common.util.MultiValueMap;
+import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -27,7 +27,6 @@ import io.gravitee.gateway.core.endpoint.ref.EndpointReference;
 import io.gravitee.gateway.core.endpoint.ref.Reference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.gateway.core.endpoint.resolver.EndpointResolver;
-import io.netty.handler.codec.http.QueryStringDecoder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
@@ -46,7 +45,9 @@ public class TargetEndpointResolver implements EndpointResolver {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:|wss:|ws:))[//]+");
 
     private static final String URI_PATH_SEPARATOR = "/";
-    private static final char URI_PATH_SEPARATOR_CHAR = '/';
+
+    private static final String QUERY_SEPARATOR = "?";
+    private static final String QUERYPARAM_SEPARATOR = "&";
 
     private static final String URI_HTTP_PREFIX = "http://";
 
@@ -102,15 +103,25 @@ public class TargetEndpointResolver implements EndpointResolver {
                     .findFirst()
                     .orElse(endpoints.iterator().next());
 
-            return (reference != null) ? createEndpoint(reference.endpoint(), encode(target, serverRequest.parameters(), executionContext)) : null;
+            if (reference == null) {
+                return null;
+            }
+
+            mergeQueryParameters(target, serverRequest.parameters());
+            return createEndpoint(reference.endpoint(), getTargetWithoutQueryParams(target));
         } else if (target.startsWith(URI_PATH_SEPARATOR)) {
             // Get the first group
             LoadBalancedEndpointGroup group = groupManager.getDefault();
 
             // Resolve to the next endpoint from group LB
             Endpoint endpoint = group.next();
+            if (endpoint == null) {
+                return createEndpoint(endpoint, null);
+            }
 
-            return createEndpoint(endpoint, (endpoint != null) ? endpoint.target() + encode(target, serverRequest.parameters(), executionContext) : null);
+            String fullTarget = getMergedTarget(endpoint.target(), target);
+            mergeQueryParameters(fullTarget, serverRequest.parameters());
+            return createEndpoint(endpoint, getTargetWithoutQueryParams(fullTarget));
         } else if (target.startsWith(Reference.UNKNOWN_REFERENCE)) {
             return null;
         } else {
@@ -131,41 +142,53 @@ public class TargetEndpointResolver implements EndpointResolver {
                 return null;
             }
 
-            String encodedTarget = encode(endpoint.target() + target.substring(refSeparatorIdx+1), serverRequest.parameters(), executionContext);
-            return createEndpoint(endpoint, encodedTarget);
+            String fullTarget = getMergedTarget(endpoint.target(), target.substring(refSeparatorIdx+1));
+            mergeQueryParameters(fullTarget, serverRequest.parameters());
+            return createEndpoint(endpoint, getTargetWithoutQueryParams(fullTarget));
         }
     }
 
-    private String encode(String uri, MultiValueMap<String, String> parameters, ExecutionContext executionContext) {
-        QueryStringDecoder decoder = new QueryStringDecoder(uri);
-        Map<String, List<String>> queryParameters = decoder.parameters();
+    private String getMergedTarget(String endpointTarget, String userDefinedRawPathAndQuery) {
+        int targetQueryIndex = endpointTarget.indexOf(QUERY_SEPARATOR);
+
+        if (targetQueryIndex > -1) {
+            // we have to put the query params at the end of the merged url
+            String path = endpointTarget.substring(0, targetQueryIndex);
+            String targetQuery = endpointTarget.substring(targetQueryIndex+1);
+
+            String userPathAndQuery;
+            int userDefinedQueryIndex = userDefinedRawPathAndQuery.indexOf(QUERY_SEPARATOR);
+            if (userDefinedQueryIndex > -1) {
+                userPathAndQuery = userDefinedRawPathAndQuery + QUERYPARAM_SEPARATOR;
+            } else {
+                userPathAndQuery = userDefinedRawPathAndQuery + QUERY_SEPARATOR;
+            }
+
+            return path + userPathAndQuery + targetQuery;
+        } else {
+            return endpointTarget + userDefinedRawPathAndQuery;
+        }
+    }
+
+    private String getTargetWithoutQueryParams(String uri) {
+        int targetQueryIndex = uri.indexOf(QUERY_SEPARATOR);
+        if (targetQueryIndex > -1) {
+            return uri.substring(0, targetQueryIndex);
+        } else {
+            return uri;
+        }
+
+    }
+
+    private void mergeQueryParameters(String uri, MultiValueMap<String, String> parameters) {
+        MultiValueMap<String, String> queryParameters = URIUtils.parameters(uri);
 
         // Merge query parameters from user target into incoming request query parameters
         for(Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
-            parameters.put(param.getKey(), param.getValue());
-        }
-        
-        // Retrieve useRawPath config from ExecutionContext
-        Boolean useRawPath = (Boolean) executionContext.getAttribute(ExecutionContext.ATTR_ENDPOINT_RESOLVER_USE_RAW_PATH);
-        if(Boolean.TRUE.equals(useRawPath)) {
-        	return decoder.rawPath();
-        } else {
-        	// Path segments must be encoded to avoid bad URI syntax
-            String path  = decoder.path();
-            String [] segments = path.split(URI_PATH_SEPARATOR);
-            StringBuilder builder = new StringBuilder();
-
-            for(String pathSeg : segments) {
-                builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
-            }
-            
-            if (path.charAt(path.length() - 1) == URI_PATH_SEPARATOR_CHAR) {
-                return builder.toString();
-            } else {
-                return builder.substring(0, builder.length() - 1);
+            for (String value: param.getValue()) {
+                parameters.add(param.getKey(), value);
             }
         }
-        
     }
 
     private ResolvedEndpoint createEndpoint(Endpoint endpoint, String uri) {

@@ -175,7 +175,7 @@ public class QueryParametersTest extends AbstractGatewayTest {
         QueryStringEncoder encoder = new QueryStringEncoder("/team/my_team");
         encoder.addParam(query, null);
 
-        wireMockRule.verify(getRequestedFor(urlEqualTo(encoder.toString())));
+        wireMockRule.verify(getRequestedFor(urlEqualTo("/team/my_team?" + target.getRawQuery())));
     }
 
     @Test
