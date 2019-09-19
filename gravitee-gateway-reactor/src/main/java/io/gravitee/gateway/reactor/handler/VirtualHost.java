@@ -71,7 +71,7 @@ public class VirtualHost implements Entrypoint {
 
     @Override
     public String path() {
-        return pathWithoutTrailingSlash;
+        return path;
     }
 
     @Override

@@ -34,5 +34,5 @@ public interface PathResolver {
      * @param request The incoming request.
      * @return The "resolved" path for current request.
      */
-    Path resolve(String entrypointPath, Request request);
+    Path resolve(Request request);
 }

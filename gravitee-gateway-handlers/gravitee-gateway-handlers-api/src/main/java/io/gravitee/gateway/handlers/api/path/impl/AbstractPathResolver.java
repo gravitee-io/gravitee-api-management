@@ -58,15 +58,15 @@ public abstract class AbstractPathResolver implements PathResolver {
     }
 
     @Override
-    public Path resolve(final String entrypointPath, final Request request) {
+    public Path resolve(final Request request) {
         if (registeredPaths.size() == 1) {
             return registeredPaths.get(0);
         }
 
-        String decodedPath = request.path().substring(entrypointPath.length() - 1);
+        String path = request.pathInfo();
 
         try {
-            decodedPath = QueryStringDecoder.decodeComponent(decodedPath, Charset.defaultCharset());
+            path = QueryStringDecoder.decodeComponent(path, Charset.defaultCharset());
         } catch (IllegalArgumentException iae) {
         }
 
@@ -75,7 +75,7 @@ public abstract class AbstractPathResolver implements PathResolver {
 
         // TODO PERF: We must navigate from the longest path to the shortest to avoid counting pieces.
         for(Path registerPath : registeredPaths) {
-            if (registerPath.getPattern().matcher(decodedPath).lookingAt()) {
+            if (registerPath.getPattern().matcher(path).lookingAt()) {
                 int split = registerPath.getPath().split(URL_PATH_SEPARATOR).length;
                 if (split > pieces) {
                     pieces = split;

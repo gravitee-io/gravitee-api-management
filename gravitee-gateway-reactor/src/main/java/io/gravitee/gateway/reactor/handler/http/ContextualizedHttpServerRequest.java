@@ -30,7 +30,7 @@ public class ContextualizedHttpServerRequest extends RequestWrapper {
     public ContextualizedHttpServerRequest(final String contextPath, final Request request) {
         super(request);
         this.contextPath = contextPath;
-        this.pathInfo = request.path().substring((contextPath.length() == 1) ? 0 : contextPath.length());
+        this.pathInfo = request.path().substring((contextPath.length() == 1) ? 0 : contextPath.length() - 1);
     }
 
     @Override
