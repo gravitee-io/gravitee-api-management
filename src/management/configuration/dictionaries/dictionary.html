@@ -84,7 +84,7 @@
     </div>
   </div>
 
-  <div class="gv-form"ng-if="$ctrl.dictionary.type === 'dynamic'">
+  <div class="gv-form"ng-if="$ctrl.dictionary.type === 'dynamic'" permission permission-only="['management-dictionary-c', 'management-dictionary-u', 'management-dictionary-d']">
     <h2>Trigger</h2>
     <div class="gv-form-content" layout="column">
     <div layout="row" layout-sm="column">
@@ -106,7 +106,7 @@
     </div>
     </div>
   </div>
-  <div class="gv-form" ng-if="$ctrl.dictionary.type === 'dynamic'">
+  <div class="gv-form" ng-if="$ctrl.dictionary.type === 'dynamic'" permission permission-only="['management-dictionary-c', 'management-dictionary-u', 'management-dictionary-d']">
     <h2>Provider</h2>
     <div class="gv-form-content" layout="column">
 

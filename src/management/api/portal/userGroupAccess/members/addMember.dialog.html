@@ -35,6 +35,7 @@
             <img ng-src="{{getUserAvatar(user.id)}}" class="md-avatar" alt="User avatar" />
             <div class="md-list-item-text compact">
               <h3>{{user.displayName}}</h3>
+              <span ng-if="user.email">{{user.email}}</span>
             </div>
           </md-list-item>
 				</md-item-template>

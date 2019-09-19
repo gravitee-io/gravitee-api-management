@@ -166,11 +166,13 @@ const UserDetailComponent: ng.IComponentOptions = {
       UserService.getMemberships(this.selectedUser.id, "application").then( (response) => {
           let newAppList = [];
           _.forEach(response.data.metadata, (appMetadata: any, appId: string) => {
-            newAppList.push( {
-              id: appId,
-              name: appMetadata.name,
-              type: appMetadata.type
-            });
+            if (!appMetadata.status || appMetadata.status !== "archived") {
+              newAppList.push({
+                id: appId,
+                name: appMetadata.name,
+                type: appMetadata.type
+              });
+            }
           });
           $scope.userApplications = _.sortBy(newAppList, "name");
         }
