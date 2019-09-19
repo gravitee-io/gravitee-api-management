@@ -510,7 +510,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             } else if (type.equals(APPLICATION)) {
                 applicationRepository.findByIds(memberships.stream().map(UserMembership::getReference).collect(Collectors.toList())).forEach(application -> {
                     metadata.put(application.getId(), "name", application.getName());
-                //    metadata.put(application.getId(), "type", application.getType());
+                    metadata.put(application.getId(), "type", application.getType());
+                    metadata.put(application.getId(), "status", application.getStatus());
                 });
             }
             return metadata;
