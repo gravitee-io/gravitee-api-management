@@ -41,7 +41,8 @@
               "pipelining": false,
               "maxConcurrentConnections": 100,
               "useCompression": true,
-              "followRedirects": false
+              "followRedirects": false,
+              "encodeURI":false
             }
           }
         ],

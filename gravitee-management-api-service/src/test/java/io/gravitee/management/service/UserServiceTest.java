@@ -440,6 +440,7 @@ public class UserServiceTest {
         user.setFirstname(firstName);
         user.setLastname(lastName);
         user.setEmail(email);
+        user.setPicture("picture");
         when(userRepository.findById(userId)).thenReturn(of(user));
 
         userService.delete(userId);
@@ -456,7 +457,8 @@ public class UserServiceTest {
                         && !updatedAt.equals(user.getUpdatedAt())
                         && "Unknown".equals(user.getFirstname())
                         && user.getLastname().isEmpty()
-                        && user.getEmail().isEmpty();
+                        && user.getEmail() == null
+                        && user.getPicture() == null;
             }
         }));
         verify(searchEngineService, times(1)).delete(any(), eq(false));

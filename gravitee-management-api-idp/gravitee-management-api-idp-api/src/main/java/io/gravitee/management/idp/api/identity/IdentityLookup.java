@@ -32,4 +32,8 @@ public interface IdentityLookup {
     default boolean searchable() {
         return true;
     }
+
+    default boolean allowEmailInSearchResults() {
+        return false;
+    }
 }
