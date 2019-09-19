@@ -81,7 +81,7 @@ public class ReactorHandlerRegistryTest {
         reactorHandlerRegistry.create(reactable);
 
         Assert.assertEquals(2, reactorHandlerRegistry.getEntrypoints().size());
-        Assert.assertEquals("/products/v2", reactorHandlerRegistry.getEntrypoints().iterator().next().path());
+        Assert.assertEquals("/products/v2/", reactorHandlerRegistry.getEntrypoints().iterator().next().path());
     }
 
     @Test
@@ -113,7 +113,7 @@ public class ReactorHandlerRegistryTest {
         reactorHandlerRegistry.create(reactable2);
 
         Assert.assertEquals(2, reactorHandlerRegistry.getEntrypoints().size());
-        Assert.assertEquals("/products", reactorHandlerRegistry.getEntrypoints().iterator().next().path());
+        Assert.assertEquals("/products/", reactorHandlerRegistry.getEntrypoints().iterator().next().path());
     }
 
     @Test
@@ -160,7 +160,7 @@ public class ReactorHandlerRegistryTest {
         reactorHandlerRegistry.update(updateReactable);
 
         Assert.assertEquals(1, reactorHandlerRegistry.getEntrypoints().size());
-        Assert.assertEquals("/new-path", reactorHandlerRegistry.getEntrypoints().get(0).path());
+        Assert.assertEquals("/new-path/", reactorHandlerRegistry.getEntrypoints().get(0).path());
     }
 
     @Test

@@ -39,7 +39,6 @@ import java.util.List;
 public class ApiPolicyResolver extends RuleBasedPolicyResolver {
 
     private final static String API_RESOLVED_PATH = ExecutionContext.ATTR_PREFIX + "api-policy-path";
-    private final static String ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
 
     @Autowired
     private PathResolver pathResolver;
@@ -51,7 +50,7 @@ public class ApiPolicyResolver extends RuleBasedPolicyResolver {
 
         if (path == null) {
             // Resolve the "configured" path according to the inbound request
-            path = pathResolver.resolve(((Entrypoint) context.getAttribute(ENTRYPOINT)).path(), context.request());
+            path = pathResolver.resolve(context.request());
 
             context.setAttribute(API_RESOLVED_PATH, path);
 
