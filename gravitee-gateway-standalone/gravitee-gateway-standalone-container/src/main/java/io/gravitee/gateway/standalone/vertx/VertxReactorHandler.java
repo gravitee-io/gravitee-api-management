@@ -34,9 +34,11 @@ import io.vertx.core.http.HttpServerRequest;
 public class VertxReactorHandler implements Handler<HttpServerRequest> {
 
     private final Reactor reactor;
+    private boolean legacyDecodeUrlParams;
 
-    VertxReactorHandler(final Reactor reactor) {
+    VertxReactorHandler(final Reactor reactor, boolean legacyDecodeUrlParams) {
         this.reactor = reactor;
+        this.legacyDecodeUrlParams = legacyDecodeUrlParams;
     }
 
     @Override
@@ -45,10 +47,10 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
         Response response;
 
         if (isWebSocket(httpServerRequest)) {
-            request = new VertxWebSocketServerRequest(httpServerRequest);
+            request = new VertxWebSocketServerRequest(httpServerRequest, legacyDecodeUrlParams);
             response = new VertxWebSocketServerResponse(httpServerRequest, request);
         } else {
-            request = new VertxHttpServerRequest(httpServerRequest);
+            request = new VertxHttpServerRequest(httpServerRequest, legacyDecodeUrlParams);
             response = new VertxHttpServerResponse(httpServerRequest, request.metrics());
         }
 

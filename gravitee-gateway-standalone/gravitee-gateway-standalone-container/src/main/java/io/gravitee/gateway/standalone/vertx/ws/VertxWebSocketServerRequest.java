@@ -28,8 +28,8 @@ public class VertxWebSocketServerRequest extends VertxHttpServerRequest {
 
     private VertxWebSocket vertxWebSocket;
 
-    public VertxWebSocketServerRequest(HttpServerRequest httpServerRequest) {
-        super(httpServerRequest);
+    public VertxWebSocketServerRequest(HttpServerRequest httpServerRequest, boolean legacyDecodeUrlParams) {
+        super(httpServerRequest, legacyDecodeUrlParams);
 
         this.vertxWebSocket = new VertxWebSocket(httpServerRequest);
     }
