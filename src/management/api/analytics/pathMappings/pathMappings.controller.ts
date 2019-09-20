@@ -34,7 +34,8 @@ class ApiPathMappingsController {
     private NotificationService: NotificationService,
     private $scope,
     private $rootScope,
-    DocumentationService: DocumentationService
+    DocumentationService: DocumentationService,
+    private $state
   ) {
     'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
@@ -53,6 +54,8 @@ class ApiPathMappingsController {
   update() {
     this.ApiService.update(this.api).then((updatedApi) => {
       this.onSave(updatedApi);
+    }, () => {
+      this.$state.reload();
     });
   }
 
