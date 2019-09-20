@@ -341,6 +341,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             addLoggingMaxDuration(api.getProxy().getLogging());
 
+            // check if there is regex errors in plaintext fields
+            validateRegexfields(api);
+
             Api repoApi = convert(id, api);
 
             if (repoApi != null) {
@@ -631,6 +634,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             addLoggingMaxDuration(updateApiEntity.getProxy().getLogging());
 
+            // check if there is regex errors in plaintext fields
+            validateRegexfields(updateApiEntity);
+
             // check the existence of groups
             if (updateApiEntity.getGroups() != null && !updateApiEntity.getGroups().isEmpty()) {
                 try {
@@ -711,6 +717,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     throw new TagNotAllowedException(notAllowedTags);
                 }
             }
+        }
+    }
+
+    private void validateRegexfields(final UpdateApiEntity updateApiEntity) {
+        // validate regex on pathMappings
+        if (updateApiEntity.getPathMappings() != null) {
+            updateApiEntity.getPathMappings().forEach( pathMapping -> {
+                try {
+                    Pattern.compile(pathMapping);
+                } catch (java.util.regex.PatternSyntaxException pse) {
+                    LOGGER.error("An error occurs while trying to parse the path mapping {}", pathMapping, pse);
+                    throw new TechnicalManagementException("An error occurs while trying to parse the path mapping" + pathMapping, pse);
+                }
+            });
         }
     }
 
