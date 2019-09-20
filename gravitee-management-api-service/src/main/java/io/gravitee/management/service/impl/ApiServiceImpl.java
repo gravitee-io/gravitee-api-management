@@ -721,6 +721,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void validateRegexfields(final UpdateApiEntity updateApiEntity) {
+        // validate regex on paths
+        if (updateApiEntity.getPaths() != null) {
+            updateApiEntity.getPaths().forEach((path, v) -> {
+                try {
+                    Pattern.compile(path);
+                } catch (java.util.regex.PatternSyntaxException pse) {
+                    LOGGER.error("An error occurs while trying to parse the path {}", path, pse);
+                    throw new TechnicalManagementException("An error occurs while trying to parse the path " + path, pse);
+                }
+            });
+        }
+
         // validate regex on pathMappings
         if (updateApiEntity.getPathMappings() != null) {
             updateApiEntity.getPathMappings().forEach( pathMapping -> {
