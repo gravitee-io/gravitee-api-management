@@ -60,7 +60,7 @@ public class DictionaryService extends AbstractService implements EventListener<
     @Autowired
     private Vertx vertx;
 
-    private final Map<DictionaryEntity, Long> timers = new HashMap<>();
+    private final Map<String, Long> timers = new HashMap<>();
 
     @Override
     protected String name() {
@@ -114,7 +114,7 @@ public class DictionaryService extends AbstractService implements EventListener<
                     refresher.handle(null);
 
                     long periodicTimer = vertx.setPeriodic(getDelayMillis(dictionary.getTrigger()), refresher);
-                    timers.put(dictionary, periodicTimer);
+                    timers.put(dictionary.getId(), periodicTimer);
                 } catch (JsonProcessingException jpe) {
                     logger.error("Dictionary provider configuration invalid", jpe);
                 }
@@ -138,9 +138,9 @@ public class DictionaryService extends AbstractService implements EventListener<
     }
 
     private void stopDynamicDictionary(DictionaryEntity dictionary) {
-        Long timer = timers.remove(dictionary);
+        Long timer = timers.remove(dictionary.getId());
         if (timer != null) {
-            logger.info("Stop dictionary refresher task for dictionary id[{}] name[{}]", dictionary.getId(), dictionary.getName());
+            logger.info("Stop dictionary refresher task for dictionary id[{}]", dictionary.getId());
             vertx.cancelTimer(timer);
         }
     }

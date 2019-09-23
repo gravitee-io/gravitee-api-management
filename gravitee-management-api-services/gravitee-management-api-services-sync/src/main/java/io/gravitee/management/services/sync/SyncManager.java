@@ -188,15 +188,18 @@ public class SyncManager {
     private void computeDictionaryEvents(Map<String, Event> dictionaryEvents) {
         dictionaryEvents.forEach((id, event) -> {
 
-            // Read dictionary
-            DictionaryEntity dictionary = dictionaryService.findById(id);
-
             switch (event.getType()) {
                 case START_DICTIONARY:
+                    // Read dictionary
+                    DictionaryEntity dictionary = dictionaryService.findById(id);
                     eventManager.publishEvent(DictionaryEvent.START, dictionary);
                     break;
                 case STOP_DICTIONARY:
-                    eventManager.publishEvent(DictionaryEvent.STOP, dictionary);
+                    // We get a stop, which can be a follow-up to a deleted dictionary
+                    // In that case just pass a dictionary with a reference only
+                    DictionaryEntity stoppedDictionary = new DictionaryEntity();
+                    stoppedDictionary.setId(id);
+                    eventManager.publishEvent(DictionaryEvent.STOP, stoppedDictionary);
                     break;
             }
         });
