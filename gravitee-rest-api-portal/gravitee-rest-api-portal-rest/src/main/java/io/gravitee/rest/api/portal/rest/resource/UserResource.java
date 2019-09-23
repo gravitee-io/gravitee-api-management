@@ -19,6 +19,7 @@ import java.net.URI;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -69,6 +70,9 @@ public class UserResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateCurrentUser(@Valid User user) {
+        if(user == null) {
+            throw new BadRequestException("input must not be null");
+        }
         if(!getAuthenticatedUser().equals(user.getId())) {
             throw new UnauthorizedAccessException();
         }

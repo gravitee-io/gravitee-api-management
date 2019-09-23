@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -89,6 +90,10 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@PathParam("applicationId") String applicationId, GenericNotificationConfig genericConfig) {
+        if(genericConfig == null) {
+            throw new BadRequestException("input must not be null");
+        }
+
         if (!applicationId.equals(genericConfig.getReferenceId())
                 || !NotificationReferenceType.APPLICATION.name().equals(genericConfig.getReferenceType())) {
             throw new ForbiddenAccessException();

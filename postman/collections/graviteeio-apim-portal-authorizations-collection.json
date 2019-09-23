@@ -1,0 +1,4561 @@
+{
+	"info": {
+		"_postman_id": "0eb8e382-4c34-4842-8906-9afe387ec8e1",
+		"name": "API Portal : Authorizations",
+		"description": "This collections contains requests to test authorizations on the Portal API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Anonymous Requests",
+			"item": [
+				{
+					"name": "apis",
+					"item": [
+						{
+							"name": "not 401",
+							"item": [
+								{
+									"name": "GET /apis",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/apis",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"apis"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "GET /apis/:apiId",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "04387e67-11a5-495f-8da0-724b396e697a",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/apis/:apiId",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"apis",
+												":apiId"
+											],
+											"variable": [
+												{
+													"key": "apiId",
+													"value": "API"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "GET /apis/:apiId/pages",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c8725932-131b-4f79-87c9-e13318ec8f23",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/apis/:apiId/pages",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"apis",
+												":apiId",
+												"pages"
+											],
+											"variable": [
+												{
+													"key": "apiId",
+													"value": "API"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "GET /apis/:apiId/pages/:pageId",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c8725932-131b-4f79-87c9-e13318ec8f23",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/apis/:apiId/pages/:pageId",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"apis",
+												":apiId",
+												"pages",
+												":pageId"
+											],
+											"variable": [
+												{
+													"key": "apiId",
+													"value": "API"
+												},
+												{
+													"key": "pageId",
+													"value": "PAGE"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "GET /apis/:apiId/picture",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3e832632-3266-4df5-9a4f-0689ba354138",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/apis/:apiId/picture",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"apis",
+												":apiId",
+												"picture"
+											],
+											"variable": [
+												{
+													"key": "apiId",
+													"value": "API"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "GET /apis/:apiId/plans",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "8b6eac7c-0352-489c-8a8e-6b0c06e538a2",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/apis/:apiId/plans",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"apis",
+												":apiId",
+												"plans"
+											],
+											"variable": [
+												{
+													"key": "apiId",
+													"value": "API"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "GET /apis/:apiId/ratings",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/apis/:apiId/ratings",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"apis",
+												":apiId",
+												"ratings"
+											],
+											"variable": [
+												{
+													"key": "apiId",
+													"value": "API"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "fc236e85-905f-41d4-838b-8a032afdd077",
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is not 401\", function () {",
+											"    pm.response.to.not.have.status(401);",
+											"});"
+										]
+									}
+								}
+							],
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "401",
+							"item": [
+								{
+									"name": "POST /apis/:apiId/rating",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/apis/:apiId/ratings",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"apis",
+												":apiId",
+												"ratings"
+											],
+											"variable": [
+												{
+													"key": "apiId",
+													"value": "API"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "84f58a41-c300-4405-8d63-c52c4ed31328",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "5a2a16a6-7593-4b4c-bb34-cca37d5247d1",
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										]
+									}
+								}
+							],
+							"_postman_isSubFolder": true
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "ca48b438-4f6c-48cf-a6ad-ca7597443c83",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f2b10f7e-320b-4477-af90-4b0fc234996a",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "applications",
+					"item": [
+						{
+							"name": "GET /applications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "8877b70b-b31a-450f-9bf3-0475849c5bb9",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /applications/:applicationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2fd9acc6-1c33-4f07-aa8f-2376b68dc008",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /applications/:applicationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "8a8924bf-29d6-4d29-861a-d55aa35287e8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/picture",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/picture",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"picture"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /applications/:applicationId/picture",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f20d4791-1f49-4c35-b048-d1336673b94e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/picture",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"picture"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/notifications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/notifications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"notifications"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications/:applicationId/notifications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/notifications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"notifications"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /applications/:applicationId/notifications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/notifications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"notifications"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /applications/:applicationId/notifications/:notificationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/notifications/:notificationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"notifications",
+										":notificationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "notificationId",
+											"value": "NOTIFICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /applications/:applicationId/notifications/:notificationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											";"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/notifications/:notificationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"notifications",
+										":notificationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "notificationId",
+											"value": "NOTIFICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/members",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications/:applicationId/members",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications/:applicationId/members/_transfer_ownership",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members/_transfer_ownership",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members",
+										"_transfer_ownership"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/members/:memberId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members/:memberId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members",
+										":memberId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "memberId",
+											"value": "MEMBER"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /applications/:applicationId/members/:memberId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members/:memberId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members",
+										":memberId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "memberId",
+											"value": "MEMBER"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /applications/:applicationId/members/:memberId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members/:memberId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members",
+										":memberId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "memberId",
+											"value": "MEMBER"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/analytics",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/analytics",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"analytics"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/logs",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/logs",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"logs"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications/:applicationId/logs/_export",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/logs/_export",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"logs",
+										"_export"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/logs/:logId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/logs/:logId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"logs",
+										":logId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "logId",
+											"value": "LOG"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications/:applicationId/_renew_secret",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/_renew_secret",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"_renew_secret"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "All anonymous requests to /applications/... should return 401",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "71d4dfee-80d6-4df2-b23b-543e6ab5dee9",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "aa618fce-577b-4543-a294-6197d08baad1",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "pages",
+					"item": [
+						{
+							"name": "GET /pages",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/pages",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"pages"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /pages/:pageId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/pages/:pageId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"pages",
+										":pageId"
+									],
+									"variable": [
+										{
+											"key": "pageId",
+											"value": "PAGE"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "Anonymous requests to /pages/... should not return 401",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9179df9e-c50a-4a73-9371-27577e662d04",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "0edcab96-14e9-4ace-afee-695af68016ca",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is not 401\", function () {",
+									"    pm.response.to.not.have.status(401);",
+									"});"
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "subscriptions",
+					"item": [
+						{
+							"name": "GET /subscriptions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /subscriptions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /subscriptions/:subscriptionId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "8877b70b-b31a-450f-9bf3-0475849c5bb9",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions/:subscriptionId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions",
+										":subscriptionId"
+									],
+									"variable": [
+										{
+											"key": "subscriptionId",
+											"value": "SUBSCRIPTION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /subscriptions/:subscriptionId/_close",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2fd9acc6-1c33-4f07-aa8f-2376b68dc008",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions/:subscriptionId/_close",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions",
+										":subscriptionId",
+										"_close"
+									],
+									"variable": [
+										{
+											"key": "subscriptionId",
+											"value": "SUBSCRIPTION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /subscriptions/:subscriptionId/keys/_renew",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2fd9acc6-1c33-4f07-aa8f-2376b68dc008",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions/:subscriptionId/keys/_renew",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions",
+										":subscriptionId",
+										"keys",
+										"_renew"
+									],
+									"variable": [
+										{
+											"key": "subscriptionId",
+											"value": "SUBSCRIPTION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /subscriptions/:subscriptionId/keys/:keyId/_revoke",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2fd9acc6-1c33-4f07-aa8f-2376b68dc008",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions/:subscriptionId/keys/:keyId/_revoke",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions",
+										":subscriptionId",
+										"keys",
+										":keyId",
+										"_revoke"
+									],
+									"variable": [
+										{
+											"key": "subscriptionId",
+											"value": "SUBSCRIPTION"
+										},
+										{
+											"key": "keyId",
+											"value": "KEY"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "All anonymous requests to /subscriptions/... should return 401",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "71d4dfee-80d6-4df2-b23b-543e6ab5dee9",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "aa618fce-577b-4543-a294-6197d08baad1",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "users & user",
+					"item": [
+						{
+							"name": "GET /users",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/users",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /user/avatar",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user/avatar",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user",
+										"avatar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /user/notifications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user/notifications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user",
+										"notifications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /user/notifications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user/notifications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user",
+										"notifications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /user/notifications/:notificationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user/notifications/:notificationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user",
+										"notifications",
+										":notificationId"
+									],
+									"variable": [
+										{
+											"key": "notificationId",
+											"value": "NOTIFICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "All anonymous requests to /users and /user/... should return 401",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "71d4dfee-80d6-4df2-b23b-543e6ab5dee9",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "aa618fce-577b-4543-a294-6197d08baad1",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "views",
+					"item": [
+						{
+							"name": "GET /views",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/views",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"views"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /views/:viewId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/views/:viewId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"views",
+										":viewId"
+									],
+									"variable": [
+										{
+											"key": "viewId",
+											"value": "VIEW"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /views/:viewId/picture",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/views/:viewId/picture",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"views",
+										":viewId",
+										"picture"
+									],
+									"variable": [
+										{
+											"key": "viewId",
+											"value": "VIEW"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "All anonymous requests to /views/... should not return 401",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9179df9e-c50a-4a73-9371-27577e662d04",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "0edcab96-14e9-4ace-afee-695af68016ca",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is not 401\", function () {",
+									"    pm.response.to.not.have.status(401);",
+									"});"
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "configuration & info",
+					"item": [
+						{
+							"name": "GET /configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/configuration",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"configuration"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /configuration/identities",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/configuration/identities",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"configuration",
+										"identities"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /info",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/info",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"info"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "All anonymous requests to /configuration/.. and /info should not return 401",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9179df9e-c50a-4a73-9371-27577e662d04",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "0edcab96-14e9-4ace-afee-695af68016ca",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is not 401\", function () {",
+									"    pm.response.to.not.have.status(401);",
+									"});"
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "auth",
+					"item": [
+						{
+							"name": "not 401",
+							"item": [
+								{
+									"name": "POST /auth/login",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/auth/login",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"auth",
+												"login"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST /auth/oauth2/:identity",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/auth/oauth2/:identity",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"auth",
+												"oauth2",
+												":identity"
+											],
+											"variable": [
+												{
+													"key": "identity",
+													"value": "IDENTITY"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "eb17f689-0b73-4c4b-bab7-10cd1325468b",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "fc236e85-905f-41d4-838b-8a032afdd077",
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is not 401\", function () {",
+											"    pm.response.to.not.have.status(401);",
+											"});"
+										]
+									}
+								}
+							],
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "401",
+							"item": [
+								{
+									"name": "POST /auth/logout",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/auth/logout",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"auth",
+												"logout"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST /auth/oauth2/:identity/_exchange",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/auth/oauth2/:identity/_exchange",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"auth",
+												"oauth2",
+												":identity",
+												"_exchange"
+											],
+											"variable": [
+												{
+													"key": "identity",
+													"value": "IDENTITY"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "84f58a41-c300-4405-8d63-c52c4ed31328",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "5a2a16a6-7593-4b4c-bb34-cca37d5247d1",
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										]
+									}
+								}
+							],
+							"_postman_isSubFolder": true
+						}
+					],
+					"_postman_isSubFolder": true
+				}
+			],
+			"auth": {
+				"type": "noauth"
+			}
+		},
+		{
+			"name": "Authenticated Requests",
+			"item": [
+				{
+					"name": "apis",
+					"item": [
+						{
+							"name": "GET /apis",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/apis",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"apis"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /apis/:apiId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "04387e67-11a5-495f-8da0-724b396e697a",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/apis/:apiId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"apis",
+										":apiId"
+									],
+									"variable": [
+										{
+											"key": "apiId",
+											"value": "API"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /apis/:apiId/pages",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c8725932-131b-4f79-87c9-e13318ec8f23",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/apis/:apiId/pages",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"apis",
+										":apiId",
+										"pages"
+									],
+									"variable": [
+										{
+											"key": "apiId",
+											"value": "API"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /apis/:apiId/pages/:pageId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c8725932-131b-4f79-87c9-e13318ec8f23",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/apis/:apiId/pages/:pageId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"apis",
+										":apiId",
+										"pages",
+										":pageId"
+									],
+									"variable": [
+										{
+											"key": "apiId",
+											"value": "API"
+										},
+										{
+											"key": "pageId",
+											"value": "PAGE"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /apis/:apiId/picture",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3e832632-3266-4df5-9a4f-0689ba354138",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/apis/:apiId/picture",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"apis",
+										":apiId",
+										"picture"
+									],
+									"variable": [
+										{
+											"key": "apiId",
+											"value": "API"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /apis/:apiId/plans",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "8b6eac7c-0352-489c-8a8e-6b0c06e538a2",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/apis/:apiId/plans",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"apis",
+										":apiId",
+										"plans"
+									],
+									"variable": [
+										{
+											"key": "apiId",
+											"value": "API"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /apis/:apiId/ratings",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/apis/:apiId/ratings",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"apis",
+										":apiId",
+										"ratings"
+									],
+									"variable": [
+										{
+											"key": "apiId",
+											"value": "API"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /apis/:apiId/rating",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/apis/:apiId/ratings",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"apis",
+										":apiId",
+										"ratings"
+									],
+									"variable": [
+										{
+											"key": "apiId",
+											"value": "API"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "ca48b438-4f6c-48cf-a6ad-ca7597443c83",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f2b10f7e-320b-4477-af90-4b0fc234996a",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "applications",
+					"item": [
+						{
+							"name": "GET /applications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "8877b70b-b31a-450f-9bf3-0475849c5bb9",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /applications/:applicationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2fd9acc6-1c33-4f07-aa8f-2376b68dc008",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /applications/:applicationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "8a8924bf-29d6-4d29-861a-d55aa35287e8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/picture",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/picture",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"picture"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /applications/:applicationId/picture",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f20d4791-1f49-4c35-b048-d1336673b94e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/picture",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"picture"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/notifications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/notifications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"notifications"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications/:applicationId/notifications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/notifications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"notifications"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /applications/:applicationId/notifications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/notifications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"notifications"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /applications/:applicationId/notifications/:notificationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/notifications/:notificationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"notifications",
+										":notificationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "notificationId",
+											"value": "NOTIFICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /applications/:applicationId/notifications/:notificationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											";"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/notifications/:notificationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"notifications",
+										":notificationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "notificationId",
+											"value": "NOTIFICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/members",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications/:applicationId/members",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications/:applicationId/members/_transfer_ownership",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members/_transfer_ownership",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members",
+										"_transfer_ownership"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/members/:memberId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members/:memberId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members",
+										":memberId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "memberId",
+											"value": "MEMBER"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /applications/:applicationId/members/:memberId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members/:memberId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members",
+										":memberId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "memberId",
+											"value": "MEMBER"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /applications/:applicationId/members/:memberId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/members/:memberId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members",
+										":memberId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "memberId",
+											"value": "MEMBER"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/analytics",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/analytics",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"analytics"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/logs",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/logs",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"logs"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications/:applicationId/logs/_export",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/logs/_export",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"logs",
+										"_export"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /applications/:applicationId/logs/:logId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/logs/:logId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"logs",
+										":logId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										},
+										{
+											"key": "logId",
+											"value": "LOG"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /applications/:applicationId/_renew_secret",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "31d531f3-c497-4cb7-935f-2ffe74323492",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/applications/:applicationId/_renew_secret",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"_renew_secret"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "APPLICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "71d4dfee-80d6-4df2-b23b-543e6ab5dee9",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "aa618fce-577b-4543-a294-6197d08baad1",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "pages",
+					"item": [
+						{
+							"name": "GET /pages",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/pages",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"pages"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /pages/:pageId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/pages/:pageId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"pages",
+										":pageId"
+									],
+									"variable": [
+										{
+											"key": "pageId",
+											"value": "PAGE"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9179df9e-c50a-4a73-9371-27577e662d04",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "0edcab96-14e9-4ace-afee-695af68016ca",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "subscriptions",
+					"item": [
+						{
+							"name": "GET /subscriptions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /subscriptions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /subscriptions/:subscriptionId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "8877b70b-b31a-450f-9bf3-0475849c5bb9",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions/:subscriptionId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions",
+										":subscriptionId"
+									],
+									"variable": [
+										{
+											"key": "subscriptionId",
+											"value": "SUBSCRIPTION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /subscriptions/:subscriptionId/_close",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2fd9acc6-1c33-4f07-aa8f-2376b68dc008",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions/:subscriptionId/_close",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions",
+										":subscriptionId",
+										"_close"
+									],
+									"variable": [
+										{
+											"key": "subscriptionId",
+											"value": "SUBSCRIPTION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /subscriptions/:subscriptionId/keys/_renew",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2fd9acc6-1c33-4f07-aa8f-2376b68dc008",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions/:subscriptionId/keys/_renew",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions",
+										":subscriptionId",
+										"keys",
+										"_renew"
+									],
+									"variable": [
+										{
+											"key": "subscriptionId",
+											"value": "SUBSCRIPTION"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /subscriptions/:subscriptionId/keys/:keyId/_revoke",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2fd9acc6-1c33-4f07-aa8f-2376b68dc008",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/subscriptions/:subscriptionId/keys/:keyId/_revoke",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"subscriptions",
+										":subscriptionId",
+										"keys",
+										":keyId",
+										"_revoke"
+									],
+									"variable": [
+										{
+											"key": "subscriptionId",
+											"value": "SUBSCRIPTION"
+										},
+										{
+											"key": "keyId",
+											"value": "KEY"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "71d4dfee-80d6-4df2-b23b-543e6ab5dee9",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "aa618fce-577b-4543-a294-6197d08baad1",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "users & user",
+					"item": [
+						{
+							"name": "GET /users",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/users",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT /user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /user/avatar",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user/avatar",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user",
+										"avatar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /user/notifications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user/notifications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user",
+										"notifications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /user/notifications",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user/notifications",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user",
+										"notifications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE /user/notifications/:notificationId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/user/notifications/:notificationId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"user",
+										"notifications",
+										":notificationId"
+									],
+									"variable": [
+										{
+											"key": "notificationId",
+											"value": "NOTIFICATION"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "71d4dfee-80d6-4df2-b23b-543e6ab5dee9",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "aa618fce-577b-4543-a294-6197d08baad1",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "views",
+					"item": [
+						{
+							"name": "GET /views",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/views",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"views"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /views/:viewId",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/views/:viewId",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"views",
+										":viewId"
+									],
+									"variable": [
+										{
+											"key": "viewId",
+											"value": "VIEW"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /views/:viewId/picture",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/views/:viewId/picture",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"views",
+										":viewId",
+										"picture"
+									],
+									"variable": [
+										{
+											"key": "viewId",
+											"value": "VIEW"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9179df9e-c50a-4a73-9371-27577e662d04",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "0edcab96-14e9-4ace-afee-695af68016ca",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "configuration & info",
+					"item": [
+						{
+							"name": "GET /configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/configuration",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"configuration"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /configuration/identities",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/configuration/identities",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"configuration",
+										"identities"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /info",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/info",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"info"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9179df9e-c50a-4a73-9371-27577e662d04",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "0edcab96-14e9-4ace-afee-695af68016ca",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "auth",
+					"item": [
+						{
+							"name": "POST /auth/login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/auth/login",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /auth/logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/auth/logout",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /auth/oauth2/:identity",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/auth/oauth2/:identity",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"auth",
+										"oauth2",
+										":identity"
+									],
+									"variable": [
+										{
+											"key": "identity",
+											"value": "IDENTITY"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /auth/oauth2/:identity/_exchange",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/auth/oauth2/:identity/_exchange",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"auth",
+										"oauth2",
+										":identity",
+										"_exchange"
+									],
+									"variable": [
+										{
+											"key": "identity",
+											"value": "IDENTITY"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				}
+			],
+			"description": "Authenticated requests should not return 401",
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "username",
+						"value": "user",
+						"type": "string"
+					},
+					{
+						"key": "password",
+						"value": "password",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "7d648fc5-80d4-4d68-bccb-3902daa17c0c",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "7e148532-9507-49fc-957f-c4dd54994cc5",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is not 401\", function () {",
+							"    pm.response.to.not.have.status(401);",
+							"});"
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "34cc3a2f-d3af-47c3-9c54-88a5abd558fa",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "915ae064-311e-47b3-9310-21b0529c5789",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

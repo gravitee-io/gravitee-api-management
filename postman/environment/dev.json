@@ -1,0 +1,19 @@
+{
+	"id": "e27215ce-820c-4f6c-8e7d-62a92e1c2694",
+	"name": "gravitee.io apim V3 - dev",
+	"values": [
+		{
+			"key": "managment_url",
+			"value": "http://localhost:8083/management/DEFAULT",
+			"enabled": true
+		},
+		{
+			"key": "portal_url",
+			"value": "http://localhost:8084/portal/DEFAULT",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2019-09-23T12:47:26.464Z",
+	"_postman_exported_using": "Postman/7.5.0"
+}

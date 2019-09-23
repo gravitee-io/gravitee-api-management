@@ -355,4 +355,10 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertNotNull(createdApp);
         assertEquals("NEW", createdApp.getId());
     }
+    
+    @Test
+    public void shouldHaveBadRequestWhileCreatingApplication() {
+        final Response response = target().request().post(Entity.json(null));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
 }

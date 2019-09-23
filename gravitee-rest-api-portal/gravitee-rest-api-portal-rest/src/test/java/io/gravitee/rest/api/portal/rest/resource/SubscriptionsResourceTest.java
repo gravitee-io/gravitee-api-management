@@ -166,6 +166,12 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     }
     
     @Test
+    public void shouldHaveBadRequestWhileCreatingSubscription() {
+        final Response response = target().request().post(Entity.json(null));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+    
+    @Test
     public void testPermissionsForCreation() {
         reset(permissionService);
         

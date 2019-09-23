@@ -86,6 +86,8 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             }
 
             return convert(identityProvider);
+        } catch (IdentityProviderNotFoundException ex) {
+            throw ex;
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to find an identity provider using its ID {}", id, ex);
             throw new TechnicalManagementException(

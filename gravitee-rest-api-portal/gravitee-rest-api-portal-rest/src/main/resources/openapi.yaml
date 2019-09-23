@@ -715,18 +715,6 @@ paths:
           $ref: '#/components/responses/PictureSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
-    put:
-      tags:
-        - User
-      requestBody:
-        $ref: '#/components/requestBodies/pictureUpdateInputBody'
-      description: Change user's avatar
-      operationId: setUserAvatar
-      responses:
-        200:
-          $ref: '#/components/responses/PictureSuccess'
-        500:
-          $ref: '#/components/responses/GeneralError'
   
   /views:
     get:

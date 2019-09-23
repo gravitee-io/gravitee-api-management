@@ -67,6 +67,9 @@ public class SubscriptionsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createSubscription(@Valid SubscriptionInput subscriptionInput) {
+        if(subscriptionInput == null) {
+            throw new BadRequestException("input must not be null");
+        }
         if(hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionInput.getApplication(), RolePermissionAction.CREATE)) {
             NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
             newSubscriptionEntity.setApplication(subscriptionInput.getApplication());

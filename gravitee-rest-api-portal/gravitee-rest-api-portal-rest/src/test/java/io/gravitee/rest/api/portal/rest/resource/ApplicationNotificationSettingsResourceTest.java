@@ -103,6 +103,12 @@ public class ApplicationNotificationSettingsResourceTest extends AbstractResourc
     }
     
     @Test
+    public void shouldHaveBadRequestWhileCreatingNotification() {
+        final Response response = target(APPLICATION).path("notifications").request().post(Entity.json(null));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
     public void shouldCreateGenericNotification() {
         GenericNotificationConfig genericConfigInput = new GenericNotificationConfig();
         genericConfigInput.setName(NOTIFICATION);
