@@ -90,6 +90,12 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
                 collect(Collectors.toList());
     }
 
+    @Override
+    public void deleteByUser(String user) throws TechnicalException {
+        LOGGER.debug("Delete PortalNotificationConfigs [{}]", user);
+        internalRepo.deleteByUser(user);
+    }
+
     private PortalNotificationConfigMongo map(PortalNotificationConfig portalNotificationConfig) {
         PortalNotificationConfigPkMongo pk = new PortalNotificationConfigPkMongo();
         pk.setReferenceType(portalNotificationConfig.getReferenceType());

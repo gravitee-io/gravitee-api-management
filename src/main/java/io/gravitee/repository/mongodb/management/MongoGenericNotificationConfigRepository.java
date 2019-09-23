@@ -94,6 +94,12 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
                 collect(Collectors.toList());
     }
 
+    @Override
+    public void deleteByConfig(String config) throws TechnicalException {
+        LOGGER.debug("Delete GenericNotificationConfig by config [{}]", config);
+        internalRepo.deleteByConfig(config);
+    }
+
     private GenericNotificationConfigMongo map(GenericNotificationConfig genericNotificationConfig) {
         GenericNotificationConfigMongo mongo = new GenericNotificationConfigMongo();
         mongo.setId(genericNotificationConfig.getId());
