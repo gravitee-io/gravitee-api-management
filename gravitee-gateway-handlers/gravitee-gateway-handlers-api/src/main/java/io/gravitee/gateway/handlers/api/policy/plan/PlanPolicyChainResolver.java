@@ -78,7 +78,6 @@ public class PlanPolicyChainResolver extends AbstractPolicyChainResolver {
         if (streamType == StreamType.ON_REQUEST) {
             String application = (String) executionContext.getAttribute(ExecutionContext.ATTR_APPLICATION);
 
-            request.metrics().setUser((String) executionContext.getAttribute(ExecutionContext.ATTR_USER));
             request.metrics().setPlan(plan);
             request.metrics().setApplication(application);
         }
