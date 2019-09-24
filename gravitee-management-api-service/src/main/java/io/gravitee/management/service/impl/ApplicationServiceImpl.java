@@ -108,7 +108,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         .findFirst();
                 if (! primaryOwnerMembership.isPresent()) {
                     LOGGER.error("The Application {} doesn't have any primary owner.", applicationId);
-                    throw new TechnicalException("The Application " + applicationId + " doesn't have any primary owner.");
+                    return convert(application.get(), null);
                 }
                 return convert(application.get(), userService.findById(primaryOwnerMembership.get().getUserId()));
             }
@@ -537,6 +537,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     private ApplicationEntity convert(Application application, UserEntity primaryOwner) {
+        if (primaryOwner == null) {
+            // add a default unknown user
+            primaryOwner = new UserEntity();
+            primaryOwner.setId("0");
+            primaryOwner.setFirstname("Unknown");
+            primaryOwner.setLastname("User");
+        }
+
         ApplicationEntity applicationEntity = new ApplicationEntity();
 
         applicationEntity.setId(application.getId());
@@ -549,10 +557,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setGroups(application.getGroups());
         applicationEntity.setCreatedAt(application.getCreatedAt());
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
-
-        if (primaryOwner != null) {
-            applicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(primaryOwner));
-        }
+        applicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(primaryOwner));
 
         ApplicationSettings settings = new ApplicationSettings();
         if (application.getType() == ApplicationType.SIMPLE) {
