@@ -169,6 +169,8 @@ security:
   # trustAll: false
   providers:  # authentication providers
     - type: memory
+      # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
+#      allow-email-in-search-results: true
       # password encoding/hashing algorithm. One of:
       # - bcrypt : passwords are hashed with bcrypt (supports only $2a$ algorithm)
       # - none : passwords are not hashed/encrypted

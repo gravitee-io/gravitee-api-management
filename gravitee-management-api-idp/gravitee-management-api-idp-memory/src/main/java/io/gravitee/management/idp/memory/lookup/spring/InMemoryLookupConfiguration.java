@@ -15,23 +15,22 @@
  */
 package io.gravitee.management.idp.memory.lookup.spring;
 
+import io.gravitee.management.idp.memory.authentication.spring.InMemoryGraviteeUserDetailsManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import java.util.Collections;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
+ * @author David Brassely (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
 public class InMemoryLookupConfiguration {
 
 	@Bean
-	public InMemoryUserDetailsManager userDetailsService() {
-		return new InMemoryUserDetailsManager(Collections.emptyList());
+	public InMemoryGraviteeUserDetailsManager userDetailsService() {
+		return new InMemoryGraviteeUserDetailsManager(Collections.emptyList());
 	}
 }
