@@ -28,7 +28,19 @@
       HTTP Request
       <div class="hints">Default configuration of HTTP requests emitted by the API gateway to upstream</div>
     </md-subheader>
+    <div layout-xs="column" flex-xs="50">
+      <md-checkbox
+              ng-model="$ctrl.httpConfiguration.http.encodeURI"
+              aria-label="Encode URL"
+              class="md-align-top-left" flex>
+        Encode URL<br/>
+        <span class="ipsum">
+                          When Encode URL is enabled, request URLs will be encoded (query params and path params).
+                        </span>
+      </md-checkbox>
+    </div>
     <div layout="column" layout-wrap layout-gt-sm="row">
+
       <div layout="column" layout-sm="column">
         <h5 style="color: grey;">
           <span>Headers</span>

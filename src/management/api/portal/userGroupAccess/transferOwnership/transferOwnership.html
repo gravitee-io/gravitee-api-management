@@ -38,7 +38,8 @@
           <md-item-template>
             <md-list-item class="md-2-line contact-item">
               <div class="md-list-item-text compact">
-                <h3>{{user.displayName}}</h3>
+                <span style="font-size: medium;">{{user.displayName}}</span>
+                <span style="padding-left: 24px; font-size: small;" ng-if="user.email">{{user.email}}</span>
               </div>
             </md-list-item>
           </md-item-template>

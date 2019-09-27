@@ -33,7 +33,7 @@
           <div ng-message="mustStartWithSlash">The path must start with /</div>
         </div>
       </md-input-container>
-      <md-checkbox ng-model="addPoliciesPathCtrl.newPath.copyFromRootPath" aria-label="Copy from root path">
+      <md-checkbox ng-model="addPoliciesPathCtrl.newPath.copyFromRootPath" aria-label="Copy from root path" ng-disabled="!addPoliciesPathCtrl.canCopyFromRootPath">
         Copy all policies and configuration from the root path ?
       </md-checkbox>
     </md-dialog-content>
