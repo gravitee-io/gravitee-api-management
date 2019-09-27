@@ -16,6 +16,7 @@
 package io.gravitee.repository.config;
 
 import io.gravitee.repository.config.mock.*;
+import io.gravitee.repository.management.api.QualityRuleRepository;
 import org.springframework.context.annotation.Bean;
 
 import static org.mockito.Mockito.mock;
@@ -186,5 +187,15 @@ public class MockTestRepositoryConfiguration {
     @Bean
     public WorkflowRepositoryMock workflowRepository() throws Exception {
         return new WorkflowRepositoryMock();
+    }
+
+    @Bean
+    public QualityRuleRepositoryMock qualityRuleRepository() throws Exception {
+        return new QualityRuleRepositoryMock();
+    }
+
+    @Bean
+    public ApiQualityRuleRepositoryMock apiQualityRuleRepository() throws Exception {
+        return new ApiQualityRuleRepositoryMock();
     }
 }

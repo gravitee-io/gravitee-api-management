@@ -123,6 +123,10 @@ public abstract class AbstractRepositoryTest {
     protected ClientRegistrationProviderRepository clientRegistrationProviderRepository;
     @Inject
     protected WorkflowRepository workflowRepository;
+    @Inject
+    protected QualityRuleRepository qualityRuleRepository;
+    @Inject
+    protected ApiQualityRuleRepository apiQualityRuleRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -244,6 +248,12 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Workflow) {
             workflowRepository.create((Workflow) object);
+        }
+        else if (object instanceof QualityRule) {
+            qualityRuleRepository.create((QualityRule) object);
+        }
+        else if (object instanceof ApiQualityRule) {
+            apiQualityRuleRepository.create((ApiQualityRule) object);
         }
     }
 
