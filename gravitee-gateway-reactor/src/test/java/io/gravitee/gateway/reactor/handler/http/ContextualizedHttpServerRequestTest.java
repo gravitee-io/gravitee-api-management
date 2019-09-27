@@ -52,9 +52,9 @@ public class ContextualizedHttpServerRequestTest {
     public void shouldSplitContextPath2() {
         when(request.path()).thenReturn("/context-path/path/to/resource");
 
-        Request request = new ContextualizedHttpServerRequest("/context-path", this.request);
+        Request request = new ContextualizedHttpServerRequest("/context-path/", this.request);
 
         Assert.assertEquals("/path/to/resource", request.pathInfo());
-        Assert.assertEquals("/context-path", request.contextPath());
+        Assert.assertEquals("/context-path/", request.contextPath());
     }
 }

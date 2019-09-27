@@ -52,7 +52,7 @@ public class LoggableProxyConnection implements ProxyConnection {
 
         this.log = log;
         this.log.setProxyRequest(new Request());
-        this.log.getProxyRequest().setUri(proxyRequest.uri().toString());
+        this.log.getProxyRequest().setUri(proxyRequest.metrics().getEndpoint());
         this.log.getProxyRequest().setMethod(proxyRequest.method());
         this.log.getProxyRequest().setHeaders(proxyRequest.headers());
     }

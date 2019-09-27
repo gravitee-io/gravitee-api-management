@@ -100,8 +100,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_root() {
-        when(request.path()).thenReturn("/myapi");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve("/", request);
+        when(request.pathInfo()).thenReturn("/");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/", path.getPath());
@@ -109,8 +109,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_unknown() {
-        when(request.path()).thenReturn("/myapi");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/", request);
+        when(request.pathInfo()).thenReturn("/");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertNull(path.getPath());
@@ -119,8 +119,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_exactPath() {
-        when(request.path()).thenReturn("/stores");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve("/", request);
+        when(request.pathInfo()).thenReturn("/stores");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores", path.getPath());
@@ -128,8 +128,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathParameterizedPath() {
-        when(request.path()).thenReturn("/stores/99");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve("/", request);
+        when(request.pathInfo()).thenReturn("/stores/99");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
@@ -137,8 +137,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathParameterizedPath_checkChildren() {
-        when(request.path()).thenReturn("/stores/99/data");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve("/", request);
+        when(request.pathInfo()).thenReturn("/stores/99/data");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
@@ -146,8 +146,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_noParameterizedPath_checkChildren() {
-        when(request.path()).thenReturn("/products/99/data");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve("/", request);
+        when(request.pathInfo()).thenReturn("/products/99/data");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/products", path.getPath());
@@ -155,8 +155,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathParameterizedPath_mustReturnRoot() {
-        when(request.path()).thenReturn("/mypath");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve("/", request);
+        when(request.pathInfo()).thenReturn("/mypath");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/", path.getPath());
@@ -164,8 +164,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathParameterizedPath_mustReturnRoot2() {
-        when(request.path()).thenReturn("/weather_invalidpath");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve("/", request);
+        when(request.pathInfo()).thenReturn("/weather_invalidpath");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/", path.getPath());
@@ -173,8 +173,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathWithContextPath_mustReturnRoot() {
-        when(request.path()).thenReturn("/v1/products/");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve("/v1/products/", request);
+        when(request.pathInfo()).thenReturn("/");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/", path.getPath());
@@ -182,8 +182,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathWithContextPath_mustReturnParameterizedPath() {
-        when(request.path()).thenReturn("/v1/products/stores/99");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/", request);
+        when(request.pathInfo()).thenReturn("/stores/99");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
@@ -191,8 +191,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathWithContextPath_mustReturnParameterizedPath2() {
-        when(request.path()).thenReturn("/v1/products/stores/file.txt");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/", request);
+        when(request.pathInfo()).thenReturn("/stores/file.txt");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
@@ -200,8 +200,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathWithContextPath_mustReturnParameterizedPath3() {
-        when(request.path()).thenReturn("/v1/products/stores/file%20sqs/toto");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/", request);
+        when(request.pathInfo()).thenReturn("/stores/file%20sqs/toto");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
@@ -209,8 +209,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathWithContextPath_mustReturnParameterizedPath4() {
-        when(request.path()).thenReturn("/v1/products/stores/file;&,.=sqs/toto");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/", request);
+        when(request.pathInfo()).thenReturn("/stores/file;&,.=sqs/toto");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
@@ -218,8 +218,9 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathWithContextPath_mustReturnParameterizedPath5() {
-        when(request.path()).thenReturn("/v1/products/2124%3B2125");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/", request);
+        when(request.pathInfo()).thenReturn("/2124%3B2125");
+
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/[0-9,;]+", path.getPath());
@@ -227,8 +228,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathWithContextPath_mustReturnParameterizedPath5_notEncoded() {
-        when(request.path()).thenReturn("/v1/products/2124;2125");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/", request);
+        when(request.pathInfo()).thenReturn("/2124;2125");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/[0-9,;]+", path.getPath());
@@ -236,8 +237,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathWithContextPath_mustReturnParameterizedPath_notCaseSensitive() {
-        when(request.path()).thenReturn("/v1/products/Stores/1234");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/", request);
+        when(request.pathInfo()).thenReturn("/Stores/1234");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/Stores/:storeId", path.getPath());
@@ -245,8 +246,8 @@ public class ApiPathResolverTest {
 
     @Test
     public void resolve_pathWithContextPath_mustReturnParameterizedPath_notCaseSensitive1() {
-        when(request.path()).thenReturn("/v1/products/stores/Stores");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/", request);
+        when(request.pathInfo()).thenReturn("/stores/Stores");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve(request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());

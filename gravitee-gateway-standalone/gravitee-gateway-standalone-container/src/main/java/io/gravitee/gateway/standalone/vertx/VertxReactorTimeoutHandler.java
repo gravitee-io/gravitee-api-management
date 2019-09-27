@@ -33,8 +33,8 @@ public class VertxReactorTimeoutHandler extends VertxReactorHandler {
 
     private final long timeout;
 
-    VertxReactorTimeoutHandler(final Reactor reactor, final VertxReactorHandler handler, final Vertx vertx, final long timeout) {
-        super(reactor);
+    VertxReactorTimeoutHandler(final Reactor reactor, final VertxReactorHandler handler, final Vertx vertx, final long timeout, boolean legacyDecodeUrlParams) {
+        super(reactor, legacyDecodeUrlParams);
         this.handler = handler;
         this.vertx = vertx;
         this.timeout = timeout;

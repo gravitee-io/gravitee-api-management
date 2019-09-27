@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.http.connector;
 
+import com.google.common.net.UrlEscapers;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
@@ -50,10 +51,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.net.ConnectException;
-import java.net.NoRouteToHostException;
-import java.net.URI;
-import java.net.UnknownHostException;
+import java.io.UnsupportedEncodingException;
+import java.net.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
@@ -70,6 +70,9 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
     private static final String WSS_SCHEME = "wss";
     private static final int DEFAULT_HTTP_PORT = 80;
     private static final int DEFAULT_HTTPS_PORT = 443;
+
+    private static final String URI_PATH_SEPARATOR = "/";
+    private static final char URI_PATH_SEPARATOR_CHAR = '/';
     private static final Set<CharSequence> HOP_HEADERS;
 
     private static final Set<CharSequence> WS_HOP_HEADERS;
@@ -129,7 +132,12 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
             }
         }
 
-        final URI uri = proxyRequest.uri();
+        final URI uri ;
+        if (endpoint.getHttpClientOptions().isEncodeURI()) {
+            uri = getEncodedURI(proxyRequest.uri());
+        }else {
+            uri = proxyRequest.uri();
+        }
         final int port = uri.getPort() != -1 ? uri.getPort() :
                 (HTTPS_SCHEME.equals(uri.getScheme()) || WSS_SCHEME.equals(uri.getScheme()) ? 443 : 80);
 
@@ -144,6 +152,9 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         }
 
         String relativeUri = (uri.getRawQuery() == null) ? uri.getRawPath() : uri.getRawPath() + '?' + uri.getRawQuery();
+
+        // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the request
+        proxyRequest.metrics().setEndpoint(uri.toString());
 
         if (proxyRequest.isWebSocket()) {
             VertxWebSocketProxyConnection webSocketProxyConnection = new VertxWebSocketProxyConnection();
@@ -452,5 +463,49 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                     ", Username='" + httpClientOptions.getProxyOptions().getUsername() + '\'' +
                     '}');
         }
+    }
+
+    private URI getEncodedURI(URI uri) {
+
+        // Path segments must be encoded to avoid bad URI syntax
+        String [] segments = uri.getRawPath().split(URI_PATH_SEPARATOR);
+        StringJoiner pathBuilder = new StringJoiner(URI_PATH_SEPARATOR);
+
+        for(String pathSeg : segments) {
+            pathBuilder.add(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg));
+        }
+
+        String encodedPath = pathBuilder.toString();
+        String encodedQuery = null;
+        if(uri.getRawQuery() != null) {
+            StringJoiner queryBuilder = new StringJoiner("&");
+            String query = uri.getRawQuery();
+            //EndpointInvoker.buildURI use only the '&' as a query parameter separator. No need to test ';'
+            String[] params = query.split("&");
+            for (String param: params) {
+                try {
+                    int equalIndex = param.indexOf('=');
+                    if (equalIndex >= 0) {
+                        String encodeKey = URLEncoder.encode(param.substring(0, equalIndex), Charset.defaultCharset().name());
+                        String encodeValue = URLEncoder.encode(param.substring(equalIndex+1), Charset.defaultCharset().name());
+                        queryBuilder.add(encodeKey + '=' + encodeValue);
+
+                    } else {
+                        queryBuilder.add(URLEncoder.encode(param, Charset.defaultCharset().name()));
+                    }
+                } catch (UnsupportedEncodingException e) {
+                    LOGGER.error("An error occurs when trying to encode " + param + ". Add the unencoded value.", e);
+                    queryBuilder.add(param);
+                }
+            }
+            encodedQuery = queryBuilder.toString();
+        }
+
+        return URI.create(
+                uri.getScheme() + "://" +
+                        uri.getHost()+
+                        (uri.getPort()==-1?"":(':' + uri.getPort()))+
+                        encodedPath+
+                        ((encodedQuery==null) ? "" : '?' + encodedQuery));
     }
 }

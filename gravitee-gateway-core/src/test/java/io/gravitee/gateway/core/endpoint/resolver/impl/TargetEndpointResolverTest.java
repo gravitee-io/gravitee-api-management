@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.endpoint.resolver.impl;
 
+import io.gravitee.common.util.LinkedMultiValueMap;
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.endpoint.Endpoint;
@@ -95,7 +97,7 @@ public class TargetEndpointResolverTest {
     @Test
     public void shouldResolveUserDefinedEndpoint_withEncodedTargetURI() {
         resolveUserDefinedEndpoint(
-                "http://host:8080/test%20toto%20%20t%C3%A9t%C3%A9/titi",
+                "http://host:8080/test toto  tété/titi",
                 "http://host:8080/test toto  tété/titi",
                 "endpoint",
                 "http://host:8080/test"
@@ -105,7 +107,7 @@ public class TargetEndpointResolverTest {
     @Test
     public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withEncodedTargetURI() {
         resolveUserDefinedEndpoint(
-                "http://host:8080/test/%20toto%20%20t%C3%A9t%C3%A9/titi",
+                "http://host:8080/test/ toto  tété/titi",
                 "http://host:8080/test/ toto  tété/titi",
                 "endpoint",
                 "http://host:8080/test"
@@ -258,7 +260,7 @@ public class TargetEndpointResolverTest {
     @Test
     public void shouldResolveUserDefinedEndpoint_withPrefixAndEncodedTargetURI() {
         resolveUserDefinedEndpoint(
-                "http://host:8080/test%20toto%20%20t%C3%A9t%C3%A9/titi",
+                "http://host:8080/test toto  tété/titi",
                 "local:test toto  tété/titi",
                 "local",
                 "http://host:8080/"
@@ -276,24 +278,76 @@ public class TargetEndpointResolverTest {
     }
 
     @Test
-    public void shouldNotUseTheRawPath_withEncodedTargetURI() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/foo/%3Fbar",
-                "http://host:8080/foo%2f%3fbar",
-                "endpoint",
-                "http://host:8080/test",
-                Boolean.FALSE
-        );
-    }
-
-    @Test
     public void shouldUseTheRawPath_withEncodedTargetURI() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/foo%2f%3fbar",
                 "http://host:8080/foo%2f%3fbar",
                 "endpoint",
+                "http://host:8080/test"
+        );
+    }
+
+    @Test
+    public void shouldResolveEndpoint_withColonInPath() {
+        resolveUserDefinedEndpoint(
+                "http://host:8080/foo:",
+                "endpoint:/foo:",
+                "endpoint",
+                "http://host:8080/"
+        );
+    }
+
+    @Test
+    public void shouldResolveUserDefinedEndpoint_withQueryParamsInTarget() {
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("endpointParam", "v");
+        resolveUserDefinedEndpoint(
                 "http://host:8080/test",
-                Boolean.TRUE
+                parameters,
+                "local:",
+                "local",
+                "http://host:8080/test?endpointParam=v"
+        );
+    }
+
+    @Test
+    public void shouldResolveUserDefinedEndpoint_withQueryParamsInDynRout() {
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("dynroutParam", "v");
+        resolveUserDefinedEndpoint(
+                "http://host:8080/test",
+                parameters,
+                "local:?dynroutParam=v",
+                "local",
+                "http://host:8080/test"
+        );
+    }
+
+    @Test
+    public void shouldResolveUserDefinedEndpoint_withQueryParamsEverywhere() {
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("dynroutParam", "v");
+        parameters.add("endpointParam", "v");
+        resolveUserDefinedEndpoint(
+                "http://host:8080/test",
+                parameters,
+                "local:?dynroutParam=v",
+                "local",
+                "http://host:8080/test?endpointParam=v"
+        );
+    }
+
+    @Test
+    public void shouldResolveUserDefinedEndpoint_withQueryParamsEverywhereAnPath() {
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("dynroutParam", "v");
+        parameters.add("endpointParam", "v");
+        resolveUserDefinedEndpoint(
+                "http://host:8080/test/my/path",
+                parameters,
+                "local:/my/path?dynroutParam=v",
+                "local",
+                "http://host:8080/test?endpointParam=v"
         );
     }
 
@@ -307,24 +361,12 @@ public class TargetEndpointResolverTest {
         );
     }
 
-    @Test
-    public void shouldResolveEndpoint_withColonInPath() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/foo:",
-                "endpoint:/foo:",
-                "endpoint",
-                "http://host:8080/",
-                Boolean.FALSE
-        );
-    }
-    
+
     private void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget) {
-    	resolveUserDefinedEndpoint(expectedURI, requestEndpoint, endpointName, endpointTarget, Boolean.FALSE);
+        resolveUserDefinedEndpoint(expectedURI, null, requestEndpoint, endpointName, endpointTarget);
     }
-    
-    private void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget, Boolean useRawPath) {
+    private void resolveUserDefinedEndpoint(String expectedURI, MultiValueMap<String, String> expectedParameters, String requestEndpoint, String endpointName, String endpointTarget) {
         when(executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT)).thenReturn(requestEndpoint);
-        when(executionContext.getAttribute(ExecutionContext.ATTR_ENDPOINT_RESOLVER_USE_RAW_PATH)).thenReturn(useRawPath);
 
         Endpoint endpoint = mock(Endpoint.class);
         when(endpoint.name()).thenReturn(endpointName);
@@ -334,10 +376,17 @@ public class TargetEndpointResolverTest {
 
         when(groupManager.getDefault()).thenReturn(loadBalancedEndpointGroup);
         when(loadBalancedEndpointGroup.next()).thenReturn(endpoint);
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        when(serverRequest.parameters()).thenReturn(parameters);
 
         EndpointResolver.ResolvedEndpoint resolvedEndpoint = resolver.resolve(serverRequest, executionContext);
 
         Assert.assertNotNull(resolvedEndpoint);
         Assert.assertEquals(expectedURI, resolvedEndpoint.getUri());
+        if (expectedParameters != null) {
+            expectedParameters.forEach( (paramKey, paramValue) -> {
+                Assert.assertTrue(parameters.containsKey(paramKey));
+            });
+        }
     }
 }
