@@ -30,4 +30,6 @@ public interface SearchableUser {
     String getFirstname();
 
     String getLastname();
+
+    String getEmail();
 }

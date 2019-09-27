@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.empty;
@@ -72,9 +71,10 @@ public class CompositeIdentityManager implements IdentityManager {
             if (identityLookup.searchable()) {
                 Collection<User> lookupUsers = identityLookup.search(query);
                 if (lookupUsers != null) {
+                    boolean allowEmailInSearchResults = identityLookup.allowEmailInSearchResults();
                     users.addAll(lookupUsers
                             .stream()
-                            .map((Function<User, SearchableUser>) DefaultSearchableUser::new)
+                            .map(user -> new DefaultSearchableUser(user, allowEmailInSearchResults))
                             .collect(Collectors.toSet()));
                 }
             }
@@ -91,9 +91,11 @@ public class CompositeIdentityManager implements IdentityManager {
 
     private class DefaultSearchableUser implements SearchableUser {
         private final User user;
+        private final boolean allowEmail;
 
-        DefaultSearchableUser(User user) {
+        DefaultSearchableUser(User user, boolean allowEmail) {
             this.user = user;
+            this.allowEmail = allowEmail;
         }
 
         @Override
@@ -124,6 +126,15 @@ public class CompositeIdentityManager implements IdentityManager {
         @Override
         public String getLastname() {
             return user.getLastname();
+        }
+
+        @Override
+        public String getEmail() {
+            if(this.allowEmail) {
+                return user.getEmail();
+            } else {
+                return null;
+            }
         }
     }
 }

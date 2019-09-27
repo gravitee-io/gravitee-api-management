@@ -327,5 +327,10 @@ public class ApiService_CreateWithDefinitionTest {
         public String getLastname() {
             return null;
         }
+
+        @Override
+        public String getEmail() {
+            return null;
+        }
     }
 }

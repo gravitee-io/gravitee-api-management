@@ -663,10 +663,17 @@ public class UserServiceImpl extends AbstractService implements UserService {
             user.setUpdatedAt(new Date());
 
             if (anonymizeOnDelete) {
-                user.setSourceId("deleted-" + user.getId());
-                user.setFirstname("Unknown");
-                user.setLastname("");
-                user.setEmail("");
+                User anonym = new User();
+                anonym.setId(user.getId());
+                anonym.setCreatedAt(user.getCreatedAt());
+                anonym.setUpdatedAt(user.getUpdatedAt());
+                anonym.setStatus(user.getStatus());
+                anonym.setSource(user.getSource());
+                anonym.setLastConnectionAt(user.getLastConnectionAt());
+                anonym.setSourceId("deleted-" + user.getId());
+                anonym.setFirstname("Unknown");
+                anonym.setLastname("");
+                user = anonym;
             }
 
             userRepository.update(user);

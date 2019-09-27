@@ -56,7 +56,14 @@ public class DictionaryResource extends AbstractResource {
     @Permissions(@Permission(value = RolePermission.MANAGEMENT_DICTIONARY, acls = RolePermissionAction.READ))
     public DictionaryEntity getDictionary(
             @PathParam("dictionary") String dictionary) {
-        return dictionaryService.findById(dictionary);
+        DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
+        // remove provider informations for readonlyUsers
+        boolean notReadOnly = hasPermission(RolePermission.MANAGEMENT_DICTIONARY, RolePermissionAction.CREATE, RolePermissionAction.UPDATE, RolePermissionAction.DELETE);
+        if (!notReadOnly) {
+            dictionaryEntity.setProvider(null);
+            dictionaryEntity.setTrigger(null);
+        }
+        return dictionaryEntity;
     }
 
     @PUT

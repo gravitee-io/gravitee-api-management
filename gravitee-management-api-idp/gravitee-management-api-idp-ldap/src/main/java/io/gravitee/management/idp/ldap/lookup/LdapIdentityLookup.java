@@ -154,6 +154,12 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
         }
     }
 
+    @Override
+    public boolean allowEmailInSearchResults() {
+        Boolean allow = environment.getProperty("lookup.allow-email-in-search-results",Boolean.class, false);
+        return allow != null && allow;
+    }
+
     private final ContextMapper<User> USER_CONTEXT_MAPPER = new AbstractContextMapper<User>() {
 
         @Override
@@ -163,7 +169,6 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
             user.setLastname(ctx.getStringAttribute(LDAP_ATTRIBUTE_SURNAME));
             user.setEmail(ctx.getStringAttribute(LDAP_ATTRIBUTE_MAIL));
             user.setDisplayName(ctx.getStringAttribute(LDAP_ATTRIBUTE_DISPLAYNAME));
-            //user.setUsername(ctx.getStringAttribute(LdapIdentityLookup.this.identifierAttribute));
 
             if (user.getDisplayName() == null) {
                 user.setDisplayName(user.getFirstname() + ' ' + user.getLastname());
