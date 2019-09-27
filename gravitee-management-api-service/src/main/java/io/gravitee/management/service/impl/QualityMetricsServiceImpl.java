@@ -18,8 +18,12 @@ package io.gravitee.management.service.impl;
 import io.gravitee.management.model.ApiQualityMetricsEntity;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.parameters.Key;
+import io.gravitee.management.model.quality.ApiQualityRuleEntity;
+import io.gravitee.management.model.quality.QualityRuleEntity;
+import io.gravitee.management.service.ApiQualityRuleService;
 import io.gravitee.management.service.ParameterService;
 import io.gravitee.management.service.QualityMetricsService;
+import io.gravitee.management.service.QualityRuleService;
 import io.gravitee.management.service.exceptions.ApiQualityMetricsDisableException;
 import io.gravitee.management.service.quality.ApiQualityMetric;
 import io.gravitee.management.service.quality.ApiQualityMetricLoader;
@@ -33,15 +37,21 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class QualityMetricsServiceImpl extends AbstractService implements QualityMetricsService {
+
     @Autowired
-    ParameterService parameterService;
+    private ParameterService parameterService;
     @Autowired
-    ApiQualityMetricLoader apiQualityMetricLoader;
+    private ApiQualityMetricLoader apiQualityMetricLoader;
+    @Autowired
+    private ApiQualityRuleService apiQualityRuleService;
+    @Autowired
+    private QualityRuleService qualityRuleService;
 
     private Map<String, ApiQualityMetric> getApiMetricsMap() {
         HashMap<String, ApiQualityMetric> map = new HashMap<>();
@@ -73,7 +83,6 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
 
     @Override
     public ApiQualityMetricsEntity getMetrics(ApiEntity apiEntity) {
-
         if (!isApiMetricsEnabled()) {
             throw new ApiQualityMetricsDisableException();
         }
@@ -89,12 +98,13 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
         ApiQualityMetricsEntity result = new ApiQualityMetricsEntity();
         result.setMetricsPassed(new HashMap<>(weights.size()));
 
+        double score = 0;
+        double maxScore = 0;
         if (weights.isEmpty()) {
+            score = 1;
             result.setScore(1);
         } else {
             Map<String, ApiQualityMetric> apiMetrics = getApiMetricsMap();
-            double score = 0;
-            double maxScore = 0;
             for (Map.Entry<String, Integer> weight : weights.entrySet()) {
                 boolean passed = apiMetrics.get(weight.getKey()).isValid(apiEntity);
                 result.getMetricsPassed().put(weight.getKey(), passed);
@@ -103,6 +113,25 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
             }
             result.setScore( (int)((score / maxScore) * 100) / 100d);
         }
+
+        // manual quality rules
+        final List<QualityRuleEntity> qualityRules = qualityRuleService.findAll();
+        if (qualityRules != null && !qualityRules.isEmpty()) {
+            final List<ApiQualityRuleEntity> apiQualityRules = apiQualityRuleService.findByApi(apiEntity.getId());
+            for (final QualityRuleEntity qualityRule : qualityRules) {
+                if (qualityRule.getWeight() > 0) {
+                    final ApiQualityRuleEntity apiQualityRule = apiQualityRules.stream()
+                            .filter(aqr -> apiEntity.getId().equals(aqr.getApi())
+                                    && qualityRule.getId().equals(aqr.getQualityRule())).findFirst().orElse(null);
+                    final boolean checked = apiQualityRule != null && apiQualityRule.isChecked();
+                    result.getMetricsPassed().put(qualityRule.getId(), checked);
+                    score += qualityRule.getWeight() * (checked ? 1 : 0);
+                    maxScore += qualityRule.getWeight();
+                    result.setScore((int) ((score / maxScore) * 100) / 100d);
+                }
+            }
+        }
+
         return result;
     }
 }

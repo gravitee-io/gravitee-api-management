@@ -652,6 +652,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiAlertsResource.class);
     }
 
+    @Path("quality-rules")
+    public ApiQualityRulesResource getApiQualityRulesResource() {
+        return resourceContext.getResource(ApiQualityRulesResource.class);
+    }
+
     private void setSynchronizationState(ApiStateEntity apiStateEntity) {
         if (apiService.isSynchronized(apiStateEntity.getApiId())) {
             apiStateEntity.setIsSynchronized(true);

@@ -51,7 +51,7 @@ import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.management.service.search.query.Query;
 import io.gravitee.management.service.search.query.QueryBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.AlertRepository;
+import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -110,6 +110,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private ApiRepository apiRepository;
+    @Autowired
+    private ApiQualityRuleRepository apiQualityRuleRepository;
     @Autowired
     private MembershipRepository membershipRepository;
     @Autowired
@@ -955,6 +957,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // Delete alerts
                 final List<AlertEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
                 alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
+                // delete all reference on api quality rule
+                apiQualityRuleRepository.deleteByApi(apiId);
                 // Audit
                 auditService.createApiAuditLog(
                         apiId,

@@ -22,6 +22,7 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.configuration.application.registration.ClientRegistrationProvidersResource;
 import io.gravitee.management.rest.resource.configuration.dictionary.DictionariesResource;
 import io.gravitee.management.rest.resource.configuration.identity.IdentityProvidersResource;
+import io.gravitee.management.rest.resource.quality.QualityRulesResource;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.NotifierService;
@@ -142,5 +143,10 @@ public class ConfigurationResource {
     @Path("entrypoints")
     public EntrypointsResource getEntryPointsResource() {
         return resourceContext.getResource(EntrypointsResource.class);
+    }
+
+    @Path("quality-rules")
+    public QualityRulesResource getQualityRulesResource() {
+        return resourceContext.getResource(QualityRulesResource.class);
     }
 }

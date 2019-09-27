@@ -45,11 +45,10 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
     @Mock
     private RoleRepository mockRoleRepository;
-
     @Mock
     private AuditService auditService;
 
-    private static int[] mgmtAdminPermissions = new int[]{
+    private static int[] mgmtAdminPermissions = new int[] {
             1015,
             1215,
             1315,
@@ -65,7 +64,8 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
             2315,
             2415,
             2515,
-            2615
+            2615,
+            2815
     };
 
     @Test

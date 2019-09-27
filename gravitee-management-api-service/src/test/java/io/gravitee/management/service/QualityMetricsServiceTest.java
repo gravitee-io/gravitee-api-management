@@ -18,11 +18,14 @@ package io.gravitee.management.service;
 import io.gravitee.management.model.ApiQualityMetricsEntity;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.parameters.Key;
+import io.gravitee.management.model.quality.ApiQualityRuleEntity;
+import io.gravitee.management.model.quality.QualityRuleEntity;
 import io.gravitee.management.service.exceptions.ApiQualityMetricsDisableException;
 import io.gravitee.management.service.impl.QualityMetricsServiceImpl;
 import io.gravitee.management.service.quality.ApiQualityMetricLoader;
 import io.gravitee.management.service.quality.ApiQualityMetricLogo;
 import io.gravitee.management.service.quality.ApiQualityMetricViews;
+import io.gravitee.repository.management.model.ApiQualityRule;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,22 +47,23 @@ import static org.mockito.Mockito.when;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class QualityMetricsService_GetApiMetricsTest {
+public class QualityMetricsServiceTest {
 
     @InjectMocks
     private QualityMetricsService srv = new QualityMetricsServiceImpl();
 
     @Mock
-    ParameterService parameterService;
-
+    private ParameterService parameterService;
     @Mock
-    ApiQualityMetricLoader apiQualityMetricLoader;
-
+    private ApiQualityMetricLoader apiQualityMetricLoader;
     @Mock
-    ApiQualityMetricLogo apiQualityMetricLogo;
-
+    private ApiQualityMetricLogo apiQualityMetricLogo;
     @Mock
-    ApiQualityMetricViews apiQualityMetricViews;
+    private ApiQualityMetricViews apiQualityMetricViews;
+    @Mock
+    private QualityRuleService qualityRuleService;
+    @Mock
+    private ApiQualityRuleService apiQualityRuleService;
 
     @Before
     public void setup() {
@@ -145,5 +149,69 @@ public class QualityMetricsService_GetApiMetricsTest {
         assertFalse(metrics.getMetricsPassed().isEmpty());
         assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key()));
         assertFalse(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key()));
+    }
+
+    @Test
+    public void shouldScore100PercentWithManualRules() {
+        when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED)).thenReturn(Boolean.TRUE);
+        Map<String, List<Object>> map = new HashMap<>();
+        map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
+        map.put(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key(), singletonList(1));
+        when(parameterService.findAll(anyList(), any())).thenReturn(map);
+        ApiEntity api = mock(ApiEntity.class);
+        when(api.getId()).thenReturn("apiID");
+        when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricViews.isValid(any())).thenReturn(Boolean.TRUE);
+
+        final QualityRuleEntity qualityRule = mock(QualityRuleEntity.class);
+        when(qualityRule.getId()).thenReturn("1");
+        when(qualityRule.getWeight()).thenReturn(1);
+        when(qualityRuleService.findAll()).thenReturn(singletonList(qualityRule));
+
+        final ApiQualityRuleEntity apiQualityRule = mock(ApiQualityRuleEntity.class);
+        when(apiQualityRule.getApi()).thenReturn("apiID");
+        when(apiQualityRule.getQualityRule()).thenReturn("1");
+        when(apiQualityRule.isChecked()).thenReturn(true);
+        when(apiQualityRuleService.findByApi("apiID")).thenReturn(singletonList(apiQualityRule));
+
+        ApiQualityMetricsEntity metrics = srv.getMetrics(api);
+
+        assertEquals(1, metrics.getScore(), 0);
+        assertFalse(metrics.getMetricsPassed().isEmpty());
+        assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key()));
+        assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key()));
+        assertTrue(metrics.getMetricsPassed().get("1"));
+    }
+
+    @Test
+    public void shouldScore50PercentWithManualRules() {
+        when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED)).thenReturn(Boolean.TRUE);
+        Map<String, List<Object>> map = new HashMap<>();
+        map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
+        map.put(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key(), singletonList(1));
+        when(parameterService.findAll(anyList(), any())).thenReturn(map);
+        ApiEntity api = mock(ApiEntity.class);
+        when(api.getId()).thenReturn("apiID");
+        when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricViews.isValid(any())).thenReturn(Boolean.TRUE);
+
+        final QualityRuleEntity qualityRule = mock(QualityRuleEntity.class);
+        when(qualityRule.getId()).thenReturn("1");
+        when(qualityRule.getWeight()).thenReturn(2);
+        when(qualityRuleService.findAll()).thenReturn(singletonList(qualityRule));
+
+        final ApiQualityRuleEntity apiQualityRule = mock(ApiQualityRuleEntity.class);
+        when(apiQualityRule.getApi()).thenReturn("apiID");
+        when(apiQualityRule.getQualityRule()).thenReturn("1");
+        when(apiQualityRule.isChecked()).thenReturn(false);
+        when(apiQualityRuleService.findByApi("apiID")).thenReturn(singletonList(apiQualityRule));
+
+        ApiQualityMetricsEntity metrics = srv.getMetrics(api);
+
+        assertEquals(0.5, metrics.getScore(), 0);
+        assertFalse(metrics.getMetricsPassed().isEmpty());
+        assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key()));
+        assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key()));
+        assertFalse(metrics.getMetricsPassed().get("1"));
     }
 }

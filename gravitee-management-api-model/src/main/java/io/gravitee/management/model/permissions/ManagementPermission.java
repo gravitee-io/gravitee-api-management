@@ -35,7 +35,8 @@ public enum ManagementPermission implements Permission {
     DICTIONARY  ("DICTIONARY",   2300),
     ALERT       ("ALERT",        2400),
     ENTRYPOINT  ("ENTRYPOINT",   2500),
-    SETTINGS    ("SETTINGS",     2600);
+    SETTINGS    ("SETTINGS",     2600),
+    QUALITY_RULE("QUALITY_RULE", 2800);
 
     String name;
     int mask;

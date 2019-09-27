@@ -26,6 +26,7 @@ import io.gravitee.management.service.exceptions.ApiRunningStateException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -43,7 +44,8 @@ import java.util.Optional;
 import static org.mockito.Mockito.*;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_DeleteTest {
@@ -74,6 +76,9 @@ public class ApiService_DeleteTest {
     private TopApiService topApiService;
     @Mock
     private AlertService alertService;
+
+    @Mock
+    private ApiQualityRuleRepository apiQualityRuleRepository;
 
     @Before
     public void setUp() {
@@ -132,5 +137,6 @@ public class ApiService_DeleteTest {
         apiService.delete(API_ID);
 
         verify(planService, times(1)).delete(PLAN_ID);
+        verify(apiQualityRuleRepository, times(1)).deleteByApi(API_ID);
     }
 }
