@@ -31,6 +31,7 @@ import {StateParams} from '@uirouter/core';
 import EntrypointService from "../../services/entrypoint.service";
 import ClientRegistrationProviderService from "../../services/clientRegistrationProvider.service";
 import _ = require('lodash');
+import QualityRuleService from "../../services/qualityRule.service";
 
 export default configurationRouterConfig;
 
@@ -640,6 +641,51 @@ function configurationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['portal-api_header-r']
+        }
+      }
+    })
+    .state('management.settings.apiQuality', {
+      url: '/apiquality',
+      component: 'configApiQuality',
+      resolve: {
+        qualityRules: (QualityRuleService: QualityRuleService) => QualityRuleService.list().then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-apiquality'
+        },
+        perms: {
+          only: ['portal-settings-r']
+        }
+      }
+    })
+    .state('management.settings.qualityRulenew', {
+      url: '/apiquality/new',
+      component: 'qualityRule',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-apiquality'
+        },
+        perms: {
+          only: ['management-quality_rule-c']
+        }
+      }
+    })
+    .state('management.settings.qualityRule', {
+      url: '/apiquality/:qualityRuleId',
+      component: 'qualityRule',
+      resolve: {
+        qualityRule: (QualityRuleService: QualityRuleService, $stateParams) => QualityRuleService.get($stateParams.qualityRuleId).then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-apiquality'
+        },
+        perms: {
+          only: ['management-quality_rule-u']
         }
       }
     })

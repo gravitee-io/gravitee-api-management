@@ -22,6 +22,7 @@ import FetcherService from "../../../services/fetcher.service";
 import PolicyService from "../../../services/policy.service";
 import TagService from "../../../services/tag.service";
 import UserService from "../../../services/user.service";
+import QualityRuleService from "../../../services/qualityRule.service";
 
 export default apisPortalRouterConfig;
 
@@ -36,6 +37,10 @@ function apisPortalRouterConfig($stateProvider) {
       template: require('./general/apiPortal.html'),
       controller: 'ApiPortalController',
       controllerAs: 'portalCtrl',
+      resolve: {
+        qualityRules: (QualityRuleService: QualityRuleService) =>
+          QualityRuleService.list().then(response => response.data)
+      },
       data: {
         menu: {
           label: 'Portal',

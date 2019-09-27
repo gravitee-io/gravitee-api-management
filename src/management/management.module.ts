@@ -354,6 +354,7 @@ import apisMessagesRouterConfig from "./api/messages/apis.messages.route";
 
 import ApiPortalHeaderComponent from "../management/configuration/api-portal-header/api-portal-header.component";
 import ApiHeaderService from "../services/apiHeader.service";
+
 import UpdateApiPortalHeaderDialogController
   from "./configuration/api-portal-header/update.api-portal-header.dialog.controller";
 import NewApiPortalHeaderDialogController
@@ -402,6 +403,12 @@ import DialogReviewController from "./api/review/reviewDialog.controller";
 import DialogRequestForChangesController from "./api/portal/general/dialog/requestForChanges.controller";
 import ApplicationSubscribeComponent from "./application/details/subscribe/application-subscribe.component";
 import ApplicationSubscribeController from "./application/details/subscribe/application-subscribe.controller";
+
+import QualityRuleService from "../services/qualityRule.service";
+import ApiQualityRulesComponent from "../management/configuration/api-quality-rules/api-quality-rules.component";
+import ApiQualityRuleComponent from "../management/configuration/api-quality-rules/api-quality-rule/api-quality-rule.component";
+import ApiQualityRuleController from "../management/configuration/api-quality-rules/api-quality-rule/api-quality-rule.controller";
+import DeleteApiQualityRuleDialogController from "../management/configuration/api-quality-rules/api-quality-rule/delete-api-quality-rule.dialog.controller";
 
 (<any>window).traverse = traverse;
 
@@ -826,6 +833,12 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('ApiHeaderService', ApiHeaderService)
   .controller("NewApiPortalHeaderDialogController", NewApiPortalHeaderDialogController)
   .controller("UpdateApiPortalHeaderDialogController", UpdateApiPortalHeaderDialogController)
+
+  .component('configApiQuality', ApiQualityRulesComponent)
+  .component('qualityRule', ApiQualityRuleComponent)
+  .controller("ApiQualityRuleController", ApiQualityRuleController)
+  .controller("DeleteApiQualityRuleDialogController", DeleteApiQualityRuleDialogController)
+  .service('QualityRuleService', QualityRuleService)
 
   // Settings: Identity provider
   .component('identityProviders', IdentityProvidersComponent)

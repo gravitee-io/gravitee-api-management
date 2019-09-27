@@ -20,6 +20,7 @@ import ApiService from "../../services/api.service";
 import {IScope} from "angular";
 
 import { StateService } from "@uirouter/core";
+import QualityRuleService from "../../services/qualityRule.service";
 
 class ApiAdminController {
   private api: any;
@@ -142,7 +143,16 @@ class ApiAdminController {
       controller: 'DialogReviewController',
       controllerAs: '$ctrl',
       template: require('./review/review.dialog.html'),
-      clickOutsideToClose: true
+      clickOutsideToClose: true,
+      locals: {
+        api: api
+      },
+      resolve: {
+        qualityRules: (QualityRuleService: QualityRuleService) =>
+          QualityRuleService.list().then(response => response.data),
+        apiQualityRules: (QualityRuleService: QualityRuleService) =>
+          QualityRuleService.listByApi(api.id).then(response => response.data)
+      }
     }).then((response) => {
       if (response) {
         if (response.accept) {

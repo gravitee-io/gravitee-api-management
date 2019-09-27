@@ -27,7 +27,7 @@
         <div layout="row">
           <div layout="row" flex="50">
             <b style="margin: 26px 10px 26px 0">Default API Role</b>
-            <md-select placeholder="Default API Role" style="width: fit-content;min-width: 300px;"
+            <md-select placeholder="Default API Role" class="gv-input-number"
               ng-model="selectedApiRole" aria-label="Default API Role" ng-disabled="!$ctrl.canChangeDefaultApiRole()">
               <md-option ng-value="role.name"
                          ng-repeat="role in $ctrl.apiRoles"
@@ -36,7 +36,7 @@
           </div>
           <div layout="row" flex="50">
             <b style="margin: 26px 10px 26px 0">Default Application Role</b>
-            <md-select placeholder="Default Application Role" ng-model="selectedApplicationRole" style="width: fit-content;min-width: 300px;"
+            <md-select placeholder="Default Application Role" ng-model="selectedApplicationRole" class="gv-input-number"
                        aria-label="Default Application Role" ng-disabled="!$ctrl.canChangeDefaultApplicationRole()">
               <md-option ng-value="role.name"
                          ng-repeat="role in $ctrl.applicationRoles"
@@ -47,7 +47,7 @@
 
         <div permission permission-only="'management-group-u'">
           <div layout="column">
-            <md-input-container style="width: fit-content;min-width: 300px;">
+            <md-input-container class="gv-input-number">
               <label>Max members (default unlimited)</label>
               <input ng-model="$ctrl.group.max_invitation" type="number" min="0" max="99999">
             </md-input-container>

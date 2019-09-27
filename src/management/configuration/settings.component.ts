@@ -42,6 +42,10 @@ const SettingsComponent: ng.IComponentOptions = {
           ['portal-api_header-r']),
         goTo: 'management.settings.apiPortalHeader'
       },
+      apiQuality: {
+        perm: UserService.isUserHasPermissions(['portal-settings-r']),
+        goTo: 'management.settings.apiQuality'
+      },
       clientRegistration: {
         perm: UserService.isUserHasPermissions(
           ['portal-client_registration_provider-r']),

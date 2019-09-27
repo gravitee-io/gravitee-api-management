@@ -51,7 +51,8 @@ class ApiPortalController {
     private resolvedGroups,
     private resolvedTags,
     private resolvedTenants,
-    private Constants
+    private Constants,
+    private qualityRules
   ) {
     'ngInject';
 
@@ -141,6 +142,9 @@ class ApiPortalController {
     this.qualityMetricsDescription.set("api.quality.metrics.logo.weight", "Put your own logo");
     this.qualityMetricsDescription.set("api.quality.metrics.views.weight", "Link your API to views");
     this.qualityMetricsDescription.set("api.quality.metrics.labels.weight", "Add labels to your API");
+    _.forEach(this.qualityRules, (qualityRule) => {
+      this.qualityMetricsDescription.set(qualityRule.id, qualityRule.description);
+    });
   }
 
   $onInit() {
@@ -425,7 +429,7 @@ class ApiPortalController {
   }
 
   canAskForReview(): boolean {
-    return this.Constants.apiReview.enabled && (this.api.workflow_state === 'draft' || this.api.workflow_state === 'request_for_changes');
+    return this.Constants.apiReview.enabled && (this.api.workflow_state === 'draft' || this.api.workflow_state === 'request_for_changes' || !this.api.workflow_state);
   }
 
   canChangeLifecycle(): boolean {
