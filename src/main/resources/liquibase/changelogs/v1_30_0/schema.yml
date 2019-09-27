@@ -1,0 +1,33 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.30.0
+        author: GraviteeSource Team
+        changes:
+          - createTable:
+              tableName: quality_rules
+              columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: description, type: nvarchar(256), constraints: { nullable: false } }
+                - column: {name: weight, type: int, constraints: { nullable: false } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+          - addPrimaryKey:
+              constraintName: pk_quality_rules
+              columnNames: id
+              tableName: quality_rules
+
+          - createTable:
+              tableName: api_quality_rules
+              columns:
+                - column: {name: api, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: quality_rule, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: checked, type: boolean, constraints: { nullable: false } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+          - addPrimaryKey:
+              constraintName: pk_api_quality_rules
+              columnNames: api, quality_rule
+              tableName: api_quality_rules

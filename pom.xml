@@ -35,16 +35,17 @@
         <gravitee-repository.version>1.30.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-repository-test.version>1.30.0-SNAPSHOT</gravitee-repository-test.version>
         <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
-        <HikariCP.version>3.3.1</HikariCP.version>
-        <liquibase.version>3.7.0</liquibase.version>
+        <HikariCP.version>3.4.1</HikariCP.version>
+        <liquibase.version>3.8.0</liquibase.version>
         <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
-        <mysql-connector-java.version>8.0.15</mysql-connector-java.version>
-        <postgresql.version>42.2.5</postgresql.version>
-        <mariaDB.version>2.3.0</mariaDB.version>
-        <wix-embedded-mysql.version>4.1.2</wix-embedded-mysql.version>
-        <postgresql-embedded.version>2.9</postgresql-embedded.version>
-        <testcontainers.version>1.11.1</testcontainers.version>
+        <mysql-connector-java.version>8.0.17</mysql-connector-java.version>
+        <postgresql.version>42.2.8</postgresql.version>
+        <mariaDB.version>2.4.0</mariaDB.version>
+        <wix-embedded-mysql.version>4.6.0</wix-embedded-mysql.version>
+        <postgresql-embedded.version>2.10</postgresql-embedded.version>
+        <testcontainers.version>1.12.2</testcontainers.version>
         <default-database.jdbcType>postgresql-te</default-database.jdbcType>
+        <mssql-jdbc.version>7.4.1.jre8</mssql-jdbc.version>
     </properties>
 
     <dependencies>
@@ -195,7 +196,7 @@
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>7.2.1.jre8</version>
+            <version>${mssql-jdbc.version}</version>
             <scope>test</scope>
         </dependency>
 
