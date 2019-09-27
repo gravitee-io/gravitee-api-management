@@ -20,4 +20,17 @@
         </field>
     </mapping>
 
+    <mapping>
+        <class-a>io.gravitee.repository.management.model.ApiQualityRule</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.ApiQualityRuleMongo</class-b>
+        <field>
+            <a>api</a>
+            <b>id.api</b>
+        </field>
+        <field>
+            <a>qualityRule</a>
+            <b>id.qualityRule</b>
+        </field>
+    </mapping>
+
 </mappings> 
