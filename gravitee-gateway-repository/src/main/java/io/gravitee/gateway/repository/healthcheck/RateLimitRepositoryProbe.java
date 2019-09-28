@@ -18,9 +18,11 @@ package io.gravitee.gateway.repository.healthcheck;
 import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
+import io.gravitee.repository.ratelimit.model.RateLimit;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,7 +46,14 @@ public class RateLimitRepositoryProbe implements Probe {
             // Search for a rate-limit value to check repository connection
             return CompletableFuture.supplyAsync(() -> {
                 try {
-                    rateLimitRepository.get(RATE_LIMIT_UNKNOWN_IDENTIFIER);
+                    rateLimitRepository.incrementAndGet(RATE_LIMIT_UNKNOWN_IDENTIFIER, 1L, new Supplier<RateLimit>() {
+                        @Override
+                        public RateLimit get() {
+                            RateLimit rateLimit = new RateLimit(RATE_LIMIT_UNKNOWN_IDENTIFIER);
+                            rateLimit.setSubscription(RATE_LIMIT_UNKNOWN_IDENTIFIER);
+                            return rateLimit;
+                        }
+                    });
                     return Result.healthy();
                 } catch (Exception ex) {
                     return Result.unhealthy(ex);
