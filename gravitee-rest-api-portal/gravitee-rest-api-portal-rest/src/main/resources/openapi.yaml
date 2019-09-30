@@ -715,7 +715,25 @@ paths:
           $ref: '#/components/responses/PictureSuccess'
         500:
           $ref: '#/components/responses/GeneralError'
-  
+  /tickets:
+    post:
+      tags:
+        - Portal
+      requestBody:
+        description: a new ticket to create
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketInput'
+      summary: Create a ticket.
+      description: User must be authenticated to use this service.
+      operationId: createTicket
+      security: []
+      responses:
+          201:
+            description: Created
+          500:
+            $ref: '#/components/responses/GeneralError'
   /views:
     get:
       tags:
@@ -1720,6 +1738,26 @@ components:
           minLength: 1
         state:
           type: string
+    TicketInput:
+        required:
+          - subject
+          - content
+        properties:
+          subject:
+            description: Subject of the ticket.
+            type: string
+          content:
+            description: Description of the ticket.
+            type: string
+          application:
+            description: Application identifier concerned by the ticket.
+            type: string
+          api:
+            description: Api identifer concerned by the ticket.
+            type: string
+          copy_to_sender:
+            description: True if the author of the ticket wants to receive a copy of the ticket.
+            type: boolean
     #######################
     # Composition Objects #
     #######################

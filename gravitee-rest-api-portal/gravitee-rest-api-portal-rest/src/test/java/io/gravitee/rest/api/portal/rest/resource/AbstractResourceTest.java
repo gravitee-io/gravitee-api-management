@@ -46,6 +46,7 @@ import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PortalNotificationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.RatingMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
+import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ViewMapper;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
@@ -80,6 +81,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.TaskService;
+import io.gravitee.rest.api.service.TicketService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.ViewService;
@@ -125,6 +127,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(genericNotificationConfigService);
         reset(topApiService);
         reset(viewService);
+        reset(ticketService);
         reset(authenticationProvider);
         reset(jwtCookieGenerator);
         reset(apiMapper);
@@ -142,6 +145,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(notificationConfigMapper);
         reset(portalNotificationMapper);
         reset(viewMapper);
+        reset(ticketMapper);
         reset(viewEnhancer);
     }
     
@@ -261,6 +265,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ViewService viewService;
     
     @Autowired
+    protected TicketService ticketService;
+    
+    @Autowired
     protected JWTCookieGenerator jwtCookieGenerator;
     
     @Autowired
@@ -301,6 +308,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ViewMapper viewMapper;
+
+    @Autowired
+    protected TicketMapper ticketMapper;
 
     @Autowired
     protected ViewEnhancer viewEnhancer;
@@ -485,6 +495,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
+        public TicketService ticketService() {
+            return mock(TicketService.class);
+        }
+
+        @Bean
         public ApiMapper apiMapper() {
             return mock(ApiMapper.class);
         }
@@ -552,6 +567,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ViewMapper viewMapper() {
             return mock(ViewMapper.class);
+        }
+
+        @Bean
+        public TicketMapper ticketMapper() {
+            return mock(TicketMapper.class);
         }
 
         @Bean

@@ -2310,6 +2310,55 @@
 						}
 					],
 					"_postman_isSubFolder": true
+				},
+				{
+					"name": "tickets",
+					"item": [
+						{
+							"name": "POST /tickets",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/tickets",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"tickets"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "All anonymous requests to /tickets should return 401",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "23d2335c-421d-4e64-b794-e72ad0dadd6c",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "599c14de-c7f6-47c6-b58d-37662718b803",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
 				}
 			],
 			"auth": {
@@ -4491,6 +4540,52 @@
 							"response": []
 						}
 					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "ticket",
+					"item": [
+						{
+							"name": "POST /tickets",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/tickets",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"tickets"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "23d2335c-421d-4e64-b794-e72ad0dadd6c",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "599c14de-c7f6-47c6-b58d-37662718b803",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
 			],
