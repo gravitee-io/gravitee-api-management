@@ -43,6 +43,7 @@ import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.UserLinks;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -60,7 +61,8 @@ public class UserResourceTest extends AbstractResourceTest {
         resetAllMocks();
         
         doReturn(new User()).when(userMapper).convert(any());
-
+        doReturn(new UserLinks()).when(userMapper).computeUserLinks(any());
+        
         InlinePictureEntity mockImage = new InlinePictureEntity();
         byte[] apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
@@ -80,6 +82,8 @@ public class UserResourceTest extends AbstractResourceTest {
         
         User user = response.readEntity(User.class);
         assertNotNull(user);
+        
+        assertNotNull(user.getLinks());
     }
     
     @Test

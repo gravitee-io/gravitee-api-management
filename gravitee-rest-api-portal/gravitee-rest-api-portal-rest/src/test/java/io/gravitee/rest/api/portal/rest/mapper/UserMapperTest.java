@@ -28,6 +28,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.UserLinks;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -83,5 +84,18 @@ public class UserMapperTest {
         assertEquals(USER_LASTNAME, responseUser.getLastName());
         assertEquals(USER_FIRSTNAME+' '+USER_LASTNAME, responseUser.getDisplayName());
     }
-    
+
+    @Test
+    public void testUserLinks() {
+        String basePath = "/user";
+        
+        UserLinks links = userMapper.computeUserLinks(basePath);
+        
+        assertNotNull(links);
+        
+        assertEquals(basePath, links.getSelf());
+        assertEquals(basePath+"/avatar", links.getAvatar());
+        assertEquals(basePath+"/notifications", links.getNotifications());
+        assertEquals(basePath, links.getSelf());
+    }
 }

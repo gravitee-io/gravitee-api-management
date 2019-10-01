@@ -40,6 +40,8 @@ public class PortalApiLinkHelperTest {
     private static final String BASE_URL_APPLICATIONS = BASE_URL + "/DEFAULT" + "/applications";
     private static final String BASE_URL_APPLICATIONS_APPLICATIONID = BASE_URL_APPLICATIONS + "/" + APPLICATION;
     
+    private static final String BASE_URL_USER = BASE_URL + "/DEFAULT" + "/user";
+    
     private static final String BASE_URL_VIEWS = BASE_URL + "/DEFAULT" + "/views";
     private static final String BASE_URL_VIEWS_VIEWID = BASE_URL_VIEWS + "/" + VIEW;
     
@@ -58,7 +60,13 @@ public class PortalApiLinkHelperTest {
         assertEquals(BASE_URL_APPLICATIONS, applications);
         assertEquals(BASE_URL_APPLICATIONS_APPLICATIONID, application);
     }
-    
+
+    @Test
+    public void testUserLink() {
+        String user = PortalApiLinkHelper.userURL(UriBuilder.fromPath(BASE_URL));
+        assertEquals(BASE_URL_USER, user);
+    }
+
     @Test
     public void testViewsLink() {
         String views = PortalApiLinkHelper.viewsURL(UriBuilder.fromPath(BASE_URL));

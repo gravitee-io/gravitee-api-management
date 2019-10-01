@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.UserLinks;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -39,5 +40,13 @@ public class UserMapper {
         
         return userItem;
     }
-
+    
+    public UserLinks computeUserLinks(String basePath) {
+        UserLinks userLinks = new UserLinks();
+        userLinks.setAvatar(basePath+"/avatar");
+        userLinks.setNotifications(basePath+"/notifications");
+        userLinks.setSelf(basePath);
+        
+        return userLinks;
+    }
 }

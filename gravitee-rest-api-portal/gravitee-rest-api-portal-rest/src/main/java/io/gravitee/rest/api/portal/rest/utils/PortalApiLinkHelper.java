@@ -36,7 +36,11 @@ public final class PortalApiLinkHelper {
     public static String applicationsURL(UriBuilder baseUriBuilder, String applicationId) {
         return resourcesURL(baseUriBuilder, applicationId, "applications");
     }
-    
+
+    public static String userURL(UriBuilder baseUriBuilder) {
+        return resourcesURL(baseUriBuilder, null, "user");
+    }
+
     public static String viewsURL(UriBuilder baseUriBuilder) {
         return resourcesURL(baseUriBuilder, null, "views");
     }

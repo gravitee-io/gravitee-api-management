@@ -39,6 +39,7 @@ import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 
@@ -63,7 +64,12 @@ public class UserResource extends AbstractResource {
         final String authenticatedUser = getAuthenticatedUser();
         UserEntity userEntity = userService.findById(authenticatedUser);
 
-        return Response.ok(userMapper.convert(userEntity)).build();
+        User currentUser = userMapper.convert(userEntity);
+        currentUser.setLinks(userMapper.computeUserLinks(PortalApiLinkHelper.userURL(uriInfo.getBaseUriBuilder())));
+        
+        return Response
+                .ok(currentUser)
+                .build();
     }
 
     @PUT
