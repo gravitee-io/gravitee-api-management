@@ -55,4 +55,9 @@ public class HttpPortalNotificationConfigRepository extends AbstractRepository i
     public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public void deleteByUser(String user) throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }
