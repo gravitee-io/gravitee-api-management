@@ -34,4 +34,5 @@ public interface GenericNotificationConfigRepository {
     Optional<GenericNotificationConfig> findById(String id) throws TechnicalException;
     List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException;
     List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException;
+    void deleteByConfig(String config) throws TechnicalException;
 }
