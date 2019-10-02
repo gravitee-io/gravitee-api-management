@@ -34,6 +34,9 @@ public interface GenericNotificationConfigMongoRepository extends MongoRepositor
 
     @Query("{ 'referenceType': ?0, 'referenceId': ?1 }")
     Set<GenericNotificationConfigMongo> findByReference(String referenceType, String referenceId);
+
+    @Query(value = "{ 'config': ?0 }", delete = true)
+    void deleteByConfig(String config);
 }
 
 
