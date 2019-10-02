@@ -16,18 +16,21 @@
 package io.gravitee.rest.api.service;
 
 import com.auth0.jwt.JWTSigner;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
+import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
+import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.UserServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.UserRepository;
-import io.gravitee.repository.management.model.*;
-import org.junit.Before;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -35,8 +38,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.*;
 
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
@@ -44,13 +51,13 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  */
 @RunWith(MockitoJUnitRunner.class)
 public class UserServiceTest {
@@ -109,6 +116,10 @@ public class UserServiceTest {
     private PortalNotificationConfigService portalNotificationConfigService;
     @Mock
     private GenericNotificationConfigService genericNotificationConfigService;
+    @Mock
+    private GroupService groupService;
+    @Mock
+    private SocialIdentityProviderEntity identityProvider;
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
@@ -475,5 +486,338 @@ public class UserServiceTest {
         verify(portalNotificationService, times(1)).deleteAll(user.getId());
         verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
         verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
+    }
+    
+    @Test(expected = EmailRequiredException.class)
+    public void shouldThrowEmailRequiredExceptionWhenMissingMailInUserInfo() throws IOException {
+        reset(identityProvider);
+        
+        Map<String, String> wrongUserProfileMapping = new HashMap<>();
+        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.EMAIL, "theEmail");
+        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.ID, "theEmail");
+        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.SUB, "sub");
+        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.FIRSTNAME, "given_name");
+        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.LASTNAME, "family_name");
+        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.PICTURE, "picture");
+        when(identityProvider.getUserProfileMapping()).thenReturn(wrongUserProfileMapping);
+        when(identityProvider.isEmailRequired()).thenReturn(Boolean.TRUE);
+        
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
+    }
+    
+    @Test(expected = SpelEvaluationException.class)
+    public void shouldSpelEvaluationExceptionWhenWrongELGroupsMapping() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+        
+        GroupMappingEntity condition1 = new GroupMappingEntity();
+        condition1.setCondition("Some Soup");
+        condition1.setGroups(Arrays.asList("Example group", "soft user"));
+
+        GroupMappingEntity condition2 = new GroupMappingEntity();
+        condition2.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_6'}");
+        condition2.setGroups(Collections.singletonList("Others"));
+
+        GroupMappingEntity condition3 = new GroupMappingEntity();
+        condition3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        condition3.setGroups(Collections.singletonList("Api consumer"));
+
+        when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(condition1, condition2, condition3));
+
+        when(identityProvider.getId()).thenReturn("oauth2");
+        when(userRepository.findBySource("oauth2", "janedoe@example.com", "DEFAULT")).thenReturn(Optional.empty());
+
+        
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
+    }
+
+    @Test
+    public void shouldRefreshExistingUser() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+
+        mockDefaultEnvironment();
+        
+        User user = mockUser();
+
+        when(userRepository.findBySource(null,user.getSourceId(), "DEFAULT")).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getSourceId())).thenReturn(Optional.of(user));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
+        verify(userRepository, times(1)).update(refEq(user));
+    }
+
+    private User mockUser() {
+        User user = new User();
+        user.setId("janedoe@example.com");
+        user.setSource("oauth2");
+        user.setSourceId("janedoe@example.com");
+        user.setLastname("Doe");
+        user.setFirstname("Jane");
+        user.setEmail("janedoe@example.com");
+        user.setPicture("http://example.com/janedoe/me.jpg");
+        return user;
+    }
+
+    @Test
+    public void shouldCreateNewUser() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository, roleService);
+
+        mockDefaultEnvironment();
+        
+        when(roleService.findDefaultRoleByScopes(RoleScope.MANAGEMENT,RoleScope.PORTAL)).thenReturn(Arrays.asList(mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL,"USER")));
+
+        User createdUser = mockUser();
+        when(userRepository.create(any(User.class))).thenReturn(createdUser);
+        
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
+        verify(userRepository, times(1)).create(any(User.class));
+    }
+    
+    @Test
+    public void shouldCreateNewUserWithNoMatchingGroupsMappingFromUserInfo() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository, membershipService);
+        mockDefaultEnvironment();
+        mockGroupsMapping();
+        
+        User createdUser = mockUser();
+        when(userRepository.create(any(User.class))).thenReturn(createdUser);
+        
+        when(identityProvider.getId()).thenReturn("oauth2");
+        when(userRepository.findBySource("oauth2", "janedoe@example.com", "DEFAULT")).thenReturn(Optional.empty());
+
+        RoleEntity rolePortalUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL,"USER");
+        RoleEntity roleManagementAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.MANAGEMENT,"ADMIN");
+
+        when(roleService.findDefaultRoleByScopes(RoleScope.MANAGEMENT,RoleScope.PORTAL)).thenReturn(Arrays.asList(rolePortalUser, roleManagementAdmin));
+
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body_no_matching.json"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
+
+        //verify group creations
+        verify(membershipService, times(2)).addOrUpdateMember(
+                any(MembershipService.MembershipReference.class),
+                any(MembershipService.MembershipUser.class),
+                any(MembershipService.MembershipRole.class));
+    }
+
+    @Test
+    public void shouldCreateNewUserWithGroupsMappingFromUserInfo() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository, groupService, roleService, membershipService);
+        mockDefaultEnvironment();
+        mockGroupsMapping();
+        mockRolesMapping();
+
+        User createdUser = mockUser();
+        when(userRepository.create(any(User.class))).thenReturn(createdUser);
+        
+        when(identityProvider.getId()).thenReturn("oauth2");
+        when(userRepository.findBySource("oauth2", "janedoe@example.com", "DEFAULT")).thenReturn(Optional.empty());
+
+        //mock group search and association
+        when(groupService.findById("Example group")).thenReturn(mockGroupEntity("group_id_1","Example group"));
+        when(groupService.findById("soft user")).thenReturn(mockGroupEntity("group_id_2","soft user"));
+        when(groupService.findById("Api consumer")).thenReturn(mockGroupEntity("group_id_4","Api consumer"));
+
+        // mock role search
+        RoleEntity rolePortalUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL,"USER");
+        RoleEntity roleManagementAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.MANAGEMENT,"ADMIN");
+        RoleEntity roleApiUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.API,"USER");
+        RoleEntity roleApplicationAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION,"ADMIN");
+
+        when(roleService.findById(RoleScope.PORTAL, "USER")).thenReturn(rolePortalUser);
+        when(roleService.findById(RoleScope.MANAGEMENT, "ADMIN")).thenReturn(roleManagementAdmin);
+        when(roleService.findDefaultRoleByScopes(RoleScope.API,RoleScope.APPLICATION)).thenReturn(Arrays.asList(roleApiUser,roleApplicationAdmin));
+        when(roleService.findDefaultRoleByScopes(RoleScope.MANAGEMENT,RoleScope.PORTAL)).thenReturn(Arrays.asList(rolePortalUser, roleManagementAdmin));
+
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
+
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
+
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))).thenReturn(mockMemberEntity());
+
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
+
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))).thenReturn(mockMemberEntity());
+
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "ADMIN"))).thenReturn(mockMemberEntity());
+
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.PORTAL, "USER"))).thenReturn(mockMemberEntity());
+
+        
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
+
+      //verify group creations
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+
+        verify(membershipService, times(0)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+
+        verify(membershipService, times(0)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+
+        verify(membershipService, times(2)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "ADMIN"));
+
+        verify(membershipService, times(2)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.PORTAL, "USER"));
+    }
+
+    @Test
+    public void shouldCreateNewUserWithGroupsMappingFromUserInfoWhenGroupIsNotFound() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository, groupService, roleService, membershipService);
+        mockDefaultEnvironment();
+        mockGroupsMapping();
+
+        User createdUser = mockUser();
+        when(userRepository.create(any(User.class))).thenReturn(createdUser);
+        
+        when(identityProvider.getId()).thenReturn("oauth2");
+        when(userRepository.findBySource("oauth2", "janedoe@example.com", "DEFAULT")).thenReturn(Optional.empty());
+
+        RoleEntity rolePortalUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL,"USER");
+        RoleEntity roleManagementAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.MANAGEMENT,"ADMIN");
+
+        when(roleService.findDefaultRoleByScopes(RoleScope.MANAGEMENT,RoleScope.PORTAL)).thenReturn(Arrays.asList(rolePortalUser, roleManagementAdmin));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
+
+
+        //verify group creations
+        verify(membershipService, times(2)).addOrUpdateMember(
+                any(MembershipService.MembershipReference.class),
+                any(MembershipService.MembershipUser.class),
+                any(MembershipService.MembershipRole.class));
+    }
+    
+    private void mockDefaultEnvironment() {
+        Map<String, String> userProfileMapping = new HashMap<>();
+        userProfileMapping.put(SocialIdentityProviderEntity.UserProfile.EMAIL, "email");
+        userProfileMapping.put(SocialIdentityProviderEntity.UserProfile.ID, "email");
+        userProfileMapping.put(SocialIdentityProviderEntity.UserProfile.SUB, "sub");
+        userProfileMapping.put(SocialIdentityProviderEntity.UserProfile.FIRSTNAME, "given_name");
+        userProfileMapping.put(SocialIdentityProviderEntity.UserProfile.LASTNAME, "family_name");
+        userProfileMapping.put(SocialIdentityProviderEntity.UserProfile.PICTURE, "picture");
+        when(identityProvider.getUserProfileMapping()).thenReturn(userProfileMapping);
+    }
+
+    private void mockGroupsMapping() {
+        GroupMappingEntity condition1 = new GroupMappingEntity();
+        condition1.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        condition1.setGroups(Arrays.asList("Example group", "soft user"));
+
+        GroupMappingEntity condition2 = new GroupMappingEntity();
+        condition2.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_6'}");
+        condition2.setGroups(Collections.singletonList("Others"));
+
+        GroupMappingEntity condition3 = new GroupMappingEntity();
+        condition3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        condition3.setGroups(Collections.singletonList("Api consumer"));
+        
+        when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(condition1, condition2, condition3));
+    }
+
+    private void mockRolesMapping() {
+        RoleMappingEntity role1 = new RoleMappingEntity();
+        role1.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        role1.setManagement("ADMIN");
+        role1.setPortal("USER");
+
+        RoleMappingEntity role2 = new RoleMappingEntity();
+        role2.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_6'}");
+        role2.setPortal("USER");
+
+        RoleMappingEntity role3 = new RoleMappingEntity();
+        role3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        role3.setPortal("USER");
+        when(identityProvider.getRoleMappings()).thenReturn(Arrays.asList(role1, role2, role3));
+
+    }
+
+    private RoleEntity mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope scope, String name) {
+        RoleEntity role = new RoleEntity();
+        role.setScope(scope);
+        role.setName(name);
+        return role;
+    }
+
+    private GroupEntity mockGroupEntity( String id, String name) {
+        GroupEntity groupEntity = new GroupEntity();
+        groupEntity.setId(id);
+        groupEntity.setName(name);
+        return groupEntity;
+    }
+
+    private MemberEntity mockMemberEntity() {
+        return mock(MemberEntity.class);
+    }
+
+    private InputStream read(String resource) throws IOException {
+        return this.getClass().getResourceAsStream(resource);
     }
 }
