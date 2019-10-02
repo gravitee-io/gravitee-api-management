@@ -179,7 +179,28 @@ public class JdbcPortalNotificationConfigRepository implements PortalNotificatio
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete PortalNotificationConfig", ex);
             throw new TechnicalException("Failed to delete PortalNotificationConfig", ex);
-        }    }
+        }
+    }
+
+    @Override
+    public void deleteByUser(String user) throws TechnicalException {
+        LOGGER.debug("JdbcPortalNotificationConfigRepository.deleteByUser({})", user);
+        try {
+            jdbcTemplate.update(
+                    "delete from portal_notification_configs" +
+                            " where " + escapeReservedWord("user") + " = ?"
+                    , user
+            );
+            jdbcTemplate.update(
+                    "delete from portal_notification_config_hooks" +
+                            " where " + escapeReservedWord("user") + " = ?"
+                    , user
+            );
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete PortalNotificationConfig", ex);
+            throw new TechnicalException("Failed to delete PortalNotificationConfig", ex);
+        }
+    }
 
     private void addHooks(PortalNotificationConfig parent) {
         List<String> hooks = new ArrayList<>();

@@ -17,8 +17,10 @@ package io.gravitee.repository.jdbc;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import javax.sql.DataSource;
@@ -41,6 +43,11 @@ public abstract class AbstractJdbcTestRepositoryConfiguration {
         dsConfig.setJdbcUrl(jdbcUrl);
         setEscapeReservedWordFromJDBCUrl(jdbcUrl);
         return new HikariDataSource(dsConfig);
+    }
+
+    @Bean
+    public DataSourceTransactionManager graviteeTransactionManager(@Autowired DataSource ds) {
+        return new DataSourceTransactionManager(ds);
     }
 
     protected String getJdbcUrl(JdbcDatabaseContainer jdbcDatabaseContainer) {

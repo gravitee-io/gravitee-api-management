@@ -90,25 +90,27 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         final HikariConfig dsConfig = new HikariConfig();
         dsConfig.setPoolName("gravitee-jdbc-pool-1");
 
-        final String jdbcUrl = readPropertyValue("management.jdbc.url");
+        final String jdbcUrl = readPropertyValue("jdbc.url");
         setEscapeReservedWordFromJDBCUrl(jdbcUrl);
 
         dsConfig.setJdbcUrl(jdbcUrl);
-        dsConfig.setUsername(readPropertyValue("management.jdbc.username"));
-        dsConfig.setPassword(readPropertyValue("management.jdbc.password", false));
+        dsConfig.setUsername(readPropertyValue("jdbc.username"));
+        dsConfig.setPassword(readPropertyValue("jdbc.password", false));
         // Pooling
-        dsConfig.setAutoCommit(readPropertyValue("management.jdbc.pool.autoCommit", Boolean.class, DEFAULT_AUTO_COMMIT));
-        dsConfig.setConnectionTimeout(readPropertyValue("management.jdbc.pool.connectionTimeout", Long.class, DEFAULT_CONNECTION_TIMEOUT));
-        dsConfig.setIdleTimeout(readPropertyValue("management.jdbc.pool.idleTimeout", Long.class, DEFAULT_IDLE_TIMEOUT));
-        dsConfig.setMaxLifetime(readPropertyValue("management.jdbc.pool.maxLifetime", Long.class, DEFAULT_MAX_LIFETIME));
-        dsConfig.setMinimumIdle(readPropertyValue("management.jdbc.pool.minIdle", Integer.class, DEFAULT_MIN_IDLE));
-        dsConfig.setMaximumPoolSize(readPropertyValue("management.jdbc.pool.maxPoolSize", Integer.class, DEFAULT_MAX_POOL_SIZE));
-        dsConfig.setRegisterMbeans(readPropertyValue("management.jdbc.pool.registerMbeans", Boolean.class, DEFAULT_REGISTER_MBEANS));
+        dsConfig.setAutoCommit(readPropertyValue("jdbc.pool.autoCommit", Boolean.class, DEFAULT_AUTO_COMMIT));
+        dsConfig.setConnectionTimeout(readPropertyValue("jdbc.pool.connectionTimeout", Long.class, DEFAULT_CONNECTION_TIMEOUT));
+        dsConfig.setIdleTimeout(readPropertyValue("jdbc.pool.idleTimeout", Long.class, DEFAULT_IDLE_TIMEOUT));
+        dsConfig.setMaxLifetime(readPropertyValue("jdbc.pool.maxLifetime", Long.class, DEFAULT_MAX_LIFETIME));
+        dsConfig.setMinimumIdle(readPropertyValue("jdbc.pool.minIdle", Integer.class, DEFAULT_MIN_IDLE));
+        dsConfig.setMaximumPoolSize(readPropertyValue("jdbc.pool.maxPoolSize", Integer.class, DEFAULT_MAX_POOL_SIZE));
+        dsConfig.setRegisterMbeans(readPropertyValue("jdbc.pool.registerMbeans", Boolean.class, DEFAULT_REGISTER_MBEANS));
 
         final DataSource dataSource = new HikariDataSource(dsConfig);
         runLiquibase(dataSource);
         return dataSource;
     }
+
+    protected abstract String getScope();
 
     public static void setEscapeReservedWordFromJDBCUrl(final String jdbcUrl) {
         if (jdbcUrl != null) {
@@ -167,7 +169,8 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     }
 
     private <T> T readPropertyValue(String propertyName, Class<T> propertyType, T defaultValue, final boolean displayOnLog) {
-        final T value = env.getProperty(propertyName, propertyType, defaultValue);
+        final String scope = getScope();
+        final T value = env.getProperty(scope + "." + propertyName, propertyType, defaultValue);
         LOGGER.debug("Reading property {}: {}", propertyName, displayOnLog ? value : "********");
         return value;
     }
