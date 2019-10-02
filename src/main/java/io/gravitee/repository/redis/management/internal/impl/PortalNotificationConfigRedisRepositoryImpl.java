@@ -45,6 +45,7 @@ public class PortalNotificationConfigRedisRepositoryImpl extends AbstractRedisRe
             final String pk = getPk(cfg);
             redisTemplate.opsForHash().putIfAbsent(REDIS_KEY, pk, cfg);
             redisTemplate.opsForSet().add(getReferenceKey(cfg.getReferenceType().name(), cfg.getReferenceId()), pk);
+            redisTemplate.opsForSet().add(REDIS_KEY + ":search-by:user:" + cfg.getUser(), pk);
             return null;
         });
         return cfg;
@@ -61,6 +62,7 @@ public class PortalNotificationConfigRedisRepositoryImpl extends AbstractRedisRe
         String pk = getPk(user, referenceType, referenceId);
         redisTemplate.opsForHash().delete(REDIS_KEY, pk);
         redisTemplate.opsForSet().remove(getReferenceKey(referenceType, referenceId), pk);
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":search-by:user:" + user, pk);
     }
 
     @Override
@@ -71,6 +73,13 @@ public class PortalNotificationConfigRedisRepositoryImpl extends AbstractRedisRe
         return objects.stream()
                 .map(event -> convert(event, RedisPortalNotificationConfig.class))
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void deleteByUser(String user) {
+        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":search-by:user:" + user);
+        redisTemplate.opsForHash().delete(REDIS_KEY, keys.toArray());
+        keys.forEach( key -> redisTemplate.opsForSet().remove(REDIS_KEY + ":search-by:user:" + user, key));
     }
 
     private String getPk(String user, String referenceType, String referenceId) {
