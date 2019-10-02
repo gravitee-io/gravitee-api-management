@@ -69,6 +69,8 @@ public class GenericNotificationConfigRepositoryMock extends AbstractRepositoryM
         //delete
         when(genericNotificationConfigRepository.findById("notif-to-delete")).
                 thenReturn(of(mock(GenericNotificationConfig.class)), empty());
+        when(genericNotificationConfigRepository.findById("config-to-delete")).
+                thenReturn(empty());
 
         //findById
         final GenericNotificationConfig foundCfg = new GenericNotificationConfig();

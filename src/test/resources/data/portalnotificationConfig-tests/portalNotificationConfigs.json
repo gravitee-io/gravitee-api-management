@@ -46,5 +46,13 @@
     "hooks": ["A", "C"],
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883
+  },
+  {
+    "user": "useridToDelete",
+    "referenceType": "API",
+    "referenceId": "config",
+    "hooks": ["A", "C"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
   }
 ]
