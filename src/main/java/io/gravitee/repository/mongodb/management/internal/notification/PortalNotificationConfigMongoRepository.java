@@ -32,6 +32,9 @@ public interface PortalNotificationConfigMongoRepository extends MongoRepository
 
     @Query("{ 'hooks': ?0, 'id.referenceType': ?1, 'id.referenceId': ?2 }")
     Set<PortalNotificationConfigMongo> findByReferenceAndHook(String hook, String referenceType, String referenceId);
+
+    @Query(value = "{ 'id.user': ?0 }", delete = true)
+    void deleteByUser(String user);
 }
 
 

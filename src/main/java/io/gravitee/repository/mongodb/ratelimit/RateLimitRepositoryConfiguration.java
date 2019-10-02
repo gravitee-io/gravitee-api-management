@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.ratelimit;
 
-import com.mongodb.MongoClient;
 import io.gravitee.repository.Scope;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
@@ -24,8 +23,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.ReactiveMongoOperations;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
 
 import java.net.URI;
 
@@ -34,6 +34,7 @@ import java.net.URI;
  * @author GraviteeSource Team
  */
 @Configuration
+@EnableReactiveMongoRepositories
 public class RateLimitRepositoryConfiguration {
 
 	@Autowired
@@ -58,9 +59,9 @@ public class RateLimitRepositoryConfiguration {
 	}
 
 	@Bean(name = "rateLimitMongoTemplate")
-	public MongoOperations mongoOperations() {
+	public ReactiveMongoOperations mongoOperations() {
 		try {
-			return new MongoTemplate((MongoClient) mongoFactory.getObject(), getDatabaseName());
+			return new ReactiveMongoTemplate(mongoFactory.getReactiveClient(), getDatabaseName());
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
