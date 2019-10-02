@@ -17,19 +17,23 @@ package io.gravitee.repository.jdbc.ratelimit;
 
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
+import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.List;
+import java.util.function.Supplier;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
@@ -38,116 +42,113 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
  * @author njt
  */
 @Repository
-public class JdbcRateLimitRepository implements RateLimitRepository {
+public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRateLimitRepository.class);
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    private final TransactionTemplate transactionTemplate;
+
     private static String buildInsertStatement() {
         return "insert into ratelimit (" +
                 escapeReservedWord("key") +
                 " , counter " +
-                " , last_request " +
+                " , " + escapeReservedWord("limit") + " " +
+                " , subscription " +
                 " , reset_time " +
-                " , created_at " +
-                " , updated_at " +
-                " , async " +
-                " ) values (?,  ? ,  ?,  ?,  ?,  ?,  ?)";
+                " ) values (?,  ? ,  ?,  ?,  ?)";
     }
-
-    private static final String INSERT_SQL = buildInsertStatement();
 
     private static String buildUpdateStatement() {
         return "update ratelimit set " +
-                escapeReservedWord("key") + " = ? " +
-                " , counter = ? " +
-                " , last_request = ? " +
+                " counter = ? " +
+                " , " + escapeReservedWord("limit") + " = ? " +
                 " , reset_time = ? " +
-                " , created_at = ? " +
-                " , updated_at = ? " +
-                " , async = ?" +
                 " where " + escapeReservedWord("key") + " = ?";
     }
 
+    private static String buildSelectStatement() {
+        return "select " +
+                escapeReservedWord("key") +
+                ", counter, " + escapeReservedWord("limit") + ", subscription, reset_time"
+                + " from ratelimit"
+                + " where " + escapeReservedWord("key") + " = ?";
+    }
+
+    private static final String INSERT_SQL = buildInsertStatement();
     private static final String UPDATE_SQL = buildUpdateStatement();
+    private static final String SELECT_SQL = buildSelectStatement();
 
-    private static class Rm implements RowMapper<RateLimit> {
+    public JdbcRateLimitRepository(
+            @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager) {
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
 
-        @Override
-        public RateLimit mapRow(ResultSet rs, int i) throws SQLException {
-            RateLimit rateLimit = new RateLimit(rs.getString(1));
-            rateLimit.setCounter(rs.getLong(2));
-            rateLimit.setLastRequest(rs.getLong(3));
-            rateLimit.setResetTime(rs.getLong(4));
-            rateLimit.setCreatedAt(rs.getLong(5));
-            rateLimit.setUpdatedAt(rs.getLong(6));
-            rateLimit.setAsync(rs.getBoolean(7));
-            return rateLimit;
-        }
-
-    }
-
-    private static final Rm MAPPER = new Rm();
-
-    @Override
-    public RateLimit get(String rateLimitKey) {
-        LOGGER.debug("JdbcRateLimitRepository.get({})", rateLimitKey);
-        final String escapedKeyColumn = escapeReservedWord("key");
-        List<RateLimit> items = jdbcTemplate.query("select " + escapedKeyColumn
-                        + " , counter, last_request, reset_time, created_at, updated_at, async "
-                        + " from ratelimit "
-                        + " where " + escapedKeyColumn + " = ?"
-                , MAPPER
-                , rateLimitKey
-        );
-        if (items.isEmpty()) {
-            return new RateLimit(rateLimitKey);
-        } else {
-            return items.get(0);
-        }
+        this.transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_READ_UNCOMMITTED);
+        this.transactionTemplate.setTimeout(5); // 5 seconds
     }
 
     @Override
-    public void save(RateLimit rateLimit) {
-        LOGGER.debug("JdbcRateLimitRepository.save({})", rateLimit);
-        final int nbUpdatedElements = jdbcTemplate.update((Connection cnctn) -> {
-            PreparedStatement stmt = cnctn.prepareStatement(UPDATE_SQL);
-            stmt.setString(1, rateLimit.getKey());
-            stmt.setLong(2, rateLimit.getCounter());
-            stmt.setLong(3, rateLimit.getLastRequest());
-            stmt.setLong(4, rateLimit.getResetTime());
-            stmt.setLong(5, rateLimit.getCreatedAt());
-            stmt.setLong(6, rateLimit.getUpdatedAt());
-            stmt.setBoolean(7, rateLimit.isAsync());
-            stmt.setString(8, rateLimit.getKey());
-            return stmt;
+    public Single<RateLimit> incrementAndGet(String key, long weight, Supplier<RateLimit> supplier) {
+        LOGGER.debug("JdbcRateLimitRepository.incrementAndGet({}, {}, {})", key, weight, supplier);
+
+        return transactionTemplate.execute(new TransactionCallback<Single<RateLimit>>() {
+
+            @Override
+            public Single<RateLimit> doInTransaction(TransactionStatus transactionStatus) {
+                try {
+                    RateLimit rate = jdbcTemplate.query(SELECT_SQL, MAPPER, key);
+
+                    if (rate == null || rate.getResetTime() < System.currentTimeMillis()) {
+                        rate = supplier.get();
+                    }
+
+                    rate.setCounter(rate.getCounter() + weight);
+
+                    final RateLimit fRate = rate;
+
+                    final int nbUpdatedElements = jdbcTemplate.update((Connection cnctn) -> {
+                        PreparedStatement stmt = cnctn.prepareStatement(UPDATE_SQL);
+                        stmt.setLong(1, fRate.getCounter());
+                        stmt.setLong(2, fRate.getLimit());
+                        stmt.setLong(3, fRate.getResetTime());
+                        stmt.setString(4, fRate.getKey());
+                        return stmt;
+                    });
+
+                    if (nbUpdatedElements == 0) {
+                        jdbcTemplate.update((Connection cnctn) -> {
+                            PreparedStatement stmt = cnctn.prepareStatement(INSERT_SQL);
+                            stmt.setString(1, fRate.getKey());
+                            stmt.setLong(2, fRate.getCounter());
+                            stmt.setLong(3, fRate.getLimit());
+                            stmt.setString(4, fRate.getSubscription());
+                            stmt.setLong(5, fRate.getResetTime());
+                            return stmt;
+                        });
+                    }
+
+                    return Single.just(rate);
+                } catch (Exception ex) {
+                    transactionStatus.setRollbackOnly();
+                    return Single.error(ex);
+                }
+            }
         });
-        if (nbUpdatedElements == 0) {
-            jdbcTemplate.update((Connection cnctn) -> {
-                PreparedStatement stmt = cnctn.prepareStatement(INSERT_SQL);
-                stmt.setString(1, rateLimit.getKey());
-                stmt.setLong(2, rateLimit.getCounter());
-                stmt.setLong(3, rateLimit.getLastRequest());
-                stmt.setLong(4, rateLimit.getResetTime());
-                stmt.setLong(5, rateLimit.getCreatedAt());
-                stmt.setLong(6, rateLimit.getUpdatedAt());
-                stmt.setBoolean(7, rateLimit.isAsync());
-                return stmt;
-            });
-        }
     }
 
-    @Override
-    public Iterator<RateLimit> findAsyncAfter(long timestamp) {
-        final List<RateLimit> items = jdbcTemplate.query("select " + escapeReservedWord("key") + ", counter, last_request, reset_time, created_at, updated_at, async "
-                        + " from ratelimit "
-                        + " where async = ? and updated_at > ?"
-                , MAPPER
-                , true
-                , timestamp
-        );
-        return items.iterator();
-    }
+    private static final ResultSetExtractor<RateLimit> MAPPER = rs -> {
+        if (!rs.next()) {
+            return null;
+        }
+
+        RateLimit rateLimit = new RateLimit(rs.getString(1));
+        rateLimit.setCounter(rs.getLong(2));
+        rateLimit.setLimit(rs.getLong(3));
+        rateLimit.setSubscription(rs.getString(4));
+        rateLimit.setResetTime(rs.getLong(5));
+
+        return rateLimit;
+    };
 }
