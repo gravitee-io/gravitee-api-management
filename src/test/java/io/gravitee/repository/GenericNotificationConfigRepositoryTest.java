@@ -146,4 +146,10 @@ public class GenericNotificationConfigRepositoryTest extends AbstractRepositoryT
         assertTrue("notifierA", userIds.contains("notifierA"));
         assertTrue("notifierB", userIds.contains("notifierB"));
     }
+
+    @Test
+    public void shouldDeleteByEmail() throws Exception {
+        genericNotificationConfigRepository.deleteByConfig("test@gravitee.io");
+        assertFalse(genericNotificationConfigRepository.findById("config-to-delete").isPresent());
+    }
 }

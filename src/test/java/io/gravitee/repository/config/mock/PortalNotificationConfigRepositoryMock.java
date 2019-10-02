@@ -62,6 +62,8 @@ public class PortalNotificationConfigRepositoryMock extends AbstractRepositoryMo
         //delete
         when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete")).
                 thenReturn(of(mock(PortalNotificationConfig.class)), empty());
+        when(portalNotificationConfigRepository.findById("useridToDelete", NotificationReferenceType.API, "config")).
+                thenReturn(empty());
 
         //findById
         final PortalNotificationConfig foundCfg = new PortalNotificationConfig();
