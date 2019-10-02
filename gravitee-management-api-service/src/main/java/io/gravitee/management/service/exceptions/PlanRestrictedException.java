@@ -13,18 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.notification.PortalNotificationConfigEntity;
-import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PortalNotificationConfigService {
+public class PlanRestrictedException extends AbstractManagementException {
 
-    PortalNotificationConfigEntity save(PortalNotificationConfigEntity notification);
-    PortalNotificationConfigEntity findById(String user, NotificationReferenceType referenceType, String referenceId);
-    void deleteByUser(String user);
+    private final String plan;
+
+    public PlanRestrictedException(String plan) {
+        this.plan = plan;
+    }
+
+    @Override
+    public String getMessage() {
+        return "This plan is restricted and cannot be subscribed by the user.";
+    }
+
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 }

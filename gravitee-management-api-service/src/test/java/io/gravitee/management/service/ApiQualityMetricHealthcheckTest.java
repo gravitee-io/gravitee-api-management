@@ -15,6 +15,10 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
@@ -26,8 +30,11 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -39,6 +46,7 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiQualityMetricHealthcheckTest {
+
     @InjectMocks
     private ApiQualityMetricHealthcheck srv = new ApiQualityMetricHealthcheck();
 
@@ -50,6 +58,7 @@ public class ApiQualityMetricHealthcheckTest {
         Services services = new Services();
         services.set(Collections.singletonList(hcSrv));
         when(api.getServices()).thenReturn(services);
+        mockProxy(api, false);
 
         boolean valid = srv.isValid(api);
 
@@ -57,22 +66,39 @@ public class ApiQualityMetricHealthcheckTest {
     }
 
     @Test
-    public void shouldBeValidWithEndpointHC() {
+    public void shouldBeValidWithEndpointsHC() {
         ApiEntity api = mock(ApiEntity.class);
         EndpointHealthCheckService hcSrv = mock(EndpointHealthCheckService.class);
-        when(hcSrv.isEnabled()).thenReturn(Boolean.TRUE);
+        when(hcSrv.isEnabled()).thenReturn(Boolean.FALSE);
         Services services = new Services();
         services.set(Collections.singletonList(hcSrv));
         when(api.getServices()).thenReturn(services);
+        mockProxy(api, true);
 
         boolean valid = srv.isValid(api);
 
         assertTrue(valid);
+    }
+
+    @Test
+    public void shouldBeInvalidWithOnlyOneEndpointHC() {
+        ApiEntity api = mock(ApiEntity.class);
+        EndpointHealthCheckService hcSrv = mock(EndpointHealthCheckService.class);
+        when(hcSrv.isEnabled()).thenReturn(Boolean.FALSE);
+        Services services = new Services();
+        services.set(Collections.singletonList(hcSrv));
+        when(api.getServices()).thenReturn(services);
+        mockProxy(api, false);
+
+        boolean valid = srv.isValid(api);
+
+        assertFalse(valid);
     }
 
     @Test
     public void shouldNotBeValidWithoutServices() {
         ApiEntity api = mock(ApiEntity.class);
+        mockProxy(api, false);
 
         boolean valid = srv.isValid(api);
 
@@ -84,6 +110,7 @@ public class ApiQualityMetricHealthcheckTest {
         ApiEntity api = mock(ApiEntity.class);
         Services services = new Services();
         services.set(Collections.emptyList());
+        mockProxy(api, false);
 
         boolean valid = srv.isValid(api);
 
@@ -99,6 +126,7 @@ public class ApiQualityMetricHealthcheckTest {
         Services services = new Services();
         services.set(Collections.singletonList(hcSrv));
         when(api.getServices()).thenReturn(services);
+        mockProxy(api, false);
 
         boolean valid = srv.isValid(api);
 
@@ -113,9 +141,28 @@ public class ApiQualityMetricHealthcheckTest {
         Services services = new Services();
         services.set(Collections.singletonList(dpSrv));
         when(api.getServices()).thenReturn(services);
+        mockProxy(api, false);
 
         boolean valid = srv.isValid(api);
 
         assertFalse(valid);
+    }
+
+    private void mockProxy(final ApiEntity api, final boolean withHC) {
+        final Proxy proxy = mock(Proxy.class);
+        when(api.getProxy()).thenReturn(proxy);
+        final EndpointGroup endpointGroup = mock(EndpointGroup.class);
+        when(proxy.getGroups()).thenReturn(Collections.singleton(endpointGroup));
+        final HttpEndpoint endpoint1 = mock(HttpEndpoint.class);
+        final HttpEndpoint endpoint2 = mock(HttpEndpoint.class);
+        when(endpointGroup.getEndpoints()).thenReturn(new HashSet<>(asList(endpoint1, endpoint2)));
+
+        final EndpointHealthCheckService endpointHealthCheckService1 = mock(EndpointHealthCheckService.class);
+        when(endpoint1.getHealthCheck()).thenReturn(endpointHealthCheckService1);
+        when(endpointHealthCheckService1.isEnabled()).thenReturn(true);
+
+        final EndpointHealthCheckService endpointHealthCheckService2 = mock(EndpointHealthCheckService.class);
+        when(endpoint2.getHealthCheck()).thenReturn(endpointHealthCheckService2);
+        when(endpointHealthCheckService2.isEnabled()).thenReturn(withHC);
     }
 }

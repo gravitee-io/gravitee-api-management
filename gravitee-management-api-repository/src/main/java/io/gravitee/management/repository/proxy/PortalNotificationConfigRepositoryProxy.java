@@ -55,4 +55,9 @@ public class PortalNotificationConfigRepositoryProxy extends AbstractProxy<Porta
     public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
         return target.findByReferenceAndHook(hook, referenceType, referenceId);
     }
+
+    @Override
+    public void deleteByUser(String user) throws TechnicalException {
+        target.deleteByUser(user);
+    }
 }

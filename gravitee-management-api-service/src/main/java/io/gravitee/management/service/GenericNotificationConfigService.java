@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
         import io.gravitee.management.model.notification.GenericNotificationConfigEntity;
         import io.gravitee.repository.management.model.NotificationReferenceType;
+        import io.gravitee.repository.management.model.User;
 
         import java.util.List;
 
@@ -30,4 +31,5 @@ public interface GenericNotificationConfigService {
     void delete(String id);
     GenericNotificationConfigEntity findById(String id);
     List<GenericNotificationConfigEntity> findByReference(NotificationReferenceType referenceType, String referenceId);
+    void deleteByUser(User user);
 }
