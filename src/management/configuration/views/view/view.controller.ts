@@ -27,7 +27,6 @@ class ViewController {
   private viewApis: any[];
   private selectedAPIs: any[];
   private addedAPIs: any[];
-  private deletedAPIs: any[];
   public searchText: string = "";
   public viewForm: any;
   private formChanged: boolean = false;
@@ -47,7 +46,6 @@ class ViewController {
   }
 
   $onInit() {
-    this.deletedAPIs = [];
     this.addedAPIs = [];
     this.selectedAPIs = (this.viewApis) ? this.viewApis.slice(0) : [];
     let self = this;
@@ -68,7 +66,7 @@ class ViewController {
           let apiViews = api.views || [];
           apiViews.push(view.id);
           api.views = apiViews;
-          return that.ApiService.update(api)
+          return that.ApiService.update(api);
         });
         that.$q.all(apiFunctions).then(() => {
           that.NotificationService.show('View ' + view.name + ' has been saved.');
@@ -109,30 +107,27 @@ class ViewController {
   }
 
   removeApi(api) {
-    let that = this;
     this.$mdDialog.show({
       controller: 'DeleteAPIViewDialogController',
       template: require('./delete-api-view.dialog.html'),
       locals: {
         api: api
       }
-    }).then(function (deleteApi) {
+    }).then((deleteApi) => {
       if (deleteApi) {
-        that.deletedAPIs.push(api);
-        if (that.viewApis.some(a => a.id === api.id)) {
+        if (this.viewApis && this.viewApis.some(a => a.id === api.id)) {
           // we need to retrieve the API to get the all information required for the update
-          that.ApiService.get(api.id).then(response => {
+          this.ApiService.get(api.id).then(response => {
             let apiFound = response.data;
-            apiFound.views = _.remove(apiFound.views, that.view.id);
-            that.ApiService.update(apiFound).then(() => {
-              that.NotificationService.show("API '" + api.name + "' detached with success")
-              _.remove(that.selectedAPIs, api);
-              _.remove(that.viewApis, api);
-            })
+            apiFound.views = _.remove(apiFound.views, this.view.id);
+            this.ApiService.update(apiFound).then(() => {
+              this.NotificationService.show("API '" + api.name + "' detached with success")
+              _.remove(this.selectedAPIs, api);
+              _.remove(this.viewApis, api);
+            });
           });
         } else {
-          that.NotificationService.show("API '" + api.name + "' detached with success")
-          _.remove(that.selectedAPIs, api);
+          _.remove(this.selectedAPIs, api);
         }
       }
     });
@@ -148,7 +143,7 @@ class ViewController {
   }
 
   isHighlightApi(api) {
-    return this.view.highlightApi === api.id;
+    return this.view && this.view.highlightApi === api.id;
   }
 
   getApis() {

@@ -39,7 +39,7 @@ class AuthenticationService {
   authenticate(provider: IdentityProvider) {
     provider.type = (provider.type === 'oidc') ? 'oauth2' : provider.type;
 
-    let satellizerProvider = this.SatellizerConfig.providers[provider.type];
+    let satellizerProvider = this.SatellizerConfig.providers[provider.id];
     if (!satellizerProvider) {
       satellizerProvider = _.merge(provider, {
         oauthType: '2.0',
@@ -48,15 +48,16 @@ class AuthenticationService {
         scope: provider.scopes
       });
     } else {
+      provider.scope = provider.scopes;
       _.merge(satellizerProvider, provider);
     }
 
-    this.SatellizerConfig.providers[provider.type] = _.merge(satellizerProvider, {
+    this.SatellizerConfig.providers[provider.id] = _.merge(satellizerProvider, {
       url: this.Constants.baseURL + 'auth/oauth2/' + provider.id,
       redirectUri: window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname),
     });
 
-    this.$auth.authenticate(provider.type)
+    this.$auth.authenticate(provider.id)
       .then( () => {
         this.UserService.current().then( (user) => {
           if (provider.userLogoutEndpoint) {
