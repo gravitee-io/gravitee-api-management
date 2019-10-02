@@ -104,6 +104,12 @@ public class UserServiceImpl extends AbstractService implements UserService {
     private SearchEngineService searchEngineService;
     @Autowired
     private InvitationService invitationService;
+    @Autowired
+    private PortalNotificationService portalNotificationService;
+    @Autowired
+    private PortalNotificationConfigService portalNotificationConfigService;
+    @Autowired
+    private GenericNotificationConfigService genericNotificationConfigService;
 
     @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
     private String defaultAvatar;
@@ -656,8 +662,14 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             membershipService.removeUser(id);
-
             User user = optionalUser.get();
+
+            //remove notifications
+            portalNotificationService.deleteAll(user.getId());
+            portalNotificationConfigService.deleteByUser(user.getId());
+            genericNotificationConfigService.deleteByUser(user);
+
+            // change user datas
             user.setSourceId("deleted-" + user.getSourceId());
             user.setStatus(UserStatus.ARCHIVED);
             user.setUpdatedAt(new Date());
@@ -677,6 +689,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             userRepository.update(user);
+
 
             final UserEntity userEntity = convert(optionalUser.get(), false);
             searchEngineService.delete(userEntity, false);

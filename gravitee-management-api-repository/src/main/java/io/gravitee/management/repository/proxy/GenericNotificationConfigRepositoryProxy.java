@@ -60,4 +60,9 @@ public class GenericNotificationConfigRepositoryProxy extends AbstractProxy<Gene
     public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
         return target.findByReference(referenceType, referenceId);
     }
+
+    @Override
+    public void deleteByConfig(String config) throws TechnicalException {
+        target.deleteByConfig(config);
+    }
 }

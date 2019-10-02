@@ -401,6 +401,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             addLoggingMaxDuration(api.getProxy().getLogging());
 
+            // check if there is regex errors in plaintext fields
+            validateRegexfields(api);
+
             Api repoApi = convert(id, api);
 
             if (repoApi != null) {
@@ -753,6 +756,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             addLoggingMaxDuration(updateApiEntity.getProxy().getLogging());
 
+            // check if there is regex errors in plaintext fields
+            validateRegexfields(updateApiEntity);
+
             final ApiEntity apiToCheck = convert(optApiToUpdate.get());
 
             // if user changes sharding tags, then check if he is allowed to do it
@@ -847,6 +853,32 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     throw new TagNotAllowedException(notAllowedTags);
                 }
             }
+        }
+    }
+
+    private void validateRegexfields(final UpdateApiEntity updateApiEntity) {
+        // validate regex on paths
+        if (updateApiEntity.getPaths() != null) {
+            updateApiEntity.getPaths().forEach((path, v) -> {
+                try {
+                    Pattern.compile(path);
+                } catch (java.util.regex.PatternSyntaxException pse) {
+                    LOGGER.error("An error occurs while trying to parse the path {}", path, pse);
+                    throw new TechnicalManagementException("An error occurs while trying to parse the path " + path, pse);
+                }
+            });
+        }
+
+        // validate regex on pathMappings
+        if (updateApiEntity.getPathMappings() != null) {
+            updateApiEntity.getPathMappings().forEach( pathMapping -> {
+                try {
+                    Pattern.compile(pathMapping);
+                } catch (java.util.regex.PatternSyntaxException pse) {
+                    LOGGER.error("An error occurs while trying to parse the path mapping {}", pathMapping, pse);
+                    throw new TechnicalManagementException("An error occurs while trying to parse the path mapping" + pathMapping, pse);
+                }
+            });
         }
     }
 

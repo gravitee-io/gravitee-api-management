@@ -102,6 +102,12 @@ public class UserServiceTest {
     private InvitationService invitationService;
     @Mock
     private ApiService apiService;
+    @Mock
+    private PortalNotificationService portalNotificationService;
+    @Mock
+    private PortalNotificationConfigService portalNotificationConfigService;
+    @Mock
+    private GenericNotificationConfigService genericNotificationConfigService;
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
@@ -420,6 +426,9 @@ public class UserServiceTest {
             }
         }));
         verify(searchEngineService, times(1)).delete(any(), eq(false));
+        verify(portalNotificationService, times(1)).deleteAll(user.getId());
+        verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
+        verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
     }
 
     @Test
@@ -462,5 +471,8 @@ public class UserServiceTest {
             }
         }));
         verify(searchEngineService, times(1)).delete(any(), eq(false));
+        verify(portalNotificationService, times(1)).deleteAll(user.getId());
+        verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
+        verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
     }
 }
