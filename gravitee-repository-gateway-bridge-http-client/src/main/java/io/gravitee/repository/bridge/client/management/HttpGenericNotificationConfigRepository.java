@@ -60,4 +60,9 @@ public class HttpGenericNotificationConfigRepository extends AbstractRepository 
     public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public void deleteByConfig(String config) throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }
