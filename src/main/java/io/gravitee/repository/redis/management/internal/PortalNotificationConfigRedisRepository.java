@@ -31,4 +31,5 @@ public interface PortalNotificationConfigRedisRepository {
     RedisPortalNotificationConfig update(RedisPortalNotificationConfig cfg);
     void delete(String user, String referenceType, String referenceId);
     Set<RedisPortalNotificationConfig> findByReference(NotificationReferenceType type, String referenceId);
+    void deleteByUser(String user);
 }

@@ -44,6 +44,8 @@ public class GenericNotificationConfigRedisRepositoryImpl extends AbstractRedisR
         redisTemplate.executePipelined((RedisConnection connection) ->  {
             redisTemplate.opsForHash().putIfAbsent(REDIS_KEY, cfg.getId(), cfg);
             redisTemplate.opsForSet().add(getReferenceKey(cfg.getReferenceType().name(), cfg.getReferenceId()), cfg.getId());
+            redisTemplate.opsForSet().add(REDIS_KEY + ":search-by:config:" + cfg.getConfig(), cfg.getId());
+
             return null;
         });
         return cfg;
@@ -60,6 +62,7 @@ public class GenericNotificationConfigRedisRepositoryImpl extends AbstractRedisR
         RedisGenericNotificationConfig cfg = findById(id);
         redisTemplate.opsForHash().delete(REDIS_KEY, id);
         redisTemplate.opsForSet().remove(getReferenceKey(cfg.getReferenceType().name(), cfg.getReferenceId()), id);
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":search-by:config:" + cfg.getConfig(), cfg.getId());
     }
 
     @Override
@@ -70,6 +73,13 @@ public class GenericNotificationConfigRedisRepositoryImpl extends AbstractRedisR
         return objects.stream()
                 .map(event -> convert(event, RedisGenericNotificationConfig.class))
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void deleteByConfig(String config) {
+        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":search-by:config:" + config);
+        redisTemplate.opsForHash().delete(REDIS_KEY, keys.toArray());
+        keys.forEach( key -> redisTemplate.opsForSet().remove(REDIS_KEY + ":search-by:config:" + config, key));
     }
 
     private String getReferenceKey(String referenceType, String referenceId) {
