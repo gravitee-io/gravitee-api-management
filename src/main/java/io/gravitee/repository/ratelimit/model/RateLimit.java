@@ -25,17 +25,13 @@ public class RateLimit {
 
     private final String key;
 
-    private long lastRequest = System.currentTimeMillis();
-
     private long counter = 0;
 
     private long resetTime;
 
-    private long createdAt;
+    private long limit;
 
-    private long updatedAt;
-
-    private boolean async;
+    private String subscription;
 
     public RateLimit(String key) {
         this.key = key;
@@ -48,10 +44,8 @@ public class RateLimit {
     public RateLimit(String key, final RateLimit rateLimit) {
         this(key);
         this.setCounter(rateLimit.getCounter());
-        this.setLastRequest(rateLimit.getLastRequest());
+        this.setLimit(rateLimit.getLimit());
         this.setResetTime(rateLimit.getResetTime());
-        this.setCreatedAt(rateLimit.getCreatedAt());
-        this.setUpdatedAt(rateLimit.getUpdatedAt());
     }
 
     public long getCounter() {
@@ -66,14 +60,6 @@ public class RateLimit {
         return key;
     }
 
-    public long getLastRequest() {
-        return lastRequest;
-    }
-
-    public void setLastRequest(long lastRequest) {
-        this.lastRequest = lastRequest;
-    }
-
     public long getResetTime() {
         return resetTime;
     }
@@ -82,28 +68,20 @@ public class RateLimit {
         this.resetTime = resetTime;
     }
 
-    public long getCreatedAt() {
-        return createdAt;
+    public long getLimit() {
+        return limit;
     }
 
-    public void setCreatedAt(long createdAt) {
-        this.createdAt = createdAt;
+    public void setLimit(long limit) {
+        this.limit = limit;
     }
 
-    public long getUpdatedAt() {
-        return updatedAt;
+    public String getSubscription() {
+        return subscription;
     }
 
-    public void setUpdatedAt(long updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public boolean isAsync() {
-        return async;
-    }
-
-    public void setAsync(boolean async) {
-        this.async = async;
+    public void setSubscription(String subscription) {
+        this.subscription = subscription;
     }
 
     @Override
@@ -121,14 +99,11 @@ public class RateLimit {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("{");
-        sb.append("counter=").append(counter);
-        sb.append(", key='").append(key).append('\'');
-        sb.append(", lastRequest=").append(lastRequest);
-        sb.append(", resetTime=").append(resetTime);
-        sb.append(", createdAt=").append(createdAt);
-        sb.append(", updatedAt=").append(updatedAt);
-        sb.append('}');
-        return sb.toString();
+        return "RateLimit{" +
+                "key='" + key + '\'' +
+                ", counter=" + counter +
+                ", resetTime=" + resetTime +
+                ", limit=" + limit +
+                '}';
     }
 }
