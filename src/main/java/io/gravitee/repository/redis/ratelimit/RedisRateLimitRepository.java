@@ -17,108 +17,65 @@ package io.gravitee.repository.redis.ratelimit;
 
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
+import io.reactivex.Single;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class RedisRateLimitRepository implements RateLimitRepository {
+public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> {
 
     @Autowired
     @Qualifier("rateLimitRedisTemplate")
     private StringRedisTemplate redisTemplate;
 
     @Autowired
-    @Qualifier("rateLimitAsyncScript")
-    private RedisScript<List> rateLimitAsyncScript;
+    @Qualifier("rateLimitIncrScript")
+    private RedisScript<List> rateLimitIncrScript;
 
-    private final static String REDIS_KEY_PREFIX = "ratelimit:";
-    private final static String REDIS_ASYNC_SUFFIX = ":async";
+    private final static String KEY_PREFIX = "ratelimit:";
 
     @Override
-    public RateLimit get(String rateLimitKey) {
-        RateLimit rateLimit = new RateLimit(rateLimitKey);
+    public Single<RateLimit> incrementAndGet(String key, long weight, Supplier<RateLimit> supplier) {
 
-        List<String> members = redisTemplate.opsForList().range(REDIS_KEY_PREFIX + rateLimit.getKey(), 0, 5);
+        RateLimit newRate = supplier.get();
 
-        if (! members.isEmpty()) {
-            Iterator<String> ite = members.iterator();
+        //TODO: for now, we have to call the supplier for each call, we must find a better way to handle this case
+        List values = redisTemplate.execute(
+                rateLimitIncrScript,
+                Arrays.asList(KEY_PREFIX + key, Long.toString(weight)),
+                convertToValuesArray(newRate));
 
-            rateLimit.setAsync(Boolean.parseBoolean(ite.next()));
-            rateLimit.setUpdatedAt(Long.parseLong(ite.next()));
-            rateLimit.setCreatedAt(Long.parseLong(ite.next()));
-            rateLimit.setCounter(Long.parseLong(ite.next()));
-            rateLimit.setResetTime(Long.parseLong(ite.next()));
-            rateLimit.setLastRequest(Long.parseLong(ite.next()));
+        // It may happen when the rate has been expired while running the script
+        if (! values.isEmpty()) {
+            RateLimit rateLimit = new RateLimit(key);
+            rateLimit.setCounter(Long.parseLong((String) values.get(0)));
+            rateLimit.setLimit(Long.parseLong((String) values.get(1)));
+            rateLimit.setResetTime(Long.parseLong((String) values.get(2)));
+            rateLimit.setSubscription((String) values.get(3));
+
+            return Single.just(rateLimit);
         }
 
-        return rateLimit;
+        return Single.just(newRate);
     }
 
-    @Override
-    public void save(RateLimit rateLimit) {
-        redisTemplate.executePipelined((RedisConnection redisConnection) -> {
-            ((StringRedisConnection) redisConnection).lTrim(REDIS_KEY_PREFIX + rateLimit.getKey(), 1, 0);
-            ((StringRedisConnection) redisConnection).lPush(REDIS_KEY_PREFIX + rateLimit.getKey(),
-                    Long.toString(rateLimit.getLastRequest()),
-                    Long.toString(rateLimit.getResetTime()),
-                    Long.toString(rateLimit.getCounter()),
-                    Long.toString(rateLimit.getCreatedAt()),
-                    Long.toString(rateLimit.getUpdatedAt()),
-                    Boolean.toString(rateLimit.isAsync()));
-            ((StringRedisConnection) redisConnection).pExpireAt(REDIS_KEY_PREFIX + rateLimit.getKey(),
-                    rateLimit.getResetTime());
-
-            if (rateLimit.isAsync()) {
-                ((StringRedisConnection) redisConnection).lTrim(
-                        REDIS_KEY_PREFIX + rateLimit.getKey() + REDIS_ASYNC_SUFFIX, 1, 0);
-                ((StringRedisConnection) redisConnection).lPush(
-                        REDIS_KEY_PREFIX + rateLimit.getKey() + REDIS_ASYNC_SUFFIX,
-                        REDIS_KEY_PREFIX + rateLimit.getKey(),
-                        Long.toString(rateLimit.getUpdatedAt()));
-                ((StringRedisConnection) redisConnection).pExpireAt(REDIS_KEY_PREFIX + rateLimit.getKey() + REDIS_ASYNC_SUFFIX,
-                        rateLimit.getResetTime());
-            }
-            return null;
-        });
-    }
-
-    @Override
-    public Iterator<RateLimit> findAsyncAfter(long timestamp) {
-        final List<List<String>> rateLimits = redisTemplate.execute(
-                rateLimitAsyncScript, Collections.singletonList("after"), Long.toString(timestamp));
-        final Iterator<List<String>> iterator = rateLimits.iterator();
-
-        return new Iterator<RateLimit>() {
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-
-            @Override
-            public RateLimit next() {
-                List<String> lstRateLimit = iterator.next();
-                Iterator<String> innerIterator = lstRateLimit.iterator();
-                RateLimit rateLimit = new RateLimit(innerIterator.next());
-                rateLimit.setAsync(Boolean.parseBoolean(innerIterator.next()));
-                rateLimit.setUpdatedAt(Long.parseLong(innerIterator.next()));
-                rateLimit.setCreatedAt(Long.parseLong(innerIterator.next()));
-                rateLimit.setCounter(Long.parseLong(innerIterator.next()));
-                rateLimit.setResetTime(Long.parseLong(innerIterator.next()));
-                rateLimit.setLastRequest(Long.parseLong(innerIterator.next()));
-
-                return rateLimit;
-            }
+    private Object[] convertToValuesArray(RateLimit rate) {
+        return new Object[] {
+                Long.toString(rate.getCounter()),
+                Long.toString(rate.getLimit()),
+                Long.toString(rate.getResetTime()),
+                rate.getSubscription(),
         };
     }
 }

@@ -31,4 +31,5 @@ public interface GenericNotificationConfigRedisRepository {
     RedisGenericNotificationConfig update(RedisGenericNotificationConfig cfg);
     void delete(String id);
     Set<RedisGenericNotificationConfig> findByReference(NotificationReferenceType type, String referenceId);
+    void deleteByConfig(String config);
 }

@@ -77,6 +77,11 @@ public class RedisGenericNotificationConfigRepository implements GenericNotifica
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void deleteByConfig(String config) throws TechnicalException {
+        genericNotificationConfigRedisRepository.deleteByConfig(config);
+    }
+
     private GenericNotificationConfig convert(RedisGenericNotificationConfig redisGenericNotificationConfig) {
         if (redisGenericNotificationConfig == null) {
             return null;

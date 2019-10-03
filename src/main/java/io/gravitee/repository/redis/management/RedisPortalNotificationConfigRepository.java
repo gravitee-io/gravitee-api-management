@@ -72,6 +72,11 @@ public class RedisPortalNotificationConfigRepository implements PortalNotificati
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void deleteByUser(String user) throws TechnicalException {
+        portalNotificationConfigRedisRepository.deleteByUser(user);
+    }
+
     private PortalNotificationConfig convert(RedisPortalNotificationConfig redisPortalNotificationConfig) {
         if (redisPortalNotificationConfig == null) {
             return null;

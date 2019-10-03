@@ -43,10 +43,10 @@ public class RateLimitRepositoryConfiguration extends AbstractRepositoryConfigur
         return redisTemplate;
     }
 
-    @Bean(name = "rateLimitAsyncScript")
+    @Bean(name = "rateLimitIncrScript")
     public RedisScript<List> script() {
-        DefaultRedisScript<List> redisScript = new DefaultRedisScript<List>();
-        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("scripts/ratelimit-async.lua")));
+        DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
+        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("scripts/ratelimit.lua")));
         redisScript.setResultType(List.class);
         return  redisScript;
     }
