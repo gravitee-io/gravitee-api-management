@@ -24,10 +24,7 @@ import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
 import io.gravitee.gateway.http.connector.VertxHttpClient;
 import io.gravitee.reporter.api.http.Metrics;
-import io.vertx.core.Context;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import org.junit.Before;
@@ -275,6 +272,11 @@ public class VertxHttpClientTest {
         }
 
         @Override
+        public HttpClientRequest write(Buffer buffer, Handler<AsyncResult<Void>> handler) {
+            return null;
+        }
+
+        @Override
         public HttpClientRequest setWriteQueueMaxSize(int maxSize) {
             return null;
         }
@@ -405,7 +407,17 @@ public class VertxHttpClientTest {
         }
 
         @Override
+        public HttpClientRequest write(String s, Handler<AsyncResult<Void>> handler) {
+            return null;
+        }
+
+        @Override
         public HttpClientRequest write(String chunk, String enc) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest write(String s, String s1, Handler<AsyncResult<Void>> handler) {
             return null;
         }
 
@@ -430,7 +442,17 @@ public class VertxHttpClientTest {
         }
 
         @Override
+        public void end(String s, Handler<AsyncResult<Void>> handler) {
+
+        }
+
+        @Override
         public void end(String chunk, String enc) {
+
+        }
+
+        @Override
+        public void end(String s, String s1, Handler<AsyncResult<Void>> handler) {
 
         }
 
@@ -440,7 +462,17 @@ public class VertxHttpClientTest {
         }
 
         @Override
+        public void end(Buffer buffer, Handler<AsyncResult<Void>> handler) {
+
+        }
+
+        @Override
         public void end() {
+
+        }
+
+        @Override
+        public void end(Handler<AsyncResult<Void>> handler) {
 
         }
 
