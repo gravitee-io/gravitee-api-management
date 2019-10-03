@@ -87,6 +87,22 @@ public class JdbcGenericNotificationConfigRepository extends JdbcAbstractCrudRep
     }
 
     @Override
+    public void deleteByConfig(String config) throws TechnicalException {
+        LOGGER.debug("JdbcGenericNotificationConfigRepository.deleteByConfig({})", config);
+        try {
+            jdbcTemplate.update(
+                    "delete from generic_notification_configs" +
+                            " where config = ?"
+                    , config
+            );
+
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete JdbcGenericNotificationConfigRepository", ex);
+            throw new TechnicalException("Failed to delete JdbcGenericNotificationConfigRepository", ex);
+        }
+    }
+
+    @Override
     public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
         return this.findByReference(referenceType, referenceId)
                 .stream()

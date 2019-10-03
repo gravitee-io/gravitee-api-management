@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.repository.Scope;
 import io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -22,4 +23,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan(basePackages = {"io.gravitee.repository.jdbc.management"})
 public class JdbcManagementRepositoryConfiguration extends AbstractJdbcRepositoryConfiguration {
+
+    @Override
+    protected String getScope() {
+        return Scope.MANAGEMENT.getName();
+    }
 }

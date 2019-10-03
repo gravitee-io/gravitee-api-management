@@ -1,0 +1,35 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.25.2
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+            tableName: ratelimit
+            columns:
+                - column:
+                    name: subscription
+                    type: nvarchar(64)
+                - column:
+                    name: limit
+                    type: bigint
+        - dropColumn:
+            tableName: ratelimit
+            columnName: last_request
+        - dropColumn:
+            tableName: ratelimit
+            columnName: created_at
+        - dropColumn:
+            tableName: ratelimit
+            columnName: updated_at
+        - dropColumn:
+            tableName: ratelimit
+            columnName: async
+        - addNotNullConstraint:
+            columnDataType: nvarchar
+            columnName: subscription
+            defaultNullValue: 'unknown'
+            tableName: ratelimit
+        - modifyDataType:
+            tableName: ratelimit
+            columnName: key
+            newDataType: nvarchar(128)
