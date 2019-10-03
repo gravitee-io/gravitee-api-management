@@ -22,12 +22,11 @@
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Name</label>
-            <input ng-model="$ctrl.parent.api.name" type="text" required name="name" minlength="4"
+            <input ng-model="$ctrl.parent.api.name" type="text" required name="name"
                    md-maxlength="50" autofocus />
             <div class="hint" ng-if="apiGeneralForm.name.$valid || apiGeneralForm.name.$pristine">API Name</div>
             <div ng-messages="apiGeneralForm.name.$error">
               <div ng-message="required">API Name is required.</div>
-              <div ng-message="minlength">The name has to be more than 4 characters long.</div>
               <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
             </div>
           </md-input-container>
