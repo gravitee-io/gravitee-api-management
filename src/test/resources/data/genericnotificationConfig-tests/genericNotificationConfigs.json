@@ -65,5 +65,16 @@
     "hooks": ["A", "C"],
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883
+  },
+  {
+    "id": "config-to-delete",
+    "name": "config-to-delete",
+    "notifier": "email",
+    "referenceType": "APPLICATION",
+    "referenceId": "search",
+    "config": "test@gravitee.io",
+    "hooks": ["A", "C"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
   }
 ]

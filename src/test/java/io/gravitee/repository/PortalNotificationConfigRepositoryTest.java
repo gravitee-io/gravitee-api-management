@@ -156,4 +156,11 @@ public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTe
 
         assertTrue("size", configs.isEmpty());
     }
+
+    @Test
+    public void shouldDeleteByUser() throws Exception {
+        portalNotificationConfigRepository.deleteByUser("useridToDelete");
+
+        assertFalse(portalNotificationConfigRepository.findById("useridToDelete", NotificationReferenceType.API, "config").isPresent());
+    }
 }
