@@ -26,4 +26,5 @@ public interface PortalNotificationConfigService {
 
     PortalNotificationConfigEntity save(PortalNotificationConfigEntity notification);
     PortalNotificationConfigEntity findById(String user, NotificationReferenceType referenceType, String referenceId);
+    void deleteByUser(String user);
 }

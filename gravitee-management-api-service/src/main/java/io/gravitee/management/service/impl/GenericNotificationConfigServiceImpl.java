@@ -26,6 +26,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.repository.management.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,6 +126,19 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to get the notification config {}/{}", referenceType, referenceId);
             throw new TechnicalManagementException("An error occurs while trying to get the notification config " + referenceType + "/" + referenceId, e);
+        }
+    }
+
+    @Override
+    public void deleteByUser(User user) {
+        try {
+            // currently, we only remove email notification. The configuration of this type of notifications contains only its email
+            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+                genericNotificationConfigRepository.deleteByConfig(user.getEmail());
+            }
+        } catch (TechnicalException e) {
+            LOGGER.error("An error occurs while trying to delete the notification config for user {}", user.getId(), e);
+            throw new TechnicalManagementException("An error occurs while trying to delete the notification config for user " +  user.getId(), e);
         }
     }
 
