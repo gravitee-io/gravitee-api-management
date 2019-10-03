@@ -72,6 +72,9 @@ management:
 #    localThreshold: 15
 #    minConnectionsPerHost: 0
 #    sslEnabled: false
+#    keystore:                   # path to KeyStore (when sslEnabled is true)
+#    keystorePassword:           # KeyStore password
+#    keyPassword:                # password for recovering keys in the KeyStore
 #    threadsAllowedToBlockForConnectionMultiplier: 5
 #    cursorFinalizerEnabled: true
 # possible values are 1,2,3... (the number of node) or 'majority'

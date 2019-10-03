@@ -49,7 +49,6 @@ public class PlanPolicyChainProvider extends AbstractPolicyChainProvider {
         String plan = (String) context.getAttribute(ExecutionContext.ATTR_PLAN);
         String application = (String) context.getAttribute(ExecutionContext.ATTR_APPLICATION);
 
-        context.request().metrics().setUser((String) context.getAttribute(ExecutionContext.ATTR_USER));
         context.request().metrics().setPlan(plan);
         context.request().metrics().setApplication(application);
         context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
