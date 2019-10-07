@@ -37,7 +37,5 @@ public interface PortalNotificationRepository extends CrudRepository<PortalNotif
         throw new UnsupportedOperationException("Update a notification is forbidden");
     }
 
-    default Optional<PortalNotification> findById(String id) throws TechnicalException {
-        throw new UnsupportedOperationException("find a notification by id is unnecessary");
-    }
+    Optional<PortalNotification> findById(String id) throws TechnicalException;
 }
