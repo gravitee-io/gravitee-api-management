@@ -421,26 +421,6 @@ paths:
           $ref: '#/components/responses/ApplicationNotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
-    put:
-      tags:
-        - Applications
-      requestBody:
-        $ref: '#/components/requestBodies/pictureUpdateInputBody'
-      summary: Update an application picture
-      description: |
-        Update the application's picture.
-        
-        User must have APPLICATION_DEFINITION[UPDATE] permission.
-      operationId: updateApplicationPictureByApplicationId
-      responses:
-        200:
-          $ref: '#/components/responses/PictureSuccess'
-        403:
-          $ref: '#/components/responses/PermissionError'
-        404:
-          $ref: '#/components/responses/ApplicationNotFoundError'
-        500:
-          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/notifications:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -2146,6 +2126,9 @@ components:
               type: array
               items:
                 type: string
+            picture:
+                type: string
+                writeOnly: true
             settings:
               $ref: '#/components/schemas/ApplicationSettings'
             _links:
@@ -2411,6 +2394,7 @@ components:
               type: string
             avatar:
               type: string
+              writeOnly: true
             _links:
               $ref: '#/components/schemas/UserLinks'
     Token:

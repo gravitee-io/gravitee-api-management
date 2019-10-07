@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.util.Date;
 import java.util.HashSet;
 
 import javax.inject.Inject;
@@ -32,7 +30,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
@@ -119,6 +116,8 @@ public class ApplicationResource extends AbstractResource {
         updateApplicationEntity.setDescription(application.getDescription());
         updateApplicationEntity.setGroups(new HashSet<String>(application.getGroups()));
         updateApplicationEntity.setName(application.getName());
+        updateApplicationEntity.setPicture(checkAndScaleImage(application.getPicture()));
+        
         if(application.getSettings() != null) {
             ApplicationSettings settings = new ApplicationSettings();
             if(application.getSettings().getApp() != null) {
@@ -145,6 +144,8 @@ public class ApplicationResource extends AbstractResource {
         Application updatedApp = applicationMapper.convert(applicationService.update(applicationId, updateApplicationEntity));
         return Response
                 .ok(addApplicationLinks(updatedApp))
+                .tag(Long.toString(updatedApp.getUpdatedAt().toInstant().toEpochMilli()))
+                .lastModified(Date.from(updatedApp.getUpdatedAt().toInstant()))
                 .build();
     }
    
@@ -160,32 +161,6 @@ public class ApplicationResource extends AbstractResource {
         InlinePictureEntity image = applicationService.getPicture(applicationId);
         
         return createPictureReponse(request, image);
-    }
-    
-    @PUT
-    @Path("/picture")
-    @Consumes(MediaType.WILDCARD)
-    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
-    public Response updateApplicationPictureByApplicationId(@Context HttpHeaders headers, @PathParam("applicationId") String applicationId, File newPictureFile) throws IOException {
-        String newPicture = new String(Files.readAllBytes(newPictureFile.toPath()));
-        checkAndScaleImage(newPicture);
-        
-        ApplicationEntity applicationEntity = applicationService.findById(applicationId);
-        UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
-        
-        updateApplicationEntity.setSettings(applicationEntity.getSettings());
-        updateApplicationEntity.setName(applicationEntity.getName());
-        updateApplicationEntity.setPicture(newPicture);
-        updateApplicationEntity.setDescription(applicationEntity.getDescription());
-        updateApplicationEntity.setGroups(applicationEntity.getGroups());
-        
-        ApplicationEntity updatedAppEntity = applicationService.update(applicationId, updateApplicationEntity);
-        Application updatedApp = applicationMapper.convert(updatedAppEntity);
-        return Response
-                .ok(addApplicationLinks(updatedApp))
-                .tag(Long.toString(updatedAppEntity.getUpdatedAt().getTime()))
-                .lastModified(updatedAppEntity.getUpdatedAt())
-                .build();
     }
 
     @POST

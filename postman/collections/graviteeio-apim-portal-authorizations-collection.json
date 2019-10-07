@@ -586,43 +586,6 @@
 							"response": []
 						},
 						{
-							"name": "PUT /applications/:applicationId/picture",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "f20d4791-1f49-4c35-b048-d1336673b94e",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/applications/:applicationId/picture",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"applications",
-										":applicationId",
-										"picture"
-									],
-									"variable": [
-										{
-											"key": "applicationId",
-											"value": "APPLICATION"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "GET /applications/:applicationId/notifications",
 							"event": [
 								{
@@ -2873,43 +2836,6 @@
 							],
 							"request": {
 								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/applications/:applicationId/picture",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"applications",
-										":applicationId",
-										"picture"
-									],
-									"variable": [
-										{
-											"key": "applicationId",
-											"value": "APPLICATION"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "PUT /applications/:applicationId/picture",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "f20d4791-1f49-4c35-b048-d1336673b94e",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
 								"header": [],
 								"url": {
 									"raw": "{{portal_url}}/applications/:applicationId/picture",

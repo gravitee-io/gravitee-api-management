@@ -32,13 +32,13 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
@@ -162,10 +162,24 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         updatedEntity.setId(APPLICATION);
         doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION), any());
 
+        Instant now = Instant.now();
+        Date nowDate = Date.from(now);
+        Application updatedApp = new Application();
+        updatedApp.setId(APPLICATION);
+        updatedApp.setUpdatedAt(now.atOffset(ZoneOffset.UTC));
+        doReturn(updatedApp).when(applicationMapper).convert(updatedEntity);
+        
+        String newPicture = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+        String scaledPicture = "data:image/gif;base64,R0lGODlhyADIAPAAAAAAAP///ywAAAAAyADIAEAC/4SPqcvtD6OctNqL"
+                + "s968+w+G4kiW5omm6sq27gvH8kzX9o3n+s73/g8MCofEovGITCqXzKbzCY1Kp9Sq9YrNarfcrvcLDovH5LL5jE6r1+y2+w2Py+"
+                + "f0uv2Oz+v3/L7/DxgoOEhYaHiImKi4yNjo+AgZKTlJWWl5iZmpucnZ6fkJGio6SlpqeoqaqrrK2ur6ChsrO0tba3uLm6u7y9vr"
+                + "+wscLDxMXGx8jJysvMzc7PwMHS09TV1tfY2drb3N3e39DR4uPk5ebn6Onq6+zt7u/g4fLz9PX29/j5+vv8/f7/8PMKDAgQQLGj"
+                + "yIMKHChQwbOnwIMaLEiRQrWryIMaPGjQYcO3osUwAAOw==";
         Application appInput = new Application()
                 .description(APPLICATION)
                 .name(APPLICATION)
                 .groups(Arrays.asList(APPLICATION))
+                .picture(newPicture)
                 ;
         appInput.setId(APPLICATION);
         
@@ -179,6 +193,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         UpdateApplicationEntity updateAppEntity = captor.getValue();
         assertEquals(APPLICATION, updateAppEntity.getName());
         assertEquals(APPLICATION, updateAppEntity.getDescription());
+        assertEquals(scaledPicture, updateAppEntity.getPicture());
         final Set<String> groups = updateAppEntity.getGroups();
         assertNotNull(groups);
         assertFalse(groups.isEmpty());
@@ -192,6 +207,15 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         Application applicationResponse = response.readEntity(Application.class);
         assertEquals(APPLICATION, applicationResponse.getId());
         
+        final MultivaluedMap<String, Object> headers = response.getHeaders();
+        String lastModified = (String) headers.getFirst(HttpHeader.LAST_MODIFIED.asString());
+        String etag = (String) headers.getFirst("ETag");
+        
+        assertEquals(nowDate.toInstant().getEpochSecond(), DateUtils.parseDate(lastModified).toInstant().getEpochSecond());
+        
+        String expectedTag = '"'+Long.toString(nowDate.getTime())+'"';
+        assertEquals(expectedTag, etag);
+
     }
     
     @Test
@@ -207,6 +231,12 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         updatedEntity.setId(APPLICATION);
         doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION), any());
 
+        Instant now = Instant.now();
+        Application updatedApp = new Application();
+        updatedApp.setId(APPLICATION);
+        updatedApp.setUpdatedAt(now.atOffset(ZoneOffset.UTC));
+        doReturn(updatedApp).when(applicationMapper).convert(updatedEntity);
+        
         Application appInput = new Application()
                 .description(APPLICATION)
                 .name(APPLICATION)
@@ -254,6 +284,12 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         updatedEntity.setId(APPLICATION);
         doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION), any());
 
+        Instant now = Instant.now();
+        Application updatedApp = new Application();
+        updatedApp.setId(APPLICATION);
+        updatedApp.setUpdatedAt(now.atOffset(ZoneOffset.UTC));
+        doReturn(updatedApp).when(applicationMapper).convert(updatedEntity);
+        
         Application appInput = new Application()
                 .description(APPLICATION)
                 .name(APPLICATION)
@@ -311,6 +347,13 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         updatedEntity.setId(APPLICATION);
         doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION), any());
 
+        Instant now = Instant.now();
+        Application updatedApp = new Application();
+        updatedApp.setId(APPLICATION);
+        updatedApp.setUpdatedAt(now.atOffset(ZoneOffset.UTC));
+        doReturn(updatedApp).when(applicationMapper).convert(updatedEntity);
+        
+        
         Application appInput = new Application()
                 .description(APPLICATION)
                 .name(APPLICATION)
@@ -421,85 +464,5 @@ public class ApplicationResourceTest extends AbstractResourceTest {
     public void shouldGetApplicationPicture() throws IOException {
         final Response response = target(APPLICATION).path("picture").request().get();
         assertEquals(OK_200, response.getStatus());
-    }
-    
-    @Test
-    public void shouldUpdateApplicationPicture() throws IOException {
-        final String pictureData = "data:image/jpeg;base64,"
-                + "/9j/4AAQSkZJRgABAgAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAx"
-                + "NDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy"
-                + "MjIyMjIyMjL/wAARCADIAMgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUF"
-                + "BAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVW"
-                + "V1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi"
-                + "4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAEC"
-                + "AxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVm"
-                + "Z2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq"
-                + "8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigAooooAKKKKACiiigAopM0ZoAWijNJmgBaKTNLmgAoopM0ALRSZpaACiiigAoooo"
-                + "AKKKKACiiigAooooAKKKKACiiigAprHA5P5UprJmkubq9lghk8pI8Bm/AH+tAGg86AdvxqI3Ua9ZIR9WFVRpCsczXFxIfaQgflUh"
-                + "0ixzlrdWPqyg0gFbUYB1uYh9OaadXtO92v8A3yaeNOsV6WVufrEv+FI1jZAf8edt/wB+l/woHYiOr2Pe7H/fJpP7Wsu14o/4CaVr"
-                + "Kz/587b/AL9LTDY2X/Pnbf8Aflf8KljsTLqtm3S8jP1NSfbYW+7c25/4EP8AGqLaXp7dbC2/CFf8KgfRNNbpbIp9UQKf5UXA2o7l"
-                + "D0Kn/dNTq4I4rlJdGSLm2u7yE/8AXZsflUdtfajpl/bx3FwLq3mYoGP3l4J5OT6UKQNHY45zS0wdR1Ip9WSFFFFABRRRQAUUUUAF"
-                + "FFFABRRRQAUUUUANJ5xjNZdsSNUviemRjI9hWoeveuN1JZZNbuFS4dQWGVU4z8orDEV1RhzMunDnlY68sFHzED8cVG1xEv8Ay2jH"
-                + "1YVSW2QKAS5wP4nNL5EX9wfnmo+se7ew+SxZN5AOs0X/AH0KhkvrRVJN1Fgf7Q/xqI2sJ/5ZimTW0JhZfLQ8HsKwnjVGN7FRgr7k"
-                + "f9taYf8Al+g/F1/xpP7Y0w/8v9v/AN/F/wAaw20iFvmEK8+1RnSYh/yxH5V5zzh32OpYeHc6H+17Bul7bf8Af1f8acuoWbf8vlsf"
-                + "pKv+Ncq+lRDOIsfhVaTTUA7/AJkVSzhdUP6pF9TsHuInPySxN/20BrJ1UnzbPG0gTE/Lxztrlp7Vk+5JKP8Adc/41FZPcf2xZRNd"
-                + "O8YkPysc9jXTh8xjUmo2JqYXli3c9gB5p9NB+bpTq9dHAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUANI5rlEK3GsSSYyC4/lXT3Eg"
-                + "ihkkPG1Sa5bTBmYN65P615eZy92MO7N8OtWzez196M5qPd70bveiTtoVYkzTJDlWpN1Nc/K1cNZ+6yktSnwMio2p2etMY18/KWp1"
-                + "pEEuMGqE3Srsp4NUZTxWDkaRM25UE1mO4t7uCYcbHBJ+vFadx1rHvBuV1+mPwOa68HNwqxkayV4NHsyEMoYdDT6y/D919r0Szmzk"
-                + "vECfritSvvY7HgtWYUUUUxBRRRQAUUUUAFFFFABRRRQAUUUUAUtVO3S7lvSM1z2l/fx6L/Wuh1WMy6ZdRr1aMgVzWkPum56FcfrX"
-                + "k5ivfgzrw/wyNnNANNHelqZDHZpHP7s0lDn5GFclb4WNblLNRs1LnJNRsa+ZnLU7IohlbiqMrVblPFUZjxULU1SKNw3NZV0Rtb6V"
-                + "oTt1rHu3IUnsOa7aCvJGyVk7npfgd9/hyAH+E7R+Qrpa5zwTA0Phq1LDBcb/AMwK6OvvKfwo+dn8TCiiirJCiiigAooooAKKKKAC"
-                + "iiigAooooAYwByp6GuMQGz1J4egRv5812h61yPiNPK1FGH/LRcmuHHU+aF+x0YZ+/buavp70tMibfEj+op+c1zPVXLe9gpsn3WpT"
-                + "TXPyH6VyVl7jKjujPLcmonagn5m+tRO1fHzn7zPQSI5TxVKVuDVmVuKoytwaum7msYlCduDWRIrXFzHbqCTKwUY/Or9y3Bqfwhb/"
-                + "AGzxTBu5EILfoRXuZdS56qQVnyUmz1Sxtxa2kNuowsS7as00dadX2SVj50KKKKYBRRRQAUUUUAFFFFABRRRQAUUUUANPeuX8UDFx"
-                + "Af8AYx+prqD1Nc34pX5bdvfH86wxCvTZrQ0qImsObGD6ZqYjbx1qvpx/4lsJ9v61YNcEfgRtP42NJpj8IfpTjTJD8h+lctf4GVHc"
-                + "ymb5m+tQu3NOc4ZvrULtzXws23NnqxWhHK3FUZm4NWpW4NUJ2+U11UUzWKMq6fANa3w7JfxFdH0hGPzrDu24Nb/w0Xdq18/pHj9R"
-                + "X0+UR/eowx2lFnqAHzU6kHWlr6k+fCiiigAooooAKKKKACiiigAooooAKKKKAE9a5/xUv+iW59Jh/I10B6GsTxOudOjPpID+hrKt"
-                + "/Cl6F0/jRBpR/wCJcPrVpupqnpZ/0Ir3Bq03U15lJ3po6Z/GxpNRSn5D9KexqCX7jewrCv8AAyo7mO7fMfqagd6JHyx69TVZ3r4v"
-                + "k99nrxWgSycVnXEny9anmfg1n3D/ACmu6jTNEZt7J8h5rrfhahIv5PU4z/3zXEX0mENd/wDClN2kXco/57lf/HVNfTZTC07nHmLt"
-                + "SR6GOpp1IOtLXvnhBRRRQAUUUUAFFFFABRRRQAUUUUAFFFFACGsnxEu7Sn/2Wz+hrWrO1td2j3PHIXIrKqv3bKg7SRlaWf8AR3/3"
-                + "v8KtseTVPTCDE4Hrn+VW26mvJw7vSOyfxEbGoJW/dv8ASpWNQOflbP8AdrOt8JUNznJWwzfU1Wd+afK/7xx/tGqsj818tGHvs9dL"
-                + "Qjmk4NZ88nymrEz8Hms2d+OtehSgWjLv5PlNep/CuML4Wkf+/OT/AOOrXkl842P+lezfDWLy/B8HH3nLfoK+hyyNrnn5m/3aR2Ge"
-                + "aWkFLXrnihRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABVPVV3aXcD1SrlQ3SeZbSJ6ipkrpoFucvoz7kf/AHf61oN+o61i+H5d8skf"
-                + "+z/Wtdjkk14eG+B+rO+a1GMarzfdf/dNSseagmb5G+hoq/CXBanJStiWT/eNVZHqadv3sn+8f51Skfmvn4x95nrxWhFM/FZlw/ym"
-                + "rk78Gsyd8/nXfTiUZN/JwRmvffAsRi8IWAIxuTdXzxdybmPvxX0p4Zi8nw5YR/3YsV7uAWjPLzN6pGsKWiivSPICiiigAooooAKK"
-                + "KKACiiigAooooAKKKKACkIyKWkPSgDz3w/IU1aaLuFroGxXNWSyWfi2RpEaOA8b3GFz9a6Hzon+5IjZ9GBrxqdNw5lbqehJp29Bj"
-                + "moJSPLf6GpXqtLu8pzg9DWVTZmkNzj53/fSf7x/nVORualnb9/Lz/Ef51UkbmvGjH3j14tWK87cGsq5l2Ln3q9O/BrIuXypHWvRp"
-                + "Qb6A5RXUy5juuI0/vPX1LpcXlaZbxn+FcV8uW9tcXGpQnyZNivy2w4HFfVkS7I1X0Fe3hIcsTxcxmpTVh9FFFdZ5wUUUUAFFFFAB"
-                + "RRRQAUUUUAFFFFABRRRQAUjfdNLRQBhtbyWs8u+1+0Qu27hckcf/AFqgk/seT/XRSW/++Sn9a6HYBjFNaGNvvIp+opNBc5v7Bosn"
-                + "+qvVX/tsT/WmHRrBtw/tTAI/vf8A166KSwtpeGhX8Bj+VQnR7AnmD/x5v8al04PdFc8ujOPbwppJZidQUknn5v8A69RN4T0T+K9H"
-                + "/fX/ANeuy/sLTsk/Zv8Ax9v8aX+w9O/59h/323+NR9Xo/wApftqn8xwE3h/w5FnNxG59GlI/rVM6ZpIbEFm0hPH7vL/1r1BNMso+"
-                + "lun4jNTrbwr92JB9FFaRhFbIl1Jvdnm1l4Yu9RlUGyNtAGyWkQoxH0xXpqnKg9aTaKcOBVEavcKKKKACiiigAooooAKKKKACiiig"
-                + "AooooAKKKKACiiigAooooAKKKKAEooooCwtJRRQAUUUUALRRRQAUUUUAFFFFABRRRQB//9k=";
-        
-        Instant now = Instant.now();
-        Date nowDate = Date.from(now);
-        
-        ApplicationEntity updatedApplication = new ApplicationEntity();
-        updatedApplication.setUpdatedAt(nowDate);
-        doReturn(updatedApplication).when(applicationService).update(eq(APPLICATION), any());
-        doReturn(new Application().id(APPLICATION)).when(applicationMapper).convert(updatedApplication);
-
-        
-        final Response response = target(APPLICATION).path("picture").request().put(Entity.entity(pictureData, MediaType.MULTIPART_FORM_DATA));
-        assertEquals(OK_200, response.getStatus());
-
-        Mockito.verify(applicationService).findById(APPLICATION);
-        
-        ArgumentCaptor<UpdateApplicationEntity> updateAppCaptor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito.verify(applicationService).update(eq(APPLICATION), updateAppCaptor.capture());
-        UpdateApplicationEntity updateApp = updateAppCaptor.getValue();
-        assertEquals(pictureData, updateApp.getPicture());
-
-        final MultivaluedMap<String, Object> headers = response.getHeaders();
-        String lastModified = (String) headers.getFirst(HttpHeader.LAST_MODIFIED.asString());
-        String etag = (String) headers.getFirst("ETag");
-        
-        assertEquals(nowDate.toInstant().getEpochSecond(), DateUtils.parseDate(lastModified).toInstant().getEpochSecond());
-        
-        String expectedTag = '"'+Long.toString(nowDate.getTime())+'"';
-        assertEquals(expectedTag, etag);
-
-        
     }
 }
