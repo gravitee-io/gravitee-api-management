@@ -85,8 +85,7 @@ public class ViewsResourceNotAuthenticatedTest extends AbstractResourceTest {
         resetAllMocks();
         
         Set<ApiEntity> mockApis = new HashSet<>();
-        doReturn(mockApis).when(apiService).findByUser(any(), any());
-        doReturn(mockApis).when(apiService).search(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(any());
         
         ViewEntity view1 = new ViewEntity();
         view1.setId("1");
@@ -120,7 +119,7 @@ public class ViewsResourceNotAuthenticatedTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        Mockito.verify(apiService).findByVisibility(any());
+        Mockito.verify(apiService).findPublishedByUser(any());
         ViewsResponse viewsResponse = response.readEntity(ViewsResponse.class);
         assertEquals(2, viewsResponse.getData().size());
         

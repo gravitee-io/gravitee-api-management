@@ -15,18 +15,16 @@
  */
 package io.gravitee.rest.api.portal.rest.params;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-
-import org.junit.Test;
-
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.portal.rest.resource.param.AnalyticsParam;
 import io.gravitee.rest.api.portal.rest.resource.param.AnalyticsTypeParam;
+
+import org.junit.Test;
+
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.Response;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -59,14 +57,7 @@ public class AnalyticsParamTest {
         params.setInterval(10_000);
         params.setTypeParam(null);
         
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("Query parameter 'type' must be present and one of : GROUP_BY, DATE_HISTO, COUNT", response.getEntity());
-        }
+        testParams(params, "Query parameter 'type' must be present and one of : GROUP_BY, DATE_HISTO, COUNT");
         
         //init - type == ""
         params = new AnalyticsParam();
@@ -75,14 +66,7 @@ public class AnalyticsParamTest {
         params.setInterval(10_000);
         params.setTypeParam(new AnalyticsTypeParam(null));
         
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("Query parameter 'type' is not valid", response.getEntity());
-        }
+        testParams(params, "Query parameter 'type' is not valid");
     }
     
     @Test
@@ -93,14 +77,7 @@ public class AnalyticsParamTest {
         params.setInterval(10_000);
         params.setTypeParam(new AnalyticsTypeParam("COUNT"));
 
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("Query parameter 'from' is not valid", response.getEntity());
-        }
+        testParams(params, "Query parameter 'from' is not valid");
     }
     
     @Test
@@ -111,14 +88,8 @@ public class AnalyticsParamTest {
         params.setInterval(10_000);
         params.setTypeParam(new AnalyticsTypeParam("COUNT"));
 
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("Query parameter 'to' is not valid", response.getEntity());
-        }
+        testParams(params, "Query parameter 'to' is not valid");
+        
     }
     
     @Test
@@ -128,14 +99,7 @@ public class AnalyticsParamTest {
         params.setTo(1);
         params.setInterval(10_000);
         params.setTypeParam(new AnalyticsTypeParam("COUNT"));
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("'from' query parameter value must be greater than 'to'", response.getEntity());
-        }
+        testParams(params, "'from' query parameter value must be greater than 'to'");
     }
     
     @Test
@@ -147,14 +111,7 @@ public class AnalyticsParamTest {
         params.setInterval(-1);
         params.setTypeParam(new AnalyticsTypeParam("COUNT"));
         
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("Query parameter 'interval' is not valid", response.getEntity());
-        }
+        testParams(params, "Query parameter 'interval' is not valid");
         
         //interval = 10
         params = new AnalyticsParam();
@@ -163,14 +120,7 @@ public class AnalyticsParamTest {
         params.setInterval(10);
         params.setTypeParam(new AnalyticsTypeParam("COUNT"));
         
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000", response.getEntity());
-        }
+        testParams(params, "Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000");
         
         //interval = 1_000_000_001
         params = new AnalyticsParam();
@@ -179,14 +129,7 @@ public class AnalyticsParamTest {
         params.setInterval(1_000_000_001);
         params.setTypeParam(new AnalyticsTypeParam("COUNT"));
         
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000", response.getEntity());
-        }
+        testParams(params, "Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000");
     }
     
     @Test
@@ -198,14 +141,7 @@ public class AnalyticsParamTest {
         params.setInterval(10_000);
         params.setTypeParam(new AnalyticsTypeParam("GROUP_BY"));
         params.setField(null);
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("'field' query parameter is required for 'group_by' request", response.getEntity());
-        }
+        testParams(params, "'field' query parameter is required for 'group_by' request");
         
         //field = ''
         params = new AnalyticsParam();
@@ -214,13 +150,17 @@ public class AnalyticsParamTest {
         params.setInterval(10_000);
         params.setTypeParam(new AnalyticsTypeParam("GROUP_BY"));
         params.setField("");
+        testParams(params, "'field' query parameter is required for 'group_by' request");
+    }
+    
+    private void testParams(AnalyticsParam params, String expectedErrorMessage) {
         try {
             params.validate();
             assertFalse(true);
-        } catch(WebApplicationException e) {
+        } catch(BadRequestException e) {
             final Response response = e.getResponse();
             assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("'field' query parameter is required for 'group_by' request", response.getEntity());
+            assertEquals(expectedErrorMessage, e.getMessage());
         }
     }
 }

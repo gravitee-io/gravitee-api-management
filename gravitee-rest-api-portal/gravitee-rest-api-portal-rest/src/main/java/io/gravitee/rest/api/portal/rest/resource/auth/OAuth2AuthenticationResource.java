@@ -157,7 +157,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @Produces(MediaType.APPLICATION_JSON)
     public Response exchangeAuthorizationCode(
             @PathParam(value = "identity") String identity,
-            @Valid @NotNull final PayloadInput payloadInput,
+            @Valid @NotNull(message = "Input must not be null.") final PayloadInput payloadInput,
             @Context final HttpServletResponse servletResponse) throws IOException {
         
         SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity);

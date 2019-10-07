@@ -117,7 +117,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         Error error = errors.get(0);
         assertEquals("404", error.getCode());
         assertEquals("io.gravitee.rest.api.service.exceptions.PageNotFoundException", error.getTitle());
-        assertEquals("Page[" + UNKNOWN_PAGE + "] can not be found.", error.getDetail());
+        assertEquals("Page [" + UNKNOWN_PAGE + "] can not be found.", error.getDetail());
     }
     
     @Test

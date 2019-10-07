@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
@@ -51,7 +52,6 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-//APIPortal: review Permissions
 public class SubscriptionsResource extends AbstractResource {
 
     @Context
@@ -66,10 +66,7 @@ public class SubscriptionsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createSubscription(@Valid SubscriptionInput subscriptionInput) {
-        if(subscriptionInput == null) {
-            throw new BadRequestException("input must not be null");
-        }
+    public Response createSubscription(@Valid @NotNull(message = "Input must not be null.") SubscriptionInput subscriptionInput) {
         if(hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionInput.getApplication(), RolePermissionAction.CREATE)) {
             NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
             newSubscriptionEntity.setApplication(subscriptionInput.getApplication());

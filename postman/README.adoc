@@ -4,8 +4,3 @@
 ```
 newman run collections/[...]-collection.json -e environment/dev.json
 ```
-
-## Run all collection with a dev env.
-```
-newman run collections/*.json -e environment/dev.json
-```

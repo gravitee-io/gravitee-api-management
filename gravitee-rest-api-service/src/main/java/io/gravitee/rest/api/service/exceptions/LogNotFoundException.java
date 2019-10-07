@@ -16,18 +16,19 @@
 package io.gravitee.rest.api.service.exceptions;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class PageNotFoundException extends AbstractNotFoundException {
+public class LogNotFoundException extends AbstractNotFoundException {
 
-    private final String pageName;
+    private final String log;
 
-    public PageNotFoundException(String teamName) {
-        this.pageName = teamName;
+    public LogNotFoundException(String log) {
+        this.log = log;
     }
 
     @Override
     public String getMessage() {
-        return "Page [" + pageName + "] can not be found.";
+        return "Log [" + log + "] can not be found.";
     }
 }

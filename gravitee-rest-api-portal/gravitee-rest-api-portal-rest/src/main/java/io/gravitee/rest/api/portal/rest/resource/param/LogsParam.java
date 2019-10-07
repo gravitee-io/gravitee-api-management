@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.param;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -82,31 +83,19 @@ public class LogsParam {
 
     public void validate() {
         if (from == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'from' is not valid")
-                    .build());
+            throw new BadRequestException("Query parameter 'from' is not valid");
         }
 
         if (to == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'to' is not valid")
-                    .build());
+            throw new BadRequestException("Query parameter 'to' is not valid");
         }
 
         if (from >= to) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("'from' query parameter value must be greater than 'to'")
-                    .build());
+            throw new BadRequestException("'from' query parameter value must be greater than 'to'");
         }
         
         if (!"ASC".equals(order) && !"DESC".equals(order)) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("'order' query parameter value must be 'ASC' or 'DESC'")
-                    .build());
+            throw new BadRequestException("'order' query parameter value must be 'ASC' or 'DESC'");
         }
     }
 }

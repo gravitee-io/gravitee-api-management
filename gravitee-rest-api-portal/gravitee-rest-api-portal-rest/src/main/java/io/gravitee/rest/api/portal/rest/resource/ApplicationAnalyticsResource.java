@@ -45,6 +45,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.Range;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.AnalyticsService;
+import io.gravitee.rest.api.service.ApplicationService;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -60,6 +61,9 @@ public class ApplicationAnalyticsResource extends AbstractResource {
     @Inject
     private AnalyticsMapper analyticsMapper;
 
+    @Inject
+    private ApplicationService applicationService;
+    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
@@ -68,6 +72,9 @@ public class ApplicationAnalyticsResource extends AbstractResource {
     public Response hits(
             @PathParam("applicationId") String applicationId,
             @BeanParam AnalyticsParam analyticsParam) {
+        //Does application exists ?
+        applicationService.findById(applicationId);
+        
         analyticsParam.validate();
 
         Object analytics = null;

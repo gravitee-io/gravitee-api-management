@@ -15,33 +15,24 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.net.URI;
-
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.PictureEntity;
-import io.gravitee.rest.api.model.UpdateUserEntity;
-import io.gravitee.rest.api.model.UrlPictureEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
+
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
+
+import java.net.URI;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -75,10 +66,7 @@ public class UserResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateCurrentUser(@Valid User user) {
-        if(user == null) {
-            throw new BadRequestException("input must not be null");
-        }
+    public Response updateCurrentUser(@Valid @NotNull(message = "Input must not be null.") User user) {
         if(!getAuthenticatedUser().equals(user.getId())) {
             throw new UnauthorizedAccessException();
         }

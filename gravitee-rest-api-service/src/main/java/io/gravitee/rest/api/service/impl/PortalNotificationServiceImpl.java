@@ -24,6 +24,8 @@ import io.gravitee.repository.management.model.PortalNotification;
 import io.gravitee.rest.api.model.notification.NewPortalNotificationEntity;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
 import io.gravitee.rest.api.service.PortalNotificationService;
+import io.gravitee.rest.api.service.exceptions.NotificationConfigNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PortalNotificationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.Hook;
 
@@ -68,6 +70,21 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
         }
     }
 
+    @Override
+    public PortalNotificationEntity findById(String notificationId) {
+        try {
+            
+            Optional<PortalNotification> portalNotification = portalNotificationRepository.findById(notificationId);
+            if(portalNotification.isPresent()) {
+                return this.convert(portalNotification.get());    
+            }
+            throw new PortalNotificationNotFoundException(notificationId);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find notification with id {}", notificationId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find notification with id " + notificationId, ex);
+        }
+    }
+    
     @Override
     public void create(Hook hook, List<String> users, Object params) {
         try {

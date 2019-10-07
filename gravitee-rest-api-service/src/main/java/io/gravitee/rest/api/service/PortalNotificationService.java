@@ -29,6 +29,8 @@ public interface PortalNotificationService {
 
     List<PortalNotificationEntity> findByUser(String user);
 
+    PortalNotificationEntity findById(String notificationId);
+    
     void create(Hook hook, List<String> users, Object param);
 
     void delete(String notificationId);

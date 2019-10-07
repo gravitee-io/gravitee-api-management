@@ -20,7 +20,8 @@ import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,35 +35,23 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
         return Response
                 .status(error)
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(new ConstraintValidationError(cve))
+                .entity(buildErrorList(cve))
                 .build();
     }
 
-    static class ConstraintValidationError {
-        private final String message;
-
-        private final String path;
-
-        @JsonProperty("invalid_value")
-        private final Object invalidValue;
-
-        ConstraintValidationError(ConstraintViolationException cve) {
-            ConstraintViolation<?> violation = cve.getConstraintViolations().iterator().next();
-            this.message = violation.getMessage();
-            this.path = violation.getPropertyPath().toString();
-            this.invalidValue = violation.getInvalidValue();
+    private ErrorResponse buildErrorList(ConstraintViolationException cve) {
+        ErrorResponse response = new ErrorResponse();
+        for(ConstraintViolation<?> violation:cve.getConstraintViolations()) {
+            String detail = violation.getMessage();
+            Object invalidValue = violation.getInvalidValue();
+            if(invalidValue != null) {
+                detail += "\n"+invalidValue;
+            }
+            Error error = new Error()
+                    .title(violation.getPropertyPath().toString())
+                    .detail(detail);
+            response.addErrorsItem(error);
         }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public Object getInvalidValue() {
-            return invalidValue;
-        }
+        return response;
     }
 }

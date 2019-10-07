@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.param;
 
-import java.util.List;
-
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -142,59 +141,35 @@ public class AnalyticsParam {
 
     public void validate() {
         if(type == null) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'type' must be present and one of : GROUP_BY, DATE_HISTO, COUNT")
-                    .build());
+            throw new BadRequestException("Query parameter 'type' must be present and one of : GROUP_BY, DATE_HISTO, COUNT");
         }
 
         if (type.getValue() == null) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'type' is not valid")
-                    .build());
+            throw new BadRequestException("Query parameter 'type' is not valid");
         }
 
         if (from == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'from' is not valid")
-                    .build());
+            throw new BadRequestException("Query parameter 'from' is not valid");
         }
 
         if (to == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'to' is not valid")
-                    .build());
-        }
-
-        if (interval == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'interval' is not valid")
-                    .build());
-        }
-
-        if (interval < 1_000 || interval > 1_000_000_000) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000")
-                    .build());
+            throw new BadRequestException("Query parameter 'to' is not valid");
         }
 
         if (from >= to) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("'from' query parameter value must be greater than 'to'")
-                    .build());
+            throw new BadRequestException("'from' query parameter value must be greater than 'to'");
+        }
+
+        if (interval == -1) {
+            throw new BadRequestException("Query parameter 'interval' is not valid");
+        }
+
+        if (interval < 1_000 || interval > 1_000_000_000) {
+            throw new BadRequestException("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000");
         }
 
         if (type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY && (field == null || field.trim().isEmpty())) { // we need a field and, optionally, a list of ranges
-                throw new WebApplicationException(Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity("'field' query parameter is required for 'group_by' request")
-                        .build());
+                throw new BadRequestException("'field' query parameter is required for 'group_by' request");
        }
     }
 }

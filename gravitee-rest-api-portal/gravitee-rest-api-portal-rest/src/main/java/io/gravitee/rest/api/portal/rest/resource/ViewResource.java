@@ -15,9 +15,14 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.enhancer.ViewEnhancer;
+import io.gravitee.rest.api.portal.rest.mapper.ViewMapper;
+import io.gravitee.rest.api.service.ViewService;
 
-import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -27,15 +32,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Set;
 
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.ViewEntity;
-import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.enhancer.ViewEnhancer;
-import io.gravitee.rest.api.portal.rest.mapper.ViewMapper;
-import io.gravitee.rest.api.service.ViewService;
+import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -57,12 +56,8 @@ public class ViewResource extends AbstractResource {
     public Response get(@PathParam("viewId") String viewId) {
         ViewEntity view = viewService.findNotHiddenById(viewId);
 
-        Set<ApiEntity> apis;
-        if (isAuthenticated()) {
-            apis = apiService.findByUser(getAuthenticatedUser(), null);
-        } else {
-            apis = apiService.findByVisibility(Visibility.PUBLIC);
-        }
+        Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        
         view = viewEnhancer.enhance(apis).apply(view);
         
         return Response

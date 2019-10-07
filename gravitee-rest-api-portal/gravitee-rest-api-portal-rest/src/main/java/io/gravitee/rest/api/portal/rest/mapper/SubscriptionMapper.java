@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import java.time.ZoneOffset;
+import java.util.Date;
 
 import org.springframework.stereotype.Component;
 
@@ -36,12 +37,24 @@ public class SubscriptionMapper {
         subscriptionItem.setId(subscriptionEntity.getId());
         subscriptionItem.setApi(subscriptionEntity.getApi());
         subscriptionItem.setApplication(subscriptionEntity.getApplication());
-        subscriptionItem.setCreatedAt(subscriptionEntity.getCreatedAt().toInstant().atOffset( ZoneOffset.UTC ));
-        subscriptionItem.setEndAt(subscriptionEntity.getEndingAt().toInstant().atOffset( ZoneOffset.UTC ));
+        Date createdAt = subscriptionEntity.getCreatedAt();
+        if(createdAt != null) {
+            subscriptionItem.setCreatedAt(createdAt.toInstant().atOffset( ZoneOffset.UTC ));
+        }
+        Date endingAt = subscriptionEntity.getEndingAt();
+        if(endingAt != null) {
+            subscriptionItem.setEndAt(endingAt.toInstant().atOffset( ZoneOffset.UTC ));
+        }
         subscriptionItem.setPlan(subscriptionEntity.getPlan());
-        subscriptionItem.setProcessedAt(subscriptionEntity.getProcessedAt().toInstant().atOffset( ZoneOffset.UTC ));
+        Date processedAt = subscriptionEntity.getProcessedAt();
+        if(processedAt != null) {
+            subscriptionItem.setProcessedAt(processedAt.toInstant().atOffset( ZoneOffset.UTC ));
+        }
         subscriptionItem.setRequest(subscriptionEntity.getRequest());
-        subscriptionItem.setStartAt(subscriptionEntity.getStartingAt().toInstant().atOffset( ZoneOffset.UTC ));
+        Date startingAt = subscriptionEntity.getStartingAt();
+        if(startingAt != null) {
+            subscriptionItem.setStartAt(startingAt.toInstant().atOffset( ZoneOffset.UTC ));
+        }
         subscriptionItem.setStatus(Subscription.StatusEnum.fromValue(subscriptionEntity.getStatus().name()));
         
         return subscriptionItem;

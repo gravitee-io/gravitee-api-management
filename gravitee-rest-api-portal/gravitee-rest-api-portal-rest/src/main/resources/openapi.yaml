@@ -2282,6 +2282,7 @@ components:
             use_system_proxy:
               description: True if the notifier should use system proxy.
               type: boolean
+              default: false
     PortalNotificationConfig:
       allOf:
         - $ref: "#/components/schemas/NotificationConfig"

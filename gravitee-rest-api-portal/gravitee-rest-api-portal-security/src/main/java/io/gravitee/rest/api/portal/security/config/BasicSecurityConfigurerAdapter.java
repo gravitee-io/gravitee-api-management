@@ -207,20 +207,17 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         return security.authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
 
+                // OpenApi
+                .antMatchers(HttpMethod.GET, "/portal/openapi").permitAll()
+
                 //  Auth request
-                .antMatchers(HttpMethod.POST, uriPrefix + "/auth/login").permitAll()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**/_exchange").authenticated()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**").permitAll()
 
                 // API requests
-                .antMatchers(HttpMethod.POST, uriPrefix + "/apis/ratings").authenticated()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").permitAll()
 
                 // Pages
                 .antMatchers(HttpMethod.GET, uriPrefix + "/pages/**").permitAll()
-
-                // OpenApi
-                .antMatchers(HttpMethod.GET, "/portal/openapi").permitAll()
 
                 // Portal 
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/**").permitAll()
@@ -231,9 +228,12 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                 /* Others requests
                  * i.e. : 
+                 *   - /auth/login
                  *   - /auth/logout
+                 *   - POST /apis/ratings
                  *   - /applications/**
                  *   - /subscriptions/**
+                 *   - /tickets
                  *   - /users
                  *   - /user/**
                  */

@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
@@ -97,7 +98,7 @@ public class ApplicationMembersResource extends AbstractResource {
     @Permissions({
         @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE)
     })
-    public Response createApplicationMember(@PathParam("applicationId") String applicationId, @Valid MemberInput memberInput) {
+    public Response createApplicationMember(@PathParam("applicationId") String applicationId, @Valid @NotNull(message="Input must not be null.") MemberInput memberInput) {
         //Does application exist ?
         applicationService.findById(applicationId);
         
@@ -167,7 +168,7 @@ public class ApplicationMembersResource extends AbstractResource {
     @Permissions({
         @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE)
     })
-    public Response updateApplicationMemberByApplicationIdAndMemberId(@PathParam("applicationId") String applicationId, @PathParam("memberId") String memberId, @Valid MemberInput memberInput) {
+    public Response updateApplicationMemberByApplicationIdAndMemberId(@PathParam("applicationId") String applicationId, @PathParam("memberId") String memberId, @Valid @NotNull(message="Input must not be null.") MemberInput memberInput) {
         //Does application exist ?
         applicationService.findById(applicationId);
         
@@ -200,7 +201,7 @@ public class ApplicationMembersResource extends AbstractResource {
     @Permissions({
         @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE)
     })
-    public Response transferMemberOwnership(@PathParam("applicationId") String applicationId, TransferOwnershipInput transferOwnershipInput) {
+    public Response transferMemberOwnership(@PathParam("applicationId") String applicationId, @NotNull(message="Input must not be null.") TransferOwnershipInput transferOwnershipInput) {
         //Does application exist ?
         applicationService.findById(applicationId);
         

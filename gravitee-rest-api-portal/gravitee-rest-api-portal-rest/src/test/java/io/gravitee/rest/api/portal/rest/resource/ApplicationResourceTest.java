@@ -15,17 +15,20 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import org.apache.http.client.utils.DateUtils;
+import org.eclipse.jetty.http.HttpHeader;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -38,28 +41,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
-import org.apache.http.client.utils.DateUtils;
-import org.eclipse.jetty.http.HttpHeader;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.UpdateApplicationEntity;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.portal.rest.model.Application;
-import io.gravitee.rest.api.portal.rest.model.ApplicationSettings;
-import io.gravitee.rest.api.portal.rest.model.OAuthClientSettings;
-import io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings;
-import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -133,7 +119,8 @@ public class ApplicationResourceTest extends AbstractResourceTest {
     public void shouldHaveBadRequestWhileUpdatingApplication() {
         final Response response = target(APPLICATION).request().put(Entity.json(new Application().id(UNKNOWN_APPLICATION)));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        assertEquals("'applicationId' is not the same that the application in payload", response.readEntity(String.class));
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        assertEquals("'applicationId' is not the same that the application in payload", errorResponse.getErrors().get(0).getDetail());
     }
     
     @Test

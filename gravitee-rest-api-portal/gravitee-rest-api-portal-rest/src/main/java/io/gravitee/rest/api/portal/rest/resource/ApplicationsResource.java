@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
@@ -69,10 +70,7 @@ public class ApplicationsResource extends AbstractResource {
     @Permissions({
         @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.CREATE),
     })
-    public Response createApplication(@Valid ApplicationInput applicationInput) {
-        if(applicationInput == null) {
-            throw new BadRequestException("input must not be null");
-        }
+    public Response createApplication(@Valid @NotNull(message = "Input must not be null.") ApplicationInput applicationInput) {
         NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
         newApplicationEntity.setDescription(applicationInput.getDescription());
         newApplicationEntity.setGroups(new HashSet<String>(applicationInput.getGroups()));

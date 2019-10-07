@@ -1,0 +1,993 @@
+{
+	"info": {
+		"_postman_id": "b2b13175-3e99-4381-a73e-565ad5e57903",
+		"name": "API Portal : Subscriptions",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "-- Prepare --",
+			"item": [
+				{
+					"name": "Create API for subscription",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "09b4c96b-4e00-43b3-b727-e6739af6ae6e",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"created_api_for_sub\", JSON.stringify(jsonData));",
+									"pm.environment.set(\"created_api_for_sub_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "api1",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "api1",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\":\"API_SUB\",\n\t\"version\":\"1.0\",\n\t\"description\":\"API for 'Subscription scenario'\",\n\t\"contextPath\":\"/apisub\",\n\t\"endpoint\":\"http://localhost\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{managment_url}}/apis",
+							"host": [
+								"{{managment_url}}"
+							],
+							"path": [
+								"apis"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Publish created API",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "79cbaece-c9fc-4d5d-9b3f-30850c1ee42e",
+								"exec": [
+									"var createdApi_for_sub_toPublish = JSON.parse(pm.environment.get(\"created_api_for_sub\"));",
+									"createdApi_for_sub_toPublish.lifecycle_state='published';",
+									"createdApi_for_sub_toPublish.visibility='public';",
+									"delete createdApi_for_sub_toPublish.id;",
+									"delete createdApi_for_sub_toPublish.state;",
+									"delete createdApi_for_sub_toPublish.created_at;",
+									"delete createdApi_for_sub_toPublish.updated_at;",
+									"delete createdApi_for_sub_toPublish.owner;",
+									"pm.environment.set(\"createdApi_for_sub_toPublish\", JSON.stringify(createdApi_for_sub_toPublish));",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "api1",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "api1",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{createdApi_for_sub_toPublish}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{managment_url}}/apis/:apiId",
+							"host": [
+								"{{managment_url}}"
+							],
+							"path": [
+								"apis",
+								":apiId"
+							],
+							"variable": [
+								{
+									"key": "apiId",
+									"value": "{{created_api_for_sub_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Plan for subscription",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5b159b0d-08e8-4a1a-b6df-2a87a2af605c",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"created_plan_for_sub_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "api1",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "api1",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\":\"Plan_for_sub\",\n\t\"description\": \"a plan for Subscription Scenario\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{managment_url}}/apis/:apiId/plans",
+							"host": [
+								"{{managment_url}}"
+							],
+							"path": [
+								"apis",
+								":apiId",
+								"plans"
+							],
+							"variable": [
+								{
+									"key": "apiId",
+									"value": "{{created_api_for_sub_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Publish created Plan",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5b159b0d-08e8-4a1a-b6df-2a87a2af605c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "api1",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "api1",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{managment_url}}/apis/:apiId/plans/:planId/_publish",
+							"host": [
+								"{{managment_url}}"
+							],
+							"path": [
+								"apis",
+								":apiId",
+								"plans",
+								":planId",
+								"_publish"
+							],
+							"variable": [
+								{
+									"key": "apiId",
+									"value": "{{created_api_for_sub_id}}"
+								},
+								{
+									"key": "planId",
+									"value": "{{created_plan_for_sub_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Application for subscription",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4bb67939-8bf1-47b3-ae86-d4b4bb4b343b",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"created_application_for_sub_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "application1",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "application1",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\":\"404ApplicationSub\",\n\t\"description\":\"Application for 'Subscription scenario'\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{managment_url}}/applications",
+							"host": [
+								"{{managment_url}}"
+							],
+							"path": [
+								"applications"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ff119b8b-182d-44b0-a6db-17929e9a494c",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "cf428291-ff03-4e85-bcea-e4ca670803f6",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "-- Test cases --",
+			"item": [
+				{
+					"name": "Login - user = application1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a490e71b-fa6c-4ee3-b89c-64466916d1e0",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Set-Cookie is present\", function () {",
+									"    pm.response.to.have.header(\"Set-Cookie\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "application1",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "application1",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{portal_url}}/auth/login",
+							"host": [
+								"{{portal_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get APIs list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5a6f5330-cef1-4057-ada1-0f1b737aa4d1",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"At least one API\", function () {",
+									"    pm.expect(jsonData.data.length).to.gte(1);",
+									"});",
+									"",
+									"pm.test(\"Metadata total == data[].length\", function () {",
+									"    pm.expect(jsonData.metadata.data.total).to.eql(\"\"+jsonData.data.length);",
+									"});",
+									"",
+									"var i;",
+									"var created_api_for_sub_id = pm.environment.get(\"created_api_for_sub_id\");",
+									"var isCreatedAPIFound = false;",
+									"for(i=0; i< jsonData.data.length; i++) {",
+									"    if(jsonData.data[i].id == created_api_for_sub_id) {",
+									"        isCreatedAPIFound = true;",
+									"        pm.environment.set(\"created_api_for_sub_self_link\", jsonData.data[i]._links.self);",
+									"        pm.environment.set(\"created_api_for_sub_picture_link\", jsonData.data[i]._links.picture);",
+									"        pm.environment.set(\"created_api_for_sub_plans_link\", jsonData.data[i]._links.plans);",
+									"    }",
+									"}",
+									"",
+									"pm.test(\"Created API was found\", function () {",
+									"    pm.expect(isCreatedAPIFound).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{portal_url}}/apis",
+							"host": [
+								"{{portal_url}}"
+							],
+							"path": [
+								"apis"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get an API",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d3d3fbef-c861-4414-8c1e-9b90f3670db8",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"It is the created API\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.id).to.eql(pm.environment.get(\"created_api_for_sub_id\"));",
+									"    pm.expect(jsonData.name).to.eql(\"API_SUB\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{created_api_for_sub_self_link}}",
+							"host": [
+								"{{created_api_for_sub_self_link}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get an API picture",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9438be91-e5cd-4574-aa6e-24e70b080edd",
+								"exec": [
+									"pm.test(\"Etag is present and with correct value\", function () {",
+									"    pm.response.to.have.header(\"ETag\", \"\\\"1870698676\\\"\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{created_api_for_sub_picture_link}}",
+							"host": [
+								"{{created_api_for_sub_picture_link}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get plans",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "dce2fc47-d5b9-4e17-8716-a92b7bee278e",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Exactly one Plan\", function () {",
+									"    pm.expect(jsonData.data.length).to.eql(1);",
+									"});",
+									"",
+									"pm.test(\"Metadata total == data[].length\", function () {",
+									"    pm.expect(jsonData.metadata.data.total).to.eql(\"\"+jsonData.data.length);",
+									"});",
+									"",
+									"var created_plan_for_sub_id = pm.environment.get(\"created_plan_for_sub_id\");",
+									"",
+									"pm.test(\"Created Plan was found\", function () {",
+									"    pm.expect(jsonData.data[0].id).to.be.eql(created_plan_for_sub_id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{created_api_for_sub_plans_link}}",
+							"host": [
+								"{{created_api_for_sub_plans_link}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get applications list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "12062f9f-b905-4972-b28a-eb51838e39bd",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"At least one Application\", function () {",
+									"    pm.expect(jsonData.data.length).to.gte(1);",
+									"});",
+									"",
+									"pm.test(\"Metadata total == data[].length\", function () {",
+									"    pm.expect(jsonData.metadata.data.total).to.eql(\"\"+jsonData.data.length);",
+									"});",
+									"",
+									"var i;",
+									"var created_application_for_sub_id = pm.environment.get(\"created_application_for_sub_id\");",
+									"var isCreatedApplicationFound = false;",
+									"for(i=0; i< jsonData.data.length; i++) {",
+									"    if(jsonData.data[i].id == created_application_for_sub_id) {",
+									"        isCreatedApplicationFound = true;",
+									"    }",
+									"}",
+									"",
+									"pm.test(\"Created Application was found\", function () {",
+									"    pm.expect(isCreatedApplicationFound).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{portal_url}}/applications",
+							"host": [
+								"{{portal_url}}"
+							],
+							"path": [
+								"applications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Subscription",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e1de8766-ba7d-48e3-b320-fb4ce6d52e46",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"created_sub_id\", jsonData.id);",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"application\":\"{{created_application_for_sub_id}}\",\n\t\"plan\":\"{{created_plan_for_sub_id}}\",\n\t\"request\":\"for Subscription scenario\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{portal_url}}/subscriptions",
+							"host": [
+								"{{portal_url}}"
+							],
+							"path": [
+								"subscriptions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get created Subscription",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "646ce264-50d0-4c5d-a07e-709d3095c945",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{portal_url}}/subscriptions/:subscriptionId",
+							"host": [
+								"{{portal_url}}"
+							],
+							"path": [
+								"subscriptions",
+								":subscriptionId"
+							],
+							"variable": [
+								{
+									"key": "subscriptionId",
+									"value": "{{created_sub_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2376bbf2-5575-42bb-9cb1-b7e2f8eb05a5",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Set-Cookie is present\", function () {",
+									"    pm.response.to.have.header(\"Set-Cookie\", ",
+									"    \"Auth-Graviteeio-APIM=; Path=/; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Max-Age=0; HttpOnly\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{portal_url}}/auth/logout",
+							"host": [
+								"{{portal_url}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "8efd6f5e-e1c3-41ac-bb07-bde9755f1520",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "b40876cd-14db-4d7f-9477-bdbd0f333add",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "-- Clean up --",
+			"item": [
+				{
+					"name": "Close subscription",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "api1",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "api1",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{managment_url}}/apis/:apiId/subscriptions/:subscriptionId/status?status=CLOSED",
+							"host": [
+								"{{managment_url}}"
+							],
+							"path": [
+								"apis",
+								":apiId",
+								"subscriptions",
+								":subscriptionId",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "CLOSED"
+								}
+							],
+							"variable": [
+								{
+									"key": "apiId",
+									"value": "{{created_api_for_sub_id}}"
+								},
+								{
+									"key": "subscriptionId",
+									"value": "{{created_sub_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete created application",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "application1",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "application1",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{managment_url}}/applications/:applicationId",
+							"host": [
+								"{{managment_url}}"
+							],
+							"path": [
+								"applications",
+								":applicationId"
+							],
+							"variable": [
+								{
+									"key": "applicationId",
+									"value": "{{created_application_for_sub_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Close created Plan",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "api1",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "api1",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{managment_url}}/apis/:apiId/plans/:planId/_close",
+							"host": [
+								"{{managment_url}}"
+							],
+							"path": [
+								"apis",
+								":apiId",
+								"plans",
+								":planId",
+								"_close"
+							],
+							"variable": [
+								{
+									"key": "apiId",
+									"value": "{{created_api_for_sub_id}}"
+								},
+								{
+									"key": "planId",
+									"value": "{{created_plan_for_sub_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete created API",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "api1",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "api1",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{managment_url}}/apis/:apiId",
+							"host": [
+								"{{managment_url}}"
+							],
+							"path": [
+								"apis",
+								":apiId"
+							],
+							"variable": [
+								{
+									"key": "apiId",
+									"value": "{{created_api_for_sub_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "7b2576d2-c4a3-48fb-93dc-2fcad1a8b833",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "39d19c8d-727d-43ae-80be-59569d34cb78",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

@@ -16,18 +16,18 @@
 package io.gravitee.rest.api.service.exceptions;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  */
-public class PageNotFoundException extends AbstractNotFoundException {
+public class PortalNotificationNotFoundException extends AbstractNotFoundException {
 
-    private final String pageName;
+    private final String portalNotification;
 
-    public PageNotFoundException(String teamName) {
-        this.pageName = teamName;
+    public PortalNotificationNotFoundException(String portalNotification) {
+        this.portalNotification = portalNotification;
     }
 
     @Override
     public String getMessage() {
-        return "Page [" + pageName + "] can not be found.";
+        return "Portal notification [" + portalNotification + "] can not be found.";
     }
 }

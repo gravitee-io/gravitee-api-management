@@ -67,6 +67,5 @@ public class UsersResource extends AbstractResource {
         //No pagination, because userService did it already
         return createListResponse(users, paginationParam, false);
     }
-
     
 }

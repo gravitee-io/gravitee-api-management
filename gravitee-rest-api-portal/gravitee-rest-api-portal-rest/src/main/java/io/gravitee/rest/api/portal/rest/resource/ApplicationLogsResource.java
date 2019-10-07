@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
+import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -43,6 +44,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.LogsParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
+import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.LogsService;
 
 /**
@@ -57,6 +59,9 @@ public class ApplicationLogsResource extends AbstractResource {
     @Inject
     private LogMapper logMapper;
     
+    @Inject
+    private ApplicationService applicationService;
+    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
@@ -66,6 +71,9 @@ public class ApplicationLogsResource extends AbstractResource {
             @PathParam("applicationId") String applicationId,
             @BeanParam PaginationParam paginationParam,
             @BeanParam LogsParam logsParam) {
+        //Does application exists ?
+        applicationService.findById(applicationId);
+        
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId,
                 paginationParam, logsParam);
         
@@ -104,9 +112,13 @@ public class ApplicationLogsResource extends AbstractResource {
             @PathParam("applicationId") String applicationId,
             @PathParam("logId") String logId,
             @QueryParam("timestamp") Long timestamp) {
+        //Does application exists ?
+        applicationService.findById(applicationId);
+        
+        ApplicationRequest applicationLogs = logsService.findApplicationLog(logId, timestamp);
         
         return Response
-                .ok(logMapper.convert(logsService.findApplicationLog(logId, timestamp)))
+                .ok(logMapper.convert(applicationLogs))
                 .build();
     }
 
@@ -120,6 +132,9 @@ public class ApplicationLogsResource extends AbstractResource {
             @PathParam("applicationId") String applicationId,
             @BeanParam PaginationParam paginationParam,
             @BeanParam LogsParam logsParam) {
+        //Does application exists ?
+        applicationService.findById(applicationId);
+        
         final SearchLogResponse searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
         return Response
                 .ok(logsService.exportAsCsv(searchLogResponse))

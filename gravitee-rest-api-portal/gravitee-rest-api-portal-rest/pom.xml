@@ -58,7 +58,8 @@
                           <generateModelDocumentation>false</generateModelDocumentation>
                           <generateSupportingFiles>false</generateSupportingFiles>
                           <configOptions>
-                             <dateLibrary>java8</dateLibrary>
+                              <dateLibrary>java8</dateLibrary>
+                              <useBeanValidation>true</useBeanValidation>
                           </configOptions>
                           <typeMappings>
                               <typeMapping>BigDecimal=Number</typeMapping>

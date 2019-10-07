@@ -2080,36 +2080,6 @@
 							"name": "not 401",
 							"item": [
 								{
-									"name": "POST /auth/login",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-												"exec": [
-													""
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [],
-										"url": {
-											"raw": "{{portal_url}}/auth/login",
-											"host": [
-												"{{portal_url}}"
-											],
-											"path": [
-												"auth",
-												"login"
-											]
-										}
-									},
-									"response": []
-								},
-								{
 									"name": "POST /auth/oauth2/:identity",
 									"event": [
 										{
@@ -2135,6 +2105,44 @@
 												"auth",
 												"oauth2",
 												":identity"
+											],
+											"variable": [
+												{
+													"key": "identity",
+													"value": "IDENTITY"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST /auth/oauth2/:identity/_exchange",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/auth/oauth2/:identity/_exchange",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"auth",
+												"oauth2",
+												":identity",
+												"_exchange"
 											],
 											"variable": [
 												{
@@ -2177,6 +2185,36 @@
 							"name": "401",
 							"item": [
 								{
+									"name": "POST /auth/login",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/auth/login",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"auth",
+												"login"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "POST /auth/logout",
 									"event": [
 										{
@@ -2201,44 +2239,6 @@
 											"path": [
 												"auth",
 												"logout"
-											]
-										}
-									},
-									"response": []
-								},
-								{
-									"name": "POST /auth/oauth2/:identity/_exchange",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-												"exec": [
-													""
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [],
-										"url": {
-											"raw": "{{portal_url}}/auth/oauth2/:identity/_exchange",
-											"host": [
-												"{{portal_url}}"
-											],
-											"path": [
-												"auth",
-												"oauth2",
-												":identity",
-												"_exchange"
-											],
-											"variable": [
-												{
-													"key": "identity",
-													"value": "IDENTITY"
-												}
 											]
 										}
 									},

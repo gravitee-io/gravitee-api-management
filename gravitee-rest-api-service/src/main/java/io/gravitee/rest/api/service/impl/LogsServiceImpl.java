@@ -203,6 +203,9 @@ public class LogsServiceImpl implements LogsService {
             return toApplicationRequest(logRepository.findById(id, timestamp));
         } catch (AnalyticsException ae) {
             logger.error("Unable to retrieve log: " + id, ae);
+            if(ae.getMessage().equals("Request ["+id+"] does not exist")) {
+                throw new LogNotFoundException(id);
+            }
             throw new TechnicalManagementException("Unable to retrieve log: " + id, ae);
         }
     }

@@ -15,17 +15,15 @@
  */
 package io.gravitee.rest.api.portal.rest.params;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.portal.rest.resource.param.LogsParam;
 
 import org.junit.Test;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.portal.rest.resource.param.LogsParam;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.Response;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -56,14 +54,7 @@ public class LogsParamTest {
         LogsParam params = new LogsParam();
         params.setFrom(-1);
         
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("Query parameter 'from' is not valid", response.getEntity());
-        }
+        testParams(params, "Query parameter 'from' is not valid");
     }
     
     @Test
@@ -72,14 +63,8 @@ public class LogsParamTest {
         params.setFrom(1);
         params.setTo(-1);
 
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("Query parameter 'to' is not valid", response.getEntity());
-        }
+        testParams(params, "Query parameter 'to' is not valid");
+        
     }
     
     @Test
@@ -87,14 +72,7 @@ public class LogsParamTest {
         LogsParam params = new LogsParam();
         params.setFrom(10);
         params.setTo(1);
-        try {
-            params.validate();
-            assertFalse(true);
-        } catch(WebApplicationException e) {
-            final Response response = e.getResponse();
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("'from' query parameter value must be greater than 'to'", response.getEntity());
-        }
+        testParams(params, "'from' query parameter value must be greater than 'to'");
     }
     
     @Test
@@ -103,13 +81,18 @@ public class LogsParamTest {
         params.setFrom(1);
         params.setTo(10);
         params.setOrder("");
+        testParams(params, "'order' query parameter value must be 'ASC' or 'DESC'");
+    }
+    
+    private void testParams(LogsParam params, String expectedErrorMessage) {
         try {
             params.validate();
             assertFalse(true);
-        } catch(WebApplicationException e) {
+        } catch(BadRequestException e) {
             final Response response = e.getResponse();
             assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-            assertEquals("'order' query parameter value must be 'ASC' or 'DESC'", response.getEntity());
+            assertEquals(expectedErrorMessage, e.getMessage());
+
         }
     }
 }

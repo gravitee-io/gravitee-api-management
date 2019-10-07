@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -45,6 +46,7 @@ import io.gravitee.rest.api.portal.rest.model.NotificationConfigsResponse;
 import io.gravitee.rest.api.portal.rest.model.PortalNotificationConfig;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
+import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -64,12 +66,19 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @Autowired
     private NotificationConfigMapper notificationConfigMapper;
     
+    @Autowired
+    private ApplicationService applicationService;
+    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ)
     })
     public Response get(@PathParam("applicationId") String applicationId) {
+        
+        //Does application exists ?
+        applicationService.findById(applicationId);
+        
         List<NotificationConfig> settings = new ArrayList<>();
         settings.add(
                 notificationConfigMapper.convert(
@@ -89,26 +98,25 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(@PathParam("applicationId") String applicationId, GenericNotificationConfig genericConfig) {
-        if(genericConfig == null) {
-            throw new BadRequestException("input must not be null");
-        }
-
-        if (!applicationId.equals(genericConfig.getReferenceId())
-                || !NotificationReferenceType.APPLICATION.name().equals(genericConfig.getReferenceType())) {
+    public Response create(@PathParam("applicationId") String applicationId, @NotNull(message = "Input must not be null.") NotificationConfig config) {
+        //Does application exists ?
+        applicationService.findById(applicationId);
+        
+        if (!applicationId.equals(config.getReferenceId())
+                || !NotificationReferenceType.APPLICATION.name().equals(config.getReferenceType())) {
             throw new ForbiddenAccessException();
         }
-        if (NotificationConfigType.GENERIC.name().equals(genericConfig.getConfigType())
+        if (NotificationConfigType.GENERIC.name().equals(config.getConfigType())
                 && hasPermission(RolePermission.APPLICATION_NOTIFICATION, applicationId, RolePermissionAction.CREATE)) {
-            GenericNotificationConfigEntity entity = genericNotificationConfigService.create(notificationConfigMapper.convert(genericConfig));
+            GenericNotificationConfigEntity entity = genericNotificationConfigService.create(notificationConfigMapper.convert((GenericNotificationConfig) config));
             return Response
                     .ok(notificationConfigMapper.convert(entity))
                     .status(Response.Status.CREATED)
                     .build();
             
-        } else if (NotificationConfigType.PORTAL.name().equals(genericConfig.getConfigType())
+        } else if (NotificationConfigType.PORTAL.name().equals(config.getConfigType())
                 && hasPermission(RolePermission.APPLICATION_NOTIFICATION, applicationId, RolePermissionAction.READ)) {
-            PortalNotificationConfigEntity entity =  portalNotificationConfigService.save(notificationConfigMapper.convertToPortalConfigEntity(genericConfig, getAuthenticatedUser()));
+            PortalNotificationConfigEntity entity =  portalNotificationConfigService.save(notificationConfigMapper.convertToPortalConfigEntity((GenericNotificationConfig) config, getAuthenticatedUser()));
             return Response
                     .ok(notificationConfigMapper.convert(entity))
                     .status(Response.Status.CREATED)
@@ -127,7 +135,10 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     public Response update(
             @PathParam("applicationId") String applicationId,
             @PathParam("notificationId") String notificationId,
-            GenericNotificationConfig genericConfig) {
+            @NotNull(message="Input must not be null.") GenericNotificationConfig genericConfig) {
+        //Does application exists ?
+        applicationService.findById(applicationId);
+        
         if (!applicationId.equals(genericConfig.getReferenceId())
                 || !NotificationReferenceType.APPLICATION.name().equals(genericConfig.getReferenceType())
                 || !NotificationConfigType.GENERIC.name().equals(genericConfig.getConfigType())
@@ -148,7 +159,10 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     })
     public Response update(
             @PathParam("applicationId") String applicationId,
-            PortalNotificationConfig portalConfig) {
+            @NotNull(message="Input must not be null.") PortalNotificationConfig portalConfig) {
+        //Does application exists ?
+        applicationService.findById(applicationId);
+        
         if (!applicationId.equals(portalConfig.getReferenceId())
                 || !NotificationReferenceType.APPLICATION.name().equals(portalConfig.getReferenceType())
                 || !NotificationConfigType.PORTAL.name().equals(portalConfig.getConfigType())) {
@@ -171,6 +185,12 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     public Response delete(
             @PathParam("applicationId") String applicationId,
             @PathParam("notificationId") String notificationId) {
+        //Does application exists ?
+        applicationService.findById(applicationId);
+        
+        //notification exist ?
+        genericNotificationConfigService.findById(notificationId);
+        
         genericNotificationConfigService.delete(notificationId);
         return Response.noContent().build();
     }

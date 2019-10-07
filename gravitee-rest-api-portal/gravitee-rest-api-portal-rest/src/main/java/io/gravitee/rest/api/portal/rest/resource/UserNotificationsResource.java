@@ -71,6 +71,9 @@ public class UserNotificationsResource extends AbstractResource  {
     @Path("{notificationId}")
     @DELETE
     public Response delete(@PathParam("notificationId") String notificationId) {
+        //notification exist ?
+        portalNotificationService.findById(notificationId);
+        
         portalNotificationService.delete(notificationId);
         return Response
                 .status(Response.Status.NO_CONTENT)
