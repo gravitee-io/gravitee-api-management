@@ -19,6 +19,7 @@ import io.gravitee.repository.management.api.PortalNotificationRepository;
 import io.gravitee.repository.management.model.PortalNotification;
 
 import java.util.Date;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -62,5 +63,14 @@ public class PortalNotificationRepositoryMock extends AbstractRepositoryMock<Por
         notificationFindByUsername.setCreatedAt(new Date(1439022010883L));
         when(portalNotificationRepository.findByUser(eq("notif-userId-findByUserId"))).thenReturn(singletonList(notificationFindByUsername));
         when(portalNotificationRepository.findByUser(eq("unknown"))).thenReturn(emptyList());
+        
+        final PortalNotification notificationFindById = new PortalNotification();
+        notificationFindById.setId("notif-findById");
+        notificationFindById.setTitle("notif-title-findById");
+        notificationFindById.setMessage("notif-message-findById");
+        notificationFindById.setUser("notif-userId-findById");
+        notificationFindById.setCreatedAt(new Date(1439022010883L));
+        when(portalNotificationRepository.findById(eq("notif-findById"))).thenReturn(Optional.ofNullable(notificationFindById));
+
     }
 }

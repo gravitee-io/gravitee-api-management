@@ -19,5 +19,12 @@
     "message": "notif-message-findByUserId",
     "user": "notif-userId-findByUserId",
     "createdAt": 1439022010883
+  },
+  {
+    "id": "notif-findById",
+    "title": "notif-title-findById",
+    "message": "notif-message-findById",
+    "user": "notif-userId-findById",
+    "createdAt": 1439022010883
   }
 ]

@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 
@@ -81,5 +82,18 @@ public class PortalNotificationRepositoryTest extends AbstractRepositoryTest {
         List<PortalNotification> notifications = portalNotificationRepository.findByUser("unknown");
 
         assertTrue(notifications.isEmpty());
+    }
+    
+    @Test
+    public void shouldFindById() throws Exception {
+        Optional<PortalNotification> notification = portalNotificationRepository.findById("notif-findById");
+
+        assertTrue(notification.isPresent());
+        PortalNotification portalNotification = notification.get();
+        assertEquals("notif-findById", portalNotification.getId());
+        assertEquals("notif-title-findById", portalNotification.getTitle());
+        assertEquals("notif-message-findById", portalNotification.getMessage());
+        assertEquals("notif-userId-findById", portalNotification.getUser());
+        assertEquals(new Date(1439022010883L), portalNotification.getCreatedAt());
     }
 }
