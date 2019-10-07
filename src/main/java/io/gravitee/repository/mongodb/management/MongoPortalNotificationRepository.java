@@ -17,7 +17,9 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.PortalNotification;
+import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNotificationMongo;
 import io.gravitee.repository.mongodb.management.internal.notification.PortalNotificationMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -27,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +56,15 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
                 collect(Collectors.toList());
     }
 
+    @Override
+    public Optional<PortalNotification> findById(String id) throws TechnicalException {
+        LOGGER.debug("Find notification by id: {}", id);
+        PortalNotificationMongo portalNotificationMongo = internalRepo.findById(id).orElse(null);
+        return Optional.ofNullable(mapPortalNotification(portalNotificationMongo));
+    }
+    private PortalNotification mapPortalNotification(PortalNotificationMongo portalNotificationMongo){
+        return (portalNotificationMongo == null) ? null : mapper.map(portalNotificationMongo, PortalNotification.class);
+    }
     @Override
     public PortalNotification create(PortalNotification item) throws TechnicalException {
         LOGGER.debug("Create notification : {}", item);
