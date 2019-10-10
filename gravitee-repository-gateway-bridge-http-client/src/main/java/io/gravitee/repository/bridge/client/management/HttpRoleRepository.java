@@ -18,6 +18,7 @@ package io.gravitee.repository.bridge.client.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import org.springframework.stereotype.Component;
 
@@ -58,6 +59,18 @@ public class HttpRoleRepository extends AbstractRepository implements RoleReposi
 
     @Override
     public Set<Role> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId,
+            RoleReferenceType referenceType) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType)
+            throws TechnicalException {
         throw new IllegalStateException();
     }
 }

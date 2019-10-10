@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.PortalNotification;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -51,6 +52,11 @@ public class HttpPortalNotificationRepository extends AbstractRepository impleme
 
     @Override
     public void deleteAll(String user) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Optional<PortalNotification> findById(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
 }

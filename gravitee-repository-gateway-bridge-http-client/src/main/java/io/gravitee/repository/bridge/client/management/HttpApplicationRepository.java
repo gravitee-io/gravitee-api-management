@@ -72,4 +72,10 @@ public class HttpApplicationRepository extends AbstractRepository implements App
         throw new IllegalStateException();
     }
 
+    @Override
+    public Set<Application> findAllByEnvironment(String environment, ApplicationStatus... statuses)
+            throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
 }

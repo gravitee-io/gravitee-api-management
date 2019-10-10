@@ -56,4 +56,9 @@ public class HttpDictionaryRepository extends AbstractRepository implements Dict
     public Optional<Dictionary> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public Set<Dictionary> findAllByEnvironment(String environment) throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }

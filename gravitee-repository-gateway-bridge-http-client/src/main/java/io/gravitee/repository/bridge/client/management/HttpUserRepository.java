@@ -55,17 +55,17 @@ public class HttpUserRepository extends AbstractRepository implements UserReposi
     }
 
     @Override
-    public Optional<User> findBySource(String source, String sourceId) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
     public Set<User> findByIds(List<String> ids) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
     public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Optional<User> findBySource(String source, String sourceId, String environment) throws TechnicalException {
         throw new IllegalStateException();
     }
 }

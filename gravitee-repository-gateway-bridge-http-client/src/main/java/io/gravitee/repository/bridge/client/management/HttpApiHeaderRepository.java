@@ -53,4 +53,9 @@ public class HttpApiHeaderRepository extends AbstractRepository implements ApiHe
     public void delete(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public Set<ApiHeader> findAllByEnvironment(String environment) throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }

@@ -54,4 +54,9 @@ public class HttpViewRepository extends AbstractRepository implements ViewReposi
     public Set<View> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public Set<View> findAllByEnvironment(String environment) throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }

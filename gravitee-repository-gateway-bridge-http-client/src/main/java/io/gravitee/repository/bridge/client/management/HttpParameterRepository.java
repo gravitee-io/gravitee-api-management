@@ -18,6 +18,7 @@ package io.gravitee.repository.bridge.client.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -52,6 +53,12 @@ public class HttpParameterRepository extends AbstractRepository implements Param
 
     @Override
     public List<Parameter> findAll(List<String> keys) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public List<Parameter> findAllByReferenceIdAndReferenceType(List<String> keys, String referenceId,
+            ParameterReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 }

@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -53,18 +54,13 @@ public class HttpPageRepository extends AbstractRepository implements PageReposi
     }
 
     @Override
-    public Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-
-    @Override
-    public Integer findMaxPortalPageOrder() throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
     public List<Page> search(PageCriteria pageCriteria) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType)
+            throws TechnicalException {
         throw new IllegalStateException();
     }
 }

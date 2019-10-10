@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.IdentityProvider;
+import io.gravitee.repository.management.model.IdentityProviderReferenceType;
 import io.gravitee.repository.management.model.User;
 import org.springframework.stereotype.Component;
 
@@ -57,6 +58,12 @@ public class HttpIdentityProviderRepository extends AbstractRepository implement
 
     @Override
     public void delete(String s) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<IdentityProvider> findAllByReferenceIdAndReferenceType(String referenceId,
+            IdentityProviderReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 }
