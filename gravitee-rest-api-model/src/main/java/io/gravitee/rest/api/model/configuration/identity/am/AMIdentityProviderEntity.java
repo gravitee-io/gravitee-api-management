@@ -52,7 +52,7 @@ public class AMIdentityProviderEntity extends SocialIdentityProviderEntity {
 
     @Override
     public IdentityProviderType getType() {
-        return IdentityProviderType.OIDC;
+        return IdentityProviderType.GRAVITEEIO_AM;
     }
 
     public String getDiscoveryEndpoint() {

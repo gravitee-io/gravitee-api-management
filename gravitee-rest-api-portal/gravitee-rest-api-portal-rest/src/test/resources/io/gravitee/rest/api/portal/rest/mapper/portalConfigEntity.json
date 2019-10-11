@@ -1,0 +1,147 @@
+{
+  "company" : {
+    "name" : "Gravitee.io"
+  },
+  "management" : {
+    "title" : "Gravitee.io Management"
+  },
+  "portal" : {
+    "title" : "Gravitee.io Portal",
+    "entrypoint" : "https://api.company.com",
+    "apikeyHeader" : "X-Gravitee-Api-Key",
+    "support" : {
+      "enabled" : false
+    },
+    "devMode" : {
+      "enabled" : false
+    },
+    "userCreation" : {
+      "enabled" : true
+    },
+    "apis" : {
+      "tilesMode" : {
+        "enabled" : true
+      },
+      "viewMode" : {
+        "enabled" : true
+      },
+      "apiHeaderShowTags" : {
+        "enabled" : false
+      },
+      "apiHeaderShowViews" : {
+        "enabled" : false
+      }
+    },
+    "analytics" : {
+      "enabled" : false
+    },
+    "rating" : {
+      "enabled" : false,
+      "comment" : {
+        "mandatory" : false
+      }
+    },
+    "uploadMedia" : {
+      "enabled" : false,
+      "maxSizeInOctet" : 1000000
+    }
+  },
+  "authentication" : {
+    "forceLogin" : {
+      "enabled" : false
+    },
+    "localLogin" : {
+      "enabled" : true
+    },
+    "google" : {
+      "clientId" : "googleId"
+    },
+    "github" : {
+      "clientId" : "githubId"
+    },
+    "oauth2" : {
+      "clientId" : "oauth2Id",
+      "color" : "#0076b4",
+      "scope" : []
+    }
+  },
+  "scheduler" : {
+    "tasks" : 10,
+    "notifications" : 10
+  },
+  "documentation" : {
+    "url" : "https://docs.gravitee.io"
+  },
+  "theme" : {
+    "name" : "default",
+    "logo" : "themes/assets/GRAVITEE_LOGO1-01.png",
+    "loader" : "assets/gravitee_logo_anim.gif"
+  },
+  "plan" : {
+    "security" : {
+      "apikey" : {
+        "enabled" : true
+      },
+      "oauth2" : {
+        "enabled" : true
+      },
+      "keyless" : {
+        "enabled" : true
+      },
+      "jwt" : {
+        "enabled" : true
+      }
+    }
+  },
+  "apiQualityMetrics" : {
+    "enabled" : false,
+    "functionalDocumentationWeight" : 0,
+    "technicalDocumentationWeight" : 0,
+    "descriptionWeight" : 0,
+    "descriptionMinLength" : 100,
+    "logoWeight" : 0,
+    "viewsWeight" : 0,
+    "labelsWeight" : 0,
+    "healthcheckWeight" : 0
+  },
+  "apiReview" : {
+    "enabled" : false
+  },
+  "logging" : {
+    "maxDurationMillis" : 0,
+    "audit" : {
+      "enabled" : false,
+      "trail" : {
+        "enabled" : false
+      }
+    },
+    "user" : {
+      "displayed" : false
+    }
+  },
+  "analytics" : {
+    "clientTimeout" : 30000
+  },
+  "application" : {
+    "registration" : {
+      "enabled" : true
+    },
+    "types" : {
+      "simple" : {
+        "enabled" : true
+      },
+      "browser" : {
+        "enabled" : true
+      },
+      "web" : {
+        "enabled" : true
+      },
+      "native" : {
+        "enabled" : true
+      },
+      "backend_to_backend" : {
+        "enabled" : true
+      }
+    }
+  }
+}

@@ -38,6 +38,7 @@ tags:
 
 security:
   - BasicAuth: []
+  - CookieAuth: []
 
 paths: 
   /apis:
@@ -1399,6 +1400,12 @@ paths:
         Get all the portal configuration from the platform settings.
       security: []
       responses:
+        200:
+          description: Portal configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
   /configuration/identities:
@@ -1410,6 +1417,12 @@ paths:
         Get all the identity providers that can used in the portal.
       security: []
       responses:
+        200:
+          description: List of identity providers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationIdentitiesResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
   /info:
@@ -1421,6 +1434,12 @@ paths:
         Get some information about the portal (version, ...).
       security: []
       responses:
+        200:
+          description: API information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
         500:
           $ref: '#/components/responses/InternalServerError'
 
@@ -1994,6 +2013,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NotificationConfig'
+    ConfigurationIdentitiesResponse:
+      properties:
+        data:
+          description: List of identity providers
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentityProvider'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
     #####################
     # Resources Objects #
     #####################
@@ -2510,6 +2540,265 @@ components:
           format: int64
         _links:
           $ref: '#/components/schemas/ViewLinks'
+    Info:
+      properties:
+        name:
+          description: Name of the API.
+          type: string
+        version:
+          description: Version of the API.
+          type: string
+    IdentityProvider:
+      properties:
+        id:
+          description: Unique identifier of an identity provider.
+          type: string
+        name:
+          description: Name of the identity provider.
+          type: string
+        description:
+          description: Description of the identity provider.
+          type: string
+        client_id:
+          description: ClientId of the identity provider.
+          type: string
+        email_required:
+          description: true, if an email is required for this identity provider.
+          type: boolean
+        type:
+          $ref: '#/components/schemas/IdentityProviderType'
+        authorizationEndpoint:
+          description: Authorization endpoint of the provider.
+          type: string
+        tokenIntrospectionEndpoint:
+          description: Token introspection endpoint of the provider. (Gravitee.io AM and OpenId Connect only)
+          type: string
+        userLogoutEndpoint:
+          description: User logout endpoint of the provider. (Gravitee.io AM and OpenId Connect only)
+          type: string
+        color:
+          description: color to display for this provider. (Gravitee.io AM and OpenId Connect only)
+          type: string
+        display:
+          description: Display style of the provider. (Google only)
+          type: string
+        requiredUrlParams:
+          description: Required URL params of the provider. (Google only)
+          type: array
+          items:
+            type: string
+        optionalUrlParams:
+          description: Optionnal URL params of the provider. (Github and Google only)
+          type: array
+          items:
+            type: string
+        scopes:
+          description: Scope list of the provider.
+          type: array
+          items:
+            type: string
+        icon:
+          description: Icon name to display for this provider.
+          type: string
+    ConfigurationResponse:
+      properties:
+        company:
+          $ref: '#/components/schemas/ConfigurationCompany'
+        portal:
+          $ref: '#/components/schemas/ConfigurationPortal'
+        authentication:
+          $ref: '#/components/schemas/ConfigurationAuthentication'
+        scheduler:
+          $ref: '#/components/schemas/ConfigurationScheduler'
+        documentation:
+          $ref: '#/components/schemas/ConfigurationDocumentation'
+        theme:
+          $ref: '#/components/schemas/ConfigurationTheme'
+        plan:
+          $ref: '#/components/schemas/ConfigurationPlan'
+        apiReview:
+          $ref: '#/components/schemas/Enabled'
+        analytics:
+          $ref: '#/components/schemas/ConfigurationAnalytics'
+        application:
+          $ref: '#/components/schemas/ConfigurationApplication'
+    ConfigurationCompany:
+      properties:
+        name:
+          description : The company name
+          type: string
+    ConfigurationPortal:
+      properties:
+        title:
+          description: The portal Title
+          type: string
+        entrypoint:
+          description: Default entrypoint of the gateway.
+          type: string
+        apikeyHeader:
+          description: Api-key Header. Used by portal to display the CURL command.
+          type: string
+        support:
+          $ref: '#/components/schemas/Enabled'
+        devMode:
+          $ref: '#/components/schemas/Enabled'
+        userCreation:
+          $ref: '#/components/schemas/Enabled'
+        apis:
+          $ref: '#/components/schemas/ConfigurationPortalApis'
+        analytics:
+          $ref: '#/components/schemas/ConfigurationPortalAnalytics'
+        rating:
+          $ref: '#/components/schemas/ConfigurationPortalRating'
+        uploadMedia:
+          $ref: '#/components/schemas/ConfigurationPortalMedia'
+    ConfigurationPortalApis:
+      properties:
+        tilesMode:
+          $ref: '#/components/schemas/Enabled'
+        viewMode:
+          $ref: '#/components/schemas/Enabled'
+        apiHeaderShowTags:
+          $ref: '#/components/schemas/Enabled'
+        apiHeaderShowViews:
+          $ref: '#/components/schemas/Enabled'
+    ConfigurationPortalAnalytics:
+      properties:
+        enabled:
+          description: true if Google analytics is activated
+          type: boolean
+        trackingId:
+          description: Tracking ID for Google analytics.
+          type: string
+    ConfigurationPortalRating:
+      properties:
+        enabled:
+          description: true if rating service is activated
+          type: boolean
+        comment:
+          $ref: '#/components/schemas/ConfigurationPortalRatingComment'
+    ConfigurationPortalRatingComment:
+      properties:
+        mandatory:
+          description: true if a comment is required to post a rating.
+          type: boolean
+    ConfigurationPortalMedia:
+      properties:
+        enabled:
+          description: true if uploading images is allowed
+          type: boolean
+        maxSizeInBytes:
+          description: Maximum size of uploaded images (in bytes)
+          type: integer
+    ConfigurationAuthentication:
+      properties:
+        forceLogin:
+          $ref: '#/components/schemas/Enabled'
+        localLogin:
+          $ref: '#/components/schemas/Enabled'
+        google:
+          $ref: '#/components/schemas/ConfigurationGoogleAuthentication'
+        github:
+          $ref: '#/components/schemas/ConfigurationGithubAuthentication'
+        oauth2:
+          $ref: '#/components/schemas/ConfigurationOAuth2Authentication'
+    ConfigurationGoogleAuthentication:
+      properties:
+        clientId:
+          description: client Id if a Google Identity Provider is used
+          type: string
+    ConfigurationGithubAuthentication:
+      properties:
+        clientId:
+          description: client Id if a Github Identity Provider is used
+          type: string
+    ConfigurationOAuth2Authentication:
+      properties:
+        clientId:
+          description: client Id if an OAuth2 Identity Provider is used
+          type: string
+        name:
+          description: name of the OAuth2 provider if used
+          type: string
+        color:
+          description: color to display for an OAuth2 Identity Provider if used
+          type: string
+        authorizationEndpoint:
+          description: Authorization endpoint of an OAuth2 Identity Provider if used
+          type: string
+        userLogoutEndpoint:
+          description: User logout endpoint of an OAuth2 Identity Provider if used
+          type: string
+        scope:
+          description: List of scopes of an OAuth2 Identity Provider if used
+          type: array
+          items:
+            type: string
+    ConfigurationScheduler:
+      properties:
+        tasksInSeconds:
+          description: Number of seconds for task scheduler.
+          type: integer
+        notificationsInSeconds:
+          description: Number of seconds for notification scheduler.
+          type: integer
+    ConfigurationDocumentation:
+      properties:
+        url:
+          description: URL of the main documentation.
+          type: string
+    ConfigurationTheme:
+      properties:
+        name:
+          description: Name of the custom theme.
+          type: string
+        logo:
+          description: Logo used for the customization of the portal.
+          type: string
+        loader:
+          description: Custom loader used for the customization of the portal.
+          type: string
+        css:
+          description: Path to the CSS file used for the customization of the portal.
+          type: string
+    ConfigurationPlan:
+      properties:
+        security:
+          $ref: '#/components/schemas/ConfigurationPlanSecurity'
+    ConfigurationPlanSecurity:
+      properties:
+        apikey:
+          $ref: '#/components/schemas/Enabled'
+        oauth2:
+          $ref: '#/components/schemas/Enabled'
+        keyless:
+          $ref: '#/components/schemas/Enabled'
+        jwt:
+          $ref: '#/components/schemas/Enabled'
+    ConfigurationAnalytics:
+      properties:
+        clientTimeout:
+          description: HTTP Client Timeout 
+          type: integer
+          format: int64
+    ConfigurationApplication:
+      properties:
+        registration:
+          $ref: '#/components/schemas/Enabled'
+        types:
+          $ref: '#/components/schemas/ConfigurationApplicationTypes'
+    ConfigurationApplicationTypes:
+      properties:
+        simple:
+          $ref: '#/components/schemas/Enabled'
+        browser:
+          $ref: '#/components/schemas/Enabled'
+        web:
+          $ref: '#/components/schemas/Enabled'
+        native:
+          $ref: '#/components/schemas/Enabled'
+        backend_to_backend:
+          $ref: '#/components/schemas/Enabled'
     #################
     # Input Objects #
     #################
@@ -2789,7 +3078,19 @@ components:
         - MINE
         - STARRED
         - TRENDINGS
-
+    Enabled:
+      properties:
+        enabled:
+          description: true, if the property is enabled
+          type: boolean
+    IdentityProviderType:
+      description: type of Identity Provider
+      type: string
+      enum:
+        - GOOGLE
+        - GITHUB
+        - GRAVITEEIO_AM
+        - OIDC
     #################
     # Links Objects #
     #################
@@ -2911,3 +3212,7 @@ components:
     BasicAuth:
       type: http
       scheme: basic
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: Auth-Graviteeio-APIM

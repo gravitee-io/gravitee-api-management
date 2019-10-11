@@ -1035,6 +1035,14 @@ public class PortalConfigEntity {
             public void setNativeType(Enabled nativeType) {
                 this.nativeType = nativeType;
             }
+
+            public Enabled getBackendToBackendType() {
+                return backendToBackendType;
+            }
+
+            public void setBackendToBackendType(Enabled backendToBackendType) {
+                this.backendToBackendType = backendToBackendType;
+            }
         }
 
         public class ClientRegistration {

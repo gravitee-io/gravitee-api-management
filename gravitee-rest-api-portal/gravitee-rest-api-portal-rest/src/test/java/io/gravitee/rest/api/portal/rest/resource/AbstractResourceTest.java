@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
+import io.gravitee.rest.api.portal.rest.JerseySpringTest;
+import io.gravitee.rest.api.portal.rest.enhancer.ViewEnhancer;
+import io.gravitee.rest.api.portal.rest.mapper.*;
+import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
+import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
+import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
+import io.gravitee.rest.api.service.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,59 +32,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import io.gravitee.rest.api.portal.rest.JerseySpringTest;
-import io.gravitee.rest.api.portal.rest.enhancer.ViewEnhancer;
-import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
-import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
-import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
-import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
-import io.gravitee.rest.api.portal.rest.mapper.LogMapper;
-import io.gravitee.rest.api.portal.rest.mapper.MemberMapper;
-import io.gravitee.rest.api.portal.rest.mapper.NotificationConfigMapper;
-import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
-import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
-import io.gravitee.rest.api.portal.rest.mapper.PortalNotificationMapper;
-import io.gravitee.rest.api.portal.rest.mapper.RatingMapper;
-import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
-import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
-import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
-import io.gravitee.rest.api.portal.rest.mapper.ViewMapper;
-import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
-import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
-import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
-import io.gravitee.rest.api.service.AnalyticsService;
-import io.gravitee.rest.api.service.ApiKeyService;
-import io.gravitee.rest.api.service.ApiMetadataService;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.EntrypointService;
-import io.gravitee.rest.api.service.FetcherService;
-import io.gravitee.rest.api.service.GenericNotificationConfigService;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.LogsService;
-import io.gravitee.rest.api.service.MediaService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.MessageService;
-import io.gravitee.rest.api.service.NotifierService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.PermissionService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.PolicyService;
-import io.gravitee.rest.api.service.PortalNotificationConfigService;
-import io.gravitee.rest.api.service.PortalNotificationService;
-import io.gravitee.rest.api.service.QualityMetricsService;
-import io.gravitee.rest.api.service.RatingService;
-import io.gravitee.rest.api.service.RoleService;
-import io.gravitee.rest.api.service.SocialIdentityProviderService;
-import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.SwaggerService;
-import io.gravitee.rest.api.service.TagService;
-import io.gravitee.rest.api.service.TaskService;
-import io.gravitee.rest.api.service.TicketService;
-import io.gravitee.rest.api.service.TopApiService;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.ViewService;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -128,6 +81,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(topApiService);
         reset(viewService);
         reset(ticketService);
+        reset(configService);
         reset(authenticationProvider);
         reset(jwtCookieGenerator);
         reset(apiMapper);
@@ -146,6 +100,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(portalNotificationMapper);
         reset(viewMapper);
         reset(ticketMapper);
+        reset(configMapper);
+        reset(identityProviderMapper);
         reset(viewEnhancer);
     }
     
@@ -268,6 +224,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected TicketService ticketService;
     
     @Autowired
+    protected ConfigService configService;
+    
+    @Autowired
     protected JWTCookieGenerator jwtCookieGenerator;
     
     @Autowired
@@ -313,10 +272,16 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected TicketMapper ticketMapper;
 
     @Autowired
+    protected ConfigurationMapper configMapper;
+
+    @Autowired
     protected ViewEnhancer viewEnhancer;
     
     @Autowired
     protected PortalNotificationMapper portalNotificationMapper;
+
+    @Autowired
+    protected IdentityProviderMapper identityProviderMapper;
     
     
     
@@ -500,6 +465,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
+        public ConfigService configService() {
+            return mock(ConfigService.class);
+        }
+
+        @Bean
         public ApiMapper apiMapper() {
             return mock(ApiMapper.class);
         }
@@ -572,6 +542,16 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public TicketMapper ticketMapper() {
             return mock(TicketMapper.class);
+        }
+
+        @Bean
+        public ConfigurationMapper configMapper() {
+            return mock(ConfigurationMapper.class);
+        }
+
+        @Bean
+        public IdentityProviderMapper identityProviderMapper() {
+            return mock(IdentityProviderMapper.class);
         }
 
         @Bean

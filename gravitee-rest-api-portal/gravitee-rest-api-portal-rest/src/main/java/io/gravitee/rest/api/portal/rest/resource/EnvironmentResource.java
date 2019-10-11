@@ -44,6 +44,16 @@ public class EnvironmentResource extends AbstractResource {
         return resourceContext.getResource(ApplicationsResource.class);
     }
     
+    @Path("configuration")
+    public ConfigurationResource getConfigurationResource() {
+        return resourceContext.getResource(ConfigurationResource.class);
+    }
+    
+    @Path("info")
+    public InfoResource getInfoResource() {
+        return resourceContext.getResource(InfoResource.class);
+    }
+
     @Path("pages")
     public PagesResource getPagessResource() {
         return resourceContext.getResource(PagesResource.class);
