@@ -253,8 +253,3 @@ alerts:
       hazelcast:
         config:
           path: ${gravitee.home}/config/hazelcast.xml
-
-#legacy:
-# Enable this parameter if you want the gateway act like version <1.25.11 .
-#  See https://github.com/gravitee-io/issues/issues/2557
-#  decode-url-params: true #you should not need to activate this.

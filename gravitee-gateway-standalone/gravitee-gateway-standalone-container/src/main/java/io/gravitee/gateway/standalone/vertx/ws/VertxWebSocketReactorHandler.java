@@ -31,8 +31,8 @@ import io.vertx.core.http.HttpServerRequest;
  */
 public class VertxWebSocketReactorHandler extends VertxReactorHandler {
 
-    public VertxWebSocketReactorHandler(final Reactor reactor, boolean legacyDecodeUrlParams) {
-        super(reactor, legacyDecodeUrlParams);
+    public VertxWebSocketReactorHandler(final Reactor reactor) {
+        super(reactor);
     }
 
     @Override

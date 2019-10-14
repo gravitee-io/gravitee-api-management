@@ -18,7 +18,6 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
-import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.common.utils.UUID;
@@ -54,15 +53,12 @@ public class VertxHttpServerRequest implements Request {
 
     protected final Metrics metrics;
 
-    private final boolean legacyDecodeUrlParams;
-
     private Handler<Long> timeoutHandler;
 
-    public VertxHttpServerRequest(HttpServerRequest httpServerRequest, boolean legacyDecodeUrlParams) {
+    public VertxHttpServerRequest(HttpServerRequest httpServerRequest) {
         this.httpServerRequest = httpServerRequest;
         this.timestamp = System.currentTimeMillis();
         this.id = UUID.toString(UUID.random());
-        this.legacyDecodeUrlParams = legacyDecodeUrlParams;
 
         this.metrics = Metrics.on(timestamp).build();
         this.metrics.setRequestId(id());
@@ -107,16 +103,7 @@ public class VertxHttpServerRequest implements Request {
     @Override
     public MultiValueMap<String, String> parameters() {
         if (queryParameters == null) {
-            if (legacyDecodeUrlParams) {
-                MultiMap parameters = httpServerRequest.params();
-                queryParameters = new LinkedMultiValueMap<>(parameters.size());
-
-                for (Map.Entry<String, String> param : httpServerRequest.params()) {
-                    queryParameters.put(param.getKey(), parameters.getAll(param.getKey()));
-                }
-            } else {
-                queryParameters = URIUtils.parameters(httpServerRequest.uri());
-            }
+            queryParameters = URIUtils.parameters(httpServerRequest.uri());
         }
 
         return queryParameters;
