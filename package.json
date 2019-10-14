@@ -1,6 +1,7 @@
 {
-  "name": "gravitee-portal-webui",
+  "name": "@gravitee/portal-webui",
   "version": "0.0.0",
+  "description": "Gravitee.io Portal",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -19,7 +20,8 @@
     "@angular/platform-browser": "~8.2.9",
     "@angular/platform-browser-dynamic": "~8.2.9",
     "@angular/router": "~8.2.9",
-    "@gravitee/components": "file:../gravitee-components",
+    "@gravitee/components": "github:gravitee-io/gravitee-components",
+    "ng-portal-webclient": "github:gravitee-io/gravitee-clients-sdk",
     "rxjs": "~6.4.0",
     "tslib": "^1.10.0",
     "zone.js": "~0.9.1"
