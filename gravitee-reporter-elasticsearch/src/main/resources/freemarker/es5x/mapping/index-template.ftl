@@ -30,8 +30,7 @@
                     "index": false
                 },
                 "message": {
-                    "type": "keyword",
-                    "index": false
+                    "type": "text"
                 },
                 "method": {
                     "type": "short"
