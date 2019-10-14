@@ -31,20 +31,16 @@ import io.gravitee.gateway.core.logging.LimitedLoggableProxyConnection;
 import io.gravitee.gateway.core.logging.LoggableProxyConnection;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.core.proxy.DirectProxyConnection;
-import io.netty.handler.codec.http.QueryStringEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
 import java.util.StringJoiner;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EndpointInvoker implements Invoker {
@@ -54,9 +50,6 @@ public class EndpointInvoker implements Invoker {
     private static final char URI_PARAM_VALUE_SEPARATOR_CHAR = '=';
     private static final char URI_QUERY_DELIMITER_CHAR = '?';
     private static final CharSequence URI_QUERY_DELIMITER_CHAR_SEQUENCE = "?";
-
-    @Value("${legacy.decode-url-params:false}")
-    private boolean legacyDecodeUrlParams;
 
     @Autowired
     private EndpointResolver endpointResolver;
@@ -73,11 +66,7 @@ public class EndpointInvoker implements Invoker {
         } else {
             URI uri = null;
             try {
-                if (legacyDecodeUrlParams) {
-                    uri = legacyEncodeQueryParameters(endpoint.getUri(), context.request().parameters());
-                } else {
-                    uri = buildURI(endpoint.getUri(), context);
-                }
+                uri = buildURI(endpoint.getUri(), context);
             } catch (Exception ex) {
                 context.request().metrics().setMessage(getStackTraceAsString(ex));
 
@@ -127,22 +116,6 @@ public class EndpointInvoker implements Invoker {
 
         // Resume the incoming request to handle content and end
         context.request().resume();
-    }
-
-    private URI legacyEncodeQueryParameters(String uri, MultiValueMap<String, String> parameters) throws URISyntaxException {
-        if (parameters != null && !parameters.isEmpty()) {
-            QueryStringEncoder encoder = new QueryStringEncoder(uri);
-            for (Map.Entry<String, List<String>> queryParam : parameters.entrySet()) {
-                if (queryParam.getValue() != null) {
-                    for (String value : queryParam.getValue()) {
-                        encoder.addParam(queryParam.getKey(), (value != null && !value.isEmpty()) ? value : null);
-
-                    }
-                }
-            }
-            return encoder.toUri();
-        }
-        return URI.create(uri);
     }
 
     private URI buildURI(String uri, ExecutionContext executionContext) {

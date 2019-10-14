@@ -241,7 +241,15 @@ ds:
 #    header: X-Gravitee-Api-Key
 #    param: api-key
 
-#legacy:
-# Enable this parameter if you want the gateway act like version <1.25.11 .
-#  See https://github.com/gravitee-io/issues/issues/2557
-#  decode-url-params: true #you should not need to activate this.
+# Gravitee Alert Engine is only available with support
+alerts:
+  enabled: false
+  default:
+    enabled: false
+    # must be reachable by other nodes
+    cluster:
+      host: localhost
+      port: 0
+      hazelcast:
+        config:
+          path: ${gravitee.home}/config/hazelcast.xml

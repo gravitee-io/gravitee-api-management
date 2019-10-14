@@ -45,9 +45,6 @@ public class ReactorVerticle extends AbstractVerticle {
     @Autowired
     private Reactor reactor;
 
-    @Value("${legacy.decode-url-params:false}")
-    private boolean legacyDecodeUrlParams;
-
     @Autowired
     private VertxHttpServerConfiguration httpServerConfiguration;
 
@@ -65,13 +62,13 @@ public class ReactorVerticle extends AbstractVerticle {
         VertxReactorHandler handler;
 
         if (websocketEnabled) {
-            handler = new VertxWebSocketReactorHandler(reactor, this.legacyDecodeUrlParams);
+            handler = new VertxWebSocketReactorHandler(reactor);
         } else {
-            handler = new VertxReactorHandler(reactor, this.legacyDecodeUrlParams);
+            handler = new VertxReactorHandler(reactor);
         }
 
         if (requestTimeout > 0) {
-            handler = new VertxReactorTimeoutHandler(reactor, handler, vertx, requestTimeout, this.legacyDecodeUrlParams);
+            handler = new VertxReactorTimeoutHandler(reactor, handler, vertx, requestTimeout);
         }
 
         httpServer.requestHandler(handler);
