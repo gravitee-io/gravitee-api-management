@@ -56,6 +56,7 @@
         <jsonpath.version>2.3.0</jsonpath.version>
         <lucene.version>7.5.0</lucene.version>
         <powermock.version>2.0.0</powermock.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
     </properties>
 
     <modules>
@@ -274,6 +275,12 @@
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
         </dependency>
 
         <!-- Logging -->
