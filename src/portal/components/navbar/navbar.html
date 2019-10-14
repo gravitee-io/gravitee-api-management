@@ -60,8 +60,8 @@
             <a ui-sref="user">{{'menu.profile' | translate}}</a>
             <a ui-sref="management.tasks">{{'menu.tasks' | translate}}<span ng-if="$ctrl.getUserTaskCount() > 0" flex class="badge gv-menu-badge">{{$ctrl.getUserTaskCount()}}</span></a>
             <a ui-sref="management.applications.list" ng-if="$ctrl.isAppManagement()">{{'menu.applications' | translate}}</a>
-            <a ui-sref="management.apis.list" ng-if="$ctrl.isUserManagement()">{{'menu.management' | translate}}</a>
-            <a ui-sref="management.apis.list" ng-if="!$ctrl.isUserManagement()">{{'menu.apis' | translate}}</a>
+            <a ui-sref="management.apis.list">{{'menu.apis' | translate}}</a>
+            <a ui-sref="management.settings" ng-if="$ctrl.isUserManagement()">{{'menu.management' | translate}}</a>
         </div>
       </div>
       <md-divider></md-divider>
