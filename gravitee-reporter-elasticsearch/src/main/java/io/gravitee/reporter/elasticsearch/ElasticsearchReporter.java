@@ -27,7 +27,6 @@ import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.Indexer;
 import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
-import io.gravitee.reporter.elasticsearch.spring.context.Elastic2xBeanRegistrer;
 import io.gravitee.reporter.elasticsearch.spring.context.Elastic5xBeanRegistrer;
 import io.gravitee.reporter.elasticsearch.spring.context.Elastic6xBeanRegistrer;
 import io.gravitee.reporter.elasticsearch.spring.context.Elastic7xBeanRegistrer;
@@ -83,12 +82,6 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 			DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
 
 			switch (version.getVersion().getMajorVersion()) {
-				case 2:
-					logger.warn("Elasticsearch 2.x is now deprecated and will be removed from a future version of Gravitee.io");
-					logger.warn("Please ensure to move to an Elasticsearch version >= 5.x");
-
-					new Elastic2xBeanRegistrer().register(beanFactory, configuration.isPerTypeIndex());
-					break;
 				case 5:
 					new Elastic5xBeanRegistrer().register(beanFactory, configuration.isPerTypeIndex());
 					break;

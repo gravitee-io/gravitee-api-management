@@ -28,7 +28,7 @@
 
 	<groupId>io.gravitee.elasticsearch</groupId>
 	<artifactId>gravitee-elasticsearch</artifactId>
-	<version>1.31.0-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Gravitee.io APIM - Elasticsearch Connector</name>
@@ -180,17 +180,6 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>es2x</id>
-						<goals>
-							<goal>test</goal>
-						</goals>
-						<configuration>
-							<systemPropertyVariables>
-								<elasticsearch>2x</elasticsearch>
-							</systemPropertyVariables>
-						</configuration>
-					</execution>
-					<execution>
 						<id>es5x</id>
 						<goals>
 							<goal>test</goal>
@@ -229,26 +218,6 @@
 	</build>
 
 	<profiles>
-		<profile>
-			<id>es-2x</id>
-			<activation>
-				<property>
-					<name>elasticsearch</name>
-					<value>2x</value>
-				</property>
-			</activation>
-			<properties>
-				<elasticsearch.version>2.4.6</elasticsearch.version>
-			</properties>
-			<dependencies>
-				<dependency>
-					<groupId>org.elasticsearch</groupId>
-					<artifactId>elasticsearch</artifactId>
-					<version>${elasticsearch.version}</version>
-					<scope>test</scope>
-				</dependency>
-			</dependencies>
-		</profile>
 		<profile>
 			<id>es-5x</id>
 			<activation>
