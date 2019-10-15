@@ -18,14 +18,10 @@ package io.gravitee.gateway.reactor.impl;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpHeadersValues;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.env.GatewayConfiguration;
@@ -35,12 +31,12 @@ import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
+import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,9 +49,6 @@ public class DefaultReactor extends AbstractService implements
 
     @Autowired
     private EventManager eventManager;
-
-    @Autowired
-    private Environment environment;
 
     @Autowired
     private ReactorHandlerRegistry reactorHandlerRegistry;
@@ -71,6 +64,9 @@ public class DefaultReactor extends AbstractService implements
 
     @Autowired
     private ResponseProcessorChainFactory responseProcessorChainFactory;
+
+    @Autowired
+    private NotFoundProcessorChainFactory notFoundProcessorChainFactory;
 
     @Override
     public void route(Request serverRequest, Response serverResponse, Handler<ExecutionContext> handler) {
@@ -99,11 +95,18 @@ public class DefaultReactor extends AbstractService implements
                                 })
                                 .handle(ctx);
                     } else {
-                        sendNotFound(ctx);
+                        processNotFound(ctx, handler);
                     }
                 })
                 .errorHandler(__ -> processResponse(context, handler))
                 .exitHandler(__ -> processResponse(context, handler))
+                .handle(context);
+    }
+
+    private void processNotFound(ExecutionContext context, Handler<ExecutionContext> handler) {
+        notFoundProcessorChainFactory
+                .create()
+                .handler(handler)
                 .handle(context);
     }
 
@@ -112,20 +115,6 @@ public class DefaultReactor extends AbstractService implements
                 .create()
                 .handler(handler)
                 .handle(context);
-    }
-
-    private void sendNotFound(ExecutionContext context) {
-        LOGGER.debug("No handler can be found for request {}, returning NOT_FOUND (404)", context.request().path());
-        // Send a NOT_FOUND HTTP status code (404)
-        context.response().status(HttpStatusCode.NOT_FOUND_404);
-
-        String message = environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
-        context.response().headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(message.length()));
-        context.response().headers().set(HttpHeaders.CONTENT_TYPE, "text/plain");
-        context.response().headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-        context.response().write(Buffer.buffer(message));
-
-        context.response().end();
     }
 
     @Override

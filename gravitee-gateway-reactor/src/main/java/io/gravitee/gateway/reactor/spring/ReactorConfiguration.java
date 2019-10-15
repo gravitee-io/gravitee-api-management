@@ -23,6 +23,7 @@ import io.gravitee.gateway.reactor.handler.context.provider.NodeTemplateVariable
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
+import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
@@ -69,6 +70,11 @@ public class ReactorConfiguration {
     @Bean
     public ResponseProcessorChainFactory responseProcessorChainFactory() {
         return new ResponseProcessorChainFactory();
+    }
+
+    @Bean
+    public NotFoundProcessorChainFactory notFoundProcessorChainFactory() {
+        return new NotFoundProcessorChainFactory();
     }
 
     @Bean
