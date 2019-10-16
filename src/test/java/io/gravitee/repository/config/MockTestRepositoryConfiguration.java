@@ -29,163 +29,163 @@ public class MockTestRepositoryConfiguration {
     }
 
     @Bean
-    public AuditRepositoryMock auditRepository() throws Exception {
+    public AuditRepositoryMock auditRepository() {
         return new AuditRepositoryMock();
     }
 
     @Bean
-    public ApiKeyRepositoryMock apiKeyRepository() throws Exception {
+    public ApiKeyRepositoryMock apiKeyRepository() {
         return new ApiKeyRepositoryMock();
     }
 
     @Bean
-    public ApiRepositoryMock apiRepository() throws Exception {
+    public ApiRepositoryMock apiRepository() {
         return new ApiRepositoryMock();
     }
 
     @Bean
-    public ApplicationRepositoryMock applicationRepository() throws Exception {
+    public ApplicationRepositoryMock applicationRepository() {
         return new ApplicationRepositoryMock();
     }
 
     @Bean
-    public EventRepositoryMock eventRepository() throws Exception {
+    public EventRepositoryMock eventRepository() {
         return new EventRepositoryMock();
     }
 
     @Bean
-    public UserRepositoryMock userRepository() throws Exception {
+    public UserRepositoryMock userRepository() {
         return new UserRepositoryMock();
     }
 
     @Bean
-    public ViewRepositoryMock viewRepository() throws Exception {
+    public ViewRepositoryMock viewRepository() {
         return new ViewRepositoryMock();
     }
 
     @Bean
-    public TagRepositoryMock tagRepository() throws Exception {
+    public TagRepositoryMock tagRepository() {
         return new TagRepositoryMock();
     }
 
 
     @Bean
-    public GroupRepositoryMock groupRepository() throws Exception {
+    public GroupRepositoryMock groupRepository() {
         return new GroupRepositoryMock();
     }
 
     @Bean
-    public PlanRepositoryMock planRepository() throws Exception {
+    public PlanRepositoryMock planRepository() {
         return new PlanRepositoryMock();
     }
 
     @Bean
-    public MembershipRepositoryMock membershipRepository() throws Exception {
+    public MembershipRepositoryMock membershipRepository() {
         return new MembershipRepositoryMock();
     }
 
     @Bean
-    public PageRepositoryMock pageRepository() throws Exception {
+    public PageRepositoryMock pageRepository() {
         return new PageRepositoryMock();
     }
 
     @Bean
-    public SubscriptionRepositoryMock subscriptionRepository() throws Exception {
+    public SubscriptionRepositoryMock subscriptionRepository() {
         return new SubscriptionRepositoryMock();
     }
 
     @Bean
-    public TenantRepositoryMock tenantRepository() throws Exception {
+    public TenantRepositoryMock tenantRepository() {
         return new TenantRepositoryMock();
     }
 
     @Bean
-    public MetadataRepositoryMock metadataRepository() throws Exception {
+    public MetadataRepositoryMock metadataRepository() {
         return new MetadataRepositoryMock();
     }
 
     @Bean
-    public RoleRepositoryMock roleRepository() throws Exception {
+    public RoleRepositoryMock roleRepository() {
         return new RoleRepositoryMock();
     }
 
     @Bean
-    public RatingRepositoryMock ratingRepository() throws Exception {
+    public RatingRepositoryMock ratingRepository() {
         return new RatingRepositoryMock();
     }
 
     @Bean
-    public RatingAnswerRepositoryMock ratingAnswerRepository() throws Exception {
+    public RatingAnswerRepositoryMock ratingAnswerRepository() {
         return new RatingAnswerRepositoryMock();
     }
 
     @Bean
-    public PortalNotificationRepositoryMock notificationRepository() throws Exception {
+    public PortalNotificationRepositoryMock notificationRepository() {
         return new PortalNotificationRepositoryMock();
     }
 
     @Bean
-    public PortalNotificationConfigRepositoryMock portalNotificationConfigRepository() throws Exception {
+    public PortalNotificationConfigRepositoryMock portalNotificationConfigRepository() {
         return new PortalNotificationConfigRepositoryMock();
     }
 
     @Bean
-    public GenericNotificationConfigRepositoryMock genericNotificationConfigRepository() throws Exception {
+    public GenericNotificationConfigRepositoryMock genericNotificationConfigRepository() {
         return new GenericNotificationConfigRepositoryMock();
     }
 
     @Bean
-    public ParameterRepositoryMock parameterRepository() throws Exception {
+    public ParameterRepositoryMock parameterRepository() {
         return new ParameterRepositoryMock();
     }
 
     @Bean
-    public DictionaryRepositoryMock dictionaryRepository() throws Exception {
+    public DictionaryRepositoryMock dictionaryRepository() {
         return new DictionaryRepositoryMock();
     }
 
     @Bean
-    public ApiHeaderRepositoryMock apiHeaderRepository() throws Exception {
+    public ApiHeaderRepositoryMock apiHeaderRepository() {
         return new ApiHeaderRepositoryMock();
     }
 
     @Bean
-    public IdentityProviderRepositoryMock identityProviderRepository() throws Exception {
+    public IdentityProviderRepositoryMock identityProviderRepository() {
         return new IdentityProviderRepositoryMock();
     }
 
     @Bean
-    public MediaRepositoryMock mediaRepository() throws Exception {
+    public MediaRepositoryMock mediaRepository() {
         return new MediaRepositoryMock();
     }
 
     @Bean
-    public AlertRepositoryMock alertRepository() throws Exception {
+    public AlertRepositoryMock alertRepository() {
         return new AlertRepositoryMock();
     }
 
     @Bean
-    public EntrypointRepositoryMock entrypointRepositoryMock() throws Exception {
+    public EntrypointRepositoryMock entrypointRepositoryMock() {
         return new EntrypointRepositoryMock();
     }
 
     @Bean
-    public InvitationRepositoryMock invitationRepositoryMock() throws Exception {
+    public InvitationRepositoryMock invitationRepositoryMock() {
         return new InvitationRepositoryMock();
     }
 
     @Bean
-    public ClientRegistrationProviderRepositoryMock clientRegistrationProviderRepositoryMock() throws Exception {
+    public ClientRegistrationProviderRepositoryMock clientRegistrationProviderRepositoryMock() {
         return new ClientRegistrationProviderRepositoryMock();
     }
 
     @Bean
-    public CommandRepositoryMock messageRepository() throws Exception {
+    public CommandRepositoryMock messageRepository() {
         return new CommandRepositoryMock();
     }
 
     @Bean
-    public WorkflowRepositoryMock workflowRepository() throws Exception {
+    public WorkflowRepositoryMock workflowRepository() {
         return new WorkflowRepositoryMock();
     }
 
@@ -197,5 +197,10 @@ public class MockTestRepositoryConfiguration {
     @Bean
     public ApiQualityRuleRepositoryMock apiQualityRuleRepository() throws Exception {
         return new ApiQualityRuleRepositoryMock();
+    }
+
+    @Bean
+    public DashboardRepositoryMock dashboardRepositoryMock() {
+        return new DashboardRepositoryMock();
     }
 }

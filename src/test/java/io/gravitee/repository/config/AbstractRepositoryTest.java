@@ -127,6 +127,8 @@ public abstract class AbstractRepositoryTest {
     protected QualityRuleRepository qualityRuleRepository;
     @Inject
     protected ApiQualityRuleRepository apiQualityRuleRepository;
+    @Inject
+    protected DashboardRepository dashboardRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -254,6 +256,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof ApiQualityRule) {
             apiQualityRuleRepository.create((ApiQualityRule) object);
+        }
+        else if (object instanceof Dashboard) {
+            dashboardRepository.create((Dashboard) object);
         }
     }
 
