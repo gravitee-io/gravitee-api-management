@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.elasticsearch.analytics.query;
 
-import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.Query;
@@ -44,17 +43,17 @@ public class CountQueryCommand extends AbstractElasticsearchQueryCommand<CountRe
 		final String sQuery = this.createQuery(TEMPLATE, query);
 		
 		try {
-			SearchResponse searchResponse = execute(countQuery, Type.REQUEST, sQuery).blockingGet();
-			return this.toCountResponse(searchResponse);
+			io.gravitee.elasticsearch.model.CountResponse response = executeCount(countQuery, Type.REQUEST, sQuery).blockingGet();
+			return this.toCountResponse(response);
 		} catch (final Exception eex) {
 			logger.error("Impossible to perform CountQuery", eex);
 			throw new AnalyticsException("Impossible to perform CountQuery", eex);
 		}
 	}
 
-	private CountResponse toCountResponse(final SearchResponse response) {
+	private CountResponse toCountResponse(final io.gravitee.elasticsearch.model.CountResponse response) {
 		final CountResponse countResponse = new CountResponse();
-		countResponse.setCount(response.getSearchHits().getTotal().getValue());
+		countResponse.setCount(response.getCount());
 		return countResponse;
 	}
 }

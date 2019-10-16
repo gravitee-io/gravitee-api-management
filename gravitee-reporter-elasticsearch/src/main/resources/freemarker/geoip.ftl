@@ -17,7 +17,6 @@
       "value": "Unknown",
       "override": false
    }
-
 },
 {
     "set": {
@@ -33,5 +32,4 @@
     "override": false
   }
 }
-
 </@compress>

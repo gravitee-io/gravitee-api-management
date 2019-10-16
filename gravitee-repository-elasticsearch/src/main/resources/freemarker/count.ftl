@@ -1,5 +1,4 @@
 {
-  "size": 0,
   "query": {
     "bool": {
       "filter": [

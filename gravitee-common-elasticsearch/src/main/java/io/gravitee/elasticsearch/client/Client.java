@@ -16,6 +16,7 @@
 package io.gravitee.elasticsearch.client;
 
 import io.gravitee.elasticsearch.exception.ElasticsearchException;
+import io.gravitee.elasticsearch.model.CountResponse;
 import io.gravitee.elasticsearch.model.Health;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
@@ -33,14 +34,10 @@ import java.util.List;
 public interface Client {
 
     Single<ElasticsearchInfo> getInfo() throws ElasticsearchException;
-
     Single<Health> getClusterHealth();
-
     Single<BulkResponse> bulk(List<Buffer> data);
-
     Completable putTemplate(String templateName, String template);
-
     Completable putPipeline(String templateName, String template);
-
     Single<SearchResponse> search(String indexes, String type, String query);
+    Single<CountResponse> count(String indexes, String type, String query);
 }

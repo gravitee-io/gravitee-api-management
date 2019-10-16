@@ -23,13 +23,14 @@ import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.config.Endpoint;
 import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.model.Health;
+import io.gravitee.elasticsearch.model.CountResponse;
+import io.gravitee.elasticsearch.model.Response;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.vertx.core.Handler;
-import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
@@ -68,6 +69,7 @@ public class HttpClient implements Client {
     private static final String URL_TEMPLATE = "/_template";
     private static final String URL_INGEST = "/_ingest/pipeline";
     private static final String URL_SEARCH = "/_search?ignore_unavailable=true";
+    private static final String URL_COUNT = "/_count?ignore_unavailable=true";
 
     @Autowired
     private Vertx vertx;
@@ -217,6 +219,39 @@ public class HttpClient implements Client {
     }
 
     /**
+     * Perform an HTTP count query
+     * @param indexes indexes names. If null count on all indexes
+     * @param type document type separated by comma. If null count on all types
+     * @param query json body query
+     * @return elasticsearch response
+     */
+    public Single<CountResponse> count(final String indexes, final String type, final String query) {
+        // index can be null _count on all index
+        final StringBuilder url = new StringBuilder()
+                .append('/')
+                .append(indexes);
+
+        if (type != null) {
+            url.append('/').append(type);
+        }
+
+        url.append(URL_COUNT);
+        return httpClient
+                .post(url.toString())
+                .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .rxSendBuffer(Buffer.buffer(query))
+                .map(response -> {
+                    if (response.statusCode() != HttpStatusCode.OK_200) {
+                        logger.error("Unable to count: url[{}] status[{}] query[{}] response[{}]",
+                                url.toString(), response.statusCode(), query, response.body());
+                        throw new ElasticsearchException("Unable to count");
+                    }
+
+                    return mapper.readValue(response.bodyAsString(), CountResponse.class);
+                });
+    }
+
+    /**
      * Perform an HTTP search query
      * @param indexes indexes names. If null search on all indexes
      * @param type document type separated by comma. If null search on all types
@@ -234,7 +269,6 @@ public class HttpClient implements Client {
         }
 
         url.append(URL_SEARCH);
-
         return httpClient
                 .post(url.toString())
                 .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
@@ -247,6 +281,28 @@ public class HttpClient implements Client {
                     }
 
                     return mapper.readValue(response.bodyAsString(), SearchResponse.class);
+                });
+    }
+
+    /**
+     * Perform an HTTP count query
+     * @param url URL to call
+     * @param query json body query
+     * @return elasticsearch response
+     */
+    public Single<Response> count(final String url, final String query) {
+        return httpClient
+                .post(url)
+                .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .rxSendBuffer(Buffer.buffer(query))
+                .map(response -> {
+                    if (response.statusCode() != HttpStatusCode.OK_200) {
+                        logger.error("Unable to count: url[{}] status[{}] query[{}] response[{}]",
+                                url, response.statusCode(), query, response.body());
+                        throw new ElasticsearchException("Unable to count");
+                    }
+
+                    return mapper.readValue(response.bodyAsString(), CountResponse.class);
                 });
     }
 

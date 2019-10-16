@@ -23,9 +23,6 @@ import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.stats.StatsQuery;
 import io.gravitee.repository.analytics.query.stats.StatsResponse;
 
-import java.util.HashMap;
-import java.util.Iterator;
-
 /**
  * Commmand used to handle StatsQuery
  *

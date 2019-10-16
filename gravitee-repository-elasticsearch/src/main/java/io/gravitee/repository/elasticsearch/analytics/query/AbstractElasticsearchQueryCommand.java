@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.analytics.query;
 
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
+import io.gravitee.elasticsearch.model.CountResponse;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.elasticsearch.utils.Type;
@@ -34,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Abstract class used to execute an analytic Elasticsearch query.
@@ -126,6 +126,30 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 					sQuery);
 		} else {
 			result = this.client.search(
+					this.indexNameGenerator.getTodayIndexName(type, clusters),
+					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : type.getType(),
+					sQuery);
+		}
+
+		return result;
+	}
+
+	Single<CountResponse> executeCount(AbstractQuery<T> query, Type type, String sQuery) {
+		final Single<CountResponse> result;
+
+		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
+
+		sQuery = sQuery.replaceAll(":(((\\/)(\\w|-)*)|((\\w|-)*:(\\d)*))", ":\\\\\"$1\\\\\"");
+		if (query.timeRange() != null) {
+			final Long from = query.timeRange().range().from();
+			final Long to = query.timeRange().range().to();
+
+			result = this.client.count(
+					this.indexNameGenerator.getIndexName(type, from, to, clusters),
+					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : type.getType(),
+					sQuery);
+		} else {
+			result = this.client.count(
 					this.indexNameGenerator.getTodayIndexName(type, clusters),
 					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : type.getType(),
 					sQuery);

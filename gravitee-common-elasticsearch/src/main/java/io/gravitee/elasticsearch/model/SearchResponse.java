@@ -29,7 +29,7 @@ import java.util.Map;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SearchResponse implements Serializable {
+public class SearchResponse implements Response, Serializable {
 
 	/**
 	 * UID
