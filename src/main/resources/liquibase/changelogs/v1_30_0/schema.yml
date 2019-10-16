@@ -31,3 +31,30 @@ databaseChangeLog:
               constraintName: pk_api_quality_rules
               columnNames: api, quality_rule
               tableName: api_quality_rules
+
+          - createTable:
+              tableName: dashboards
+              columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: query_filter, type: nvarchar(128), constraints: { nullable: true } }
+                - column: {name: order, type: int, constraints: { nullable: false } }
+                - column: {name: enabled, type: boolean, constraints: { nullable: false } }
+                - column: {name: definition, type: nclob, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+          - addPrimaryKey:
+              constraintName: pk_dashboards
+              columnNames: id
+              tableName: dashboards
+
+          - createIndex:
+              indexName: idx_dashboards_reference_type
+              columns:
+                - column:
+                    name: reference_type
+                    type: nvarchar(32)
+              tableName: dashboards

@@ -156,7 +156,7 @@ public class JdbcMetadataRepository implements MetadataRepository {
 
     @Override
     public List<Metadata> findByReferenceType(final MetadataReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcMetadataRepository.findByReferenceType({}, {})", referenceType);
+        LOGGER.debug("JdbcMetadataRepository.findByReferenceType({})", referenceType);
         try {
             return jdbcTemplate.query("select * from metadata where reference_type = ?"
                     , ORM.getRowMapper()
