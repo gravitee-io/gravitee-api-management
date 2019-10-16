@@ -194,8 +194,11 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
 
     private void handleError(ExecutionContext context, ProcessorFailure failure) {
+        if (context.request().metrics().getApiResponseTimeMs() > 0) {
+            context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
+                    context.request().metrics().getApiResponseTimeMs());
+        }
         context.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
-
         errorProcessorChain
                 .create()
                 .handler(__ -> handler.handle(context))
