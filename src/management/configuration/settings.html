@@ -33,7 +33,9 @@
                 <strong>Portal</strong>
             </div>
             <ul class="aui-nav">
-              <li class="iterable-item" ui-sref-active="aui-nav-selected"
+              <li class="iterable-item"
+                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.analytics') ||
+                  $ctrl.$state.includes('management.settings.dashboard') || $ctrl.$state.includes('management.settings.dashboardnew')}"
                   ng-if="$ctrl.settingsMenu.analytics.perm">
                   <a class="execute" ui-sref="{{$ctrl.settingsMenu.analytics.goTo}}">Analytics</a>
               </li>

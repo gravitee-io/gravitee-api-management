@@ -16,6 +16,7 @@
 import ApiService from '../../../services/api.service';
 import {StateParams} from '@uirouter/core';
 import TenantService from "../../../services/tenant.service";
+import DashboardService from "../../../services/dashboard.service";
 
 export default apisAnalyticsRouterConfig;
 
@@ -30,6 +31,9 @@ function apisAnalyticsRouterConfig($stateProvider) {
       template: require('./overview/analytics.html'),
       controller: 'ApiAnalyticsController',
       controllerAs: 'analyticsCtrl',
+      resolve: {
+        dashboards: (DashboardService: DashboardService) => DashboardService.list('API').then(response => response.data)
+      },
       data: {
         menu: {
           label: 'Analytics',
@@ -56,7 +60,8 @@ function apisAnalyticsRouterConfig($stateProvider) {
           dynamic: true
         },
         dashboard: {
-          type: 'string'
+          type: 'string',
+          dynamic: true
         }
       }
     })

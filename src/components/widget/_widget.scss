@@ -1,4 +1,7 @@
 .widget-card {
+  height: 100%;
+  overflow: scroll;
+  padding-bottom: 10px;
   & > md-card-title {
     padding-bottom: 0px;
     span.md-title {
@@ -27,6 +30,17 @@
   a:hover {
     color: #5a646d;
   }
+
+  & > md-card-content md-input-container, & > .gravitee-widget-draggable md-input-container {
+    margin-bottom: 0;
+    margin-top: 15px;
+    label {
+      margin-bottom: 0;
+    }
+    md-checkbox {
+      margin: 0;
+    }
+  }
 }
 
 .gravitee-widget-draggable {
@@ -45,11 +59,7 @@
 }
 
 .gv-widget-stats-container {
-  margin-top: 40px;
-}
-
-.gv-widget-stats-container-sm {
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .gv-widget-stats {

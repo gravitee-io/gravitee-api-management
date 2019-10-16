@@ -35,7 +35,8 @@ class DashboardController {
     private ApplicationService,
     private $scope,
     private Constants,
-    private $state
+    private $state,
+    private dashboards
   ) {
     'ngInject';
     this.eventLabels = {};
@@ -43,351 +44,24 @@ class DashboardController {
     this.selectedAPIs = [];
     this.selectedApplications = [];
     this.selectedEventTypes = [];
-
-    this.$scope.platformDashboard = [{
-      col: 0,
-      row: 0,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Top APIs',
-      subhead: 'Ordered by API calls',
-      chart: {
-        type: 'table',
-        selectable: true,
-        link: 'api',
-        columns: ['API', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'api',
-          size: 10000
-        }
-      }
-    }, {
-      col: 2,
-      row: 0,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Top applications',
-      subhead: 'Ordered by application calls',
-      chart: {
-        type: 'table',
-        selectable: true,
-        link: 'application',
-        columns: ['Application', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'application',
-          size: 10000
-        }
-      }
-    }, {
-      col: 0,
-      row: 1,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Top failed APIs',
-      subhead: 'Order by API 5xx status calls',
-      chart: {
-        type: 'table',
-        link: 'api',
-        columns: ['API', 'Hits'],
-        paging: 5,
-        percent: true,
-        request: {
-          type: 'group_by',
-          field: 'api',
-          query: 'status:[500 TO 599]',
-          size: 10000
-        }
-      }
-    }, {
-      col: 2,
-      row: 1,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Top slow APIs',
-      subhead: 'Order by API response time calls',
-      chart: {
-        type: 'table',
-        link: 'api',
-        columns: ['API', 'Latency (in ms)'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'api',
-          order: '-avg:response-time',
-          size: 10000
-        }
-      }
-    }, {
-      col: 4,
-      row: 1,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Top overhead APIs',
-      subhead: 'Order by gateway latency',
-      chart: {
-        type: 'table',
-        link: 'api',
-        columns: ['API', 'Latency (in ms)'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'api',
-          order: '-avg:proxy-latency',
-          size: 10000
-        }
-      }
-    },
-    {
-      col: 0,
-      row: 3,
-      sizeY: 1,
-      sizeX: 6,
-      title: 'Response Status',
-      subhead: 'Hits repartition by HTTP Status',
-      chart: {
-        type: 'line',
-        stacked: true,
-        selectable: true,
-        labelPrefix: 'HTTP Status',
-        request: {
-          type: 'date_histo',
-          field: 'status',
-          aggs: 'field:status'
-        }
-      }
-    }, {
-      col: 0,
-      row: 4,
-      sizeY: 1,
-      sizeX: 6,
-      title: 'Response times',
-      subhead: 'Average response time for the gateway and the API',
-      chart: {
-        type: 'line',
-        stacked: false,
-        request: {
-          type: 'date_histo',
-          field: 'api',
-          aggs: 'avg:response-time%3Bavg:api-response-time'
-        },
-        labels: ['Global latency (ms)', 'API latency (ms)']
-      }
-    }, {
-      col: 4,
-      row: 0,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Tenant repartition',
-      subhead: 'Hits repartition by tenant',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['Tenant', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'tenant',
-          size: 20
-        }
-      }
-    }, {
-        row: 3,
-        col: 0,
-        sizeY: 1,
-        sizeX: 2,
-        title: 'Hits by Host ',
-        subhead: 'Hits repartition by Host HTTP Header',
-        chart: {
-          type: 'table',
-          selectable: true,
-          columns: ['Host', 'Hits'],
-          paging: 5,
-          request: {
-            type: 'group_by',
-            field: 'host',
-            fieldLabel: 'host',
-            size: 20
-          }
-        }
-      }];
-
-    this.$scope.geoDashboard = [{
-      row: 0,
-      col: 0,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Top APIs',
-      subhead: 'Ordered by API calls',
-      chart: {
-        type: 'table',
-        selectable: true,
-        link: 'api',
-        columns: ['API', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'api',
-          size: 10000
-        }
-      }
-    }, {
-      row: 0,
-      col: 2,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Top applications',
-      subhead: 'Ordered by application calls',
-      chart: {
-        type: 'table',
-        selectable: true,
-        link: 'application',
-        columns: ['Application', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'application',
-          size: 10000
-        }
-      }
-    }, {
-      row: 0,
-      col: 4,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Top plans',
-      subhead: 'Hits repartition by API plan',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['Plan', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'plan',
-          size: 20
-        }
-      }
-    }, {
-      row: 1,
-      col: 0,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Geolocation by country',
-      subhead: 'Hits repartition by country',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['Country', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'geoip.country_iso_code',
-          fieldLabel: 'country',
-          size: 20
-        }
-      }
-    }, {
-      row: 2,
-      col: 0,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Geolocation by city',
-      subhead: 'Hits repartition by city',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['City', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'geoip.city_name',
-          fieldLabel: 'city',
-          size: 20
-        }
-      }
-    }, {
-      row: 1,
-      col: 2,
-      sizeY: 2,
-      sizeX: 4,
-      title: 'Geomap',
-      subhead: 'Hits by location',
-      chart: {
-        type: 'map',
-        request: {
-          type: 'group_by',
-          field: 'geoip.country_iso_code'
-        }
-      }
-    }];
-
-    this.$scope.deviceDashboard = [{
-      row: 3,
-      col: 0,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Hits by user agent',
-      subhead: 'Hits repartition by user agent name',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['User agent name', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'user_agent.name',
-          fieldLabel: 'User agent name',
-          size: 20
-        }
-      }
-    }, {
-      row: 3,
-      col: 2,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Hits by OS',
-      subhead: 'Hits repartition by OS name',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['OS name', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'user_agent.os_name',
-          fieldLabel: 'OS name',
-          size: 20
-        }
-      }
-    }];
-
-    this.dashboards = [{
-      id: 'global',
-      label: 'Global dashboard',
-      widgets: this.$scope.platformDashboard
-    }, {
-      id: 'geo',
-      label: 'Geo dashboard',
-      widgets: this.$scope.geoDashboard
-    }, {
-      id: 'device',
-      label: 'Device dashboard',
-      widgets: this.$scope.deviceDashboard
-    }];
+    this.dashboards = _.filter(this.dashboards, 'enabled');
 
     let dashboardId = this.$state.params.dashboard;
     if (dashboardId) {
-      this.dashboard = _.find(this.dashboards, {'id': dashboardId});
+      this.dashboard = _.find(this.dashboards, {id: dashboardId});
+      if (!this.dashboard) {
+        delete this.$state.params.dashboard;
+        this.$state.go(this.$state.current);
+      }
     } else {
       this.dashboard = this.dashboards[0];
     }
 
     _.forEach(this.dashboards, (dashboard) => {
-      _.forEach(dashboard.widgets, (widget) => {
+      if (dashboard.definition) {
+        dashboard.definition = JSON.parse(dashboard.definition);
+      }
+      _.forEach(dashboard.definition, (widget) => {
         _.merge(widget, {
           chart: {
             service: {
@@ -396,7 +70,7 @@ class DashboardController {
             }
           }
         });
-      })
+      });
     });
 
     // init events
@@ -413,7 +87,7 @@ class DashboardController {
   onDashboardChanged(dashboardId: string) {
     this.$state.transitionTo(
       this.$state.current,
-      _.merge(this.$state.params, {dashboard: dashboardId}));
+      _.merge(this.$state.params, {dashboard: dashboardId}), {reload: true});
   }
 
   onTimeframeChange(timeframe) {

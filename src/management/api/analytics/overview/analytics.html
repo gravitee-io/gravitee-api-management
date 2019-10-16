@@ -18,12 +18,12 @@
 <div class="gv-forms gv-forms-fluid" layout="column">
   <div layout="row">
     <h1 flex>Overview</h1>
-    <div layout="row">
+    <div layout="row" ng-if="analyticsCtrl.dashboards.length">
       <label style="padding: 27px">Select a dashboard</label>
       <md-input-container>
         <md-select ng-model="analyticsCtrl.dashboard" ng-change="analyticsCtrl.onDashboardChanged()" aria-label="Dashboard selection">
           <md-option ng-repeat="dashboard in analyticsCtrl.dashboards" ng-value="dashboard">
-            {{dashboard.label}}
+            {{dashboard.name}}
           </md-option>
         </md-select>
       </md-input-container>
@@ -31,7 +31,7 @@
   </div>
 
   <div class="gv-form">
-    <gv-dashboard model="analyticsCtrl.dashboard.widgets" on-view-log-click="analyticsCtrl.viewLogs()" access-logs="true"></gv-dashboard>
+    <gv-dashboard model="analyticsCtrl.dashboard" on-view-log-click="analyticsCtrl.viewLogs()" access-logs="true"></gv-dashboard>
   </div>
 </div>
 

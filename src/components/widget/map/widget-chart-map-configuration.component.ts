@@ -13,13 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationAnalyticsComponent: ng.IComponentOptions = {
+import * as _ from "lodash";
+const WidgetChartMapConfigurationComponent: ng.IComponentOptions = {
+  template: require('./widget-chart-map-configuration.html'),
   bindings: {
-    application: '<',
-    dashboards: '<'
+    chart: '<'
   },
-  controller: 'ApplicationAnalyticsController',
-  template: require('./application-analytics.html')
+  controller: function () {
+    'ngInject';
+    this.$onInit = () => {
+      if (!this.chart.request) {
+        _.merge(this.chart, {
+          request: {
+            type: 'group_by',
+            field: 'geoip.city_name'
+          }
+        });
+      }
+    };
+  }
 };
 
-export default ApplicationAnalyticsComponent;
+export default WidgetChartMapConfigurationComponent;

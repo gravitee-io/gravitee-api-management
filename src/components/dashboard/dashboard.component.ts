@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-
 const DashboardComponent: ng.IComponentOptions = {
   template: require('./dashboard.html'),
   bindings: {
@@ -22,15 +21,14 @@ const DashboardComponent: ng.IComponentOptions = {
     accessLogs: '<',
     onFilterChange: '&',
     onTimeframeChange: '&',
-    onViewLogClick: '&'
+    onViewLogClick: '&',
+    updateMode: '<'
   },
   controller: function($scope) {
     'ngInject';
-
     this.initialEventCounter = 2;
     this.initialTimeFrame;
     this.initialQuery;
-
 
     this.dashboardOptions = {
       margins: [10, 10],
@@ -102,9 +100,11 @@ const DashboardComponent: ng.IComponentOptions = {
     };
 
     this.$onInit = () => {
-      _.each(this.model, widget => {
-        widget.$uid = this.guid();
-      });
+      if (this.model) {
+        _.each(this.model.definition, widget => {
+          widget.$uid = this.guid();
+        });
+      }
     };
 
     this.guid = function() {
@@ -115,7 +115,11 @@ const DashboardComponent: ng.IComponentOptions = {
       }
       return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
         s4() + '-' + s4() + s4() + s4();
-    }
+    };
+
+    $scope.$on('onWidgetDelete', (event, widget) => {
+      _.remove(this.model.definition, widget);
+    });
   }
 };
 

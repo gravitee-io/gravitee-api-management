@@ -19,12 +19,12 @@
   <div class="gv-forms gv-forms-fluid" layout="column">
     <div layout="row">
       <h1 flex>Platform Overview</h1>
-      <div layout="row">
+      <div layout="row" ng-if="dashboardCtrl.dashboards.length">
         <label style="padding: 27px">Select a dashboard</label>
         <md-input-container>
           <md-select ng-model="dashboardCtrl.dashboard" ng-change="dashboardCtrl.onDashboardChanged(dashboardCtrl.dashboard.id)" aria-label="Dashboard selection">
             <md-option ng-repeat="dashboard in dashboardCtrl.dashboards" ng-value="dashboard">
-              {{dashboard.label}}
+              {{dashboard.name}}
             </md-option>
           </md-select>
         </md-input-container>
@@ -32,10 +32,10 @@
     </div>
 
     <div class="gv-form">
-      <gv-dashboard model="dashboardCtrl.dashboard.widgets" on-timeframe-change="dashboardCtrl.onTimeframeChange(timeframe)"></gv-dashboard>
+      <gv-dashboard model="dashboardCtrl.dashboard" on-timeframe-change="dashboardCtrl.onTimeframeChange(timeframe)"></gv-dashboard>
     </div>
 
-    <div class="gv-form">
+    <div class="gv-form" ng-if="dashboardCtrl.dashboard === dashboardCtrl.dashboards[0]">
       <h2>API Events</h2>
       <div class="gv-form-content" layout="column">
       <md-list>

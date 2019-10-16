@@ -27,13 +27,12 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.$scope = $scope;
-    let that = this;
 
-    this.$onInit = function() {
+    this.$onInit = () => {
       this.widget = this.parent.widget;
     };
 
-    this.$onChanges = function(changes) {
+    this.$onChanges = (changes) => {
       if (changes.data) {
         let data = changes.data.currentValue;
         let values = [], i;
@@ -48,14 +47,9 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
               year: '%b'
             }
           },
-          plotOptions: {
-            areaspline: {
-              stacking: this.parent.widget.chart.stacked ? 'normal' : null
-            }
-          },
           chart: {
             events: {
-              selection: function (event) {
+              selection: (event) => {
                 if (!event.resetSelection) {
                   $rootScope.$broadcast("timeframeZoom", {
                     from: Math.floor(event.xAxis[0].min),
@@ -68,20 +62,25 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
         };
 
         if (data.values && data.values.length > 0) {
-          _.forEach(data.values, function (value, idx) {
-            _.forEach(value.buckets, function (bucket) {
+          _.forEach(data.values, (value, idx) => {
+            _.forEach(value.buckets, (bucket) => {
               if (bucket) {
                 i++;
                 let lineColor = ChartService.colorByBucket[i % ChartService.colorByBucket.length];
                 let bgColor = ChartService.bgColorByBucket[i % ChartService.bgColorByBucket.length];
-                let label = that.parent.widget.chart.labels ? that.parent.widget.chart.labels[idx] : (bucket.name);
-                if (value.metadata && value.metadata[bucket.name]) {
+                let isFieldRequest = _.includes(this.parent.widget.chart.request.aggs.split('%3B')[idx], 'field:');
+                if (bucket.name === '1' || bucket.name.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')) {
+                  isFieldRequest = false;
+                }
+                let label = this.parent.widget.chart.labels ? this.parent.widget.chart.labels[idx] : '';
+                if (!label && value.metadata && value.metadata[bucket.name]) {
                   label = value.metadata[bucket.name].name;
                 }
 
                 values.push({
-                  name: label || bucket.name, data: bucket.data, color: lineColor, fillColor: bgColor,
-                  labelPrefix: that.parent.widget.chart.labelPrefix,
+                  name: isFieldRequest ? bucket.name : label,
+                  data: bucket.data, color: lineColor, fillColor: bgColor,
+                  labelPrefix: isFieldRequest ? label : '',
                   id: bucket.name
                 });
               }
@@ -93,35 +92,36 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
           let plotOptions = {
             series: {
               pointStart: timestamp.from,
-              pointInterval: timestamp.interval
+              pointInterval: timestamp.interval,
+              stacking: this.parent.widget.chart.stacked ? 'normal' : null
             }
           } as any;
 
           if (this.parent.widget.chart.selectable) {
             plotOptions.series.events = {
-              legendItemClick: function (event) {
+              legendItemClick: (event) => {
                 // If all series are visible, keep only the one selected
                 let selected = event.target.chart.series[event.target.index];
                 let visibles = _.filter(event.target.chart.series, { 'visible': true });
 
-                if (visibles.length === that.result.series.length) {
+                if (visibles.length === this.result.series.length) {
                   // Do not disable selected item but disable others
                   event.preventDefault();
 
                   _(visibles)
                     .filter((serie: any) => { return serie.name !== event.target.name; })
                     .forEach((serie: any) => serie.hide());
-                  that.updateQuery(selected, selected.visible);
+                  this.updateQuery(selected, selected.visible);
                 } else {
                   if (selected.visible) {
                     event.preventDefault();
                   }
-                  that.updateQuery(selected, !selected.visible);
+                  this.updateQuery(selected, !selected.visible);
                 }
               },
-              hide: function(event) {
+              hide: (event) => {
                 let hidden = _.filter(event.target.chart.series, { 'visible': false });
-                if (hidden.length === that.result.series.length) {
+                if (hidden.length === this.result.series.length) {
                   // Do not disable selected item but disable others
                   event.preventDefault();
 
@@ -132,30 +132,28 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
               }
             };
           }
-
-          that.result = _.assign(that.result, {
+          this.result = _.assign(this.result, {
             series: values,
             plotOptions: plotOptions
           });
         } else {
-          that.result.series = [];
+          this.result.series = [];
         }
       }
     };
 
-    this.updateQuery = function(item, add) {
-      let removeFn = function() {
+    this.updateQuery = (item, add) => {
+      let removeFn = () => {
           // Filter has been removed, so let's hide the serie
         if (this.visible) {
           this.hide();
         }
       };
 
-      //console.log('filter :' + item.name + '(' + add + ')');
-      that.$scope.$emit('filterItemChange', {
-        widget: that.widget.$uid,
-        field: that.widget.chart.request.field,
-        fieldLabel: that.widget.chart.request.fieldLabel,
+      this.$scope.$emit('filterItemChange', {
+        widget: this.widget.$uid,
+        field: this.widget.chart.request.aggs.split(':')[1],
+        // fieldLabel: this.widget.chart.request.fieldLabel,
         key: item.userOptions.id,
         name: item.name,
         mode: (add) ? 'add' : 'remove',

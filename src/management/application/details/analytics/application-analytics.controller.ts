@@ -21,296 +21,52 @@ import { StateService } from '@uirouter/core';
 class ApplicationAnalyticsController {
 
   private application: any;
-  private applicationDashboard: any;
+  private dashboard: any;
+  private dashboards: any;
 
   constructor(
     private ApplicationService: ApplicationService,
-    private $state: StateService,
-    private Constants: any
+    private $state: StateService
   ) {
     'ngInject';
-
-    this.applicationDashboard = [{
-      col: 0,
-      row: 0,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Top paths',
-      subhead: 'Hits repartition by path',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['Mapped path', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'path',
-          size: 1000
-        }
-      }
-    }, {
-      col: 2,
-      row: 0,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Top mapped paths',
-      subhead: 'Hits repartition by mapped path',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['Mapped path', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'mapped-path',
-          size: 1000
-        }
-      }
-    }, {
-      col: 4,
-      row: 0,
-      sizeY: 1,
-      sizeX: 2,
-      title: "Status",
-      chart: {
-        type: 'pie',
-        request: {
-          type: "group_by",
-          field: "status",
-          ranges: "100:199%3B200:299%3B300:399%3B400:499%3B500:599"
-        },
-        labels: ["1xx", "2xx", "3xx", "4xx", "5xx"],
-        colors: ['#42a5f5', '#66bb6a', '#ffee58', '#ff8f2d', '#ef5350']
-      }
-    }, {
-      col: 0,
-      row: 1,
-      sizeY: 1,
-      sizeX: 2,
-      title: "Top APIs",
-      subhead: 'Ordered by API calls',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['API', 'Hits'],
-        paging: 5,
-        request: {
-          type: "group_by",
-          field: "api",
-          size: 20
-        }
-      }
-    }, {
-      col: 2,
-      row: 1,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Top failed APIs',
-      subhead: 'Order by API 5xx status calls',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['API', 'Hits'],
-        paging: 5,
-        percent: true,
-        request: {
-          type: 'group_by',
-          field: 'api',
-          query: 'status:[500 TO 599]',
-          size: 20
-        }
-      }
-    }, {
-      col: 4,
-      row: 1,
-      sizeY: 1,
-      sizeX: 2,
-      title: "Top slow API",
-      subhead: 'Order by API response time calls',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['API', 'Latency (in ms)'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'api',
-          order: '-avg:response-time',
-          size: 20
-        }
-      }
-    }, {
-      col: 0,
-      row: 4,
-      sizeY: 1,
-      sizeX: 6,
-      title: "Response Status",
-      subhead: "Hits repartition by HTTP Status",
-      chart: {
-        type: 'line',
-        stacked: true,
-        selectable: true,
-        labelPrefix: 'HTTP Status',
-        request: {
-          type: "date_histo",
-          field: 'status',
-          aggs: "field:status"
-        }
-      }
-    }, {
-      col: 0,
-      row: 5,
-      sizeY: 1,
-      sizeX: 6,
-      title: "Response times",
-      subhead: "Average response time",
-      chart: {
-        type: 'line',
-        stacked: false,
-        request: {
-          type: "date_histo",
-          aggs: "avg:response-time"
-        },
-        labels: ["Global latency (ms)"]
-      }
-    }, {
-      col: 0,
-      row: 6,
-      sizeY: 1,
-      sizeX: 6,
-      title: "Hits by API",
-      subhead: "Hits repartition by API",
-      chart: {
-        type: 'line',
-        stacked: true,
-        selectable: true,
-        labelPrefix: '',
-        request: {
-          type: "date_histo",
-          field: "api",
-          aggs: "field:api"
-        }
-      }
-    }];
-
-    if (Constants.portal.dashboard && Constants.portal.dashboard.widgets) {
-      let initialDashboardLength = this.applicationDashboard.length;
-      for (let i = 0; i < Constants.portal.dashboard.widgets.length; i++) {
-        let nbWidget = this.applicationDashboard.length - initialDashboardLength;
-        let row = nbWidget > 2 ? 4 : 3;
-        let col = nbWidget > 2 ? (nbWidget - 3) * 2 : nbWidget * 2;
-        switch (Constants.portal.dashboard.widgets[i]) {
-            case 'geo_country':
-            this.applicationDashboard.push({
-              row: row,
-              col: col,
-              sizeY: 1,
-              sizeX: 2,
-              title: 'Geolocation by country',
-              subhead: 'Hits repartition by country',
-              chart: {
-                type: 'table',
-                selectable: true,
-                columns: ['Country', 'Hits'],
-                paging: 5,
-                request: {
-                  type: 'group_by',
-                  field: 'geoip.country_iso_code',
-                  fieldLabel: 'country',
-                  ize: 20
-
-                }
-              }
-            });
-            break;
-          case 'geo_city':
-            this.applicationDashboard.push({
-              row: row,
-              col: col,
-              sizeY: 1,
-              sizeX: 2,
-              title: 'Geolocation by city',
-              subhead: 'Hits repartition by city',
-              chart: {
-                type: 'table',
-                selectable: true,
-                columns: ['City', 'Hits'],
-                paging: 5,
-                request: {
-                  type: 'group_by',
-                  field: 'geoip.city_name',
-                  fieldLabel: 'city',
-                  size: 20
-
-                }
-              }
-            });
-          break;
-          case 'user_agent_name':
-            this.applicationDashboard.push({
-              row: row,
-              col: col,
-              sizeY: 1,
-              sizeX: 2,
-              title: 'Hits by user agent',
-              subhead: 'Hits repartition by user agent name',
-              chart: {
-                type: 'table',
-                selectable: true,
-                columns: ['User agent name', 'Hits'],
-                paging: 5,
-                request: {
-                  type: 'group_by',
-                  field: 'user_agent.name',
-                  fieldLabel: 'User agent name',
-                  size: 20
-
-                }
-              }
-            });
-            break;
-          case 'os_name':
-            this.applicationDashboard.push({
-              row: row,
-              col: col,
-              sizeY: 1,
-              sizeX: 2,
-              title: 'Hits by OS',
-              subhead: 'Hits repartition by OS name',
-              chart: {
-                type: 'table',
-                selectable: true,
-                columns: ['OS name', 'Hits'],
-                paging: 5,
-                request: {
-                  type: 'group_by',
-                  field: 'user_agent.os_name',
-                  fieldLabel: 'OS name',
-                  size: 20
-
-                }
-              }
-            });
-            break;
-        }
-      }
-    }
   }
 
   $onInit() {
-    const that = this;
+    this.dashboards = _.filter(this.dashboards, 'enabled');
 
-    _.forEach(this.applicationDashboard, function (widget) {
-      _.merge(widget, {
-        root: that.application.id,
-        chart: {
-          service: {
-            caller: that.ApplicationService,
-            function: that.ApplicationService.analytics
+    let dashboardId = this.$state.params.dashboard;
+    if (dashboardId) {
+      this.dashboard = _.find(this.dashboards, {id: dashboardId});
+      if (!this.dashboard) {
+        delete this.$state.params.dashboard;
+        this.$state.go(this.$state.current);
+      }
+    } else {
+      this.dashboard = this.dashboards[0];
+    }
+
+    _.forEach(this.dashboards, (dashboard) => {
+      if (dashboard.definition) {
+        dashboard.definition = JSON.parse(dashboard.definition);
+      }
+      _.forEach(dashboard.definition, (widget) => {
+        _.merge(widget, {
+          root: this.application.id,
+          chart: {
+            service: {
+              caller: this.ApplicationService,
+              function: this.ApplicationService.analytics
+            }
           }
-        }
+        });
       });
     });
+  }
+
+  onDashboardChanged() {
+    this.$state.transitionTo(
+      this.$state.current,
+      _.merge(this.$state.params, {dashboard: this.dashboard.id}), {reload: true});
   }
 
   viewLogs() {

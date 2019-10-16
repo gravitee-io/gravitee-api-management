@@ -23,7 +23,7 @@ class AnalyticsService {
   constructor(private $http, Constants) {
     'ngInject';
     this.analyticsURL = `${Constants.baseURL}platform/analytics`;
-    this.analyticsHttpTimeout = Constants.analytics.clientTimeout as number
+    this.analyticsHttpTimeout = Constants.analytics.clientTimeout as number;
   }
 
   /*
@@ -31,7 +31,6 @@ class AnalyticsService {
    */
   analytics(request) {
     var url = this.analyticsURL + '?';
-
     var keys = Object.keys(request);
     _.forEach(keys, function (key) {
       var val = request[key];

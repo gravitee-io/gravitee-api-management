@@ -19,6 +19,7 @@ import ApiService from "../services/api.service";
 import ApplicationService from "../services/application.service";
 import {User} from "../entities/user";
 import RoleService from "../services/role.service";
+import DashboardService from "../services/dashboard.service";
 
 function managementRouterConfig($stateProvider) {
   'ngInject';
@@ -101,6 +102,9 @@ function managementRouterConfig($stateProvider) {
       template: require('./platform/dashboard/dashboard.html'),
       controller: 'DashboardController',
       controllerAs: 'dashboardCtrl',
+      resolve: {
+        dashboards: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then(response => response.data)
+      },
       data: {
         menu: {
           label: 'Dashboard',
@@ -129,7 +133,8 @@ function managementRouterConfig($stateProvider) {
           dynamic: true
         },
         dashboard: {
-          type: 'string'
+          type: 'string',
+          dynamic: true
         }
       }
     })

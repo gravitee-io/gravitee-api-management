@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationAnalyticsComponent: ng.IComponentOptions = {
-  bindings: {
-    application: '<',
-    dashboards: '<'
-  },
-  controller: 'ApplicationAnalyticsController',
-  template: require('./application-analytics.html')
-};
-
-export default ApplicationAnalyticsComponent;
+export class Dashboard {
+  public id: string;
+  public reference_type: string;
+  public reference_id: string;
+  public name: string;
+  public query_filter: string;
+  public order: number;
+  public enabled: boolean;
+  public definition: string;
+  public created_at: number;
+  public updated_at: number;
+}

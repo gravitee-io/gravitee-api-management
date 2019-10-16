@@ -138,11 +138,17 @@ import InstancesComponent from '../management/instances/instances.component';
 import InstanceComponent from '../management/instances/details/instance.component';
 // Analytics / widgets
 import WidgetComponent from '../components/widget/widget.component';
-import WidgetDataTableComponent from '../components/widget/widget-data-table.component';
-import WidgetChartLineComponent from '../components/widget/widget-chart-line.component';
-import WidgetChartPieComponent from '../components/widget/widget-chart-pie.component';
-import WidgetChartMapComponent from '../components/widget/widget-chart-map.component';
-import WidgetDataStatsComponent from '../components/widget/widget-data-stats.component';
+import WidgetDataTableComponent from '../components/widget/table/widget-data-table.component';
+import WidgetChartLineComponent from '../components/widget/line/widget-chart-line.component';
+import WidgetChartPieComponent from '../components/widget/pie/widget-chart-pie.component';
+import WidgetChartMapComponent from '../components/widget/map/widget-chart-map.component';
+import WidgetDataStatsComponent from '../components/widget/stats/widget-data-stats.component';
+import WidgetDataTableConfigurationComponent from '../components/widget/table/widget-data-table-configuration.component';
+import WidgetChartLineConfigurationComponent from '../components/widget/line/widget-chart-line-configuration.component';
+import WidgetChartMapConfigurationComponent from '../components/widget/map/widget-chart-map-configuration.component';
+import WidgetChartPieConfigurationComponent from '../components/widget/pie/widget-chart-pie-configuration.component';
+import WidgetDataStatsConfigurationComponent from '../components/widget/stats/widget-data-stats-configuration.component';
+
 import DashboardComponent from '../components/dashboard/dashboard.component';
 import DashboardFilterComponent from '../components/dashboard/dashboard-filter.component';
 import DashboardFilterController from '../components/dashboard/dashboard-filter.controller';
@@ -394,6 +400,9 @@ import ClientRegistrationProviderService from '../services/clientRegistrationPro
 import ClientRegistrationProvidersComponent from '../management/configuration/application/registration/client-registration-providers.component';
 import ClientRegistrationProviderComponent from '../management/configuration/application/registration/client-registration-provider.component';
 import ClientRegistrationProviderController from '../management/configuration/application/registration/client-registration-provider.controller';
+
+import DashboardService from '../services/dashboard.service';
+import AnalyticsDashboardComponent from './configuration/analytics/dashboard/dashboard.components';
 
 (<any>window).jQuery = jQuery;
 
@@ -670,6 +679,11 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvWidgetChartPie', WidgetChartPieComponent)
   .component('gvWidgetChartLine', WidgetChartLineComponent)
   .component('gvWidgetChartMap', WidgetChartMapComponent)
+  .component('gvWidgetDataTableConfiguration', WidgetDataTableConfigurationComponent)
+  .component('gvWidgetDataLineConfiguration', WidgetChartLineConfigurationComponent)
+  .component('gvWidgetDataMapConfiguration', WidgetChartMapConfigurationComponent)
+  .component('gvWidgetDataPieConfiguration', WidgetChartPieConfigurationComponent)
+  .component('gvWidgetDataStatsConfiguration', WidgetDataStatsConfigurationComponent)
 
   .component('views', ViewsComponent)
   .component('view', ViewComponent)
@@ -873,6 +887,9 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DeleteEntrypointDialogController', DeleteEntrypointDialogController)
   .component('tag', TagComponent)
   .controller('TagController', TagController)
+
+  .service('DashboardService', DashboardService)
+  .component('dashboard', AnalyticsDashboardComponent)
 
   .filter('humanDateFilter', function () {
     return function (input) {

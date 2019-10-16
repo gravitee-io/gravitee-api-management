@@ -17,8 +17,21 @@
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
   <application-header application="$ctrl.application"></application-header>
-    <div class="gv-form">
-        <h2>Analytics</h2>
-        <gv-dashboard model="$ctrl.applicationDashboard" on-view-log-click="$ctrl.viewLogs()" access-logs="true"></gv-dashboard>
+  <div layout="row">
+    <h1 flex>Overview</h1>
+    <div layout="row" ng-if="$ctrl.dashboards.length">
+      <label style="padding: 27px">Select a dashboard</label>
+      <md-input-container>
+        <md-select ng-model="$ctrl.dashboard" ng-change="$ctrl.onDashboardChanged()" aria-label="Dashboard selection">
+          <md-option ng-repeat="dashboard in $ctrl.dashboards" ng-value="dashboard">
+            {{dashboard.name}}
+          </md-option>
+        </md-select>
+      </md-input-container>
     </div>
+  </div>
+
+  <div class="gv-form">
+    <gv-dashboard model="$ctrl.dashboard" on-view-log-click="$ctrl.viewLogs()" access-logs="true"></gv-dashboard>
+  </div>
 </div>

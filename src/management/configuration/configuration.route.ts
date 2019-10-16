@@ -32,6 +32,7 @@ import EntrypointService from "../../services/entrypoint.service";
 import ClientRegistrationProviderService from "../../services/clientRegistrationProvider.service";
 import _ = require('lodash');
 import QualityRuleService from "../../services/qualityRule.service";
+import DashboardService from "../../services/dashboard.service";
 
 export default configurationRouterConfig;
 
@@ -616,6 +617,9 @@ function configurationRouterConfig($stateProvider) {
       url: '/analytics',
       component: 'analyticsSettings',
       resolve: {
+        dashboardsPlatform: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then(response => response.data),
+        dashboardsApi: (DashboardService: DashboardService) => DashboardService.list('API').then(response => response.data),
+        dashboardsApplication: (DashboardService: DashboardService) => DashboardService.list('APPLICATION').then(response => response.data)
       },
       data: {
         menu: null,
@@ -624,6 +628,35 @@ function configurationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['portal-settings-r']
+        }
+      }
+    })
+    .state('management.settings.dashboardnew', {
+      url: '/analytics/dashboard/:type/new',
+      component: 'dashboard',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-dashboard'
+        },
+        perms: {
+          only: ['management-dashboard-c']
+        }
+      }
+    })
+    .state('management.settings.dashboard', {
+      url: '/analytics/dashboard/:type/:dashboardId',
+      component: 'dashboard',
+      resolve: {
+        dashboard: (DashboardService: DashboardService, $stateParams) => DashboardService.get($stateParams.dashboardId).then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-dashboard'
+        },
+        perms: {
+          only: ['management-dashboard-u']
         }
       }
     })

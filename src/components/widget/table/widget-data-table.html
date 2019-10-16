@@ -29,7 +29,7 @@
           md-select="result" md-select-id="key" style="height: 25px;"
           md-on-select="$ctrl.selectItem" md-on-deselect="$ctrl.deselectItem">
         <td md-cell>
-          <a ng-if="!result.metadata.deleted" ng-href="{{$ctrl.goto(result.key)}}">
+          <a ng-if="!result.metadata.deleted" ng-click="$ctrl.goto(result.key)">
             {{result.metadata.name}} <small ng-if="result.metadata.version">({{result.metadata.version}})</small>
           </a>
 

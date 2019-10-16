@@ -21,6 +21,7 @@ import {StateParams} from '@uirouter/core';
 import ApiService from "../../services/api.service";
 import TenantService from "../../services/tenant.service";
 import TagService from "../../services/tag.service";
+import DashboardService from "../../services/dashboard.service";
 
 export default applicationsConfig;
 
@@ -261,8 +262,11 @@ function applicationsConfig($stateProvider) {
       }
     })
     .state('management.applications.application.analytics', {
-      url: '/analytics?from&to&q',
+      url: '/analytics?from&to&q&dashboard',
       component: 'applicationAnalytics',
+      resolve: {
+        dashboards: (DashboardService: DashboardService) => DashboardService.list('APPLICATION').then(response => response.data)
+      },
       data: {
         menu: {
           label: 'Analytics',
@@ -286,6 +290,10 @@ function applicationsConfig($stateProvider) {
           dynamic: true
         },
         q: {
+          type: 'string',
+          dynamic: true
+        },
+        dashboard: {
           type: 'string',
           dynamic: true
         }

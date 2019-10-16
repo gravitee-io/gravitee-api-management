@@ -28,7 +28,7 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
     this.$onChanges = function(changes) {
       if (changes.data) {
         let data = _.map(changes.data.currentValue.values, (v, k) => {
-          return {key: k, value: v}
+          return {key: k, value: v};
         });
 
         this.results = {
