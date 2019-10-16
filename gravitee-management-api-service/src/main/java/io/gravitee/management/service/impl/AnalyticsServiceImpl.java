@@ -281,8 +281,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         topHitsAnalytics.setValues(
             groupByResponse.values()
                     .stream()
-                    .collect(Collectors.toMap(
-                            GroupByResponse.Bucket::name, GroupByResponse.Bucket::value,
+                    .collect(Collectors.toMap(o -> "1".equals(o.name()) ? "deleted" : o.name(), GroupByResponse.Bucket::value,
                             (v1,v2) ->{ throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));},
                             LinkedHashMap::new)));
 
@@ -310,7 +309,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             topHitsAnalytics.setMetadata(metadata);
         }
 
-        return  topHitsAnalytics;
+        return topHitsAnalytics;
     }
 
     private Map<String, String> getAPIMetadata(String api) {

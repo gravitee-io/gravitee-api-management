@@ -37,6 +37,7 @@ public enum RolePermission {
     MANAGEMENT_ENTRYPOINT   (RoleScope.MANAGEMENT, ManagementPermission.ENTRYPOINT),
     MANAGEMENT_SETTINGS     (RoleScope.MANAGEMENT, ManagementPermission.SETTINGS),
     MANAGEMENT_QUALITY_RULE (RoleScope.MANAGEMENT, ManagementPermission.QUALITY_RULE),
+    MANAGEMENT_DASHBOARD    (RoleScope.MANAGEMENT, ManagementPermission.DASHBOARD),
 
     PORTAL_METADATA         (RoleScope.PORTAL, PortalPermission.METADATA),
     PORTAL_DOCUMENTATION    (RoleScope.PORTAL, PortalPermission.DOCUMENTATION),

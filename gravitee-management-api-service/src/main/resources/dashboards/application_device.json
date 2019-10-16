@@ -1,0 +1,46 @@
+[
+  {
+    "row": 0,
+    "col": 0,
+    "sizeY": 1,
+    "sizeX": 3,
+    "title": "Hits by user agent",
+    "subhead": "Hits repartition by user agent name",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "User agent name",
+        "Hits"
+      ],
+      "paging": 5,
+      "percent": true,
+      "request": {
+        "type": "group_by",
+        "field": "user_agent.name"
+      }
+    }
+  },
+  {
+    "row": 0,
+    "col": 3,
+    "sizeY": 1,
+    "sizeX": 3,
+    "title": "Hits by OS",
+    "subhead": "Hits repartition by OS name",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "OS name",
+        "Hits"
+      ],
+      "paging": 5,
+      "percent": true,
+      "request": {
+        "type": "group_by",
+        "field": "user_agent.os_name"
+      }
+    }
+  }
+]

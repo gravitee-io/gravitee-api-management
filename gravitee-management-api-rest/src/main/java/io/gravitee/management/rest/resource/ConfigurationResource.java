@@ -149,4 +149,9 @@ public class ConfigurationResource {
     public QualityRulesResource getQualityRulesResource() {
         return resourceContext.getResource(QualityRulesResource.class);
     }
+
+    @Path("dashboards")
+    public DashboardsResource getDashboardsResource() {
+        return resourceContext.getResource(DashboardsResource.class);
+    }
 }

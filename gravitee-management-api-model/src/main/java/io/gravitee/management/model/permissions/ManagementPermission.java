@@ -36,6 +36,7 @@ public enum ManagementPermission implements Permission {
     ALERT       ("ALERT",        2400),
     ENTRYPOINT  ("ENTRYPOINT",   2500),
     SETTINGS    ("SETTINGS",     2600),
+    DASHBOARD   ("DASHBOARD",    2700),
     QUALITY_RULE("QUALITY_RULE", 2800);
 
     String name;

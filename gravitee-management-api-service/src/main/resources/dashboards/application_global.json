@@ -1,0 +1,178 @@
+[
+  {
+    "col": 0,
+    "row": 0,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Top paths",
+    "subhead": "Hits repartition by path",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "Mapped path",
+        "Hits"
+      ],
+      "paging": 5,
+      "request": {
+        "type": "group_by",
+        "field": "path"
+      }
+    }
+  },
+  {
+    "col": 2,
+    "row": 0,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Top mapped paths",
+    "subhead": "Hits repartition by mapped path",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "Mapped path",
+        "Hits"
+      ],
+      "paging": 5,
+      "request": {
+        "type": "group_by",
+        "field": "mapped-path"
+      }
+    }
+  },
+  {
+    "col": 4,
+    "row": 0,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Status",
+    "chart": {
+      "type": "pie",
+      "request": {
+        "type": "group_by",
+        "field": "status",
+        "ranges": "100:199%3B200:299%3B300:399%3B400:499%3B500:599"
+      },
+      "labels": ["1xx", "2xx", "3xx", "4xx", "5xx"],
+      "colors": ["#42a5f5", "#66bb6a", "#ffee58", "#ff8f2d", "#ef5350"]
+    }
+  },
+  {
+    "col": 0,
+    "row": 1,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Top APIs",
+    "subhead": "Ordered by API calls",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "API",
+        "Hits"
+      ],
+      "paging": 5,
+      "request": {
+        "type": "group_by",
+        "field": "api"
+      }
+    }
+  },
+  {
+    "col": 2,
+    "row": 1,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Top failed APIs",
+    "subhead": "Order by API 5xx status calls",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "API",
+        "Hits"
+      ],
+      "paging": 5,
+      "percent": true,
+      "request": {
+        "type": "group_by",
+        "field": "api",
+        "query": "status:[500 TO 599]"
+      }
+    }
+  },
+  {
+    "col": 4,
+    "row": 1,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Top slow APIs",
+    "subhead": "Order by API response time calls",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "API",
+        "Latency (in ms)"
+      ],
+      "paging": 5,
+      "request": {
+        "type": "group_by",
+        "field": "api",
+        "order": "-avg:response-time"
+      }
+    }
+  },
+  {
+    "col": 0,
+    "row": 2,
+    "sizeY": 1,
+    "sizeX": 6,
+    "title": "Response Status",
+    "subhead": "Hits repartition by HTTP Status",
+    "chart": {
+      "type": "line",
+      "stacked": true,
+      "selectable": true,
+      "request": {
+        "type": "date_histo",
+        "aggs": "field:status"
+      },
+      "labels": ["HTTP Status"]
+    }
+  },
+  {
+    "col": 0,
+    "row": 3,
+    "sizeY": 1,
+    "sizeX": 6,
+    "title": "Response times",
+    "subhead": "Average response time",
+    "chart": {
+      "type": "line",
+      "request": {
+        "type": "date_histo",
+        "aggs": "avg:response-time"
+      },
+      "labels": ["Global latency (ms)"]
+    }
+  },
+  {
+    "col": 0,
+    "row": 4,
+    "sizeY": 1,
+    "sizeX": 6,
+    "title": "Hits by API",
+    "subhead": "Hits repartition by API",
+    "chart": {
+      "type": "line",
+      "stacked": true,
+      "selectable": true,
+      "request": {
+        "type": "date_histo",
+        "aggs": "field:api"
+      }
+    }
+  }
+]

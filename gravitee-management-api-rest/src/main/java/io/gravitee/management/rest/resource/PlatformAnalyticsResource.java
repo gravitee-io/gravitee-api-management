@@ -16,10 +16,9 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.analytics.Analytics;
 import io.gravitee.management.model.analytics.query.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.application.ApplicationListItem;
 import io.gravitee.management.rest.resource.param.Aggregation;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
@@ -42,9 +41,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static io.gravitee.management.model.permissions.RolePermission.API_ANALYTICS;
-import static io.gravitee.management.model.permissions.RolePermission.APPLICATION_ANALYTICS;
-import static io.gravitee.management.model.permissions.RolePermission.MANAGEMENT_PLATFORM;
+import static io.gravitee.management.model.permissions.RolePermission.*;
 import static io.gravitee.management.model.permissions.RolePermissionAction.READ;
 
 /**
@@ -116,9 +113,23 @@ public class PlatformAnalyticsResource extends AbstractResource  {
             case COUNT:
                 analytics = executeCount(analyticsParam, extraFilter);
                 break;
+            case STATS:
+                analytics = executeStats(analyticsParam, extraFilter);
+                break;
         }
 
         return Response.ok(analytics).build();
+    }
+
+    private Analytics executeStats(AnalyticsParam analyticsParam, String extraFilter) {
+        final StatsQuery query = new StatsQuery();
+        query.setFrom(analyticsParam.getFrom());
+        query.setTo(analyticsParam.getTo());
+        query.setInterval(analyticsParam.getInterval());
+        query.setQuery(analyticsParam.getQuery());
+        query.setField(analyticsParam.getField());
+        addExtraFilter(query, extraFilter);
+        return analyticsService.execute(query);
     }
 
     private Analytics executeCount(AnalyticsParam analyticsParam, String extraFilter) {

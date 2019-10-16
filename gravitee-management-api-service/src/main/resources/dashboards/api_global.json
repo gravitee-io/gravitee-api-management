@@ -1,0 +1,250 @@
+[
+  {
+    "row": 1,
+    "col": 0,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Top applications",
+    "subhead": "Ordered by application calls",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "Application",
+        "Hits"
+      ],
+      "paging": 5,
+      "request": {
+        "type": "group_by",
+        "field": "application"
+      }
+    }
+  },
+  {
+    "row": 0,
+    "col": 0,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Status",
+    "chart": {
+      "type": "pie",
+      "request": {
+        "type": "group_by",
+        "field": "status",
+        "ranges": "100:199%3B200:299%3B300:399%3B400:499%3B500:599"
+      },
+      "labels": ["1xx", "2xx", "3xx", "4xx", "5xx"],
+      "colors": ["#42a5f5", "#66bb6a", "#ffee58", "#ff8f2d", "#ef5350"]
+    }
+  },
+  {
+    "row": 1,
+    "col": 2,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Top plans",
+    "subhead": "Hits repartition by API plan",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "Plan",
+        "Hits"
+      ],
+      "paging": 5,
+      "request": {
+        "type": "group_by",
+        "field": "plan"
+      }
+    }
+  },
+  {
+    "row": 1,
+    "col": 4,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Top paths",
+    "subhead": "Hits repartition by path",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "Path",
+        "Hits"
+      ],
+      "paging": 5,
+      "request": {
+        "type": "group_by",
+        "field": "path"
+      }
+    }
+  },
+  {
+    "row": 2,
+    "col": 0,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Top slow applications",
+    "subhead": "Applications ordered by the latency",
+    "chart": {
+      "type": "table",
+      "columns": [
+        "Application",
+        "Latency (in ms)"
+      ],
+      "paging": 5,
+      "request": {
+        "type": "group_by",
+        "field": "application",
+        "order": "-avg:response-time"
+      }
+    }
+  },
+  {
+    "row": 2,
+    "col": 2,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Hits by Host ",
+    "subhead": "Hits repartition by Host HTTP Header",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "Host",
+        "Hits"
+      ],
+      "paging": 5,
+      "request": {
+        "type": "group_by",
+        "field": "host"
+      }
+    }
+  },
+  {
+    "row": 2,
+    "col": 4,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Top mapped paths",
+    "subhead": "Hits repartition by mapped path",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "Mapped path",
+        "Hits"
+      ],
+      "paging": 5,
+      "request": {
+        "type": "group_by",
+        "field": "mapped-path"
+      }
+    }
+  },
+  {
+    "row": 0,
+    "col": 2,
+    "sizeY": 1,
+    "sizeX": 4,
+    "title": "Stats",
+    "chart": {
+      "type": "stats",
+      "data": [
+        {
+          "key": "min",
+          "label": "min",
+          "unit": "ms",
+          "color": "#66bb6a"
+        },
+        {
+          "key": "max",
+          "label": "max",
+          "unit": "ms",
+          "color": "#ef5350"
+        },
+        {
+          "key": "avg",
+          "label": "avg",
+          "unit": "ms",
+          "color": "#42a5f5"
+        },
+        {
+          "key": "rps",
+          "label": "requests per second",
+          "color": "#ff8f2d",
+          "fallback": [
+            {
+              "key": "rpm",
+              "label": "requests per minute"
+            },
+            {
+              "key": "rph",
+              "label": "requests per hour"
+            }
+          ]
+        },
+        {
+          "key": "count",
+          "label": "total",
+          "color": "black"
+        }
+      ],
+      "request": {
+        "type": "stats",
+        "field": "response-time"
+      }
+    }
+  },
+  {
+    "row": 3,
+    "col": 0,
+    "sizeY": 1,
+    "sizeX": 6,
+    "title": "Response Status",
+    "subhead": "Hits repartition by HTTP Status",
+    "chart": {
+      "type": "line",
+      "stacked": true,
+      "selectable": true,
+      "request": {
+        "type": "date_histo",
+        "aggs": "field:status"
+      },
+      "labels": ["HTTP Status"]
+    }
+  },
+  {
+    "row": 4,
+    "col": 0,
+    "sizeY": 1,
+    "sizeX": 6,
+    "title": "Response times",
+    "subhead": "Average response time for the gateway and the API",
+    "chart": {
+      "type": "line",
+      "request": {
+        "type": "date_histo",
+        "aggs": "avg:response-time%3Bavg:api-response-time"
+      },
+      "labels": ["Global latency (ms)", "API latency (ms)"]
+    }
+  },
+  {
+    "row": 5,
+    "col": 0,
+    "sizeY": 1,
+    "sizeX": 6,
+    "title": "Hits by application",
+    "subhead": "Hits repartition by application",
+    "chart": {
+      "type": "line",
+      "selectable": true,
+      "stacked": true,
+      "request": {
+        "type": "date_histo",
+        "aggs": "field:application"
+      }
+    }
+  }
+]
