@@ -28,7 +28,6 @@ import java.util.Set;
 public class NewApiEntity {
 
     @NotNull
-    @Size(min = 4, message = "API's name must contain at least 4 characters")
     private String name;
 
     @NotNull
