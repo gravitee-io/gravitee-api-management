@@ -91,12 +91,12 @@ const SettingsComponent: ng.IComponentOptions = {
       },
       tags: {
         perm: UserService.isUserHasPermissions(
-          ['management-tag-r']),
+          ['management-tag-c', 'management-tag-u', 'management-tag-d']),
         goTo: 'management.settings.tags'
       },
       tenants: {
         perm: UserService.isUserHasPermissions(
-          ['management-tenant-r']),
+          ['management-tenant-c', 'management-tenant-u', 'management-tenant-d']),
         goTo: 'management.settings.tenants'
       },
 
