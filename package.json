@@ -23,6 +23,7 @@
     "@gravitee/components": "github:gravitee-io/gravitee-components",
     "ng-portal-webclient": "github:gravitee-io/gravitee-clients-sdk",
     "rxjs": "~6.4.0",
+    "tachyons": "^4.11.1",
     "tslib": "^1.10.0",
     "zone.js": "~0.9.1"
   },
