@@ -83,7 +83,6 @@ import java.util.stream.Stream;
 import static io.gravitee.management.model.EventType.PUBLISH_API;
 import static io.gravitee.management.model.ImportSwaggerDescriptorEntity.Type.INLINE;
 import static io.gravitee.management.model.PageType.SWAGGER;
-import static io.gravitee.management.model.WorkflowReferenceType.API;
 import static io.gravitee.management.model.WorkflowState.DRAFT;
 import static io.gravitee.management.model.WorkflowType.REVIEW;
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
@@ -166,6 +165,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private VirtualHostService virtualHostService;
     @Autowired
     private AlertService alertService;
+    @Autowired
+    private RoleService roleService;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
@@ -209,7 +210,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setGroups(newApiEntity.getGroups());
 
         Proxy proxy = new Proxy();
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost(newApiEntity.getContextPath())));
+        proxy.setVirtualHosts(singletonList(new VirtualHost(newApiEntity.getContextPath())));
         EndpointGroup group = new EndpointGroup();
         group.setName("default-group");
 
@@ -441,7 +442,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 repoApi.setApiLifecycleState(ApiLifecycleState.CREATED);
                 if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED)) {
-                    workflowService.create(API, id, REVIEW, userId, DRAFT, "");
+                    workflowService.create(WorkflowReferenceType.API, id, REVIEW, userId, DRAFT, "");
                 }
 
                 Api createdApi = apiRepository.create(repoApi);
@@ -711,26 +712,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public ApiEntity update(String apiId, UpdateSwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        final ApiEntity apiEntityToUpdate = this.findById(apiId);
+        final UpdateApiEntity updateApiEntity = convert(apiEntityToUpdate);
 
-        final UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        ApiEntity apiEntityToUpdate = this.findById(apiId);
-        
-        //init update From existing api
-        updateApiEntity.setLabels(apiEntityToUpdate.getLabels());
-        updateApiEntity.setLifecycleState(apiEntityToUpdate.getLifecycleState());
-        updateApiEntity.setPicture(apiEntityToUpdate.getPicture());
-        updateApiEntity.setProperties(apiEntityToUpdate.getProperties());
-        updateApiEntity.setProxy(apiEntityToUpdate.getProxy());
-        updateApiEntity.setResources(apiEntityToUpdate.getResources());
-        updateApiEntity.setResponseTemplates(apiEntityToUpdate.getResponseTemplates());
-        updateApiEntity.setServices(apiEntityToUpdate.getServices());
-        updateApiEntity.setTags(apiEntityToUpdate.getTags());
-        updateApiEntity.setViews(apiEntityToUpdate.getViews());
-        updateApiEntity.setVisibility(apiEntityToUpdate.getVisibility());
-        updateApiEntity.setPaths(apiEntityToUpdate.getPaths());
-        updateApiEntity.setPathMappings(apiEntityToUpdate.getPathMappings());
-        
-        
         //overwrite from swagger
         updateApiEntity.setVersion(swaggerApiEntity.getVersion());
         updateApiEntity.setName(swaggerApiEntity.getName());
@@ -744,7 +728,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         return update(apiId, updateApiEntity);
     }
-    
+
     @Override
     public ApiEntity update(String apiId, UpdateApiEntity updateApiEntity) {
         try {
@@ -1576,9 +1560,81 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return updateWorkflowReview(apiId, userId, ApiHook.REQUEST_FOR_CHANGES, WorkflowState.REQUEST_FOR_CHANGES, reviewEntity.getMessage());
     }
 
+    @Override
+    public ApiEntity duplicate(final String apiId, final DuplicateApiEntity duplicateApiEntity) {
+        LOGGER.debug("Duplicate API {}", apiId);
+        final ApiEntity apiEntity = findById(apiId);
+
+        final UpdateApiEntity newApiEntity = convert(apiEntity);
+        final Proxy proxy = apiEntity.getProxy();
+        proxy.setVirtualHosts(singletonList(new VirtualHost(duplicateApiEntity.getContextPath())));
+        newApiEntity.setProxy(proxy);
+        newApiEntity.setVersion(duplicateApiEntity.getVersion() == null? apiEntity.getVersion(): duplicateApiEntity.getVersion());
+
+        if (duplicateApiEntity.getFilteredFields().contains("groups")) {
+            newApiEntity.setGroups(null);
+        } else {
+            newApiEntity.setGroups(apiEntity.getGroups());
+        }
+        final ApiEntity duplicatedApi = create0(newApiEntity, getAuthenticatedUsername());
+
+        if (!duplicateApiEntity.getFilteredFields().contains("members")) {
+            final Set<MemberEntity> membersToDuplicate =
+                    membershipService.getMembers(MembershipReferenceType.API, apiId, RoleScope.API);
+            final MemberEntity primaryOwner =
+                    membershipService.getMember(MembershipReferenceType.API, duplicatedApi.getId(), duplicatedApi.getPrimaryOwner().getId(), RoleScope.API);
+            membersToDuplicate.forEach(member -> {
+                if (!primaryOwner.equals(member)) {
+                    String role = member.getRole();
+                    if (SystemRole.PRIMARY_OWNER.name().equals(role)) {
+                        role = roleService.findDefaultRoleByScopes(RoleScope.API).iterator().next().getName();
+                    }
+                    membershipService.addOrUpdateMember(
+                            new MembershipService.MembershipReference(MembershipReferenceType.API, duplicatedApi.getId()),
+                            new MembershipService.MembershipUser(member.getId(), null),
+                            new MembershipService.MembershipRole(RoleScope.API, role));
+                }
+            });
+        }
+
+        if (!duplicateApiEntity.getFilteredFields().contains("pages")) {
+            final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build());
+            pages.forEach(page -> pageService.create(duplicatedApi.getId(), page));
+        }
+
+        if (!duplicateApiEntity.getFilteredFields().contains("plans")) {
+            final Set<PlanEntity> plans = planService.findByApi(apiId);
+            plans.forEach(plan -> planService.create(duplicatedApi.getId(), plan));
+        }
+
+        return duplicatedApi;
+    }
+
+    private UpdateApiEntity convert(final ApiEntity apiEntity) {
+        final UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setDescription(apiEntity.getDescription());
+        updateApiEntity.setName(apiEntity.getName());
+        updateApiEntity.setVersion(apiEntity.getVersion());
+        updateApiEntity.setGroups(apiEntity.getGroups());
+        updateApiEntity.setLabels(apiEntity.getLabels());
+        updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
+        updateApiEntity.setPicture(apiEntity.getPicture());
+        updateApiEntity.setProperties(apiEntity.getProperties());
+        updateApiEntity.setProxy(apiEntity.getProxy());
+        updateApiEntity.setResources(apiEntity.getResources());
+        updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
+        updateApiEntity.setServices(apiEntity.getServices());
+        updateApiEntity.setTags(apiEntity.getTags());
+        updateApiEntity.setViews(apiEntity.getViews());
+        updateApiEntity.setVisibility(apiEntity.getVisibility());
+        updateApiEntity.setPaths(apiEntity.getPaths());
+        updateApiEntity.setPathMappings(apiEntity.getPathMappings());
+        return updateApiEntity;
+    }
+
     private ApiEntity updateWorkflowReview(final String apiId, final String userId, final ApiHook hook,
                                            final WorkflowState workflowState, final String workflowMessage) {
-        workflowService.create(API, apiId, REVIEW, userId, workflowState, workflowMessage);
+        workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
         final ApiEntity apiEntity = findById(apiId);
         apiEntity.setWorkflowState(workflowState);
 
@@ -1805,7 +1861,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED)) {
-            final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
+            final List<Workflow> workflows = workflowService.findByReferenceAndType(WorkflowReferenceType.API, api.getId(), REVIEW);
             if (workflows != null && !workflows.isEmpty()) {
                 apiEntity.setWorkflowState(WorkflowState.valueOf(workflows.get(0).getState()));
             }

@@ -49,7 +49,6 @@ import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -239,6 +238,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	@Override
 	public PageEntity createPage(NewPageEntity newPageEntity) {
 		return this.createPage(null, newPageEntity);
+	}
+
+	@Override
+	public PageEntity create(final String apiId, final PageEntity pageEntity) {
+		final NewPageEntity newPageEntity = convert(pageEntity);
+		newPageEntity.setLastContributor(null);
+		return createPage(apiId, newPageEntity);
 	}
 
 	private void onlyOneHomepage(Page page) throws TechnicalException {
@@ -868,6 +874,22 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setParentId("".equals(newPageEntity.getParentId()) ? null : newPageEntity.getParentId());
 
 		return page;
+	}
+
+	private NewPageEntity convert(final PageEntity pageEntity) {
+		final NewPageEntity newPageEntity = new NewPageEntity();
+		newPageEntity.setName(pageEntity.getName());
+		newPageEntity.setOrder(pageEntity.getOrder());
+		newPageEntity.setPublished(pageEntity.isPublished());
+		newPageEntity.setSource(pageEntity.getSource());
+		newPageEntity.setType(PageType.valueOf(pageEntity.getType()));
+		newPageEntity.setParentId(pageEntity.getParentId());
+		newPageEntity.setHomepage(pageEntity.isHomepage());
+		newPageEntity.setContent(pageEntity.getContent());
+		newPageEntity.setConfiguration(pageEntity.getConfiguration());
+		newPageEntity.setExcludedGroups(pageEntity.getExcludedGroups());
+		newPageEntity.setLastContributor(pageEntity.getLastContributor());
+		return newPageEntity;
 	}
 
 	private static Page convert(ImportPageEntity importPageEntity) {

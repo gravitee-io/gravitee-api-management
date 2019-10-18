@@ -50,4 +50,6 @@ public interface PlanService {
     PlanEntity depreciate(String plan);
 
     PlansConfigurationEntity getConfiguration();
+
+    PlanEntity create(String apiId, PlanEntity planEntity);
 }

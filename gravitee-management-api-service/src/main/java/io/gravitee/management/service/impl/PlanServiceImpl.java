@@ -204,6 +204,11 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
+    public PlanEntity create(final String apiId, final PlanEntity planEntity) {
+        return create(convert(planEntity, apiId));
+    }
+
+    @Override
     public PlanEntity update(UpdatePlanEntity updatePlan) {
         try {
             logger.debug("Update plan {}", updatePlan.getName());
@@ -603,6 +608,26 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         entity.setSelectionRule(plan.getSelectionRule());
 
         return entity;
+    }
+
+    private NewPlanEntity convert(final PlanEntity planEntity, final String apiId) {
+        final NewPlanEntity newPlanEntity = new NewPlanEntity();
+        newPlanEntity.setName(planEntity.getName());
+        newPlanEntity.setType(planEntity.getType());
+        newPlanEntity.setCharacteristics(planEntity.getCharacteristics());
+        newPlanEntity.setCommentMessage(planEntity.getCommentMessage());
+        newPlanEntity.setCommentRequired(planEntity.isCommentRequired());
+        newPlanEntity.setDescription(planEntity.getDescription());
+        newPlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
+        newPlanEntity.setPaths(planEntity.getPaths());
+        newPlanEntity.setSecurity(planEntity.getSecurity());
+        newPlanEntity.setSecurityDefinition(planEntity.getSecurityDefinition());
+        newPlanEntity.setSelectionRule(planEntity.getSelectionRule());
+        newPlanEntity.setStatus(planEntity.getStatus());
+        newPlanEntity.setTags(planEntity.getTags());
+        newPlanEntity.setValidation(planEntity.getValidation());
+        newPlanEntity.setApi(apiId);
+        return newPlanEntity;
     }
 
     private void assertPlanSecurityIsAllowed(PlanSecurityType securityType) {

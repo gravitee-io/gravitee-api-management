@@ -17,9 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.model.api.ApiLifecycleState;
-import io.gravitee.management.model.api.UpdateApiEntity;
+import io.gravitee.management.model.api.*;
 import io.gravitee.management.model.api.header.ApiHeaderEntity;
 import io.gravitee.management.model.notification.NotifierEntity;
 import io.gravitee.management.model.parameters.Key;
@@ -219,7 +217,7 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
             value = "Update the API",
-            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+            notes = "User must have the MANAGE_API permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "API successfully updated", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -374,7 +372,7 @@ public class ApiResource extends AbstractResource {
     @Path("import")
     @ApiOperation(
             value = "Update the API with an existing API definition",
-            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+            notes = "User must have the MANAGE_API permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "API successfully updated from API definition", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -400,7 +398,7 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
             value = "Update the API with an existing Swagger descriptor",
-            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+            notes = "User must have the MANAGE_API permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "API successfully updated from Swagger descriptor", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -423,7 +421,7 @@ public class ApiResource extends AbstractResource {
     @Path("export")
     @ApiOperation(
             value = "Export the API definition in JSON format",
-            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+            notes = "User must have the MANAGE_API permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -456,7 +454,7 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import-path-mappings")
     @ApiOperation(value = "Import path mappings from a page",
-            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+            notes = "User must have the MANAGE_API permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Path mappings successfully imported", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -575,6 +573,25 @@ public class ApiResource extends AbstractResource {
                     break;
             }
         }
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("duplicate")
+    @ApiOperation(
+            value = "Duplicate the API",
+            notes = "User must have the MANAGE_API create permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE)
+    })
+    public Response duplicateAPI(@PathParam("api") String api, @ApiParam(name = "api", required = true)
+            @Valid @NotNull final DuplicateApiEntity duplicateApiEntity) {
+        get(api);
+        return Response.ok(apiService.duplicate(api, duplicateApiEntity)).build();
     }
 
     @Path("keys")
