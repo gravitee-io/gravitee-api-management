@@ -1,12 +1,17 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
+import {HttpClient, HttpClientModule} from '@angular/common/http';
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
+import {TranslateLoader, TranslateModule, TranslateCompiler} from '@ngx-translate/core';
+import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
+import { MESSAGE_FORMAT_CONFIG } from 'ngx-translate-messageformat-compiler';
 
-import { ApiModule, BASE_PATH } from 'ng-portal-webclient/dist';
-import { environment } from '../environments/environment';
+import {AppRoutingModule} from './app-routing.module';
+import {AppComponent} from './app.component';
+
+import {ApiModule, BASE_PATH} from 'ng-portal-webclient/dist';
+import {environment} from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -17,14 +22,32 @@ import { environment } from '../environments/environment';
     AppRoutingModule,
     BrowserModule,
     HttpClientModule,
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: HttpLoaderFactory,
+        deps: [HttpClient]
+      },
+      compiler: {
+        provide: TranslateCompiler,
+        useClass: TranslateMessageFormatCompiler
+      }
+    })
   ],
-  providers: [ { provide: BASE_PATH, useValue: environment.PORTAL_API_BASE_PATH }],
+  providers: [
+    {provide: BASE_PATH, useValue: environment.PORTAL_API_BASE_PATH},
+    {provide: MESSAGE_FORMAT_CONFIG, useValue: {locales: environment.locales}}
+  ],
   schemas: [
-      CUSTOM_ELEMENTS_SCHEMA,
+    CUSTOM_ELEMENTS_SCHEMA,
   ],
   bootstrap: [
     AppComponent
   ]
 })
 export class AppModule {
+}
+
+export function HttpLoaderFactory(http: HttpClient) {
+  return new TranslateHttpLoader(http);
 }

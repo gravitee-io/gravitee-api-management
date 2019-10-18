@@ -1,5 +1,11 @@
 import {Component} from '@angular/core';
-import {APIService} from 'ng-portal-webclient/dist';
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../environments/environment';
+
+import 'node_modules/@gravitee/components/dist/atoms/gv-input';
+import {Title} from '@angular/platform-browser';
+
+import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
   selector: 'app-root',
@@ -7,17 +13,22 @@ import {APIService} from 'ng-portal-webclient/dist';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'Gravitee.io Portal';
 
-  constructor(private apiService: APIService) {
-    const apis = apiService.getApis();
-    apis.subscribe(
-      {
-        next(x) { console.log('got value ' + x); },
-        error(err) { console.error('something wrong occurred: ' + err); },
-        complete() { console.log('done'); }
+  constructor(private titleService: Title, private translate: TranslateService) {
+    translate.addLangs(environment.locales);
+    translate.setDefaultLang(environment.locales[0]);
+
+    const browserLang = translate.getBrowserLang();
+    translate.use(browserLang.match(/en|fr/) ? browserLang : 'en');
+
+    translate.get(i18n('site.title')).subscribe({
+      next(e) {
+        titleService.setTitle(e);
       }
-    );
+    });
+
+
   }
+
 
 }

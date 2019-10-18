@@ -1,4 +1,4 @@
-= Gravitee.io Portal 
+= Gravitee.io Portal
 
 This project was generated with https://github.com/angular/angular-cli[Angular CLI] version 8.3.8.
 
@@ -16,17 +16,17 @@ npm install
 
 == Development server
 
-Run `npm run start` for a dev server. Navigate to `http://localhost:4200/`. 
+Run `npm run start` for a dev server. Navigate to `http://localhost:4200/`.
 The app will automatically reload if you change any of the source files.
 
 == Code scaffolding
 
-Run `ng generate component component-name` to generate a new component. 
+Run `ng generate component component-name` to generate a new component.
 You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
 
 == Build
 
-Run `npm run build` to build the project. 
+Run `npm run build` to build the project.
 The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
 
 == Running unit tests
@@ -48,12 +48,22 @@ If you want to develop in parallel, you can clone repository and link to project
 
 ```shell script
 git clone git@github.com:gravitee-io/gravitee-components.git
-pushd gravitee-components 
+pushd gravitee-components
 npm run export
 npm link
 popd
 
 pushd gravitee-portal-webui
-npm link @gravitee/components 
+npm link @gravitee/components
 popd
-``` 
+```
+
+== i18n
+
+This project use the internationalization (i18n) library for Angular http://www.ngx-translate.com
+
+If you want extract translatable strings and merges with existing if the JSON file already exists, run:
+
+```
+npm run generate:i18n
+```

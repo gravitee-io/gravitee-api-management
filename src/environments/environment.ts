@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  PORTAL_API_BASE_PATH: '/management/DEFAULT'
+  PORTAL_API_BASE_PATH: '/management/DEFAULT',
+  locales: ['en', 'fr']
 };
 
 /*
