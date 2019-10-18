@@ -85,12 +85,14 @@ function interceptorConfig(
       },
       responseError: function (error) {
         const notificationService = ($injector.get('NotificationService') as NotificationService);
-        if(error.config && !error.config.tryItMode) {
-          if (error && error.status <= 0 && error.xhrStatus !== "abort") {
-            notificationService.showError('Server unreachable');
+        if (!error.config || !error.config.silentCall) {
+          if (error.config && !error.config.tryItMode) {
+            if (error && error.status <= 0 && error.xhrStatus !== "abort") {
+              notificationService.showError('Server unreachable');
+            }
+          } else {
+            notificationService.showError('Unable to call the remote service.');
           }
-        } else {
-          notificationService.showError('Unable to call the remote service.');
         }
         return $q.reject(error);
       }
