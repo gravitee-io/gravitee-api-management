@@ -152,12 +152,16 @@ class ApiService {
     return this.$http.get(this.apisURL + apiId + '/export?exclude=' + exclude.join(",") + (exportVersion ? '&version=' + exportVersion : ''));
   }
 
-  verify(criteria): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + 'verify', criteria);
+  verify(criteria, config?): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + 'verify', criteria, config);
   }
 
   importPathMappings(apiId, page): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/import-path-mappings?page=' + page);
+  }
+
+  duplicate(apiId, config): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + apiId + '/duplicate', config);
   }
 
   /*

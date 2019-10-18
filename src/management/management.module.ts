@@ -67,6 +67,7 @@ import LoginController from '../user/login/login.controller';
 import DiffDirective from '../components/diff/diff.directive';
 import DialogApiImportController from '../management/api/portal/general/dialog/apiImportDialog.controller';
 import DialogApiExportController from '../management/api/portal/general/dialog/apiExportDialog.controller';
+import DialogApiDuplicateController from '../management/api/portal/general/dialog/apiDuplicateDialog.controller';
 // Sidenav
 import SidenavService from '../components/sidenav/sidenav.service';
 import {SidenavComponent} from '../components/sidenav/sidenav.component';
@@ -578,6 +579,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('UserController', UserController)
   .controller('DialogApiImportController', DialogApiImportController)
   .controller('DialogApiExportController', DialogApiExportController)
+  .controller('DialogApiDuplicateController', DialogApiDuplicateController)
   .controller('DialogEditPolicyController', DialogEditPolicyController)
   .controller('LoginController', LoginController)
   .controller('InstancesController', InstancesController)
