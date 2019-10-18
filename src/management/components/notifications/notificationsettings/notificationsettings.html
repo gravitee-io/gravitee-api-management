@@ -42,7 +42,7 @@
           </div>
         <h5>Which events would you like to subscribe for ?</h5>
         <div layout="column">
-          <div flex ng-repeat="category in $ctrl.hooksCategories" style="margin-top: 18px;">
+          <div ng-repeat="category in $ctrl.hooksCategories" style="margin-top: 18px;">
             <h6>{{category}}</h6>
             <div layout="row" layout-wrap>
               <div flex="35" ng-repeat="hook in $ctrl.hooksByCategory[category]">
