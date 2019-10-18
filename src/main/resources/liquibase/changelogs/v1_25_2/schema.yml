@@ -2,6 +2,9 @@ databaseChangeLog:
     - changeSet:
         id: 1.25.2
         author: GraviteeSource Team
+        validCheckSum:
+        - 8:67ff408ab1ca458f85386d06f45e395b
+        - 8:a1872ce916e96806b18767089dde811d
         changes:
         - addColumn:
             tableName: ratelimit
@@ -25,7 +28,7 @@ databaseChangeLog:
             tableName: ratelimit
             columnName: async
         - addNotNullConstraint:
-            columnDataType: nvarchar
+            columnDataType: nvarchar(64)
             columnName: subscription
             defaultNullValue: 'unknown'
             tableName: ratelimit
