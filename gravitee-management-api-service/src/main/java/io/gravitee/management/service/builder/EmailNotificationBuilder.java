@@ -111,7 +111,8 @@ public class EmailNotificationBuilder {
         GROUP_INVITATION("groupInvitation.html"),
         ASK_FOR_REVIEW("askForReview.html"),
         REQUEST_FOR_CHANGES("requestForChanges.html"),
-        REVIEW_OK("reviewOk.html");
+        REVIEW_OK("reviewOk.html"),
+        API_DEPRECATED("apiDeprecated.html");
 
         private String template;
 

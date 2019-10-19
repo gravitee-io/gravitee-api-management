@@ -316,12 +316,13 @@ public class ApiService_UpdateTest {
     }
 
     @Test
-    public void shouldOnlyUnpublishADeprecatedApi() throws TechnicalException {
+    public void shouldNotUpdateADeprecatedApi() throws TechnicalException {
         prepareUpdate();
         assertUpdate(ApiLifecycleState.DEPRECATED, CREATED, true);
         assertUpdate(ApiLifecycleState.DEPRECATED, PUBLISHED, true);
-        assertUpdate(ApiLifecycleState.DEPRECATED, UNPUBLISHED, false);
+        assertUpdate(ApiLifecycleState.DEPRECATED, UNPUBLISHED, true);
         assertUpdate(ApiLifecycleState.DEPRECATED, ARCHIVED, true);
+        assertUpdate(ApiLifecycleState.DEPRECATED, DEPRECATED, true);
     }
 
     @Test

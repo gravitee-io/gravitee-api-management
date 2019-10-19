@@ -21,12 +21,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Path;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.ApiLifecycleState;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.plan.PlanQuery;
-import io.gravitee.management.service.AuditService;
-import io.gravitee.management.service.ParameterService;
-import io.gravitee.management.service.PlanService;
-import io.gravitee.management.service.SubscriptionService;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.processor.PlanSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -53,28 +52,22 @@ import static java.util.Collections.emptySet;
 @Component
 public class PlanServiceImpl extends TransactionalService implements PlanService {
 
-    /**
-     * Logger.
-     */
     private final Logger logger = LoggerFactory.getLogger(PlanServiceImpl.class);
 
     @Autowired
     private PlanRepository planRepository;
-
     @Autowired
     private SubscriptionService subscriptionService;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @Autowired
     private AuditService auditService;
-
     @Autowired
     private ParameterService parameterService;
-
     @Autowired
     private PlanSynchronizationProcessor planSynchronizationProcessor;
+    @Autowired
+    private ApiService apiService;
 
     private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST =
             Collections.unmodifiableList(Arrays.asList(
@@ -151,6 +144,12 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApi());
 
             assertPlanSecurityIsAllowed(newPlan.getSecurity());
+
+            final ApiEntity api = apiService.findById(newPlan.getApi());
+            if (ApiLifecycleState.DEPRECATED.equals(api.getLifecycleState())) {
+                throw new ApiDeprecatedException(api.getName());
+            }
+
             Plan plan = new Plan();
 
             plan.setId(UUID.toString(UUID.random()));

@@ -755,7 +755,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // if user changes sharding tags, then check if he is allowed to do it
             checkShardingTags(updateApiEntity, apiToCheck);
 
-            // if lifecycle state not provide, set the saved one
+            // if lifecycle state not provided, set the saved one
             if (updateApiEntity.getLifecycleState() == null) {
                 updateApiEntity.setLifecycleState(apiToCheck.getLifecycleState());
             }
@@ -795,7 +795,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (updateApiEntity.getViews() == null) {
                     api.setViews(apiToUpdate.getViews());
                 }
-                
+
+                if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
+                    planService.findByApi(api.getId()).forEach(plan -> {
+                        if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
+                            planService.depreciate(plan.getId());
+                        }
+                    });
+                    notifierService.trigger(ApiHook.API_DEPRECATED, apiId,
+                            new NotificationParamsBuilder()
+                                    .api(apiToCheck)
+                                    .user(userService.findById(getAuthenticatedUsername()))
+                                    .build());
+                }
                 
                 Api updatedApi = apiRepository.update(api);
 
@@ -874,15 +886,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void checkLifecycleState(final UpdateApiEntity updateApiEntity, final ApiEntity existingAPI) {
+        if (io.gravitee.management.model.api.ApiLifecycleState.DEPRECATED.equals(existingAPI.getLifecycleState())) {
+            throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
+        }
         if (existingAPI.getLifecycleState().name().equals(updateApiEntity.getLifecycleState().name())) {
             return;
         }
         if (io.gravitee.management.model.api.ApiLifecycleState.ARCHIVED.equals(existingAPI.getLifecycleState())) {
             if (!io.gravitee.management.model.api.ApiLifecycleState.ARCHIVED.equals(updateApiEntity.getLifecycleState())) {
-                throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
-            }
-        } else if (io.gravitee.management.model.api.ApiLifecycleState.DEPRECATED.equals(existingAPI.getLifecycleState())) {
-            if (!io.gravitee.management.model.api.ApiLifecycleState.UNPUBLISHED.equals(updateApiEntity.getLifecycleState())) {
                 throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
             }
         } else if (io.gravitee.management.model.api.ApiLifecycleState.UNPUBLISHED.equals(existingAPI.getLifecycleState())) {

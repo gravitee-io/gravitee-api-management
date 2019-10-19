@@ -125,6 +125,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         else if (hook.equals(ApiHook.REVIEW_OK)) {
             return EmailNotificationBuilder.EmailTemplate.REVIEW_OK;
         }
+        else if (hook.equals(API_DEPRECATED)) {
+            return EmailNotificationBuilder.EmailTemplate.API_DEPRECATED;
+        }
 
         // Application Hook
         else if (hook.equals(ApplicationHook.SUBSCRIPTION_NEW)) {
@@ -249,6 +252,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
         else if (hook.equals(ApiHook.REVIEW_OK)) {
             return "API review accepted";
+        }
+        else if (hook.equals(API_DEPRECATED)) {
+            return "API deprecated";
         }
 
         // Application Hook

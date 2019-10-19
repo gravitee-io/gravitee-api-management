@@ -1,0 +1,3 @@
+title: API deprecated
+message: |
+  "${api.name}" was deprecated by ${user.displayName}.
