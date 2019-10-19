@@ -257,14 +257,14 @@ class ApiPortalController {
       template: require('../../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Are you sure you want to delete \'' + this.api.name + '\' API ?',
+        title: 'Are you sure you want to delete \'' + this.api.name + '\' API?',
         msg: '',
         confirmButton: 'Delete'
       }
     }).then(function (response) {
       if (response) {
         that.ApiService.delete(id).then(() => {
-          that.NotificationService.show('API \'' + that.initialApi.name + '\' has been removed');
+          that.NotificationService.show('API ' + that.initialApi.name + ' has been removed');
           that.$state.go('management.apis.list', {}, {reload: true});
         });
       }
@@ -310,7 +310,7 @@ class ApiPortalController {
     });
   }
 
-  showExportDialog(showExportVersion) {
+  showExportDialog() {
     this.$mdDialog.show({
       controller: 'DialogApiExportController',
       controllerAs: 'dialogApiExportCtrl',
@@ -389,47 +389,40 @@ class ApiPortalController {
           });
         }
       }
-    })
+    });
   }
 
-  changeApiLifecycle() {
+  changeApiLifecycle(lifecycleState: string) {
     let clonedApi = _.cloneDeep(this.api);
-    let published = clonedApi.lifecycle_state === 'published';
-    clonedApi.lifecycle_state = published ? 'unpublished' : 'published';
+    clonedApi.lifecycle_state = lifecycleState;
+    let actionLabel = lifecycleState.slice(0, -1);
+    actionLabel = actionLabel.replace('publishe', 'publish');
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
       template: require('../../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: `Are you sure you want to ${published ? 'unpublish' : 'publish'} the API?`,
+        title: `Are you sure you want to ${actionLabel} the API?`,
         msg: '',
-        confirmButton: (published ? 'unpublish' : 'publish')
+        confirmButton: _.capitalize(actionLabel)
       }
     }).then((response: boolean) => {
       if (response) {
         this.api = clonedApi;
-        if (published) {
-          this.ApiService.update(clonedApi).then((response) => {
-            this.api.lifecycle_state = 'unpublished';
-            this.api.etag = response.headers('etag');
-            this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
-            this.NotificationService.show(`API ${this.api.name} has been unpublished with success`);
-          });
-        } else {
-          this.ApiService.update(clonedApi).then((response) => {
-            this.api.lifecycle_state = 'published';
-            this.api.etag = response.headers('etag');
-            this.NotificationService.show(`API ${this.api.name} has been published with success`);
-            this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
-          });
-        }
+        this.ApiService.update(clonedApi).then((response) => {
+          this.api = response.data;
+          this.api.etag = response.headers('etag');
+          this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
+          this.NotificationService.show(`API ${this.api.name} has been ${lifecycleState} with success`);
+        });
       }
     });
   }
 
   canAskForReview(): boolean {
-    return this.Constants.apiReview.enabled && (this.api.workflow_state === 'draft' || this.api.workflow_state === 'request_for_changes' || !this.api.workflow_state);
+    return this.Constants.apiReview.enabled &&
+      (this.api.workflow_state === 'draft' || this.api.workflow_state === 'request_for_changes' || !this.api.workflow_state);
   }
 
   canChangeLifecycle(): boolean {
@@ -445,7 +438,11 @@ class ApiPortalController {
   }
 
   canPublish(): boolean {
-    return !this.api.lifecycle_state || this.api.lifecycle_state==='created' || this.api.lifecycle_state==='unpublished';
+    return (!this.api.lifecycle_state || this.api.lifecycle_state==='created' || this.api.lifecycle_state==='unpublished');
+  }
+
+  isDeprecated(): boolean {
+    return this.api.lifecycle_state === 'deprecated';
   }
 
   askForReview() {

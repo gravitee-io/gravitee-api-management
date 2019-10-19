@@ -28,6 +28,8 @@ class ApiListPlansController {
   private selectedStatus: string[];
   private countByStatus: any;
   private filteredPlans: any;
+  private isApiDeprecated: boolean;
+  private creationEmptyMessage: string;
 
   constructor(
     private $scope,
@@ -81,12 +83,15 @@ class ApiListPlansController {
     } else {
       this.applyFilters();
     }
+
+    this.isApiDeprecated = this.api.lifecycle_state === 'deprecated';
+    this.creationEmptyMessage = this.isApiDeprecated ? 'The API is deprecated' : 'Start creating a plan';
   }
 
   list() {
     this.ApiService.getApiPlans(this.$stateParams.apiId).then(response => {
       let that = this;
-      this.$scope.$applyAsync(function(){
+      this.$scope.$applyAsync(() => {
         that.plans.length = 0;
         Array.prototype.push.apply(that.plans, response.data);
 
@@ -206,7 +211,6 @@ class ApiListPlansController {
   countPlansByStatus() {
     this.countByStatus = _.countBy(this.plans, 'status');
   }
-
 }
 
 export default ApiListPlansController;

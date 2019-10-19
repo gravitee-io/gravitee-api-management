@@ -96,9 +96,9 @@
                                   icon="view_week"
                                   model="Plan"
                                   message="Plans will appear here"
-                                  sub-message="Start creating a plan"
+                                  sub-message="{{$ctrl.creationEmptyMessage}}"
                                   create-mode="true"></gravitee-empty-state>
-            <div permission permission-only="'api-plan-c'" ng-style="$ctrl.filteredPlans.length == 0 && {'text-align':'center'}">
+            <div permission permission-only="'api-plan-c'" ng-style="$ctrl.filteredPlans.length == 0 && {'text-align':'center'}" ng-if="!$ctrl.isApiDeprecated">
                 <md-button ng-class="{'md-fab-bottom-right': $ctrl.filteredPlans.length > 0}" class="md-fab" aria-label="Add" ng-click="$ctrl.addPlan()">
                     <ng-md-icon icon="add"></ng-md-icon>
                 </md-button>

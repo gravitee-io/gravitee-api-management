@@ -86,7 +86,7 @@
         </div>
 
         <div class="md-actions gravitee-api-save-button" layout="row">
-          <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit" ng-disabled="portalCtrl.formApi.$invalid || portalCtrl.formApi.$pristine">
+          <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit" ng-disabled="portalCtrl.formApi.$invalid || portalCtrl.formApi.$pristine || portalCtrl.isDeprecated()">
             Save
           </md-button>
           <md-button permission permission-only="'api-definition-u'" class="md-raised " type="button" ng-click="portalCtrl.reset()" ng-disabled="portalCtrl.formApi.$invalid || portalCtrl.formApi.$pristine">
@@ -97,7 +97,7 @@
             <ng-md-icon icon="file_upload"></ng-md-icon>
             Export
           </md-button>
-          <md-button permission permission-only="'api-definition-u'" aria-label="Import definition" ng-click="portalCtrl.showImportDialog()">
+          <md-button permission permission-only="'api-definition-u'" aria-label="Import definition" ng-click="portalCtrl.showImportDialog()" ng-disabled="portalCtrl.isDeprecated()">
             <ng-md-icon icon="file_download"></ng-md-icon>
             Import
           </md-button>
@@ -166,14 +166,15 @@
               Publish the API. It will be available on portal (depending on visibility/rights).
             </div>
             <div>
-              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeApiLifecycle()"
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeApiLifecycle('published')"
                          ng-if="portalCtrl.canPublish()">Publish the API</md-button>
-              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeApiLifecycle()"
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeApiLifecycle('unpublished')"
                          ng-if="portalCtrl.api.lifecycle_state==='published'">Unpublish the API</md-button>
             </div>
           </div>
 
-          <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-u'">
+          <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-u'"
+               ng-if="!portalCtrl.isDeprecated()">
             <div class="gv-form-danger-text" ng-if="portalCtrl.api.visibility==='public'">
               Make this API private. Only members will see it.
             </div>
@@ -185,6 +186,16 @@
                          ng-if="portalCtrl.api.visibility==='public'">Make Private</md-button>
               <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.toggleVisibility(); portalCtrl.update(portalCtrl.api);"
                          ng-if="portalCtrl.api.visibility==='private'">Make Public</md-button>
+            </div>
+          </div>
+
+          <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-d'"
+               ng-if="!portalCtrl.isDeprecated()">
+            <div class="gv-form-danger-text">
+              Deprecate this API. It will no longer be published on portal.
+            </div>
+            <div>
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeApiLifecycle('deprecated')">Deprecate</md-button>
             </div>
           </div>
 

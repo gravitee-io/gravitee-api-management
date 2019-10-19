@@ -202,13 +202,16 @@ export class ApisController {
         }
       });
     }
-  };
+  }
 
   getQualityMetricCssClass(score) {
     return this.ApiService.getQualityMetricCssClass(score);
-  };
+  }
 
   getWorkflowStateLabel(api) {
+    if (api.lifecycle_state === 'deprecated') {
+      return 'DEPRECATED';
+    }
     switch (api.workflow_state) {
       case 'draft':
         return 'DRAFT';
@@ -219,9 +222,12 @@ export class ApisController {
       case 'review_ok':
         return '';
     }
-  };
+  }
 
   getWorkflowStateColor(api) {
+    if (api.lifecycle_state === 'deprecated') {
+      return '#d73a49';
+    }
     switch (api.workflow_state) {
       case 'draft':
         return '#54a3ff';

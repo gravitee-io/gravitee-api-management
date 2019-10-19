@@ -15,7 +15,8 @@
  */
 const ApiListPlansComponent: ng.IComponentOptions = {
   bindings: {
-    plans: '<'
+    plans: '<',
+    api: '<'
   },
   controller: 'ApiListPlansController',
   template: require('./list-plans.html')

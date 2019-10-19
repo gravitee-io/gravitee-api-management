@@ -218,6 +218,10 @@ class ApiAdminController {
     return this.Constants.apiReview.enabled && this.api.workflow_state === 'review_ok';
   }
 
+  isDeprecated(): boolean {
+    return this.api.lifecycle_state === 'deprecated';
+  }
+
   showRequestForChangesConfirm() {
     this.$mdDialog.show({
       controller: 'DialogRequestForChangesController',
