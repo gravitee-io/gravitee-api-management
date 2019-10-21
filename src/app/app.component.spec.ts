@@ -1,6 +1,12 @@
-import { TestBed, async } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { AppComponent } from './app.component';
+import {TestBed, async} from '@angular/core/testing';
+import {RouterTestingModule} from '@angular/router/testing';
+import {AppComponent} from './app.component';
+import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {Title} from '@angular/platform-browser';
+import {TranslateService} from '@ngx-translate/core';
+import {provideMagicalMock} from './mock.helper.spec';
+import {of} from 'rxjs';
+import any = jasmine.any;
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
@@ -11,25 +17,51 @@ describe('AppComponent', () => {
       declarations: [
         AppComponent
       ],
+      schemas: [
+        CUSTOM_ELEMENTS_SCHEMA,
+      ],
+      providers: [
+        AppComponent,
+        provideMagicalMock(TranslateService),
+        provideMagicalMock(Title),
+      ]
     }).compileComponents();
   }));
 
+
+  let fixture;
+  let app;
+  let translateServiceMock: jasmine.SpyObj<TranslateService>;
+  let titleMock: jasmine.SpyObj<Title>;
+  beforeEach(() => {
+    translateServiceMock = TestBed.get(TranslateService);
+    translateServiceMock.getBrowserLang.and.returnValue('fr');
+    translateServiceMock.get.and.returnValue(of(''));
+    titleMock = TestBed.get(Title);
+
+    fixture = TestBed.createComponent(AppComponent);
+    app = fixture.componentInstance;
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+    });
+  });
+
+
   it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app).toBeTruthy();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(app).toBeTruthy();
+    });
   });
 
-  it(`should have as title 'gravitee-portal-webui'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app.title).toEqual('gravitee-portal-webui');
+  it(`should create routes'`, () => {
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(app.routes).toBeDefined();
+      expect(app.routes.length).toBeGreaterThan(1);
+      expect(app.routes[0]).toEqual(any(Promise));
+    });
+
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector('.content span').textContent).toContain('gravitee-portal-webui app is running!');
-  });
 });

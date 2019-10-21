@@ -12,10 +12,16 @@ import {AppComponent} from './app.component';
 
 import {ApiModule, BASE_PATH} from 'ng-portal-webclient/dist';
 import {environment} from '../environments/environment';
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { CatalogComponent } from './pages/catalog/catalog.component';
+import { AppsComponent } from './pages/apps/apps.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    DashboardComponent,
+    CatalogComponent,
+    AppsComponent
   ],
   imports: [
     ApiModule,

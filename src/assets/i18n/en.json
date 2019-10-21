@@ -1,6 +1,8 @@
 {
- "portal": {
-  "title": "Hello"
+ "route": {
+  "apps": "Applications",
+  "catalog": "Catalog",
+  "dashboard": "Dashboard"
  },
  "site": {
   "title": "Gravitee.io Portal"
