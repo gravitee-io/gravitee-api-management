@@ -325,6 +325,9 @@ public class SwaggerServiceImpl implements SwaggerService {
                                     operation.getSummary());
                             final Map.Entry<String, Response> responseEntry = operation.getResponses().entrySet().iterator().next();
                             swaggerVerb.setResponseStatus(responseEntry.getKey());
+                            if (operation.getProduces() != null && !operation.getProduces().isEmpty()) {
+                                swaggerVerb.setContentType(operation.getProduces().get(0));
+                            }
                             final Model responseSchema = responseEntry.getValue().getResponseSchema();
                             if (responseSchema != null) {
                                 if (responseSchema instanceof ArrayModel) {
@@ -485,8 +488,10 @@ public class SwaggerServiceImpl implements SwaggerService {
         final Map.Entry<String, ApiResponse> responseEntry = operation.getResponses().entrySet().iterator().next();
         swaggerVerb.setResponseStatus(responseEntry.getKey());
         if (responseEntry.getValue().getContent() != null) {
-            final io.swagger.v3.oas.models.media.MediaType mediaType =
-                    responseEntry.getValue().getContent().entrySet().iterator().next().getValue();
+            final Entry<String, io.swagger.v3.oas.models.media.MediaType> contentByMediatype =
+                    responseEntry.getValue().getContent().entrySet().iterator().next();
+            swaggerVerb.setContentType(contentByMediatype.getKey());
+            final io.swagger.v3.oas.models.media.MediaType mediaType = contentByMediatype.getValue();
             if (mediaType.getExample() != null) {
                 swaggerVerb.setResponseProperties(mapper.convertValue(mediaType.getExample(), Map.class));
             } else if (mediaType.getExamples() != null) {

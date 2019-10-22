@@ -256,10 +256,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                 responseStatus = "200";
                             }
                             configuration.put("status", responseStatus);
-                            final Map<Object, Object> header = new HashMap<>(2);
-                            header.put("name", "Content-Type");
-                            header.put("value", "application/json");
-                            configuration.put("headers", singletonList(header));
+                            if (swaggerVerb.getContentType() != null) {
+                                final Map<Object, Object> header = new HashMap<>(2);
+                                header.put("name", "Content-Type");
+                                header.put("value", swaggerVerb.getContentType());
+                                configuration.put("headers", singletonList(header));
+                            }
                             try {
                                 final Object responseProperties = swaggerVerb.getResponseProperties();
                                 if (responseProperties != null) {

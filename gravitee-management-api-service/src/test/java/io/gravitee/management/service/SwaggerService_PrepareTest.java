@@ -159,6 +159,7 @@ public class SwaggerService_PrepareTest {
         final SwaggerVerb listVersionsv2 = verbs.iterator().next();
         assertEquals("List API versions", listVersionsv2.getDescription());
         assertEquals("200", listVersionsv2.getResponseStatus());
+        assertEquals("application/json", listVersionsv2.getContentType());
         assertEquals("GET", listVersionsv2.getVerb());
         assertNotNull(listVersionsv2.getResponseProperties());
     }
@@ -178,6 +179,7 @@ public class SwaggerService_PrepareTest {
         final SwaggerVerb postStreams = verbs.iterator().next();
         assertEquals("subscribes a client to receive out-of-band data", postStreams.getDescription());
         assertEquals("201", postStreams.getResponseStatus());
+        assertEquals("application/json", postStreams.getContentType());
         assertEquals("POST", postStreams.getVerb());
         assertNotNull(postStreams.getResponseProperties());
         assertEquals("2531329f-fb09-4ef7-887e-84e648214436", ((Map) postStreams.getResponseProperties()).get("subscriptionId"));
@@ -208,6 +210,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("getUserByName", getUserByName.getDescription());
         assertEquals("GET", getUserByName.getVerb());
         assertEquals("200", getUserByName.getResponseStatus());
+        assertEquals("application/json", getUserByName.getContentType());
         assertNotNull(getUserByName.getResponseProperties());
         assertEquals("Mocked string", ((Map) getUserByName.getResponseProperties()).get("username"));
         assertEquals("Mocked string", ((Map) getUserByName.getResponseProperties()).get("uuid"));
@@ -219,6 +222,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("getRepositoriesByOwner", getRepositoriesByOwner.getDescription());
         assertEquals("GET", getRepositoriesByOwner.getVerb());
         assertEquals("200", getRepositoriesByOwner.getResponseStatus());
+        assertEquals("application/json", getRepositoriesByOwner.getContentType());
         assertNotNull(getRepositoriesByOwner.getResponseProperties());
         assertTrue(getRepositoriesByOwner.isArray());
         assertEquals("Mocked string", ((Map) getRepositoriesByOwner.getResponseProperties()).get("slug"));
@@ -246,6 +250,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("List all pets", findPets.getDescription());
         assertEquals("GET", findPets.getVerb());
         assertEquals("200", findPets.getResponseStatus());
+        assertEquals("application/json", findPets.getContentType());
         assertNotNull(findPets.getResponseProperties());
         assertTrue(findPets.isArray());
         assertEquals(3, ((Map) findPets.getResponseProperties()).size());
@@ -274,6 +279,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("findPets", findPets.getDescription());
         assertEquals("GET", findPets.getVerb());
         assertEquals("200", findPets.getResponseStatus());
+        assertEquals("application/json", findPets.getContentType());
         assertNotNull(findPets.getResponseProperties());
         assertTrue(findPets.isArray());
         assertEquals(3, ((Map) findPets.getResponseProperties()).size());
@@ -288,6 +294,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("find pet by id", findPetsId.getDescription());
         assertEquals("GET", findPetsId.getVerb());
         assertEquals("200", findPetsId.getResponseStatus());
+        assertEquals("application/json", findPetsId.getContentType());
         assertNotNull(findPetsId.getResponseProperties());
         assertEquals(3, ((Map) findPetsId.getResponseProperties()).size());
         assertEquals("Mocked string", ((Map) findPetsId.getResponseProperties()).get("name"));
@@ -319,6 +326,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("List available data sets", getMetadata.getDescription());
         assertEquals("GET", getMetadata.getVerb());
         assertEquals("200", getMetadata.getResponseStatus());
+        assertEquals("application/json", getMetadata.getContentType());
         assertNotNull(getMetadata.getResponseProperties());
         final Map responseExample = ((Map) getMetadata.getResponseProperties());
         assertEquals(2, responseExample.size());
@@ -334,6 +342,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("Provides the general information about the API and the list of fields that can be used to query the dataset.", getFields.getDescription());
         assertEquals("GET", getFields.getVerb());
         assertEquals("200", getFields.getResponseStatus());
+        assertEquals("application/json", getFields.getContentType());
         assertNotNull(getFields.getResponseProperties());
         assertEquals("Mocked string", ((Map) getFields.getResponseProperties()).get("string"));
     }
@@ -357,6 +366,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("getRoot", getRoot.getDescription());
         assertEquals("GET", getRoot.getVerb());
         assertEquals("200", getRoot.getResponseStatus());
+        assertEquals("application/json", getRoot.getContentType());
         assertNotNull(getRoot.getResponseProperties());
         assertFalse(getRoot.isArray());
         final Map responseExample = ((Map) getRoot.getResponseProperties());
@@ -426,6 +436,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("List the Drive sites", getDrives.getDescription());
         assertEquals("GET", getDrives.getVerb());
         assertEquals("200", getDrives.getResponseStatus());
+        assertEquals("application/vnd.api+json", getDrives.getContentType());
         assertNotNull(getDrives.getResponseProperties());
         assertFalse(getDrives.isArray());
         final Map responseExample = ((Map) getDrives.getResponseProperties());
