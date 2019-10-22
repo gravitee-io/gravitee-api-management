@@ -143,11 +143,11 @@ class DocumentationService {
   }
 
   fetch = (pageId: string, apiId?: string): IHttpPromise<any> => {
-    return this.$http.post(this.url(apiId, pageId) + '/_fetch');
+    return this.$http.post(this.url(apiId, pageId) + '/_fetch', null, {timeout: 30000});
   };
 
   fetchAll = (apiId: string): IHttpPromise<any> => {
-    return this.$http.post(this.url(apiId) + '_fetch');
+    return this.$http.post(this.url(apiId) + '_fetch', null, {timeout: 30000});
   }
 }
 
