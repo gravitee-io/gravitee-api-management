@@ -1,3 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import "~@gravitee/components/themes/gravitee-theme";
+@import "css/font.css";
+
+:root {
+  font-family: "IBM Plex Sans", "Nunito Sans", -apple-system, ".SFNSText-Regular", "San Francisco", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
