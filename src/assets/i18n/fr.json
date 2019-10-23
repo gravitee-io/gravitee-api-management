@@ -2,9 +2,19 @@
  "route": {
   "apps": "Applications",
   "catalog": "Catalogue",
-  "dashboard": "Tableau de bord"
+  "dashboard": "Tableau de bord",
+  "login": "Se connecter",
+  "logout": "Se déconnecter"
  },
  "site": {
   "title": "Gravitee.io Portail"
+ },
+ "login": {
+   "title": "Identifiez-vous",
+   "button": "Se connecter",
+   "with_providers": "Vous pouvez aussi vous connecter avec",
+   "providers_only": "Vous pouvez vous connecter avec",
+   "username": "Identifiant",
+   "password": "Mot de passe"
  }
 }

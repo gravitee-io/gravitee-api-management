@@ -1,7 +1,18 @@
-<gv-header logoImg="https://avatars3.githubusercontent.com/u/12655666?s=280&amp;v=4"
-           logoTitle="Gravitee.io"
-           [routes]="routes">
+<header class="bg-white w-100 dt">
+  <div class="w-20 dtc v-mid">
+    <a href="" target="_blank" class="logo link" title="Gravitee.io">
+      <img src="https://avatars3.githubusercontent.com/u/12655666?s=280&amp;v=4" alt="Gravitee.io" class="bn mw-100 dib">
+    </a>
+  </div>
+  
+  <gv-nav [routes]="routes" class="w-60 dtc v-mid tc"></gv-nav>
 
-</gv-header>
-
+  <gv-nav-link [route]="userRoutes[0]" class="w-20 dtc v-mid tr" *ngIf="!currentUser"></gv-nav-link>
+  <div *ngIf="currentUser" class="tr">
+      <a href="user" class="logo link v-mid" title="{{ currentUser.displayName }}">
+          <img src="{{ currentUser.avatar }}" alt="{{ currentUser.displayName }}" class="bn mw-100 dib">
+      </a>
+    <gv-nav-link [route]="userRoutes[1]" class="v-mid" ></gv-nav-link>
+  </div>
+</header>
 <router-outlet></router-outlet>

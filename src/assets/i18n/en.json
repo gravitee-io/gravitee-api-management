@@ -2,9 +2,19 @@
  "route": {
   "apps": "Applications",
   "catalog": "Catalog",
-  "dashboard": "Dashboard"
+  "dashboard": "Dashboard",
+  "login": "Sign in",
+  "logout": "Sign out"
  },
  "site": {
   "title": "Gravitee.io Portal"
+ },
+ "login": {
+   "title": "Who are you ?",
+   "button": "Sign in",
+   "with_providers": "You can also sign in with",
+   "providers_only": "Sign in with",
+   "username": "Username",
+   "password": "Password"
  }
 }

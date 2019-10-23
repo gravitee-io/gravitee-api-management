@@ -1,0 +1,18 @@
+<div *ngIf="user" class="bg-white">
+  <h1>Mon compte</h1>
+  <div class ="dt">
+    <div class="w-80 dtc">
+      <p>
+        <span class="b">Name : </span>
+        <span>{{ user.display_name }}</span>
+      </p>
+      <p>
+        <span class="b">Email : </span>
+        <span>{{ user.email }}</span>
+      </p>
+    </div>
+    <div class="w-20 dtc v-mid">
+      <img src="{{user.avatar}}" height="100" width="100" />
+    </div>
+  </div>
+</div>

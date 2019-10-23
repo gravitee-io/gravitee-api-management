@@ -47,9 +47,9 @@ This project use project https://github.com/gravitee-io/gravitee-ui-components[G
 If you want to develop in parallel, you can clone repository and link to project.
 
 ```shell script
-git clone git@github.com:gravitee-io/.git
+git clone git@github.com:gravitee-io/gravitee-ui-components.git
 pushd
-npm run export
+npm run generate:dist
 npm link
 popd
 

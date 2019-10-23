@@ -1,5 +1,5 @@
 {
-  "/management/DEFAULT": {
+  "/portal/DEFAULT": {
     "target": "http://localhost:8084",
     "secure": false
   },

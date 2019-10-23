@@ -5,9 +5,12 @@ import {environment} from '../environments/environment';
 import '@gravitee/ui-components/wc/gv-header';
 
 import {Title} from '@angular/platform-browser';
-import {explicitRoutes} from './app-routing.module';
+import {routes, userRoutes} from './app-routing.module';
 import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
 import {Router} from '@angular/router';
+import {User } from '@gravitee/clients-sdk/dist';
+import { UserComponent } from './user/user.component';
+import { CurrentUserService } from './currentUser.service';
 
 @Component({
   selector: 'app-root',
@@ -17,11 +20,19 @@ import {Router} from '@angular/router';
 export class AppComponent implements OnInit {
 
   private routes: Promise<any>[];
-
-  constructor(private titleService: Title, private translateService: TranslateService, private router: Router) {
+  private userRoutes: Promise<any>[];
+  private currentUser: User;
+  constructor(
+    private titleService: Title, 
+    private translateService: TranslateService, 
+    private router: Router,
+    private currentUserService: CurrentUserService
+    ) {
   }
 
   ngOnInit() {
+    this.currentUserService.currentUser.subscribe(newCurrentUser => this.currentUser = newCurrentUser);
+    
     this.translateService.addLangs(environment.locales);
     this.translateService.setDefaultLang(environment.locales[0]);
     const browserLang = this.translateService.getBrowserLang();
@@ -31,7 +42,7 @@ export class AppComponent implements OnInit {
       this.titleService.setTitle(title);
     });
 
-    this.routes = explicitRoutes.map((route) => {
+    this.routes = routes.map((route) => {
       return this.translateService.get(route.title).toPromise().then((title) => {
         route.title = title;
         if (`/${route.path}` === this.router.url) {
@@ -41,9 +52,17 @@ export class AppComponent implements OnInit {
         return route;
       });
     });
+
+    this.userRoutes = userRoutes.map((route) => {
+      return this.translateService.get(route.title).toPromise().then((title) => {
+        route.title = title;
+        return route;
+      });
+    });
   }
 
   @HostListener('gv-nav_change', ['$event.detail'])
+  @HostListener('gv-nav-link_click', ['$event.detail'])
   onNavChange(route) {
     this.router.navigate([route.path]);
   }

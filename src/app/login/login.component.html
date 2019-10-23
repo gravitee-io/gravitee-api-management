@@ -1,0 +1,47 @@
+<div class="tc bg-white">
+  <h1 *ngIf="loginForm || providers" [translate]="'login.title'"></h1>
+
+  <div *ngIf="loginForm">
+    <form [formGroup]="loginForm">
+      <gv-input
+        large
+        required
+        placeholder="{{ 'login.username' | translate}}"
+        formControlName="username"
+        ngDefaultControl
+        class="w-80"
+        (keyup.enter)="login()" 
+      >
+      </gv-input>
+      <br/>
+      <gv-input
+        type="password"
+        large
+        required
+        placeholder="{{ 'login.password' | translate }}"
+        formControlName="password"
+        ngDefaultControl
+        class="w-80"
+        (keyup.enter)="login()" 
+      >
+      </gv-input>
+      <br />
+      <gv-button [translate]="'login.button'" [disabled]="!isFormValid()" (click)="login()" primary class="w-80"></gv-button>
+    </form>
+  </div>
+  <div id="providers" *ngIf="providers">
+    <p *ngIf="loginForm" [translate]="'login.with_providers'"></p>
+    <p *ngIf="!loginForm" [translate]="'login.providers_only'"></p>
+
+    <gv-button *ngFor="let provider of providers"
+      outlined
+      icon="thirdparty:{{ provider.type }}"
+      class="w-80 {{ provider.type }}_outlined"
+      (click)="authenticate(provider)">
+      {{ provider.name }}
+    </gv-button>
+  </div>
+
+  <gv-message type="{{ notification.type }}" *ngIf="notification" class="w-80 fieldset">{{ notification.message }}</gv-message>  
+  
+</div>

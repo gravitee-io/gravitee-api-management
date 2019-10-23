@@ -1,0 +1,6 @@
+div {
+  color: var(--gv-theme-color-darker);
+  margin: 1rem auto;
+  padding: 1rem;
+  max-width: 50rem;
+}
