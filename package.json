@@ -21,7 +21,7 @@
     "@angular/platform-browser": "^8.2.9",
     "@angular/platform-browser-dynamic": "^8.2.9",
     "@angular/router": "^8.2.9",
-    "@gravitee/components": "github:gravitee-io/gravitee-components",
+    "@gravitee/ui-components": "github:gravitee-io/gravitee-ui-components",
     "@ngx-translate/core": "^11.0.1",
     "@ngx-translate/http-loader": "^4.0.0",
     "messageformat": "^2.3.0",

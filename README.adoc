@@ -43,18 +43,18 @@ To get more help on the Angular CLI use `ng help` or go check out the https://gi
 
 == About WIP dependencies
 
-This project use project https://github.com/gravitee-io/gravitee-components[Gravitee Web Components].
+This project use project https://github.com/gravitee-io/gravitee-ui-components[Gravitee UI Components].
 If you want to develop in parallel, you can clone repository and link to project.
 
 ```shell script
-git clone git@github.com:gravitee-io/gravitee-components.git
-pushd gravitee-components
+git clone git@github.com:gravitee-io/.git
+pushd
 npm run export
 npm link
 popd
 
 pushd gravitee-portal-webui
-npm link @gravitee/components
+npm link @gravitee/ui-components
 popd
 ```
 

@@ -2,7 +2,7 @@ import {Component, HostListener, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {environment} from '../environments/environment';
 
-import 'node_modules/@gravitee/components/src/organisms/gv-header';
+import '@gravitee/ui-components/wc/gv-header';
 
 import {Title} from '@angular/platform-browser';
 import {explicitRoutes} from './app-routing.module';
