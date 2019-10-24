@@ -35,7 +35,7 @@
     <properties>
         <gravitee-node.version>1.5.0</gravitee-node.version>
         <gravitee-definition.version>1.18.1</gravitee-definition.version>
-        <gravitee-common.version>1.15.1</gravitee-common.version>
+        <gravitee-common.version>1.15.2</gravitee-common.version>
         <gravitee-plugin.version>1.9.0</gravitee-plugin.version>
         <gravitee-repository.version>1.28.1</gravitee-repository.version>
         <gravitee-gateway-api.version>1.18.1</gravitee-gateway-api.version>
@@ -57,6 +57,7 @@
         <jsonpath.version>2.3.0</jsonpath.version>
         <lucene.version>7.5.0</lucene.version>
         <powermock.version>2.0.0</powermock.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
     </properties>
 
     <modules>
@@ -280,6 +281,12 @@
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
         </dependency>
 
         <!-- Logging -->
