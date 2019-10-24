@@ -28,19 +28,8 @@
           Enable API Quality Metrics
         </md-checkbox>
       </div>
+      <h4>General</h4>
       <div layout="row" layout-wrap="">
-        <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
-          <label>Functional documentation weight</label>
-          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.functionalDocumentationWeight">
-        </md-input-container>
-        <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
-          <label>Technical documentation weight</label>
-          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.technicalDocumentationWeight">
-        </md-input-container>
-        <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
-          <label>Healthcheck weight</label>
-          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.healthcheckWeight">
-        </md-input-container>
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Description weight</label>
           <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.descriptionWeight">
@@ -60,6 +49,24 @@
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Labels weight</label>
           <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.labelsWeight">
+        </md-input-container>
+      </div>
+      <h4>Documentation</h4>
+      <div layout="row" layout-wrap="">
+        <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
+          <label>Functional documentation weight</label>
+          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.functionalDocumentationWeight">
+        </md-input-container>
+        <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
+          <label>Technical documentation weight</label>
+          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.technicalDocumentationWeight">
+        </md-input-container>
+      </div>
+      <h4>Endpoint</h4>
+      <div layout="row" layout-wrap="">
+        <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
+          <label>Healthcheck weight</label>
+          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.healthcheckWeight">
         </md-input-container>
       </div>
 
