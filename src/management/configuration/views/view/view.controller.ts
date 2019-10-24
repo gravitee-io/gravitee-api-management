@@ -119,9 +119,9 @@ class ViewController {
           // we need to retrieve the API to get the all information required for the update
           this.ApiService.get(api.id).then(response => {
             let apiFound = response.data;
-            apiFound.views = _.remove(apiFound.views, this.view.id);
+            _.remove(apiFound.views, (v) => v === this.view.id);
             this.ApiService.update(apiFound).then(() => {
-              this.NotificationService.show("API '" + api.name + "' detached with success")
+              this.NotificationService.show("API '" + api.name + "' detached with success");
               _.remove(this.selectedAPIs, api);
               _.remove(this.viewApis, api);
             });

@@ -176,7 +176,9 @@ export class ApisController {
   }
 
   loadMore = (order, showNext) => {
-    const doNotLoad = showNext && (this.apisProvider && this.apisProvider.length) === (this.apis && this.apis.length);
+    // check if data must be refreshed or not when sorting or searching (when user is typing text)
+    const doNotLoad = showNext && (this.apisProvider && this.apisProvider.length) === (this.apis && this.apis.length) &&
+      _.difference(_.map(this.apisProvider, 'id'), _.map(this.apis, 'id')).length === 0;
     if (!doNotLoad && this.apisProvider) {
       let apisProvider = _.clone(this.apisProvider);
       apisProvider = _.sortBy(apisProvider, _.replace(order, '-', ''));

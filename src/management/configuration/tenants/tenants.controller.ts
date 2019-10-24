@@ -35,6 +35,10 @@ class TenantsController {
     this.tenantsToUpdate = [];
   }
 
+  $onInit() {
+    this.initialTenants = _.cloneDeep(this.tenants);
+  }
+
   newTenant(event) {
     event.stopPropagation();
 

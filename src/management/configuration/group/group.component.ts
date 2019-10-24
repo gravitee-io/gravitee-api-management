@@ -261,6 +261,16 @@ const GroupComponent: ng.IComponentOptions = {
         // you cancelled the dialog
         () => {});
     };
+
+    this.hasGroupAdmin = () => {
+      let hasGroupAdmin = false;
+      _.forEach(this.members, (member) => {
+        if (member.roles["GROUP"] && member.roles["GROUP"]==="ADMIN") {
+          hasGroupAdmin = true;
+        }
+      });
+      return hasGroupAdmin;
+    };
   }
 };
 

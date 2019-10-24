@@ -118,9 +118,22 @@ class DictionaryController {
   }
 
   delete() {
-    this.DictionaryService.delete(this.dictionary).then((response) => {
-      this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deleted');
-      this.$state.go('management.settings.dictionaries.list', {}, {reload: true});
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        title: 'Are you sure you want to delete this dictionary ?',
+        confirmButton: 'Yes, delete it.'
+      }
+    }).then( (response) => {
+      if (response) {
+        this.DictionaryService.delete(this.dictionary).then((response) => {
+          this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deleted');
+          this.$state.go('management.settings.dictionaries.list', {}, {reload: true});
+        });
+      }
     });
   }
 
