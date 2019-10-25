@@ -88,23 +88,22 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
 
             for(Scope scope : scopes) {
                 if (! repositories.containsKey(scope)) {
-                    // Not yet loaded, let's mount the repository in application context
-                    try {
-                        ApplicationContext applicationContext = pluginContextFactory.create(
-                                new AnnotationBasedPluginContextConfigurer(plugin) {
-                                    @Override
-                                    public Set<Class<?>> configurations() {
-                                        return Collections.singleton(repository.configuration(scope));
-                                    }
-                                });
+                    boolean loaded = false;
+                    int tries = 0;
 
-                        registerRepositoryDefinitions(repository, applicationContext);
-                        repositories.put(scope, repository);
-                    } catch (Exception iae) {
-                        LOGGER.error("Unexpected error while creating context for repository instance", iae);
-                        pluginContextFactory.remove(plugin);
+                    while (! loaded) {
+                        if (tries > 0) {
+                            // Wait for 5 seconds before giving an other try
+                            Thread.sleep(5000);
+                        }
+                        loaded = loadRepository(scope, repository, plugin);
+                        tries++;
+
+
+                        if (! loaded) {
+                            LOGGER.error("Unable to load repository {} for scope {}. Retry in 5 seconds...", scope, plugin.id());
+                        }
                     }
-
                 } else {
                     LOGGER.warn("Repository scope {} already loaded by {}", scope,
                             repositories.get(scope));
@@ -112,6 +111,30 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
             }
         } catch (Exception iae) {
             LOGGER.error("Unexpected error while create repository instance", iae);
+        }
+    }
+
+    private boolean loadRepository(Scope scope, Repository repository, Plugin plugin) {
+        LOGGER.info("Repository [{}] loaded by {}", scope, repository.type());
+
+        // Not yet loaded, let's mount the repository in application context
+        try {
+            ApplicationContext repoApplicationContext = pluginContextFactory.create(
+                    new AnnotationBasedPluginContextConfigurer(plugin) {
+                        @Override
+                        public Set<Class<?>> configurations() {
+                            return Collections.singleton(repository.configuration(scope));
+                        }
+                    });
+
+            registerRepositoryDefinitions(repository, repoApplicationContext);
+            repositories.put(scope, repository);
+            return true;
+        } catch (Exception iae) {
+            LOGGER.error("Unexpected error while creating context for repository instance", iae);
+            pluginContextFactory.remove(plugin);
+
+            return false;
         }
     }
 
