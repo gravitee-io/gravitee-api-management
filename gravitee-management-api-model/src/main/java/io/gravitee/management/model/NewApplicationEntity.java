@@ -17,8 +17,8 @@ package io.gravitee.management.model;
 
 import io.gravitee.management.model.application.ApplicationSettings;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Set;
 
 /**
@@ -29,7 +29,7 @@ import java.util.Set;
 public class NewApplicationEntity {
 
     @NotNull(message = "Application's name must not be null")
-    @Size(min = 4, message = "Application's name must contain at least 4 characters")
+    @NotEmpty(message = "Application's name must not be empty")
     private String name;
 
     @NotNull(message = "Application's description must not be null")
