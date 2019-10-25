@@ -71,7 +71,7 @@ class ApplicationGeneralController {
   }
 
   reset() {
-    this.application = _.cloneDeep(this.initialApplication);
+    _.assign(this.application, this.initialApplication);
     this.$scope.formApplication.$setPristine();
   }
 
