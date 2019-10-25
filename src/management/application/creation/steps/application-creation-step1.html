@@ -23,11 +23,10 @@
             <div class="gv-form-content" layout="column">
               <md-input-container class="md-block">
                 <label>Name</label>
-                <input ng-model="$ctrl.parent.application.name" type="text" name="name" minlength="4" md-maxlength="50" required>
+                <input ng-model="$ctrl.parent.application.name" type="text" name="name" md-maxlength="50" required>
                 <div class="hint" ng-if="applicationForm.name.$valid || applicationForm.name.$pristine">Application name</div>
                 <div ng-messages="applicationForm.name.$error">
                   <div ng-message="required">Application name is required.</div>
-                  <div ng-message="minlength">The name has to be more than 4 characters long.</div>
                   <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
                 </div>
               </md-input-container>
