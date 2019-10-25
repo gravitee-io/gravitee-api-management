@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee</groupId>
 		<artifactId>gravitee-parent</artifactId>
-		<version>16</version>
+		<version>17</version>
 	</parent>
 
 	<groupId>io.gravitee.elasticsearch</groupId>
@@ -36,11 +36,11 @@
 	<properties>
 		<!-- Gravitee's project versions -->
 		<gravitee-gateway-api.version>1.19.1</gravitee-gateway-api.version>
-		<gravitee-common.version>1.15.1</gravitee-common.version>
+		<gravitee-common.version>1.15.2</gravitee-common.version>
 		<gravitee-reporter-api.version>1.16.0</gravitee-reporter-api.version>
 		<gravitee-policy-api.version>1.6.0</gravitee-policy-api.version>
 		<gravitee-repository.version>1.29.0</gravitee-repository.version>
-		<gravitee-node.version>1.5.0</gravitee-node.version>
+		<gravitee-node.version>1.5.1</gravitee-node.version>
 		<freemarker.version>2.3.26-incubating</freemarker.version>
 	</properties>
 
