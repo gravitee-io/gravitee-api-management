@@ -44,7 +44,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Set<Application> applications = applicationRepository.findAll();
 
         assertNotNull(applications);
-        assertEquals("Fail to resolve application in findAll", 9, applications.size());
+        assertEquals("Fail to resolve application in findAll", 10, applications.size());
     }
 
     @Test
