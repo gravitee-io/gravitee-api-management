@@ -319,6 +319,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             metadata.put("name", planEntity.getName());
         } catch (PlanNotFoundException anfe) {
             metadata.put("deleted", "true");
+            metadata.put("name", "Deleted plan");
         }
 
         return metadata;
@@ -332,6 +333,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             metadata.put("name", tenantEntity.getName());
         } catch (TenantNotFoundException tnfe) {
             metadata.put("deleted", "true");
+            metadata.put("name", "Deleted tenant");
         }
 
         return metadata;
