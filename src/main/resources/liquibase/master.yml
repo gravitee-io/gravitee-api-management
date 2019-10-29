@@ -51,3 +51,5 @@ databaseChangeLog:
     - file: liquibase/changelogs/v1_25_2/schema.yml
   - include:
     - file: liquibase/changelogs/v1_25_3/dictionary-null-payload.yml
+  - include:
+    - file: liquibase/changelogs/v1_25_4/schema.yml
