@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "0eb8e382-4c34-4842-8906-9afe387ec8e1",
+		"_postman_id": "e4ab7e9a-27a5-4200-83da-9add4d191a52",
 		"name": "API Portal : Authorizations",
 		"description": "This collections contains requests to test authorizations on the Portal API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -285,6 +285,7 @@
 									}
 								}
 							],
+							"protocolProfileBehavior": {},
 							"_postman_isSubFolder": true
 						},
 						{
@@ -352,6 +353,7 @@
 									}
 								}
 							],
+							"protocolProfileBehavior": {},
 							"_postman_isSubFolder": true
 						}
 					],
@@ -377,6 +379,7 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1235,6 +1238,331 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "auth",
+					"item": [
+						{
+							"name": "not 401",
+							"item": [
+								{
+									"name": "POST /auth/oauth2/:identity",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/auth/oauth2/:identity",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"auth",
+												"oauth2",
+												":identity"
+											],
+											"variable": [
+												{
+													"key": "identity",
+													"value": "IDENTITY"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST /auth/oauth2/:identity/_exchange",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/auth/oauth2/:identity/_exchange",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"auth",
+												"oauth2",
+												":identity",
+												"_exchange"
+											],
+											"variable": [
+												{
+													"key": "identity",
+													"value": "IDENTITY"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "eb17f689-0b73-4c4b-bab7-10cd1325468b",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "fc236e85-905f-41d4-838b-8a032afdd077",
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is not 401\", function () {",
+											"    pm.response.to.not.have.status(401);",
+											"});"
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "401",
+							"item": [
+								{
+									"name": "POST /auth/login",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/auth/login",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"auth",
+												"login"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST /auth/logout",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/auth/logout",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"auth",
+												"logout"
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "84f58a41-c300-4405-8d63-c52c4ed31328",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "5a2a16a6-7593-4b4c-bb34-cca37d5247d1",
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "configuration & info",
+					"item": [
+						{
+							"name": "GET /configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/configuration",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"configuration"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /configuration/identities",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/configuration/identities",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"configuration",
+										"identities"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /info",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/info",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"info"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "All anonymous requests to /configuration/.. and /info should not return 401",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9179df9e-c50a-4a73-9371-27577e662d04",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "0edcab96-14e9-4ace-afee-695af68016ca",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is not 401\", function () {",
+									"    pm.response.to.not.have.status(401);",
+									"});"
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1331,6 +1659,7 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1574,232 +1903,36 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "users & user",
+					"name": "tickets",
 					"item": [
 						{
-							"name": "GET /users",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
+							"name": "POST /tickets",
 							"request": {
-								"method": "GET",
+								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{portal_url}}/users",
+									"raw": "{{portal_url}}/tickets",
 									"host": [
 										"{{portal_url}}"
 									],
 									"path": [
-										"users"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "GET /user",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/user",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"user"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "PUT /user",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/user",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"user"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "GET /user/avatar",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/user/avatar",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"user",
-										"avatar"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "GET /user/notifications",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/user/notifications",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"user",
-										"notifications"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "DELETE /user/notifications",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/user/notifications",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"user",
-										"notifications"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "DELETE /user/notifications/:notificationId",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/user/notifications/:notificationId",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"user",
-										"notifications",
-										":notificationId"
-									],
-									"variable": [
-										{
-											"key": "notificationId",
-											"value": "NOTIFICATION"
-										}
+										"tickets"
 									]
 								}
 							},
 							"response": []
 						}
 					],
-					"description": "All anonymous requests to /users and /user/... should return 401",
+					"description": "All anonymous requests to /tickets should return 401",
 					"event": [
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "71d4dfee-80d6-4df2-b23b-543e6ab5dee9",
+								"id": "23d2335c-421d-4e64-b794-e72ad0dadd6c",
 								"type": "text/javascript",
 								"exec": [
 									""
@@ -1809,7 +1942,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "aa618fce-577b-4543-a294-6197d08baad1",
+								"id": "599c14de-c7f6-47c6-b58d-37662718b803",
 								"type": "text/javascript",
 								"exec": [
 									"pm.test(\"Status code is 401\", function () {",
@@ -1819,6 +1952,384 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "users & user",
+					"item": [
+						{
+							"name": "not 401",
+							"item": [
+								{
+									"name": "POST /users/registration",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{portal_url}}/users/registration",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"users",
+												"registration"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST /users/registration/_finalize",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{portal_url}}/users/registration/_finalize",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"users",
+												"registration",
+												"_finalize"
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "4c2096ca-593c-40b1-8132-536e808ef8ba",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "2c303b31-6e3d-4f5d-9ee4-b1af3fa78782",
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is not 401\", function () {",
+											"    pm.response.to.not.have.status(401);",
+											"});"
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "401",
+							"item": [
+								{
+									"name": "GET /users",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/users",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"users"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "GET /user",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/user",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"user"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "PUT /user",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/user",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"user"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "GET /user/avatar",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/user/avatar",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"user",
+												"avatar"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "GET /user/notifications",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/user/notifications",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"user",
+												"notifications"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "DELETE /user/notifications",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/user/notifications",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"user",
+												"notifications"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "DELETE /user/notifications/:notificationId",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/user/notifications/:notificationId",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"user",
+												"notifications",
+												":notificationId"
+											],
+											"variable": [
+												{
+													"key": "notificationId",
+													"value": "NOTIFICATION"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"description": "All anonymous requests to /users and /user/... should return 401",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "71d4dfee-80d6-4df2-b23b-543e6ab5dee9",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "aa618fce-577b-4543-a294-6197d08baad1",
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 401\", function () {",
+											"    pm.response.to.have.status(401);",
+											"});"
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						}
+					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1952,381 +2463,14 @@
 							}
 						}
 					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "configuration & info",
-					"item": [
-						{
-							"name": "GET /configuration",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/configuration",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"configuration"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "GET /configuration/identities",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/configuration/identities",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"configuration",
-										"identities"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "GET /info",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/info",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"info"
-									]
-								}
-							},
-							"response": []
-						}
-					],
-					"description": "All anonymous requests to /configuration/.. and /info should not return 401",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "9179df9e-c50a-4a73-9371-27577e662d04",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"id": "0edcab96-14e9-4ace-afee-695af68016ca",
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is not 401\", function () {",
-									"    pm.response.to.not.have.status(401);",
-									"});"
-								]
-							}
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "auth",
-					"item": [
-						{
-							"name": "not 401",
-							"item": [
-								{
-									"name": "POST /auth/oauth2/:identity",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-												"exec": [
-													""
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [],
-										"url": {
-											"raw": "{{portal_url}}/auth/oauth2/:identity",
-											"host": [
-												"{{portal_url}}"
-											],
-											"path": [
-												"auth",
-												"oauth2",
-												":identity"
-											],
-											"variable": [
-												{
-													"key": "identity",
-													"value": "IDENTITY"
-												}
-											]
-										}
-									},
-									"response": []
-								},
-								{
-									"name": "POST /auth/oauth2/:identity/_exchange",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-												"exec": [
-													""
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [],
-										"url": {
-											"raw": "{{portal_url}}/auth/oauth2/:identity/_exchange",
-											"host": [
-												"{{portal_url}}"
-											],
-											"path": [
-												"auth",
-												"oauth2",
-												":identity",
-												"_exchange"
-											],
-											"variable": [
-												{
-													"key": "identity",
-													"value": "IDENTITY"
-												}
-											]
-										}
-									},
-									"response": []
-								}
-							],
-							"event": [
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "eb17f689-0b73-4c4b-bab7-10cd1325468b",
-										"type": "text/javascript",
-										"exec": [
-											""
-										]
-									}
-								},
-								{
-									"listen": "test",
-									"script": {
-										"id": "fc236e85-905f-41d4-838b-8a032afdd077",
-										"type": "text/javascript",
-										"exec": [
-											"pm.test(\"Status code is not 401\", function () {",
-											"    pm.response.to.not.have.status(401);",
-											"});"
-										]
-									}
-								}
-							],
-							"_postman_isSubFolder": true
-						},
-						{
-							"name": "401",
-							"item": [
-								{
-									"name": "POST /auth/login",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-												"exec": [
-													""
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [],
-										"url": {
-											"raw": "{{portal_url}}/auth/login",
-											"host": [
-												"{{portal_url}}"
-											],
-											"path": [
-												"auth",
-												"login"
-											]
-										}
-									},
-									"response": []
-								},
-								{
-									"name": "POST /auth/logout",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
-												"exec": [
-													""
-												],
-												"type": "text/javascript"
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [],
-										"url": {
-											"raw": "{{portal_url}}/auth/logout",
-											"host": [
-												"{{portal_url}}"
-											],
-											"path": [
-												"auth",
-												"logout"
-											]
-										}
-									},
-									"response": []
-								}
-							],
-							"event": [
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "84f58a41-c300-4405-8d63-c52c4ed31328",
-										"type": "text/javascript",
-										"exec": [
-											""
-										]
-									}
-								},
-								{
-									"listen": "test",
-									"script": {
-										"id": "5a2a16a6-7593-4b4c-bb34-cca37d5247d1",
-										"type": "text/javascript",
-										"exec": [
-											"pm.test(\"Status code is 401\", function () {",
-											"    pm.response.to.have.status(401);",
-											"});"
-										]
-									}
-								}
-							],
-							"_postman_isSubFolder": true
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "tickets",
-					"item": [
-						{
-							"name": "POST /tickets",
-							"request": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/tickets",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"tickets"
-									]
-								}
-							},
-							"response": []
-						}
-					],
-					"description": "All anonymous requests to /tickets should return 401",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "23d2335c-421d-4e64-b794-e72ad0dadd6c",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"id": "599c14de-c7f6-47c6-b58d-37662718b803",
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"Status code is 401\", function () {",
-									"    pm.response.to.have.status(401);",
-									"});"
-								]
-							}
-						}
-					],
 					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
 			],
 			"auth": {
 				"type": "noauth"
-			}
+			},
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Authenticated Requests",
@@ -2649,6 +2793,7 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -3504,6 +3649,266 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "auth",
+					"item": [
+						{
+							"name": "POST /auth/login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/auth/login",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /auth/logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/auth/logout",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /auth/oauth2/:identity",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/auth/oauth2/:identity",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"auth",
+										"oauth2",
+										":identity"
+									],
+									"variable": [
+										{
+											"key": "identity",
+											"value": "IDENTITY"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /auth/oauth2/:identity/_exchange",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/auth/oauth2/:identity/_exchange",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"auth",
+										"oauth2",
+										":identity",
+										"_exchange"
+									],
+									"variable": [
+										{
+											"key": "identity",
+											"value": "IDENTITY"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "configuration & info",
+					"item": [
+						{
+							"name": "GET /configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/configuration",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"configuration"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /configuration/identities",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/configuration/identities",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"configuration",
+										"identities"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET /info",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/info",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"info"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9179df9e-c50a-4a73-9371-27577e662d04",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "0edcab96-14e9-4ace-afee-695af68016ca",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -3597,6 +4002,7 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -3837,6 +4243,7 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -3866,6 +4273,99 @@
 									],
 									"path": [
 										"users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /users/registration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{portal_url}}/users/registration",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"users",
+										"registration"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST /users/registration/_finalize",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{portal_url}}/users/registration/_finalize",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"users",
+										"registration",
+										"_finalize"
 									]
 								}
 							},
@@ -4079,6 +4579,53 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "ticket",
+					"item": [
+						{
+							"name": "POST /tickets",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{portal_url}}/tickets",
+									"host": [
+										"{{portal_url}}"
+									],
+									"path": [
+										"tickets"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "23d2335c-421d-4e64-b794-e72ad0dadd6c",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "599c14de-c7f6-47c6-b58d-37662718b803",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -4209,308 +4756,6 @@
 							}
 						}
 					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "configuration & info",
-					"item": [
-						{
-							"name": "GET /configuration",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/configuration",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"configuration"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "GET /configuration/identities",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/configuration/identities",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"configuration",
-										"identities"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "GET /info",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/info",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"info"
-									]
-								}
-							},
-							"response": []
-						}
-					],
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "9179df9e-c50a-4a73-9371-27577e662d04",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"id": "0edcab96-14e9-4ace-afee-695af68016ca",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "auth",
-					"item": [
-						{
-							"name": "POST /auth/login",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/auth/login",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"auth",
-										"login"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "POST /auth/logout",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "34222d3f-ddb4-4bb6-87c8-bbb676cbf33e",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/auth/logout",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"auth",
-										"logout"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "POST /auth/oauth2/:identity",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/auth/oauth2/:identity",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"auth",
-										"oauth2",
-										":identity"
-									],
-									"variable": [
-										{
-											"key": "identity",
-											"value": "IDENTITY"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "POST /auth/oauth2/:identity/_exchange",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/auth/oauth2/:identity/_exchange",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"auth",
-										"oauth2",
-										":identity",
-										"_exchange"
-									],
-									"variable": [
-										{
-											"key": "identity",
-											"value": "IDENTITY"
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "ticket",
-					"item": [
-						{
-							"name": "POST /tickets",
-							"request": {
-								"method": "POST",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/tickets",
-									"host": [
-										"{{portal_url}}"
-									],
-									"path": [
-										"tickets"
-									]
-								}
-							},
-							"response": []
-						}
-					],
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "23d2335c-421d-4e64-b794-e72ad0dadd6c",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"id": "599c14de-c7f6-47c6-b58d-37662718b803",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						}
-					],
 					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
@@ -4554,7 +4799,8 @@
 						]
 					}
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		}
 	],
 	"event": [
@@ -4578,5 +4824,6 @@
 				]
 			}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

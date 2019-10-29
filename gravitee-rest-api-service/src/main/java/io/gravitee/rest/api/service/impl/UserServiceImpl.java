@@ -277,7 +277,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     private void checkUserRegistrationEnabled() {
         if (!parameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)) {
-            throw new IllegalStateException("The user registration is disabled");
+            throw new UserRegistrationUnavailableException();
         }
     }
 
@@ -476,19 +476,24 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public UserEntity register(final NewExternalUserEntity newExternalUserEntity) {
+        return register(newExternalUserEntity, null);
+    }
+    
+    @Override
+    public UserEntity register(final NewExternalUserEntity newExternalUserEntity, final String confirmationPageUrl) {
         checkUserRegistrationEnabled();
-        return createAndSendEmail(newExternalUserEntity, USER_REGISTRATION);
+        return createAndSendEmail(newExternalUserEntity, USER_REGISTRATION, confirmationPageUrl);
     }
 
     @Override
     public UserEntity create(final NewExternalUserEntity newExternalUserEntity) {
-        return createAndSendEmail(newExternalUserEntity, USER_CREATION);
+        return createAndSendEmail(newExternalUserEntity, USER_CREATION, null);
     }
 
     /**
      * Allows to create an user and send an email notification to finalize its creation.
      */
-    private UserEntity createAndSendEmail(final NewExternalUserEntity newExternalUserEntity, final ACTION action) {
+    private UserEntity createAndSendEmail(final NewExternalUserEntity newExternalUserEntity, final ACTION action, final String confirmationPageUrl) {
         try {
             new InternetAddress(newExternalUserEntity.getEmail()).validate();
         } catch (final AddressException ex) {
@@ -511,7 +516,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         final UserEntity userEntity = create(newExternalUserEntity, true);
 
-        final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action);
+        final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action, confirmationPageUrl);
         notifierService.trigger(ACTION.USER_REGISTRATION.equals(action) ? PortalHook.USER_REGISTERED : PortalHook.USER_CREATED, params);
         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                 .to(userEntity.getEmail())
@@ -523,10 +528,15 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         return userEntity;
     }
-
     @Override
     public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri,
                                                           final ACTION action) {
+        return getTokenRegistrationParams(userEntity, portalUri, action, null);
+    }
+    
+    @Override
+    public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri,
+                                                          final ACTION action, final String confirmationPageUrl) {
         // generate a JWT to store user's information and for security purpose
         final Map<String, Object> claims = new HashMap<>();
         claims.put(Claims.ISSUER, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER));
@@ -550,13 +560,22 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
 
         final String token = new JWTSigner(jwtSecret).sign(claims, options);
-        String portalUrl = environment.getProperty("portalURL");
-
-        if (portalUrl!= null && portalUrl.endsWith("/")) {
-            portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
+        
+        
+        String registrationUrl= "";
+        if (confirmationPageUrl != null && !confirmationPageUrl.isEmpty()) {
+            registrationUrl += confirmationPageUrl;
+            if(!confirmationPageUrl.endsWith("/")) {
+                registrationUrl += "/";
+            }
+            registrationUrl += token;
+        } else {
+            String portalUrl = environment.getProperty("portalURL");
+            if (portalUrl!= null && portalUrl.endsWith("/")) {
+                portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
+            }
+            registrationUrl = portalUrl + portalUri + token;
         }
-
-        String registrationUrl = portalUrl + portalUri + token;
 
         return new NotificationParamsBuilder()
                 .user(userEntity)

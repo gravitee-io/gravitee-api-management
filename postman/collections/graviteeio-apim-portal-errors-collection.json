@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "cbee7635-b660-41db-8558-18e33c570877",
+		"_postman_id": "1ee15249-a0cd-448c-8058-0999650570e1",
 		"name": "API Portal : Business Error",
 		"description": "This collections contains requests to test business errors (no 401) on the Portal API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -9386,55 +9386,539 @@
 					"name": "400",
 					"item": [
 						{
-							"name": "PUT /user - input must not be null",
+							"name": "User already exists",
+							"item": [
+								{
+									"name": "-- Prepare --",
+									"item": [
+										{
+											"name": "Create user",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "b688095b-37f2-4335-8d4e-5f5cd39c7f2e",
+														"exec": [
+															"var jsonData = pm.response.json();",
+															"pm.environment.set(\"created_user_id\", jsonData.id);",
+															""
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "basic",
+													"basic": [
+														{
+															"key": "password",
+															"value": "admin",
+															"type": "string"
+														},
+														{
+															"key": "username",
+															"value": "admin",
+															"type": "string"
+														}
+													]
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"name": "Content-Type",
+														"value": "application/json",
+														"type": "text"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n\t\"email\": \"postman-test@example.com\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{managment_url}}/users",
+													"host": [
+														"{{managment_url}}"
+													],
+													"path": [
+														"users"
+													]
+												}
+											},
+											"response": []
+										}
+									],
+									"protocolProfileBehavior": {},
+									"_postman_isSubFolder": true
+								},
+								{
+									"name": "-- Test --",
+									"item": [
+										{
+											"name": "POST /users/registration - user already exist",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+														"exec": [
+															"pm.test(\"Status code is 400\", function () {",
+															"    pm.response.to.have.status(400);",
+															"});",
+															"",
+															"pm.test(\"Invalid email.\", function () {",
+															"    var jsonData = pm.response.json();",
+															"    pm.expect(jsonData.errors[0].detail).to.eql(\"A user [postman-test@example.com] already exists for environment DEFAULT.\");",
+															"});"
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"name": "Content-Type",
+														"type": "text",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n\t\"email\": \"postman-test@example.com\"\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{portal_url}}/users/registration",
+													"host": [
+														"{{portal_url}}"
+													],
+													"path": [
+														"users",
+														"registration"
+													]
+												}
+											},
+											"response": []
+										}
+									],
+									"protocolProfileBehavior": {},
+									"_postman_isSubFolder": true
+								},
+								{
+									"name": "-- Clean up --",
+									"item": [
+										{
+											"name": "Delete created user",
+											"request": {
+												"method": "DELETE",
+												"header": [],
+												"url": {
+													"raw": "{{managment_url}}/users/:userId",
+													"host": [
+														"{{managment_url}}"
+													],
+													"path": [
+														"users",
+														":userId"
+													],
+													"variable": [
+														{
+															"key": "userId",
+															"value": "{{created_user_id}}"
+														}
+													]
+												}
+											},
+											"response": []
+										}
+									],
+									"protocolProfileBehavior": {},
+									"_postman_isSubFolder": true
+								}
+							],
 							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "77738f5b-fd12-4033-98f5-1cc034da136b",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
 								{
 									"listen": "test",
 									"script": {
-										"id": "985561b7-2543-4d18-b53a-3ab9b7a200eb",
+										"id": "b7d3f8e6-ff38-453b-8435-2835813ccf01",
+										"type": "text/javascript",
 										"exec": [
-											"pm.test(\"Status code is 400\", function () {",
-											"    pm.response.to.have.status(400);",
-											"});",
-											"",
-											"pm.test(\"Input must not be null.\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData.errors[0].detail).to.eql(\"Input must not be null.\");",
-											"});"
-										],
-										"type": "text/javascript"
+											""
+										]
 									}
 								}
 							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": [
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Invalid input",
+							"item": [
+								{
+									"name": "PUT /user - input must not be null",
+									"event": [
 										{
-											"key": "password",
-											"value": "password",
-											"type": "string"
-										},
-										{
-											"key": "username",
-											"value": "user",
-											"type": "string"
+											"listen": "test",
+											"script": {
+												"id": "985561b7-2543-4d18-b53a-3ab9b7a200eb",
+												"exec": [
+													"pm.test(\"Status code is 400\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});",
+													"",
+													"pm.test(\"Input must not be null.\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.errors[0].detail).to.eql(\"Input must not be null.\");",
+													"});"
+												],
+												"type": "text/javascript"
+											}
 										}
-									]
-								},
-								"method": "PUT",
-								"header": [],
-								"url": {
-									"raw": "{{portal_url}}/user",
-									"host": [
-										"{{portal_url}}"
 									],
-									"path": [
-										"user"
-									]
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "password",
+													"value": "password",
+													"type": "string"
+												},
+												{
+													"key": "username",
+													"value": "user",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PUT",
+										"header": [],
+										"url": {
+											"raw": "{{portal_url}}/user",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"user"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST /users/registration - input must not be null",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													"pm.test(\"Status code is 400\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});",
+													"",
+													"pm.test(\"Input must not be null.\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.errors[0].detail).to.eql(\"Input must not be null.\");",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{portal_url}}/users/registration",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"users",
+												"registration"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST /users/registration - missing email",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													"pm.test(\"Status code is 400\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});",
+													"",
+													"pm.test(\"Invalid email.\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.errors[0].title).to.eql(\"registerUser.arg0.email\");",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{portal_url}}/users/registration",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"users",
+												"registration"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST /users/registration - invalid email",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													"pm.test(\"Status code is 400\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});",
+													"",
+													"pm.test(\"Invalid email.\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.errors[0].detail).to.eql(\"Value [DUMMY EMAIL] is not a valid email.\");",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"email\": \"DUMMY EMAIL\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{portal_url}}/users/registration",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"users",
+												"registration"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST /users/registration/_finalize - input must not be null",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													"pm.test(\"Status code is 400\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});",
+													"",
+													"pm.test(\"Input must not be null.\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.errors[0].detail).to.eql(\"Input must not be null.\");",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{portal_url}}/users/registration/_finalize",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"users",
+												"registration",
+												"_finalize"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "POST /users/registration/_finalize - missing fields",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													"pm.test(\"Status code is 400\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});",
+													"",
+													"pm.test(\"4 Missing fields.\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.errors.length).to.eql(4);",
+													"    ",
+													"    var sortedErrors = jsonData.errors.sort(compare);",
+													"    pm.expect(sortedErrors[0].title).to.eql('finalizeRegistration.arg0.firstname');",
+													"    pm.expect(sortedErrors[1].title).to.eql('finalizeRegistration.arg0.lastname');",
+													"    pm.expect(sortedErrors[2].title).to.eql('finalizeRegistration.arg0.password');",
+													"    pm.expect(sortedErrors[3].title).to.eql('finalizeRegistration.arg0.token');",
+													"});",
+													"",
+													"",
+													"function compare(a, b) {",
+													"    // Use toUpperCase() to ignore character casing",
+													"  const titleA = a.title.toUpperCase();",
+													"  const titleB = b.title.toUpperCase();",
+													"",
+													"  let comparison = 0;",
+													"  if (titleA > titleB) {",
+													"    comparison = 1;",
+													"  } else if (titleA < titleB) {",
+													"    comparison = -1;",
+													"  }",
+													"  return comparison;",
+													"}"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{portal_url}}/users/registration/_finalize",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"users",
+												"registration",
+												"_finalize"
+											]
+										}
+									},
+									"response": []
 								}
-							},
-							"response": []
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
 						}
 					],
 					"protocolProfileBehavior": {},
@@ -9566,6 +10050,197 @@
 								}
 							},
 							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "503",
+					"item": [
+						{
+							"name": "-- Prepare --",
+							"item": [
+								{
+									"name": "Disable registration service",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"portal\": {\n\t\t\"userCreation\": {\n\t\t\t\"enabled\": false\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{managment_url}}/portal",
+											"host": [
+												"{{managment_url}}"
+											],
+											"path": [
+												"portal"
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Registration service not enabled",
+							"item": [
+								{
+									"name": "POST /users/registration",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "5ddbd8bd-5493-4791-8a3c-58e22e4efea8",
+												"exec": [
+													"pm.test(\"Status code is 503\", function () {",
+													"    pm.response.to.have.status(503);",
+													"});",
+													"",
+													"pm.test(\"Registration service disabled\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.errors[0].detail).to.eql(\"User registration service is unavailable.\");",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"email\": \"test@example.com\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{portal_url}}/users/registration",
+											"host": [
+												"{{portal_url}}"
+											],
+											"path": [
+												"users",
+												"registration"
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "-- Clean up --",
+							"item": [
+								{
+									"name": "Enable registration service",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"type": "text",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"portal\": {\n\t\t\"userCreation\": {\n\t\t\t\"enabled\": true\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{managment_url}}/portal",
+											"host": [
+												"{{managment_url}}"
+											],
+											"path": [
+												"portal"
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "634d4e69-1a6b-480a-a9ec-0322701897a8",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "ce1a095d-4b9d-467b-acad-284f681765e7",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9635b8dd-5fee-4be1-bce9-4911cce37be2",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "85d9b6b7-ab1a-4cdf-a27b-07223864b84f",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
 						}
 					],
 					"protocolProfileBehavior": {},

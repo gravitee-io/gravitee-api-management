@@ -222,7 +222,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 // Portal 
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/**").permitAll()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/info/**").permitAll()
-
+                
+                // Users 
+                .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**").permitAll()
+                
                 // Views
                 .antMatchers(HttpMethod.GET, uriPrefix + "/views/**").permitAll()
 

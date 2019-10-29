@@ -15,11 +15,15 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import org.springframework.stereotype.Component;
-
+import io.gravitee.rest.api.model.NewExternalUserEntity;
+import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.portal.rest.model.FinalizeRegistrationInput;
+import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserLinks;
+
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -27,26 +31,43 @@ import io.gravitee.rest.api.portal.rest.model.UserLinks;
  */
 @Component
 public class UserMapper {
-    
+
     public User convert(UserEntity user) {
         final User userItem = new User();
-        
+
         userItem.setAvatar(user.getPicture());
         userItem.setEmail(user.getEmail());
         userItem.setFirstName(user.getFirstname());
         userItem.setLastName(user.getLastname());
         userItem.setDisplayName(user.getDisplayName());
         userItem.setId(user.getId());
-        
+
         return userItem;
     }
-    
+
+    public NewExternalUserEntity convert(RegisterUserInput input) {
+        NewExternalUserEntity newExternalUserEntity = new NewExternalUserEntity();
+        newExternalUserEntity.setEmail(input.getEmail());
+        newExternalUserEntity.setFirstname(input.getFirstname());
+        newExternalUserEntity.setLastname(input.getLastname());
+        return newExternalUserEntity;
+    }
+
+    public RegisterUserEntity convert(FinalizeRegistrationInput input) {
+        RegisterUserEntity registerUserEntity = new RegisterUserEntity();
+        registerUserEntity.setToken(input.getToken());
+        registerUserEntity.setPassword(input.getPassword());
+        registerUserEntity.setFirstname(input.getFirstname());
+        registerUserEntity.setLastname(input.getLastname());
+        return registerUserEntity;
+    }
+
     public UserLinks computeUserLinks(String basePath) {
         UserLinks userLinks = new UserLinks();
-        userLinks.setAvatar(basePath+"/avatar");
-        userLinks.setNotifications(basePath+"/notifications");
+        userLinks.setAvatar(basePath + "/avatar");
+        userLinks.setNotifications(basePath + "/notifications");
         userLinks.setSelf(basePath);
-        
+
         return userLinks;
     }
 }

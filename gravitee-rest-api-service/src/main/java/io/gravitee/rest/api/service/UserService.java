@@ -44,11 +44,13 @@ public interface UserService {
     Page<UserEntity> search(String query, Pageable pageable);
     Page<UserEntity> search(UserCriteria criteria, Pageable pageable);
     UserEntity register(NewExternalUserEntity newExternalUserEntity);
+    UserEntity register(NewExternalUserEntity newExternalUserEntity, String confirmationPageUrl);
     UserEntity finalizeRegistration(RegisterUserEntity registerUserEntity);
     PictureEntity getPicture(String id);
     void delete(String id);
     void resetPassword(String id);
     Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action);
+    Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action, String confirmationPageUrl);
     UserEntity create(NewExternalUserEntity newExternalUserEntity);
     UserEntity createOrUpdateUserFromSocialIdentityProvider(SocialIdentityProviderEntity socialProvider, String userInfo);
 }

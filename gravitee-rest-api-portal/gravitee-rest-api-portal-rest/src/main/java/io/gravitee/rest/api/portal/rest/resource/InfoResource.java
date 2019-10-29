@@ -33,7 +33,7 @@ public class InfoResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getConfig() throws IOException {
+    public Response getPortalInformation() throws IOException {
         Info info = new Info();
 
         Properties properties = new Properties();

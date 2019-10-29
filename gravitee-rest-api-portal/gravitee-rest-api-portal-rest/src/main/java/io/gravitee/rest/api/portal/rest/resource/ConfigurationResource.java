@@ -53,14 +53,14 @@ public class ConfigurationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getConfig() {
+    public Response getPortalConfiguration() {
         return Response.ok(configMapper.convert(configService.getPortalConfig())).build();
     }
 
     @GET
     @Path("identities")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listSocialIdentityProvider(@BeanParam PaginationParam paginationParam) {
+    public Response getPortalIdentityProviders(@BeanParam PaginationParam paginationParam) {
 
         List<IdentityProvider> identities = socialIdentityProviderService.findAll().stream()
                 .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))

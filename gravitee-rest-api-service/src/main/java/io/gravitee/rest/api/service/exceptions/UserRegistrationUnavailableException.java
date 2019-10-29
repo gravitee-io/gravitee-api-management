@@ -15,31 +15,21 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.common.http.HttpStatusCode;
+import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UserAlreadyExistsException extends AbstractManagementException {
-
-    private final String source;
-    private final String userId;
-    private final String environment;
-
-    public UserAlreadyExistsException(String source, String userId, String environment) {
-        this.source = source;
-        this.userId = userId;
-        this.environment = environment;
-    }
+public class UserRegistrationUnavailableException extends AbstractManagementException {
 
     @Override
     public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
+        return SERVICE_UNAVAILABLE_503;
     }
 
     @Override
     public String getMessage() {
-        return "A user [" + userId + "] already exists for environment " + environment + ".";
+        return "User registration service is unavailable.";
     }
 }

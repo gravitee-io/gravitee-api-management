@@ -1178,6 +1178,57 @@ paths:
           $ref: '#/components/responses/PermissionError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /users/registration:
+    post:
+      tags:
+        - Users
+      summary: Register a new user.
+      description: |
+        Register a new user for the portal. As a result, an email is sent with an activation link.
+        
+        User registration must be enabled.\
+        A SMTP server must have been configured.
+      operationId: registerNewUser
+      requestBody:
+        description: Used to register a new User.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUserInput'
+      responses:
+        200:
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /users/registration/_finalize:
+    post:
+      tags:
+        - Users
+      summary: Finalize user registration.
+      description: |
+        Create a new user for the portal.
+        
+        User registration must be enabled.
+      operationId: finalizeUserRegistration
+      requestBody:
+        description: Used to finalize a user registration.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinalizeRegistrationInput'
+      responses:
+        200:
+          description: User successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /user:
     get:
       tags:
@@ -1396,6 +1447,7 @@ paths:
       tags: 
         - Portal
       summary: Get portal configuration.
+      operationId: getPortalConfiguration
       description: |
         Get all the portal configuration from the platform settings.
       security: []
@@ -1413,6 +1465,7 @@ paths:
       tags: 
         - Portal
       summary: Get the identity provider list.
+      operationId: getPortalIdentityProviders
       description: |
         Get all the identity providers that can used in the portal.
       security: []
@@ -1430,6 +1483,7 @@ paths:
       tags: 
         - Portal
       summary: Get portal information.
+      operationId: getPortalInformation
       description: |
         Get some information about the portal (version, ...).
       security: []
@@ -2868,25 +2922,61 @@ components:
         state:
           type: string
     TicketInput:
-        required:
-          - subject
-          - content
-        properties:
-          subject:
-            description: Subject of the ticket.
-            type: string
-          content:
-            description: Description of the ticket.
-            type: string
-          application:
-            description: Application identifier concerned by the ticket.
-            type: string
-          api:
-            description: Api identifer concerned by the ticket.
-            type: string
-          copy_to_sender:
-            description: True if the author of the ticket wants to receive a copy of the ticket.
-            type: boolean
+      required:
+        - subject
+        - content
+      properties:
+        subject:
+          description: Subject of the ticket.
+          type: string
+        content:
+          description: Description of the ticket.
+          type: string
+        application:
+          description: Application identifier concerned by the ticket.
+          type: string
+        api:
+          description: Api identifer concerned by the ticket.
+          type: string
+        copy_to_sender:
+          description: True if the author of the ticket wants to receive a copy of the ticket.
+          type: boolean
+          
+    RegisterUserInput:
+      required:
+        - email
+      properties:
+        email:
+          description: Valid email of the new user.
+          type: string
+        firstname:
+          description: First name of the new user.
+          type: string
+        lastname:
+          description: Last name of the new user.
+          type: string
+        confirmation_page_url:
+          description: URL of the confirmation page to be used in the 'User Registration' email.
+          type: string
+    FinalizeRegistrationInput:
+      required:
+        - token
+        - password
+        - firstname
+        - lastname
+      properties:
+        token:
+          description: Token of the registered user to be validated.
+          type: string
+        password:
+          description: Password of the registered user.
+          type: string
+        firstname:
+          description: First name of the registered user.
+          type: string
+        lastname:
+          description: Last name of the registered user.
+          type: string
     #######################
     # Composition Objects #
     #######################
