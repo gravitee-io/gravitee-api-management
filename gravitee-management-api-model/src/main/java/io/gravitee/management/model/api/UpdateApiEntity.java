@@ -24,6 +24,7 @@ import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.management.model.Visibility;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
@@ -33,6 +34,7 @@ import java.util.*;
 public class UpdateApiEntity {
 
     @NotNull
+    @NotEmpty(message = "Api's name must not be empty")
     private String name;
 
     @NotNull
