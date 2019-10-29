@@ -305,7 +305,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         URI target = URI.create(endpoint.getTarget());
         HttpClientSslOptions sslOptions = endpoint.getHttpClientSslOptions();
 
-        if (HTTPS_SCHEME.equalsIgnoreCase(target.getScheme())) {
+        if (HTTPS_SCHEME.equalsIgnoreCase(target.getScheme()) || WSS_SCHEME.equalsIgnoreCase(target.getScheme())) {
             // Configure SSL
             httpClientOptions.setSsl(true);
 
