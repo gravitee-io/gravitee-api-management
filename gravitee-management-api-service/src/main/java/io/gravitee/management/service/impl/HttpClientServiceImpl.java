@@ -142,7 +142,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
         }
         if(body != null) {
             request.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-            request.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
+            request.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.getBytes().length));
             request.write(body);
         }
         request.putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
