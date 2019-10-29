@@ -1,0 +1,206 @@
+{
+  "common": {
+    "copyToClipboard": "Copiar a portapapeles",
+    "NANOSECONDS": "nanosegundos",
+    "MICROSECONDS": "microsegundos",
+    "MILLISECONDS": "milisegundos",
+    "SECONDS": "segundos",
+    "MINUTES": "minutos",
+    "HOURS": "horas",
+    "DAYS": "días",
+    "close": "Cerrar",
+    "create": "Crear",
+    "cancel": "Cancelar",
+    "ok": "OK",
+    "submit": "Enviar",
+    "answer": "Responder",
+    "ratings.none": "Sin evaluar",
+    "paging": {
+      "first": "Primera",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "last": "Último"
+    }
+  },
+  "home": {
+    "subtitle": "Portal de desarrolladores",
+    "version": "Versión: {{version}}",
+    "pages": {
+      "title": "Documentación"
+    },
+    "apis": {
+      "search": "Buscar una API...",
+      "top": "Principales API",
+      "all": "Ver todas las API",
+      "no.search.result": "No se encontró la API"
+    }
+  },
+  "menu": {
+    "login": "Iniciar Sesión",
+    "gallery": "Galería de API",
+    "documentation": "Documentación",
+    "profile": "Mi cuenta",
+    "management": "Administración",
+    "applications": "Aplicaciones",
+    "apis": "APIs",
+    "tasks": "Tarea",
+    "logout": "Cerrar sesión",
+    "support": "Soporte"
+  },
+  "apis": {
+    "filter": "Buscar en APIs...",
+    "search": {
+      "view": "Resultados de la Búsqueda"
+    }
+  },
+  "api": {
+    "version": "Versión",
+    "endpoint": "Punto de Conexión",
+    "owner": "Propietario",
+    "publishedAt": "Publicado",
+    "subscription": {
+      "step1": {
+        "title": "Seleccione un plan de API.",
+        "subtitle": "El plan API corresponde al contrato de servicio entre usted y la API.",
+        "keyless": "Este plan no tiene clave y no requiere suscripción."
+      },
+      "step2": {
+        "title": "Seleccione una aplicación.",
+        "subtitle": "La aplicación es el enlace entre usted, el consumidor y la suscripción a un plan API.",
+        "application": {
+          "placeholder": "Seleccione una aplicación..."
+        },
+        "clientIdRequired": "Se requiere un ID de cliente para suscribirse a este plan. Por favor verifique la configuración de su aplicación.",
+        "action": "Subscribir",
+        "comment": {
+          "message": "Enviar un comentario al propietario de la API"
+        }
+      },
+      "step3": {
+        "apikey": {
+          "key": "Puede acceder a la API utilizando la siguiente clave de API:",
+          "curl": "Solicitar muestra usando curl:",
+          "clipboard": "La clave API se ha copiado en el portapapeles."
+        },
+        "oauth2": {
+          "bearer": "Debe obtener un access_token del servidor de autorización antes de poder consumir esta API.",
+          "curl": "Solicitar muestra usando curl:"
+        },
+        "jwt": {
+          "bearer": "Debe obtener un access_token del servidor de autorización antes de poder consumir esta API.",
+          "curl": "Solicitar muestra usando curl:"
+        },
+        "pending": {
+          "title": "La suscripción está esperando validación",
+          "subtitle": "Su suscripción aún está en estado pendiente, recibirá una notificación una vez procesada."
+        },
+        "accepted": {
+          "title": "Empecemos a usar \"{{apiName}}\" con \"{{applicationName}}\"!"
+        },
+        "successful": "Se ha enviado la solicitud de suscripción."
+      },
+
+      "planInformation": "Con una cuota de {{quotaLimit}} solicitudes por {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
+    },
+    "plan": {
+      "title": "Planes",
+      "subscribe": "Subscribir",
+      "manual": "Suscripción sujeta a validación",
+      "empty": {
+        "title": "No hay plan para esta API",
+        "message": "Una vez que se ha creado un plan, puede suscribirse a esta API"
+      }
+    },
+    "documentation": {
+      "title": "Documentación",
+      "empty": {
+        "title": "No hay documentación para esta API",
+        "message": "Regrese pronto, la API se completará en breve"
+      }
+    },
+    "metadata": {
+      "title": "Metadatos",
+      "name": "Nombre",
+      "value": "Valor"
+    },
+    "rating": {
+      "title": "Título o resumen de su comentario",
+      "comment": "Comentario",
+      "by": "Por",
+      "rate": "{{numberOfRatings}} calificación(s)",
+      "empty": {
+        "title": "Ninguna calificación en esta API",
+        "message": "Sé el primero en calificarlo",
+        "rights.message": "No tiene los derechos necesarios para calificar esta API"
+      },
+      "messages": {
+        "1": "Odio esta API",
+        "2": "No me gusta esta API",
+        "3": "Me gusta esta API",
+        "4": "Amo esta API",
+        "5": "Esta API es perfecta"
+      },
+      "successCreation": "Su calificación ha sido enviada exitosamente",
+      "successCreationMessage": "Se ha tenido en cuenta su calificación, ahora puede agregar un comentario para completar su calificación",
+      "successUpdate": "Su calificación ha sido actualizada exitosamente",
+      "successDeletion": "Esta calificación ha sido eliminada exitosamente",
+      "deletion": "Estás seguro de que deseas eliminar esta calificación?",
+      "list": {
+        "title": "{{numberOfRatings}} calificación(s)"
+      },
+      "answer": {
+        "label": "{{numberOfAnswers}} respuesta(s)",
+        "successCreation": "Su respuesta ha sido enviada exitosamente",
+        "successDeletion": "Esta respuesta ha sido eliminada exitosamente",
+        "deletion": "Estás seguro de que deseas eliminar esta respuesta?",
+        "new": {
+          "label": "Respuesta"
+        }
+      },
+      "summary": {
+        "title": "{{averageRate}} estrellas de 5",
+        "link": "Consulte la {{numberOfRatings}} calificación(s)"
+      }
+    },
+    "header": {
+      "views": "Vistas",
+      "tags": "Etiquetas"
+    }
+  },
+  "applications": {
+    "empty": "No tienes ninguna aplicación!",
+    "start": "Comencemos creando su primera aplicación."
+  },
+  "application": {
+    "notFound": "No se encontraron coincidencias de aplicaciones  \"{{applicationName}}\" ."
+  },
+  "support": {
+    "ticket": {
+      "title": "Soporte de creación de tickets",
+      "subject": "Tema",
+      "content": "Contenido",
+      "api": "Selecciona una API",
+      "application": "Selecciona una aplicación",
+      "copyToSender": "Recibir una copia del correo electrónico",
+      "successCreation": "El ticket de soporte se ha creado correctamente",
+      "notAuthenticated": {
+        "title": "Creación de un ticket de soporte.",
+        "message": "Para ingresar un ticket, inicie sesión"
+      },
+      "userWithoutEmail": {
+        "message": "No puede enviar un ticket porque no tiene un correo electrónico configurado en su cuenta"
+      }
+    }
+  },
+  "views": {
+    "filter": "Filtrar vistas..."
+  },
+  "view": {
+    "defaultDescription":  "Recuperar API de la {{viewName}} categoría",
+    "api": {
+      "documentation": "Documentación",
+      "ratings": "Calificaciones"
+    },
+    "moreApis": "Más APIs ..."
+  }
+}
