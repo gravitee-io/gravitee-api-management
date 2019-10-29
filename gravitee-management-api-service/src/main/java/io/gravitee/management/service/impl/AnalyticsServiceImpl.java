@@ -57,6 +57,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
      */
     private final Logger logger = LoggerFactory.getLogger(AnalyticsServiceImpl.class);
 
+    private static final String UNKNOWN_API = "1";
     private static final String APPLICATION_KEYLESS = "1";
 
     @Autowired
@@ -320,8 +321,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             metadata.put("name", apiEntity.getName());
             metadata.put("version", apiEntity.getVersion());
         } catch (ApiNotFoundException anfe) {
-            metadata.put("name", "Deleted API");
             metadata.put("deleted", "true");
+            metadata.put("name", "Deleted API");
+            if (api.equals(UNKNOWN_API)) {
+                metadata.put("name", "Unknown API (not found)");
+            } else {
+                metadata.put("name", "Deleted API");
+            }
         }
 
         return metadata;
