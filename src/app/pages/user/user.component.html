@@ -1,13 +1,13 @@
 <div *ngIf="user" class="bg-white">
-  <h1>Mon compte</h1>
+  <h1>{{'user.title' | translate}}</h1>
   <div class ="dt">
     <div class="w-80 dtc">
       <p>
-        <span class="b">Name : </span>
+        <span class="b">{{'user.display_name' | translate}} : </span>
         <span>{{ user.display_name }}</span>
       </p>
       <p>
-        <span class="b">Email : </span>
+        <span class="b">{{'user.email' | translate}} : </span>
         <span>{{ user.email }}</span>
       </p>
     </div>

@@ -1,16 +1,15 @@
-import {Component, HostListener, OnInit} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../environments/environment';
+import { Component, HostListener, OnInit } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { environment } from '../environments/environment';
 
-import '@gravitee/ui-components/wc/gv-header';
+import '@gravitee/ui-components/wc/gv-nav';
 
-import {Title} from '@angular/platform-browser';
-import {routes, userRoutes} from './app-routing.module';
-import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
-import {Router} from '@angular/router';
-import {User } from '@gravitee/clients-sdk/dist';
-import { UserComponent } from './user/user.component';
-import { CurrentUserService } from './currentUser.service';
+import { Title } from '@angular/platform-browser';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { Router, NavigationEnd } from '@angular/router';
+import { User } from 'ng-portal-webclient/dist';
+import { CurrentUserService } from './services/currentUser.service';
+import { routes } from './app-routing.module';
 
 @Component({
   selector: 'app-root',
@@ -19,20 +18,31 @@ import { CurrentUserService } from './currentUser.service';
 })
 export class AppComponent implements OnInit {
 
-  private routes: Promise<any>[];
+  private mainRoutes: Promise<any>[];
   private userRoutes: Promise<any>[];
   private currentUser: User;
+  private withHeader: boolean;
+
   constructor(
-    private titleService: Title, 
-    private translateService: TranslateService, 
+    private titleService: Title,
+    private translateService: TranslateService,
     private router: Router,
     private currentUserService: CurrentUserService
     ) {
+      this.withHeader = true;
   }
 
   ngOnInit() {
     this.currentUserService.currentUser.subscribe(newCurrentUser => this.currentUser = newCurrentUser);
-    
+    // avoid header for registration confirmation
+    this.router.events.subscribe(
+      (event) => {
+        if (event instanceof NavigationEnd) {
+          this.withHeader = !this.router.url.startsWith('/registration/confirm/');
+        }
+      }
+    );
+
     this.translateService.addLangs(environment.locales);
     this.translateService.setDefaultLang(environment.locales[0]);
     const browserLang = this.translateService.getBrowserLang();
@@ -42,28 +52,29 @@ export class AppComponent implements OnInit {
       this.titleService.setTitle(title);
     });
 
-    this.routes = routes.map((route) => {
-      return this.translateService.get(route.title).toPromise().then((title) => {
-        route.title = title;
-        if (`/${route.path}` === this.router.url) {
-          // @ts-ignore
-          route.isActive = true;
+    this.mainRoutes = routes
+      .filter(({data}) => data && (data.navType === 'main'))
+      .map(async ({path, data: {title}}) => {
+        let isActive = false;
+        if (`/${path}` === this.router.url) {
+          isActive = true;
         }
-        return route;
+        return {path, title: await this.translateService.get(title).toPromise(), isActive};
       });
-    });
 
-    this.userRoutes = userRoutes.map((route) => {
-      return this.translateService.get(route.title).toPromise().then((title) => {
-        route.title = title;
-        return route;
+    this.userRoutes = routes
+      .filter(({data}) => data && (data.navType === 'user'))
+      .map(async ({path, data: {title}}) => {
+        return {path, title: await this.translateService.get(title).toPromise()};
       });
-    });
   }
 
-  @HostListener('gv-nav_change', ['$event.detail'])
+  showLogin() {
+    return !this.currentUser && this.router.url !== '/login';
+  }
+
   @HostListener('gv-nav-link_click', ['$event.detail'])
-  onNavChange(route) {
+  onNavChange(route: { path: any; }) {
     this.router.navigate([route.path]);
   }
 

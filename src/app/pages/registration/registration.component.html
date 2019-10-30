@@ -1,0 +1,53 @@
+<div class="registration">
+  <h1 *ngIf="registrationForm">{{ 'registration.title' | translate }}</h1>
+
+  <form *ngIf="registrationForm && !isSubmitted" [formGroup]="registrationForm">
+    <gv-input
+      large
+      required
+      placeholder="{{ 'registration.firstname' | translate }}"
+      formControlName="firstname"
+      ngDefaultControl
+      (keyup.enter)="registration()"
+      class="registration__form__input"
+    >
+    </gv-input>
+    <gv-input
+      large
+      required
+      placeholder="{{ 'registration.lastname' | translate }}"
+      formControlName="lastname"
+      ngDefaultControl
+      (keyup.enter)="registration()"
+      class="registration__form__input"
+    >
+    </gv-input>
+    <gv-input
+      large
+      required
+      type="email"
+      placeholder="{{ 'registration.email' | translate }}"
+      formControlName="email"
+      ngDefaultControl
+      (keyup.enter)="registration()"
+      [email]="true"
+      class="registration__form__input"
+    >
+    </gv-input>
+    <gv-button
+      [disabled]="!isFormValid() || isSubmitted"
+      (click)="registration()"
+      primary
+      class="registration__form__input"
+    >
+    {{ 'registration.button' | translate }}
+    </gv-button>    
+  </form>
+
+  <a *ngIf="registrationForm && !isSubmitted" routerLink="/login" class="registration__link">{{ "registration.back_login" | translate }}</a>
+
+  <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
+
+  <a *ngIf="isSubmitted" routerLink="/" class="registration__link">{{ "registration.back_home" | translate }}</a>
+  
+</div>

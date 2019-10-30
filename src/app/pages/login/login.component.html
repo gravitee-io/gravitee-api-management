@@ -1,0 +1,48 @@
+<div class="login">
+  <h1 *ngIf="loginForm || providers">{{ 'login.title' | translate }}</h1>
+
+  <form *ngIf="loginForm" [formGroup]="loginForm">
+    <gv-input
+      large
+      required
+      name="username"
+      placeholder="{{ 'login.username' | translate}}"
+      formControlName="username"
+      ngDefaultControl
+      (keyup.enter)="login()"
+      class="login__form__input"
+    >
+    </gv-input>
+    <gv-input
+      type="password"
+      large
+      required
+      name="password"
+      placeholder="{{ 'login.password' | translate }}"
+      formControlName="password"
+      ngDefaultControl
+      (keyup.enter)="login()" 
+      class="login__form__input"
+    >
+    </gv-input>
+    <gv-button [disabled]="!isFormValid()" (click)="login()" primary class="login__form__input">{{ 'login.button' | translate }}</gv-button>
+  </form>
+
+  <p *ngIf="loginForm && registrationEnabled" class="login__link">
+    {{ 'login.signup.text' | translate }} <a routerLink="/registration">{{ 'login.signup.link' | translate }}</a>
+  </p>
+
+  <p *ngIf="providers && loginForm">{{ 'login.with_providers' | translate }}</p>
+  <p *ngIf="providers && !loginForm">{{ 'login.providers_only' | translate }}</p>
+
+  <gv-button *ngFor="let provider of providers"
+    outlined
+    icon="thirdparty:{{ provider.type }}"
+    class="{{ provider.type }}_outlined"
+    (click)="authenticate(provider)">
+    {{ provider.name }}
+  </gv-button>
+
+  <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>  
+  
+</div>

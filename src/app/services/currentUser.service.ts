@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { User } from '@gravitee/clients-sdk/dist';
+import { User } from 'ng-portal-webclient/dist';
 
 @Injectable()
 export class CurrentUserService {

@@ -2,7 +2,10 @@ header {
   padding: 1rem 4rem;
 }
 
-.logo img {
+.logo {
+  background-image: var(--gv-theme-logo);
+  display: block;
+  background-size: 3rem 3rem;
   height: 3rem;
   width: 3rem;
 }

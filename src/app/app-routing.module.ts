@@ -1,30 +1,53 @@
 import {NgModule} from '@angular/core';
-import {RouterModule} from '@angular/router';
+import {RouterModule, Routes} from '@angular/router';
 import {DashboardComponent} from './pages/dashboard/dashboard.component';
 import {CatalogComponent} from './pages/catalog/catalog.component';
 import {AppsComponent} from './pages/apps/apps.component';
-import {LoginComponent} from './login/login.component';
+import {LoginComponent} from './pages/login/login.component';
+import { UserComponent } from './pages/user/user.component';
+import { LogoutComponent } from './pages/logout/logout.component';
+import { RegistrationComponent } from './pages/registration/registration.component';
+import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
 import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
-import { UserComponent } from './user/user.component';
-import { AppComponent } from './app.component';
-import { LogoutComponent } from './logout/logout.component';
 
 
+export const routes: Routes = [
+  {
+    path: 'dashboard', component: DashboardComponent,
+    data: { title: i18n('route.dashboard'), navType: 'main' }
+  },
+  {
+    path: 'catalog', component: CatalogComponent,
+    data: { title: i18n('route.catalog'), navType: 'main' }
+  },
+  {
+    path: 'apps', component: AppsComponent,
+    data: { title: i18n('route.apps'), navType: 'main' }
+  },
+  {
+    path: 'login', component: LoginComponent,
+    data: { title: i18n('route.login'), navType: 'user' }
+  },
+  {
+    path: 'logout', component: LogoutComponent,
+    data: { title: i18n('route.logout'), navType: 'user' }
+  },
+  {
+    path: 'user', component: UserComponent,
+    data: { title: i18n('route.user'), navType: 'user' }
+  },
+  {
+    path: 'registration', component: RegistrationComponent
+  },
+  {
+    path: 'registration/confirm/:token', component: RegistrationConfirmationComponent
+  },
 
-export const routes = [
-  {path: 'dashboard', title: i18n('route.dashboard'), component: DashboardComponent},
-  {path: 'catalog', title: i18n('route.catalog'), component: CatalogComponent},
-  {path: 'apps', title: i18n('route.apps'), component: AppsComponent}
-];
-
-export const userRoutes = [
-  {path: 'login', title: i18n('route.login'), component: LoginComponent},
-  {path: 'logout', title: i18n('route.logout'), component: LogoutComponent},
-  {path: 'user', title: i18n('route.user'), component: UserComponent}
+  { path: '', redirectTo: '/dashboard', pathMatch: 'full' }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes), RouterModule.forRoot(userRoutes)],
+  imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]
 })
 export class AppRoutingModule {

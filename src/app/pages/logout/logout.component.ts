@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthenticationService } from '@gravitee/clients-sdk/dist';
+import { AuthenticationService } from 'ng-portal-webclient/dist';
 import { Router } from '@angular/router';
-import { CurrentUserService } from '../currentUser.service';
+import { CurrentUserService } from '../../services/currentUser.service';
 
 @Component({
   selector: 'app-logout',
@@ -20,7 +20,7 @@ export class LogoutComponent implements OnInit {
     this.authService.logout().subscribe(
       () => {
         this.currentUserService.revokeUser();
-        this.router.navigate(['/']);
+        this.router.navigate(['']);
       }
     );
   }

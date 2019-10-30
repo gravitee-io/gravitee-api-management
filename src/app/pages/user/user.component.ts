@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
-import {UserService, User} from '@gravitee/clients-sdk/dist';
-import { CurrentUserService } from '../currentUser.service';
+import {UserService, User} from 'ng-portal-webclient/dist';
+import { CurrentUserService } from '../../services/currentUser.service';
 
 @Component({
   selector: 'app-user',
@@ -14,7 +14,7 @@ export class UserComponent implements OnInit {
 
   constructor(
     private userService: UserService,
-    private currentUserService : CurrentUserService
+    private currentUserService: CurrentUserService
   ) { }
 
   ngOnInit() {
@@ -32,9 +32,9 @@ export class UserComponent implements OnInit {
             reader.readAsDataURL(avatar);
             this.currentUserService.changeUser(loggedUser);
           }
-        )
+        );
       }
-    )
+    );
 
   }
 

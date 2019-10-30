@@ -1,4 +1,48 @@
 {
+ "login": {
+  "button": "Sign in",
+  "notification": {
+   "error": "Invalid username or password.",
+   "success": "Log in successful"
+  },
+  "password": "Password",
+  "providers_only": "Sign in with",
+  "signup": {
+   "link": "Sign up !",
+   "text": "Don't have an account yet ?"
+  },
+  "title": "Who are you ?",
+  "username": "Username",
+  "with_providers": "You can also sign in with"
+ },
+ "registration": {
+  "back_home": "Back to portal",
+  "back_login": "Back to Sign in",
+  "button": "Sign up",
+  "email": "Email",
+  "firstname": "First name",
+  "lastname": "Last name",
+  "notification": {
+   "success": "Registration OK ! An email has been sent to : {email}."
+  },
+  "title": "Create an account"
+ },
+ "registrationConfirmation": {
+  "back_home": "Back to portal",
+  "back_login": "Back to Sign in",
+  "back_registration": "Back to registration",
+  "button": "Confirm",
+  "confirmedPassword": "Confirm your password",
+  "email": "Email",
+  "firstname": "First name",
+  "lastname": "Last name",
+  "notification": {
+   "success": "Your account has been confirmed !"
+  },
+  "password": "Choose a password",
+  "title": "Confirm the registration",
+  "token_expired": "Your registration has expired"
+ },
  "route": {
   "apps": "Applications",
   "catalog": "Catalog",
@@ -9,12 +53,9 @@
  "site": {
   "title": "Gravitee.io Portal"
  },
- "login": {
-   "title": "Who are you ?",
-   "button": "Sign in",
-   "with_providers": "You can also sign in with",
-   "providers_only": "Sign in with",
-   "username": "Username",
-   "password": "Password"
+ "user": {
+  "display_name": "Name",
+  "email": "Email",
+  "title": "My profile"
  }
 }
