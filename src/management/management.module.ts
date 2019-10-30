@@ -419,6 +419,8 @@ import ApiQualityRulesComponent from "../management/configuration/api-quality-ru
 import ApiQualityRuleComponent from "../management/configuration/api-quality-rules/api-quality-rule/api-quality-rule.component";
 import ApiQualityRuleController from "../management/configuration/api-quality-rules/api-quality-rule/api-quality-rule.controller";
 import DeleteApiQualityRuleDialogController from "../management/configuration/api-quality-rules/api-quality-rule/delete-api-quality-rule.dialog.controller";
+import DialogQueryFilterInformationController
+  from "./configuration/analytics/dashboard/query-filter-information.dialog.controller";
 
 (<any>window).traverse = traverse;
 
@@ -890,6 +892,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   .service('DashboardService', DashboardService)
   .component('dashboard', AnalyticsDashboardComponent)
+  .controller('DialogQueryFilterInformationController', DialogQueryFilterInformationController)
 
   .filter('humanDateFilter', function () {
     return function (input) {

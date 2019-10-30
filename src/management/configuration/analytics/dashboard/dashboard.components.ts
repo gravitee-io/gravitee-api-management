@@ -103,6 +103,8 @@ const DashboardComponent: ng.IComponentOptions = {
 
     this.showQueryFilterInformation = () => {
       $mdDialog.show({
+        controller: 'DialogQueryFilterInformationController',
+        controllerAs: 'ctrl',
         template: require('./query-filter-information.dialog.html'),
         parent: angular.element(document.body),
         clickOutsideToClose: true
