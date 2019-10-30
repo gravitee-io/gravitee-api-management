@@ -114,7 +114,7 @@ public abstract class AbstractRepositoryTest {
     @Inject
     protected IdentityProviderRepository identityProviderRepository;
     @Inject
-    protected AlertRepository alertRepository;
+    protected AlertTriggerRepository alertRepository;
     @Inject
     protected EntrypointRepository entrypointRepository;
     @Inject
@@ -236,8 +236,8 @@ public abstract class AbstractRepositoryTest {
         else if (object instanceof IdentityProvider) {
             identityProviderRepository.create((IdentityProvider) object);
         }
-        else if (object instanceof Alert) {
-            alertRepository.create((Alert) object);
+        else if (object instanceof AlertTrigger) {
+            alertRepository.create((AlertTrigger) object);
         }
         else if (object instanceof Entrypoint) {
             entrypointRepository.create((Entrypoint) object);

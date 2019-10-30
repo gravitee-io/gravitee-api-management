@@ -15,8 +15,8 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.AlertRepository;
-import io.gravitee.repository.management.model.Alert;
+import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.model.AlertTrigger;
 
 import java.util.Date;
 import java.util.Set;
@@ -33,71 +33,66 @@ import static org.mockito.internal.util.collections.Sets.newSet;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AlertRepositoryMock extends AbstractRepositoryMock<AlertRepository> {
+public class AlertTriggerRepositoryMock extends AbstractRepositoryMock<AlertTriggerRepository> {
 
-    public AlertRepositoryMock() {
-        super(AlertRepository.class);
+    public AlertTriggerRepositoryMock() {
+        super(AlertTriggerRepository.class);
     }
 
     @Override
-    void prepare(AlertRepository alertRepository) throws Exception {
+    void prepare(AlertTriggerRepository alertRepository) throws Exception {
         final Date date = new Date(1439022010883L);
 
-        final Alert alert = new Alert();
+        final AlertTrigger alert = new AlertTrigger();
         alert.setId("new-alert");
         alert.setName("Alert name");
         alert.setDescription("Description for the new alert");
         alert.setReferenceType("API");
         alert.setReferenceId("api-id");
         alert.setType("HEALTH_CHECK");
+        alert.setDefinition("{}");
         alert.setCreatedAt(date);
         alert.setUpdatedAt(date);
 
-        final Alert alert2 = new Alert();
+        final AlertTrigger alert2 = new AlertTrigger();
         alert2.setId("alert");
         alert2.setName("Health-check");
 
-        final Alert alertBeforUpdate = new Alert();
+        final AlertTrigger alertBeforUpdate = new AlertTrigger();
         alertBeforUpdate.setId("quota80");
         alertBeforUpdate.setName("Quota80");
 
-        final Alert alert2Updated = new Alert();
+        final AlertTrigger alert2Updated = new AlertTrigger();
         alert2Updated.setId("quota80");
         alert2Updated.setName("New name");
         alert2Updated.setDescription("New description");
         alert2Updated.setReferenceType("New reference type");
         alert2Updated.setReferenceId("New reference id");
         alert2Updated.setType("New type");
-        alert2Updated.setMetricType("New metric type");
-        alert2Updated.setMetric("New metric");
-        alert2Updated.setThreshold(99D);
-        alert2Updated.setPlan("New plan");
+        alert2Updated.setDefinition("{}");
         alert2Updated.setEnabled(true);
         alert2Updated.setCreatedAt(date);
         alert2Updated.setUpdatedAt(date);
 
-        final Alert alertQuota = new Alert();
+        final AlertTrigger alertQuota = new AlertTrigger();
         alertQuota.setId("quota90");
         alertQuota.setName("Quota90");
         alertQuota.setDescription("Description for alert API quota 90%");
         alertQuota.setReferenceType("APPLICATION");
         alertQuota.setReferenceId("application-id");
         alertQuota.setType("QUOTA");
-        alertQuota.setMetricType("QUOTA");
-        alertQuota.setThresholdType("PERCENT_RATE");
-        alertQuota.setThreshold(90D);
-        alertQuota.setPlan("gold");
+        alertQuota.setDefinition("{}");
         alertQuota.setEnabled(true);
         alertQuota.setCreatedAt(date);
         alertQuota.setUpdatedAt(new Date(1439022010883L));
 
-        final Set<Alert> alerts = newSet(alert, alertQuota, alert2Updated);
-        final Set<Alert> alertsAfterDelete = newSet(alert, alertQuota);
-        final Set<Alert> alertsAfterAdd = newSet(alert, alert2, mock(Alert.class), mock(Alert.class));
+        final Set<AlertTrigger> alerts = newSet(alert, alertQuota, alert2Updated);
+        final Set<AlertTrigger> alertsAfterDelete = newSet(alert, alertQuota);
+        final Set<AlertTrigger> alertsAfterAdd = newSet(alert, alert2, mock(AlertTrigger.class), mock(AlertTrigger.class));
 
         when(alertRepository.findAll()).thenReturn(alerts, alertsAfterAdd, alerts, alertsAfterDelete, alerts);
 
-        when(alertRepository.create(any(Alert.class))).thenReturn(alert);
+        when(alertRepository.create(any(AlertTrigger.class))).thenReturn(alert);
 
         when(alertRepository.findById("new-alert")).thenReturn(of(alert));
         when(alertRepository.findById("quota80")).thenReturn(of(alertBeforUpdate), of(alert2Updated));

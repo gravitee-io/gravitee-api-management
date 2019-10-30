@@ -16,7 +16,7 @@
 package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.model.Alert;
+import io.gravitee.repository.management.model.AlertTrigger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,16 +31,16 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
 
     @Override
     protected String getTestCasesPath() {
-        return "/data/alert-tests/";
+        return "/data/alerttrigger-tests/";
     }
 
     @Test
     public void shouldFindAll() throws Exception {
-        final Set<Alert> alerts = alertRepository.findAll();
+        final Set<AlertTrigger> alerts = alertRepository.findAll();
 
         assertNotNull(alerts);
         assertEquals(3, alerts.size());
-        final Optional<Alert> optionalAlert = alerts.stream()
+        final Optional<AlertTrigger> optionalAlert = alerts.stream()
                 .filter(alert -> "quota90".equals(alert.getId()))
                 .findAny();
         assertTrue(optionalAlert.isPresent());
@@ -49,10 +49,7 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
         assertEquals("APPLICATION", optionalAlert.get().getReferenceType());
         assertEquals("application-id", optionalAlert.get().getReferenceId());
         assertEquals("QUOTA", optionalAlert.get().getType());
-        assertEquals("QUOTA", optionalAlert.get().getMetricType());
-        assertEquals("PERCENT_RATE", optionalAlert.get().getThresholdType());
-        assertEquals(90, optionalAlert.get().getThreshold(), 0);
-        assertEquals("gold", optionalAlert.get().getPlan());
+        assertEquals("{}", optionalAlert.get().getDefinition());
         assertTrue(optionalAlert.get().isEnabled());
         assertEquals(1439022010883L, optionalAlert.get().getCreatedAt().getTime());
         assertEquals(1439022010883L, optionalAlert.get().getUpdatedAt().getTime());
@@ -60,13 +57,14 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldCreate() throws Exception {
-        final Alert alert = new Alert();
+        final AlertTrigger alert = new AlertTrigger();
         alert.setId("new-alert");
         alert.setName("Alert name");
         alert.setDescription("Description for the new alert");
         alert.setReferenceType("API");
         alert.setReferenceId("api-id");
         alert.setType("HEALTH_CHECK");
+        alert.setDefinition("{}");
         final Date date = new Date(1439022010883L);
         alert.setCreatedAt(date);
         alert.setUpdatedAt(date);
@@ -77,19 +75,15 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals(nbAlertsBeforeCreation + 1, nbAlertsAfterCreation);
 
-        Optional<Alert> optional = alertRepository.findById("new-alert");
+        Optional<AlertTrigger> optional = alertRepository.findById("new-alert");
         Assert.assertTrue("Alert saved not found", optional.isPresent());
-        final Alert fetchedAlert = optional.get();
+        final AlertTrigger fetchedAlert = optional.get();
         assertEquals(alert.getName(), fetchedAlert.getName());
         assertEquals(alert.getDescription(), fetchedAlert.getDescription());
         assertEquals(alert.getReferenceType(), fetchedAlert.getReferenceType());
         assertEquals(alert.getReferenceId(), fetchedAlert.getReferenceId());
         assertEquals(alert.getType(), fetchedAlert.getType());
-        assertEquals(alert.getMetricType(), fetchedAlert.getMetricType());
-        assertEquals(alert.getMetric(), fetchedAlert.getMetric());
-        assertEquals(alert.getThresholdType(), fetchedAlert.getThresholdType());
-        assertEquals(alert.getThreshold(), fetchedAlert.getThreshold());
-        assertEquals(alert.getPlan(), fetchedAlert.getPlan());
+        assertEquals(alert.getDefinition(), fetchedAlert.getDefinition());
         assertEquals(alert.isEnabled(), fetchedAlert.isEnabled());
         assertEquals(alert.getCreatedAt(), fetchedAlert.getCreatedAt());
         assertEquals(alert.getUpdatedAt(), fetchedAlert.getUpdatedAt());
@@ -97,20 +91,17 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldUpdate() throws Exception {
-        Optional<Alert> optional = alertRepository.findById("quota80");
+        Optional<AlertTrigger> optional = alertRepository.findById("quota80");
         Assert.assertTrue("Alert to update not found", optional.isPresent());
         assertEquals("Invalid saved alert name.", "Quota80", optional.get().getName());
 
-        final Alert alert = optional.get();
+        final AlertTrigger alert = optional.get();
         alert.setName("New name");
         alert.setDescription("New description");
         alert.setReferenceType("New reference type");
         alert.setReferenceId("New reference id");
         alert.setType("New type");
-        alert.setMetricType("New metric type");
-        alert.setMetric("New metric");
-        alert.setThreshold(99D);
-        alert.setPlan("New plan");
+        alert.setDefinition("{}");
         alert.setEnabled(true);
         final Date date = new Date(1439022010883L);
         alert.setCreatedAt(date);
@@ -122,19 +113,15 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals(nbAlertsBeforeUpdate, nbAlertsAfterUpdate);
 
-        Optional<Alert> optionalUpdated = alertRepository.findById("quota80");
+        Optional<AlertTrigger> optionalUpdated = alertRepository.findById("quota80");
         Assert.assertTrue("Alert to update not found", optionalUpdated.isPresent());
-        final Alert fetchedAlert = optionalUpdated.get();
+        final AlertTrigger fetchedAlert = optionalUpdated.get();
         assertEquals(alert.getName(), fetchedAlert.getName());
         assertEquals(alert.getDescription(), fetchedAlert.getDescription());
         assertEquals(alert.getReferenceType(), fetchedAlert.getReferenceType());
         assertEquals(alert.getReferenceId(), fetchedAlert.getReferenceId());
         assertEquals(alert.getType(), fetchedAlert.getType());
-        assertEquals(alert.getMetricType(), fetchedAlert.getMetricType());
-        assertEquals(alert.getMetric(), fetchedAlert.getMetric());
-        assertEquals(alert.getThresholdType(), fetchedAlert.getThresholdType());
-        assertEquals(alert.getThreshold(), fetchedAlert.getThreshold());
-        assertEquals(alert.getPlan(), fetchedAlert.getPlan());
+        assertEquals(alert.getDefinition(), fetchedAlert.getDefinition());
         assertEquals(alert.isEnabled(), fetchedAlert.isEnabled());
         assertEquals(alert.getCreatedAt(), fetchedAlert.getCreatedAt());
         assertEquals(alert.getUpdatedAt(), fetchedAlert.getUpdatedAt());
@@ -151,14 +138,14 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByReference() throws Exception {
-        final List<Alert> alerts = alertRepository.findByReference("API", "api-id");
+        final List<AlertTrigger> alerts = alertRepository.findByReference("API", "api-id");
         assertNotNull(alerts);
         assertEquals(1, alerts.size());
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownAlert() throws Exception {
-        Alert unknownAlert = new Alert();
+        AlertTrigger unknownAlert = new AlertTrigger();
         unknownAlert.setId("unknown");
         alertRepository.update(unknownAlert);
         fail("An unknown alert should not be updated");
