@@ -131,26 +131,52 @@ class ApiListPlansController {
 
   close(plan, ev) {
     this.ApiService.getAllPlanSubscriptions(this.$stateParams.apiId, plan.id).then( (response) => {
+      const subscriptions = response.data.page.size;
+      let msg = "";
+      if (plan.security === "key_less") {
+        msg = "A keyless plan may have consumers. <br/>"
+          + "By closing this plan you will remove free access to this API.";
+      } else {
+        if (subscriptions === 0) {
+          msg = "No subscription is associated to this plan. You can delete it safely."
+        } else if (subscriptions > 0) {
+          msg = "There are <code>"
+            + subscriptions
+            + "</code> subscription(s) associated to this plan.<br/>"
+            + "By closing this plan, all relative active subscriptions will also be closed."
+        }
+      }
+      let confirmButton = "Yes, close this plan.";
+      if (subscriptions == 0 && plan.security === "api_key") {
+        confirmButton = "Yes, delete this plan."
+      }
       this.$mdDialog.show({
-        controller: 'DialogClosePlanController',
-        template: require('./closePlan.dialog.html'),
-        parent: angular.element(document.body),
-        targetEvent: ev,
+        controller: 'DialogConfirmAndValidateController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmAndValidate.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          apiId: this.$stateParams.apiId,
-          plan: plan,
-          subscriptions: response.data.page.size
+          title: 'Would you like to close plan "' + plan.name + '" ?',
+          warning: 'This operation is irreversible.',
+          msg: msg,
+          validationMessage: 'Please, type in the name of the plan <code>'+ plan.name +'</code> to confirm.',
+          validationValue: plan.name,
+          confirmButton: confirmButton
         }
-      }).then((plan) => {
-        if (plan) {
-          this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
-          this.selectedStatus = ['closed'];
-          this.list();
+      }).then( (response) => {
+        if (response) {
+          let that = this;
+          this.ApiService.closePlan(this.$stateParams.apiId, plan.id).then(function() {
+            that.NotificationService.show('Plan ' + plan.name + ' has been closed');
+            that.$rootScope.$broadcast("planChangeSuccess", { state: "closed"});
+            that.$scope.$parent.apiCtrl.checkAPISynchronization({id: that.$stateParams.apiId});
+            that.selectedStatus = ['closed'];
+            that.list();
+          }).catch(function (error) {
+            that.NotificationService.show('Error while closing plan ' + plan.name);
+          });
         }
-      }, function() {
-        // You cancelled the dialog
-      });
+      })
     });
   }
 

@@ -50,7 +50,6 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
         page: $state.params['page'],
         size: $state.params['size']
       };
-      console.log(this.backStateParams)
     }
 
     $onInit() {
@@ -74,7 +73,11 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     }
 
     close() {
-      let msg = 'The application will not be able to consume this API anymore.';
+      let msg = '<code>'
+        + this.subscription.application.name
+        + '</code> will not be able to consume <code>'
+        + this.api.name
+        + '</code> anymore.';
       if (this.subscription.plan.security === 'api_key') {
         msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.'
       }
@@ -85,9 +88,9 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
         template: require('../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Are you sure you want to close this subscription?',
+          title: 'Are you sure you want to close this subscription to '+ this.subscription.plan.name +'?',
           msg: msg,
-          confirmButton: 'Close'
+          confirmButton: 'Close the subscription'
         }
       }).then( (response) => {
         if (response) {

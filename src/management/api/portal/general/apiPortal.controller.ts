@@ -247,14 +247,17 @@ class ApiPortalController {
   delete(id) {
     let that = this;
     this.$mdDialog.show({
-      controller: 'DialogConfirmController',
+      controller: 'DialogConfirmAndValidateController',
       controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+      template: require('../../../../components/dialog/confirmAndValidate.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Are you sure you want to delete \'' + this.api.name + '\' API ?',
-        msg: '',
-        confirmButton: 'Delete'
+        title: 'Are you sure you want to delete \'' + this.api.name + '\' ?',
+        warning: 'This operation is irreversible.',
+        msg: 'The API must be stopped and without any active plans and subscriptions.',
+        validationMessage: 'Please, type in the name of the api <code>'+ this.api.name +'</code> to confirm.',
+        validationValue: this.api.name,
+        confirmButton: 'Yes, delete this API.'
       }
     }).then(function (response) {
       if (response) {

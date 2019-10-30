@@ -175,7 +175,6 @@ import DialogSubscriptionCreateController
 import DialogSubscriptionTransferController
   from '../management/api/portal/subscriptions/subscription.transfer.dialog.controller';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
-import DialogClosePlanController from '../management/api/portal/plans/closePlanDialog.controller';
 import DialogPublishPlanController from '../management/api/portal/plans/publishPlanDialog.controller';
 import TagsController from '../management/configuration/tags/tags.controller';
 import TagService from '../services/tag.service';
@@ -190,6 +189,7 @@ import UpdateMetadataDialogController
 import ChartDirective from '../components/chart/chart.directive';
 import UserAvatarDirective from '../components/avatar/user-avatar.directive';
 import DialogConfirmController from '../components/dialog/confirmDialog.controller';
+import DialogConfirmAndValidateController from "../components/dialog/confirmAndValidateDialog.controller";
 import DialogDynamicProviderHttpController
   from '../management/api/design/properties/dynamic-provider-http-dialog.controller';
 import TenantsController from '../management/configuration/tenants/tenants.controller';
@@ -576,7 +576,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController)
   .controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController)
   .controller('DialogSubscriptionTransferController', DialogSubscriptionTransferController)
-  .controller('DialogClosePlanController', DialogClosePlanController)
   .controller('DialogPublishPlanController', DialogPublishPlanController)
   .controller('TagsController', TagsController)
   .controller('MetadataController', MetadataController)
@@ -589,6 +588,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('UpdateApiMetadataDialogController', UpdateApiMetadataDialogController)
   .controller('DeleteApiMetadataDialogController', DeleteApiMetadataDialogController)
   .controller('DialogConfirmController', DialogConfirmController)
+  .controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController)
   .controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController)
   .controller('DialogAddUserRoleController', DialogAddUserRoleController)
   .controller('SupportTicketController', SupportTicketController)
