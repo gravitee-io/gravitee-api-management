@@ -45,6 +45,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Collections;
 import java.util.Optional;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -90,6 +91,9 @@ public class ApiService_CreateTest {
 
     @Mock
     private SearchEngineService searchEngineService;
+
+    @Mock
+    private GenericNotificationConfigService genericNotificationConfigService;
 
     @Before
     public void init() {
@@ -197,6 +201,12 @@ public class ApiService_CreateTest {
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
 
         apiService.create(newApi, USER_NAME);
+
+        verify(apiRepository, times(1)).create(any());
+        verify(genericNotificationConfigService, times(1)).create(any());
+        verify(membershipRepository, times(1)).create(any());
+        verify(auditService, times(1)).createApiAuditLog(any(), any(), eq(API_CREATED), any(), eq(null) , any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test(expected = TechnicalManagementException.class)

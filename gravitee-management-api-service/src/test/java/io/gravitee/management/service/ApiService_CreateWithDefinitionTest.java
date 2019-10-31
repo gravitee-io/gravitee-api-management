@@ -105,6 +105,9 @@ public class ApiService_CreateWithDefinitionTest {
     @Mock
     private SearchEngineService searchEngineService;
 
+    @Mock
+    private  GenericNotificationConfigService  genericNotificationConfigService;
+
     @Before
     public void init() {
         final SecurityContext securityContext = mock(SecurityContext.class);
@@ -159,6 +162,7 @@ public class ApiService_CreateWithDefinitionTest {
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
+        verify(genericNotificationConfigService, times(1)).create(any());
     }
 
     @Test
@@ -207,6 +211,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(membershipService, never()).transferApiOwnership(any(), any(), any());
+        verify(genericNotificationConfigService, times(1)).create(any());
     }
 
     @Test
@@ -239,7 +244,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
-
+        verify(genericNotificationConfigService, times(1)).create(any());
     }
 
     @Test
@@ -272,6 +277,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
+        verify(genericNotificationConfigService, times(1)).create(any());
     }
 
     @Test
@@ -304,7 +310,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
-
+        verify(genericNotificationConfigService, times(1)).create(any());
     }
 
     private static class IdOnlySearchableUser implements SearchableUser {

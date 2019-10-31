@@ -16,6 +16,8 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.PlanEntity;
+import io.gravitee.management.model.PrimaryOwnerEntity;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.ApplicationHook;
@@ -93,7 +95,11 @@ public class EmailNotifierServiceTest {
                 reset(mockEmailService);
                 service.trigger(hook, cfg, params);
                 verify(mockEmailService, times(1)).sendAsyncEmailNotification(argThat(notification ->
-                        notification.getSubject() != null && !notification.getSubject().isEmpty()
+                        notification.getSubject() != null
+                                && !notification.getSubject().isEmpty()
+                                && notification.getTo() != null
+                                && notification.getTo().length == 1
+                                && notification.getTo()[0].equals("test@mail.com")
                 ));
                 verify(mockEmailService, never()).sendEmailNotification(any());
             }
@@ -115,7 +121,11 @@ public class EmailNotifierServiceTest {
             reset(mockEmailService);
             service.trigger(hook, cfg, params);
             verify(mockEmailService, times(1)).sendAsyncEmailNotification(argThat(notification ->
-                    notification.getSubject() != null && !notification.getSubject().isEmpty()
+                    notification.getSubject() != null
+                            && !notification.getSubject().isEmpty()
+                            && notification.getTo() != null
+                            && notification.getTo().length == 1
+                            && notification.getTo()[0].equals("test@mail.com")
             ));
             verify(mockEmailService, never()).sendEmailNotification(any());
         }
@@ -130,10 +140,45 @@ public class EmailNotifierServiceTest {
                 reset(mockEmailService);
                 service.trigger(hook, cfg, Collections.emptyMap());
                 verify(mockEmailService, times(1)).sendAsyncEmailNotification(argThat(notification ->
-                        notification.getSubject() != null && !notification.getSubject().isEmpty()
+                        notification.getSubject() != null
+                                && !notification.getSubject().isEmpty()
+                                && notification.getTo() != null
+                                && notification.getTo().length == 1
+                                && notification.getTo()[0].equals("test@mail.com")
                 ));
                 verify(mockEmailService, never()).sendEmailNotification(any());
             }
+        }
+    }
+
+
+    @Test
+    public void shouldHaveATemplateForApplicationHooksWithFreemarker() {
+        GenericNotificationConfig cfg = new GenericNotificationConfig();
+        cfg.setConfig("test@mail.com, ${api.primaryOwner.email} ");
+        ApiEntity api = new ApiEntity();
+        api.setName("api-name");
+        UserEntity userEntity = new UserEntity();
+        userEntity.setEmail("primary@owner.com");
+        api.setPrimaryOwner(new PrimaryOwnerEntity(userEntity));
+        PlanEntity plan = new PlanEntity();
+        plan.setId("plan-id");
+        plan.setName("plan-name");
+        Map<String, Object> params = new HashMap<>();
+        params.put((NotificationParamsBuilder.PARAM_API), api);
+        params.put((NotificationParamsBuilder.PARAM_PLAN), plan);
+        for (ApplicationHook hook : ApplicationHook.values()) {
+            reset(mockEmailService);
+            service.trigger(hook, cfg, params);
+            verify(mockEmailService, times(1)).sendAsyncEmailNotification(argThat(notification ->
+                    notification.getSubject() != null
+                            && !notification.getSubject().isEmpty()
+                            && notification.getTo() != null
+                            && notification.getTo().length == 2
+                            && notification.getTo()[0].equals("test@mail.com")
+                            && notification.getTo()[1].equals("primary@owner.com")
+            ));
+            verify(mockEmailService, never()).sendEmailNotification(any());
         }
     }
 }
