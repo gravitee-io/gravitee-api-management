@@ -188,6 +188,13 @@
 },
 "process": {
 "properties": {
+"cpu": {
+"properties": {
+"percent": {
+"type": "long"
+}
+}
+},
 "max_file_descriptors": {
 "type": "long"
 },

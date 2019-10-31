@@ -235,6 +235,7 @@ public abstract class AbstractIndexer implements Indexer {
             data.put("process_" + Fields.TIMESTAMP, monitor.getProcess().timestamp);
             data.put(Fields.OPEN_FILE_DESCRIPTORS, monitor.getProcess().openFileDescriptors);
             data.put(Fields.MAX_FILE_DESCRIPTORS, monitor.getProcess().maxFileDescriptors);
+            data.put("process_" + Fields.PERCENT, monitor.getProcess().cpu.getPercent());
         }
 
         if (monitor.getJvm() != null) {

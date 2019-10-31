@@ -132,9 +132,10 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
         // Process
 
         final JsonNode process = source.get(FIELD_PROCESS);
-
-        monitoringResponse.setJvmProcessOpenFileDescriptors(process.get("open_file_descriptors").asInt());
-        monitoringResponse.setJvmProcessMaxFileDescriptors(process.get("max_file_descriptors").asInt());
+        final JsonNode processCpu = process.get("cpu");
+        monitoringResponse.setProcessCPUPercent(processCpu.get("percent").asInt());
+        monitoringResponse.setProcessOpenFileDescriptors(process.get("open_file_descriptors").asInt());
+        monitoringResponse.setProcessMaxFileDescriptors(process.get("max_file_descriptors").asInt());
 
         // JVM
 
