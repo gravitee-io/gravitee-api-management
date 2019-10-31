@@ -30,17 +30,17 @@ function apisPortalRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.portal', {
-      template:require('./apis.portal.route.html')
+      template:require('./apis.portal.route.html'),
+      resolve: {
+        qualityRules: (QualityRuleService: QualityRuleService) =>
+          QualityRuleService.list().then(response => response.data)
+      }
     })
     .state('management.apis.detail.portal.general', {
       url: '/portal',
       template: require('./general/apiPortal.html'),
       controller: 'ApiPortalController',
       controllerAs: 'portalCtrl',
-      resolve: {
-        qualityRules: (QualityRuleService: QualityRuleService) =>
-          QualityRuleService.list().then(response => response.data)
-      },
       data: {
         menu: {
           label: 'Portal',
