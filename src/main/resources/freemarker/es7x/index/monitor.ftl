@@ -21,7 +21,10 @@
   "process":{
     "timestamp":${process_timestamp},
     "open_file_descriptors":${open_file_descriptors},
-    "max_file_descriptors":${max_file_descriptors}
+    "max_file_descriptors":${max_file_descriptors},
+    "cpu":{
+        "percent":${process_percent}
+    }
   },
   "jvm":{
     "timestamp":${jvm_timestamp},
