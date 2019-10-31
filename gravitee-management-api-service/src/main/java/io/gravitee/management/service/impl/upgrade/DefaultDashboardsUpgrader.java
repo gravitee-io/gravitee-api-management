@@ -60,7 +60,7 @@ public class DefaultDashboardsUpgrader implements Upgrader, Ordered {
         LOGGER.info("    No default {}'s dashboards, creating default ones...", referenceType);
         createDashboard(referenceType, "Global");
         createDashboard(referenceType, "Geo");
-        createDashboard(referenceType, "Device");
+        createDashboard(referenceType, "User");
         LOGGER.info("    Added default {}'s dashboards with success", referenceType);
     }
 
