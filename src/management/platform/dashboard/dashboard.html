@@ -35,7 +35,7 @@
       <gv-dashboard model="dashboardCtrl.dashboard" on-timeframe-change="dashboardCtrl.onTimeframeChange(timeframe)"></gv-dashboard>
     </div>
 
-    <div class="gv-form" ng-if="dashboardCtrl.dashboard === dashboardCtrl.dashboards[0]">
+    <div class="gv-form" ng-if="dashboardCtrl.events.content.length > 0">
       <h2>API Events</h2>
       <div class="gv-form-content" layout="column">
       <md-list>
@@ -45,7 +45,7 @@
           </a>
         </md-list-item>
       </md-list>
-      <div ng-if="dashboardCtrl.events.content.length > 0">
+      <div>
         <md-table-container>
           <table md-table>
             <thead md-head>

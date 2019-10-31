@@ -94,7 +94,10 @@ class DashboardController {
     this.lastFrom = timeframe.from;
     this.lastTo = timeframe.to;
 
-    this.searchEvents();
+    // display events only on first dashboard
+    if (this.dashboard === this.dashboards[0]) {
+      this.searchEvents();
+    }
   }
 
   selectEvent(eventType) {
