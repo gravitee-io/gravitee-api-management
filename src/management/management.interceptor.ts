@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import NotificationService from '../services/notification.service';
+import UserService from "../services/user.service";
 
 function interceptorConfig(
   $httpProvider: angular.IHttpProvider
@@ -32,6 +33,7 @@ function interceptorConfig(
         let errorMessage = '';
 
         const notificationService = ($injector.get('NotificationService') as NotificationService);
+        const userService =  ($injector.get('UserService') as UserService);
         const $timeout = $injector.get('$timeout');
         if (unauthorizedError) {
           if (error.config.headers.Authorization) {
@@ -39,22 +41,23 @@ function interceptorConfig(
             errorMessage = 'Wrong user or password';
           } else {
             // if on portal home do not redirect
-            error.config.forceSessionExpired = $location.$$path !== '' && $location.$$path !== '/' && !$location.$$path.startWith("/registration/confirm");
+            error.config.forceSessionExpired =
+              $location.$$path !== ''
+              && $location.$$path !== '/'
+              && $location.$$path !== '/login'
+              && !$location.$$path.startsWith("/registration/confirm");
             if (error.config.forceSessionExpired || (!sessionExpired && !error.config.silentCall)) {
               sessionExpired = true;
               // session expired
               notificationService.showError(error, 'Session expired, redirecting to login...');
               let redirectUri = $location.$$path;
               $timeout(function () {
+                userService.removeCurrentUserData();
+                $injector.get('$rootScope').$broadcast('graviteeUserRefresh', {});
+                $injector.get('$rootScope').$broadcast('graviteeUserCancelScheduledServices');
                 $injector.get('$rootScope').$broadcast('graviteeLogout', {redirectUri: redirectUri});
               }, 2000);
-            } /*else {
-              $timeout(function () {
-                if (_.startsWith($state.current.name, 'management.') || $state.current.name === '') {
-                  $state.go('portal.home');
-                }
-              }, 100);
-            }*/
+            }
           }
         } else {
           if (error.status === 500) {
