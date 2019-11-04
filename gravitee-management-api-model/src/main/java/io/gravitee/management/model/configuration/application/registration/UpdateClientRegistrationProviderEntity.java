@@ -59,6 +59,9 @@ public class UpdateClientRegistrationProviderEntity {
     @JsonProperty("renew_client_secret_method")
     private String renewClientSecretMethod;
 
+    @JsonProperty("software_id")
+    private String softwareId;
+
     public String getName() {
         return name;
     }
@@ -145,6 +148,14 @@ public class UpdateClientRegistrationProviderEntity {
 
     public void setRenewClientSecretMethod(String renewClientSecretMethod) {
         this.renewClientSecretMethod = renewClientSecretMethod;
+    }
+
+    public String getSoftwareId() {
+        return softwareId;
+    }
+
+    public void setSoftwareId(String softwareId) {
+        this.softwareId = softwareId;
     }
 
     @Override

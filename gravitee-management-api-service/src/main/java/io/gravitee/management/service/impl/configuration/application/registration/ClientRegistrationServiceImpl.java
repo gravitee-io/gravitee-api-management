@@ -286,7 +286,10 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(false,
                 provider);
 
-        return registrationProviderClient.register(convert(application));
+        ClientRegistrationRequest clientRegistrationRequest = convert(application);
+        clientRegistrationRequest.setSoftwareId(provider.getSoftwareId());
+
+        return registrationProviderClient.register(clientRegistrationRequest);
     }
 
     private DynamicClientRegistrationProviderClient getDCRClient(
@@ -354,6 +357,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             ClientRegistrationRequest registrationRequest = mapper.readValue(
                     previousRegistrationResponse, ClientRegistrationRequest.class);
+
+            registrationRequest.setSoftwareId(provider.getSoftwareId());
 
             return registrationProviderClient.update(
                     registrationResponse.getRegistrationAccessToken(),
@@ -446,6 +451,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         entity.setRenewClientSecretSupport(clientRegistrationProvider.isRenewClientSecretSupport());
         entity.setRenewClientSecretMethod(clientRegistrationProvider.getRenewClientSecretMethod());
         entity.setRenewClientSecretEndpoint(clientRegistrationProvider.getRenewClientSecretEndpoint());
+        entity.setSoftwareId(clientRegistrationProvider.getSoftwareId());
 
         if (clientRegistrationProvider.getInitialAccessTokenType() == null ||
                 clientRegistrationProvider.getInitialAccessTokenType() == ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS) {
@@ -473,6 +479,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         provider.setRenewClientSecretSupport(newClientRegistrationProvider.isRenewClientSecretSupport());
         provider.setRenewClientSecretMethod(newClientRegistrationProvider.getRenewClientSecretMethod());
         provider.setRenewClientSecretEndpoint(newClientRegistrationProvider.getRenewClientSecretEndpoint());
+        provider.setSoftwareId(newClientRegistrationProvider.getSoftwareId());
 
         if (newClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
             provider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
@@ -496,6 +503,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         provider.setRenewClientSecretSupport(updateClientRegistrationProvider.isRenewClientSecretSupport());
         provider.setRenewClientSecretMethod(updateClientRegistrationProvider.getRenewClientSecretMethod());
         provider.setRenewClientSecretEndpoint(updateClientRegistrationProvider.getRenewClientSecretEndpoint());
+        provider.setSoftwareId(updateClientRegistrationProvider.getSoftwareId());
 
         if (updateClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
             provider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
