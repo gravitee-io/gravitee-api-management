@@ -58,3 +58,10 @@ databaseChangeLog:
                     name: reference_type
                     type: nvarchar(32)
               tableName: dashboards
+
+          - addColumn:
+              tableName: client_registration_providers
+              columns:
+                - column:
+                    name: software_id
+                    type: nvarchar(256)

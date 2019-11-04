@@ -49,6 +49,7 @@ public class JdbcClientRegistrationProviderRepository extends JdbcAbstractCrudRe
             .addColumn("renew_client_secret_support", Types.BOOLEAN, boolean.class)
             .addColumn("renew_client_secret_endpoint", Types.NVARCHAR, String.class)
             .addColumn("renew_client_secret_method", Types.NVARCHAR, String.class)
+            .addColumn("software_id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
