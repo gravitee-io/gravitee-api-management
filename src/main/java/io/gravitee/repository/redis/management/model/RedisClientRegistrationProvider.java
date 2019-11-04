@@ -68,6 +68,8 @@ public class RedisClientRegistrationProvider {
 
     private String renewClientSecretMethod;
 
+    private String softwareId;
+
     /**
      * Client registration provider creation date
      */
@@ -188,6 +190,14 @@ public class RedisClientRegistrationProvider {
 
     public void setRenewClientSecretMethod(String renewClientSecretMethod) {
         this.renewClientSecretMethod = renewClientSecretMethod;
+    }
+
+    public String getSoftwareId() {
+        return softwareId;
+    }
+
+    public void setSoftwareId(String softwareId) {
+        this.softwareId = softwareId;
     }
 
     @Override

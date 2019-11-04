@@ -99,6 +99,7 @@ public class RedisClientRegistrationProviderRepository implements ClientRegistra
         clientRegistrationProvider.setRenewClientSecretEndpoint(redisClientRegistrationProvider.getRenewClientSecretEndpoint());
         clientRegistrationProvider.setRenewClientSecretMethod(redisClientRegistrationProvider.getRenewClientSecretMethod());
         clientRegistrationProvider.setInitialAccessToken(redisClientRegistrationProvider.getInitialAccessToken());
+        clientRegistrationProvider.setSoftwareId(redisClientRegistrationProvider.getSoftwareId());
         clientRegistrationProvider.setCreatedAt(new Date(redisClientRegistrationProvider.getCreatedAt()));
         clientRegistrationProvider.setUpdatedAt(new Date(redisClientRegistrationProvider.getUpdatedAt()));
 
@@ -133,6 +134,7 @@ public class RedisClientRegistrationProviderRepository implements ClientRegistra
         redisClientRegistrationProvider.setRenewClientSecretSupport(clientRegistrationProvider.isRenewClientSecretSupport());
         redisClientRegistrationProvider.setRenewClientSecretEndpoint(clientRegistrationProvider.getRenewClientSecretEndpoint());
         redisClientRegistrationProvider.setRenewClientSecretMethod(clientRegistrationProvider.getRenewClientSecretMethod());
+        redisClientRegistrationProvider.setSoftwareId(clientRegistrationProvider.getSoftwareId());
 
         return redisClientRegistrationProvider;
     }
