@@ -70,6 +70,8 @@ public class ClientRegistrationProviderMongo extends Auditable {
 
     private String renewClientSecretMethod;
 
+    private String softwareId;
+
     public String getId() {
         return id;
     }
@@ -164,6 +166,14 @@ public class ClientRegistrationProviderMongo extends Auditable {
 
     public void setRenewClientSecretMethod(String renewClientSecretMethod) {
         this.renewClientSecretMethod = renewClientSecretMethod;
+    }
+
+    public String getSoftwareId() {
+        return softwareId;
+    }
+
+    public void setSoftwareId(String softwareId) {
+        this.softwareId = softwareId;
     }
 
     @Override
