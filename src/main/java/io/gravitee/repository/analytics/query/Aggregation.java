@@ -24,4 +24,6 @@ public interface Aggregation {
     AggregationType type();
 
     String field();
+
+    Integer size();
 }
