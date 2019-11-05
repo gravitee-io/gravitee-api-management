@@ -50,6 +50,10 @@
       "by_${aggregation.field()}": {
         "terms": {
           "field": "${aggregation.field()}"
+           <#if aggregation.size()?has_content>
+           ,
+            "size": "${aggregation.size()}"
+           </#if>
         }
       }
         <#break>

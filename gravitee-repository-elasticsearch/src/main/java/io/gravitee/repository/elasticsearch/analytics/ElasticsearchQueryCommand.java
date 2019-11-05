@@ -21,9 +21,9 @@ import io.gravitee.repository.analytics.query.response.Response;
 
 /**
  * Common interface used to execute an analytic Elasticsearch query.
- * 
+ *
  * Based on Command Design Pattern.
- * 
+ *
  * @author Guillaume Waignier (Zenika)
  * @author Sebastien Devaux (Zenika)
  *
@@ -31,8 +31,18 @@ import io.gravitee.repository.analytics.query.response.Response;
 public interface ElasticsearchQueryCommand<T extends Response> {
 
 	/**
+	 * Update Elasticsearch query settings before executing it
+	 * @param query
+	 * @return
+	 * @throws AnalyticsException
+	 */
+	default Query<T> prepareQuery(final Query<T> query) throws AnalyticsException {
+		return query;
+	}
+
+	/**
 	 * Execute an analytic Elasticsearch query.
-	 * 
+	 *
 	 * @param query
 	 *            query to execute
 	 * @return response
@@ -43,7 +53,7 @@ public interface ElasticsearchQueryCommand<T extends Response> {
 
 	/**
 	 * Get the supported query
-	 * 
+	 *
 	 * @return the query supported by this handler
 	 */
 	Class<? extends Query<T>> getSupportedQuery();
