@@ -332,12 +332,13 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
                 apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
-        assertEquals(2, apis.size());
+        assertEquals(3, apis.size());
         assertTrue(apis.stream().
                 map(Api::getId).
                 collect(toList()).
                 containsAll(asList( "api-to-update", "grouped-api")));
         assertEquals(PUBLISHED, apis.get(0).getApiLifecycleState());
         assertEquals(PUBLISHED, apis.get(1).getApiLifecycleState());
+        assertEquals(PUBLISHED, apis.get(2).getApiLifecycleState());
     }
 }

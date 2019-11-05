@@ -65,6 +65,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
                 mock(Application.class),
                 mock(Application.class),
                 mock(Application.class),
+                mock(Application.class),
                 mock(Application.class));
         when(applicationRepository.findAll()).thenReturn(allApplications);
         doAnswer(invocation -> allApplications.remove(application)).when(applicationRepository).delete("deleted-app");
