@@ -15,6 +15,9 @@
  */
 package io.gravitee.management.service.notifiers.impl;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import io.gravitee.management.model.ApiModelEntity;
 import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.api.ApiEntity;
@@ -27,7 +30,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.gravitee.management.service.notification.ApiHook.*;
@@ -44,6 +52,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
     @Autowired
     EmailService emailService;
 
+    @Autowired
+    private Configuration freemarkerConfiguration;
+
     @Override
     public void trigger(final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
         if (genericNotificationConfig == null || genericNotificationConfig.getConfig() == null || genericNotificationConfig.getConfig().isEmpty()) {
@@ -56,17 +67,36 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
             return;
         }
 
+        String[] mails = getMails(genericNotificationConfig, params).toArray(new String[0]);
+        emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
+                .to(mails)
+                .subject(getEmailSubject(hook, params))
+                .template(emailTemplate)
+                .params(params)
+                .build());
+    }
+
+    private List<String> getMails(final GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
         String[] mails = genericNotificationConfig.getConfig().split(",|;|\\s");
+        List<String> result = new ArrayList<>();
         for (String mail : mails) {
-            if (!mail.isEmpty()) {
-                emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                        .to(mail)
-                        .subject(getEmailSubject(hook, params))
-                        .template(emailTemplate)
-                        .params(params)
-                        .build());
+            if(!mail.isEmpty()) {
+                if(mail.contains("$")) {
+                    try {
+                        final Template template = new Template(mail, mail, freemarkerConfiguration);
+                        String tmpMail = FreeMarkerTemplateUtils.processTemplateIntoString(template, params);
+                        if(!tmpMail.isEmpty()) {
+                            mail = tmpMail;
+                        }
+                    } catch (IOException | TemplateException e) {
+                        LOGGER.info("Email recipient cannot be interpreted {}", mail, e);
+                        continue;
+                    }
+                }
+                result.add(mail);
             }
         }
+        return result;
     }
 
     private EmailNotificationBuilder.EmailTemplate getEmailTemplate(final Hook hook) {

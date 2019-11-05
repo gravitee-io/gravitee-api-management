@@ -35,12 +35,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
 import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_CREATED;
 import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_DELETED;
 import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_UPDATED;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -67,26 +69,30 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
     public List<ApiMetadataEntity> findAllByApi(final String apiId) {
         try {
             LOGGER.debug("Find all metadata by api ID {}", apiId);
-            final List<MetadataEntity> defaultMetadata = metadataService.findAllDefault();
-            final List<String> defaultMetadataKeys = defaultMetadata.stream().map(MetadataEntity::getKey).collect(toList());
+            final List<MetadataEntity> defaultMetadataList = metadataService.findAllDefault();
 
-            final List<Metadata> apiMetadata = metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, apiId);
+            final List<Metadata> apiMetadataList = metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, apiId);
 
-            final List<ApiMetadataEntity> allMetadata = new ArrayList<>();
+            Map<String, ApiMetadataEntity> apiMetadataMap = apiMetadataList.stream()
+                    .map(apiMetadata -> convert(apiMetadata, apiId))
+                    .collect(toMap(ApiMetadataEntity::getKey, Function.identity()));
 
-            allMetadata.addAll(defaultMetadata.stream()
-                    .map(metadata -> {
-                        final Optional<Metadata> optApiMetadata = apiMetadata.stream()
-                                .filter(metadataEntity -> metadata.getKey().equals(metadataEntity.getKey()))
-                                .findAny();
-                        return convert(optApiMetadata, metadata, null);
-                    }).collect(toList()));
-
-
-            allMetadata.addAll(apiMetadata.stream()
-                    .filter(metadata -> !defaultMetadataKeys.contains(metadata.getKey()))
-                    .map(metadata -> convert(metadata, apiId))
-                    .collect(toList()));
+            List<ApiMetadataEntity> allMetadata = new ArrayList<>();
+            defaultMetadataList.forEach(
+                    defaultMetadata -> {
+                        ApiMetadataEntity apiMetadataEntity = apiMetadataMap.get(defaultMetadata.getKey());
+                        if (apiMetadataEntity != null) {
+                            //update the api metadata in the map
+                            apiMetadataEntity.setDefaultValue(defaultMetadata.getValue());
+                        } else {
+                            final Optional<Metadata> optApiMetadata = apiMetadataList.stream()
+                                    .filter(apiMetadata -> defaultMetadata.getKey().equals(apiMetadata.getKey()))
+                                    .findAny();
+                            allMetadata.add(convert(optApiMetadata, defaultMetadata, null));
+                        }
+                    });
+            //add all api metadata
+            allMetadata.addAll(apiMetadataMap.values());
 
             return allMetadata;
         } catch (TechnicalException ex) {
@@ -230,7 +236,7 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
                         null,
                         metadata);
             }
-            final ApiMetadataEntity apiMetadataEntity = convert(savedMetadata, null);
+            final ApiMetadataEntity apiMetadataEntity = convert(savedMetadata, apiEntity.getId());
             optDefaultMetadata.ifPresent(defaultMetadata -> apiMetadataEntity.setDefaultValue(defaultMetadata.getValue()));
 
             return apiMetadataEntity;

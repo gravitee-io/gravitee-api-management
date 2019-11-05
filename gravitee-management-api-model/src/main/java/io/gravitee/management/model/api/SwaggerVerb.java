@@ -28,6 +28,7 @@ public class SwaggerVerb {
     private String responseStatus;
     private Object responseProperties;
     private boolean array;
+    private String contentType;
 
     public String getVerb() {
         return verb;
@@ -67,5 +68,13 @@ public class SwaggerVerb {
 
     public void setArray(boolean array) {
         this.array = array;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
     }
 }

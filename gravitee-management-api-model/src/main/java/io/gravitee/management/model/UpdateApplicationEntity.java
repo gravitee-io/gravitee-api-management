@@ -18,6 +18,7 @@ package io.gravitee.management.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.management.model.application.ApplicationSettings;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Set;
 
@@ -30,6 +31,7 @@ import java.util.Set;
 public class UpdateApplicationEntity {
 
     @NotNull(message = "Application's name must not be null")
+    @NotEmpty(message = "Application's name must not be empty")
     private String name;
 
     @NotNull(message = "Application's description must not be null")
