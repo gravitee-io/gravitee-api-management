@@ -23,7 +23,7 @@
           <md-input-container class="md-block" flex-gt-sm>
             <label>Name</label>
             <input ng-model="$ctrl.parent.api.name" type="text" required name="name"
-                   md-maxlength="50" autofocus />
+                   md-maxlength="512" autofocus />
             <div class="hint" ng-if="apiGeneralForm.name.$valid || apiGeneralForm.name.$pristine">API Name</div>
             <div ng-messages="apiGeneralForm.name.$error">
               <div ng-message="required">API Name is required.</div>

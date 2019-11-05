@@ -83,14 +83,17 @@ class ApplicationGeneralController {
     ev.stopPropagation();
     let that = this;
     this.$mdDialog.show({
-      controller: 'DialogConfirmController',
+      controller: 'DialogConfirmAndValidateController',
       controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+      template: require('../../../../components/dialog/confirmAndValidate.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        msg: '',
         title: 'Would you like to delete your application?',
-        confirmButton: 'Remove'
+        warning: 'This operation is irreversible.',
+        msg: 'You will no longer be able to access this application.',
+        validationMessage: 'Please, type in the name of the application <code>'+ this.application.name +'</code> to confirm.',
+        validationValue: this.application.name,
+        confirmButton: 'Yes, delete this application.'
       }
     }).then(function (response) {
       if (response) {
