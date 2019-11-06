@@ -333,6 +333,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 throw new ApplicationNotFoundException(applicationId);
             }
 
+            if (optApplicationToUpdate.get().getStatus().equals(ApplicationStatus.ARCHIVED)) {
+                throw new ApplicationArchivedException(optApplicationToUpdate.get().getName());
+            }
+
             // Check that only one settings is defined
             if (updateApplicationEntity.getSettings().getApp() != null && updateApplicationEntity.getSettings().getoAuthClient() != null) {
                 throw new InvalidApplicationTypeException();
@@ -429,6 +433,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Optional<Application> optApplicationToUpdate = applicationRepository.findById(applicationId);
             if (!optApplicationToUpdate.isPresent()) {
                 throw new ApplicationNotFoundException(applicationId);
+            }
+
+            if (ApplicationStatus.ARCHIVED.equals(optApplicationToUpdate.get().getStatus())) {
+                throw new ApplicationArchivedException(optApplicationToUpdate.get().getName());
             }
 
             // Check that client registration is enabled

@@ -32,6 +32,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
@@ -185,6 +186,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
 
             ApplicationEntity applicationEntity = applicationService.findById(application);
+            if (ApplicationStatus.ARCHIVED.name().equals(applicationEntity.getStatus())) {
+                throw new ApplicationArchivedException(applicationEntity.getName());
+            }
 
             // Check existing subscriptions
             List<Subscription> subscriptions = subscriptionRepository.search(
