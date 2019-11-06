@@ -1464,7 +1464,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiModelEntity.setPicture(apiEntity.getPicture());
         apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
         apiModelEntity.setProperties(apiEntity.getProperties());
-        apiModelEntity.setProxy(apiEntity.getProxy());
+        apiModelEntity.setProxy(convert(apiEntity.getProxy()));
         apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
 
         final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(apiId);
@@ -1924,5 +1924,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             result = 31 * result + sourceId.hashCode();
             return result;
         }
+    }
+
+    private ProxyModelEntity convert(Proxy proxy) {
+        ProxyModelEntity proxyModelEntity = new ProxyModelEntity();
+
+        proxyModelEntity.setCors(proxy.getCors());
+        proxyModelEntity.setFailover(proxy.getFailover());
+        proxyModelEntity.setGroups(proxy.getGroups());
+        proxyModelEntity.setLogging(proxy.getLogging());
+        proxyModelEntity.setPreserveHost(proxy.isPreserveHost());
+        proxyModelEntity.setStripContextPath(proxy.isStripContextPath());
+        proxyModelEntity.setVirtualHosts(proxy.getVirtualHosts());
+
+        //add a default context-path to preserve compatibility on old templates
+        if (proxy.getVirtualHosts() != null && !proxy.getVirtualHosts().isEmpty()) {
+            proxyModelEntity.setContextPath(proxy.getVirtualHosts().get(0).getPath());
+        }
+
+        return proxyModelEntity;
     }
 }
