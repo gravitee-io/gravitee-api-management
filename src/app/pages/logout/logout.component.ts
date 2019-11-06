@@ -16,7 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthenticationService } from 'ng-portal-webclient/dist';
 import { Router } from '@angular/router';
-import { CurrentUserService } from '../../services/currentUser.service';
+import { CurrentUserService } from '../../services/current-user.service';
 
 @Component({
   selector: 'app-logout',

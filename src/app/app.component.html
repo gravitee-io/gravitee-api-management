@@ -15,20 +15,4 @@
     limitations under the License.
 
 -->
-<header class="bg-white w-100 dt" *ngIf="withHeader">
-  <div class="w-20 dtc v-mid">
-    <a href="" target="_blank" class="logo link" title="{{ 'site.title' | translate }}"></a>
-  </div>
-
-  <gv-nav [routes]="mainRoutes" class="w-60 dtc v-mid tc"></gv-nav>
-
-  <gv-nav-link [route]="userRoutes[0]" class="w-20 dtc v-mid tr" *ngIf="showLogin()"></gv-nav-link>
-  <div class="w-20 dtc" *ngIf="!showLogin()"></div>
-  <div *ngIf="currentUser" class="tr">
-    <a routerLink="/user" class="logo link v-mid" title="{{ currentUser.displayName }}">
-        <img src="{{ currentUser.avatar }}" alt="{{ currentUser.displayName }}" class="bn mw-100 dib">
-    </a>
-    <gv-nav-link [route]="userRoutes[1]" class="v-mid" ></gv-nav-link>
-  </div>
-</header>
 <router-outlet></router-outlet>

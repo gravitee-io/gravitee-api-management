@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 .login, .registration, .registration-confirmation {
-    align-content: center;
-    background-color: white;
-    color: var(--gv-theme-color-darker);
-    display: flex;
-    flex-direction: column;
-    margin: 0.5rem auto;
-    max-width: 30rem;
-    padding: 0.75rem 3.5rem;
-    text-align: center;
+  align-content: center;
+  background-color: white;
+  color: var(--gv-theme-color-darker);
+  display: flex;
+  flex-direction: column;
+  margin: 0.5rem auto;
+  max-width: 30rem;
+  padding: 0.75rem 3.5rem;
 }
 
 .login__form__input, .registration__form__input, .registration-confirmation__form__input {
-    margin-left: 0;
-    margin-right: 0;
-    width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
 }
 
 .login__link, .registration__link, .registration-confirmation__link {
-    font-size: .75rem;
-    margin-top: 1rem;
+  font-size: .75rem;
+  margin-top: 1rem;
+  text-align: center;
 }

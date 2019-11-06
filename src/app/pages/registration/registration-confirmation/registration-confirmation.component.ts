@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { UsersService, FinalizeRegistrationInput } from 'ng-portal-webclient/dist';
-import { TranslateService } from '@ngx-translate/core';
+import {Component, OnInit} from '@angular/core';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {ActivatedRoute} from '@angular/router';
+import {UsersService, FinalizeRegistrationInput} from 'ng-portal-webclient/dist';
+import {TranslateService} from '@ngx-translate/core';
 import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
@@ -42,7 +42,8 @@ export class RegistrationConfirmationComponent implements OnInit {
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private translateService: TranslateService,
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     this.isSubmitted = false;
@@ -72,10 +73,10 @@ export class RegistrationConfirmationComponent implements OnInit {
 
   isFormValid() {
     return this.registrationConfirmationForm.valid.valueOf() &&
-            (this.registrationConfirmationForm.value.password === this.registrationConfirmationForm.value.confirmedPassword);
+      (this.registrationConfirmationForm.value.password === this.registrationConfirmationForm.value.confirmedPassword);
   }
 
-  registrationConfirmation() {
+  onSubmitRegistrationConfirmationForm() {
     if (this.isFormValid() && !this.isSubmitted) {
       let input: FinalizeRegistrationInput;
       input = {
@@ -91,7 +92,7 @@ export class RegistrationConfirmationComponent implements OnInit {
           this.translateService.get(i18n('registrationConfirmation.notification.success')).subscribe((translatedMessage) => {
             this.notification = {
               message: translatedMessage,
-              type : 'success'
+              type: 'success'
             };
           });
           this.isSubmitted = true;
@@ -111,7 +112,7 @@ export class RegistrationConfirmationComponent implements OnInit {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
 
     return JSON.parse(jsonPayload);

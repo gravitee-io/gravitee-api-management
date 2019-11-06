@@ -1,4 +1,7 @@
 {
+ "catalog": {
+  "search": "Rechercher une API, APP..."
+ },
  "login": {
   "button": "Se connecter",
   "notification": {
@@ -46,6 +49,8 @@
  "route": {
   "apps": "Applications",
   "catalog": "Catalogue",
+  "catalog-all": "All",
+  "catalog-categories": "Catégories",
   "dashboard": "Tableau de bord",
   "login": "Se connecter",
   "logout": "Se déconnecter"

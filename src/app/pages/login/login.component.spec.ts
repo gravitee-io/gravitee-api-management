@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { LoginComponent } from './login.component';
+import {LoginComponent} from './login.component';
+import {TranslateModule} from '@ngx-translate/core';
+import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {TranslateTestingModule} from '../../test/helper.spec';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {CatalogComponent} from '../catalog/catalog.component';
+import {RouterTestingModule} from '@angular/router/testing';
+import {HttpClientTestingModule} from '@angular/common/http/testing';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -23,18 +30,27 @@ describe('LoginComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ LoginComponent ]
+      declarations: [LoginComponent],
+      imports: [RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
+      schemas: [
+        CUSTOM_ELEMENTS_SCHEMA,
+      ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+    });
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component).toBeTruthy();
+    });
   });
 });

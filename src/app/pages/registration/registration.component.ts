@@ -52,7 +52,7 @@ export class RegistrationComponent implements OnInit {
     return this.registrationForm.valid.valueOf();
   }
 
-  registration() {
+  onSubmitRegistration() {
     if (this.isFormValid() && !this.isSubmitted) {
       let input: RegisterUserInput;
       input = {

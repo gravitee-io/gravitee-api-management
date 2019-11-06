@@ -16,7 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import {UserService, User} from 'ng-portal-webclient/dist';
-import { CurrentUserService } from '../../services/currentUser.service';
+import { CurrentUserService } from '../../services/current-user.service';
 
 @Component({
   selector: 'app-user',

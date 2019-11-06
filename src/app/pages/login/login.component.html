@@ -18,15 +18,14 @@
 <div class="login">
   <h1 *ngIf="loginForm || providers">{{ 'login.title' | translate }}</h1>
 
-  <form *ngIf="loginForm" [formGroup]="loginForm">
+  <form *ngIf="loginForm" [formGroup]="loginForm" (ngSubmit)="login()">
     <gv-input
       large
       required
       name="username"
-      placeholder="{{ 'login.username' | translate}}"
+      label="{{ 'login.username' | translate}}"
       formControlName="username"
       ngDefaultControl
-      (keyup.enter)="login()"
       class="login__form__input"
     >
     </gv-input>
@@ -35,16 +34,14 @@
       large
       required
       name="password"
-      placeholder="{{ 'login.password' | translate }}"
+      label="{{ 'login.password' | translate }}"
       formControlName="password"
       ngDefaultControl
-      (keyup.enter)="login()" 
       class="login__form__input"
     >
     </gv-input>
-    <gv-button [disabled]="!isFormValid()" (click)="login()" primary class="login__form__input">{{ 'login.button' | translate }}</gv-button>
+    <gv-button [disabled]="!isFormValid()" primary class="login__form__input">{{ 'login.button' | translate }}</gv-button>
   </form>
-
   <p *ngIf="loginForm && registrationEnabled" class="login__link">
     {{ 'login.signup.text' | translate }} <a routerLink="/registration">{{ 'login.signup.link' | translate }}</a>
   </p>
@@ -60,6 +57,6 @@
     {{ provider.name }}
   </gv-button>
 
-  <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>  
-  
+  <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
+
 </div>

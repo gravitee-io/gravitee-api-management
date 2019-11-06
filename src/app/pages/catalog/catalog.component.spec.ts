@@ -13,9 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { CatalogComponent } from './catalog.component';
+import {CatalogComponent} from './catalog.component';
+import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
+import {AppComponent} from '../../app.component';
+import {provideMagicalMock} from '../../test/mock.helper.spec';
+import {Title} from '@angular/platform-browser';
+import {CurrentUserService} from '../../services/current-user.service';
+import {RouteService} from '../../services/route.service';
+import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {of} from 'rxjs';
+import {RouterTestingModule} from '@angular/router/testing';
+import {TranslateTestingModule} from '../../test/helper.spec';
+
 
 describe('CatalogComponent', () => {
   let component: CatalogComponent;
@@ -23,18 +34,35 @@ describe('CatalogComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ CatalogComponent ]
-    })
-    .compileComponents();
+      imports: [
+        RouterTestingModule,
+        TranslateTestingModule
+      ],
+      declarations: [
+        CatalogComponent
+      ],
+      schemas: [
+        CUSTOM_ELEMENTS_SCHEMA,
+      ],
+      providers: [
+        provideMagicalMock(CurrentUserService),
+        provideMagicalMock(TranslateService)
+      ]
+    }).compileComponents();
   }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CatalogComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+    });
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component).toBeTruthy();
+    });
   });
 });

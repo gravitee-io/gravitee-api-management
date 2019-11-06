@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
+import {RouteService, RouteType} from '../../services/route.service';
+import '@gravitee/ui-components/wc/gv-menu';
 
 @Component({
   selector: 'app-catalog',
@@ -22,9 +24,13 @@ import { Component, OnInit } from '@angular/core';
 })
 export class CatalogComponent implements OnInit {
 
-  constructor() { }
+  private catalogRoutes: object[];
+
+  constructor(private routeService: RouteService) {
+  }
 
   ngOnInit() {
+    this.catalogRoutes = this.routeService.getRoutes(RouteType.catalog);
   }
 
 }

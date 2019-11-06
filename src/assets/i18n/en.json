@@ -1,4 +1,7 @@
 {
+ "catalog": {
+  "search": "Search API, APP ..."
+ },
  "login": {
   "button": "Sign in",
   "notification": {
@@ -46,6 +49,8 @@
  "route": {
   "apps": "Applications",
   "catalog": "Catalog",
+  "catalog-all": "All",
+  "catalog-categories": "Categories",
   "dashboard": "Dashboard",
   "login": "Sign in",
   "logout": "Sign out"

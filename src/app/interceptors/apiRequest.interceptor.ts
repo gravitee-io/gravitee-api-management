@@ -19,7 +19,7 @@ import {Router} from '@angular/router';
 
 import {tap} from 'rxjs/operators';
 import { Injectable } from '@angular/core';
-import { CurrentUserService } from '../services/currentUser.service';
+import { CurrentUserService } from '../services/current-user.service';
 
 @Injectable()
 export class APIRequestInterceptor implements HttpInterceptor {

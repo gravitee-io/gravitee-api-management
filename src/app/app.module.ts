@@ -15,7 +15,7 @@
  */
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
+import {ReactiveFormsModule} from '@angular/forms';
 
 import {HttpClient, HttpClientModule, HTTP_INTERCEPTORS} from '@angular/common/http';
 
@@ -38,11 +38,13 @@ import { LogoutComponent } from './pages/logout/logout.component';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
 import { APIRequestInterceptor } from './interceptors/apiRequest.interceptor';
-import { CurrentUserService } from './services/currentUser.service';
+import { CurrentUserService } from './services/current-user.service';
+import { LayoutComponent } from './layouts/layout/layout.component';
 
 @NgModule({
   declarations: [
     AppComponent,
+    LayoutComponent,
     DashboardComponent,
     CatalogComponent,
     AppsComponent,
@@ -50,7 +52,7 @@ import { CurrentUserService } from './services/currentUser.service';
     UserComponent,
     LogoutComponent,
     RegistrationComponent,
-    RegistrationConfirmationComponent
+    RegistrationConfirmationComponent,
   ],
   imports: [
     ApiModule,

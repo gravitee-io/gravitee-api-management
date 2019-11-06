@@ -13,84 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../environments/environment';
-
-import '@gravitee/ui-components/wc/gv-nav';
-
-import { Title } from '@angular/platform-browser';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { Router, NavigationEnd } from '@angular/router';
-import { User } from 'ng-portal-webclient/dist';
-import { CurrentUserService } from './services/currentUser.service';
-import { routes } from './app-routing.module';
+import {Component, OnInit} from '@angular/core';
+import {TranslateService} from '@ngx-translate/core';
+import {environment} from '../environments/environment';
+import {Title} from '@angular/platform-browser';
+import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+    selector: 'app-root',
+    templateUrl: './app.component.html'
 })
 export class AppComponent implements OnInit {
 
-  private mainRoutes: Promise<any>[];
-  private userRoutes: Promise<any>[];
-  private currentUser: User;
-  private withHeader: boolean;
-
-  constructor(
-    private titleService: Title,
-    private translateService: TranslateService,
-    private router: Router,
-    private currentUserService: CurrentUserService
+    constructor(
+        private titleService: Title,
+        private translateService: TranslateService
     ) {
-      this.withHeader = true;
-  }
+    }
 
-  ngOnInit() {
-    this.currentUserService.currentUser.subscribe(newCurrentUser => this.currentUser = newCurrentUser);
-    // avoid header for registration confirmation
-    this.router.events.subscribe(
-      (event) => {
-        if (event instanceof NavigationEnd) {
-          this.withHeader = !this.router.url.startsWith('/registration/confirm/');
-        }
-      }
-    );
+    ngOnInit() {
+        this.translateService.addLangs(environment.locales);
+        this.translateService.setDefaultLang(environment.locales[0]);
+        const browserLang = this.translateService.getBrowserLang();
+        this.translateService.use(browserLang.match(/en|fr/) ? browserLang : 'en');
+        this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
+    }
 
-    this.translateService.addLangs(environment.locales);
-    this.translateService.setDefaultLang(environment.locales[0]);
-    const browserLang = this.translateService.getBrowserLang();
-    this.translateService.use(browserLang.match(/en|fr/) ? browserLang : 'en');
-
-    this.translateService.get(i18n('site.title')).subscribe((title) => {
-      this.titleService.setTitle(title);
-    });
-
-    this.mainRoutes = routes
-      .filter(({data}) => data && (data.navType === 'main'))
-      .map(async ({path, data: {title}}) => {
-        let isActive = false;
-        if (`/${path}` === this.router.url) {
-          isActive = true;
-        }
-        return {path, title: await this.translateService.get(title).toPromise(), isActive};
-      });
-
-    this.userRoutes = routes
-      .filter(({data}) => data && (data.navType === 'user'))
-      .map(async ({path, data: {title}}) => {
-        return {path, title: await this.translateService.get(title).toPromise()};
-      });
-  }
-
-  showLogin() {
-    return !this.currentUser && this.router.url !== '/login';
-  }
-
-  @HostListener('gv-nav-link_click', ['$event.detail'])
-  onNavChange(route: { path: any; }) {
-    this.router.navigate([route.path]);
-  }
 
 }

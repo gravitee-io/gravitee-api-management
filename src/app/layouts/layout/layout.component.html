@@ -1,0 +1,36 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<header class="bg-white w-100 dt">
+    <div class="w-20 dtc v-mid">
+        <a href="" target="_blank" class="logo link" title="{{ 'site.title' | translate }}"></a>
+    </div>
+
+    <gv-nav [routes]="mainRoutes" class="w-60 dtc v-mid tc"></gv-nav>
+
+    <gv-nav-link path="/login" [attr.title]="'route.login' | translate"
+                 class="w-20 dtc v-mid tr" *ngIf="showLogin()"></gv-nav-link>
+
+    <div class="w-20 dtc" *ngIf="!showLogin()"></div>
+    <div *ngIf="currentUser" class="tr">
+        <a routerLink="/user" class="logo link v-mid" title="{{ currentUser.displayName }}">
+            <img src="{{ currentUser.avatar }}" alt="{{ currentUser.displayName }}" class="bn mw-100 dib">
+        </a>
+        <gv-nav-link path="/logout" [attr.title]="'route.logout' | translate" class="v-mid"></gv-nav-link>
+    </div>
+</header>
+<router-outlet></router-outlet>

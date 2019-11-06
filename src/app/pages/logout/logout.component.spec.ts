@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { LogoutComponent } from './logout.component';
+import {LogoutComponent} from './logout.component';
+import {TranslateModule} from '@ngx-translate/core';
+import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {RouterTestingModule} from '@angular/router/testing';
+import {TranslateTestingModule} from '../../test/helper.spec';
+import {HttpClientTestingModule} from '@angular/common/http/testing';
+import {provideMagicalMock} from '../../test/mock.helper.spec';
+import {CurrentUserService} from '../../services/current-user.service';
 
 describe('LogoutComponent', () => {
   let component: LogoutComponent;
@@ -23,18 +30,28 @@ describe('LogoutComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ LogoutComponent ]
+      declarations: [LogoutComponent],
+      imports: [RouterTestingModule, TranslateTestingModule, HttpClientTestingModule],
+      schemas: [
+        CUSTOM_ELEMENTS_SCHEMA,
+      ],
+      providers: [provideMagicalMock(CurrentUserService)]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(LogoutComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+    });
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component).toBeTruthy();
+    });
   });
 });

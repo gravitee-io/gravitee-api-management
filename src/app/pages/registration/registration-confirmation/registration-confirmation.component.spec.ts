@@ -16,6 +16,12 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RegistrationConfirmationComponent } from './registration-confirmation.component';
+import {TranslateModule} from '@ngx-translate/core';
+import {RouterTestingModule} from '@angular/router/testing';
+import {TranslateTestingModule} from '../../../test/helper.spec';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {HttpClientTestingModule} from '@angular/common/http/testing';
+import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 
 describe('RegistrationConfirmationComponent', () => {
   let component: RegistrationConfirmationComponent;
@@ -23,7 +29,11 @@ describe('RegistrationConfirmationComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ RegistrationConfirmationComponent ]
+      declarations: [ RegistrationConfirmationComponent ],
+      imports: [RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
+      schemas: [
+        CUSTOM_ELEMENTS_SCHEMA,
+      ]
     })
     .compileComponents();
   }));
@@ -31,10 +41,16 @@ describe('RegistrationConfirmationComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(RegistrationConfirmationComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+    });
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component).toBeTruthy();
+    });
   });
+
 });

@@ -13,28 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { UserComponent } from './user.component';
+import {UserComponent} from './user.component';
+import {provideMagicalMock} from '../../test/mock.helper.spec';
+import {CurrentUserService} from '../../services/current-user.service';
+import {UserService} from 'ng-portal-webclient/dist';
+import {TranslateTestingModule} from '../../test/helper.spec';
 
 describe('UserComponent', () => {
   let component: UserComponent;
   let fixture: ComponentFixture<UserComponent>;
 
+  let userServiceMock: jasmine.SpyObj<UserService>;
+
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ UserComponent ]
+      declarations: [UserComponent],
+      imports: [TranslateTestingModule],
+      providers: [provideMagicalMock(UserService), provideMagicalMock(CurrentUserService)]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {
+    userServiceMock = TestBed.get(UserService);
+
     fixture = TestBed.createComponent(UserComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+    });
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component).toBeTruthy();
+    });
   });
 });
