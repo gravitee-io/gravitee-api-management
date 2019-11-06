@@ -167,7 +167,7 @@
       </div>
     </div>
 
-    <div class="md-actions gravitee-api-save-button" layout="row">
+    <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.application.status !=='ARCHIVED'">
       <md-button class="md-raised md-primary" type="submit"
                  ng-disabled="formApplication.$invalid || formApplication.$pristine"
                  permission permission-only="'application-definition-u'">

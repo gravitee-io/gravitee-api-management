@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import SidenavService from '../../../../components/sidenav/sidenav.service';
+
 const ApplicationHeaderComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
-    hideSubscribeLink: '<'
+  },
+  controller: function(SidenavService : SidenavService) {
+    'ngInject';
+
+    this.$onInit = function() {
+      this.hideSubscribeLink = this.application.status === "ARCHIVED";
+    };
   },
   template: require("./application-header.html")
 };
