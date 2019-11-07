@@ -109,11 +109,7 @@ class ApiAdminController {
   checkAPISynchronization(api) {
     this.ApiService.isAPISynchronized(api.id).then(response => {
       this.apiJustDeployed = false;
-      if (response.data.is_synchronized) {
-        this.apiIsSynchronized = true;
-      } else {
-        this.apiIsSynchronized = false;
-      }
+      this.apiIsSynchronized = !!response.data.is_synchronized;
       this.$rootScope.$broadcast("checkAPISynchronizationSucceed");
     });
   }
@@ -148,10 +144,14 @@ class ApiAdminController {
         api: api
       },
       resolve: {
-        qualityRules: (QualityRuleService: QualityRuleService) =>
-          QualityRuleService.list().then(response => response.data),
-        apiQualityRules: (QualityRuleService: QualityRuleService) =>
-          QualityRuleService.listByApi(api.id).then(response => response.data)
+        qualityRules: (QualityRuleService: QualityRuleService) => {
+          'ngInject';
+          return QualityRuleService.list().then(response => response.data);
+        },
+        apiQualityRules: (QualityRuleService: QualityRuleService) => {
+          'ngInject';
+          return QualityRuleService.listByApi(api.id).then(response => response.data);
+        }
       }
     }).then((response) => {
       if (response) {
@@ -237,7 +237,7 @@ class ApiAdminController {
           this.NotificationService.show(`Changes has been requested for API ${this.api.name}`);
         });
       }
-    })
+    });
   }
 }
 

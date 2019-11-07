@@ -16,7 +16,6 @@
 import _ = require('lodash');
 import QualityRuleService from "../../../services/qualityRule.service";
 import {QualityRule} from "../../../entities/qualityRule";
-import {ApiQualityRule} from "../../../entities/apiQualityRule";
 
 function DialogReviewController($scope, $mdDialog, api, QualityRuleService: QualityRuleService, $q,
                                 apiQualityRules, qualityRules) {
