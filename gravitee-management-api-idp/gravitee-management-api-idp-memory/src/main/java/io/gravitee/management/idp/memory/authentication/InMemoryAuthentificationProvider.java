@@ -18,6 +18,7 @@ package io.gravitee.management.idp.memory.authentication;
 import io.gravitee.management.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.management.idp.memory.InMemoryIdentityProvider;
 import io.gravitee.management.idp.memory.authentication.spring.InMemoryAuthenticationProviderConfiguration;
+import io.gravitee.management.idp.memory.authentication.spring.InMemoryGraviteeUserDetailsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,15 +30,14 @@ import org.springframework.security.authentication.dao.AbstractUserDetailsAuthen
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import java.util.List;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David Brassely (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Import(InMemoryAuthenticationProviderConfiguration.class)
@@ -50,7 +50,7 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private InMemoryUserDetailsManager userDetailsService;
+    private InMemoryGraviteeUserDetailsManager userDetailsService;
 
     @Autowired
     private Environment environment;
@@ -69,11 +69,15 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
             if (found) {
                 String username = environment.getProperty("users[" + userIdx + "].username");
                 String password = environment.getProperty("users[" + userIdx + "].password");
+                String email = environment.getProperty("users[" + userIdx + "].email");
                 String roles = environment.getProperty("users[" + userIdx + "].roles");
                 List<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roles);
                 userIdx++;
 
-                User newUser = new User(username, password, authorities);
+                io.gravitee.management.idp.api.authentication.UserDetails newUser = new io.gravitee.management.idp.api.authentication.UserDetails(username, password, email, authorities);
+
+                newUser.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
+                newUser.setSourceId(username);
                 LOGGER.debug("Add an in-memory user: {}", newUser);
                 userDetailsService.createUser(newUser);
             }
@@ -99,13 +103,6 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
 
     @Override
     protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        io.gravitee.management.idp.api.authentication.UserDetails grUserDetails =
-                new io.gravitee.management.idp.api.authentication.UserDetails(userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
-
-        grUserDetails.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
-        grUserDetails.setSourceId(username);
-
-        return grUserDetails;
+        return userDetailsService.loadUserByUsername(username);
     }
 }

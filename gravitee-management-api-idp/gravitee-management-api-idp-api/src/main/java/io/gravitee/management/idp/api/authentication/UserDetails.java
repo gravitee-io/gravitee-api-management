@@ -27,7 +27,7 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UserDetails extends User {
+public class UserDetails extends User implements org.springframework.security.core.userdetails.UserDetails {
 
     private String id;
     private String email;
@@ -43,6 +43,11 @@ public class UserDetails extends User {
     public UserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
         this.username = username;
+    }
+
+    public UserDetails(String username, String password, String email, Collection<? extends GrantedAuthority> authorities) {
+        this(username,password,authorities);
+        this.email = email;
     }
 
     public String getId() {
@@ -171,5 +176,9 @@ public class UserDetails extends User {
 
     public void setPicture(byte[] picture) {
         this.picture = picture;
+    }
+
+    public void setPassword(String password) {
+        throw new UnsupportedOperationException();
     }
 }

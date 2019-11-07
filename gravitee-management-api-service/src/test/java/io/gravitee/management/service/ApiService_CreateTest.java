@@ -45,6 +45,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Collections;
 import java.util.Optional;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,10 +85,16 @@ public class ApiService_CreateTest {
     private AuditService auditService;
     @Mock
     private SearchEngineService searchEngineService;
+    
     @Mock
     private ParameterService parameterService;
+    
+    @Mock
+    private GenericNotificationConfigService genericNotificationConfigService;
+    
     @Mock
     private VirtualHostService virtualHostService;
+    
     @Before
     public void init() {
         final SecurityContext securityContext = mock(SecurityContext.class);
@@ -164,5 +172,11 @@ public class ApiService_CreateTest {
         /*assertTrue("paths not empty", !apiEntity.getPaths().isEmpty());
         assertEquals("paths.size == 1", apiEntity.getPaths().size(), 1);
         assertEquals("path == /* ", apiEntity.getPaths().get(0).getPath(), "/*");*/
+
+        verify(apiRepository, times(1)).create(any());
+        verify(genericNotificationConfigService, times(1)).create(any());
+        verify(membershipRepository, times(1)).create(any());
+        verify(auditService, times(1)).createApiAuditLog(any(), any(), eq(API_CREATED), any(), eq(null) , any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 }

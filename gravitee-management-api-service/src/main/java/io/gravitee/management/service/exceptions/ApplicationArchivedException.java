@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.idp.memory.lookup.spring;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.idp.memory.authentication.spring.InMemoryGraviteeUserDetailsManager;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.Collections;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author David Brassely (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-public class InMemoryLookupConfiguration {
+public class ApplicationArchivedException extends AbstractManagementException {
 
-	@Bean
-	public InMemoryGraviteeUserDetailsManager userDetailsService() {
-		return new InMemoryGraviteeUserDetailsManager(Collections.emptyList());
-	}
+    private final String applicationName;
+
+    public ApplicationArchivedException(String applicationName) {
+        this.applicationName = applicationName;
+    }
+
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Application [" + applicationName + "] is archived and cannot be modified.";
+    }
 }

@@ -339,10 +339,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 responseStatus = "200";
             }
             configuration.put("status", responseStatus);
-            final Map<Object, Object> header = new HashMap<>(2);
-            header.put("name", "Content-Type");
-            header.put("value", "application/json");
-            configuration.put("headers", singletonList(header));
+            if (swaggerVerb.getContentType() != null) {
+                final Map<Object, Object> header = new HashMap<>(2);
+                header.put("name", "Content-Type");
+                header.put("value", swaggerVerb.getContentType());
+                configuration.put("headers", singletonList(header));
+            }
             try {
                 final Object responseProperties = swaggerVerb.getResponseProperties();
                 if (responseProperties != null) {
@@ -462,17 +464,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 membership.setCreatedAt(repoApi.getCreatedAt());
                 membership.setUpdatedAt(repoApi.getCreatedAt());
                 membershipRepository.create(membership);
+
                 // create the default mail notification
-                if (primaryOwner.getEmail() != null && !primaryOwner.getEmail().isEmpty()) {
-                    GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
-                    notificationConfigEntity.setName("Default Mail Notifications");
-                    notificationConfigEntity.setReferenceType(HookScope.API.name());
-                    notificationConfigEntity.setReferenceId(createdApi.getId());
-                    notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
-                    notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
-                    notificationConfigEntity.setConfig(primaryOwner.getEmail());
-                    genericNotificationConfigService.create(notificationConfigEntity);
-                }
+                GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
+                notificationConfigEntity.setName("Default Mail Notifications");
+                notificationConfigEntity.setReferenceType(HookScope.API.name());
+                notificationConfigEntity.setReferenceId(createdApi.getId());
+                notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
+                notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
+                notificationConfigEntity.setConfig("${api.primaryOwner.email}");
+                genericNotificationConfigService.create(notificationConfigEntity);
 
                 //TODO add membership log
                 ApiEntity apiEntity = convert(createdApi, primaryOwner);
@@ -1470,7 +1471,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiModelEntity.setPicture(apiEntity.getPicture());
         apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
         apiModelEntity.setProperties(apiEntity.getProperties());
-        apiModelEntity.setProxy(apiEntity.getProxy());
+        apiModelEntity.setProxy(convert(apiEntity.getProxy()));
         apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
 
         final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(apiId);
@@ -2002,5 +2003,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             result = 31 * result + sourceId.hashCode();
             return result;
         }
+    }
+
+    private ProxyModelEntity convert(Proxy proxy) {
+        ProxyModelEntity proxyModelEntity = new ProxyModelEntity();
+
+        proxyModelEntity.setCors(proxy.getCors());
+        proxyModelEntity.setFailover(proxy.getFailover());
+        proxyModelEntity.setGroups(proxy.getGroups());
+        proxyModelEntity.setLogging(proxy.getLogging());
+        proxyModelEntity.setPreserveHost(proxy.isPreserveHost());
+        proxyModelEntity.setStripContextPath(proxy.isStripContextPath());
+        proxyModelEntity.setVirtualHosts(proxy.getVirtualHosts());
+
+        //add a default context-path to preserve compatibility on old templates
+        if (proxy.getVirtualHosts() != null && !proxy.getVirtualHosts().isEmpty()) {
+            proxyModelEntity.setContextPath(proxy.getVirtualHosts().get(0).getPath());
+        }
+
+        return proxyModelEntity;
     }
 }

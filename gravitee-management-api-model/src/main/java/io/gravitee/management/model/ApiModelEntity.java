@@ -18,7 +18,6 @@ package io.gravitee.management.model;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Properties;
-import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.management.model.api.ApiLifecycleState;
@@ -37,7 +36,7 @@ public class ApiModelEntity {
     private String version;
     private String description;
     private Set<String> groups;
-    private Proxy proxy;
+    private ProxyModelEntity proxy;
     private Map<String, Path> paths = new HashMap<>();
     private Date deployedAt;
     private Date createdAt;
@@ -118,11 +117,11 @@ public class ApiModelEntity {
         this.state = state;
     }
 
-    public Proxy getProxy() {
+    public ProxyModelEntity getProxy() {
         return proxy;
     }
 
-    public void setProxy(Proxy proxy) {
+    public void setProxy(ProxyModelEntity proxy) {
         this.proxy = proxy;
     }
 

@@ -15,10 +15,12 @@
  */
 package io.gravitee.management.idp.memory.lookup;
 
+import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.idp.api.identity.IdentityLookup;
 import io.gravitee.management.idp.api.identity.IdentityReference;
 import io.gravitee.management.idp.api.identity.User;
 import io.gravitee.management.idp.memory.InMemoryIdentityProvider;
+import io.gravitee.management.idp.memory.authentication.spring.InMemoryGraviteeUserDetailsManager;
 import io.gravitee.management.idp.memory.lookup.spring.InMemoryLookupConfiguration;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +28,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -38,14 +38,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
+ * @author David Brassely (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Import(InMemoryLookupConfiguration.class)
 public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean {
 
     @Autowired
-    private InMemoryUserDetailsManager userDetailsService;
+    private InMemoryGraviteeUserDetailsManager userDetailsService;
 
     @Autowired
     private Environment environment;
@@ -87,11 +88,15 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
             if (found) {
                 String username = environment.getProperty("users[" + userIdx + "].username");
                 String password = environment.getProperty("users[" + userIdx + "].password");
+                String email = environment.getProperty("users[" + userIdx + "].email");
                 String roles = environment.getProperty("users[" + userIdx + "].roles");
                 List<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roles);
                 userIdx++;
 
-                org.springframework.security.core.userdetails.User newUser = new org.springframework.security.core.userdetails.User(username, password, authorities);
+                io.gravitee.management.idp.api.authentication.UserDetails newUser = new io.gravitee.management.idp.api.authentication.UserDetails(username, password, email, authorities);
+
+                newUser.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
+                newUser.setSourceId(username);
                 userDetailsService.createUser(newUser);
             }
         }
@@ -104,12 +109,18 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
         fieldUser.setAccessible(accessible);
     }
 
+    @Override
+    public boolean allowEmailInSearchResults() {
+        return environment.getProperty("allow-email-in-search-results",Boolean.class, false);
+    }
+
     private User convert(UserDetails userDetails) {
         if (userDetails == null) {
             return null;
         }
 
         InMemoryUser user = new InMemoryUser(userDetails.getUsername());
+        user.setEmail(userDetails.getEmail());
         return user;
     }
 }

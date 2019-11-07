@@ -24,10 +24,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David Brassely (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
@@ -60,7 +60,7 @@ public class InMemoryAuthenticationProviderConfiguration {
   }
 
   @Bean
-  public InMemoryUserDetailsManager userDetailsService() {
-    return new InMemoryUserDetailsManager(Collections.emptyList());
+  public InMemoryGraviteeUserDetailsManager userDetailsService() {
+    return new InMemoryGraviteeUserDetailsManager(Collections.emptyList());
   }
 }
