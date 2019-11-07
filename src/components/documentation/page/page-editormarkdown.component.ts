@@ -32,8 +32,6 @@ class ComponentCtrl implements ng.IComponentController {
       var lastElement = Constants.portal.uploadMedia.maxSizeInOctet;
   }
 
-  $onInit() {}
-
   $onChanges() {
     const initialValue = this.page && this.page.content ? this.page.content : "";
     let mediaURL;

@@ -19,6 +19,7 @@ import DocumentationService from "../../../services/documentation.service";
 import {StateService} from "@uirouter/core";
 import {IScope} from "angular";
 import _ = require('lodash');
+import UserService from "../../../services/user.service";
 
 interface IPageScope extends IScope {
   getContentMode: string;
@@ -37,6 +38,7 @@ const EditPageComponent: ng.IComponentOptions = {
   controller: function (
     NotificationService: NotificationService,
     DocumentationService: DocumentationService,
+    UserService: UserService,
     $state: StateService,
     $scope: IPageScope
   ) {
@@ -81,7 +83,11 @@ const EditPageComponent: ng.IComponentOptions = {
       } else {
         this.page.authorizedGroups = _.map(this.groups, 'id');
       }
-
+      if (this.apiId) {
+        this.canUpdate = UserService.isUserHasPermissions(["api-documentation-u"]);
+      } else {
+        this.canUpdate = UserService.isUserHasPermissions(["portal-documentation-u"]);
+      }
     };
 
     this.initEditor = () => {
@@ -174,7 +180,7 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.goToExternalSource = () => {
-      this.selectedTab = 2
+      this.selectedTab = 2;
     };
 
     this.selectTab = (idx: number) => {

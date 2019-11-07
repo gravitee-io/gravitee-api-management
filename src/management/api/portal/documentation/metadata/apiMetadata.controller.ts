@@ -28,13 +28,13 @@ class ApiMetadataController {
     private ApiService: ApiService,
     private UserService: UserService,
     private metadataFormats: any,
-    private metadata: any) {
+    private metadata: any,
+    private $state) {
     'ngInject';
     this.api = resolvedApi.data;
   }
 
   newMetadata() {
-    const that = this;
     this.$mdDialog.show({
       controller: 'NewApiMetadataDialogController',
       controllerAs: '$ctrl',
@@ -43,15 +43,14 @@ class ApiMetadataController {
         api: this.api,
         metadataFormats: this.metadataFormats
       }
-    }).then(function (savedMetadata) {
-      that.metadata.push(savedMetadata);
-      that.NotificationService.show(`Metadata '${savedMetadata.name}' created with success`);
+    }).then((savedMetadata) => {
+      this.NotificationService.show(`Metadata '${savedMetadata.name}' created with success`);
+      this.$state.reload();
     }).catch(function () {});
   }
 
   updateMetadata(metadata) {
     if (this.UserService.isUserHasPermissions(["api-metadata-u"])) {
-      const that = this;
       this.$mdDialog.show({
         controller: 'UpdateApiMetadataDialogController',
         controllerAs: '$ctrl',
@@ -61,17 +60,14 @@ class ApiMetadataController {
           apiMetadata: _.clone(metadata),
           metadataFormats: this.metadataFormats
         }
-      }).then(function (metadata) {
-        _.remove(that.metadata, {key: metadata.key});
-        that.metadata.push(metadata);
-        that.NotificationService.show(`API's Metadata '${metadata.name}' updated with success`);
-      }).catch(function () {
-      });
+      }).then((metadata) => {
+        this.NotificationService.show(`API's Metadata '${metadata.name}' updated with success`);
+        this.$state.reload();
+      }).catch(() => {});
     }
   }
 
   deleteMetadata(metadata) {
-    const that = this;
     this.$mdDialog.show({
       controller: 'DeleteApiMetadataDialogController',
       controllerAs: '$ctrl',
@@ -79,11 +75,11 @@ class ApiMetadataController {
       locals: {
         metadata: metadata
       }
-    }).then(function (deleteMetadata) {
+    }).then((deleteMetadata) => {
       if (deleteMetadata) {
-        that.ApiService.deleteMetadata(that.api.id, metadata.key).then(function () {
-          that.NotificationService.show("Metadata '" + metadata.name + "' deleted with success");
-          _.remove(that.metadata, metadata);
+        this.ApiService.deleteMetadata(this.api.id, metadata.key).then(() => {
+          this.NotificationService.show("Metadata '" + metadata.name + "' deleted with success");
+          this.$state.reload();
         });
       }
     });

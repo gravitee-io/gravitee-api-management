@@ -42,6 +42,9 @@ function applicationsConfig($stateProvider) {
           firstLevel: true,
           order: 20
         },
+        perms: {
+          only: ['management-application-r']
+        },
         devMode: true,
         docs: {
           page: 'management-applications'

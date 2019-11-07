@@ -24,7 +24,7 @@
 
         <md-input-container flex>
           <label>Name</label>
-          <input ng-model="$ctrl.application.name" type="text" name="name" md-maxlength="50" required>
+          <input ng-model="$ctrl.application.name" type="text" name="name" md-maxlength="512" required>
           <div class="hint" ng-if="formApplication.name.$valid || formApplication.name.$pristine">Application name</div>
           <div ng-messages="formApplication.name.$error">
             <div ng-message="required">Application name is required.</div>
@@ -167,7 +167,7 @@
       </div>
     </div>
 
-    <div class="md-actions gravitee-api-save-button" layout="row">
+    <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.application.status !=='ARCHIVED'">
       <md-button class="md-raised md-primary" type="submit"
                  ng-disabled="formApplication.$invalid || formApplication.$pristine"
                  permission permission-only="'application-definition-u'">

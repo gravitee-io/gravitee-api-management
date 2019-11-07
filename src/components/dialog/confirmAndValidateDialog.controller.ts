@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import SidenavService from '../../../../components/sidenav/sidenav.service';
+function DialogConfirmAndValidateController($scope, $mdDialog, locals) {
+  'ngInject';
 
-const ApplicationHeaderComponent: ng.IComponentOptions = {
-  bindings: {
-    application: '<',
-  },
-  controller: function(SidenavService : SidenavService) {
-    'ngInject';
+  $scope.title = locals.title;
+  $scope.msg = locals.msg;
+  $scope.warning = locals.warning;
+  $scope.validationMessage = locals.validationMessage;
+  $scope.confirmButton = locals.confirmButton;
+  $scope.validationValue = locals.validationValue;
+  $scope.confirmValue = "";
 
-    this.$onInit = function() {
-      this.hideSubscribeLink = this.application.status === "ARCHIVED";
-    };
-  },
-  template: require("./application-header.html")
-};
+  this.cancel = function() {
+    $mdDialog.hide(false);
+  };
 
-export default ApplicationHeaderComponent;
+  this.confirm = function() {
+    $mdDialog.hide(true);
+  };
+}
+
+export default DialogConfirmAndValidateController;

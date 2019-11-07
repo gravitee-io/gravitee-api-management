@@ -430,7 +430,7 @@ function apisPortalRouterConfig($stateProvider) {
         resolvedFetchers: (FetcherService: FetcherService) => {
           return FetcherService.list().then(response => {
             return response.data;
-          })
+          });
         }
       },
       data: {
@@ -439,7 +439,7 @@ function apisPortalRouterConfig($stateProvider) {
           page: 'management-api-documentation'
         },
         perms: {
-          only: ['api-documentation-u']
+          only: ['api-documentation-r']
         }
       },
       params: {
@@ -449,5 +449,5 @@ function apisPortalRouterConfig($stateProvider) {
           squash: false
         }
       }
-    })
+    });
 }

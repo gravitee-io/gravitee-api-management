@@ -22,7 +22,7 @@
             <h1>{{$ctrl.page.name}}</h1>
             <a ng-click="$ctrl.cancel()">Back to Documentation</a>
         </div>
-        <div>
+        <div ng-if="$ctrl.canUpdate">
           <md-button class="md-raised md-primary" type="button" ng-if="$ctrl.page.source" ng-click="$ctrl.fetch()">
             Fetch
           </md-button>
@@ -62,7 +62,7 @@
         <h2></h2>
         <div class="gv-form-content" layout="column">
 
-            <div ng-if="editorReadonly" class="gv-page-draft-banner">
+            <div ng-if="editorReadonly && $ctrl.canUpdate" class="gv-page-draft-banner">
                 <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
                 Page's content is retrieved from an external source. If you want to edit content manually, <a ng-click="$ctrl.goToExternalSource()">please change the configuration</a>.
             </div>
@@ -75,36 +75,37 @@
                         <!-- edit SWAGGER inline -->
                         <div ng-if="'SWAGGER' === $ctrl.page.type" style="display: inline-block; width: 100%;">
                             <div layout="row" style="max-height: 900px; overflow: auto;">
-                                <md-input-container class="md-block" flex="50">
-                        <textarea
-                                ui-codemirror
-                                ui-codemirror-opts="$ctrl.codeMirrorOptions"
-                                ng-model="$ctrl.page.content"
-                                aria-label="page content"
-                                rows="5" style="overflow-y: scroll;"
-                                ng-disabled="$ctrl.page.source"
-                                md-autofocus></textarea>
+                                <md-input-container class="md-block" flex="50" ng-if="$ctrl.canUpdate">
+                                  <textarea
+                                    ui-codemirror
+                                    ui-codemirror-opts="$ctrl.codeMirrorOptions"
+                                    ng-model="$ctrl.page.content"
+                                    aria-label="page content"
+                                    rows="5" style="overflow-y: scroll;"
+                                    ng-disabled="$ctrl.page.source"
+                                    md-autofocus></textarea>
                                 </md-input-container>
-                                <gv-page flex="50" page="$ctrl.page" enable-try-it="false" edit="true"></gv-page>
+                                <gv-page flex page="$ctrl.page" edit="$ctrl.canUpdate"></gv-page>
                             </div>
                         </div>
 
                         <!-- edit MARKDOWN inline -->
                         <div ng-if="'MARKDOWN' === $ctrl.page.type" style="display: inline-block; width: 100%;">
                             <md-input-container class="md-block">
-                                <gv-page-editor-markdown page="$ctrl.page"></gv-page-editor-markdown>
+                              <gv-page-editor-markdown ng-if="$ctrl.canUpdate" page="$ctrl.page"></gv-page-editor-markdown>
+                              <gv-page-markdown ng-if="!$ctrl.canUpdate" page="$ctrl.page"></gv-page-markdown>
                             </md-input-container>
                         </div>
 
                         <!-- import file -->
-                        <div style="display: inline-block;">
+                        <div style="display: inline-block;" ng-if="$ctrl.canUpdate">
                             <h4>Select a file to import:</h4>
                             <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" >
                         </div>
                     </md-tab-body>
                 </md-tab>
 
-                <md-tab md-on-select="currentTab=$ctrl.selectTab(1)">
+                <md-tab md-on-select="currentTab=$ctrl.selectTab(1)" ng-if="$ctrl.canUpdate">
                     <md-tab-label>Configuration</md-tab-label>
                     <md-tab-body>
                         <h3>General</h3>
@@ -170,7 +171,7 @@
                     </md-tab-body>
                 </md-tab>
 
-                <md-tab md-on-select="currentTab=$ctrl.selectTab(2)">
+                <md-tab md-on-select="currentTab=$ctrl.selectTab(2)" ng-if="$ctrl.canUpdate">
                     <md-tab-label>External Source</md-tab-label>
                     <md-tab-body>
                         <div style="display: inline-block;">
@@ -190,7 +191,7 @@
                     </md-tab-body>
                 </md-tab>
 
-                <md-tab md-on-select="currentTab=$ctrl.selectTab(3)">
+                <md-tab md-on-select="currentTab=$ctrl.selectTab(3)" ng-if="$ctrl.canUpdate">
                     <md-tab-label>Access Control</md-tab-label>
                     <md-tab-body>
                         <h3>Groups Authorizations</h3>
@@ -206,7 +207,7 @@
                 </md-tab>
             </md-tabs>
 
-            <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;">
+            <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;" ng-if="$ctrl.canUpdate">
                 <md-button class="md-raised md-primary" type="submit" ng-click="$ctrl.save()" ng-disabled="!$ctrl.page.name">
                     Save
                 </md-button>

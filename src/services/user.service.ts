@@ -202,12 +202,16 @@ class UserService {
 
   logout(): ng.IPromise<any> {
     return this.$http.post(`${this.userURL}logout`, {}).then(() => {
-      this.currentUser = new User();
-      this.currentUser.authenticated = false;
-      this.isLogout = true;
-      this.$window.localStorage.removeItem('satellizer_token');
-      this.$cookies.remove('Auth-Graviteeio-APIM');
+      this.removeCurrentUserData();
     });
+  }
+
+  removeCurrentUserData() {
+    this.currentUser = new User();
+    this.currentUser.authenticated = false;
+    this.isLogout = true;
+    this.$window.localStorage.removeItem('satellizer_token');
+    this.$cookies.remove('Auth-Graviteeio-APIM');
   }
 
   currentUserPicture(): string {
