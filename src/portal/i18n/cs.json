@@ -1,0 +1,206 @@
+{
+  "common": {
+    "copyToClipboard": "Zkopírovat do schránky",
+    "NANOSECONDS": "nanosekund",
+    "MICROSECONDS": "mikrosekund",
+    "MILLISECONDS": "milisekund",
+    "SECONDS": "sekund",
+    "MINUTES": "minut",
+    "HOURS": "hodin",
+    "DAYS": "dní",
+    "close": "Zavřít",
+    "create": "Vytvořit",
+    "cancel": "Zrušit",
+    "ok": "OK",
+    "submit": "Odeslat",
+    "answer": "Odpověď",
+    "ratings.none": "Žádné hodnocení",
+    "paging": {
+      "first": "První",
+      "previous": "Předchozí",
+      "next": "Další",
+      "last": "Poslední"
+    }
+  },
+  "home": {
+    "subtitle": "Vývojářský portál",
+    "version": "Verze: {{version}}",
+    "pages": {
+      "title": "Dokumentace"
+    },
+    "apis": {
+      "search": "Hledat API...",
+      "top": "Nej APIs",
+      "all": "Zobrazit všechna API",
+      "no.search.result": "Žádné API neodpovídá kritériím."
+    }
+  },
+  "menu": {
+    "login": "Přihlásit",
+    "gallery": "API galerie",
+    "documentation": "Dokumentace",
+    "profile": "Můj účet",
+    "management": "Administrace",
+    "applications": "Aplikace",
+    "apis": "API",
+    "tasks": "Úkoly",
+    "logout": "Odhlásit",
+    "support": "Podpora"
+  },
+  "apis": {
+    "filter": "Hledat API...",
+    "search": {
+      "view": "Výsledky vyhledávání"
+    }
+  },
+  "api": {
+    "version": "Verze",
+    "endpoint": "Endpoint",
+    "owner": "Vlastník",
+    "publishedAt": "Publikováno",
+    "subscription": {
+      "step1": {
+        "title": "Vyberte API Plán",
+        "subtitle": "API plán je servisní kontrakt mezi vámi a API.",
+        "keyless": "Tento plán je bez klíče a nevyžaduje odběr (subscription)."
+      },
+      "step2": {
+        "title": "Vyberte aplikaci",
+        "subtitle": "Aplikace je spojení mezi vámi, konzumentem, a odběrem (subscription) API plánu.",
+        "application": {
+          "placeholder": "Vyberte aplikaci..."
+        },
+        "clientIdRequired": "clientId je povinné pro odběr (subscription) tohoto plánu. Prosím zkontrolujte nastavení vaší aplikace.",
+        "action": "Odebírat",
+        "comment": {
+          "message": "Pošlete komentář vlastníkovi API"
+        }
+      },
+      "step3": {
+        "apikey": {
+          "key": "Můžete přistupovat k API skrze tyto API klíče:",
+          "curl": "Ukázka požadavku pomocí curl:",
+          "clipboard": "API klíč byl zkopírován do schránky."
+        },
+        "oauth2": {
+          "bearer": "Je potřeba si opatřit access_token z autorizačního serveru před tím než budete schopni konzumovat toto API.",
+          "curl": "Ukázka požadavku pomocí curl:"
+        },
+        "jwt": {
+          "bearer": "Je potřeba si opatřit access_token z autorizačního serveru před tím než budete schopni konzumovat toto API.",
+          "curl": "Ukázka požadavku pomocí curl:"
+        },
+        "pending": {
+          "title": "Odběr (subscription) čeká na ověření",
+          "subtitle": "Váš odběr (subscription) je stále nevyřízený, dostanete upozornění jakmile bude zprocesován."
+        },
+        "accepted": {
+          "title": "Začněte používat \"{{apiName}}\" skrze \"{{applicationName}}\"!"
+        },
+        "successful": "Požadavek na odběr (subscription) byl odeslán."
+      },
+
+      "planInformation": "s kvótou {{quotaLimit}} požadavku za {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
+    },
+    "plan": {
+      "title": "Plány",
+      "subscribe": "Odebírat",
+      "manual": "Odběr podléhající ověření",
+      "empty": {
+        "title": "Žádný plán pro toto API",
+        "message": "Jakmile se vytvoří plán, můžete odebírat toto API"
+      }
+    },
+    "documentation": {
+      "title": "Dokumentace",
+      "empty": {
+        "title": "Žádná dokumentace k tomuto API",
+        "message": "Brzy se vraťte, API bude brzy dokončeno"
+      }
+    },
+    "metadata": {
+      "title": "Metadata",
+      "name": "Jméno",
+      "value": "Hodnota"
+    },
+    "rating": {
+      "title": "Název nebo shrnutí vašeho komentáře",
+      "comment": "Komentář",
+      "by": "Od",
+      "rate": "{{numberOfRatings}} hodnocení",
+      "empty": {
+        "title": "Žádná hodnocení pro toto API",
+        "message": "Buďte prvním hodnotitelem",
+        "rights.message": "Nemáte dostatečná oprávnění hodnotit toto API"
+      },
+      "messages": {
+        "1": "Nenávidím toto API",
+        "2": "Nemám rád toto API",
+        "3": "Mám rád toto API",
+        "4": "Miluji toto API",
+        "5": "Toto API je perfektní"
+      },
+      "successCreation": "Vaše hodnocení bylo úspěšně odesláno",
+      "successCreationMessage": "Vaše hodnocení bylo vzato v úvahu, můžete nyní přidávat komentáře pro dokončení hodnocení",
+      "successUpdate": "Vaše hodnocení bylo úspěšně upraveno",
+      "successDeletion": "Toto hodnocení bylo úspěšně smazáno",
+      "deletion": "Jste si jistý/á, že chcete smazat toho hodnocení?",
+      "list": {
+        "title": "{{numberOfRatings}} hodnocení"
+      },
+      "answer": {
+        "label": "{{numberOfAnswers}} odpovědí",
+        "successCreation": "Vaše odpověď byla úspěšně odeslána",
+        "successDeletion": "Tato odpověď byla úspěšně smazána",
+        "deletion": "Jste si jistý/á, že chcete smazat tuto odpověď?",
+        "new": {
+          "label": "Odpověď"
+        }
+      },
+      "summary": {
+        "title": "{{averageRate}} hvěždiček z 5",
+        "link": "Nahlédněte na {{numberOfRatings}} hodnocení"
+      }
+    },
+    "header": {
+      "views": "Shlédnutí",
+      "tags": "Tagy"
+    }
+  },
+  "applications": {
+    "empty": "Nemáte žádnou aplikaci!",
+    "start": "Začněte vytvořením vaší první aplikace."
+  },
+  "application": {
+    "notFound": "Žádná aplikace odpovídající \"{{applicationName}}\" nebyla nalezena."
+  },
+  "support": {
+    "ticket": {
+      "title": "Vytvoření požadavku na podporu",
+      "subject": "Předmět",
+      "content": "Obsah",
+      "api": "Vyberte API",
+      "application": "Vyberte aplikaci",
+      "copyToSender": "Obdržet kopii emailu",
+      "successCreation": "Požadavek na podporu byl úspěšně vytvořen",
+      "notAuthenticated": {
+        "title": "Vytváření požadavku na podporu",
+        "message": "Abyste vložili požadavek, prosím přihlašte se"
+      },
+      "userWithoutEmail": {
+        "message": "Nemůžete odeslat požadavek, protože nemáte ve vašem účtu nastavený email"
+      }
+    }
+  },
+  "views": {
+    "filter": "Filtrovat pohledy..."
+  },
+  "view": {
+    "defaultDescription":  "Načíst API z {{viewName}} kategorie",
+    "api": {
+      "documentation": "Dokumentace",
+      "ratings": "Hodnocení"
+    },
+    "moreApis": "Více API ..."
+  }
+}
