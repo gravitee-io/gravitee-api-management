@@ -1,0 +1,61 @@
+{
+  "login": {
+    "button": "Přihlásit",
+    "notification": {
+      "error": "Neplatné uživatelské jméno nebo heslo.",
+      "success": "Přihlášení úspěšné"
+    },
+    "password": "Heslo",
+    "providers_only": "Přihlásit pomocí",
+    "signup": {
+      "link": "Registrovat !",
+      "text": "Nemáte prozatím účet ?"
+    },
+    "title": "Kdo jste ?",
+    "username": "Uživatelské jméno",
+    "with_providers": "Můžete se také přihlásit s"
+  },
+  "registration": {
+    "back_home": "Zpátky na portal",
+    "back_login": "Zpátky na přihlášení",
+    "button": "Registrovat",
+    "email": "Email",
+    "firstname": "Křestní jméno",
+    "lastname": "Přijmení",
+    "notification": {
+      "success": "Registrace OK ! Email byl odeslán : {email}."
+    },
+    "title": "Vytvořit účet"
+  },
+  "registrationConfirmation": {
+    "back_home": "Zpátky na portal",
+    "back_login": "Zpátky na přihlášení",
+    "back_registration": "Zpátky na registraci",
+    "button": "Potvrdit",
+    "confirmedPassword": "Potvrdit vaše heslo",
+    "email": "Email",
+    "firstname": "Křestní jméno",
+    "lastname": "Přijmení",
+    "notification": {
+      "success": "Váš účet byl potvrzen !"
+    },
+    "password": "Vyberte heslo",
+    "title": "Potvrdit registraci",
+    "token_expired": "Vaše registrace vypršela"
+  },
+  "route": {
+    "apps": "Aplikace",
+    "catalog": "Katalog",
+    "dashboard": "Dashboard",
+    "login": "Přihlásit",
+    "logout": "Odhlásit"
+  },
+  "site": {
+    "title": "Gravitee.io Portal"
+  },
+  "user": {
+    "display_name": "Jméno",
+    "email": "Email",
+    "title": "Můj profil"
+  }
+}
