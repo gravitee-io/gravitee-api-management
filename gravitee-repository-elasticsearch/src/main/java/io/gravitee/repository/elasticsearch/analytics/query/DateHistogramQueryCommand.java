@@ -28,6 +28,7 @@ import io.gravitee.repository.analytics.query.response.histogram.Data;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Commmand used to handle DateHistogramQuery
@@ -38,10 +39,57 @@ import java.util.*;
 public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand<DateHistogramResponse> {
 
 	private final static String TEMPLATE = "dateHistogram.ftl";
-	
+	private static final String FIELD_STATUS = "status";
+	private static final Map<String, Integer> aggregationSizeMapping;
+	static {
+		Map<String, Integer> aMap = new HashMap();
+		aMap.put(FIELD_STATUS, 50);
+		aggregationSizeMapping = Collections.unmodifiableMap(aMap);
+	}
+
 	@Override
 	public Class<? extends Query<DateHistogramResponse>> getSupportedQuery() {
 		return DateHistogramQuery.class;
+	}
+
+	@Override
+	public Query<DateHistogramResponse> prepareQuery(Query<DateHistogramResponse> query) throws AnalyticsException {
+		final DateHistogramQuery dateHistogramQuery = (DateHistogramQuery) query;
+
+		// query has no aggregation, continue
+		if (dateHistogramQuery.aggregations() == null || dateHistogramQuery.aggregations().isEmpty()) {
+			return query;
+		}
+
+		// override aggregations settings
+		List<io.gravitee.repository.analytics.query.Aggregation> overrideAggregations = dateHistogramQuery
+				.aggregations()
+				.stream()
+				.map(aggregation -> {
+					Integer aggregationSize = aggregationSizeMapping.getOrDefault(aggregation.field(), aggregation.size());
+					return new io.gravitee.repository.analytics.query.Aggregation() {
+						@Override
+						public AggregationType type() {
+							return aggregation.type();
+						}
+
+						@Override
+						public String field() {
+							return aggregation.field();
+						}
+
+						@Override
+						public Integer size() {
+							return aggregationSize;
+						}
+					};
+				})
+				.collect(Collectors.toList());
+
+		dateHistogramQuery.aggregations().clear();
+		dateHistogramQuery.aggregations().addAll(overrideAggregations);
+
+		return dateHistogramQuery;
 	}
 
 	@Override

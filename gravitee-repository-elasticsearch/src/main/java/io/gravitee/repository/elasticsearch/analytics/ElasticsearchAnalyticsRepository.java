@@ -44,13 +44,13 @@ public class ElasticsearchAnalyticsRepository extends AbstractElasticsearchRepos
      * Logger.
      */
     private final Logger logger = LoggerFactory.getLogger(ElasticsearchAnalyticsRepository.class);
-    
+
     /**
      * List of all supported command
      */
 	@Autowired
     private List<ElasticsearchQueryCommand<?>> listQueryCommands;
-    
+
     private final Map<Class<? extends Query<?>>, ElasticsearchQueryCommand<?>> queryCommands = new HashMap<>();
 
     /**
@@ -58,19 +58,19 @@ public class ElasticsearchAnalyticsRepository extends AbstractElasticsearchRepos
      */
 	@PostConstruct
     private void init() {
-    	this.listQueryCommands.forEach(command -> this.queryCommands.put(command.getSupportedQuery(), command)); 
+    	this.listQueryCommands.forEach(command -> this.queryCommands.put(command.getSupportedQuery(), command));
     }
-    
+
     @Override
     public <T extends Response> T query(final Query<T> query) throws AnalyticsException {
-    	
+
     	@SuppressWarnings("unchecked")
 		final ElasticsearchQueryCommand<T> handler = (ElasticsearchQueryCommand<T>) this.queryCommands.get(query.getClass());
-    	
+
     	if (handler == null) {
     		logger.error("No command found to handle query of type {}", query.getClass());
     		throw new AnalyticsException("No command found to handle query of type " + query.getClass());
     	}
-    	return handler.executeQuery(query);	
+    	return handler.executeQuery(handler.prepareQuery(query));
     }
 }
