@@ -333,7 +333,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 throw new ApplicationNotFoundException(applicationId);
             }
 
-            if (optApplicationToUpdate.get().getStatus().equals(ApplicationStatus.ARCHIVED)) {
+            if (ApplicationStatus.ARCHIVED.equals(optApplicationToUpdate.get().getStatus())) {
                 throw new ApplicationArchivedException(optApplicationToUpdate.get().getName());
             }
 
