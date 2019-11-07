@@ -144,6 +144,6 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
                 new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById, apiToUpdate, groupedApi), 0, 4, 4));
 
         when(apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build()))
-                .thenReturn(asList(apiToUpdate, groupedApi));
+                .thenReturn(asList(apiToUpdate, groupedApi, apiToUpdate));
     }
 }
