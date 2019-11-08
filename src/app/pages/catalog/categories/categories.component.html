@@ -15,21 +15,15 @@
     limitations under the License.
 
 -->
-<div *ngIf="user" class="bg-white">
-  <h1>{{'user.title' | translate}}</h1>
-  <div class ="dt">
-    <div class="w-80 dtc">
-      <p>
-        <span class="b">{{'user.display_name' | translate}} : </span>
-        <span>{{ user.display_name }}</span>
-      </p>
-      <p>
-        <span class="b">{{'user.email' | translate}} : </span>
-        <span>{{ user.email }}</span>
-      </p>
-    </div>
-    <div class="w-20 dtc v-mid">
-      <img src="{{ user._links.avatar }}" height="100" width="100" />
-    </div>
+<div class="categories">
+  <h1 class="categories__title">{{'categories.title' | translate}} <span class="categories__subtitle">({{ nbCategories }})</span></h1>
+
+  <div class="categories__layout">
+    <gv-card-category (click)="searchAPIsByCategory(category.id)" *ngFor="let category of categories let i = index"
+      description="{{ category.description }}"
+      title="{{ category.name }}"
+      [style]="getCategoryBackgroundColor(i)"
+    >
+    </gv-card-category>
   </div>
 </div>

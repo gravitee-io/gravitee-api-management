@@ -15,32 +15,16 @@
  */
 import { Component, OnInit } from '@angular/core';
 
-import {UserService, User} from 'ng-portal-webclient/dist';
-import { CurrentUserService } from '../../services/current-user.service';
-
 @Component({
-  selector: 'app-user',
-  templateUrl: './user.component.html',
-  styleUrls: ['./user.component.css']
+  selector: 'app-all',
+  templateUrl: './all.component.html',
+  styleUrls: ['./all.component.css']
 })
+export class AllComponent implements OnInit {
 
-export class UserComponent implements OnInit {
-  user: User;
-
-  constructor(
-    private userService: UserService,
-    private currentUserService: CurrentUserService
-  ) { }
+  constructor() { }
 
   ngOnInit() {
-    this.currentUserService.currentUser.subscribe(newCurrentUser => this.user = newCurrentUser);
-
-    this.userService.getCurrentUser().subscribe(
-      (user) => {
-        this.currentUserService.changeUser(user);
-      }
-    );
-
   }
 
 }

@@ -2,6 +2,9 @@
  "catalog": {
   "search": "Rechercher une API, APP..."
  },
+ "categories": {
+  "title": "Catégories"
+ },
  "login": {
   "button": "Se connecter",
   "notification": {

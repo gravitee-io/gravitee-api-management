@@ -39,6 +39,8 @@ import { RegistrationComponent } from './pages/registration/registration.compone
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
 import { APIRequestInterceptor } from './interceptors/apiRequest.interceptor';
 import { CurrentUserService } from './services/current-user.service';
+import { CategoriesComponent } from './pages/catalog/categories/categories.component';
+import { AllComponent } from './pages/catalog/all/all.component';
 import { LayoutComponent } from './layouts/layout/layout.component';
 
 @NgModule({
@@ -53,6 +55,8 @@ import { LayoutComponent } from './layouts/layout/layout.component';
     LogoutComponent,
     RegistrationComponent,
     RegistrationConfirmationComponent,
+    CategoriesComponent,
+    AllComponent,
   ],
   imports: [
     ApiModule,

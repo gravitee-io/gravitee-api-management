@@ -2,6 +2,9 @@
  "catalog": {
   "search": "Vyhledat API, APP ..."
  },
+ "categories": {
+  "title": "Kategories"
+ },
  "login": {
   "button": "Přihlásit",
   "notification": {

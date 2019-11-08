@@ -26,6 +26,8 @@ import {RegistrationConfirmationComponent} from './pages/registration/registrati
 import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
 import {RouteType} from './services/route.service';
 import {LayoutComponent} from './layouts/layout/layout.component';
+import { CategoriesComponent } from './pages/catalog/categories/categories.component';
+import { AllComponent } from './pages/catalog/all/all.component';
 
 export const routes: Routes = [
     {
@@ -39,22 +41,26 @@ export const routes: Routes = [
                 data: {title: i18n('route.dashboard'), type: RouteType.main}
             },
             {
-                path: 'catalog', data: {title: i18n('route.catalog'), type: RouteType.main},
+                path: 'catalog', data: {title: i18n('route.catalog'), type: RouteType.main}, component: CatalogComponent,
                 children: [
                     {path: '', redirectTo: 'all', pathMatch: 'full'},
                     {
                         path: 'all',
-                        component: CatalogComponent,
-                        data: {title: i18n('route.catalog-all'), type: RouteType.catalog, icon: 'home:flower#2'}
+                        component: AllComponent,
+                        data: {
+                            title: i18n('route.catalog-all'),
+                            type: RouteType.catalog,
+                            icon: 'home:flower#2'
+                        }
                     },
                     {
                         path: 'categories',
-                        component: CatalogComponent,
+                        component: CategoriesComponent,
                         data: {
                             title: i18n('route.catalog-categories'),
                             type: RouteType.catalog,
                             icon: 'layout:layout-arrange'
-                        },
+                        }
                     }]
             },
             {path: 'apps', component: AppsComponent, data: {title: i18n('route.apps'), type: RouteType.main}},
