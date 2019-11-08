@@ -65,3 +65,27 @@ databaseChangeLog:
                 - column:
                     name: software_id
                     type: nvarchar(256)
+
+          - dropTable:
+              cascadeConstraints: true
+              tableName: alerts
+
+          - createTable:
+              tableName: alert_triggers
+              columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: description, type: nvarchar(256), constraints: { nullable: true } }
+                - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: enabled, type: boolean, constraints: { nullable: false } }
+                - column: {name: severity, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: definition, type: nclob, constraints: { nullable: false } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+          - addPrimaryKey:
+              constraintName: pk_alert_triggers
+              columnNames: id
+              tableName: alert_triggers

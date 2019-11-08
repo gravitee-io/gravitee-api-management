@@ -17,8 +17,8 @@ package io.gravitee.repository.jdbc.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.AlertRepository;
-import io.gravitee.repository.management.model.Alert;
+import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.model.AlertTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -32,11 +32,11 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcAlertRepository extends JdbcAbstractCrudRepository<Alert, String> implements AlertRepository {
+public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger, String> implements AlertTriggerRepository {
 
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcAlertRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Alert.class, "alerts", "id")
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(AlertTrigger.class, "alert_triggers", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
@@ -44,11 +44,8 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<Alert, Strin
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, String.class)
             .addColumn("enabled", Types.BIT, boolean.class)
-            .addColumn("metric_type", Types.NVARCHAR, String.class)
-            .addColumn("metric", Types.NVARCHAR, String.class)
-            .addColumn("threshold_type", Types.NVARCHAR, String.class)
-            .addColumn("threshold", Types.DOUBLE, Double.class)
-            .addColumn("plan", Types.NVARCHAR, String.class)
+            .addColumn("severity", Types.NVARCHAR, String.class)
+            .addColumn("definition", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
@@ -59,15 +56,15 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<Alert, Strin
     }
 
     @Override
-    protected String getId(final Alert alert) {
+    protected String getId(final AlertTrigger alert) {
         return alert.getId();
     }
 
     @Override
-    public List<Alert> findByReference(final String referenceType, final String referenceId) throws TechnicalException {
+    public List<AlertTrigger> findByReference(final String referenceType, final String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcAlertRepository.findByReference({}, {})", referenceType, referenceId);
         try {
-            return jdbcTemplate.query("select * from alerts where reference_type = ? and reference_id = ?"
+            return jdbcTemplate.query("select * from alert_triggers where reference_type = ? and reference_id = ?"
                     , ORM.getRowMapper(), referenceType, referenceId);
         } catch (final Exception ex) {
             final String message = "Failed to find alerts by reference";

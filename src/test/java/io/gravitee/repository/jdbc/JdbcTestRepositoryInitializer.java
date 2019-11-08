@@ -99,7 +99,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "tenants",
             "users",
             "views",
-            "alerts",
+            "alert_triggers",
             "entrypoints",
             "page_metadata",
             "invitations",
