@@ -16,13 +16,14 @@
 package io.gravitee.repository.redis.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.AlertRepository;
-import io.gravitee.repository.management.model.Alert;
+import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.repository.redis.management.internal.AlertRedisRepository;
-import io.gravitee.repository.redis.management.model.RedisAlert;
+import io.gravitee.repository.redis.management.model.RedisAlertTrigger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -33,42 +34,42 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Component
-public class RedisAlertRepository implements AlertRepository {
+public class RedisAlertRepository implements AlertTriggerRepository {
 
     @Autowired
     private AlertRedisRepository alertRedisRepository;
 
     @Override
-    public Optional<Alert> findById(final String alertId) throws TechnicalException {
-        final RedisAlert redisAlert = alertRedisRepository.findById(alertId);
-        return Optional.ofNullable(convert(redisAlert));
+    public Optional<AlertTrigger> findById(final String alertId) throws TechnicalException {
+        final RedisAlertTrigger redisAlertTrigger = alertRedisRepository.findById(alertId);
+        return Optional.ofNullable(convert(redisAlertTrigger));
     }
 
     @Override
-    public Alert create(final Alert alert) throws TechnicalException {
-        final RedisAlert redisAlert = alertRedisRepository.saveOrUpdate(convert(alert));
-        return convert(redisAlert);
+    public AlertTrigger create(final AlertTrigger alert) throws TechnicalException {
+        final RedisAlertTrigger redisAlertTrigger = alertRedisRepository.saveOrUpdate(convert(alert));
+        return convert(redisAlertTrigger);
     }
 
     @Override
-    public Alert update(final Alert alert) throws TechnicalException {
+    public AlertTrigger update(final AlertTrigger alert) throws TechnicalException {
         if (alert == null || alert.getName() == null) {
             throw new IllegalStateException("Alert to update must have a name");
         }
 
-        final RedisAlert redisAlert = alertRedisRepository.findById(alert.getId());
+        final RedisAlertTrigger redisAlertTrigger = alertRedisRepository.findById(alert.getId());
 
-        if (redisAlert == null) {
+        if (redisAlertTrigger == null) {
             throw new IllegalStateException(String.format("No alert found with id [%s]", alert.getId()));
         }
 
-        final RedisAlert redisAlertUpdated = alertRedisRepository.saveOrUpdate(convert(alert));
-        return convert(redisAlertUpdated);
+        final RedisAlertTrigger redisAlertTriggerUpdated = alertRedisRepository.saveOrUpdate(convert(alert));
+        return convert(redisAlertTriggerUpdated);
     }
 
     @Override
-    public Set<Alert> findAll() {
-        final Set<RedisAlert> alerts = alertRedisRepository.findAll();
+    public Set<AlertTrigger> findAll() {
+        final Set<RedisAlertTrigger> alerts = alertRedisRepository.findAll();
 
         return alerts.stream()
                 .map(this::convert)
@@ -76,8 +77,8 @@ public class RedisAlertRepository implements AlertRepository {
     }
 
     @Override
-    public List<Alert> findByReference(String referenceType, String referenceId) {
-        final List<RedisAlert> alerts = alertRedisRepository.findByReference(referenceType, referenceId);
+    public List<AlertTrigger> findByReference(String referenceType, String referenceId) {
+        final List<RedisAlertTrigger> alerts = alertRedisRepository.findByReference(referenceType, referenceId);
         return alerts.stream()
                 .map(this::convert)
                 .collect(Collectors.toList());
@@ -88,41 +89,37 @@ public class RedisAlertRepository implements AlertRepository {
         alertRedisRepository.delete(alertId);
     }
 
-    private Alert convert(final RedisAlert redisAlert) {
-        final Alert alert = new Alert();
-        alert.setId(redisAlert.getId());
-        alert.setName(redisAlert.getName());
-        alert.setDescription(redisAlert.getDescription());
-        alert.setReferenceType(redisAlert.getReferenceType());
-        alert.setReferenceId(redisAlert.getReferenceId());
-        alert.setMetricType(redisAlert.getMetricType());
-        alert.setMetric(redisAlert.getMetric());
-        alert.setType(redisAlert.getType());
-        alert.setPlan(redisAlert.getPlan());
-        alert.setThresholdType(redisAlert.getThresholdType());
-        alert.setThreshold(redisAlert.getThreshold());
-        alert.setEnabled(redisAlert.isEnabled());
-        alert.setCreatedAt(redisAlert.getCreatedAt());
-        alert.setUpdatedAt(redisAlert.getUpdatedAt());
+    private AlertTrigger convert(final RedisAlertTrigger redisAlertTrigger) {
+        final AlertTrigger alert = new AlertTrigger();
+        alert.setId(redisAlertTrigger.getId());
+        alert.setReferenceType(redisAlertTrigger.getReferenceType());
+        alert.setReferenceId(redisAlertTrigger.getReferenceId());
+        alert.setName(redisAlertTrigger.getName());
+        alert.setSeverity(redisAlertTrigger.getSeverity());
+        alert.setType(redisAlertTrigger.getType());
+        alert.setDescription(redisAlertTrigger.getDescription());
+        alert.setDefinition(redisAlertTrigger.getDefinition());
+        alert.setEnabled(redisAlertTrigger.isEnabled());
+        alert.setCreatedAt(new Date(redisAlertTrigger.getCreatedAt()));
+        alert.setUpdatedAt(new Date(redisAlertTrigger.getUpdatedAt()));
         return alert;
     }
 
-    private RedisAlert convert(final Alert alert) {
-        final RedisAlert redisAlert = new RedisAlert();
-        redisAlert.setId(alert.getId());
-        redisAlert.setName(alert.getName());
-        redisAlert.setDescription(alert.getDescription());
-        redisAlert.setReferenceType(alert.getReferenceType());
-        redisAlert.setReferenceId(alert.getReferenceId());
-        redisAlert.setMetricType(alert.getMetricType());
-        redisAlert.setMetric(alert.getMetric());
-        redisAlert.setType(alert.getType());
-        redisAlert.setPlan(alert.getPlan());
-        redisAlert.setThresholdType(alert.getThresholdType());
-        redisAlert.setThreshold(alert.getThreshold());
-        redisAlert.setEnabled(alert.isEnabled());
-        redisAlert.setCreatedAt(alert.getCreatedAt());
-        redisAlert.setUpdatedAt(alert.getUpdatedAt());
-        return redisAlert;
+    private RedisAlertTrigger convert(final AlertTrigger alert) {
+        final RedisAlertTrigger redisAlertTrigger = new RedisAlertTrigger();
+        redisAlertTrigger.setId(alert.getId());
+        redisAlertTrigger.setReferenceType(alert.getReferenceType());
+        redisAlertTrigger.setReferenceId(alert.getReferenceId());
+        redisAlertTrigger.setName(alert.getName());
+        redisAlertTrigger.setSeverity(alert.getSeverity());
+        redisAlertTrigger.setType(alert.getType());
+        redisAlertTrigger.setDescription(alert.getDescription());
+        redisAlertTrigger.setDefinition(alert.getDefinition());
+        redisAlertTrigger.setEnabled(alert.isEnabled());
+        redisAlertTrigger.setCreatedAt(alert.getCreatedAt().getTime());
+        if (alert.getUpdatedAt() != null) {
+            redisAlertTrigger.setUpdatedAt(alert.getUpdatedAt().getTime());
+        }
+        return redisAlertTrigger;
     }
 }

@@ -16,7 +16,7 @@
 package io.gravitee.repository.redis.management.internal.impl;
 
 import io.gravitee.repository.redis.management.internal.AlertRedisRepository;
-import io.gravitee.repository.redis.management.model.RedisAlert;
+import io.gravitee.repository.redis.management.model.RedisAlertTrigger;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.stereotype.Component;
 
@@ -35,30 +35,30 @@ import static java.util.stream.Collectors.toList;
 @Component
 public class AlertRedisRepositoryImpl extends AbstractRedisRepository implements AlertRedisRepository {
 
-    private final static String REDIS_KEY = "alert";
+    private final static String REDIS_KEY = "alert_triggers";
 
     @Override
-    public Set<RedisAlert> findAll() {
+    public Set<RedisAlertTrigger> findAll() {
         final Map<Object, Object> alerts = redisTemplate.opsForHash().entries(REDIS_KEY);
 
         return alerts.values()
                 .stream()
-                .map(object -> convert(object, RedisAlert.class))
+                .map(object -> convert(object, RedisAlertTrigger.class))
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public RedisAlert findById(final String alertId) {
+    public RedisAlertTrigger findById(final String alertId) {
         Object alert = redisTemplate.opsForHash().get(REDIS_KEY, alertId);
         if (alert == null) {
             return null;
         }
 
-        return convert(alert, RedisAlert.class);
+        return convert(alert, RedisAlertTrigger.class);
     }
 
     @Override
-    public RedisAlert saveOrUpdate(final RedisAlert alert) {
+    public RedisAlertTrigger saveOrUpdate(final RedisAlertTrigger alert) {
         redisTemplate.executePipelined((RedisConnection connection) ->  {
             final String refKey = getRefKey(alert.getReferenceType(), alert.getReferenceId());
             redisTemplate.opsForHash().put(REDIS_KEY, alert.getId(), alert);
@@ -74,12 +74,12 @@ public class AlertRedisRepositoryImpl extends AbstractRedisRepository implements
     }
 
     @Override
-    public List<RedisAlert> findByReference(String referenceType, String referenceId) {
+    public List<RedisAlertTrigger> findByReference(String referenceType, String referenceId) {
         final Set<Object> keys = redisTemplate.opsForSet().members(getRefKey(referenceType, referenceId));
         final List<Object> values = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
         return values.stream()
                 .filter(Objects::nonNull)
-                .map(alert -> convert(alert, RedisAlert.class))
+                .map(alert -> convert(alert, RedisAlertTrigger.class))
                 .collect(toList());
     }
 

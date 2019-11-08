@@ -22,22 +22,19 @@ import java.util.Objects;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RedisAlert {
+public class RedisAlertTrigger {
 
     private String id;
     private String name;
+    private String type;
     private String description;
     private String referenceType;
     private String referenceId;
-    private String type;
-    private String metricType;
-    private String metric;
-    private String thresholdType;
-    private Double threshold;
-    private String plan;
+    private String definition;
+    private String severity;
     private boolean enabled;
-    private Date createdAt;
-    private Date updatedAt;
+    private long createdAt;
+    private long updatedAt;
 
     public String getId() {
         return id;
@@ -53,6 +50,14 @@ public class RedisAlert {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getDescription() {
@@ -79,52 +84,20 @@ public class RedisAlert {
         this.referenceId = referenceId;
     }
 
-    public String getType() {
-        return type;
+    public String getDefinition() {
+        return definition;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setDefinition(String definition) {
+        this.definition = definition;
     }
 
-    public String getMetricType() {
-        return metricType;
+    public String getSeverity() {
+        return severity;
     }
 
-    public void setMetricType(String metricType) {
-        this.metricType = metricType;
-    }
-
-    public String getMetric() {
-        return metric;
-    }
-
-    public void setMetric(String metric) {
-        this.metric = metric;
-    }
-
-    public String getThresholdType() {
-        return thresholdType;
-    }
-
-    public void setThresholdType(String thresholdType) {
-        this.thresholdType = thresholdType;
-    }
-
-    public Double getThreshold() {
-        return threshold;
-    }
-
-    public void setThreshold(Double threshold) {
-        this.threshold = threshold;
-    }
-
-    public String getPlan() {
-        return plan;
-    }
-
-    public void setPlan(String plan) {
-        this.plan = plan;
+    public void setSeverity(String severity) {
+        this.severity = severity;
     }
 
     public boolean isEnabled() {
@@ -135,52 +108,32 @@ public class RedisAlert {
         this.enabled = enabled;
     }
 
-    public Date getCreatedAt() {
+    public long getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public long getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RedisAlert)) return false;
-        RedisAlert redisTag = (RedisAlert) o;
-        return Objects.equals(id, redisTag.id);
+        if (o == null || getClass() != o.getClass()) return false;
+        RedisAlertTrigger that = (RedisAlertTrigger) o;
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "RedisAlert{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", type='" + type + '\'' +
-                ", metricType='" + metricType + '\'' +
-                ", metric='" + metric + '\'' +
-                ", thresholdType='" + thresholdType + '\'' +
-                ", threshold=" + threshold +
-                ", plan='" + plan + '\'' +
-                ", enabled=" + enabled +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
     }
 }

@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
-import io.gravitee.repository.redis.management.model.RedisAlert;
+import io.gravitee.repository.redis.management.model.RedisAlertTrigger;
 
 import java.util.List;
 import java.util.Set;
@@ -25,9 +25,9 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface AlertRedisRepository {
-    Set<RedisAlert> findAll();
-    RedisAlert findById(String alertId);
-    RedisAlert saveOrUpdate(RedisAlert alert);
+    Set<RedisAlertTrigger> findAll();
+    RedisAlertTrigger findById(String alertId);
+    RedisAlertTrigger saveOrUpdate(RedisAlertTrigger alert);
     void delete(String alert);
-    List<RedisAlert> findByReference(String referenceType, String referenceId);
+    List<RedisAlertTrigger> findByReference(String referenceType, String referenceId);
 }
