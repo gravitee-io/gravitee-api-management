@@ -54,32 +54,27 @@ public class ApiService_DeleteTest {
     @InjectMocks
     private ApiServiceImpl apiService = new ApiServiceImpl();
 
-    @Mock
-    private ApiRepository apiRepository;
-
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
 
     @Mock
+    private ApiRepository apiRepository;
+    @Mock
     private Api api;
-
     @Mock
     private PlanService planService;
-
     @Mock
     private PlanEntity planEntity;
-
     @Mock
     private EventService eventService;
-
     @Mock
     private SubscriptionService subscriptionService;
-
     @Mock
     private AuditService auditService;
-
     @Mock
     private TopApiService topApiService;
+    @Mock
+    private PageService pageService;
 
     @Before
     public void setUp() {

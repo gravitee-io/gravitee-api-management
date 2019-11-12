@@ -785,10 +785,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 eventService.search(query)
                         .forEach(event -> eventService.delete(event.getId()));
 
-                // Delete API
-                apiRepository.delete(apiId);
+                // Delete pages
+                final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build());
+                pages.forEach(pageEntity ->  pageService.delete(pageEntity.getId()));
+
                 // Delete top API
                 topApiService.delete(apiId);
+                // Delete API
+                apiRepository.delete(apiId);
                 // Audit
                 auditService.createApiAuditLog(
                         apiId,
