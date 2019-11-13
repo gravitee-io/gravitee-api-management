@@ -1,20 +1,28 @@
 /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You
+ * may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 package io.gravitee.gateway.core.invoker;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.MultiValueMap;
@@ -32,16 +40,6 @@ import io.gravitee.gateway.core.logging.LoggableProxyConnection;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.core.proxy.DirectProxyConnection;
 import io.netty.handler.codec.http.QueryStringEncoder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -62,66 +60,61 @@ public class EndpointInvoker implements Invoker {
     private EndpointResolver endpointResolver;
 
     @Override
-    public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
-        EndpointResolver.ResolvedEndpoint endpoint = endpointResolver.resolve(context.request(), context);
+    public void invoke(final ExecutionContext context, final ReadStream<Buffer> stream, final Handler<ProxyConnection> connectionHandler) {
+        final EndpointResolver.ResolvedEndpoint endpoint = this.endpointResolver.resolve(context.request(), context);
 
         // Endpoint can be null if none endpoint can be selected or if the selected endpoint is unavailable
         if (endpoint == null) {
-            DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+            final DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
             connectionHandler.handle(statusOnlyConnection);
             statusOnlyConnection.sendResponse();
         } else {
             URI uri = null;
             try {
-                if (legacyDecodeUrlParams) {
-                    uri = legacyEncodeQueryParameters(endpoint.getUri(), context.request().parameters());
+                if (this.legacyDecodeUrlParams) {
+                    uri = this.legacyEncodeQueryParameters(endpoint.getUri(), context.request().parameters());
                 } else {
-                    uri = buildURI(endpoint.getUri(), context);
+                    uri = this.buildURI(endpoint.getUri(), context);
                 }
-            } catch (Exception ex) {
-                context.request().metrics().setMessage(getStackTraceAsString(ex));
+            } catch (final Exception ex) {
+                context.request().metrics().setMessage(EndpointInvoker.getStackTraceAsString(ex));
 
                 // Request URI is not correct nor correctly encoded, returning a bad request
-                DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.BAD_REQUEST_400);
+                final DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.BAD_REQUEST_400);
                 connectionHandler.handle(statusOnlyConnection);
                 statusOnlyConnection.sendResponse();
             }
 
             if (uri != null) {
 
-                ProxyRequest proxyRequest = ProxyRequestBuilder.from(context.request())
-                        .uri(uri)
-                        .method(setHttpMethod(context))
-                        .rawMethod(context.request().rawMethod())
-                        .headers(context.request().headers())
-                        .build();
+                final ProxyRequest proxyRequest =
+                        ProxyRequestBuilder.from(context.request()).uri(uri).method(this.setHttpMethod(context)).rawMethod(
+                                context.request().rawMethod()).headers(context.request().headers()).build();
 
                 ProxyConnection proxyConnection = endpoint.getConnector().request(proxyRequest);
 
                 // Enable logging at proxy level
-                Object loggingAttr = context.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy");
-                if (loggingAttr != null && ((boolean) loggingAttr)) {
-                    int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context);
-                    proxyConnection = maxSizeLogMessage == -1 ?
-                            new LoggableProxyConnection(proxyConnection, proxyRequest) :
-                            new LimitedLoggableProxyConnection(proxyConnection, proxyRequest, maxSizeLogMessage);
+                final Object loggingAttr = context.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy");
+                if (loggingAttr != null && (boolean)loggingAttr) {
+                    final int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context);
+                    proxyConnection = maxSizeLogMessage == -1 ? new LoggableProxyConnection(
+                            proxyConnection,
+                            proxyRequest) : new LimitedLoggableProxyConnection(proxyConnection, proxyRequest, maxSizeLogMessage);
                 }
 
                 connectionHandler.handle(proxyConnection);
 
                 // Plug underlying stream to connection stream
-                ProxyConnection finalProxyConnection = proxyConnection;
+                final ProxyConnection finalProxyConnection = proxyConnection;
 
-                stream
-                        .bodyHandler(buffer -> {
-                            finalProxyConnection.write(buffer);
+                stream.bodyHandler(buffer -> {
+                    finalProxyConnection.write(buffer);
 
-                            if (finalProxyConnection.writeQueueFull()) {
-                                context.request().pause();
-                                finalProxyConnection.drainHandler(aVoid -> context.request().resume());
-                            }
-                        })
-                        .endHandler(aVoid -> finalProxyConnection.end());
+                    if (finalProxyConnection.writeQueueFull()) {
+                        context.request().pause();
+                        finalProxyConnection.drainHandler(aVoid -> context.request().resume());
+                    }
+                }).endHandler(aVoid -> finalProxyConnection.end());
             }
         }
 
@@ -129,13 +122,13 @@ public class EndpointInvoker implements Invoker {
         context.request().resume();
     }
 
-    private URI legacyEncodeQueryParameters(String uri, MultiValueMap<String, String> parameters) throws URISyntaxException {
+    private URI legacyEncodeQueryParameters(final String uri, final MultiValueMap<String, String> parameters) throws URISyntaxException {
         if (parameters != null && !parameters.isEmpty()) {
-            QueryStringEncoder encoder = new QueryStringEncoder(uri);
-            for (Map.Entry<String, List<String>> queryParam : parameters.entrySet()) {
+            final QueryStringEncoder encoder = new QueryStringEncoder(uri);
+            for (final Map.Entry<String, List<String>> queryParam : parameters.entrySet()) {
                 if (queryParam.getValue() != null) {
-                    for (String value : queryParam.getValue()) {
-                        encoder.addParam(queryParam.getKey(), (value != null && !value.isEmpty()) ? value : null);
+                    for (final String value : queryParam.getValue()) {
+                        encoder.addParam(queryParam.getKey(), value != null && !value.isEmpty() ? value : null);
 
                     }
                 }
@@ -145,46 +138,56 @@ public class EndpointInvoker implements Invoker {
         return URI.create(uri);
     }
 
-    private URI buildURI(String uri, ExecutionContext executionContext) {
-        MultiValueMap<String, String> parameters = executionContext.request().parameters();
+    private URI buildURI(final String uri, final ExecutionContext executionContext) {
+        final MultiValueMap<String, String> parameters = executionContext.request().parameters();
 
         if (parameters == null || parameters.isEmpty()) {
-            return URI.create(uri);
+            try {
+                return URI.create(this.urlEncode(uri));
+            } catch (MalformedURLException | URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
         }
 
-        return addQueryParameters(uri, parameters);
+        return this.addQueryParameters(uri, parameters);
     }
 
-    private URI addQueryParameters(String uri, MultiValueMap<String, String> parameters) {
-        StringJoiner parametersAsString = new StringJoiner(URI_PARAM_SEPARATOR);
-        parameters.forEach( (paramName, paramValues) -> {
+    private String urlEncode(final String address) throws MalformedURLException, URISyntaxException {
+        final URL url = new URL(address);
+        final URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+        return uri.toASCIIString();
+    }
+
+    private URI addQueryParameters(final String uri, final MultiValueMap<String, String> parameters) {
+        final StringJoiner parametersAsString = new StringJoiner(EndpointInvoker.URI_PARAM_SEPARATOR);
+        parameters.forEach((paramName, paramValues) -> {
             if (paramValues != null) {
-                for (String paramValue: paramValues) {
+                for (final String paramValue : paramValues) {
                     if (paramValue == null) {
                         parametersAsString.add(paramName);
                     } else {
-                        parametersAsString.add(paramName + URI_PARAM_VALUE_SEPARATOR_CHAR + paramValue);
+                        parametersAsString.add(paramName + EndpointInvoker.URI_PARAM_VALUE_SEPARATOR_CHAR + paramValue);
                     }
                 }
             }
         });
 
-        if (uri.contains(URI_QUERY_DELIMITER_CHAR_SEQUENCE)) {
-            return URI.create(uri + URI_PARAM_SEPARATOR_CHAR + parametersAsString.toString());
+        if (uri.contains(EndpointInvoker.URI_QUERY_DELIMITER_CHAR_SEQUENCE)) {
+            return URI.create(uri + EndpointInvoker.URI_PARAM_SEPARATOR_CHAR + parametersAsString.toString());
         } else {
-            return URI.create(uri + URI_QUERY_DELIMITER_CHAR + parametersAsString.toString());
+            return URI.create(uri + EndpointInvoker.URI_QUERY_DELIMITER_CHAR + parametersAsString.toString());
 
         }
     }
 
-    private HttpMethod setHttpMethod(ExecutionContext context) {
-        io.gravitee.common.http.HttpMethod overrideMethod = (io.gravitee.common.http.HttpMethod)
-                context.getAttribute(ExecutionContext.ATTR_REQUEST_METHOD);
-        return (overrideMethod == null) ? context.request().method() : overrideMethod;
+    private HttpMethod setHttpMethod(final ExecutionContext context) {
+        final io.gravitee.common.http.HttpMethod overrideMethod =
+                (io.gravitee.common.http.HttpMethod)context.getAttribute(ExecutionContext.ATTR_REQUEST_METHOD);
+        return overrideMethod == null ? context.request().method() : overrideMethod;
     }
 
-    private static String getStackTraceAsString(Throwable throwable) {
-        StringWriter stringWriter = new StringWriter();
+    private static String getStackTraceAsString(final Throwable throwable) {
+        final StringWriter stringWriter = new StringWriter();
         throwable.printStackTrace(new PrintWriter(stringWriter));
         return stringWriter.toString();
     }
