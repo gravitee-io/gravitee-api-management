@@ -27,7 +27,7 @@ import io.gravitee.gateway.reactor.spring.ReactorConfiguration;
 import io.gravitee.gateway.report.spring.ReporterConfiguration;
 import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.vertx.VertxReactorConfiguration;
-import io.gravitee.node.api.Node;
+import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.vertx.spring.VertxConfiguration;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
@@ -71,8 +71,8 @@ public class StandaloneConfiguration {
     }
 
     @Bean
-    public Node node() {
-        return new GatewayNode();
+    public NodeFactory node() {
+        return new NodeFactory(GatewayNode.class);
     }
 
     @Bean
