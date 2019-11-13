@@ -11,6 +11,7 @@ target/
 .classpath
 /bin/
 
+gravitee-management-api-standalone/gravitee-management-api-standalone-distribution/src/main/resources/license/*
 gravitee-management-api-standalone/gravitee-management-api-standalone-distribution/src/main/resources/logs/*
 gravitee-management-api-standalone/gravitee-management-api-standalone-distribution/src/main/resources/plugins/*
 gravitee-management-api-standalone/gravitee-management-api-standalone-distribution/src/main/resources/data/*
