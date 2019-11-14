@@ -12,14 +12,13 @@
    "success": "Log in successful"
   },
   "password": "Password",
-  "providers_only": "Sign in with",
   "signup": {
    "link": "Sign up !",
    "text": "Don't have an account yet ?"
   },
   "title": "Who are you ?",
   "username": "Username",
-  "with_providers": "You can also sign in with"
+  "with_providers": "Or"
  },
  "registration": {
   "back_home": "Back to portal",

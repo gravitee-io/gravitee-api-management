@@ -15,53 +15,56 @@
     limitations under the License.
 
 -->
-<div class="registration">
-  <h1 *ngIf="registrationForm">{{ 'registration.title' | translate }}</h1>
+<div class="page__content page__content__registration">
+  <div class="registration">
+    <h1 *ngIf="registrationForm">{{ 'registration.title' | translate }}</h1>
 
-  <form *ngIf="registrationForm && !isSubmitted" [formGroup]="registrationForm" (ngSubmit)="onSubmitRegistration()">
-    <gv-input
-      large
-      required
-      label="{{ 'registration.firstname' | translate }}"
-      formControlName="firstname"
-      ngDefaultControl
-      class="registration__form__input"
-    >
-    </gv-input>
-    <gv-input
-      large
-      required
-      label="{{ 'registration.lastname' | translate }}"
-      formControlName="lastname"
-      ngDefaultControl
-      class="registration__form__input"
-    >
-    </gv-input>
-    <gv-input
-      large
-      required
-      type="email"
-      label="{{ 'registration.email' | translate }}"
-      formControlName="email"
-      ngDefaultControl
-      [email]="true"
-      class="registration__form__input"
-    >
-    </gv-input>
-    <gv-button
-      [disabled]="!isFormValid() || isSubmitted"
-      primary
-      class="registration__form__input"
-    >
-      {{ 'registration.button' | translate }}
-    </gv-button>
-  </form>
+    <form *ngIf="registrationForm && !isSubmitted" [formGroup]="registrationForm" (ngSubmit)="onSubmitRegistration()">
+      <gv-input
+        large
+        required
+        label="{{ 'registration.firstname' | translate }}"
+        formControlName="firstname"
+        ngDefaultControl
+        class="registration__form__input"
+      >
+      </gv-input>
+      <gv-input
+        large
+        required
+        label="{{ 'registration.lastname' | translate }}"
+        formControlName="lastname"
+        ngDefaultControl
+        class="registration__form__input"
+      >
+      </gv-input>
+      <gv-input
+        large
+        required
+        type="email"
+        label="{{ 'registration.email' | translate }}"
+        formControlName="email"
+        ngDefaultControl
+        [email]="true"
+        class="registration__form__input"
+      >
+      </gv-input>
+      <gv-button
+        [disabled]="!isFormValid() || isSubmitted"
+        primary
+        class="registration__form__input"
+      >
+        {{ 'registration.button' | translate }}
+      </gv-button>
+    </form>
 
-  <a *ngIf="registrationForm && !isSubmitted" routerLink="/login"
-     class="registration__link">{{ "registration.back_login" | translate }}</a>
+    <p class="tc">
+      <a *ngIf="registrationForm && !isSubmitted" routerLink="/login">{{ "registration.back_login" | translate }}</a>
+    </p>
 
-  <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
+    <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
 
-  <a *ngIf="isSubmitted" routerLink="/" class="registration__link">{{ "registration.back_home" | translate }}</a>
+    <a *ngIf="isSubmitted" routerLink="/" class="tc">{{ "registration.back_home" | translate }}</a>
 
+  </div>
 </div>

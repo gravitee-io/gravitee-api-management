@@ -12,14 +12,13 @@
    "success": "Přihlášení úspěšné"
   },
   "password": "Heslo",
-  "providers_only": "Přihlásit pomocí",
   "signup": {
    "link": "Registrovat !",
    "text": "Nemáte prozatím účet ?"
   },
   "title": "Kdo jste ?",
   "username": "Uživatelské jméno",
-  "with_providers": "Můžete se také přihlásit s"
+  "with_providers": "Nebo"
  },
  "registration": {
   "back_home": "Zpátky na portal",

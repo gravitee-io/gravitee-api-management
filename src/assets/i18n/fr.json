@@ -12,14 +12,13 @@
    "success": "Authentification réussie"
   },
   "password": "Mot de passe",
-  "providers_only": "Vous pouvez vous connecter avec",
   "signup": {
    "link": "Enregistrez-vous",
    "text": "Pas encore de compte ?"
   },
   "title": "Identifiez-vous",
   "username": "Identifiant",
-  "with_providers": "Vous pouvez aussi vous connecter avec"
+  "with_providers": "Ou"
  },
  "registration": {
   "back_home": "Retour au portail",

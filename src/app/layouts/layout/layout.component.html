@@ -15,9 +15,10 @@
     limitations under the License.
 
 -->
-<header class="bg-white w-100 dt">
+<div class="layout">
+  <header class="bg-white w-100 dt layout__header">
     <div class="w-20 dtc v-mid">
-        <a href="" target="_blank" class="logo link" title="{{ 'site.title' | translate }}"></a>
+      <a href="" target="_blank" class="layout__header__logo link" title="{{ 'site.title' | translate }}"></a>
     </div>
 
     <gv-nav [routes]="mainRoutes" class="w-60 dtc v-mid tc"></gv-nav>
@@ -27,10 +28,24 @@
 
     <div class="w-20 dtc" *ngIf="!showLogin()"></div>
     <div *ngIf="currentUser" class="tr">
-        <a routerLink="/user" class="logo link v-mid" title="{{ currentUser.displayName }}">
-            <img src="{{ currentUser.avatar }}" alt="{{ currentUser.displayName }}" class="bn mw-100 dib">
-        </a>
-        <gv-nav-link path="/logout" [attr.title]="'route.logout' | translate" class="v-mid"></gv-nav-link>
+      <a routerLink="/user" class="logo link v-mid" title="{{ currentUser.displayName }}">
+        <img src="{{ currentUser.avatar }}" alt="{{ currentUser.displayName }}" class="bn mw-100 dib">
+      </a>
+      <gv-nav-link path="/logout" [attr.title]="'route.logout' | translate" class="v-mid"></gv-nav-link>
     </div>
-</header>
-<router-outlet></router-outlet>
+  </header>
+
+  <div class="layout__content">
+    <router-outlet></router-outlet>
+  </div>
+
+
+  <footer>
+    <section class="footer__links">
+
+    </section>
+    <section class="footer__end">
+
+    </section>
+  </footer>
+</div>

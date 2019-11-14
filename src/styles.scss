@@ -2,7 +2,27 @@
 
 @import "~@gravitee/ui-components/assets/css/gravitee-theme.css";
 @import "css/font.css";
+@import "css/layout.css";
 
 :root {
   font-family: "IBM Plex Sans", "Nunito Sans", -apple-system, ".SFNSText-Regular", "San Francisco", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  // ********** Layout ************
+  --gv-theme-layout--pt: 1rem;
+  --gv-theme-layout--pr: 8rem;
+  --gv-theme-layout--pb: 1rem;
+  --gv-theme-layout--pl: 8rem;
+
+  --gv-theme-layout--bgc: #E5E5E5;
+
+  // ********** Page ************
+  --gv-theme-page--pt: 4rem;
+  --gv-theme-page--pb: 4rem;
+
+  --gv-menu--pr: var(--gv-theme-layout--pr);
+  --gv-menu--pl: var(--gv-theme-layout--pl);
+}
+
+.page__content{
+  padding: var(--gv-theme-page--pt) var(--gv-theme-layout--pr) var(--gv-theme-page--pb) var(--gv-theme-layout--pl);
 }

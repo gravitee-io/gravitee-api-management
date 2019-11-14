@@ -15,81 +15,86 @@
     limitations under the License.
 
 -->
-<div class="registration-confirmation">
-  <h1>{{ 'registrationConfirmation.title' | translate }}</h1>
+<div class="layout">
+  <div class="layout__content">
+    <div class="page__content page__content__registration-confirmation">
+      <div class="registration-confirmation">
+        <h1>{{ 'registrationConfirmation.title' | translate }}</h1>
 
-  <form *ngIf="registrationConfirmationForm && !isTokenExpired && !isSubmitted"
-        [formGroup]="registrationConfirmationForm" (ngSubmit)="onSubmitRegistrationConfirmationForm()">
-    <gv-input
-      large
-      required
-      disabled
-      label="{{ 'registrationConfirmation.firstname' | translate }}"
-      formControlName="firstname"
-      value="{{ userFromToken.firstname }}"
-      ngDefaultControl
-      class="registration-confirmation__form__input"
-    >
-    </gv-input>
-    <gv-input
-      large
-      required
-      disabled
-      label="{{ 'registrationConfirmation.lastname' | translate }}"
-      formControlName="lastname"
-      value="{{ userFromToken.lastname }}"
-      ngDefaultControl
-      class="registration-confirmation__form__input"
-    >
-    </gv-input>
-    <gv-input
-      large
-      required
-      disabled
-      type="email"
-      label="{{ 'registrationConfirmation.email' | translate }}"
-      formControlName="email"
-      value="{{ userFromToken.email }}"
-      ngDefaultControl
-      class="registration-confirmation__form__input"
-    >
-    </gv-input>
-    <gv-input
-      large
-      required
-      type="password"
-      label="{{ 'registrationConfirmation.password' | translate }}"
-      formControlName="password"
-      ngDefaultControl
-      class="registration-confirmation__form__input"
-    >
-    </gv-input>
-    <gv-input
-      large
-      required
-      type="password"
-      label="{{ 'registrationConfirmation.confirmedPassword' | translate }}"
-      formControlName="confirmedPassword"
-      ngDefaultControl
-      class="registration-confirmation__form__input"
-    >
-    </gv-input>
-    <gv-button
-      [disabled]="!isFormValid() || isSubmitted"
-      primary
-      class="registration-confirmation__form__input"
-    >
-      {{ 'registrationConfirmation.button' | translate }}
-    </gv-button>
+        <form *ngIf="registrationConfirmationForm && !isTokenExpired && !isSubmitted"
+              [formGroup]="registrationConfirmationForm" (ngSubmit)="onSubmitRegistrationConfirmationForm()">
+          <gv-input
+            large
+            required
+            disabled
+            label="{{ 'registrationConfirmation.firstname' | translate }}"
+            formControlName="firstname"
+            value="{{ userFromToken.firstname }}"
+            ngDefaultControl
+            class="registration-confirmation__form__input"
+          >
+          </gv-input>
+          <gv-input
+            large
+            required
+            disabled
+            label="{{ 'registrationConfirmation.lastname' | translate }}"
+            formControlName="lastname"
+            value="{{ userFromToken.lastname }}"
+            ngDefaultControl
+            class="registration-confirmation__form__input"
+          >
+          </gv-input>
+          <gv-input
+            large
+            required
+            disabled
+            type="email"
+            label="{{ 'registrationConfirmation.email' | translate }}"
+            formControlName="email"
+            value="{{ userFromToken.email }}"
+            ngDefaultControl
+            class="registration-confirmation__form__input"
+          >
+          </gv-input>
+          <gv-input
+            large
+            required
+            type="password"
+            label="{{ 'registrationConfirmation.password' | translate }}"
+            formControlName="password"
+            ngDefaultControl
+            class="registration-confirmation__form__input"
+          >
+          </gv-input>
+          <gv-input
+            large
+            required
+            type="password"
+            label="{{ 'registrationConfirmation.confirmedPassword' | translate }}"
+            formControlName="confirmedPassword"
+            ngDefaultControl
+            class="registration-confirmation__form__input"
+          >
+          </gv-input>
+          <gv-button
+            [disabled]="!isFormValid() || isSubmitted"
+            primary
+            class="registration-confirmation__form__input"
+          >
+            {{ 'registrationConfirmation.button' | translate }}
+          </gv-button>
 
-  </form>
-  <a *ngIf="registrationConfirmationForm && !isTokenExpired && !isSubmitted" routerLink="/"
-     class="registration-confirmation__link">{{ "registrationConfirmation.back_home" | translate }}</a>
+        </form>
+        <a *ngIf="registrationConfirmationForm && !isTokenExpired && !isSubmitted" routerLink="/"
+           class="tc">{{ "registrationConfirmation.back_home" | translate }}</a>
 
-  <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
-  <a *ngIf="isTokenExpired" routerLink="/registration"
-     class="registration-confirmation__link">{{ "registrationConfirmation.back_registration" | translate }}</a>
-  <a *ngIf="isSubmitted" routerLink="/login"
-     class="registration-confirmation__link">{{ "registrationConfirmation.back_login" | translate }}</a>
-
+        <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
+        <a *ngIf="isTokenExpired" routerLink="/registration"
+           class="tc">{{ "registrationConfirmation.back_registration" | translate }}</a>
+        <a *ngIf="isSubmitted" routerLink="/login"
+           class="tc">{{ "registrationConfirmation.back_login" | translate }}</a>
+      </div>
+    </div>
+  </div>
 </div>

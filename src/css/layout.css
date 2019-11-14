@@ -13,14 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-header {
-    padding: 1rem 4rem;
+
+.layout {
+  min-height:100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.logo {
-    background-image: var(--gv-theme-logo);
-    display: block;
-    background-size: 3.8rem 3.8rem;
-    height: 3.8rem;
-    width: 3.8rem;
+.layout__header {
+  padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pl);
+}
+
+.layout__header__logo {
+  background-image: var(--gv-theme-logo);
+  background-size: contain;
+  background-repeat: no-repeat;
+  height: 3.8rem;
+  width: 100%;
+  display: inline-block;
+}
+
+.layout__content {
+  background-color: var(--gv-theme-layout--bgc);
+  flex-grow: 1;
+}
+
+.footer__links {
+  background-color: var(--gv-theme-color-dark);
+  height: 338px
+}
+
+.footer__end {
+  background-color: var(--gv-theme-color-darker);
+  height: 150px;
 }

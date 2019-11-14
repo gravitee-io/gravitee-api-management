@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+.page__content__login, .page__content__registration, .page__content__registration-confirmation {
+  background-color: var(--gv-theme-color-darker);
+}
+
 .login, .registration, .registration-confirmation {
   align-content: center;
   background-color: white;
@@ -25,13 +29,7 @@
 }
 
 .login__form__input, .registration__form__input, .registration-confirmation__form__input {
-  margin-left: 0;
-  margin-right: 0;
+  --gv-button--p: 0.7rem 0.5rem;
+  margin: 0.5rem 0;
   width: 100%;
-}
-
-.login__link, .registration__link, .registration-confirmation__link {
-  font-size: .75rem;
-  margin-top: 1rem;
-  text-align: center;
 }
