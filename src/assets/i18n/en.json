@@ -55,7 +55,8 @@
   "catalog-categories": "Categories",
   "dashboard": "Dashboard",
   "login": "Sign in",
-  "logout": "Sign out"
+  "logout": "Sign out",
+  "user": "My profile"
  },
  "site": {
   "title": "Gravitee.io Portal"

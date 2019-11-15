@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {BehaviorSubject} from 'rxjs';
+import {Component, Input, OnInit} from '@angular/core';
 import {User} from 'ng-portal-webclient/dist';
+import jdenticon from 'jdenticon';
 
-@Injectable()
-export class CurrentUserService {
+@Component({
+  selector: 'app-user-avatar',
+  templateUrl: './user-avatar.component.html'
+})
+export class UserAvatarComponent implements OnInit {
 
-  private currentUserSource = new BehaviorSubject<User>(undefined);
-  currentUser = this.currentUserSource.asObservable();
+  private hasError: boolean;
+  @Input() user: User;
+  @Input() size: number = Number(40);
 
   constructor() {
+    this.hasError = false;
   }
 
-  changeUser(newCurrentUser: User) {
-    this.currentUserSource.next(newCurrentUser);
+  ngOnInit() {
   }
 
-  revokeUser() {
-    this.currentUserSource.next(undefined);
+  getDefaultAvatar() {
+    return jdenticon.toSvg(this.user.display_name, this.size);
   }
 
 }

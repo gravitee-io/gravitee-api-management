@@ -42,6 +42,8 @@ import { CurrentUserService } from './services/current-user.service';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
 import { AllComponent } from './pages/catalog/all/all.component';
 import { LayoutComponent } from './layouts/layout/layout.component';
+import { SafePipe } from './pipes/safe.pipe';
+import { UserAvatarComponent } from './components/user-avatar/user-avatar.component';
 
 @NgModule({
   declarations: [
@@ -57,6 +59,8 @@ import { LayoutComponent } from './layouts/layout/layout.component';
     RegistrationConfirmationComponent,
     CategoriesComponent,
     AllComponent,
+    SafePipe,
+    UserAvatarComponent,
   ],
   imports: [
     ApiModule,

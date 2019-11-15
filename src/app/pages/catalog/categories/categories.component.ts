@@ -17,8 +17,6 @@ import {Component, OnInit} from '@angular/core';
 import {PortalService, View} from 'ng-portal-webclient/dist';
 
 import '@gravitee/ui-components/wc/gv-card-category';
-import {DomSanitizer} from '@angular/platform-browser';
-import {GetViewsRequestParams} from 'ng-portal-webclient/api/portal.service';
 
 
 @Component({
@@ -32,7 +30,6 @@ export class CategoriesComponent implements OnInit {
 
   constructor(
     private portalService: PortalService,
-    private sanitizer: DomSanitizer
   ) {
   }
 
@@ -47,9 +44,7 @@ export class CategoriesComponent implements OnInit {
   }
 
   getCategoryBackgroundColor(index) {
-    return this.sanitizer.bypassSecurityTrustStyle(
-      `--gv-card-category--bgc: var(--gv-theme-color-category-${index % 6 + 1})`
-    );
+    return `--gv-card-category--bgc: var(--gv-theme-color-category-${index % 6 + 1})`;
   }
 
   searchAPIsByCategory(categoryId: string) {

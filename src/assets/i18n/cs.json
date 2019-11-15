@@ -55,7 +55,8 @@
   "catalog-categories": "Kategories",
   "dashboard": "Dashboard",
   "login": "Přihlásit",
-  "logout": "Odhlásit"
+  "logout": "Odhlásit",
+  "user": "Můj profil"
  },
  "site": {
   "title": "Gravitee.io Portal"

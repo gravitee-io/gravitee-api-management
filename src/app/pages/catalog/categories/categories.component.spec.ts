@@ -19,6 +19,8 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CategoriesComponent } from './categories.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TranslateTestingModule } from 'src/app/test/helper.spec';
+import {SafePipe} from '../../../pipes/safe.pipe';
+import {UserAvatarComponent} from '../../../components/user-avatar/user-avatar.component';
 
 describe('CategoriesComponent', () => {
   let component: CategoriesComponent;
@@ -31,7 +33,9 @@ describe('CategoriesComponent', () => {
         TranslateTestingModule
       ],
       declarations: [
-        CategoriesComponent
+        CategoriesComponent,
+        UserAvatarComponent,
+        SafePipe
       ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,

@@ -15,21 +15,6 @@
     limitations under the License.
 
 -->
-<div *ngIf="user" class="bg-white">
-  <h1>{{'user.title' | translate}}</h1>
-  <div class="dt">
-    <div class="w-80 dtc">
-      <p>
-        <span class="b">{{'user.display_name' | translate}} : </span>
-        <span>{{ user.display_name }}</span>
-      </p>
-      <p>
-        <span class="b">{{'user.email' | translate}} : </span>
-        <span>{{ user.email }}</span>
-      </p>
-    </div>
-    <div class="w-20 dtc v-mid">
-      <app-user-avatar [user]="user" [size]="100"></app-user-avatar>
-    </div>
-  </div>
-</div>
+<img *ngIf="!hasError" src="{{ user._links.avatar }}" alt="{{ user.display_name }}" (error)="hasError=true"
+     width="{{size}}" height="{{size}}"/>
+<span *ngIf="hasError" [innerHTML]="getDefaultAvatar() | safe: 'html'" title="{{ user.display_name }}">

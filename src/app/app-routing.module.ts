@@ -64,9 +64,17 @@ export const routes: Routes = [
                     }]
             },
             {path: 'apps', component: AppsComponent, data: {title: i18n('route.apps'), type: RouteType.main}},
-            {path: 'login', component: LoginComponent, data: {title: i18n('route.login'), type: RouteType.user}},
-            {path: 'logout', component: LogoutComponent, data: {title: i18n('route.logout'), type: RouteType.user}},
-            {path: 'user', component: UserComponent, data: {type: RouteType.user}},
+            {path: 'login', component: LoginComponent, data: {title: i18n('route.login'), type: RouteType.login}},
+            {path: 'user', component: UserComponent, data: {title: i18n('route.user'), icon: 'general:user', type: RouteType.user}},
+            {
+                path: 'logout', component: LogoutComponent,
+                data: {
+                    title: i18n('route.logout'),
+                    separator: true,
+                    icon: 'home:door-open',
+                    type: RouteType.user
+                }
+            },
             {path: 'registration', component: RegistrationComponent}
         ]
     },

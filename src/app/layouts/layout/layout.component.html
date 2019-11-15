@@ -23,16 +23,14 @@
 
     <gv-nav [routes]="mainRoutes" class="w-60 dtc v-mid tc"></gv-nav>
 
-    <gv-nav-link path="/login" [attr.title]="'route.login' | translate"
-                 class="w-20 dtc v-mid tr" *ngIf="showLogin()"></gv-nav-link>
-
-    <div class="w-20 dtc" *ngIf="!showLogin()"></div>
-    <div *ngIf="currentUser" class="tr">
-      <a routerLink="/user" class="logo link v-mid" title="{{ currentUser.displayName }}">
-        <img src="{{ currentUser.avatar }}" alt="{{ currentUser.displayName }}" class="bn mw-100 dib">
-      </a>
-      <gv-nav-link path="/logout" [attr.title]="'route.logout' | translate" class="v-mid"></gv-nav-link>
+    <div class="w-20 dtc v-mid tr">
+      <gv-nav-link *ngIf="showLogin()" path="/login" [attr.title]="'route.login' | translate"></gv-nav-link>
+      <gv-user-menu *ngIf="currentUser" [routes]="userRoutes"
+        class="layout__user-menu" username="{{currentUser.display_name}}">
+        <app-user-avatar [user]="currentUser"></app-user-avatar>
+      </gv-user-menu>
     </div>
+
   </header>
 
   <div class="layout__content">

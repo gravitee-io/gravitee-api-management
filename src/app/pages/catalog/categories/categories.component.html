@@ -22,8 +22,7 @@
     <gv-card-category (click)="searchAPIsByCategory(category.id)" *ngFor="let category of categories let i = index"
       description="{{ category.description }}"
       title="{{ category.name }}"
-      [style]="getCategoryBackgroundColor(i)"
-    >
+      [style]="getCategoryBackgroundColor(i) | safe: 'style'">
     </gv-card-category>
   </div>
 </div>

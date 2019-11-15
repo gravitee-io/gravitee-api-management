@@ -20,6 +20,8 @@ import {provideMagicalMock} from '../../test/mock.helper.spec';
 import {CurrentUserService} from '../../services/current-user.service';
 import {UserService} from 'ng-portal-webclient/dist';
 import {TranslateTestingModule} from '../../test/helper.spec';
+import {UserAvatarComponent} from '../../components/user-avatar/user-avatar.component';
+import {SafePipe} from '../../pipes/safe.pipe';
 
 describe('UserComponent', () => {
   let component: UserComponent;
@@ -29,7 +31,7 @@ describe('UserComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [UserComponent],
+      declarations: [UserComponent, UserAvatarComponent, SafePipe],
       imports: [TranslateTestingModule],
       providers: [provideMagicalMock(UserService), provideMagicalMock(CurrentUserService)]
     })

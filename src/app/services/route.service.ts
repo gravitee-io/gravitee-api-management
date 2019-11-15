@@ -19,6 +19,7 @@ import {TranslateService} from '@ngx-translate/core';
 
 export enum RouteType {
     main,
+    login,
     user,
     catalog
 }
@@ -54,12 +55,13 @@ export class RouteService {
     getRoutes(type: RouteType) {
         const c = this.flattenedRoutes
             .filter(({data}) => data && (data.type === type))
-            .map(({path, data: {title, icon}}) => {
+            .map(({path, data: {title, icon, separator}}) => {
                 return {
                     path,
                     icon,
                     active: this.router.isActive(`/${path}`, false),
-                    title: this.translateService.get(title).toPromise()
+                    title: this.translateService.get(title).toPromise(),
+                    separator
                 };
             });
         return c;

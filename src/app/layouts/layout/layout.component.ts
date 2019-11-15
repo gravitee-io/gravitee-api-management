@@ -21,6 +21,8 @@ import {CurrentUserService} from '../../services/current-user.service';
 import {RouteService, RouteType} from '../../services/route.service';
 import {User} from 'ng-portal-webclient/dist';
 import '@gravitee/ui-components/wc/gv-nav';
+import '@gravitee/ui-components/wc/gv-user-menu';
+import '@gravitee/ui-components/wc/gv-user-menu';
 
 @Component({
   selector: 'app-layout',
@@ -29,20 +31,22 @@ import '@gravitee/ui-components/wc/gv-nav';
 export class LayoutComponent implements OnInit {
 
   private mainRoutes: object[];
+  private userRoutes: object[];
   private currentUser: User;
 
   constructor(
-      private titleService: Title,
-      private translateService: TranslateService,
-      private router: Router,
-      private currentUserService: CurrentUserService,
-      private routeService: RouteService
+    private titleService: Title,
+    private translateService: TranslateService,
+    private router: Router,
+    private currentUserService: CurrentUserService,
+    private routeService: RouteService
   ) {
   }
 
   ngOnInit() {
     this.currentUserService.currentUser.subscribe(newCurrentUser => this.currentUser = newCurrentUser);
     this.mainRoutes = this.routeService.getRoutes(RouteType.main);
+    this.userRoutes = this.routeService.getRoutes(RouteType.user);
   }
 
   showLogin() {

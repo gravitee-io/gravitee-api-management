@@ -26,6 +26,7 @@
     "@gravitee/ui-components": "github:gravitee-io/gravitee-ui-components",
     "@ngx-translate/core": "^11.0.1",
     "@ngx-translate/http-loader": "^4.0.0",
+    "jdenticon": "^2.2.0",
     "messageformat": "^2.3.0",
     "ng-portal-webclient": "github:gravitee-io/gravitee-clients-sdk",
     "ngx-translate-messageformat-compiler": "^4.5.0",
