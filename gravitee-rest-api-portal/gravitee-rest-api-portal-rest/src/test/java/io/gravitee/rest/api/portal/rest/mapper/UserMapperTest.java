@@ -15,16 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.time.Instant;
-import java.util.Date;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -32,6 +22,18 @@ import io.gravitee.rest.api.portal.rest.model.FinalizeRegistrationInput;
 import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserLinks;
+
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.time.Instant;
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -84,7 +86,7 @@ public class UserMapperTest {
         assertEquals(USER_EMAIL, responseUser.getEmail());
         assertEquals(USER_FIRSTNAME, responseUser.getFirstName());
         assertEquals(USER_LASTNAME, responseUser.getLastName());
-        assertEquals(USER_FIRSTNAME + ' ' + USER_LASTNAME, responseUser.getDisplayName());
+        assertEquals(StringUtils.capitalize(USER_FIRSTNAME) + ' ' + USER_LASTNAME.toUpperCase().charAt(0) + '.', responseUser.getDisplayName());
     }
 
     @Test

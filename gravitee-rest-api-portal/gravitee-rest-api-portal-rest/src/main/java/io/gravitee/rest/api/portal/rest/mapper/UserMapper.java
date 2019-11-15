@@ -23,6 +23,7 @@ import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserLinks;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,7 +40,17 @@ public class UserMapper {
         userItem.setEmail(user.getEmail());
         userItem.setFirstName(user.getFirstname());
         userItem.setLastName(user.getLastname());
-        userItem.setDisplayName(user.getDisplayName());
+        if(StringUtils.isEmpty(user.getFirstname()) && StringUtils.isEmpty(user.getLastname())) {
+            userItem.setDisplayName(user.getDisplayName());    
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append(StringUtils.capitalize(user.getFirstname()));
+            sb.append(" ");
+            sb.append(user.getLastname().toUpperCase().charAt(0));
+            sb.append(".");
+            userItem.setDisplayName(sb.toString());
+        }
+        
         userItem.setId(user.getId());
 
         return userItem;
