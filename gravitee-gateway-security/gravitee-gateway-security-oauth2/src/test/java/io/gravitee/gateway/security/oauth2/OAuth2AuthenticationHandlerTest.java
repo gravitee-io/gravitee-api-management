@@ -16,6 +16,7 @@
 package io.gravitee.gateway.security.oauth2;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.AuthenticationContext;
@@ -105,6 +106,16 @@ public class OAuth2AuthenticationHandlerTest {
         when(request.headers()).thenReturn(headers);
 
         headers.add(HttpHeaders.AUTHORIZATION, "BeaRer xxx-xx-xxx-xx-xx");
+
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
+        Assert.assertTrue(handle);
+    }
+
+    @Test
+    public void shouldHandleRequest_validQueryParameter() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        when(request.parameters()).thenReturn(parameters);
+        parameters.add("access_token", "xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);

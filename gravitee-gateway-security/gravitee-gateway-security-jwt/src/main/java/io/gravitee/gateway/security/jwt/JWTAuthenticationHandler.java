@@ -15,16 +15,13 @@
  */
 package io.gravitee.gateway.security.jwt;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.*;
 import io.gravitee.gateway.security.jwt.policy.CheckSubscriptionPolicy;
-import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -65,22 +62,7 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
     }
 
     private String readToken(Request request) {
-        List<String> authorizationHeaders = request.headers().get(HttpHeaders.AUTHORIZATION);
-
-        if (authorizationHeaders == null || authorizationHeaders.isEmpty()) {
-            return null;
-        }
-
-        Optional<String> authorizationBearerHeader = authorizationHeaders
-                .stream()
-                .filter(h -> StringUtils.startsWithIgnoreCase(h, BEARER_AUTHORIZATION_TYPE))
-                .findFirst();
-
-        if (! authorizationBearerHeader.isPresent()) {
-            return null;
-        }
-
-        return authorizationBearerHeader.get().substring(BEARER_AUTHORIZATION_TYPE.length()).trim();
+        return TokenExtractor.extract(request);
     }
 
     @Override
