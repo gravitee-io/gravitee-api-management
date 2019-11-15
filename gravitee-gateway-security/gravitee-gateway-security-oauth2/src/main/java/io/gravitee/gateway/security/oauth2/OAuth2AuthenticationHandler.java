@@ -15,16 +15,13 @@
  */
 package io.gravitee.gateway.security.oauth2;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.*;
 import io.gravitee.gateway.security.oauth2.policy.CheckSubscriptionPolicy;
-import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -50,32 +47,22 @@ public class OAuth2AuthenticationHandler implements AuthenticationHandler {
 
     @Override
     public boolean canHandle(AuthenticationContext context) {
-        List<String> authorizationHeaders = context.request().headers().get(HttpHeaders.AUTHORIZATION);
+        String token = readToken(context.request());
 
-        if (authorizationHeaders == null || authorizationHeaders.isEmpty()) {
-            return false;
-        }
-
-        Optional<String> authorizationBearerHeader = authorizationHeaders
-                .stream()
-                .filter(h -> StringUtils.startsWithIgnoreCase(h, BEARER_AUTHORIZATION_TYPE))
-                .findFirst();
-
-        if (! authorizationBearerHeader.isPresent()) {
-            return false;
-        }
-        final String accessToken = authorizationBearerHeader.get().substring(BEARER_AUTHORIZATION_TYPE.length()).trim();
-
-        if (accessToken.isEmpty()) {
+        if (token == null || token.isEmpty()) {
             return false;
         }
 
         // Update the context with token
         if (context.get(JWT_CONTEXT_ATTRIBUTE) == null) {
-            context.set(JWT_CONTEXT_ATTRIBUTE, new LazyJwtToken(accessToken));
+            context.set(JWT_CONTEXT_ATTRIBUTE, new LazyJwtToken(token));
         }
 
         return true;
+    }
+
+    private String readToken(Request request) {
+        return TokenExtractor.extract(request);
     }
 
     @Override
