@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder } from '@angular/forms';
-import { Router } from '@angular/router';
+import {Component, OnInit} from '@angular/core';
+import {FormGroup, FormBuilder} from '@angular/forms';
+import {Router} from '@angular/router';
 
-import { AuthenticationService, PortalService, IdentityProvider } from 'ng-portal-webclient/dist';
+import {AuthenticationService, PortalService, IdentityProvider} from 'ng-portal-webclient/dist';
 
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-message';
-import { TranslateService } from '@ngx-translate/core';
+import {TranslateService} from '@ngx-translate/core';
 import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
@@ -67,18 +67,18 @@ export class LoginComponent implements OnInit {
 
   ngOnInit() {
     this.portalService.getPortalIdentityProviders()
-    .subscribe(
-      (configurationIdentitiesResponse) => {
-        this.providers = configurationIdentitiesResponse.data;
-      },
-      (error) => {
-        console.error('something wrong occurred with identity providers: ' + error.statusText);
-      }
-    );
+      .subscribe(
+        (configurationIdentitiesResponse) => {
+          this.providers = configurationIdentitiesResponse.data;
+        },
+        (error) => {
+          console.error('something wrong occurred with identity providers: ' + error.statusText);
+        }
+      );
   }
 
   authenticate(provider) {
-    console.log('Authentication asked for \ ' + provider.name + ' (id = ' +  provider.id + ')');
+    console.log('Authentication asked for \ ' + provider.name + ' (id = ' + provider.id + ')');
   }
 
   isFormValid() {
@@ -88,15 +88,15 @@ export class LoginComponent implements OnInit {
   login() {
     if (this.isFormValid()) {
       // create basic authorization header
-      const authorization = 'Basic ' + btoa(this.loginForm.value.username + ':' + this.loginForm.value.password);
+      const authorization: string = 'Basic ' + btoa(this.loginForm.value.username + ':' + this.loginForm.value.password);
 
       // call the login resource from the API.
-      this.authService.login(authorization).subscribe(
+      this.authService.login({Authorization: authorization}).subscribe(
         () => {
           this.translateService.get(i18n('login.notification.success')).subscribe((translatedMessage) => {
             this.notification = {
               message: translatedMessage,
-              type : 'success'
+              type: 'success'
             };
           });
 
@@ -107,7 +107,7 @@ export class LoginComponent implements OnInit {
           this.translateService.get(i18n('login.notification.error')).subscribe((translatedMessage) => {
             this.notification = {
               message: translatedMessage,
-              type : 'error'
+              type: 'error'
             };
           });
           console.error(error);

@@ -19,6 +19,7 @@ import {ActivatedRoute} from '@angular/router';
 import {UsersService, FinalizeRegistrationInput} from 'ng-portal-webclient/dist';
 import {TranslateService} from '@ngx-translate/core';
 import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
+import {FinalizeUserRegistrationRequestParams} from 'ng-portal-webclient/api/users.service';
 
 @Component({
   selector: 'app-registration-confirmation',
@@ -78,16 +79,15 @@ export class RegistrationConfirmationComponent implements OnInit {
 
   onSubmitRegistrationConfirmationForm() {
     if (this.isFormValid() && !this.isSubmitted) {
-      let input: FinalizeRegistrationInput;
-      input = {
+
+      const input: FinalizeRegistrationInput = {
         token: this.token,
         password: this.registrationConfirmationForm.value.password,
         firstname: this.registrationConfirmationForm.value.firstname,
         lastname: this.registrationConfirmationForm.value.lastname
       };
-
       // call the register resource from the API.
-      this.usersService.finalizeUserRegistration(input).subscribe(
+      this.usersService.finalizeUserRegistration({FinalizeRegistrationInput: input}).subscribe(
         (user) => {
           this.translateService.get(i18n('registrationConfirmation.notification.success')).subscribe((translatedMessage) => {
             this.notification = {

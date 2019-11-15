@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { PortalService, View } from 'ng-portal-webclient/dist';
+import {Component, OnInit} from '@angular/core';
+import {PortalService, View} from 'ng-portal-webclient/dist';
 
 import '@gravitee/ui-components/wc/gv-card-category';
-import { DomSanitizer } from '@angular/platform-browser';
+import {DomSanitizer} from '@angular/platform-browser';
+import {GetViewsRequestParams} from 'ng-portal-webclient/api/portal.service';
 
 
 @Component({
@@ -28,13 +29,16 @@ import { DomSanitizer } from '@angular/platform-browser';
 export class CategoriesComponent implements OnInit {
   nbCategories: string;
   categories: View[];
+
   constructor(
     private portalService: PortalService,
     private sanitizer: DomSanitizer
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
-    this.portalService.getViews().subscribe(
+
+    this.portalService.getViews({}).subscribe(
       (viewResponse) => {
         this.categories = viewResponse.data;
         this.nbCategories = viewResponse.metadata.data.total;
