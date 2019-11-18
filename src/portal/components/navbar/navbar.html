@@ -38,17 +38,18 @@
 
   <md-menu ng-if="$ctrl.graviteeUser.id" md-offset="0 54">
     <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" aria-label="Open user menu">
-      <img ng-if="!$ctrl.hasAlert()" ng-src="{{$ctrl.getUserPicture()}}"
+      <img ng-if="!$ctrl.hasAlert()" ng-src="{{$ctrl.getUserPicture()}}" onerror="this.src='assets/default_photo.png'"
            alt="user-picture" gv-theme-element="portal.navbar.user.img"/>
-      <img ng-if="$ctrl.hasAlert()" ng-src="{{$ctrl.getUserPicture()}}"
+      <img ng-if="$ctrl.hasAlert()" ng-src="{{$ctrl.getUserPicture()}}" onerror="this.src='assets/default_photo.png'"
            alt="user-picture" gv-theme-element="portal.navbar.user.img.alert"/>
+
       <span ng-if="$ctrl.hasAlert()" flex class="gv-menu-badge-alert" gv-theme-element="portal.navbar.user.notification"></span>
     </md-button>
     <md-menu-content class="gv-menu-content" ng-mouseleave="$mdMenu.close()">
       <div layout="column" class="gv-menu-content-main">
         <div layout="row">
           <div layout="column" layout-align="start center">
-            <img ng-src="{{$ctrl.getUserPicture()}}" alt="user-picture" />
+            <img ng-src="{{$ctrl.getUserPicture()}}" alt="user-picture" onerror="this.src='assets/default_photo.png'"/>
           </div>
           <div layout="column" layout-align="start start">
             <h5>{{$ctrl.graviteeUser.displayName}}</h5>

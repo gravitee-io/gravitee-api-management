@@ -32,7 +32,9 @@
         flex>
         <md-item-template>
           <md-list-item class="md-2-line contact-item">
-            <img ng-src="{{$ctrl.getUserAvatar(user.id)}}" class="md-avatar" alt="User avatar" />
+            <img ng-src="{{$ctrl.getUserAvatar(user.id)}}"
+                 onerror="this.src='assets/default_photo.png'"
+                 class="md-avatar" alt="User avatar" />
             <div class="md-list-item-text compact">
               <h3>{{user.displayName}}</h3>
             </div>
@@ -48,7 +50,9 @@
       <md-list class="fixedRows" ng-show="$ctrl.usersSelected.length > 0">
         <md-subheader class="md-no-sticky">Selected users</md-subheader>
         <md-list-item class="md-2-line contact-item" ng-repeat="(index, user) in $ctrl.usersSelected">
-          <img ng-src="{{$ctrl.getUserAvatar(user.id)}}" class="md-avatar" alt="{{user.displayName}}" />
+          <img ng-src="{{$ctrl.getUserAvatar(user.id)}}"
+               onerror="this.src='assets/default_photo.png'"
+               class="md-avatar" alt="{{user.displayName}}" />
           <div class="md-list-item-text compact">
             <h3>{{user.displayName}}</h3>
           </div>

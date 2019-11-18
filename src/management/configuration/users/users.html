@@ -45,7 +45,9 @@
         <tr md-row ng-repeat="user in $ctrl.usersPage.data | orderBy: orderUser">
             <td md-cell>
               <a ui-sref="management.settings.user({userId: user.id})">
-                <img ng-src="{{$ctrl.getUserPicture(user)}}" class="md-avatar" alt="User picture" />
+                <img ng-src="{{$ctrl.getUserPicture(user)}}"
+                     onerror="this.src='assets/default_photo.png'"
+                     class="md-avatar" alt="User picture" />
                 {{user.displayName}}
               </a>
             </td>

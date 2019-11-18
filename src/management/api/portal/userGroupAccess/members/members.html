@@ -34,7 +34,9 @@
           <tr md-row ng-repeat="member in apiMembersCtrl.members | orderBy: order">
             <td md-cell>
               <md-list-item >
-                <img ng-src="{{apiMembersCtrl.getMembershipAvatar(member)}}" class="md-avatar" alt="User avatar" />
+                <img ng-src="{{apiMembersCtrl.getMembershipAvatar(member)}}"
+                     onerror="this.src='assets/default_photo.png'"
+                     class="md-avatar" alt="User avatar" />
                 <span ng-if="member.role == 'PRIMARY_OWNER'"><b>{{apiMembersCtrl.getMembershipDisplay(member)}}</b></span>
                 <span ng-if="member.role != 'PRIMARY_OWNER'">{{apiMembersCtrl.getMembershipDisplay(member)}}</span>
               </md-list-item>
@@ -91,7 +93,9 @@
             <tr md-row ng-repeat="member in apiMembersCtrl.groupMembers[grp] | orderBy: order">
               <td md-cell>
                 <md-list-item>
-                  <img ng-src="{{apiMembersCtrl.getMembershipAvatar(member)}}" class="md-avatar" alt="User avatar" />
+                  <img ng-src="{{apiMembersCtrl.getMembershipAvatar(member)}}"
+                       onerror="this.src='assets/default_photo.png'"
+                       class="md-avatar" alt="User avatar" />
                   <span>{{apiMembersCtrl.getMembershipDisplay(member)}}</span>
                 </md-list-item>
               </td>
