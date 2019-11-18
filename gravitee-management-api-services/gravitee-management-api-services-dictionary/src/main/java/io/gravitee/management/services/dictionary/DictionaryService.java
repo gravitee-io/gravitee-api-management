@@ -27,6 +27,7 @@ import io.gravitee.management.model.configuration.dictionary.DictionaryTriggerEn
 import io.gravitee.management.service.event.DictionaryEvent;
 import io.gravitee.management.services.dictionary.provider.http.HttpProvider;
 import io.gravitee.management.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
+import io.gravitee.node.api.Node;
 import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,9 @@ public class DictionaryService extends AbstractService implements EventListener<
 
     @Autowired
     private Vertx vertx;
+
+    @Autowired
+    private Node node;
 
     private final Map<String, Long> timers = new HashMap<>();
 
@@ -104,6 +108,7 @@ public class DictionaryService extends AbstractService implements EventListener<
 
                     HttpProvider provider = new HttpProvider(configuration);
                     provider.setVertx(vertx);
+                    provider.setNode(node);
 
                     refresher.setProvider(provider);
                     refresher.setDictionaryService(dictionaryService);

@@ -27,6 +27,7 @@ import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.event.ApiEvent;
 import io.gravitee.management.services.dynamicproperties.provider.http.HttpProvider;
+import io.gravitee.node.api.Node;
 import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,9 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
     @Autowired
     private Vertx vertx;
+
+    @Autowired
+    private Node node;
 
     private final Map<ApiEntity, Long> timers = new HashMap<>();
 
@@ -100,6 +104,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
                 if (dynamicPropertyService.getProvider() == DynamicPropertyProvider.HTTP) {
                     HttpProvider provider = new HttpProvider(dynamicPropertyService);
                     provider.setVertx(vertx);
+                    provider.setNode(node);
 
                     updater.setProvider(provider);
                     updater.setApiService(apiService);

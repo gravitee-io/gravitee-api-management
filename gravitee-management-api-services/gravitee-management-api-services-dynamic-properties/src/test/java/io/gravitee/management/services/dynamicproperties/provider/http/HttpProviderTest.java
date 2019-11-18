@@ -20,6 +20,7 @@ import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyServ
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.management.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.management.services.dynamicproperties.provider.http.mapper.JoltMapper;
+import io.gravitee.node.api.Node;
 import io.vertx.core.Vertx;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -58,6 +59,9 @@ public class HttpProviderTest {
 
     @Mock
     private JoltMapper mapper;
+
+    @Mock
+    private Node node;
 
     @Before
     public void setUp() {
