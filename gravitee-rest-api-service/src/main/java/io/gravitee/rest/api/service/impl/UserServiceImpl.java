@@ -122,9 +122,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     private GenericNotificationConfigService genericNotificationConfigService;
     @Autowired
     private GroupService groupService;
-    
-    @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
-    private String defaultAvatar;
+
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
 
@@ -390,14 +388,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
         }
 
-        // Return default inline user avatar
+        // Return empty image
         InlinePictureEntity imageEntity = new InlinePictureEntity();
         imageEntity.setType("image/png");
-        try {
-            imageEntity.setContent(IOUtils.toByteArray(new FileInputStream(defaultAvatar)));
-        } catch (IOException ioe) {
-            LOGGER.error("Default icon for API does not exist", ioe);
-        }
         return imageEntity;
     }
 
