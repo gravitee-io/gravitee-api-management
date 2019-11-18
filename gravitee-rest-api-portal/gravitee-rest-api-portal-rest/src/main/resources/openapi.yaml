@@ -18,10 +18,10 @@ servers:
       envId:
         default: DEFAULT
         description: ID of the environment
-tags: 
+tags:
   - name: Analytics
     description: All about application analytics
-  - name: API
+  - name: Api
     description: All about APIs
   - name: Applications
     description: All about applications
@@ -40,11 +40,11 @@ security:
   - BasicAuth: []
   - CookieAuth: []
 
-paths: 
+paths:
   /apis:
     get:
       tags:
-        - API
+        - Api
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
@@ -79,7 +79,7 @@ paths:
       - $ref: '#/components/parameters/apiIdParam'
     get:
       tags:
-        - API
+        - Api
       parameters:
         - $ref: '#/components/parameters/apiIncludeParam'
       summary: Get the API definition
@@ -105,9 +105,9 @@ paths:
       - $ref: '#/components/parameters/apiIdParam'
     get:
       tags:
-        - API
+        - Api
         - Documentation
-      parameters: 
+      parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
         - $ref: '#/components/parameters/homePageQueryParam'
@@ -132,12 +132,12 @@ paths:
       - $ref: '#/components/parameters/pageIdParam'
     get:
       tags:
-        - API
+        - Api
         - Documentation
       summary: Get an API page
       description: |
         Get an API page.
-        
+
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getPageByApiIdAndPageId
       security: []
@@ -157,11 +157,11 @@ paths:
       - $ref: '#/components/parameters/apiIdParam'
     get:
       tags:
-        - API
+        - Api
       summary: Get the API's picture
       description: |
         Get the API's picture.
-        
+
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getPictureByApiId
       security: []
@@ -177,15 +177,15 @@ paths:
       - $ref: '#/components/parameters/apiIdParam'
     get:
       tags:
-        - API
+        - Api
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-        
+
       summary: List plans for an API
       description: |
         List plans for an API.
-        
+
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getApiPlansByApiId
       security: []
@@ -205,14 +205,14 @@ paths:
       - $ref: '#/components/parameters/apiIdParam'
     get:
       tags:
-        - API
+        - Api
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
       summary: List ratings for an API
       description: |
         List ratings for an API.
-        
+
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getApiRatingsByApiId
       security: []
@@ -229,13 +229,13 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - API
+        - Api
       summary: Create a rating for an API
       description: |
         Create a rating for an API.
-        
+
         This API has to be accessible by the current user, otherwise a 404 will be returned.
-        
+
         The current must have API_RATING[CREATE] permission to create a rating.
       operationId: createApiRatingForApi
       requestBody:
