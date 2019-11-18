@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.healthcheck.http;
 import io.gravitee.alert.api.event.Event;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
@@ -34,6 +35,7 @@ import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
 import io.gravitee.gateway.services.healthcheck.eval.assertion.AssertionEvaluation;
 import io.gravitee.gateway.services.healthcheck.http.el.EvaluableHttpResponse;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.utils.NodeUtils;
 import io.gravitee.plugin.alert.AlertEngineService;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
@@ -297,6 +299,10 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
                     step.getRequest().getHeaders().forEach(
                             httpHeader -> healthRequest.headers().set(httpHeader.getName(), httpHeader.getValue()));
                 }
+
+                // add custom headers
+                healthRequest.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
+                healthRequest.putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
 
                 final EndpointStatus.Builder healthBuilder = EndpointStatus
                         .forEndpoint(rule.api(), endpoint.getName())
