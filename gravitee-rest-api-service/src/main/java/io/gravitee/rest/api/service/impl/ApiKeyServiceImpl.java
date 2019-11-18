@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExpiredException;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionClosedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;

@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.DatatypeConverter;
 
+import io.gravitee.rest.api.service.exceptions.*;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,12 +92,6 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
-import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.rest.api.service.exceptions.ApplicationRenewClientSecretException;
-import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
-import io.gravitee.rest.api.service.exceptions.InvalidApplicationTypeException;
-import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;

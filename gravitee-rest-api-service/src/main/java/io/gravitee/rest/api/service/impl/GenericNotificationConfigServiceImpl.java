@@ -21,6 +21,12 @@ import io.gravitee.repository.management.api.GenericNotificationConfigRepository
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
+import io.gravitee.rest.api.model.notification.NotificationConfigType;
+import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.exceptions.BadNotificationConfigException;
+import io.gravitee.rest.api.service.exceptions.NotificationConfigNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

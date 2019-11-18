@@ -179,15 +179,15 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private void assertRoleScopeAllowedForReference(MembershipReference reference, MembershipRole role) {
         RoleEntity roleEntity = roleService.findById(role.getScope(), role.getName());
         if (API.equals(reference.getType())
-                && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())) {
+                && !io.gravitee.rest.api.model.permissions.RoleScope.API.equals(roleEntity.getScope())) {
             throw new NotAuthorizedMembershipException(role.getName());
         } else if (APPLICATION.equals(reference.getType())
-                && !io.gravitee.management.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())) {
+                && !io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())) {
             throw new NotAuthorizedMembershipException(role.getName());
         } else if (GROUP.equals(reference.getType())
-                && !io.gravitee.management.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())
-                && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())
-                && !io.gravitee.management.model.permissions.RoleScope.GROUP.equals(roleEntity.getScope())) {
+                && !io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())
+                && !io.gravitee.rest.api.model.permissions.RoleScope.API.equals(roleEntity.getScope())
+                && !io.gravitee.rest.api.model.permissions.RoleScope.GROUP.equals(roleEntity.getScope())) {
             throw new NotAuthorizedMembershipException(role.getName());
         } else if (GROUP.equals(reference.getType())
                 && SystemRole.PRIMARY_OWNER.name().equals(role.getName())) {
@@ -241,7 +241,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             } else {
                 // We have a user reference, meaning that the user is coming from an external system
                 // User does not exist so we are looking into defined providers
-                Optional<io.gravitee.management.model.providers.User> providerUser = identityService.findByReference(user.getReference());
+                Optional<io.gravitee.rest.api.model.providers.User> providerUser = identityService.findByReference(user.getReference());
                 if (providerUser.isPresent()) {
                     User identityUser = providerUser.get();
 

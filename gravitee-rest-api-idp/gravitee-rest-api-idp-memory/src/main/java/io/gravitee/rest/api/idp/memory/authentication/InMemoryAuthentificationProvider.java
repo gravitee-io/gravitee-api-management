@@ -19,6 +19,7 @@ import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.idp.memory.InMemoryIdentityProvider;
 import io.gravitee.rest.api.idp.memory.authentication.spring.InMemoryAuthenticationProviderConfiguration;
 
+import io.gravitee.rest.api.idp.memory.authentication.spring.InMemoryGraviteeUserDetailsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,7 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
                 List<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roles);
                 userIdx++;
 
-                io.gravitee.management.idp.api.authentication.UserDetails newUser = new io.gravitee.management.idp.api.authentication.UserDetails(username, password, email, authorities);
+                io.gravitee.rest.api.idp.api.authentication.UserDetails newUser = new io.gravitee.rest.api.idp.api.authentication.UserDetails(username, password, email, authorities);
 
                 newUser.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
                 newUser.setSourceId(username);

@@ -17,6 +17,10 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
+
+import java.util.List;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team

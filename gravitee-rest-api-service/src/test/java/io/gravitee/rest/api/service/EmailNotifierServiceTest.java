@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.notification.ApiHook;

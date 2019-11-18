@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.rest.api.model.alert.*;
+
 import java.util.List;
 
 /**

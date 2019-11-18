@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.notifiers.impl;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.model.ApiModelEntity;
 import io.gravitee.rest.api.model.PlanEntity;
@@ -28,11 +31,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import static io.gravitee.rest.api.service.notification.ApiHook.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

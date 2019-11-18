@@ -115,9 +115,9 @@ public class ApiAnalyticsResource extends AbstractResource {
         query.setRootIdentifier(api);
         List<Aggregation> aggregations = analyticsParam.getAggregations();
         if (aggregations != null) {
-            List<io.gravitee.management.model.analytics.query.Aggregation> aggregationList = aggregations
+            List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations
                     .stream()
-                    .map((Function<Aggregation, io.gravitee.management.model.analytics.query.Aggregation>) aggregation -> new io.gravitee.management.model.analytics.query.Aggregation() {
+                    .map((Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>) aggregation -> new io.gravitee.rest.api.model.analytics.query.Aggregation() {
                         @Override
                         public AggregationType type() {
                             return AggregationType.valueOf(aggregation.getType().name().toUpperCase());

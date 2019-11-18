@@ -138,13 +138,11 @@ public class AnalyticsMapperTest {
     public void testConvertCount() {
         HitsAnalytics hitsAnalytics = new HitsAnalytics();
         hitsAnalytics.setHits(1L);
-        hitsAnalytics.setName("nameHits");
-        
+
         //Test
         CountAnalytics analytics = analyticsMapper.convert(hitsAnalytics);
         assertNotNull(analytics);
         assertEquals(1, analytics.getHits().longValue());
-        assertEquals("nameHits", analytics.getName());
     }
     
     @Test

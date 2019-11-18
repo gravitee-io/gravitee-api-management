@@ -217,7 +217,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
     }
 
     /**
-     * convert io.gravitee.management.model.permissions.RoleScope to io.gravitee.repository.management.model.RoleScope
+     * convert io.gravitee.rest.api.model.permissions.RoleScope to io.gravitee.repository.management.model.RoleScope
      * @param roleScope
      * @return
      */
@@ -230,7 +230,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
     }
 
     /**
-     * convert io.gravitee.management.model.permissions.RoleScope to io.gravitee.repository.management.model.MembershipReferenceType
+     * convert io.gravitee.rest.api.model.permissions.RoleScope to io.gravitee.repository.management.model.MembershipReferenceType
      * @param roleScope
      * @return
      */

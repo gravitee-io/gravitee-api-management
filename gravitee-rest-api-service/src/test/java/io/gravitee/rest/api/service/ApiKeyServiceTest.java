@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExpiredException;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiKeyServiceImpl;
@@ -248,7 +249,7 @@ public class ApiKeyServiceTest {
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(plan.getApi()).thenReturn(API_ID);
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);

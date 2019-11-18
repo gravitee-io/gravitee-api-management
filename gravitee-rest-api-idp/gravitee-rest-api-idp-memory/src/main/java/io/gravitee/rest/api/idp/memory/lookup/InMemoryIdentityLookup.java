@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.idp.memory.lookup;
 
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
 import io.gravitee.rest.api.idp.api.identity.IdentityReference;
 import io.gravitee.rest.api.idp.api.identity.User;
 import io.gravitee.rest.api.idp.memory.InMemoryIdentityProvider;
+import io.gravitee.rest.api.idp.memory.authentication.spring.InMemoryGraviteeUserDetailsManager;
 import io.gravitee.rest.api.idp.memory.lookup.spring.InMemoryLookupConfiguration;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -27,9 +29,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -94,7 +94,7 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
                 List<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roles);
                 userIdx++;
 
-                io.gravitee.management.idp.api.authentication.UserDetails newUser = new io.gravitee.management.idp.api.authentication.UserDetails(username, password, email, authorities);
+                io.gravitee.rest.api.idp.api.authentication.UserDetails newUser = new io.gravitee.rest.api.idp.api.authentication.UserDetails(username, password, email, authorities);
 
                 newUser.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
                 newUser.setSourceId(username);

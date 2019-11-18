@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.idp.memory.lookup.spring;
 
+import io.gravitee.rest.api.idp.memory.authentication.spring.InMemoryGraviteeUserDetailsManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

@@ -15,14 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.management.model.analytics.HistogramAnalytics;
-import io.gravitee.management.model.analytics.HitsAnalytics;
-import io.gravitee.management.model.analytics.StatsAnalytics;
-import io.gravitee.management.model.analytics.TopHitsAnalytics;
-import io.gravitee.management.model.analytics.query.CountQuery;
-import io.gravitee.management.model.analytics.query.DateHistogramQuery;
-import io.gravitee.management.model.analytics.query.GroupByQuery;
-import io.gravitee.management.model.analytics.query.StatsQuery;
+
+import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
+import io.gravitee.rest.api.model.analytics.HitsAnalytics;
+import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
+import io.gravitee.rest.api.model.analytics.query.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

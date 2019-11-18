@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;

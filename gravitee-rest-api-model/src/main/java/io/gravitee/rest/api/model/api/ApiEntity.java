@@ -37,7 +37,7 @@ import java.util.*;
 /**
  * --------------------------------------------------------------------------------------------------------------
  * --------------------------------------------------------------------------------------------------------------
- * /!\ Do not forget to update {@see io.gravitee.management.service.jackson.ser.api.ApiDefaultSerializer}
+ * /!\ Do not forget to update {@see io.gravitee.rest.api.service.jackson.ser.api.ApiDefaultSerializer}
  * for each modification of the ApiEntity class to apply export API changes /!\
  * --------------------------------------------------------------------------------------------------------------
  * --------------------------------------------------------------------------------------------------------------

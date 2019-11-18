@@ -16,9 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.alert.AlertEntity;
-import io.gravitee.rest.api.model.alert.NewAlertEntity;
-import io.gravitee.rest.api.model.alert.UpdateAlertEntity;
+import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
@@ -39,9 +37,9 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 import java.util.List;
 
-import static io.gravitee.management.model.alert.AlertReferenceType.APPLICATION;
-import static io.gravitee.management.model.permissions.RolePermission.APPLICATION_ALERT;
-import static io.gravitee.management.model.permissions.RolePermissionAction.READ;
+import static io.gravitee.rest.api.model.alert.AlertReferenceType.APPLICATION;
+import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ALERT;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.standalone.spring;
 
+import io.gravitee.node.container.NodeFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -39,6 +40,7 @@ import io.gravitee.rest.api.portal.standalone.node.ManagementNode;
         RestPortalConfiguration.class
 })
 public class StandaloneConfiguration {
+
     @Bean
     public NodeFactory node() {
         return new NodeFactory(ManagementNode.class);

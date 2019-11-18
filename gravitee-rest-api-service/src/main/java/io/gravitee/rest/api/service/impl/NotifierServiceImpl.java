@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.notifier.NotifierPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
@@ -22,9 +26,12 @@ import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
 import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
+import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.PortalNotificationService;
+import io.gravitee.rest.api.service.exceptions.NotifierNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
@@ -59,10 +66,10 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
 
     private final Logger LOGGER = LoggerFactory.getLogger(NotifierServiceImpl.class);
 
-    private static final io.gravitee.management.model.NotifierEntity DEFAULT_EMAIL_NOTIFIER;
+    private static final io.gravitee.rest.api.model.NotifierEntity DEFAULT_EMAIL_NOTIFIER;
 
     static {
-        DEFAULT_EMAIL_NOTIFIER = new io.gravitee.management.model.NotifierEntity();
+        DEFAULT_EMAIL_NOTIFIER = new io.gravitee.rest.api.model.NotifierEntity();
         DEFAULT_EMAIL_NOTIFIER.setId(DEFAULT_EMAIL_NOTIFIER_ID);
         DEFAULT_EMAIL_NOTIFIER.setName("System email");
         DEFAULT_EMAIL_NOTIFIER.setDescription("System email notifier");
@@ -158,12 +165,12 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     }
 
     @Override
-    public Set<io.gravitee.management.model.NotifierEntity> findAll() {
+    public Set<io.gravitee.rest.api.model.NotifierEntity> findAll() {
         try {
             LOGGER.debug("List all notifiers");
             final Collection<NotifierPlugin> plugins = notifierManager.findAll();
 
-            Set<io.gravitee.management.model.NotifierEntity> notifiers = plugins.stream()
+            Set<io.gravitee.rest.api.model.NotifierEntity> notifiers = plugins.stream()
                     .map(plugin -> convert(plugin, false))
                     .collect(Collectors.toSet());
             notifiers.add(DEFAULT_EMAIL_NOTIFIER);
@@ -176,7 +183,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     }
 
     @Override
-    public io.gravitee.management.model.NotifierEntity findById(String notifier) {
+    public io.gravitee.rest.api.model.NotifierEntity findById(String notifier) {
         LOGGER.debug("Find policy by ID: {}", notifier);
 
         if (DEFAULT_EMAIL_NOTIFIER_ID.equals(notifier)) {
@@ -208,8 +215,8 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         }
     }
 
-    private io.gravitee.management.model.NotifierEntity convert(NotifierPlugin plugin, boolean withPlugin) {
-        io.gravitee.management.model.NotifierEntity entity = new io.gravitee.management.model.NotifierEntity();
+    private io.gravitee.rest.api.model.NotifierEntity convert(NotifierPlugin plugin, boolean withPlugin) {
+        io.gravitee.rest.api.model.NotifierEntity entity = new io.gravitee.rest.api.model.NotifierEntity();
 
         entity.setId(plugin.id());
         entity.setDescription(plugin.manifest().description());

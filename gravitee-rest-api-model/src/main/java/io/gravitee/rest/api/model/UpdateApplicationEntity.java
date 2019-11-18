@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.gravitee.management.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.standalone.spring;
 
+import io.gravitee.node.container.NodeFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

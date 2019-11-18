@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
+import io.gravitee.rest.api.management.rest.resource.quality.QualityRulesResource;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;

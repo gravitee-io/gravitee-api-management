@@ -70,7 +70,6 @@ public class AnalyticsMapper {
     public CountAnalytics convert(HitsAnalytics analytics) {
         CountAnalytics analyticsItem = new CountAnalytics();
         analyticsItem.setHits(analytics.getHits());
-        analyticsItem.setName(analytics.getName());
         return analyticsItem;
     }
 

@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
@@ -27,7 +30,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -149,7 +154,7 @@ public class ApiQualityMetricHealthcheckTest {
         when(proxy.getGroups()).thenReturn(Collections.singleton(endpointGroup));
         final HttpEndpoint endpoint1 = mock(HttpEndpoint.class);
         final HttpEndpoint endpoint2 = mock(HttpEndpoint.class);
-        when(endpointGroup.getEndpoints()).thenReturn(new HashSet<>(asList(endpoint1, endpoint2)));
+        when(endpointGroup.getEndpoints()).thenReturn(new HashSet<>(Arrays.asList(endpoint1, endpoint2)));
 
         final EndpointHealthCheckService endpointHealthCheckService1 = mock(EndpointHealthCheckService.class);
         when(endpoint1.getHealthCheck()).thenReturn(endpointHealthCheckService1);

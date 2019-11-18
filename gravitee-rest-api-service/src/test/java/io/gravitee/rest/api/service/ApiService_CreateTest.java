@@ -175,7 +175,7 @@ public class ApiService_CreateTest {
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
         verify(membershipRepository, times(1)).create(any());
-        verify(auditService, times(1)).createApiAuditLog(any(), any(), eq(API_CREATED), any(), eq(null) , any());
+        verify(auditService, times(1)).createApiAuditLog(any(), any(), eq(Api.AuditEvent.API_CREATED), any(), eq(null) , any());
         verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 }

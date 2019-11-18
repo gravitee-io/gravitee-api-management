@@ -17,12 +17,15 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam;
+import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam.LifecycleAction;
 import io.gravitee.rest.api.management.rest.resource.param.ReviewActionParam;
+import io.gravitee.rest.api.management.rest.resource.param.ReviewActionParam.ReviewAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.DuplicateApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
