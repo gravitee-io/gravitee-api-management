@@ -129,9 +129,14 @@ public class EnvironmentResource extends AbstractResource {
     public PlatformTicketsResource getPlatformTicketsResource() {
         return resourceContext.getResource(PlatformTicketsResource.class);
     }
-    
+
     @Path("entrypoints")
     public PortalEntryPointsResource getPortalEntryPointsResource() {
         return resourceContext.getResource(PortalEntryPointsResource.class);
+    }
+
+    @Path("notifiers")
+    public NotifiersResource getNotifiersResource() {
+        return resourceContext.getResource(NotifiersResource.class);
     }
 }

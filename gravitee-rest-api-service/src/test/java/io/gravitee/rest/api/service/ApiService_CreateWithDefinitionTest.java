@@ -110,7 +110,7 @@ public class ApiService_CreateWithDefinitionTest {
 
     @Test
     public void shouldCreateImportApiWithMembersAndPages() throws IOException, TechnicalException {
-        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+members+pages.json");
+        URL url =  Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members+pages.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
         Api api = new Api();
