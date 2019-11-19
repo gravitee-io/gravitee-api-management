@@ -115,6 +115,10 @@ class GroupService {
     return this.$http.get(`${this.groupsURL}/${group}/memberships?type=${type}`)
   }
 
+  associate(group: string, type: string): ng.IPromise<any> {
+    return this.$http.post(`${this.groupsURL}/${group}/memberships?type=${type}`)
+  }
+
   getInvitationsURL(groupId: string): string {
     return this.groupsURL + '/' + groupId + '/invitations/';
   };

@@ -27,40 +27,28 @@
         <thead md-head md-order="orderGrp">
         <tr md-row>
             <th md-column width="30%" md-order-by="name">Name</th>
-            <th md-column width="30%" style="text-align: center;">Associate to every new API</th>
-            <th md-column width="30%"  style="text-align: center;">Associate to every new Application</th>
-            <th md-column width="10%">Action</th>
+            <th md-column width="30%" style="text-align: center;">Associated to new API</th>
+            <th md-column width="30%"  style="text-align: center;">Associated to new application</th>
+            <th md-column width="10%"></th>
         </tr>
         </thead>
         <tbody md-body>
         <tr md-row
             ng-repeat="group in $ctrl.groups | orderBy: orderGrp">
             <td md-cell>
-                <a ng-href="{{$ctrl.selectGroupUrl(group)}}">
+                <a ng-click="$ctrl.selectGroupUrl(group)">
                     {{group.name}}
                 </a>
             </td>
             <td md-cell style="text-align: center;">
-                <md-checkbox ng-model="$ctrl.apiByDefault[group.id]"
-                             ng-change="$ctrl.saveEventRules(group)"
-                             ng-click="$event.stopPropagation()"
-                             aria-label="Default API">
-                </md-checkbox>
+              <ng-md-icon ng-if="$ctrl.hasEvent(group, 'API_CREATE')" icon="done"></ng-md-icon>
             </td>
             <td md-cell style="text-align: center;">
-                <md-checkbox ng-model="$ctrl.applicationByDefault[group.id]"
-                             ng-change="$ctrl.saveEventRules(group)"
-                             ng-click="$event.stopPropagation()"
-                             aria-label="Default Application">
-                </md-checkbox>
+              <ng-md-icon ng-if="$ctrl.hasEvent(group, 'APPLICATION_CREATE')" icon="done"></ng-md-icon>
             </td>
             <td md-cell ng-click="$event.stopPropagation()" layout="row" style="padding: 10px 0;">
               <span ng-if="group.manageable">
-                <md-tooltip md-direction="top">edit</md-tooltip>
-                <ng-md-icon icon="mode_edit" ng-click="$ctrl.showRenameGroupModal($event, group)" aria-label="rename-group"></ng-md-icon>
-              </span>
-              <span ng-if="group.manageable">
-                <md-tooltip md-direction="top">delete</md-tooltip>
+                <md-tooltip md-direction="top">Delete</md-tooltip>
                 <ng-md-icon icon="delete" ng-click="$ctrl.removeGroup($event, group.id, group.name)" aria-label="delete-group"></ng-md-icon>
               </span>
             </td>
@@ -79,7 +67,7 @@
     <md-button permission permission-only="['management-group-c']"
                ng-class="{'md-fab-bottom-right md-fab-scrollable': $ctrl.groups.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}" class="md-fab"
                aria-label="Add"
-               ng-click="$ctrl.showAddGroupModal()">
+               ng-click="$ctrl.create()">
         <ng-md-icon icon="add"></ng-md-icon>
     </md-button>
 </div>

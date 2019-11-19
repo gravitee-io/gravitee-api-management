@@ -188,7 +188,11 @@ function configurationRouterConfig($stateProvider) {
       }
     })
     .state('management.settings.groups', {
-      url: '/groups',
+      abstract: true,
+      url: '/groups'
+    })
+    .state('management.settings.groups.list', {
+      url: '/',
       component: 'groups',
       resolve: {
         groups: (GroupService: GroupService) =>
@@ -205,8 +209,24 @@ function configurationRouterConfig($stateProvider) {
         }
       }
     })
-    .state('management.settings.group', {
-      url: '/groups/:groupId',
+    .state('management.settings.groups.create', {
+      url: '/new',
+      component: 'group',
+      resolve: {
+        tags: (TagService: TagService) => TagService.list().then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-group'
+        },
+        perms: {
+          only: ['management-group-r']
+        }
+      }
+    })
+    .state('management.settings.groups.group', {
+      url: '/:groupId',
       component: 'group',
       resolve: {
         group: (GroupService: GroupService, $stateParams) =>

@@ -160,8 +160,7 @@ import ViewController from './configuration/views/view/view.controller';
 import ViewService from '../services/view.service';
 import DeleteViewDialogController from '../management/configuration/views/delete.view.dialog.controller';
 import DeleteAPIViewDialogController from './configuration/views/view/delete-api-view.dialog.controller';
-import DialogAddGroupController from '../management/configuration/groups/add-group.dialog.controller';
-import DialogAddGroupMemberController from '../management/configuration/group/addMemberDialog.controller';
+import DialogAddGroupMemberController from './configuration/groups/group/addMemberDialog.controller';
 import RegistrationController from '../user/registration/registration.controller';
 import ConfirmController from '../user/registration/confirm/confirm.controller';
 import ResetPasswordController from '../user/resetPassword/resetPassword.controller';
@@ -287,7 +286,7 @@ import NewUserComponent from '../management/configuration/user/new/new-user.comp
 import DialogAddUserGroupController from '../management/configuration/user/dialog/addusergroup.dialog.controller';
 // Groups
 import GroupsComponent from '../management/configuration/groups/groups.component';
-import GroupComponent from '../management/configuration/group/group.component';
+import GroupComponent from './configuration/groups/group/group.component';
 import GroupService from '../services/group.service';
 // Dictionaries
 import DictionaryService from '../services/dictionary.service';
@@ -567,7 +566,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DeleteTenantDialogController', DeleteTenantDialogController)
   .component('groups', GroupsComponent)
   .component('group', GroupComponent)
-  .controller('DialogAddGroupController', DialogAddGroupController)
   .controller('DialogAddGroupMemberController', DialogAddGroupMemberController)
   .controller('RegistrationController', RegistrationController)
   .controller('ConfirmController', ConfirmController)

@@ -109,7 +109,7 @@ const SettingsComponent: ng.IComponentOptions = {
       groups: {
         perm: UserService.isUserHasPermissions(
           ['management-group-r']),
-        goTo: 'management.settings.groups'
+        goTo: 'management.settings.groups.list'
       },
       roles: {
         perm: UserService.isUserHasPermissions(
