@@ -20,7 +20,7 @@
         <h1 class="user">
           <img ng-src="{{$ctrl.getUserPicture()}}" class="md-avatar" alt="User picture" />{{$ctrl.selectedUser.displayName}}
 
-          <a ui-sref="management.settings.users" style="font-size: 12px; font-weight: normal;">Back to users</a>
+          <a ng-click="$ctrl.backToUsers()" style="font-size: 12px; font-weight: normal;">Back to users</a>
         </h1>
     </div>
 

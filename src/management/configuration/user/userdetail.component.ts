@@ -19,6 +19,7 @@ import UserService from "../../../services/user.service";
 import RoleService from "../../../services/role.service";
 import _ = require('lodash');
 import {IScope} from "angular";
+import {StateService} from "@uirouter/core";
 
 interface IUserDetailComponentScope extends ng.IScope {
   selectedMgmtRole: string,
@@ -43,7 +44,9 @@ const UserDetailComponent: ng.IComponentOptions = {
     UserService: UserService,
     RoleService: RoleService,
     $scope: IUserDetailComponentScope,
-    $rootScope: IScope
+    $rootScope: IScope,
+    $window,
+    $state: StateService
   ) {
     'ngInject';
     this.$rootScope = $rootScope;
@@ -178,6 +181,12 @@ const UserDetailComponent: ng.IComponentOptions = {
         }
       );
     };
+
+    this.backToUsers = () => {
+      let page = $window.localStorage['usersTablePage'] || 1;
+      let query = $window.localStorage['usersTableQuery'] || undefined;
+      $state.go('management.settings.users', {q: query, page: page});
+    }
   }
 };
 
