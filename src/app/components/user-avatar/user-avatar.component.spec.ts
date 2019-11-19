@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {User} from 'ng-portal-webclient/dist';
+import {User} from '@gravitee/ng-portal-webclient';
 import {UserAvatarComponent} from './user-avatar.component';
 import {SafePipe} from '../../pipes/safe.pipe';
 

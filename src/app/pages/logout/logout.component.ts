@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { AuthenticationService } from 'ng-portal-webclient/dist';
+import { AuthenticationService } from '@gravitee/ng-portal-webclient';
 import { Router } from '@angular/router';
 import { CurrentUserService } from '../../services/current-user.service';
 

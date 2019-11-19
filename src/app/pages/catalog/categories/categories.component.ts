@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {Component, OnInit} from '@angular/core';
-import {PortalService, View} from 'ng-portal-webclient/dist';
+import {PortalService, View} from '@gravitee/ng-portal-webclient';
 
 import '@gravitee/ui-components/wc/gv-card-category';
 

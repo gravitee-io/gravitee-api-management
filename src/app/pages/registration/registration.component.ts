@@ -15,10 +15,9 @@
  */
 import {Component, OnInit} from '@angular/core';
 import {FormGroup, FormBuilder} from '@angular/forms';
-import {UsersService, RegisterUserInput} from 'ng-portal-webclient/dist';
+import {UsersService, RegisterUserInput} from '@gravitee/ng-portal-webclient';
 import {TranslateService} from '@ngx-translate/core';
 import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
-import {RegisterNewUserRequestParams} from 'ng-portal-webclient/api/users.service';
 
 @Component({
   selector: 'app-registration',

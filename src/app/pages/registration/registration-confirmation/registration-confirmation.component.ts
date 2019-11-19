@@ -16,10 +16,9 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {ActivatedRoute} from '@angular/router';
-import {UsersService, FinalizeRegistrationInput} from 'ng-portal-webclient/dist';
+import {UsersService, FinalizeRegistrationInput} from '@gravitee/ng-portal-webclient';
 import {TranslateService} from '@ngx-translate/core';
 import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
-import {FinalizeUserRegistrationRequestParams} from 'ng-portal-webclient/api/users.service';
 
 @Component({
   selector: 'app-registration-confirmation',

@@ -19,7 +19,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {Router} from '@angular/router';
 import {CurrentUserService} from '../../services/current-user.service';
 import {RouteService, RouteType} from '../../services/route.service';
-import {User} from 'ng-portal-webclient/dist';
+import {User} from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-nav';
 import '@gravitee/ui-components/wc/gv-user-menu';
 import '@gravitee/ui-components/wc/gv-user-menu';

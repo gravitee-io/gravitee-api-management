@@ -17,7 +17,7 @@ import {Component, OnInit} from '@angular/core';
 import {FormGroup, FormBuilder} from '@angular/forms';
 import {Router} from '@angular/router';
 
-import {AuthenticationService, PortalService, IdentityProvider} from 'ng-portal-webclient/dist';
+import {AuthenticationService, PortalService, IdentityProvider} from '@gravitee/ng-portal-webclient';
 
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';

@@ -15,7 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 
-import {UserService, User} from 'ng-portal-webclient/dist';
+import {UserService, User} from '@gravitee/ng-portal-webclient';
 import { CurrentUserService } from '../../services/current-user.service';
 
 @Component({

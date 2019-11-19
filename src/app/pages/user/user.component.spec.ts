@@ -18,7 +18,7 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {UserComponent} from './user.component';
 import {provideMagicalMock} from '../../test/mock.helper.spec';
 import {CurrentUserService} from '../../services/current-user.service';
-import {UserService} from 'ng-portal-webclient/dist';
+import {UserService} from '@gravitee/ng-portal-webclient';
 import {TranslateTestingModule} from '../../test/helper.spec';
 import {UserAvatarComponent} from '../../components/user-avatar/user-avatar.component';
 import {SafePipe} from '../../pipes/safe.pipe';

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {Component, Input, OnInit} from '@angular/core';
-import {User} from 'ng-portal-webclient/dist';
+import {User} from '@gravitee/ng-portal-webclient';
 import jdenticon from 'jdenticon';
 
 @Component({
