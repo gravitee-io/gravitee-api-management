@@ -30,11 +30,13 @@ public class NewGroupEntity {
     private String name;
     @JsonProperty("event_rules")
     private List<GroupEventRuleEntity> eventRules;
+    @JsonProperty("max_invitation")
     private Integer maxInvitation;
     @JsonProperty("lock_api_role")
     private boolean lockApiRole;
     @JsonProperty("lock_application_role")
     private boolean lockApplicationRole;
+    @JsonProperty("system_invitation")
     private boolean systemInvitation;
     @JsonProperty("email_invitation")
     private boolean emailInvitation;

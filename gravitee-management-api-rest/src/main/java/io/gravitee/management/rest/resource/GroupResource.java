@@ -139,6 +139,25 @@ public class GroupResource extends AbstractResource {
         return Response.noContent().build();
     }
 
+    @POST
+    @Path("/memberships")
+    @Produces(APPLICATION_JSON)
+    @ApiOperation(value = "Associate a group to existing APIs or Applications")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Group successfully updated", response = GroupEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.UPDATE)
+    })
+    public GroupEntity associate(@PathParam("group") String group,
+                                 @QueryParam("type") String type) {
+        final GroupEntity groupEntity = checkRights(group);
+
+        groupService.associate(group, type);
+
+        return groupEntity;
+    }
+
     private GroupEntity checkRights(final String group) {
         final GroupEntity groupEntity = get(group);
         if (!groupEntity.isManageable()) {
