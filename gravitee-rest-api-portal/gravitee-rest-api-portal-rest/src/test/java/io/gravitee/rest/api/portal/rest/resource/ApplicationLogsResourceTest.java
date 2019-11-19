@@ -79,8 +79,8 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         appMetadata.put(APPLICATION, APPLICATION);
         metadata.put(APPLICATION, appMetadata);
         HashMap<String, String> listMetadata = new HashMap<String, String>();
-        listMetadata.put(AbstractResource.METADATA_LIST_TOTAL_KEY, "2");
-        metadata.put(AbstractResource.METADATA_LIST_KEY, listMetadata);
+        listMetadata.put(AbstractResource.METADATA_DATA_TOTAL_KEY, "2");
+        metadata.put(AbstractResource.METADATA_DATA_KEY, listMetadata);
         searchResponse.setMetadata(metadata);
         
         doReturn(searchResponse).when(logsService).findByApplication(eq(APPLICATION), any());

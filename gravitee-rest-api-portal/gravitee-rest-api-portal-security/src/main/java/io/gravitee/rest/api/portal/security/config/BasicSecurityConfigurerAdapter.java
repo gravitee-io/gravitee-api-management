@@ -215,6 +215,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                 // API requests
                 .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").permitAll()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/apis/_search").permitAll()
 
                 // Pages
                 .antMatchers(HttpMethod.GET, uriPrefix + "/pages/**").permitAll()

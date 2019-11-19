@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.TopApiEntity;
@@ -35,13 +36,12 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.TopApiService;
 
 import javax.inject.Inject;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,23 +58,24 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private ApiMapper apiMapper;
-    
+
     @Inject
     private ApplicationService applicationService;
-    
+
     @Inject
     private SubscriptionService subscriptionService;
-    
+
     @Inject
     private RatingService ratingService;
 
     @Inject
     private TopApiService topApiService;
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
-        Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), createQueryFromParam(apisParam));
+        Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(),
+                createQueryFromParam(apisParam));
 
         FilteredApi filteredApis = filterByCategory(apis, apisParam.getCategory(), apisParam.getExcludedCategory());
         
@@ -86,9 +87,29 @@ public class ApisResource extends AbstractResource {
         return createListResponse(apisList, paginationParam, filteredApis.getMetadata());
     }
 
+    @POST
+    @Path("_search")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response searchApis(@NotNull(message = "Input must not be null.") @QueryParam("q") String query,
+            @BeanParam PaginationParam paginationParam) {
+        Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(),
+                createQueryFromParam(null));
+
+        Map<String, Object> filters = new HashMap<>();
+        filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
+
+        try {
+            List<Api> apisList = apiService.search(query, filters).stream().map(apiMapper::convert)
+                    .map(this::addApiLinks).collect(Collectors.toList());
+            return createListResponse(apisList, paginationParam);
+        } catch (TechnicalException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
+        }
+    }
+
     private ApiQuery createQueryFromParam(ApisParam apisParam) {
         final ApiQuery apiQuery = new ApiQuery();
-        if(apisParam != null) {
+        if (apisParam != null) {
             apiQuery.setContextPath(apisParam.getContextPath());
             apiQuery.setLabel(apisParam.getLabel());
             apiQuery.setName(apisParam.getName());
@@ -131,14 +152,12 @@ public class ApisResource extends AbstractResource {
                     break;
             }
         }
-        
-        //No category was applied but at least, the list is ordered
+
+        // No category was applied but at least, the list is ordered
         return new FilteredApi(
-                apis.stream()
-                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-                .collect(Collectors.toList())
-                ,null
-                );
+                apis.stream().sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+                        .collect(Collectors.toList()),
+                null);
     }
 
     private FilteredApi getTopApis(Collection<ApiEntity> apis, boolean excluded) {
@@ -157,14 +176,14 @@ public class ApisResource extends AbstractResource {
         //find all subscribed apis
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApis(apis.stream().map(ApiEntity::getId).collect(Collectors.toList()));
-        
-        //group by apis
+
+        // group by apis
         Map<String, Long> subscribedApiWithCount = subscriptionService.search(subscriptionQuery).stream()
-            .collect(Collectors.groupingBy(SubscriptionEntity::getApi, Collectors.counting()));
-        
-        //link an api with its nb of subscritions
+                .collect(Collectors.groupingBy(SubscriptionEntity::getApi, Collectors.counting()));
+
+        // link an api with its nb of subscritions
         Map<ApiEntity, Long> apisWithCount = new HashMap<>();
-        Map<String,  Map<String, String>> apisMetadata = new HashMap<>();
+        Map<String, Map<String, String>> apisMetadata = new HashMap<>();
         Map<String, String> subscriptionsMetadata = new HashMap<>();
         apisMetadata.put("subscriptions", subscriptionsMetadata);
         apis.forEach(api -> {
@@ -177,25 +196,23 @@ public class ApisResource extends AbstractResource {
                 subscriptionsMetadata.put(api.getId(), apiSubscriptionsCount == null ? "0" : apiSubscriptionsCount.toString());
             }
         });
-        
-        //order the list
-        return new FilteredApi(
-                apisWithCount.entrySet().stream()
-                  .sorted(Map.Entry.<ApiEntity, Long>comparingByValue().reversed()
-                          .thenComparing(Map.Entry.<ApiEntity, Long>comparingByKey(Comparator.comparing(ApiEntity::getName))))
-                  .map(Map.Entry::getKey)
-                  .collect(Collectors.toList())
-                , apisMetadata);
-        
+
+        // order the list
+        return new FilteredApi(apisWithCount.entrySet().stream()
+                .sorted(Map.Entry.<ApiEntity, Long>comparingByValue().reversed().thenComparing(
+                        Map.Entry.<ApiEntity, Long>comparingByKey(Comparator.comparing(ApiEntity::getName))))
+                .map(Map.Entry::getKey).collect(Collectors.toList()), apisMetadata);
+
     }
 
     protected FilteredApi getRatedApis(Collection<ApiEntity> apis, boolean excluded) {
         //keep apis with ratings
         Map<ApiEntity, RatingSummaryEntity> ratings = new HashMap<>();
-        //APIPortal: should create a specific service to retrieve all the information in one call to the repository
-        apis.forEach(api-> {
+        // APIPortal: should create a specific service to retrieve all the information
+        // in one call to the repository
+        apis.forEach(api -> {
             RatingSummaryEntity apiRatingSummary = ratingService.findSummaryByApi(api.getId());
-            if(apiRatingSummary != null && apiRatingSummary.getNumberOfRatings()>0) {
+            if (apiRatingSummary != null && apiRatingSummary.getNumberOfRatings() > 0) {
                 ratings.put(api, apiRatingSummary);
             }
         });
@@ -248,29 +265,29 @@ public class ApisResource extends AbstractResource {
     }
 
     private Api addApiLinks(Api api) {
-        return api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())));
+        return api.links(
+                apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())));
     }
-    
-    
+
     @Path("{apiId}")
     public ApiResource getApiResource() {
         return resourceContext.getResource(ApiResource.class);
     }
-    
+
     private class FilteredApi {
         Collection<ApiEntity> filteredApis;
         Map<String, Map<String, String>> metadata;
-        
-        
+
         public FilteredApi(Collection<ApiEntity> filteredApis, Map<String, Map<String, String>> metadata) {
             super();
             this.filteredApis = filteredApis;
             this.metadata = metadata;
         }
-        
+
         public Collection<ApiEntity> getFilteredApis() {
             return filteredApis;
         }
+
         public Map<String, Map<String, String>> getMetadata() {
             return metadata;
         }

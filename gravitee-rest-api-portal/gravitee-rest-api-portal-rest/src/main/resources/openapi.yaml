@@ -75,6 +75,29 @@ paths:
                 $ref: '#/components/schemas/ApisResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /apis/_search:
+    post:
+      tags:
+        - Api
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/apiQueryParam'
+      summary: Search APIs with a query
+      description: |
+        Same as `/apis` but with a search query as a parameter. Search for API using the search engine.
+        Supports pagination.
+      operationId: searchApis
+      security: []
+      responses:
+        200:
+          description: Search accessible APIs for current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApisResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
@@ -1752,6 +1775,13 @@ components:
           - TRENDINGS: not subscribed APIs. Sorted by number of subscriptions DESC, alphabetic order.
       schema:
         $ref: '#/components/schemas/CategoryApiQuery'
+    apiQueryParam:
+      name: q
+      in: query
+      required: true
+      description: query string to be used in the search engine
+      schema:
+        type: string
     apiIncludeParam:
       name: include
       in: query

@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.ws.rs.BadRequestException;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,10 +27,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.ws.rs.BadRequestException;
-
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -38,27 +35,37 @@ import org.junit.Test;
  */
 public class PaginationFilteringTest {
 
-    
-    AbstractResource paginatedResourceForTest = new AbstractResource() {};
+    AbstractResource paginatedResourceForTest = new AbstractResource() {
+    };
     List<Integer> initList = Collections.emptyList();
 
     @Before
     public void init() {
         initList.clear();
     }
-    
+
     @Test
     public void testPaginatedList() {
         Integer page = 3;
         Integer size = 10;
-        
-        initList = initIntegerList(100);
-        
-        List<Integer> resultList = paginatedResourceForTest.paginateResultList(initList, page, size);
+        Integer totalItems = 100;
+
+        initList = initIntegerList(totalItems);
+        Map<String, String> paginatedMetadata = new HashMap<>();
+
+        List<Integer> resultList = paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
         assertEquals(10, resultList.size());
         assertEquals(20, resultList.get(0).intValue());
         assertEquals(29, resultList.get(9).intValue());
-        
+
+        assertEquals(String.valueOf(page),
+                paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_CURRENT_PAGE_KEY));
+        assertEquals("21", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_FIRST_ITEM_INDEX_KEY));
+        assertEquals("30", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_LAST_ITEM_INDEX_KEY));
+        assertEquals("10", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_SIZE_KEY));
+        assertEquals("100", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_KEY));
+        assertEquals("10", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_PAGE_KEY));
+
         assertFalse(initList == resultList);
     }
 
@@ -66,80 +73,87 @@ public class PaginationFilteringTest {
     public void testShortList() {
         Integer page = 1;
         Integer size = 10;
-        initList = initIntegerList(8);
-        
-        List<Integer> resultList = paginatedResourceForTest.paginateResultList(initList, page, size);
+        Integer totalItems = 8;
+
+        initList = initIntegerList(totalItems);
+        Map<String, String> paginatedMetadata = new HashMap<>();
+
+        List<Integer> resultList = paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
         assertEquals(8, resultList.size());
         assertEquals(0, resultList.get(0).intValue());
         assertEquals(7, resultList.get(7).intValue());
-        
+
+        assertEquals(String.valueOf(page), paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_CURRENT_PAGE_KEY));
+        assertEquals("1", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_FIRST_ITEM_INDEX_KEY));
+        assertEquals("8", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_LAST_ITEM_INDEX_KEY));
+        assertEquals("10", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_SIZE_KEY));
+        assertEquals("8", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_KEY));
+        assertEquals("1", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_PAGE_KEY));
+
         assertFalse(initList == resultList);
     }
-    
-    @Test
-    public void testNoFilteringEmptyList() {
-        Integer page = 1;
-        Integer size = 10;
-        
-        List<Integer> resultList = paginatedResourceForTest.paginateResultList(initList, page, size);
-        assertEquals(0, resultList.size());
-        
-        assertTrue(initList == resultList);
 
-    }
-    
     @Test(expected = BadRequestException.class)
     public void shouldHaveBadRequestExceptionPageGreaterThanMaxPage() {
         Integer page = 20;
         Integer size = 10;
-        initList = initIntegerList(10);
-        
-        paginatedResourceForTest.paginateResultList(initList, page, size);
+        Integer totalItems = 10;
+
+        initList = initIntegerList(totalItems);
+        Map<String, String> paginatedMetadata = new HashMap<>();
+
+        paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
     }
 
     @Test(expected = BadRequestException.class)
     public void shouldHaveBadRequestExceptionPageSmallThanMinPage() {
         Integer page = 0;
         Integer size = 10;
-        initList = initIntegerList(10);
-        
-        paginatedResourceForTest.paginateResultList(initList, page, size);
+        Integer totalItems = 10;
+
+        initList = initIntegerList(totalItems);
+        Map<String, String> paginatedMetadata = new HashMap<>();
+
+        paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
     }
-    
+
     private List<Integer> initIntegerList(int n) {
-        return IntStream.rangeClosed(0, n-1).boxed().collect(Collectors.toList());
+        return IntStream.rangeClosed(0, n - 1).boxed().collect(Collectors.toList());
     }
-    
+
     @Test
     public void testComputeMetadataWithoutInitList() {
-        initList = initIntegerList(13);
+        Map<String, String> dataMetadata = new HashMap<>();
+        dataMetadata.put("KEY", "VALUE");
+        Map<String, String> paginationMetadata = new HashMap<>();
+        paginationMetadata.put("KEY", "VALUE");
 
-        Map<String, Map<String, String>> metadata = paginatedResourceForTest.computeMetadata(initList, null);
+        Map<String, Map<String, String>> metadata = paginatedResourceForTest.computeMetadata(null, dataMetadata, paginationMetadata);
         assertNotNull(metadata);
-        assertEquals(1, metadata.size());
-        Map<String, String> listMetadata = metadata.get(AbstractResource.METADATA_LIST_KEY);
-        assertNotNull(listMetadata);
-        assertEquals(1, listMetadata.size());
-        assertEquals("13", listMetadata.get(AbstractResource.METADATA_LIST_TOTAL_KEY));
+        assertEquals(2, metadata.size());
 
+        assertEquals(dataMetadata, metadata.get(AbstractResource.METADATA_DATA_KEY));
+        assertEquals(paginationMetadata, metadata.get(AbstractResource.METADATA_PAGINATION_KEY));
     }
-    
+
     @Test
     public void testComputeMetadataWithInitList() {
-        initList = initIntegerList(13);
         Map<String, Map<String, String>> initMetadata = new HashMap<>();
         Map<String, String> testMetadata = new HashMap<>();
         testMetadata.put("foo", "bar");
         initMetadata.put("test", testMetadata);
-        
-        Map<String, Map<String, String>> metadata = paginatedResourceForTest.computeMetadata(initList, initMetadata);
+
+        Map<String, String> dataMetadata = new HashMap<>();
+        dataMetadata.put("KEY", "VALUE");
+        Map<String, String> paginationMetadata = new HashMap<>();
+
+        Map<String, Map<String, String>> metadata = paginatedResourceForTest.computeMetadata(initMetadata, dataMetadata, paginationMetadata);
+
         assertNotNull(metadata);
         assertEquals(2, metadata.size());
-        Map<String, String> listMetadata = metadata.get(AbstractResource.METADATA_LIST_KEY);
-        assertNotNull(listMetadata);
-        assertEquals(1, listMetadata.size());
-        assertEquals("13", listMetadata.get(AbstractResource.METADATA_LIST_TOTAL_KEY));
-        
+
+        assertEquals(dataMetadata, metadata.get(AbstractResource.METADATA_DATA_KEY));
+
         assertEquals(testMetadata, metadata.get("test"));
 
     }
