@@ -39,12 +39,9 @@ export class APIRequestInterceptor implements HttpInterceptor {
       () => {},
       (err: any) => {
         if (err instanceof HttpErrorResponse) {
-          if (err.status !== 401) {
-            return;
+          if (err.status === 401) {
+            this.currentUserService.revokeUser();
           }
-
-          this.currentUserService.revokeUser();
-          this.router.navigate(['login']);
         }
       }
     ));

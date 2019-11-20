@@ -15,7 +15,6 @@
  */
 import { Component, OnInit } from '@angular/core';
 
-import {UserService, User} from '@gravitee/ng-portal-webclient';
 import { CurrentUserService } from '../../services/current-user.service';
 
 @Component({
@@ -25,22 +24,10 @@ import { CurrentUserService } from '../../services/current-user.service';
 })
 
 export class UserComponent implements OnInit {
-  user: User;
-
   constructor(
-    private userService: UserService,
-    private currentUserService: CurrentUserService
+    public currentUserService: CurrentUserService
   ) { }
 
   ngOnInit() {
-    this.currentUserService.currentUser.subscribe(newCurrentUser => this.user = newCurrentUser);
-
-    this.userService.getCurrentUser().subscribe(
-      (user) => {
-        this.currentUserService.changeUser(user);
-      }
-    );
-
   }
-
 }

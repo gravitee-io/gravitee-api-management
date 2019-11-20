@@ -19,7 +19,6 @@ import {User} from '@gravitee/ng-portal-webclient';
 
 @Injectable()
 export class CurrentUserService {
-
   private currentUserSource = new BehaviorSubject<User>(undefined);
   currentUser = this.currentUserSource.asObservable();
 
@@ -34,4 +33,7 @@ export class CurrentUserService {
     this.currentUserSource.next(undefined);
   }
 
+  get(): User {
+    return this.currentUserSource.getValue();
+  }
 }

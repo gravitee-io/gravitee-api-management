@@ -16,13 +16,18 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {LoginComponent} from './login.component';
-import {TranslateModule} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {TranslateTestingModule} from '../../test/helper.spec';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CatalogComponent} from '../catalog/catalog.component';
 import {RouterTestingModule} from '@angular/router/testing';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
+import {AppComponent} from "../../app.component";
+import {provideMagicalMock} from "../../test/mock.helper.spec";
+import {Title} from "@angular/platform-browser";
+import {UserService} from "@gravitee/ng-portal-webclient";
+import {CurrentUserService} from "../../services/current-user.service";
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -34,6 +39,9 @@ describe('LoginComponent', () => {
       imports: [RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
+      ],
+      providers: [
+        provideMagicalMock(CurrentUserService),
       ]
     })
       .compileComponents();

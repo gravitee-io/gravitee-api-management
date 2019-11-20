@@ -24,6 +24,7 @@ import {Observable, of} from 'rxjs';
 import any = jasmine.any;
 import {CurrentUserService} from './services/current-user.service';
 import {TranslateTestingModule} from './test/helper.spec';
+import {UserService} from "@gravitee/ng-portal-webclient";
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
@@ -41,6 +42,7 @@ describe('AppComponent', () => {
       providers: [
         AppComponent,
         provideMagicalMock(Title),
+        provideMagicalMock(UserService),
         provideMagicalMock(CurrentUserService),
         provideMagicalMock(TranslateService)
       ]

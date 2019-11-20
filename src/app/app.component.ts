@@ -18,6 +18,8 @@ import {TranslateService} from '@ngx-translate/core';
 import {environment} from '../environments/environment';
 import {Title} from '@angular/platform-browser';
 import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
+import {UserService} from '@gravitee/ng-portal-webclient';
+import {CurrentUserService} from './services/current-user.service';
 
 @Component({
     selector: 'app-root',
@@ -25,19 +27,20 @@ import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
 })
 export class AppComponent implements OnInit {
 
-    constructor(
-        private titleService: Title,
-        private translateService: TranslateService
-    ) {
-    }
+  constructor(
+      private titleService: Title,
+      private translateService: TranslateService,
+      private userService: UserService,
+      private currentUserService: CurrentUserService
+  ) {
+  }
 
-    ngOnInit() {
-        this.translateService.addLangs(environment.locales);
-        this.translateService.setDefaultLang(environment.locales[0]);
-        const browserLang = this.translateService.getBrowserLang();
-        this.translateService.use(browserLang.match(/en|fr/) ? browserLang : 'en');
-        this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
-    }
-
-
+  ngOnInit() {
+      this.translateService.addLangs(environment.locales);
+      this.translateService.setDefaultLang(environment.locales[0]);
+      const browserLang = this.translateService.getBrowserLang();
+      this.translateService.use(browserLang.match(/en|fr/) ? browserLang : 'en');
+      this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
+      this.userService.getCurrentUser().subscribe((user) => this.currentUserService.changeUser(user));
+  }
 }

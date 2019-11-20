@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit} from '@angular/core';
+import {AfterViewChecked, Component, OnInit} from '@angular/core';
 import {FormGroup, FormBuilder} from '@angular/forms';
 import {Router} from '@angular/router';
 
@@ -25,6 +25,7 @@ import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-message';
 import {TranslateService} from '@ngx-translate/core';
 import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
+import {CurrentUserService} from '../../services/current-user.service';
 
 @Component({
   selector: 'app-login',
@@ -32,7 +33,7 @@ import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
   styleUrls: ['./login.component.css']
 })
 
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, AfterViewChecked {
 
   loginForm: FormGroup;
   notification: {
@@ -50,6 +51,7 @@ export class LoginComponent implements OnInit {
     private formBuilder: FormBuilder,
     private router: Router,
     private translateService: TranslateService,
+    private currentUserService: CurrentUserService,
   ) {
     this.portalService.getPortalConfiguration().subscribe(
       (configuration) => {
@@ -59,10 +61,15 @@ export class LoginComponent implements OnInit {
             password: '',
           });
         }
-
         this.registrationEnabled = configuration.portal.userCreation.enabled;
       }
     );
+  }
+
+  ngAfterViewChecked() {
+    if (this.currentUserService.get()) {
+      this.router.navigate(['dashboard']);
+    }
   }
 
   ngOnInit() {
@@ -101,7 +108,7 @@ export class LoginComponent implements OnInit {
           });
 
           // add routing to main page.
-          this.router.navigate(['user']);
+          this.router.navigate(['dashboard']).then(() => window.location.reload());
         },
         (error) => {
           this.translateService.get(i18n('login.notification.error')).subscribe((translatedMessage) => {
