@@ -232,7 +232,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.DELETE, uriPrefix + "/users/**").authenticated()
 
                 // Swagger
-                .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/swagger.json").permitAll()
 
                 // Configuration Groups
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/groups/**").permitAll()
