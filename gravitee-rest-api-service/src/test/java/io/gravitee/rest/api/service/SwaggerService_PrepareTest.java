@@ -18,14 +18,11 @@ package io.gravitee.rest.api.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.NewSwaggerApiEntity;
 import io.gravitee.rest.api.model.api.SwaggerPath;
 import io.gravitee.rest.api.model.api.SwaggerVerb;
-import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
@@ -484,5 +482,33 @@ public class SwaggerService_PrepareTest {
         assertEquals("https://host/drives?page[number]=2&page[size]=50", links.get("prev"));
         assertEquals("https://host/drives?page[number]=3&page[size]=50", links.get("self"));
         assertEquals("https://host/drives?page[number]=1&page[size]=50", links.get("first"));
+    }
+
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3WithAdditionalPropertyOnly() throws IOException {
+        final NewSwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/additional-property-example.yml", true);
+        assertEquals("v1", api.getVersion());
+        assertEquals("Gravitee Import Mock Example", api.getName());
+        assertEquals("graviteeimportmockexample", api.getContextPath());
+        assertEquals(1, api.getEndpoint().size());
+        assertTrue(api.getEndpoint().contains("/"));
+        assertEquals(1, api.getPaths().size());
+        final SwaggerPath swaggerPath = api.getPaths().get(0);
+        assertEquals("/", swaggerPath.getPath());
+
+        final List<SwaggerVerb> swaggerVerbs = swaggerPath.getVerbs();
+        assertNotNull(swaggerVerbs);
+        assertEquals(1, swaggerVerbs.size());
+        final SwaggerVerb getRoot = swaggerVerbs.iterator().next();
+        assertEquals("getRoot", getRoot.getDescription());
+        assertEquals("GET", getRoot.getVerb());
+        assertEquals("200", getRoot.getResponseStatus());
+        assertEquals("application/json", getRoot.getContentType());
+        assertNotNull(getRoot.getResponseProperties());
+        assertFalse(getRoot.isArray());
+        final Map responseExample = ((Map) getRoot.getResponseProperties());
+        assertEquals(2, responseExample.size());
+        assertTrue(((int) responseExample.get("values")) > 0);
+        assertEquals(emptyMap(), responseExample.get("metadata"));
     }
 }

@@ -1,0 +1,35 @@
+openapi: '3.0.0'
+info:
+  title: Gravitee Import Mock Example
+  version: v1
+paths:
+  /:
+    get:
+      operationId: getRoot
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+components:
+  schemas:
+    Response:
+      properties:
+        values:
+          description: Response
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+        metadata:
+          $ref: '#/components/schemas/MetadataMap'
+
+    MetadataMap:
+      description: Map of Map of String
+      type: object
+      additionalProperties:
+        type: object
+        additionalProperties:
+          type: string

@@ -600,7 +600,11 @@ public class SwaggerServiceImpl implements SwaggerService {
         }
 
         if (schema instanceof ObjectSchema) {
-            return getResponseProperties(swagger, schema.getProperties());
+            if (schema.getProperties() != null) {
+                return getResponseProperties(swagger, schema.getProperties());
+            } else if(schema.getAdditionalProperties() != null) {
+                return getResponsePropertiesFromType(((Schema) schema.getAdditionalProperties()).getType());
+            }
         }
 
         if (schema instanceof ArraySchema) {
