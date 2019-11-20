@@ -23,7 +23,7 @@ import jdenticon from 'jdenticon';
 })
 export class UserAvatarComponent implements OnInit {
 
-  private hasError: boolean;
+  public hasError: boolean;
   @Input() user: User;
   @Input() size: number = Number(40);
 

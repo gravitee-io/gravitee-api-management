@@ -30,9 +30,9 @@ import '@gravitee/ui-components/wc/gv-user-menu';
 })
 export class LayoutComponent implements OnInit {
 
-  private mainRoutes: object[];
-  private userRoutes: object[];
-  private currentUser: User;
+  public mainRoutes: object[];
+  public userRoutes: object[];
+  public currentUser: User;
 
   constructor(
     private titleService: Title,

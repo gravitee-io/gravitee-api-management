@@ -24,7 +24,7 @@ import '@gravitee/ui-components/wc/gv-menu';
 })
 export class CatalogComponent implements OnInit {
 
-  private catalogRoutes: object[];
+  public catalogRoutes: object[];
 
   constructor(private routeService: RouteService) {
   }
