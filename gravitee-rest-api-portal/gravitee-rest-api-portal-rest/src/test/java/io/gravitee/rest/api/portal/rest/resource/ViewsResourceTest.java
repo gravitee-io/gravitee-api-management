@@ -15,32 +15,23 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-
-import javax.ws.rs.core.Response;
-
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.portal.rest.model.Links;
+import io.gravitee.rest.api.portal.rest.model.ViewsResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.ViewEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.ViewsResponse;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Links;
+import javax.ws.rs.core.Response;
+import java.util.*;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -78,19 +69,15 @@ public class ViewsResourceTest extends AbstractResourceTest {
         List<ViewEntity> mockViews = Arrays.asList(view1, view2, view3);
         doReturn(mockViews).when(viewService).findAll();
 
-        Function<ViewEntity, ViewEntity> identity = (v) -> v;
-        doReturn(identity).when(viewEnhancer).enhance(any());
-        
         Mockito.when(viewMapper.convert(any(), any())).thenCallRealMethod();
         
     }
-    
+
     @Test
     public void shouldGetNotHiddenViews() {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        Mockito.verify(apiService).findPublishedByUser(any());
         ViewsResponse viewsResponse = response.readEntity(ViewsResponse.class);
         assertEquals(2, viewsResponse.getData().size());
         

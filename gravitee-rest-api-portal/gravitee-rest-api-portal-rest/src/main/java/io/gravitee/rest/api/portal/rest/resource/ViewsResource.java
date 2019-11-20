@@ -17,13 +17,10 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ViewEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.enhancer.ViewEnhancer;
 import io.gravitee.rest.api.portal.rest.mapper.ViewMapper;
 import io.gravitee.rest.api.portal.rest.model.View;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.ViewService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.BeanParam;
@@ -33,11 +30,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
+
+import static io.gravitee.repository.management.model.View.ALL_ID;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -47,26 +44,21 @@ public class ViewsResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-    
+
     @Autowired
     private ViewService viewService;
 
     @Autowired
     private ViewMapper viewMapper;
-    
-    @Autowired
-    private ViewEnhancer viewEnhancer;
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getViews(@BeanParam PaginationParam paginationParam) {
-        Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-        
-        List<View> viewsList = viewService.findAll()
+        final List<View> viewsList = viewService.findAll()
                 .stream()
+                .filter(v -> !ALL_ID.equals(v.getId()))
                 .filter(v -> !v.isHidden())
                 .sorted(Comparator.comparingInt(ViewEntity::getOrder))
-                .map(v -> viewEnhancer.enhance(apis).apply(v))
                 .map(v-> viewMapper.convert(v, uriInfo.getBaseUriBuilder()))
                 .collect(Collectors.toList());
         
