@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.rest.resource.param;
 
+import io.swagger.annotations.ApiParam;
+
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -27,36 +29,59 @@ import java.util.List;
 public class AnalyticsParam {
 
     @QueryParam("from")
+    @ApiParam(value = "Used to define the start date of the time window to query")
     private long from;
 
     @QueryParam("to")
+    @ApiParam(value = "Used to define the end date of the time window to query")
     private long to;
 
     @QueryParam("interval")
+    @ApiParam(value = "The time interval when getting histogram data")
     private long interval;
 
     @QueryParam("query")
+    @ApiParam(
+            value = "The Lucene query used to filter data",
+            example = "api:xxxx-xxxx-xxxx-xxxx AND plan:yyyy-yyyy-yyyy-yyyy"
+    )
     private String query;
 
-    @QueryParam("key")
-    private String key;
-
     @QueryParam("field")
+    @ApiParam(value = "The field to query when doing `group_by` queries")
     private String field;
 
     @QueryParam("size")
+    @ApiParam(value = "The number of data to retrieve")
     private int size;
 
     @QueryParam("type")
+    @ApiParam(
+            value = "The type of data to retrieve",
+            required = true,
+            allowableValues = "group_by,date_histo,count"
+    )
     private AnalyticsTypeParam type;
 
     @QueryParam("ranges")
+    @ApiParam(
+            value = "Ranges allows you to group field's data. Mainly used to group HTTP statuses code with `group_by` queries",
+            example = "100:199;200:299;300:399;400:499;500:599"
+    )
     private RangesParam ranges;
 
     @QueryParam("aggs")
+    @ApiParam(
+            value = "Aggregations are used when doing `date_histo` queries and allows you to group field's data. Mainly used to group HTTP statuses code",
+            example = "field:status or avg:response-time;avg:api-response-time"
+    )
     private AggregationsParam aggs;
 
     @QueryParam("order")
+    @ApiParam(
+            value = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
+            example = "order:-response-time"
+    )
     private OrderParam order;
 
     public long getFrom() {
@@ -89,14 +114,6 @@ public class AnalyticsParam {
 
     public void setQuery(String query) {
         this.query = query;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
     }
 
     public String getField() {
