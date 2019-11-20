@@ -15,21 +15,14 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import io.gravitee.common.http.MediaType;
 
 import javax.ws.rs.GET;
-import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-
-import io.gravitee.common.http.MediaType;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -44,18 +37,6 @@ public class OpenApiResource extends AbstractResource {
     @GET
     @Produces({MediaType.TEXT_PLAIN})
     public Response getOpenApiDefinition() {
-        final URL openApiURL = this.getClass().getClassLoader().getResource("openapi.yaml");
-        try {
-            byte[] openApiBytes = Files.readAllBytes(Paths.get(openApiURL.getFile()));
-            ByteArrayOutputStream baos = new ByteArrayOutputStream(openApiBytes.length);
-            baos.write(openApiBytes);
-            return Response
-                    .ok(baos)
-                    .build();
-        } catch (IOException e) {
-            throw new InternalServerErrorException("Problem while reading openapi specification", e);
-        }
-        
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi.yaml")).build();
     }
-    
 }
