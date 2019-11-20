@@ -1,6 +1,0 @@
-# Run postman collection using newman
-
-## Run collection with a dev env.
-```
-newman run collections/[...]-collection.json -e environment/dev.json
-```
