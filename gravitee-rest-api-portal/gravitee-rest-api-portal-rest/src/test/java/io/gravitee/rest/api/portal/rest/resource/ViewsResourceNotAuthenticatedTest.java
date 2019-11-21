@@ -15,20 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.ViewEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.ViewsResponse;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
@@ -37,9 +27,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
+import javax.annotation.Priority;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.ViewsResponse;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -109,6 +111,7 @@ public class ViewsResourceNotAuthenticatedTest extends AbstractResourceTest {
         doReturn(false).when(ratingService).isEnabled();
 
         Mockito.when(viewMapper.convert(any(), any())).thenCallRealMethod();
+
     }
     
     @Test
@@ -116,7 +119,9 @@ public class ViewsResourceNotAuthenticatedTest extends AbstractResourceTest {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
+        Mockito.verify(apiService).findPublishedByUser(any());
         ViewsResponse viewsResponse = response.readEntity(ViewsResponse.class);
         assertEquals(2, viewsResponse.getData().size());
+        
     }
 }
