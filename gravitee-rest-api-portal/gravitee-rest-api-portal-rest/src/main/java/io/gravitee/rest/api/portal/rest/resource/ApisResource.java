@@ -15,22 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -49,6 +33,19 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.TopApiService;
+
+import javax.inject.Inject;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static io.gravitee.repository.management.model.View.ALL_ID;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -97,7 +94,9 @@ public class ApisResource extends AbstractResource {
             apiQuery.setName(apisParam.getName());
             apiQuery.setTag(apisParam.getTag());
             apiQuery.setVersion(apisParam.getVersion());
-            apiQuery.setView(apisParam.getView());
+            if (!ALL_ID.equals(apisParam.getView())) {
+                apiQuery.setView(apisParam.getView());
+            }
         }
         return apiQuery;
     }
