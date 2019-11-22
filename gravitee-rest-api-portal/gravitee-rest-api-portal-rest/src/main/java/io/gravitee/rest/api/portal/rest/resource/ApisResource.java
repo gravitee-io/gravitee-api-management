@@ -76,7 +76,7 @@ public class ApisResource extends AbstractResource {
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
         Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), createQueryFromParam(apisParam));
 
-        FilteredApi filteredApis = filterByCategory(apis, apisParam.getCategory());
+        FilteredApi filteredApis = filterByCategory(apis, apisParam.getCategory(), apisParam.getExcludedCategory());
         
         List<Api> apisList= filteredApis.getFilteredApis().stream()
                 .map(apiMapper::convert)
@@ -101,26 +101,31 @@ public class ApisResource extends AbstractResource {
         return apiQuery;
     }
     
-    private FilteredApi filterByCategory(Collection<ApiEntity> apis, CategoryApiQuery category) {
-        if(category != null) {
-            switch (category) {
+    private FilteredApi filterByCategory(final Collection<ApiEntity> apis, final CategoryApiQuery category,
+                                         final CategoryApiQuery excludedCategory) {
+        final CategoryApiQuery cat = excludedCategory == null ? category : excludedCategory;
+        final boolean excluded = excludedCategory != null;
+        if (cat != null) {
+            switch (cat) {
                 case MINE:
                     if (isAuthenticated()) {
-                        return getCurrentUserSubscribedApis(apis);
+                        return getCurrentUserSubscribedApis(apis, excluded);
+                    } else {
+                        return new FilteredApi(Collections.emptyList(), null);
                     }
-                    break;
-                    
+
                 case STARRED:
-                    if(ratingService.isEnabled()) {
-                        return getRatedApis(apis);
+                    if (ratingService.isEnabled()) {
+                        return getRatedApis(apis, excluded);
+                    } else {
+                        return new FilteredApi(Collections.emptyList(), null);
                     }
-                    break;
-                    
+
                 case TRENDINGS:
-                    return getApisOrderByNumberOfSubscriptions(apis);
+                    return getApisOrderByNumberOfSubscriptions(apis, excluded);
                 
                 case FEATURED:
-                    return getTopApis(apis);
+                    return getTopApis(apis, excluded);
                     
                 default:
                     break;
@@ -136,18 +141,19 @@ public class ApisResource extends AbstractResource {
                 );
     }
 
-    private FilteredApi getTopApis(Collection<ApiEntity> apis) {
+    private FilteredApi getTopApis(Collection<ApiEntity> apis, boolean excluded) {
         List<String> topApiIdList = topApiService.findAll().stream().map(TopApiEntity::getApi).collect(Collectors.toList());
         return new FilteredApi(
                 apis.stream()
-                    .filter(api->topApiIdList.contains(api.getId()))
+                    .filter(api-> (!excluded && topApiIdList.contains(api.getId())) ||
+                            (excluded && !topApiIdList.contains(api.getId())) )
                     .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                     .collect(Collectors.toList())
                 , null
                 );
     }
 
-    protected FilteredApi getApisOrderByNumberOfSubscriptions(Collection<ApiEntity> apis) {
+    protected FilteredApi getApisOrderByNumberOfSubscriptions(Collection<ApiEntity> apis, boolean excluded) {
         //find all subscribed apis
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApis(apis.stream().map(ApiEntity::getId).collect(Collectors.toList()));
@@ -163,12 +169,12 @@ public class ApisResource extends AbstractResource {
         apisMetadata.put("subscriptions", subscriptionsMetadata);
         apis.forEach(api -> {
             Long apiSubscriptionsCount = subscribedApiWithCount.get(api.getId());
-            if(apiSubscriptionsCount != null) {
+            if ((!excluded && apiSubscriptionsCount != null) || (excluded && apiSubscriptionsCount == null)) {
                 //creation of a map which will be sorted to retrieve apis in the right order
-                apisWithCount.put(api, apiSubscriptionsCount);
-                
+                apisWithCount.put(api, apiSubscriptionsCount == null ? 0 : apiSubscriptionsCount);
+
                 //creation of a metadata map
-                subscriptionsMetadata.put(api.getId(), apiSubscriptionsCount.toString());
+                subscriptionsMetadata.put(api.getId(), apiSubscriptionsCount == null ? "0" : apiSubscriptionsCount.toString());
             }
         });
         
@@ -183,7 +189,7 @@ public class ApisResource extends AbstractResource {
         
     }
 
-    protected FilteredApi getRatedApis(Collection<ApiEntity> apis) {
+    protected FilteredApi getRatedApis(Collection<ApiEntity> apis, boolean excluded) {
         //keep apis with ratings
         Map<ApiEntity, RatingSummaryEntity> ratings = new HashMap<>();
         //APIPortal: should create a specific service to retrieve all the information in one call to the repository
@@ -193,29 +199,36 @@ public class ApisResource extends AbstractResource {
                 ratings.put(api, apiRatingSummary);
             }
         });
-        
-        //sort apis by ratings, nb of ratings, and name
-        return new FilteredApi(
-                ratings.entrySet().stream()
-                  .sorted( (e1, e2) -> {
-                    RatingSummaryEntity o1 = e1.getValue();
-                    RatingSummaryEntity o2 = e2.getValue();
-                    int averageRateComparaison = Double.compare(o2.getAverageRate(), o1.getAverageRate());
-                    if(averageRateComparaison != 0) {
-                        return averageRateComparaison;
-                    }
-                    int nbRatingsComparaison = Integer.compare(o2.getNumberOfRatings(), o1.getNumberOfRatings());
-                    if(nbRatingsComparaison != 0) {
-                        return nbRatingsComparaison;
-                    }
-                    return String.CASE_INSENSITIVE_ORDER.compare(e1.getKey().getName(), e2.getKey().getName());
-                  })
-                  .map(Map.Entry::getKey)
-                  .collect(Collectors.toList())
-                , null);
+
+        if (excluded) {
+            return new FilteredApi(apis.stream()
+                    .filter(api -> !ratings.keySet().contains(api))
+                    .collect(Collectors.toList()),
+                    null);
+        } else {
+            //sort apis by ratings, nb of ratings, and name
+            return new FilteredApi(
+                    ratings.entrySet().stream()
+                      .sorted( (e1, e2) -> {
+                        RatingSummaryEntity o1 = e1.getValue();
+                        RatingSummaryEntity o2 = e2.getValue();
+                        int averageRateComparaison = Double.compare(o2.getAverageRate(), o1.getAverageRate());
+                        if(averageRateComparaison != 0) {
+                            return averageRateComparaison;
+                        }
+                        int nbRatingsComparaison = Integer.compare(o2.getNumberOfRatings(), o1.getNumberOfRatings());
+                        if(nbRatingsComparaison != 0) {
+                            return nbRatingsComparaison;
+                        }
+                        return String.CASE_INSENSITIVE_ORDER.compare(e1.getKey().getName(), e2.getKey().getName());
+                      })
+                      .map(Map.Entry::getKey)
+                      .collect(Collectors.toList())
+                    , null);
+        }
     }
 
-    protected FilteredApi getCurrentUserSubscribedApis(Collection<ApiEntity> apis) {
+    protected FilteredApi getCurrentUserSubscribedApis(Collection<ApiEntity> apis, boolean excluded) {
         //get Current user applications
         List<String> currentUserApplicationsId = applicationService.findByUser(getAuthenticatedUser()).stream().map(ApplicationListItem::getId).collect(Collectors.toList());
         
@@ -227,7 +240,8 @@ public class ApisResource extends AbstractResource {
         //filter apis list with subscribed apis list
         return new FilteredApi(
                 apis.stream()
-                .filter(api-> subscribedApis.contains(api.getId()))
+                .filter(api-> (!excluded && subscribedApis.contains(api.getId())) ||
+                        (excluded && !subscribedApis.contains(api.getId())))
                 .sorted((a1,a2) -> String.CASE_INSENSITIVE_ORDER.compare(a1.getName(), a2.getName()))
                 .collect(Collectors.toList())
                 , null);

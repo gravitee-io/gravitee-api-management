@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.param;
 
-import javax.ws.rs.QueryParam;
-
 import io.gravitee.rest.api.portal.rest.model.CategoryApiQuery;
+
+import javax.ws.rs.QueryParam;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -39,6 +39,8 @@ public class ApisParam {
     private String view;
     @QueryParam("cat")
     private CategoryApiQuery category;
+    @QueryParam("-cat")
+    private CategoryApiQuery excludedCategory;
     
     public String getContextPath() {
         return contextPath;
@@ -94,5 +96,13 @@ public class ApisParam {
 
     public void setCategory(CategoryApiQuery category) {
         this.category = category;
+    }
+
+    public CategoryApiQuery getExcludedCategory() {
+        return excludedCategory;
+    }
+
+    public void setExcludedCategory(CategoryApiQuery excludedCategory) {
+        this.excludedCategory = excludedCategory;
     }
 }

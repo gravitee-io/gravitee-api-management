@@ -1739,6 +1739,18 @@ components:
           - TRENDINGS: Subscribed APIs. Sorted by number of subscriptions DESC, alphabetic order.
       schema:
         $ref: '#/components/schemas/CategoryApiQuery'
+    apiCategoryExcludedQueryParam:
+      name: -cat
+      in: query
+      required: false
+      description: |
+        Name of a CATEGORY to exclude. Excluded category has priority over category. A category is a static filter used to pre-select some APIs. It can be combined with others query params.
+          - FEATURED : not in top APIs. Sorted by alphabetical order.
+          - MINE : APIs not subscribed by the current user. Sorted by alphabetical order.
+          - STARRED: not rated APIs. Sorted by Ratings DESC, nb of ratings DESC, alphabetic order.
+          - TRENDINGS: not subscribed APIs. Sorted by number of subscriptions DESC, alphabetic order.
+      schema:
+        $ref: '#/components/schemas/CategoryApiQuery'
     apiIncludeParam:
       name: include
       in: query
