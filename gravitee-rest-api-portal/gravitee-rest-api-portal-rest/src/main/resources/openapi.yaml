@@ -54,13 +54,14 @@ paths:
         - $ref: '#/components/parameters/apiNameQueryParam'
         - $ref: '#/components/parameters/apiViewQueryParam'
         - $ref: '#/components/parameters/apiCategoryQueryParam'
+        - $ref: '#/components/parameters/apiCategoryExcludedQueryParam'
       summary: List APIs
       description: |
         List public APIs for anonymous requests.
         List all the APIs the current user is allowed to view for authenticated requests.
-        
+
         The list can be filtered according to query parameters.
-        
+
         By default the list is sorted by alphabetic order.
         If a **cat** query param is sent, a specific sorting can be applied. Please refer to **cat** description for detail.
       operationId: getApis
@@ -85,7 +86,7 @@ paths:
       summary: Get the API definition
       description:  |
         Get the detail of an API.
-        
+
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getApiByApiId
       security: []
@@ -115,7 +116,7 @@ paths:
       summary: List API pages
       description: |
         List all documentation pages of an API.
-        
+
         This API has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getPagesByApiId
       security: []
@@ -221,7 +222,7 @@ paths:
           description: List of subscriptions
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/RatingsResponse'
         404:
           $ref: '#/components/responses/APINotFoundError'
@@ -249,7 +250,7 @@ paths:
           description: Created Rating
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/Rating'
         400:
           description: Rating for this api and this user already exists.
@@ -278,7 +279,7 @@ paths:
       summary: List all the applications accessible to authenticated user.
       description: |
         List all the applications accessible to authenticated user.
-        
+
         User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission.
       operationId: getApplications
       responses:
@@ -304,7 +305,7 @@ paths:
       summary: Create an application
       description: |
         Create an application.
-        
+
         User must have MANAGEMENT_APPLICATION[CREATE] permission.
       operationId: createApplication
       responses:
@@ -333,7 +334,7 @@ paths:
       summary: Get an application.
       description: |
         Get an application.
-        
+
         User must have the APPLICATION_DEFINITION[READ] permission.
       operationId: getApplicationByApplicationId
       responses:
@@ -361,7 +362,7 @@ paths:
       summary: Update an application.
       description: |
         Update an application.
-        
+
         User must have APPLICATION_DEFINITION[UPDATE] permission.
       operationId: updateApplicationByApplicationId
       responses:
@@ -383,13 +384,13 @@ paths:
           $ref: '#/components/responses/ApplicationNotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
-    delete: 
+    delete:
       tags:
         - Applications
       summary: Delete an application
       description: |
         Delete an application.
-        
+
         User must have the APPLICATION_DEFINITION[DELETE] permission.
       operationId: deleteApplicationByApplicationId
       responses:
@@ -410,7 +411,7 @@ paths:
       summary: Get the application's picture
       description: |
         Get the application's picture.
-        
+
         User must have APPLICATION_DEFINITION[READ] permission.
       operationId: getApplicationPictureByApplicationId
       responses:
@@ -431,9 +432,9 @@ paths:
       summary: Get application notifications settings
       description: |
         Get application notifications settings.
-        
+
         User must **at least** have APPLICATION_NOTIFICATION[READ] permission to get **portal** notification settings.
-        
+
         User must **also** have APPLICATION_NOTIFICATION[CREATE | UPDATE | DELETE] permission to get **generic** notification settings.
       operationId: getNotificationsByApplicationId
       responses:
@@ -441,7 +442,7 @@ paths:
           description: List of notification configs
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/NotificationConfigsResponse'
         403:
           $ref: '#/components/responses/PermissionError'
@@ -461,9 +462,9 @@ paths:
       summary: Create notification settings.
       description: |
         Create notification settings.
-        
+
         User must have APPLICATION_NOTIFICATION[READ] permission to create a **portal** notification.
-        
+
         User must have APPLICATION_NOTIFICATION[CREATE] permission to create a **generic** notification.
       operationId: createApplicationNotification
       responses:
@@ -493,7 +494,7 @@ paths:
       summary: Update a portal notification for an application.
       description: |
         Update a portal notification for an application.
-        
+
         User must have APPLICATION_NOTIFICATION[READ] permission to update a **portal** notification.
       operationId: updatePortalApplicationNotification
       responses:
@@ -508,7 +509,7 @@ paths:
         404:
           $ref: '#/components/responses/ApplicationNotFoundError'
         500:
-          $ref: '#/components/responses/InternalServerError' 
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/notifications/{notificationId}:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -525,7 +526,7 @@ paths:
       summary: Update a generic notification for an application.
       description: |
         Update a generic notification for an application.
-        
+
         User must have APPLICATION_NOTIFICATION[UPDATE] permission to update a **generic** notification.
       operationId: updateGenericApplicationNotification
       responses:
@@ -545,13 +546,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
-    delete: 
+    delete:
       tags:
         - Applications
       summary: Delete a notification
       description: |
         Delete a notification.
-        
+
         User must have APPLICATION_NOTIFICATION[DELETE] permission to delete a **generic** notification.
       operationId: deleteApplicationNotificationByNotificationId
       responses:
@@ -566,7 +567,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/InternalServerError' 
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/members:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -579,7 +580,7 @@ paths:
       summary: List application members
       description: |
         List application members.
-        
+
         User must have the APPLICATION_MEMBER[READ] permission.
       operationId: getMembersByApplicationId
       responses:
@@ -587,7 +588,7 @@ paths:
           description: List of members
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/MembersResponse'
         403:
           $ref: '#/components/responses/PermissionError'
@@ -607,7 +608,7 @@ paths:
       summary: Create an application member
       description: |
         Create an application member.
-        
+
         User must have the APPLICATION_MEMBER[CREATE] permission.
       operationId: createApplicationMember
       responses:
@@ -615,7 +616,7 @@ paths:
           description: Created member
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/Member'
         403:
           $ref: '#/components/responses/PermissionError'
@@ -638,7 +639,7 @@ paths:
       summary: Transfer the ownership of the application
       description: |
         Transfer the ownership of the application.
-        
+
         User must have the APPLICATION_MEMBER[UPDATE] permission.
       operationId: transferMemberOwnership
       responses:
@@ -660,7 +661,7 @@ paths:
       summary: Get an application member
       description: |
         Get an application member.
-        
+
         User must have the APPLICATION_MEMBER[READ] permission.
       operationId: getApplicationMemberByApplicationIdAndMemberId
       responses:
@@ -668,7 +669,7 @@ paths:
           description: A member
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/Member'
         403:
           $ref: '#/components/responses/PermissionError'
@@ -692,7 +693,7 @@ paths:
       summary: Update an application member.
       description: |
         Update an application member.
-        
+
         User must have the APPLICATION_MEMBER[UPDATE] permission.
       operationId: updateApplicationMemberByApplicationIdAndMemberId
       responses:
@@ -700,7 +701,7 @@ paths:
           description: Updated member.
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/Member'
         403:
           $ref: '#/components/responses/PermissionError'
@@ -718,7 +719,7 @@ paths:
       summary: Remove an application member
       description: |
         Remove an application member.
-        
+
         User must have the APPLICATION_MEMBER[DELETE] permission.
       operationId: deleteApplicationMember
       responses:
@@ -756,7 +757,7 @@ paths:
       summary: Get Application analytics
       description: |
         Get the application analytics.
-        
+
         User must have the APPLICATION_ANALYTICS[READ] permission.
       operationId: getApplicationAnalytics
       responses:
@@ -773,7 +774,7 @@ paths:
           description: Invalid query params.
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
         403:
           $ref: '#/components/responses/PermissionError'
@@ -799,7 +800,7 @@ paths:
       summary: Get Application logs
       description: |
         Get the application logs.
-        
+
         User must have the APPLICATION_LOG[READ] permission.
       operationId: getApplicationLogs
       responses:
@@ -807,13 +808,13 @@ paths:
           description: List of logs
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/LogsResponse'
         400:
           description: Invalid query params.
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
         403:
           $ref: '#/components/responses/PermissionError'
@@ -839,7 +840,7 @@ paths:
       summary: Export application logs as CSV
       description: |
         Export application logs as CSV.
-        
+
         User must have the APPLICATION_LOG[READ] permission.
       operationId: exportApplicationLogsByApplicationId
       responses:
@@ -847,13 +848,13 @@ paths:
           description: CSV export of the logs
           content:
             text/plain:
-              schema:  
+              schema:
                 type: string
         400:
           description: Invalid query params.
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
         403:
           $ref: '#/components/responses/PermissionError'
@@ -874,7 +875,7 @@ paths:
       summary: Get a specific log of an application
       description: |
         Get a specific log of an application.
-        
+
         User must have the APPLICATION_LOG[READ] permission.
       operationId: getApplicationLogByApplicationIdAndLogId
       responses:
@@ -882,7 +883,7 @@ paths:
           description: A log
           content:
             application/json:
-              schema:  
+              schema:
                $ref: '#/components/schemas/Log'
         403:
           $ref: '#/components/responses/PermissionError'
@@ -893,7 +894,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/InternalServerError'      
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/_renew_secret:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -903,7 +904,7 @@ paths:
       summary: Renew the client secret for an OAuth2 application
       description: |
         Renew the client secret for an OAuth2 application.
-        
+
         User must have the APPLICATION_DEFINITION[UPDATE] permission.
       operationId: renewApplicationSecret
       responses:
@@ -924,7 +925,7 @@ paths:
     get:
       tags:
         - Documentation
-      parameters: 
+      parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
         - $ref: '#/components/parameters/homePageQueryParam'
@@ -963,7 +964,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
-  
+
   /subscriptions:
     get:
       tags:
@@ -975,10 +976,10 @@ paths:
         - $ref: '#/components/parameters/pageSizeParam'
       description: |
         List all subscriptions, filtered by api and/or by application. At least an api or an application must be provided.
-        
+
         User must have the APPLICATION_SUBSCRIPTION[READ] permission to list subscription with application query param.\
         User must have the API_SUBSCRIPTION[READ] permission to list subscription with api query param.
-        
+
       operationId: getSubscriptions
       responses:
         200:
@@ -991,7 +992,7 @@ paths:
           description: At least an api or an application must be provided.
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
         403:
           $ref: '#/components/responses/PermissionError'
@@ -1009,7 +1010,7 @@ paths:
       summary: Create a subscription.
       description: |
         Create a new subscription.
-        
+
         User must have APPLICATION_SUBSCRIPTION[CREATE] permission.
       operationId: createSubscription
       responses:
@@ -1023,12 +1024,12 @@ paths:
           description: Input must not be null.
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
         403:
           $ref: '#/components/responses/PermissionError'
         500:
-          $ref: '#/components/responses/InternalServerError'        
+          $ref: '#/components/responses/InternalServerError'
   /subscriptions/{subscriptionId}:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
@@ -1041,7 +1042,7 @@ paths:
       summary: Get a subscription.
       description: |
         Get a subscription.
-        
+
         User must have API_SUBSCRIPTION[CREATE] or APPLICATION_SUBSCRIPTION[CREATE] permission.
       operationId: getSubscriptionBuySubscriptionId
       responses:
@@ -1060,7 +1061,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/InternalServerError'        
+          $ref: '#/components/responses/InternalServerError'
   /subscriptions/{subscriptionId}/_close:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
@@ -1070,7 +1071,7 @@ paths:
       summary: Close a subscription
       description: |
         Close a subscription.
-        
+
         User must have APPLICATION_SUBSCRIPTION[DELETE] permission.
       operationId: closeSubscription
       responses:
@@ -1085,7 +1086,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/InternalServerError'       
+          $ref: '#/components/responses/InternalServerError'
   /subscriptions/{subscriptionId}/keys/_renew:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
@@ -1103,7 +1104,7 @@ paths:
       summary: Renew a key subscription.
       description: |
         Renew a key subscription.
-        
+
         User must have API_SUBSCRIPTION[UPDATE] or APPLICATION_SUBSCRIPTION[UPDATE] permission.
       operationId: renewKeySubscription
       responses:
@@ -1111,7 +1112,7 @@ paths:
           description: Renewed Key.
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/Key'
         403:
           $ref: '#/components/responses/PermissionError'
@@ -1122,7 +1123,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
-          $ref: '#/components/responses/InternalServerError'       
+          $ref: '#/components/responses/InternalServerError'
   /subscriptions/{subscriptionId}/keys/{keyId}/_revoke:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
@@ -1137,7 +1138,7 @@ paths:
       summary: Revoke a key subscription.
       description: |
         Revoke a key subscription.
-        
+
         User must have API_SUBSCRIPTION[UPDATE] or APPLICATION_SUBSCRIPTION[UPDATE] permission.
       operationId: revokeKeySubscription
       responses:
@@ -1164,7 +1165,7 @@ paths:
       summary: List platform users.
       description: |
         List platform users.
-        
+
         User must have the MANAGEMENT_USERS[READ] permission.
       operationId: getUsers
       responses:
@@ -1185,7 +1186,7 @@ paths:
       summary: Register a new user.
       description: |
         Register a new user for the portal. As a result, an email is sent with an activation link.
-        
+
         User registration must be enabled.\
         A SMTP server must have been configured.
       operationId: registerNewUser
@@ -1211,7 +1212,7 @@ paths:
       summary: Finalize user registration.
       description: |
         Create a new user for the portal.
-        
+
         User registration must be enabled.
       operationId: finalizeUserRegistration
       requestBody:
@@ -1258,7 +1259,7 @@ paths:
       summary: Modify current user information.
       description: |
         Modify current user information.
-        
+
         Only the current user can modify his/her information.
       operationId: updateCurrentUser
       responses:
@@ -1272,13 +1273,13 @@ paths:
           description: Input must not be null.
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
         403:
           description: Not allowed to modify another user.
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
@@ -1298,7 +1299,7 @@ paths:
           description: List of notifications
           content:
             application/json:
-              schema:  
+              schema:
                 $ref: '#/components/schemas/PortalNotificationsResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
@@ -1313,7 +1314,7 @@ paths:
         204:
           description: No-Content
         500:
-          $ref: '#/components/responses/InternalServerError'        
+          $ref: '#/components/responses/InternalServerError'
   /user/notifications/{notificationId}:
     parameters:
         - $ref: '#/components/parameters/notificationIdParam'
@@ -1365,7 +1366,7 @@ paths:
           * a specific application
           * a specific API
           * the gravitee portal
-        
+
         User must be authenticated to use this service.
       operationId: createTicket
       responses:
@@ -1444,7 +1445,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /configuration:
     get:
-      tags: 
+      tags:
         - Portal
       summary: Get portal configuration.
       operationId: getPortalConfiguration
@@ -1462,7 +1463,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /configuration/identities:
     get:
-      tags: 
+      tags:
         - Portal
       summary: Get the identity provider list.
       operationId: getPortalIdentityProviders
@@ -1480,7 +1481,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /info:
     get:
-      tags: 
+      tags:
         - Portal
       summary: Get portal information.
       operationId: getPortalInformation
@@ -1500,12 +1501,12 @@ paths:
 
   /auth/login:
     post:
-      tags: 
+      tags:
         - Authentication
       operationId: login
       description: |
         Used to get a Gravitee token. This token is mandatory for all the secured resources of the Portal API.
-      parameters: 
+      parameters:
         - name: Authorization
           in: header
           required: true
@@ -1521,7 +1522,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /auth/logout:
     post:
-      tags: 
+      tags:
         - Authentication
       operationId: logout
       description: |
@@ -1534,12 +1535,12 @@ paths:
               description: Empty cookie
               schema:
                 type: string
-                example: Auth-Graviteeio-APIM=;Path=/;Expires=Thu, 01-Jan-1970 00:00:00 GMT;Max-Age=0;HttpOnly        
+                example: Auth-Graviteeio-APIM=;Path=/;Expires=Thu, 01-Jan-1970 00:00:00 GMT;Max-Age=0;HttpOnly
         500:
           $ref: '#/components/responses/InternalServerError'
   /auth/oauth2/{identity}:
     post:
-      tags: 
+      tags:
         - Authentication
       security: []
       parameters:
@@ -1568,7 +1569,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /auth/oauth2/{identity}/_exchange:
     post:
-      tags: 
+      tags:
         - Authentication
       security: []
       parameters:
@@ -1607,56 +1608,56 @@ components:
     ##############
     # Path Param #
     ##############
-    apiIdParam: 
+    apiIdParam:
       name: apiId
       in: path
       required: true
       description: Id of an API.
       schema:
         type: string
-    applicationIdParam: 
+    applicationIdParam:
       name: applicationId
       in: path
       required: true
       description: Id of an application.
       schema:
         type: string
-    logIdParam: 
+    logIdParam:
       name: logId
       in: path
       required: true
       description: Id of a log.
       schema:
         type: string
-    memberIdParam: 
+    memberIdParam:
       name: memberId
       in: path
       required: true
       description: Id of a member.
       schema:
         type: string
-    notificationIdParam: 
+    notificationIdParam:
       name: notificationId
       in: path
       required: true
       description: Id of a notification.
       schema:
         type: string
-    pageIdParam: 
+    pageIdParam:
       name: pageId
       in: path
       required: true
       description: Id of a documentation page.
       schema:
         type: string
-    subscriptionIdParam: 
+    subscriptionIdParam:
       name: subscriptionId
       in: path
       required: true
       description: Id of a subscription.
       schema:
         type: string
-    viewIdParam: 
+    viewIdParam:
       name: viewId
       in: path
       required: true
@@ -1672,7 +1673,7 @@ components:
     ###############
     # Query Param #
     ###############
-    
+
     #Pagination
     pageNumberParam:
       name: page
@@ -1690,7 +1691,7 @@ components:
       schema:
         type: integer
         default: 10
-        
+
     #Apis filtering
     apiContextPathQueryParam:
       name: context-path
@@ -1763,7 +1764,7 @@ components:
           enum:
             - pages
             - plans
-    
+
     #Pages filtering
     homePageQueryParam:
       name: homepage
@@ -1779,7 +1780,7 @@ components:
       description: The name of the parent documentation page. If not null, only this page and its children are returned.
       schema:
         type: string
-    
+
     #Analytics & logs filtering
     fromQueryParam:
       name: from
@@ -1836,7 +1837,7 @@ components:
               - field
               - order
               - ranges
-          - DATE_HISTO : 
+          - DATE_HISTO :
               Used to retrieve total hits per range of time, on a specific time interval.\
               Query params :
               - from
@@ -1844,7 +1845,7 @@ components:
               - interval
               - query
               - aggs
-          - COUNT : 
+          - COUNT :
               Used to retrieve total hits, on a specific time interval.\
               Query params :
               - from
@@ -1863,7 +1864,7 @@ components:
       required: false
       description: |
         Used with GROUP_BY type only.
-        
+
         A semicolon separated list of "from:to" elements. **/!\\ Different from *from* and *to* query params**
       example: "ranges=100:199;200:299;300;599"
       schema:
@@ -1874,7 +1875,7 @@ components:
       required: false
       description: |
         Used with DATE_HISTO type only.
-        
+
         A semicolon separated list of "type:field" elements. **/!\\ Different from *type* and *field* query params**\
         Type can be **FIELD**, **AVG**, **MIN**, **MAX**
       example: "aggs=avg:response-time;avg:api-response-time"
@@ -1885,8 +1886,8 @@ components:
       in: query
       required: false
       description: |
-        Used with GROUP_BY type only. 
-        
+        Used with GROUP_BY type only.
+
         A colon separated list of "type:field" elements. **/!\\ Different from *type* and *field* query params**\
         By default, sort is ASC. If *type* starts with '-', the order sort is DESC.\
         Currently, only **AVG** is supported.
@@ -1912,7 +1913,7 @@ components:
       schema:
         type: integer
         format: int64
-    
+
     #Subscriptions filtering
     subscriptionApiQueryParam:
       name: apiId
@@ -1945,12 +1946,12 @@ components:
     #####################
     ErrorResponse:
       properties:
-        errors : 
+        errors :
           description: List of errors
           type: array
           items:
             $ref: '#/components/schemas/Error'
-    
+
     ApisResponse:
       properties:
         data:
@@ -2114,13 +2115,13 @@ components:
         - description
         - owner
       properties:
-        id: 
+        id:
           description: Unique identifier of an API.
           type: string
-        name: 
+        name:
           description: Name of the API.
           type: string
-        version: 
+        version:
           description: Version of the API.
           type: string
         description:
@@ -2134,23 +2135,23 @@ components:
           type: array
           items:
             type: string
-        labels: 
+        labels:
           description: List of labels linked to this API.
           type: array
           items:
             type: string
         owner:
           $ref: '#/components/schemas/User'
-        views: 
+        views:
           description: List of views this API belongs to.
           type: array
           items:
             type: string
-        rating_summary: 
+        rating_summary:
           $ref: '#/components/schemas/RatingSummary'
         _links:
           $ref: '#/components/schemas/ApiLinks'
-        
+
         ###################
         # may be included #
         ###################
@@ -2158,7 +2159,7 @@ components:
           description: |
             Only returned with */apis/{apiId}*.
             Need *include* query param to contain 'pages'.
-            
+
             The documentation pages of this API. Same as */apis/{apiId}/pages*.
           type: array
           items:
@@ -2179,7 +2180,7 @@ components:
         - type
         - order
       properties:
-        id: 
+        id:
           description: Unique identifier of a page.
           type: string
         name:
@@ -2227,7 +2228,7 @@ components:
         - order
         - comment_required
       properties:
-        id: 
+        id:
           description: Unique identifier of a plan.
           type: string
         name:
@@ -2274,14 +2275,14 @@ components:
         - value
         - comment
       properties:
-        id: 
+        id:
           description: Unique identifier of a rating.
           type: string
         title:
           description: Title of a rating.
           type: string
         value:
-          description: Value of the rating. Integer between 1 and 5. 
+          description: Value of the rating. Integer between 1 and 5.
           type: integer
         author:
           $ref: '#/components/schemas/User'
@@ -2299,7 +2300,7 @@ components:
             $ref: '#/components/schemas/RatingAnswer'
     Application:
       properties:
-        id: 
+        id:
           description: Unique identifier of an application.
           type: string
         name:
@@ -2389,7 +2390,7 @@ components:
               type: string
     PortalNotification:
         properties:
-          id: 
+          id:
             description: Unique identifier of a portal notification.
             type: string
           title:
@@ -2404,7 +2405,7 @@ components:
             format: date-time
     Member:
       properties:
-        id: 
+        id:
           description: Unique identifier of a member (user).
           type: string
         user:
@@ -2449,7 +2450,7 @@ components:
           format: int64
     Log:
       properties:
-        id: 
+        id:
           description: Unique identifier of a log.
           type: string
         timestamp:
@@ -2511,7 +2512,7 @@ components:
         - plan
         - status
       properties:
-        id: 
+        id:
           description: Unique identifier of a subscription.
           type: string
         api:
@@ -2556,14 +2557,14 @@ components:
           description: |
             Only returned with */subscriptions/{subscriptionId}*.
             Need *include* query param to contain 'keys'.
-            
+
             List of APIKeys of the subscription.
           type: array
           items:
             $ref: '#/components/schemas/Key'
     User:
       properties:
-        id: 
+        id:
           description: Unique identifier of a user.
           type: string
         first_name:
@@ -2590,7 +2591,7 @@ components:
           type: string
     View:
       properties:
-        id: 
+        id:
           description: Unique identifier of a view.
           type: string
         name:
@@ -2844,7 +2845,7 @@ components:
     ConfigurationAnalytics:
       properties:
         clientTimeout:
-          description: HTTP Client Timeout 
+          description: HTTP Client Timeout
           type: integer
           format: int64
     ConfigurationApplication:
@@ -2953,7 +2954,7 @@ components:
         copy_to_sender:
           description: True if the author of the ticket wants to receive a copy of the ticket.
           type: boolean
-          
+
     RegisterUserInput:
       required:
         - email
@@ -3069,7 +3070,7 @@ components:
         value:
           type: string
     RatingAnswer:
-      properties: 
+      properties:
         author:
           $ref: '#/components/schemas/User'
         date:
@@ -3144,7 +3145,7 @@ components:
       type: object
       additionalProperties:
         type: object
-        additionalProperties: 
+        additionalProperties:
           type: string
     Bucket:
       properties:
