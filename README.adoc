@@ -48,13 +48,27 @@ If you want to develop in parallel, you can clone repository and link to project
 
 ```shell script
 git clone git@github.com:gravitee-io/gravitee-ui-components.git
-pushd
+pushd gravitee-ui-components
 npm run generate:dist
 npm link
 popd
 
 pushd gravitee-portal-webui
 npm link @gravitee/ui-components
+popd
+```
+
+This project use project https://github.com/gravitee-io/gravitee-clients-sdk[gravitee-clients-sdk].
+If you want to develop in parallel, you can clone repository and link to project.
+
+```shell script
+git clone git@github.com:gravitee-io/gravitee-clients-sdk.git
+pushd gravitee-clients-sdk
+npm run publish:local
+popd
+
+pushd gravitee-portal-webui
+npm run install-sdk
 popd
 ```
 
