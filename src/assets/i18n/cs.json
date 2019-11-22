@@ -80,7 +80,14 @@
   "dashboard": "Dashboard",
   "login": "Přihlásit",
   "logout": "Odhlásit",
+  "search": "Vyhledávat",
   "user": "Můj profil"
+ },
+ "search": {
+  "query": {
+   "label": "Hledat v Gravitee",
+   "placeholder": "Vyhledat API, APP ..."
+  }
  },
  "site": {
   "title": "Gravitee.io Portal"

@@ -15,35 +15,38 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LoginComponent } from './login.component';
+import { CatalogSearchComponent } from './catalog-search.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { TranslateTestingModule } from '../../test/helper.spec';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
+import { TranslateTestingModule } from 'src/app/test/helper.spec';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { CurrentUserService } from '../../services/current-user.service';
-import { provideMagicalMock } from 'src/app/test/mock.helper.spec';
 
-describe('LoginComponent', () => {
-  let component: LoginComponent;
-  let fixture: ComponentFixture<LoginComponent>;
+describe('CatalogSearchComponent', () => {
+  let component: CatalogSearchComponent;
+  let fixture: ComponentFixture<CatalogSearchComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [LoginComponent],
-      imports: [RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
+      imports: [
+        RouterTestingModule,
+        TranslateTestingModule,
+        FormsModule,
+        ReactiveFormsModule,
+        HttpClientTestingModule
+      ],
+      declarations: [
+        CatalogSearchComponent
+      ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        provideMagicalMock(CurrentUserService),
       ]
     })
-      .compileComponents();
+    .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(LoginComponent);
+    fixture = TestBed.createComponent(CatalogSearchComponent);
     component = fixture.componentInstance;
     fixture.whenStable().then(() => {
       fixture.detectChanges();

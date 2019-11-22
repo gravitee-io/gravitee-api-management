@@ -45,6 +45,7 @@ import { LayoutComponent } from './layouts/layout/layout.component';
 import { SafePipe } from './pipes/safe.pipe';
 import { UserAvatarComponent } from './components/user-avatar/user-avatar.component';
 import { ContactComponent } from './pages/contact/contact.component';
+import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 
 @NgModule({
   declarations: [
@@ -63,6 +64,7 @@ import { ContactComponent } from './pages/contact/contact.component';
     SafePipe,
     UserAvatarComponent,
     ContactComponent,
+    CatalogSearchComponent,
   ],
   imports: [
     ApiModule,
@@ -83,7 +85,7 @@ import { ContactComponent } from './pages/contact/contact.component';
     })
   ],
   providers: [
-    { provide: BASE_PATH, useValue: environment.PORTAL_API_BASE_PATH },
+    { provide: BASE_PATH, useValue: environment.portalApiBasePath },
     { provide: MESSAGE_FORMAT_CONFIG, useValue: { locales: environment.locales } },
     CurrentUserService,
     { provide: HTTP_INTERCEPTORS, useClass: APIRequestInterceptor, multi: true }

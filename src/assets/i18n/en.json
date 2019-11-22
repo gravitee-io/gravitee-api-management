@@ -80,7 +80,14 @@
   "dashboard": "Dashboard",
   "login": "Sign in",
   "logout": "Sign out",
+  "search": "Search",
   "user": "My profile"
+ },
+ "search": {
+  "query": {
+   "label": "Search in Gravitee",
+   "placeholder": "Search API, APP ..."
+  }
  },
  "site": {
   "title": "Gravitee.io Portal"

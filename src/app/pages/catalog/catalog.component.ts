@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { RouteService, RouteType } from '../../services/route.service';
 import '@gravitee/ui-components/wc/gv-menu';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-catalog',
@@ -26,11 +27,17 @@ export class CatalogComponent implements OnInit {
 
   public catalogRoutes: object[];
 
-  constructor(private routeService: RouteService) {
-  }
+  constructor(
+    private routeService: RouteService,
+    private router: Router
+  ) { }
 
   ngOnInit() {
     this.catalogRoutes = this.routeService.getRoutes(RouteType.catalog);
   }
 
+  @HostListener(':gv-input:submit', ['$event.detail'])
+  onSearchInput(queryInput: string) {
+    this.router.navigate(['/catalog/search'], { queryParams: { q: queryInput} });
+  }
 }

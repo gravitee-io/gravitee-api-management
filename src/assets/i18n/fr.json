@@ -80,7 +80,14 @@
   "dashboard": "Tableau de bord",
   "login": "Se connecter",
   "logout": "Se déconnecter",
+  "search": "Rechercher",
   "user": "Mon compte"
+ },
+ "search": {
+  "query": {
+   "label": "Rechercher sur Gravitee",
+   "placeholder": "Rechercher une API, APP..."
+  }
  },
  "site": {
   "title": "Gravitee.io Portail"

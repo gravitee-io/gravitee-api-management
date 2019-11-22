@@ -18,9 +18,13 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false,
-  PORTAL_API_BASE_PATH: '/portal/DEFAULT',
-  locales: ['en', 'fr']
+  locales: ['en', 'fr'],
+  pagination: {
+    default: '10',
+    sizes: ['5', '10', '25', '50', '100']
+  },
+  portalApiBasePath: '/portal/DEFAULT',
+  production: false
 };
 
 /*

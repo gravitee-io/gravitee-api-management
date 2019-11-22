@@ -1,0 +1,67 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="search__header">
+  <form [formGroup]="searchForm" (ngSubmit)="search()" class="search__form">
+    <gv-input
+      name="query"
+      icon="general:search"
+      placeholder="{{ 'search.query.placeholder' | translate}}"
+      label="{{ 'search.query.label' | translate}}"
+      formControlName="query"
+      ngDefaultControl
+      class="search__form__input">
+    </gv-input>
+  </form>
+
+  <div *ngIf="apiList" class="search__results">
+    <h1 class="search__result__title">API <span class="search__result__subtitle">({{ totalElements }})</span></h1>
+    <div *ngFor="let api of apiList" class="search__result__api">
+      <img src="{{ api._links.picture}}" alt="{{ api.name }}" class="search__result__api__picture"/>
+      <span class="search__result__api__name">{{ api.name }}</span>
+      <span class="search__result__api__version">{{ api.version }}</span>
+      <span class="search__result__api__description">{{ api.description }}</span>
+      <div class="search__result__api__meta">
+        <div class="search__result__api__meta__owner">
+          <gv-icon shape="general:user" size="8px"></gv-icon>
+          {{ api.owner.display_name }}
+        </div>
+        <div class="search__result__api__meta__tags">
+            <gv-tag *ngFor="let label of api.labels" major>{{ label }}</gv-tag>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="paginationData" class="search__results__pagination">
+      <form [formGroup]="paginationForm" class="search__results__pagination__item">
+        Rows per page
+        <select formControlName="paginationSize" (change)="search()">
+          <option *ngFor="let pageSize of pageSizes" [value]="pageSize">{{ pageSize }}</option>
+        </select>
+      </form>
+      <span class="search__results__pagination__item">
+        {{ paginationData.first }} - {{ paginationData.last }} of {{ paginationData.total }}
+      </span>
+      <div class="search__results__pagination__item">
+        <gv-button outlined icon="navigation:arrow-to-left" (click)="changePage(paginationLinks.first)" [disabled]="!paginationLinks.first"></gv-button>
+        <gv-button outlined icon="navigation:arrow-left" (click)="changePage(paginationLinks.prev)" [disabled]="!paginationLinks.prev"></gv-button>
+        <gv-button outlined icon="navigation:arrow-right" (click)="changePage(paginationLinks.next)" [disabled]="!paginationLinks.next"></gv-button>
+        <gv-button outlined icon="navigation:arrow-to-right" (click)="changePage(paginationLinks.last)" [disabled]="!paginationLinks.last"></gv-button>
+      </div>
+    </div>
+  </div>
+
+</div>

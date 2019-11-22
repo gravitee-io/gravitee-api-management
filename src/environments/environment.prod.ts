@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 export const environment = {
-  production: true,
-  PORTAL_API_BASE_PATH: '/portal/DEFAULT',
-  locales: ['en', 'fr']
+  locales: ['en', 'fr'],
+  pagination: {
+    default: '10',
+    sizes: ['5', '10', '25', '50', '100']
+  },
+  portalApiBasePath: '/portal/DEFAULT',
+  production: true
 };
