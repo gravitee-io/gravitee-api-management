@@ -19,10 +19,12 @@ import '@gravitee/ui-components/wc/gv-promote-api';
 import '@gravitee/ui-components/wc/gv-card-api-full';
 import '@gravitee/ui-components/wc/gv-card-api';
 import '@gravitee/ui-components/wc/gv-select';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-all',
@@ -41,13 +43,14 @@ export class FilteredCatalogComponent implements OnInit {
   public total: string;
   private page: number;
   private size: number;
-  private views: Array<string>;
+  public views: Array<string>;
   public ratingEnabled: boolean;
   public currentView: string;
 
 
   constructor(private apiService: ApiService,
               private portalService: PortalService,
+              private translateService: TranslateService,
               private activatedRoute: ActivatedRoute,
               private router: Router) {
     // @ts-ignore
@@ -65,22 +68,42 @@ export class FilteredCatalogComponent implements OnInit {
     this._load();
   }
 
+  getLabels(api) {
+    return api.labels.map((label) => ({ value: label }));
+  }
+
+  getStates(api) {
+    if (api.draft) {
+      return [{ value: 'draft' }];
+    }
+    return [{ value: 'running', major: true }];
+  }
+
+  getTitle() {
+    return this.activatedRoute.snapshot.data.title;
+  }
+
   async _load() {
     forkJoin([
       this.apiService.getApis({ page: this.page, size: this.size, cat: this.categoryApiQuery, view: this.currentView }),
       this.apiService.getApis({ size: FilteredCatalogComponent.RANDOM_MAX_SIZE, _cat: this.categoryApiQuery }),
+      this.translateService.get(i18n('filteredCatalog.defaultView'))
     ]).pipe(
-      map(([allPage, all]) => [
+      map(([allPage, all, label]) => [
         all.data.filter((api) => !allPage.data.some(({ id }) => (id === api.id))).slice(0, FilteredCatalogComponent.RANDOM_MAX_SIZE),
         allPage.data.splice(0, 1),
         allPage.data,
-        [].concat(...new Set([].concat(...allPage.data.map((api) => api.views))).values())
+        [].concat(...new Set([].concat(...allPage.data.map((api) => api.views))).values()),
+        label
       ])
-    ).subscribe(([randomList, promotedApi, allList, views]) => {
+    ).subscribe(([randomList, promotedApi, allList, views, label]) => {
+      // @ts-ignore
       this.randomList = randomList;
       this.promotedApi = promotedApi[0];
+      // @ts-ignore
       this.allApis = allList;
-      this.views = views;
+      // @ts-ignore
+      this.views = [{ value: FilteredCatalogComponent.DEFAULT_VIEW, label }].concat(views.map((view) => ({ value: view })));
     });
 
     this.apiService.getApis({ cat: this.categoryApiQuery }).subscribe(({ metadata: { data: { total } } }) => {
@@ -97,12 +120,11 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   hasViews() {
-    return this.views && this.views.length;
+    return this.views && this.views.length > 2;
   }
 
-  @HostListener(':gv-select:select', ['$event.detail'])
-  onSelectView(view) {
-    this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: { view } });
+  onSelectView({ target }) {
+    this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: { view: target.value } });
   }
 
   hasData() {

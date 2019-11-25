@@ -29,6 +29,7 @@
   "title": "Your request"
  },
  "filteredCatalog": {
+  "defaultView": "All the APIs",
   "filter": "Filter the results",
   "othersApi": {
    "subTitle": "Discover the different APIs in the headlines this month",
@@ -81,13 +82,14 @@
  "route": {
   "apps": "Applications",
   "catalog": "Catalog",
-  "catalog-all": "All",
   "catalog-categories": "Categories",
+  "catalog-featured": "Featured",
+  "catalog-starred": "Starred",
+  "catalog-trending": "Trending",
   "contact": "Contact",
   "dashboard": "Dashboard",
   "login": "Sign in",
   "logout": "Sign out",
-  "search": "Search",
   "user": "My profile"
  },
  "search": {

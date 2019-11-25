@@ -51,30 +51,30 @@ export const routes: Routes = [
             }
           },
           {
-            path: CategoryApiQuery.FEATURED.toLowerCase(),
+            path: 'featured',
             component: FilteredCatalogComponent,
             data: {
-              title: CategoryApiQuery.FEATURED.toLowerCase(),
+              title: i18n('route.catalog-featured'),
               type: RouteType.catalog,
               icon: 'home:flower#2',
               categoryApiQuery: CategoryApiQuery.FEATURED
             }
           },
           {
-            path: CategoryApiQuery.STARRED.toLowerCase(),
+            path: 'starred',
             component: FilteredCatalogComponent,
             data: {
-              title: CategoryApiQuery.STARRED.toLowerCase(),
+              title: i18n('route.catalog-starred'),
               type: RouteType.catalog,
               icon: 'general:star',
               categoryApiQuery: CategoryApiQuery.STARRED
             }
           },
           {
-            path: CategoryApiQuery.TRENDINGS.toLowerCase(),
+            path: 'trendings',
             component: FilteredCatalogComponent,
             data: {
-              title: CategoryApiQuery.TRENDINGS.toLowerCase(),
+              title: i18n('route.catalog-trending'),
               type: RouteType.catalog,
               icon: 'home:fireplace',
               categoryApiQuery: CategoryApiQuery.TRENDINGS

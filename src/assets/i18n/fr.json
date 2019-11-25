@@ -29,6 +29,7 @@
   "title": "Votre demande"
  },
  "filteredCatalog": {
+  "defaultView": "Toutes les APIs",
   "filter": "Filtrer les résultats",
   "othersApi": {
    "subTitle": "Découvrez les différentes APIs à la une ce mois-ci",
@@ -81,13 +82,14 @@
  "route": {
   "apps": "Applications",
   "catalog": "Catalogue",
-  "catalog-all": "All",
   "catalog-categories": "Catégories",
+  "catalog-featured": "Les Top APIs",
+  "catalog-starred": "Les mieux notées",
+  "catalog-trending": "Les + tendances",
   "contact": "Contact",
   "dashboard": "Tableau de bord",
   "login": "Se connecter",
   "logout": "Se déconnecter",
-  "search": "Rechercher",
   "user": "Mon compte"
  },
  "search": {

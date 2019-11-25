@@ -8,7 +8,7 @@
  "contact": {
   "apis": {
    "label": "Najít API",
-   "title": "Associate an API"
+   "title": "Přiřadit API"
   },
   "applications": {
    "label": "Najít aplikaci",
@@ -19,8 +19,8 @@
    "label": "Vysvětlete svůj požadavek ...",
    "title": "Vaše žádost"
   },
-  "error": "contact.error",
-  "receive_copy": "contact.receive_copy",
+  "error": "Došlo k chybě",
+  "receive_copy": "Přijmout kopii e-mailem",
   "subject": {
    "label": "Vysvětlete téma ...",
    "title": "Subject"
@@ -29,10 +29,11 @@
   "title": "Vaše žádost"
  },
  "filteredCatalog": {
+  "defaultView": "Všechna API",
   "filter": "Filtrujte výsledky",
   "othersApi": {
    "subTitle": "Objevte různá API v titulcích tento měsíc",
-   "title": "Ostatní aPIs"
+   "title": "Ostatní APIs"
   }
  },
  "login": {
@@ -81,13 +82,14 @@
  "route": {
   "apps": "Aplikace",
   "catalog": "Katalog",
-  "catalog-all": "All",
   "catalog-categories": "Kategories",
+  "catalog-featured": "Představoval",
+  "catalog-starred": "Označené hvězdičkou",
+  "catalog-trending": "route.catalog-trending",
   "contact": "Kontakt",
   "dashboard": "Dashboard",
   "login": "Přihlásit",
   "logout": "Odhlásit",
-  "search": "Vyhledávat",
   "user": "Můj profil"
  },
  "search": {
