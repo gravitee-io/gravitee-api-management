@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { User } from '@gravitee/ng-portal-webclient';
 import { UserAvatarComponent } from './user-avatar.component';
 import { SafePipe } from '../../pipes/safe.pipe';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('UserAvatarComponent', () => {
   let component: UserAvatarComponent;
@@ -24,13 +24,14 @@ describe('UserAvatarComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [UserAvatarComponent, SafePipe]
-    })
-      .compileComponents();
+      declarations: [UserAvatarComponent, SafePipe],
+      schemas: [
+        CUSTOM_ELEMENTS_SCHEMA,
+      ]
+    }).compileComponents();
   }));
 
   beforeEach(() => {
-
     fixture = TestBed.createComponent(UserAvatarComponent);
     component = fixture.componentInstance;
     component.user = { _links: {} };
@@ -38,6 +39,9 @@ describe('UserAvatarComponent', () => {
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component).toBeTruthy();
+    });
   });
 });

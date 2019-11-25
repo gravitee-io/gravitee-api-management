@@ -13,18 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-
-@Component({
-  selector: 'app-all',
-  templateUrl: './all.component.html',
-  styleUrls: ['./all.component.css']
-})
-export class AllComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit() {
-  }
-
+export enum SearchQueryParam {
+  PAGE = 'p',
+  SIZE = 's'
 }

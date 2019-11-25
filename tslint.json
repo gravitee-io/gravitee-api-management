@@ -1,6 +1,14 @@
 {
   "extends": "tslint:recommended",
   "rules": {
+    "variable-name": {
+      "options": [
+        "ban-keywords",
+        "check-format",
+        "allow-leading-underscore",
+        "allow-pascal-case"
+      ]
+    },
     "array-type": false,
     "arrow-parens": false,
     "deprecation": {
@@ -89,5 +97,8 @@
   "rulesDirectory": [
     "codelyzer",
     "node_modules/tslint-eslint-rules/dist/rules"
+  ],
+  "variable-name": [
+    "allow-leading-underscore"
   ]
 }

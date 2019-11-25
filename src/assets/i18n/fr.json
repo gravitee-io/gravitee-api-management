@@ -28,6 +28,13 @@
   "success": "Votre demande a bien été transmise au responsable de la plateforme.",
   "title": "Votre demande"
  },
+ "filteredCatalog": {
+  "filter": "Filtrer les résultats",
+  "othersApi": {
+   "subTitle": "Découvrez les différentes APIs à la une ce mois-ci",
+   "title": "Les autres API's"
+  }
+ },
  "login": {
   "button": "Se connecter",
   "notification": {

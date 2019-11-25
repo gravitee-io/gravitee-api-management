@@ -18,53 +18,54 @@ import { Router, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 
 export enum RouteType {
-    main,
-    login,
-    user,
-    catalog
+  main,
+  login,
+  user,
+  catalog
 }
 
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class RouteService {
-    private flattenedRoutes: any[];
+  private flattenedRoutes: any[];
 
-    constructor(private router: Router,
-                private translateService: TranslateService) {
-        this.flattenedRoutes = this.getFlattenedRoutes(this.router.config);
-    }
+  constructor(private router: Router,
+              private translateService: TranslateService) {
+    this.flattenedRoutes = this.getFlattenedRoutes(this.router.config);
+  }
 
-    private getFlattenedRoutes(routes: Routes) {
-        const tmpRoutes = JSON.parse(JSON.stringify(routes));
-        const flattenedRoutes = tmpRoutes.map((route) => {
-            if (route.children) {
-                const children = route.children.map((child) => {
-                    child.path = route.path + '/' + child.path;
-                    return child;
-                });
-                delete route.children;
-                return this.getFlattenedRoutes(children.concat(route));
-            }
-            return route;
+  private getFlattenedRoutes(routes: Routes) {
+    const tmpRoutes = JSON.parse(JSON.stringify(routes));
+    const flattenedRoutes = tmpRoutes.map((route) => {
+      if (route.children) {
+        const children = route.children.map((child) => {
+          child.path = route.path + '/' + child.path;
+          return child;
         });
-        return [].concat(...flattenedRoutes);
-    }
+        delete route.children;
+        return this.getFlattenedRoutes(children.concat(route));
+      }
+      return route;
+    });
+    return [].concat(...flattenedRoutes);
+  }
 
-    getRoutes(type: RouteType) {
-        const c = this.flattenedRoutes
-            .filter(({ data }) => data && (data.type === type))
-            .map(({ path, data: { title, icon, separator } }) => {
-                return {
-                    path,
-                    icon,
-                    active: this.router.isActive(`/${path}`, false),
-                    title: this.translateService.get(title).toPromise(),
-                    separator
-                };
-            });
-        return c;
-    }
+  getRoutes(type: RouteType) {
+    const c = this.flattenedRoutes
+      .filter(({ data }) => data && (data.type === type))
+      .map(({ path, data: { title, icon, separator, categoryApiQuery } }) => {
+        return {
+          path,
+          icon,
+          active: this.router.isActive(`/${path}`, false),
+          title: this.translateService.get(title).toPromise(),
+          separator,
+          categoryApiQuery
+        };
+      });
+    return c;
+  }
 
 }

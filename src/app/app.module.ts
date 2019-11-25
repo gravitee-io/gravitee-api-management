@@ -40,7 +40,7 @@ import { RegistrationConfirmationComponent } from './pages/registration/registra
 import { APIRequestInterceptor } from './interceptors/apiRequest.interceptor';
 import { CurrentUserService } from './services/current-user.service';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
-import { AllComponent } from './pages/catalog/all/all.component';
+import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
 import { LayoutComponent } from './layouts/layout/layout.component';
 import { SafePipe } from './pipes/safe.pipe';
 import { UserAvatarComponent } from './components/user-avatar/user-avatar.component';
@@ -60,7 +60,7 @@ import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.co
     RegistrationComponent,
     RegistrationConfirmationComponent,
     CategoriesComponent,
-    AllComponent,
+    FilteredCatalogComponent,
     SafePipe,
     UserAvatarComponent,
     ContactComponent,

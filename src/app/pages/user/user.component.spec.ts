@@ -22,6 +22,7 @@ import { UserService } from '@gravitee/ng-portal-webclient';
 import { TranslateTestingModule } from '../../test/helper.spec';
 import { UserAvatarComponent } from '../../components/user-avatar/user-avatar.component';
 import { SafePipe } from '../../pipes/safe.pipe';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('UserComponent', () => {
   let component: UserComponent;
@@ -33,7 +34,10 @@ describe('UserComponent', () => {
     TestBed.configureTestingModule({
       declarations: [UserComponent, UserAvatarComponent, SafePipe],
       imports: [TranslateTestingModule],
-      providers: [provideMagicalMock(UserService), provideMagicalMock(CurrentUserService)]
+      providers: [provideMagicalMock(UserService), provideMagicalMock(CurrentUserService)],
+      schemas: [
+        CUSTOM_ELEMENTS_SCHEMA,
+      ]
     })
       .compileComponents();
   }));

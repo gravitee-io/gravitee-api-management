@@ -27,74 +27,91 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { RouteType } from './services/route.service';
 import { LayoutComponent } from './layouts/layout/layout.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
-import { AllComponent } from './pages/catalog/all/all.component';
-import { ContactComponent } from './pages/contact/contact.component';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
+import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
+import { CategoryApiQuery } from '@gravitee/ng-portal-webclient';
+import { ContactComponent } from './pages/contact/contact.component';
 
 export const routes: Routes = [
-    {
-        path: '', component: LayoutComponent, children: [
-            {
-                path: '', redirectTo: 'dashboard', pathMatch: 'full'
-            },
-            {
-                path: 'dashboard',
-                component: DashboardComponent,
-                data: { title: i18n('route.dashboard'), type: RouteType.main }
-            },
-            {
-                path: 'catalog', data: { title: i18n('route.catalog'), type: RouteType.main }, component: CatalogComponent,
-                children: [
-                    { path: '', redirectTo: 'all', pathMatch: 'full' },
-                    {
-                        path: 'all',
-                        component: AllComponent,
-                        data: {
-                            title: i18n('route.catalog-all'),
-                            type: RouteType.catalog,
-                            icon: 'home:flower#2'
-                        }
-                    },
-                    {
-                        path: 'categories',
-                        component: CategoriesComponent,
-                        data: {
-                            title: i18n('route.catalog-categories'),
-                            type: RouteType.catalog,
-                            icon: 'layout:layout-arrange'
-                        }
-                    }]
-            },
-            { path: 'apps', component: AppsComponent, data: { title: i18n('route.apps'), type: RouteType.main } },
-            { path: 'login', component: LoginComponent, data: { title: i18n('route.login'), type: RouteType.login } },
-            { path: 'user', component: UserComponent, data: { title: i18n('route.user'), icon: 'general:user', type: RouteType.user } },
-            {
-                path: 'contact', component: ContactComponent,
-                data: {
-                    title: i18n('route.contact'),
-                    icon: 'communication:contact#1',
-                    type: RouteType.user
-                }
-            },
-            {
-                path: 'logout', component: LogoutComponent,
-                data: {
-                    title: i18n('route.logout'),
-                    separator: true,
-                    icon: 'home:door-open',
-                    type: RouteType.user
-                }
-            },
-            { path: 'registration', component: RegistrationComponent },
-            { path: 'catalog/search', component: CatalogSearchComponent }
-        ]
-    },
-    { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent },
+  {
+    path: '', component: LayoutComponent, children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: DashboardComponent, data: { title: i18n('route.dashboard'), type: RouteType.main } },
+      {
+        path: 'catalog', data: { title: i18n('route.catalog'), type: RouteType.main }, component: CatalogComponent,
+        children: [
+          { path: '', redirectTo: 'categories', pathMatch: 'full' },
+          {
+            path: 'categories',
+            component: CategoriesComponent,
+            data: {
+              title: i18n('route.catalog-categories'),
+              type: RouteType.catalog,
+              icon: 'layout:layout-arrange'
+            }
+          },
+          {
+            path: CategoryApiQuery.FEATURED.toLowerCase(),
+            component: FilteredCatalogComponent,
+            data: {
+              title: CategoryApiQuery.FEATURED.toLowerCase(),
+              type: RouteType.catalog,
+              icon: 'home:flower#2',
+              categoryApiQuery: CategoryApiQuery.FEATURED
+            }
+          },
+          {
+            path: CategoryApiQuery.STARRED.toLowerCase(),
+            component: FilteredCatalogComponent,
+            data: {
+              title: CategoryApiQuery.STARRED.toLowerCase(),
+              type: RouteType.catalog,
+              icon: 'general:star',
+              categoryApiQuery: CategoryApiQuery.STARRED
+            }
+          },
+          {
+            path: CategoryApiQuery.TRENDINGS.toLowerCase(),
+            component: FilteredCatalogComponent,
+            data: {
+              title: CategoryApiQuery.TRENDINGS.toLowerCase(),
+              type: RouteType.catalog,
+              icon: 'home:fireplace',
+              categoryApiQuery: CategoryApiQuery.TRENDINGS
+            }
+          }
+         ]
+      },
+      { path: 'apps', component: AppsComponent, data: { title: i18n('route.apps'), type: RouteType.main } },
+      { path: 'login', component: LoginComponent, data: { title: i18n('route.login'), type: RouteType.login } },
+      { path: 'user', component: UserComponent, data: { title: i18n('route.user'), icon: 'general:user', type: RouteType.user } },
+      {
+        path: 'contact', component: ContactComponent,
+        data: {
+          title: i18n('route.contact'),
+          icon: 'communication:contact#1',
+          type: RouteType.user
+        }
+      },
+      {
+        path: 'logout', component: LogoutComponent,
+        data: {
+          title: i18n('route.logout'),
+          separator: true,
+          icon: 'home:door-open',
+          type: RouteType.user
+        }
+      },
+      { path: 'registration', component: RegistrationComponent }
+    ]
+  },
+  { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent },
+  { path: 'catalog/search', component: CatalogSearchComponent },
 ];
 
 @NgModule({
-    imports: [RouterModule.forRoot(routes)],
-    exports: [RouterModule]
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
 })
 export class AppRoutingModule {
 }

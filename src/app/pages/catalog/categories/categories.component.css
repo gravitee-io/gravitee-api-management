@@ -14,25 +14,7 @@
  * limitations under the License.
  */
 
-
-.categories__title {
-  color: #262626;
-  font-weight: 600;
-  font-size: 30px;
-  line-height: 38px;
-  margin: 0;
-}
-
-.categories__subtitle {
-  color: #BFBFBF;
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 20px;
-  margin-left: 8px;
-}
-
-.categories__layout {
+.categories__section {
   display: flex;
   flex-wrap: wrap;
-  margin-top: 42px;
 }

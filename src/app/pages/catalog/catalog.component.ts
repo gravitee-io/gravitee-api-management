@@ -17,6 +17,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { RouteService, RouteType } from '../../services/route.service';
 import '@gravitee/ui-components/wc/gv-menu';
 import { Router } from '@angular/router';
+import { ApiService } from '@gravitee/ng-portal-webclient';
 
 @Component({
   selector: 'app-catalog',
@@ -27,13 +28,25 @@ export class CatalogComponent implements OnInit {
 
   public catalogRoutes: object[];
 
-  constructor(
-    private routeService: RouteService,
-    private router: Router
-  ) { }
+  constructor(private routeService: RouteService, private router: Router, private apiService: ApiService) {
+    this.catalogRoutes = [];
+  }
 
-  ngOnInit() {
-    this.catalogRoutes = this.routeService.getRoutes(RouteType.catalog);
+  async ngOnInit() {
+    this.catalogRoutes = await this.routeService.getRoutes(RouteType.catalog).map(async (route) => {
+      if (route.categoryApiQuery) {
+        return this.apiService.getApis({ cat: route.categoryApiQuery }).toPromise().then(async ({ metadata: { data: { total } } }) => {
+          if (parseInt(total, 10) === 0) {
+            throw new Error('This route should not be displayed');
+          }
+          // @ts-ignore
+          route.help = total;
+          return route;
+        });
+      }
+      return route;
+    });
+
   }
 
   @HostListener(':gv-input:submit', ['$event.detail'])

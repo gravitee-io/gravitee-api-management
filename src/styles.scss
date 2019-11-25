@@ -23,6 +23,92 @@
   --gv-menu--pl: var(--gv-theme-layout--pl);
 }
 
-.page__content{
+/* (1920x1080) Full HD Display */
+@media screen and (max-width: 1920px) {
+  :root {
+    --gv-theme-layout--pr: 250px;
+    --gv-theme-layout--pl: 250px;
+  }
+}
+
+/* (1680x1050) WSXGA+ Display */
+@media screen and (max-width: 1680px) {
+  :root {
+    --gv-theme-layout--pr: 130px;
+    --gv-theme-layout--pl: 130px;
+  }
+}
+
+/* (1600x900) HD+ Display */
+@media screen and (max-width: 1600px) {
+  :root {
+    --gv-theme-layout--pr: 90px;
+    --gv-theme-layout--pl: 90px;
+  }
+}
+
+/* (1440x900) WXGA+ Display */
+@media screen and (max-width: 1440px) {
+  :root {
+    --gv-theme-layout--pr: 10px;
+    --gv-theme-layout--pl: 10px;
+  }
+}
+
+/* (1366x768) WXGA Display */
+@media screen and (max-width: 1366px) {
+  :root {
+    --gv-theme-layout--pr: 8px;
+    --gv-theme-layout--pl: 8px;
+  }
+}
+
+/* (1280x720) Galaxy Note 2, WXGA */
+@media only screen and (min-device-width: 720px) and (max-device-width: 1280px) {
+  :root {
+    --gv-theme-layout--pr: 0px;
+    --gv-theme-layout--pl: 0px;
+  }
+}
+
+.page__content {
   padding: var(--gv-theme-page--pt) var(--gv-theme-layout--pr) var(--gv-theme-page--pb) var(--gv-theme-layout--pl);
+  max-width: calc(1412 + var(--gv-theme-page--pr) + var(--gv-theme-page--pl));
+}
+
+.page__content section {
+  margin-top: 42px;
+}
+
+h1.title {
+  font-size: 30px;
+  line-height: 38px;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+h1.title span {
+  color: #BFBFBF;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 20px;
+  margin-left: 8px;
+}
+
+h2.title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  opacity: 0.5;
+}
+
+h3.title {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: #595959;
+}
+
+h3.title p {
+  color: #BFBFBF;
 }

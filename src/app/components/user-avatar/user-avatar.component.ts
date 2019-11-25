@@ -15,6 +15,8 @@
  */
 import { Component, Input, OnInit } from '@angular/core';
 import { User } from '@gravitee/ng-portal-webclient';
+import '@gravitee/ui-components/wc/gv-image';
+// @ts-ignore
 import jdenticon from 'jdenticon';
 
 @Component({
@@ -32,6 +34,10 @@ export class UserAvatarComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+
+  getRoundedStyle() {
+    return `--gv-image--w:${this.size}px; --gv-image--h:${this.size}px;--gv-image--of: cover; --gv-image--bdrs: 50%;`;
   }
 
   getDefaultAvatar() {

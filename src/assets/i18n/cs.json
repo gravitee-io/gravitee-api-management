@@ -28,6 +28,13 @@
   "success": "Váš požadavek byl zaslán správci platformy.",
   "title": "Vaše žádost"
  },
+ "filteredCatalog": {
+  "filter": "Filtrujte výsledky",
+  "othersApi": {
+   "subTitle": "Objevte různá API v titulcích tento měsíc",
+   "title": "Ostatní aPIs"
+  }
+ },
  "login": {
   "button": "Přihlásit",
   "notification": {

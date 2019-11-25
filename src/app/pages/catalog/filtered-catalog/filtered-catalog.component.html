@@ -1,0 +1,69 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="page__content">
+  <h1 class="title">{{categoryApiQuery.toLowerCase()}}<span>({{total}})</span></h1>
+
+  <section class="catalog__section__top">
+    <div>
+      <gv-promote-api src="{{promotedApi._links.picture}}"
+                      title="{{promotedApi.name}}"
+                      description="{{promotedApi.description}}"
+                      alt="{{promotedApi.name}}"></gv-promote-api>
+    </div>
+
+    <article class="catalog__article__random" *ngIf="randomList">
+      <h3 class="title">{{'filteredCatalog.othersApi.title' | translate}}
+        <p>{{'filteredCatalog.othersApi.subTitle' | translate}}</p></h3>
+
+      <div class="catalog__cards catalog__cards__random">
+        <gv-card-api *ngFor="let api of randomList"
+                     title="{{api.name}}"
+                     picture="{{api._links.picture}}"
+                     version="{{api.version}}"></gv-card-api>
+      </div>
+
+    </article>
+  </section>
+
+  <div class="catalog__section__all" *ngIf="hasData()">
+    <div class="catalog__section__all__title">
+      <h2 class="title">{{currentView}}</h2>
+      <gv-select *ngIf="hasViews()"
+                 [attr.placeholder]="'filteredCatalog.filter' | translate"
+                 [options]="this.getViews()">
+      </gv-select>
+    </div>
+
+    <section class="catalog__cards">
+      <gv-card-api-full *ngFor="let api of allApis; let i = index;"
+                        title="{{api.name}}"
+                        picture="{{api._links.picture}}"
+                        description="{{api.description}}"
+                        version="{{api.version}}"
+                        labels="{{api.labels}}"
+                        subscribers="{{(86.07 * (i+1.2)).toFixed(0)}}"
+                        hits="{{(6.07 * (i+1.2)).toFixed(0)}}M+"
+                        health="{{(100-i*i)}}%"
+                        [rating]="ratingEnabled ? api.rating_summary : null">
+
+      </gv-card-api-full>
+    </section>
+
+  </div>
+</div>
+

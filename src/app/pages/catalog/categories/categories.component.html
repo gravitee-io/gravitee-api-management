@@ -16,13 +16,17 @@
 
 -->
 <div class="page__content categories">
-  <h1 class="categories__title">{{'categories.title' | translate}} <span class="categories__subtitle">({{ nbCategories }})</span></h1>
 
-  <div class="categories__layout">
+  <h1 class="title">{{'categories.title' | translate}} <span>({{ nbCategories }})</span></h1>
+
+  <section class="categories__section">
+
     <gv-card-category (click)="searchAPIsByCategory(category.id)" *ngFor="let category of categories let i = index"
       description="{{ category.description }}"
       title="{{ category.name }}"
       [style]="getCategoryBackgroundColor(i) | safe: 'style'">
     </gv-card-category>
-  </div>
+
+  </section>
+
 </div>

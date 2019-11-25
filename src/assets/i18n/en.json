@@ -28,6 +28,13 @@
   "success": "Your request has been sent to the manager of the platform",
   "title": "Your request"
  },
+ "filteredCatalog": {
+  "filter": "Filter the results",
+  "othersApi": {
+   "subTitle": "Discover the different APIs in the headlines this month",
+   "title": "The others APIs"
+  }
+ },
  "login": {
   "button": "Sign in",
   "notification": {
