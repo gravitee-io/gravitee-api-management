@@ -44,6 +44,7 @@ import { AllComponent } from './pages/catalog/all/all.component';
 import { LayoutComponent } from './layouts/layout/layout.component';
 import { SafePipe } from './pipes/safe.pipe';
 import { UserAvatarComponent } from './components/user-avatar/user-avatar.component';
+import { ContactComponent } from './pages/contact/contact.component';
 
 @NgModule({
   declarations: [
@@ -61,6 +62,7 @@ import { UserAvatarComponent } from './components/user-avatar/user-avatar.compon
     AllComponent,
     SafePipe,
     UserAvatarComponent,
+    ContactComponent,
   ],
   imports: [
     ApiModule,

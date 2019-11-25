@@ -5,6 +5,29 @@
  "categories": {
   "title": "Categories"
  },
+ "contact": {
+  "apis": {
+   "label": "Find an API",
+   "title": "Associate an API"
+  },
+  "applications": {
+   "label": "Find an application",
+   "title": "Associate an application"
+  },
+  "button": "Send your request",
+  "content": {
+   "label": "Explain your request...",
+   "title": "Your request"
+  },
+  "error": "An error occurs",
+  "receive_copy": "Receive a copy by e-mail",
+  "subject": {
+   "label": "Explain the subject...",
+   "title": "Subject"
+  },
+  "success": "Your request has been sent to the manager of the platform",
+  "title": "Your request"
+ },
  "login": {
   "button": "Sign in",
   "notification": {
@@ -53,6 +76,7 @@
   "catalog": "Catalog",
   "catalog-all": "All",
   "catalog-categories": "Categories",
+  "contact": "Contact",
   "dashboard": "Dashboard",
   "login": "Sign in",
   "logout": "Sign out",

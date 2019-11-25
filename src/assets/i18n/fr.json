@@ -5,6 +5,29 @@
  "categories": {
   "title": "Catégories"
  },
+ "contact": {
+  "apis": {
+   "label": "Trouver une API",
+   "title": "Associer une API"
+  },
+  "applications": {
+   "label": "Trouver une application",
+   "title": "Associer une application"
+  },
+  "button": "Envoyer votre demande",
+  "content": {
+   "label": "Expliquer votre demande...",
+   "title": "Votre demande"
+  },
+  "error": "Une erreur est survenue",
+  "receive_copy": "Recevoir une copie par e-mail",
+  "subject": {
+   "label": "Expliquer le sujet...",
+   "title": "Sujet"
+  },
+  "success": "Votre demande a bien été transmise au responsable de la plateforme.",
+  "title": "Votre demande"
+ },
  "login": {
   "button": "Se connecter",
   "notification": {
@@ -53,6 +76,7 @@
   "catalog": "Catalogue",
   "catalog-all": "All",
   "catalog-categories": "Catégories",
+  "contact": "Contact",
   "dashboard": "Tableau de bord",
   "login": "Se connecter",
   "logout": "Se déconnecter",

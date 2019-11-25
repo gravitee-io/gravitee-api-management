@@ -28,6 +28,7 @@ import { RouteType } from './services/route.service';
 import { LayoutComponent } from './layouts/layout/layout.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
 import { AllComponent } from './pages/catalog/all/all.component';
+import { ContactComponent } from './pages/contact/contact.component';
 
 export const routes: Routes = [
     {
@@ -66,6 +67,7 @@ export const routes: Routes = [
             { path: 'apps', component: AppsComponent, data: { title: i18n('route.apps'), type: RouteType.main } },
             { path: 'login', component: LoginComponent, data: { title: i18n('route.login'), type: RouteType.login } },
             { path: 'user', component: UserComponent, data: { title: i18n('route.user'), icon: 'general:user', type: RouteType.user } },
+            { path: 'contact', component: ContactComponent, data: { title: i18n('route.contact'), icon: 'communication:contact#1', type: RouteType.user } },
             {
                 path: 'logout', component: LogoutComponent,
                 data: {

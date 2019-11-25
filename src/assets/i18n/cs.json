@@ -5,6 +5,29 @@
  "categories": {
   "title": "Kategories"
  },
+ "contact": {
+  "apis": {
+   "label": "Najít API",
+   "title": "Associate an API"
+  },
+  "applications": {
+   "label": "Najít aplikaci",
+   "title": "Přiřadit aplikaci"
+  },
+  "button": "Odeslat požadavek",
+  "content": {
+   "label": "Vysvětlete svůj požadavek ...",
+   "title": "Vaše žádost"
+  },
+  "error": "contact.error",
+  "receive_copy": "contact.receive_copy",
+  "subject": {
+   "label": "Vysvětlete téma ...",
+   "title": "Subject"
+  },
+  "success": "Váš požadavek byl zaslán správci platformy.",
+  "title": "Vaše žádost"
+ },
  "login": {
   "button": "Přihlásit",
   "notification": {
@@ -53,6 +76,7 @@
   "catalog": "Katalog",
   "catalog-all": "All",
   "catalog-categories": "Kategories",
+  "contact": "Kontakt",
   "dashboard": "Dashboard",
   "login": "Přihlásit",
   "logout": "Odhlásit",
