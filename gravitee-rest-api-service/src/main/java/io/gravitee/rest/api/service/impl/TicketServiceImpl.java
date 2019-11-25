@@ -26,17 +26,15 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.notification.PortalHook;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-
-import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -84,7 +82,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         final String emailTo;
         final ApiModelEntity api;
         final ApplicationEntity applicationEntity;
-        if (ticketEntity.getApi() == null) {
+        if (ticketEntity.getApi() == null || ticketEntity.getApi().isEmpty()) {
             api = null;
             final MetadataEntity emailMetadata = metadataService.findDefaultByKey(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
             if (emailMetadata == null) {
@@ -105,7 +103,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             throw new IllegalStateException("The support email API metadata has not been changed");
         }
 
-        if (ticketEntity.getApplication() != null) {
+        if (ticketEntity.getApplication() != null && !ticketEntity.getApplication().isEmpty()) {
             applicationEntity = applicationService.findById(ticketEntity.getApplication());
             parameters.put("application", applicationEntity);
         } else {

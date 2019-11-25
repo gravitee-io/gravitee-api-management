@@ -15,13 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Set;
-
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
@@ -29,6 +24,11 @@ import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationLinks;
 import io.gravitee.rest.api.portal.rest.model.User;
+import org.springframework.stereotype.Component;
+
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -50,7 +50,9 @@ public class ApplicationMapper {
         application.setId(applicationListItem.getId());
         application.setName(applicationListItem.getName());
         User owner = new User();
-        owner.id(applicationListItem.getPrimaryOwner().getId());
+        final PrimaryOwnerEntity primaryOwner = applicationListItem.getPrimaryOwner();
+        owner.id(primaryOwner.getId());
+        owner.setDisplayName(primaryOwner.getDisplayName());
         application.setOwner(owner);
         application.setUpdatedAt(applicationListItem.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         
