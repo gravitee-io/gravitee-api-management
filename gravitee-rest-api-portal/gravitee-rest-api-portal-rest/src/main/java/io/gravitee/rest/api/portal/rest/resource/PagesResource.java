@@ -15,26 +15,22 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
+
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -44,7 +40,7 @@ public class PagesResource extends AbstractResource {
 
     @Inject
     private PageMapper pageMapper;
-    
+
     @Inject
     private PageService pageService;
 
@@ -56,21 +52,17 @@ public class PagesResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPages(@BeanParam PaginationParam paginationParam, @QueryParam("homepage") Boolean homepage, @QueryParam("parent") String parent) {
+    public Response getPages(@BeanParam PaginationParam paginationParam, @QueryParam("homepage") Boolean homepage,
+            @QueryParam("parent") String parent) {
 
-            List<Page> pages = pageService
-                    .search(new PageQuery.Builder()
-                            .homepage(homepage)
-                            .parent(parent)
-                            .build())
+        List<Page> pages = pageService.search(new PageQuery.Builder().homepage(homepage).parent(parent).build())
+                .stream()
+                .filter(pageEntity -> isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups()))
+                .map(pageMapper::convert)
+                .map(this::addPageLink)
+                .collect(Collectors.toList());
 
-                    .stream()
-                    .filter(pageEntity -> isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups()))
-                    .map(pageMapper::convert)
-                    .map(pageResult -> pageResult.content(null))
-                    .collect(Collectors.toList());
-            
-            return createListResponse(pages, paginationParam);
+        return createListResponse(pages, paginationParam);
     }
 
     @Path("{pageId}")
@@ -81,6 +73,13 @@ public class PagesResource extends AbstractResource {
     private boolean isDisplayable(boolean isPagePublished, List<String> excludedGroups) {
         return isPagePublished
                 && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull());
-
+    }
+    
+    
+    private Page addPageLink(Page page) {
+        return page.links(pageMapper.computePageLinks(
+                PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getId()),
+                PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getParent())
+                ));
     }
 }

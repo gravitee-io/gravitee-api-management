@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import io.gravitee.rest.api.portal.rest.model.PagesResponse;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,6 +66,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         doReturn(Arrays.asList(new PageEntity())).when(pageService).search(any());
         
         doReturn(new Page()).when(pageMapper).convert(any());
+        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
     }
 
     @Test
@@ -103,6 +105,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         List<Page> pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(1, pages.size());
+        assertNotNull(pages.get(0).getLinks());
     }
     
     @Test

@@ -25,8 +25,6 @@ tags:
     description: All about APIs
   - name: Applications
     description: All about applications
-  - name: Documentation
-    description: All about documentation of the portal
   - name: Portal
     description: All about portal configurations
   - name: Subscription
@@ -157,7 +155,6 @@ paths:
     get:
       tags:
         - Api
-        - Documentation
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
@@ -184,7 +181,8 @@ paths:
     get:
       tags:
         - Api
-        - Documentation
+      parameters:
+        - $ref: '#/components/parameters/pageIncludeParam'
       summary: Get an API page
       description: |
         Get an API page.
@@ -203,6 +201,33 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /apis/{apiId}/pages/{pageId}/content:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+      - $ref: '#/components/parameters/pageIdParam'
+    get:
+      tags:
+        - Api
+      summary: Get the content of an API page.
+      description: |
+        Get the content of a specific API documentation page.
+
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
+      operationId: getPageContentByApiIdAndPageId
+      security: []
+      responses:
+        200:
+          description: The content of the api documentation page.
+          content:
+            text/plain:
+              schema:
+                type: string
+        404:
+          description: API or Page not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /apis/{apiId}/picture:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
@@ -974,7 +999,7 @@ paths:
   /pages:
     get:
       tags:
-        - Documentation
+        - Portal
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
@@ -995,9 +1020,9 @@ paths:
       - $ref: '#/components/parameters/pageIdParam'
     get:
       tags:
-        - Documentation
+        - Portal
       parameters:
-        - $ref: '#/components/parameters/pageIdParam'
+        - $ref: '#/components/parameters/pageIncludeParam'
       summary: Get a portal page
       description: |
         Get a specific portal documentation page.
@@ -1006,6 +1031,32 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/PageSuccess'
+        404:
+          description: Page not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /pages/{pageId}/content:
+    parameters:
+      - $ref: '#/components/parameters/pageIdParam'
+    get:
+      tags:
+        - Portal
+      summary: Get the content of a portal page.
+      description: |
+        Get the contentn of a specific portal documentation page.
+      operationId: getPageContentByPageId
+      security: []
+      responses:
+        200:
+          description: The content of the portal documentation page.
+          content:
+            text/plain:
+              schema:
+                type: string
         404:
           description: Page not found
           content:
@@ -1840,7 +1891,17 @@ components:
       description: The name of the parent documentation page. If not null, only this page and its children are returned.
       schema:
         type: string
-
+    pageIncludeParam:
+      name: include
+      in: query
+      required: false
+      description: Comma-separated list of related objects to include in the response.
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - content
     #Analytics & logs filtering
     fromQueryParam:
       name: from
@@ -2281,9 +2342,6 @@ components:
           description: Last update date and time.
           type: string
           format: date-time
-        content:
-          description: Raw content of the page.
-          type: string
         configuraton:
           description: Array of key-value about the page.
           type: array
@@ -2294,6 +2352,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Metadata'
+        _links:
+          $ref: '#/components/schemas/PageLinks'
+
+        ###################
+        # may be included #
+        ###################
+        content:
+          description: |
+            Only returned with */apis/{apiId}/pages/{pageId}* and */pages/{pageId}*.
+            Need *include* query param to contain 'content'.
+            
+            The content of the page.
+          type: string
+
     Plan:
       required:
         - id
@@ -3309,6 +3381,14 @@ components:
         notifications:
           type: string
         picture:
+          type: string
+    PageLinks:
+      properties:
+        self:
+          type: string
+        content:
+          type: string
+        parent:
           type: string
     UserLinks:
       properties:

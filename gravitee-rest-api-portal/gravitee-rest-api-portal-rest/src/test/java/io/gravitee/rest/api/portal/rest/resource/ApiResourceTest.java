@@ -49,20 +49,20 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "apis/"; 
+        return "apis/";
     }
 
     @Before
     public void init() {
         resetAllMocks();
-        
+
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(API);
 
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
+
         Api api = new Api();
         api.setId(API);
         doReturn(api).when(apiMapper).convert(any());
@@ -79,16 +79,16 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         final Api responseApi = response.readEntity(Api.class);
         assertNotNull(responseApi);
-        
+
         ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
         Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(ac.capture());
-        
+
         String expectedBasePath = target(API).getUriBuilder().build().toString();
         List<String> bastPathList = ac.getAllValues();
         assertTrue(bastPathList.contains(expectedBasePath));
-        
+
     }
-    
+
     @Test
     public void shouldGetApiWithIncluded() {
         // mock pages
@@ -98,8 +98,8 @@ public class ApiResourceTest extends AbstractResourceTest {
         pagePublished.setLastModificationDate(Date.from(Instant.now()));
         pagePublished.setContent("some page content");
         doReturn(Arrays.asList(pagePublished)).when(pageService).search(any());
-        
-        //mock plans
+
+        // mock plans
         PlanEntity plan1 = new PlanEntity();
         plan1.setId("A");
         plan1.setSecurity(PlanSecurityType.API_KEY);
@@ -119,47 +119,42 @@ public class ApiResourceTest extends AbstractResourceTest {
         plan3.setStatus(PlanStatus.CLOSED);
 
         doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3))).when(planService).findByApi(API);
-        
-        //test
-        final Response response = 
-                target(API)
-                .queryParam("include", "pages","plans")
-                .request()
-                .get();
+
+        // test
+        final Response response = target(API).queryParam("include", "pages", "plans").request().get();
 
         assertEquals(OK_200, response.getStatus());
 
         final Api responseApi = response.readEntity(Api.class);
         assertNotNull(responseApi);
-        
+
         List<Page> pages = responseApi.getPages();
         assertNotNull(pages);
         assertEquals(1, pages.size());
-        assertNull(pages.get(0).getContent());
-        
+
         final List<Plan> plans = responseApi.getPlans();
         assertNotNull(plans);
         assertEquals(2, plans.size());
-        
+
     }
-    
+
     @Test
     public void shouldHaveNotFoundWhileGettingApi() {
-        //init
+        // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
-        //test
+
+        // test
         final Response response = target(API).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
@@ -167,38 +162,39 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals("Api ["+API+"] can not be found.", error.getMessage());
         
     }
-    
+
     @Test
     public void shouldGetApiPicture() throws IOException, URISyntaxException {
         // init
         InlinePictureEntity mockImage = new InlinePictureEntity();
-        byte[] apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
+        byte[] apiLogoContent = Files
+                .readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
         doReturn(mockImage).when(apiService).getPicture(API);
-        
+
         // test
         final Response response = target(API).path("picture").request().get();
         assertEquals(OK_200, response.getStatus());
     }
-    
+
     @Test
     public void shouldHaveNotFoundWhileGettingApiPicture() {
-        //init
+        // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
-        //test
+
+        // test
         final Response response = target(API).path("picture").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());

@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +47,7 @@ public class PageResourceTest extends AbstractResourceTest {
     private static final String UNPUBLISHED_PAGE = "my-page-unpublished";
     private static final String ANOTHER_PAGE = "another-page";
     private static final String UNKNOWN_PAGE = "unknown-page";
-
+    private static final String PAGE_CONTENT = "my-page-content";
 
     protected String contextPath() {
         return "pages/";
@@ -57,17 +58,19 @@ public class PageResourceTest extends AbstractResourceTest {
     @Before
     public void init() throws IOException {
         resetAllMocks();
-        
+
         PageEntity publishedPage = new PageEntity();
         publishedPage.setPublished(true);
         publishedPage.setExcludedGroups(new ArrayList<String>());
+        publishedPage.setContent(PAGE_CONTENT);
         doReturn(publishedPage).when(pageService).findById(PUBLISHED_PAGE);
-        
+
         PageEntity unPublishedPage = new PageEntity();
         unPublishedPage.setPublished(false);
         unPublishedPage.setExcludedGroups(new ArrayList<String>());
+        unPublishedPage.setContent(PAGE_CONTENT);
         doReturn(unPublishedPage).when(pageService).findById(UNPUBLISHED_PAGE);
-        
+
         mockAnotherPage = new PageEntity();
         mockAnotherPage.setPublished(true);
         mockAnotherPage.setExcludedGroups(new ArrayList<String>());
@@ -75,57 +78,74 @@ public class PageResourceTest extends AbstractResourceTest {
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
         doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE);
-        
+
         doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE);
-        
+
     }
 
     @Test
     public void shouldNotGetPage() {
         final Response response = target(UNKNOWN_PAGE).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("errors.page.notFound", error.getCode());
         assertEquals("404", error.getStatus());
         assertEquals("Page [" + UNKNOWN_PAGE + "] can not be found.", error.getMessage());
     }
-    
-    
+
     @Test
     public void shouldGetPage() {
         doReturn(new Page()).when(pageMapper).convert(any());
+        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
         doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-        
+
         final Response response = target(PUBLISHED_PAGE).request().get();
         assertEquals(OK_200, response.getStatus());
 
         final Page pageResponse = response.readEntity(Page.class);
         assertNotNull(pageResponse);
-    }  
-    
+        assertNull(pageResponse.getContent());
+        assertNotNull(pageResponse.getLinks());
+    }
+
+    @Test
+    public void shouldGetPageWithInclude() {
+        doReturn(new Page()).when(pageMapper).convert(any());
+        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
+        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
+
+        final Response response = target(PUBLISHED_PAGE).queryParam("include", "content").request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        final Page pageResponse = response.readEntity(Page.class);
+        assertNotNull(pageResponse);
+        assertEquals(PAGE_CONTENT, pageResponse.getContent());
+        assertNotNull(pageResponse.getLinks());
+    }
+
     @Test
     public void shouldNotGetPageBecauseOfGroupService() {
         doReturn(false).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-        
+
         Response response = target(PUBLISHED_PAGE).request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
-    
+
     @Test
     public void shouldNotGetUnpublishedPage() {
         doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-        
+
         Response response = target(UNPUBLISHED_PAGE).request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
-    
+
     @Test
     public void shouldNotHaveMetadataCleared() {
         doReturn(new Page()).when(pageMapper).convert(any());
@@ -138,5 +158,49 @@ public class PageResourceTest extends AbstractResourceTest {
         assertNotNull(pageResponse);
 
         assertFalse(mockAnotherPage.getMetadata().isEmpty());
+    }
+
+    @Test
+    public void shouldNotGetPageContent() {
+        final Response response = target(UNKNOWN_PAGE).path("content").request().get();
+        assertEquals(NOT_FOUND_404, response.getStatus());
+
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+
+        Error error = errors.get(0);
+        assertNotNull(error);
+        assertEquals("errors.page.notFound", error.getCode());
+        assertEquals("404", error.getStatus());
+        assertEquals("Page [" + UNKNOWN_PAGE + "] can not be found.", error.getMessage());
+    }
+
+    @Test
+    public void shouldGetPageContent() {
+        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
+
+        final Response response = target(PUBLISHED_PAGE).path("content").request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        final String pageContent = response.readEntity(String.class);
+        assertEquals(PAGE_CONTENT, pageContent);
+    }
+
+    @Test
+    public void shouldNotGetPageContentBecauseOfGroupService() {
+        doReturn(false).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
+
+        Response response = target(PUBLISHED_PAGE).path("content").request().get();
+        assertEquals(UNAUTHORIZED_401, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotGetUnpublishedPageContent() {
+        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
+
+        Response response = target(UNPUBLISHED_PAGE).path("content").request().get();
+        assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
 }

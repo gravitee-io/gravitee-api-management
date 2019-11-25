@@ -15,23 +15,23 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.util.Collection;
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
+import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
+
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -41,29 +41,64 @@ public class ApiPageResource extends AbstractResource {
 
     @Inject
     private PageMapper pageMapper;
-    
+
     @Inject
     private PageService pageService;
 
     @Inject
     private GroupService groupService;
 
+    private static final String INCLUDE_CONTENT = "content";
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPageByApiIdAndPageId(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
+    public Response getPageByApiIdAndPageId(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId,
+            @QueryParam("include") List<String> include) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-        if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
-            
+        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+
             final ApiEntity apiEntity = apiService.findById(apiId);
 
             PageEntity pageEntity = pageService.findById(pageId);
             pageService.transformSwagger(pageEntity, apiId);
-            
+
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
             }
             if (isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
-                return Response.ok(pageMapper.convert(pageEntity)).build();
+                Page page = pageMapper.convert(pageEntity);
+                
+                if (include.contains(INCLUDE_CONTENT)) {
+                    page.setContent(pageEntity.getContent());
+                }
+                
+                page.setLinks(pageMapper.computePageLinks(
+                        PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, pageId),
+                        PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, page.getParent())
+                        ));
+                return Response.ok(page).build();
+            } else {
+                throw new UnauthorizedAccessException();
+            }
+        }
+        throw new ApiNotFoundException(apiId);
+    }
+
+    @GET
+    @Path("content")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getPageContentByApiIdAndPageId(@PathParam("apiId") String apiId,
+            @PathParam("pageId") String pageId) {
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+
+            final ApiEntity apiEntity = apiService.findById(apiId);
+
+            PageEntity pageEntity = pageService.findById(pageId);
+            pageService.transformSwagger(pageEntity, apiId);
+
+            if (isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
+                return Response.ok(pageEntity.getContent()).build();
             } else {
                 throw new UnauthorizedAccessException();
             }
@@ -72,8 +107,8 @@ public class ApiPageResource extends AbstractResource {
     }
 
     private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {
-        return pageService.isDisplayable(api, isPagePublished, getAuthenticatedUserOrNull()) &&
-                        groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull());
+        return pageService.isDisplayable(api, isPagePublished, getAuthenticatedUserOrNull())
+                && groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull());
 
     }
 }

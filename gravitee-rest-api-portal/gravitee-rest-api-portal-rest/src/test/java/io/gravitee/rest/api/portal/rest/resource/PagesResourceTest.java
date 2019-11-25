@@ -33,6 +33,7 @@ import org.junit.Test;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.model.PagesResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.PageLinks;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -57,7 +58,8 @@ public class PagesResourceTest extends AbstractResourceTest {
         doReturn(Arrays.asList(publishedPage, unpublishedPage)).when(pageService).search(any());
         
         doReturn(new Page()).when(pageMapper).convert(any());
-        
+        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
+
     }
 
     
@@ -73,6 +75,7 @@ public class PagesResourceTest extends AbstractResourceTest {
         List<Page> pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(1, pages.size());
+        assertNotNull(pages.get(0).getLinks());
         
     }
     

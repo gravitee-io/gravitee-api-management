@@ -15,18 +15,18 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import java.time.ZoneOffset;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.model.Metadata;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.Page.TypeEnum;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
+import io.gravitee.rest.api.portal.rest.model.PageLinks;
+import org.springframework.stereotype.Component;
+
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -34,46 +34,49 @@ import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
  */
 @Component
 public class PageMapper {
-    
+
     public Page convert(PageEntity page) {
         final Page pageItem = new Page();
 
-        if(page.getConfiguration() != null) {
-            List<PageConfiguration> pageConfigurationList = page.getConfiguration().entrySet()
-                    .stream()
-                    .map(e-> new PageConfiguration()
+        if (page.getConfiguration() != null) {
+            List<PageConfiguration> pageConfigurationList = page.getConfiguration().entrySet().stream()
+                    .map(e -> new PageConfiguration()
                             .key(e.getKey())
-                            .value(e.getValue())
-                            )
+                            .value(e.getValue()))
                     .collect(Collectors.toList());
             pageItem.setConfiguraton(pageConfigurationList);
         }
-        pageItem.setContent(page.getContent());
         pageItem.setId(page.getId());
-        
-        if(page.getMetadata() != null) {
+
+        if (page.getMetadata() != null) {
             AtomicInteger counter = new AtomicInteger(0);
-            List<Metadata> metadataList = page.getMetadata().entrySet()
-                    .stream()
-                    .map(e-> new Metadata()
+            List<Metadata> metadataList = page.getMetadata().entrySet().stream()
+                    .map(e -> new Metadata()
                             .name(e.getKey())
                             .value(e.getValue())
-                            .order(Integer.toString(counter.getAndIncrement()))
-                        )
+                            .order(Integer.toString(counter.getAndIncrement())))
                     .collect(Collectors.toList());
             pageItem.setMetadata(metadataList);
         }
         pageItem.setName(page.getName());
         pageItem.setOrder(page.getOrder());
         pageItem.setParent(page.getParentId());
-        if(page.getType() != null) {
+        if (page.getType() != null) {
             pageItem.setType(TypeEnum.fromValue(page.getType()));
         }
-        if(page.getLastModificationDate() != null) {
-            pageItem.setUpdatedAt(page.getLastModificationDate().toInstant().atOffset( ZoneOffset.UTC ));
+        if (page.getLastModificationDate() != null) {
+            pageItem.setUpdatedAt(page.getLastModificationDate().toInstant().atOffset(ZoneOffset.UTC));
         }
-        
+
         return pageItem;
     }
 
+    public PageLinks computePageLinks(String basePath, String parentPath) {
+        PageLinks pageLinks = new PageLinks();
+        pageLinks.setContent(basePath + "/content");
+        pageLinks.setParent(parentPath);
+        pageLinks.setSelf(basePath);
+
+        return pageLinks;
+    }
 }

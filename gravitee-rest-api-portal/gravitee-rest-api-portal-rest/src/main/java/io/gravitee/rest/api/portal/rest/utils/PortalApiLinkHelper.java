@@ -15,26 +15,45 @@
  */
 package io.gravitee.rest.api.portal.rest.utils;
 
-import javax.ws.rs.core.UriBuilder;
-
 import io.gravitee.rest.api.service.common.GraviteeContext;
 
+import javax.ws.rs.core.UriBuilder;
+
 public final class PortalApiLinkHelper {
-    
-    private PortalApiLinkHelper() {}
-    
+
+    private PortalApiLinkHelper() {
+    }
+
     public static String apisURL(UriBuilder baseUriBuilder) {
         return resourcesURL(baseUriBuilder, null, "apis");
     }
+
     public static String apisURL(UriBuilder baseUriBuilder, String apiId) {
         return resourcesURL(baseUriBuilder, apiId, "apis");
+    }
+
+    public static String apiPagesURL(UriBuilder baseUriBuilder, String apiId) {
+        return resourcesURL(baseUriBuilder, apiId, "apis", null, "pages");
+    }
+
+    public static String apiPagesURL(UriBuilder baseUriBuilder, String apiId, String pageId) {
+        return resourcesURL(baseUriBuilder, apiId, "apis", pageId, "pages");
     }
 
     public static String applicationsURL(UriBuilder baseUriBuilder) {
         return resourcesURL(baseUriBuilder, null, "applications");
     }
+
     public static String applicationsURL(UriBuilder baseUriBuilder, String applicationId) {
         return resourcesURL(baseUriBuilder, applicationId, "applications");
+    }
+
+    public static String pagesURL(UriBuilder baseUriBuilder) {
+        return resourcesURL(baseUriBuilder, null, "pages");
+    }
+
+    public static String pagesURL(UriBuilder baseUriBuilder, String pageId) {
+        return resourcesURL(baseUriBuilder, pageId, "pages");
     }
 
     public static String userURL(UriBuilder baseUriBuilder) {
@@ -44,14 +63,27 @@ public final class PortalApiLinkHelper {
     public static String viewsURL(UriBuilder baseUriBuilder) {
         return resourcesURL(baseUriBuilder, null, "views");
     }
+
     public static String viewsURL(UriBuilder baseUriBuilder, String viewId) {
         return resourcesURL(baseUriBuilder, viewId, "views");
     }
-    
+
     private static String resourcesURL(UriBuilder baseUriBuilder, String resourceId, String resourceName) {
-        UriBuilder resourcesURLBuilder = baseUriBuilder.path(GraviteeContext.getCurrentEnvironment()).path(resourceName);
-        if(resourceId != null && !resourceId.isEmpty()) {
+        return resourcesURL(baseUriBuilder, resourceId, resourceName, null, null);
+    }
+
+    private static String resourcesURL(UriBuilder baseUriBuilder, String resourceId, String resourceName,
+            String subResourceId, String subResourceName) {
+        UriBuilder resourcesURLBuilder = baseUriBuilder.path(GraviteeContext.getCurrentEnvironment())
+                .path(resourceName);
+        if (resourceId != null && !resourceId.isEmpty()) {
             resourcesURLBuilder = resourcesURLBuilder.path(resourceId);
+        }
+        if (subResourceName != null && !subResourceName.isEmpty()) {
+            resourcesURLBuilder = resourcesURLBuilder.path(subResourceName);
+        }
+        if (subResourceId != null && !subResourceId.isEmpty()) {
+            resourcesURLBuilder = resourcesURLBuilder.path(subResourceId);
         }
         return resourcesURLBuilder.build().toString();
     }

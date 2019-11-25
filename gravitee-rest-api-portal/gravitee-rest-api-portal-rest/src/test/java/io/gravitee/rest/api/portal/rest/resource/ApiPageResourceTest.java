@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +46,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     private static final String PAGE = "my-page";
     private static final String UNKNOWN_PAGE = "unknown-page";
     private static final String ANOTHER_PAGE = "another-page";
-
+    private static final String PAGE_CONTENT = "my-page-content";
 
     protected String contextPath() {
         return "apis/";
@@ -54,7 +55,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Before
     public void init() throws IOException {
         resetAllMocks();
-        
+
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(API);
@@ -65,21 +66,22 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         PageEntity page1 = new PageEntity();
         page1.setPublished(true);
         page1.setExcludedGroups(new ArrayList<String>());
+        page1.setContent(PAGE_CONTENT);
         doReturn(page1).when(pageService).findById(PAGE);
     }
-    
+
     @Test
     public void shouldNotFoundApiWhileGettingApiPage() {
-        //init
+        // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
-        //test
+
+        // test
         final Response response = target(API).path("pages").path(PAGE).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
@@ -90,14 +92,14 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         assertEquals("404", error.getStatus());
         assertEquals("Api ["+API+"] can not be found.", error.getMessage());
     }
-    
+
     @Test
     public void shouldNotFoundPageWhileGettingApiPage() {
         doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE);
 
         final Response response = target(API).path("pages").path(UNKNOWN_PAGE).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
@@ -107,46 +109,64 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         assertEquals("404", error.getStatus());
         assertEquals("Page [" + UNKNOWN_PAGE + "] can not be found.", error.getMessage());
     }
-    
+
     @Test
     public void shouldGetApiPage() {
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
+        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
         doReturn(new Page()).when(pageMapper).convert(any());
+        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
 
         final Response response = target(API).path("pages").path(PAGE).request().get();
         assertEquals(OK_200, response.getStatus());
 
         final Page pageResponse = response.readEntity(Page.class);
         assertNotNull(pageResponse);
-    }  
+        assertNull(pageResponse.getContent());
+        assertNotNull(pageResponse.getLinks());
+    }
+
+    @Test
+    public void shouldGetApiPageWithInclude() {
+        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
+        doReturn(new Page()).when(pageMapper).convert(any());
+        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
+
+        final Response response = target(API).path("pages").path(PAGE).queryParam("include", "content").request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        final Page pageResponse = response.readEntity(Page.class);
+        assertNotNull(pageResponse);
+        assertEquals(PAGE_CONTENT, pageResponse.getContent());
+        assertNotNull(pageResponse.getLinks());
+    }
     
     @Test
     public void shouldNotGetApiPage() {
         final Builder request = target(API).path("pages").path(PAGE).request();
         // case 1
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
-        
+        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
+
         Response response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
 
         // case 2
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
-        
+        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
+
         response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
 
-        
         // case 3
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
-        
+        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
+
         response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
-    
+
     @Test
     public void shouldNotHaveMetadataCleared() {
         PageEntity mockAnotherPage = new PageEntity();
@@ -156,11 +176,10 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
         doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE);
-        
+
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
-
+        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
 
         Response response = target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, response.getStatus());
@@ -169,5 +188,82 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         assertNotNull(pageResponse);
 
         assertFalse(mockAnotherPage.getMetadata().isEmpty());
+    }
+
+    @Test
+    public void shouldNotFoundApiWhileGettingApiPageContent() {
+        // init
+        ApiEntity userApi = new ApiEntity();
+        userApi.setId("1");
+        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
+        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+
+        // test
+        final Response response = target(API).path("pages").path(PAGE).path("content").request().get();
+        assertEquals(NOT_FOUND_404, response.getStatus());
+
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        Error error = errors.get(0);
+        assertNotNull(error);
+        assertEquals("errors.api.notFound", error.getCode());
+        assertEquals("404", error.getStatus());
+        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
+    }
+
+    @Test
+    public void shouldNotFoundPageWhileGettingApiPageContent() {
+        doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE);
+
+        final Response response = target(API).path("pages").path(UNKNOWN_PAGE).path("content").request().get();
+        assertEquals(NOT_FOUND_404, response.getStatus());
+
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        Error error = errors.get(0);
+        assertEquals("errors.page.notFound", error.getCode());
+        assertEquals("404", error.getStatus());
+        assertEquals("Page [" + UNKNOWN_PAGE + "] can not be found.", error.getMessage());
+    }
+
+    @Test
+    public void shouldGetApiPageContent() {
+        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
+
+        final Response response = target(API).path("pages").path(PAGE).path("content").request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        final String pageContent = response.readEntity(String.class);
+        assertEquals(PAGE_CONTENT, pageContent);
+    }
+
+    @Test
+    public void shouldNotGetApiPageContent() {
+        final Builder request = target(API).path("pages").path(PAGE).path("content").request();
+        // case 1
+        doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
+
+        Response response = request.get();
+        assertEquals(UNAUTHORIZED_401, response.getStatus());
+
+        // case 2
+        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
+
+        response = request.get();
+        assertEquals(UNAUTHORIZED_401, response.getStatus());
+
+        // case 3
+        doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
+
+        response = request.get();
+        assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
 }

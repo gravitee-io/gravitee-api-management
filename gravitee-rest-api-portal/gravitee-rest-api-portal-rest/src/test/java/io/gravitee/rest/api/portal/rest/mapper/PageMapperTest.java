@@ -15,9 +15,16 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.portal.rest.model.Metadata;
+import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.Page.TypeEnum;
+import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
+import io.gravitee.rest.api.portal.rest.model.PageLinks;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.time.Instant;
 import java.util.Date;
@@ -25,16 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.portal.rest.model.Metadata;
-import io.gravitee.rest.api.portal.rest.model.Page;
-import io.gravitee.rest.api.portal.rest.model.Page.TypeEnum;
-import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
+import static org.junit.Assert.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -46,7 +44,6 @@ public class PageMapperTest {
     private static final String PAGE_ID = "my-page-id";
     private static final String PAGE_CONFIGURATION = "my-page-configuration";
     private static final String PAGE_CONTRIBUTOR = "my-page-contributor";
-    private static final String PAGE_CONTENT = "my-page-content";
     private static final String PAGE_NAME = "my-page-name";
     private static final String PAGE_PARENT = "my-page-parent";
     private static final String PAGE_TYPE = "SWAGGER";
@@ -66,7 +63,6 @@ public class PageMapperTest {
         Map<String, String> configuration = new HashMap<>();
         configuration.put("config", PAGE_CONFIGURATION);
         pageEntity.setConfiguration(configuration);
-        pageEntity.setContent(PAGE_CONTENT);
         pageEntity.setId(PAGE_ID);
         
         Map<String, String> metadata = new HashMap<>();
@@ -94,7 +90,6 @@ public class PageMapperTest {
         assertEquals("config", pg.getKey());
         assertEquals(PAGE_CONFIGURATION, pg.getValue());
         
-        assertEquals(PAGE_CONTENT, responsePage.getContent());
         assertEquals(PAGE_ID, responsePage.getId());
 
         List<Metadata> metadatas = responsePage.getMetadata();
@@ -112,20 +107,16 @@ public class PageMapperTest {
         assertEquals(TypeEnum.SWAGGER, responsePage.getType());
         
         assertEquals(now.toEpochMilli(), responsePage.getUpdatedAt().toInstant().toEpochMilli());
-        
-        
     }
  
     @Test
     public void testMinimalConvert() {
         //init
         pageEntity = new PageEntity();
-        
         pageEntity.setType(PAGE_TYPE);
         
         Instant now = Instant.now();
         pageEntity.setLastModificationDate(Date.from(now));
-        
         
         //Test
         Page responsePage = pageMapper.convert(pageEntity);
@@ -136,11 +127,21 @@ public class PageMapperTest {
         
         List<Metadata> metadatas = responsePage.getMetadata();
         assertNull(metadatas);
-        
         assertEquals(TypeEnum.SWAGGER, responsePage.getType());
-        
         assertEquals(now.toEpochMilli(), responsePage.getUpdatedAt().toInstant().toEpochMilli());
+    }
+
+    @Test
+    public void testApiLinks() {
+        String basePath = "/"+PAGE_ID;
+        String parentPath = "/"+PAGE_PARENT;
         
+        PageLinks links = pageMapper.computePageLinks(basePath, parentPath);
         
+        assertNotNull(links);
+        
+        assertEquals(basePath, links.getSelf());
+        assertEquals(basePath+"/content", links.getContent());
+        assertEquals(parentPath, links.getParent());
     }
 }

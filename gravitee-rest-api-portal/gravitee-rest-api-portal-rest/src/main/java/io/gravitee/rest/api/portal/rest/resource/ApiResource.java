@@ -83,7 +83,7 @@ public class ApiResource extends AbstractResource {
             if (include.contains(INCLUDE_PAGES)) {
                 List<Page> pages = pageService.search(new PageQuery.Builder().api(apiId).build()).stream()
                         .filter(page -> isDisplayable(apiEntity, page.isPublished(), page.getExcludedGroups()))
-                        .map(pageMapper::convert).map(page -> page.content(null)).collect(Collectors.toList());
+                        .map(pageMapper::convert).collect(Collectors.toList());
                 api.setPages(pages);
             }
             if (include.contains(INCLUDE_PLANS)) {
