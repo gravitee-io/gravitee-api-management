@@ -43,7 +43,7 @@ export class FilteredCatalogComponent implements OnInit {
   private size: number;
   private views: Array<string>;
   public ratingEnabled: boolean;
-  private currentView: string;
+  public currentView: string;
 
 
   constructor(private apiService: ApiService,
