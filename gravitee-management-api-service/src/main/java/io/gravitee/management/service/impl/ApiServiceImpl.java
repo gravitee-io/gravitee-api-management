@@ -27,6 +27,8 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.*;
@@ -341,6 +343,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check endpoints name
             checkEndpointsName(api);
 
+            // check HC inheritance
+            checkHealthcheckInheritance(api);
+
             addLoggingMaxDuration(api.getProxy().getLogging());
 
             // check if there is regex errors in plaintext fields
@@ -456,6 +461,58 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         assertEndpointNameNotContainsInvalidCharacters(endpoint.getName());
                     }
                 }
+            }
+        }
+    }
+
+    private void checkEndpointsExists(UpdateApiEntity api) {
+        if (api.getProxy().getGroups() == null
+                || api.getProxy().getGroups().isEmpty()) {
+            throw new EndpointMissingException();
+        }
+
+        EndpointGroup endpointGroup = api.getProxy().getGroups().iterator().next();
+        //Is service discovery enabled ?
+        EndpointDiscoveryService endpointDiscoveryService = endpointGroup.getServices() == null ? null : endpointGroup.getServices().get(EndpointDiscoveryService.class);
+        if ((endpointDiscoveryService == null || !endpointDiscoveryService.isEnabled()) &&
+            (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())) {
+            throw new EndpointMissingException();
+        }
+    }
+
+    private void checkHealthcheckInheritance(UpdateApiEntity api) {
+        boolean inherit = false;
+
+        if (api.getProxy() != null && api.getProxy().getGroups() != null) {
+            for (EndpointGroup group : api.getProxy().getGroups()) {
+                if (group.getEndpoints() != null) {
+                    for (Endpoint endpoint : group.getEndpoints()) {
+                        if (endpoint instanceof HttpEndpoint) {
+                            HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
+                            if (httpEndpoint.getHealthCheck() != null && httpEndpoint.getHealthCheck().isInherit()) {
+                                inherit = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (inherit) {
+            //if endpoints are set to inherit HC configuration, this configuration must exists.
+            boolean hcServiceExists = false;
+            if (api.getServices() != null) {
+                for (Service service : api.getServices().getAll()) {
+                    if (service instanceof HealthCheckService) {
+                        hcServiceExists = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hcServiceExists) {
+                throw new HealthcheckInheritanceException();
             }
         }
     }
@@ -630,8 +687,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check if context path is unique
             checkContextPath(updateApiEntity.getProxy().getContextPath(), apiId);
 
+            // check endpoints presence
+            checkEndpointsExists(updateApiEntity);
+
             // check endpoints name
             checkEndpointsName(updateApiEntity);
+
+            // check HC inheritance
+            checkHealthcheckInheritance(updateApiEntity);
 
             addLoggingMaxDuration(updateApiEntity.getProxy().getLogging());
 
@@ -645,6 +708,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 } catch (GroupsNotFoundException gnfe) {
                     throw new InvalidDataException("Groups [" + updateApiEntity.getGroups() + "] does not exist");
                 }
+            }
+
+            // add a default path
+            if (updateApiEntity.getPaths() == null || updateApiEntity.getPaths().isEmpty()) {
+                updateApiEntity.setPaths(singletonMap("/",new Path()));
             }
 
             Api apiToUpdate = optApiToUpdate.get();

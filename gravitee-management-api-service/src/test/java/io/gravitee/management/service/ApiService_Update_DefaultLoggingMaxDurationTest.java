@@ -20,9 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.Logging;
-import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -53,6 +52,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -118,6 +118,10 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         final Proxy proxy = new Proxy();
         existingApi.setProxy(proxy);
         proxy.setContextPath("/context");
+        EndpointGroup endpointGroup = new EndpointGroup();
+        Endpoint endpoint = new HttpEndpoint(null, null);
+        endpointGroup.setEndpoints(singleton(endpoint));
+        proxy.setGroups(singleton(endpointGroup));
 
         mockStatic(System.class);
         when(System.currentTimeMillis()).thenReturn(0L);

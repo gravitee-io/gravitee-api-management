@@ -22,6 +22,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -130,6 +131,10 @@ public class ApiService_UpdateTest {
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn("/context");
+        EndpointGroup endpointGroup = new EndpointGroup();
+        Endpoint endpoint = new HttpEndpoint(null, null);
+        endpointGroup.setEndpoints(singleton(endpoint));
+        when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenThrow(TechnicalException.class);
@@ -184,6 +189,10 @@ public class ApiService_UpdateTest {
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn(contextPathToCreate);
+        final EndpointGroup group = mock(EndpointGroup.class);
+        Endpoint endpoint = new HttpEndpoint(null, null);
+        when(group.getEndpoints()).thenReturn(singleton(endpoint));
+        when(proxy.getGroups()).thenReturn(singleton(group));
 
         when(apiRepository.search(null)).thenReturn(singletonList(api));
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
@@ -210,6 +219,8 @@ public class ApiService_UpdateTest {
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn("/new");
         final EndpointGroup group = mock(EndpointGroup.class);
+        Endpoint endpoint = new HttpEndpoint(null, null);
+        when(group.getEndpoints()).thenReturn(singleton(endpoint));
         when(group.getName()).thenReturn("inva:lid");
         when(proxy.getGroups()).thenReturn(singleton(group));
 
@@ -256,6 +267,10 @@ public class ApiService_UpdateTest {
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn("/context");
+        EndpointGroup endpointGroup = new EndpointGroup();
+        Endpoint endpoint = new HttpEndpoint(null, null);
+        endpointGroup.setEndpoints(singleton(endpoint));
+        when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
@@ -276,6 +291,13 @@ public class ApiService_UpdateTest {
     public void shouldUpdateWithExistingAllowedTag() throws TechnicalException {
         prepareUpdate();
         when(existingApi.getTags()).thenReturn(singleton("private"));
+        Proxy proxy = new Proxy();
+        proxy.setContextPath("/ctx");
+        EndpointGroup endpointGroup = new EndpointGroup();
+        Endpoint endpoint = new HttpEndpoint(null, null);
+        endpointGroup.setEndpoints(singleton(endpoint));
+        proxy.setGroups(singleton(endpointGroup));
+        when(existingApi.getProxy()).thenReturn(proxy);
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}");
         when(tagService.findByUser(any())).thenReturn(Sets.newSet("public", "private"));
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
@@ -287,6 +309,13 @@ public class ApiService_UpdateTest {
     public void shouldUpdateWithExistingAllowedTags() throws TechnicalException {
         prepareUpdate();
         when(existingApi.getTags()).thenReturn(newSet("public", "private"));
+        Proxy proxy = new Proxy();
+        proxy.setContextPath("/ctx");
+        EndpointGroup endpointGroup = new EndpointGroup();
+        Endpoint endpoint = new HttpEndpoint(null, null);
+        endpointGroup.setEndpoints(singleton(endpoint));
+        proxy.setGroups(singleton(endpointGroup));
+        when(existingApi.getProxy()).thenReturn(proxy);
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}");
         when(tagService.findByUser(any())).thenReturn(Sets.newSet("public", "private"));
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
