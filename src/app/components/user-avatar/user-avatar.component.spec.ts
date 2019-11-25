@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {User} from '@gravitee/ng-portal-webclient';
-import {UserAvatarComponent} from './user-avatar.component';
-import {SafePipe} from '../../pipes/safe.pipe';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { User } from '@gravitee/ng-portal-webclient';
+import { UserAvatarComponent } from './user-avatar.component';
+import { SafePipe } from '../../pipes/safe.pipe';
 
 describe('UserAvatarComponent', () => {
   let component: UserAvatarComponent;
@@ -33,7 +33,7 @@ describe('UserAvatarComponent', () => {
 
     fixture = TestBed.createComponent(UserAvatarComponent);
     component = fixture.componentInstance;
-    component.user = {_links: {}};
+    component.user = { _links: {} };
     fixture.detectChanges();
   });
 

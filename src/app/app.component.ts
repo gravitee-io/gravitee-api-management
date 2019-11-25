@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../environments/environment';
-import {Title} from '@angular/platform-browser';
-import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
-import {UserService} from '@gravitee/ng-portal-webclient';
-import {CurrentUserService} from './services/current-user.service';
+import { Component, OnInit } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { environment } from '../environments/environment';
+import { Title } from '@angular/platform-browser';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { UserService } from '@gravitee/ng-portal-webclient';
+import { CurrentUserService } from './services/current-user.service';
 
 @Component({
     selector: 'app-root',

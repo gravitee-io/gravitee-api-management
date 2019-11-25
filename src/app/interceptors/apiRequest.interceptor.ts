@@ -15,9 +15,9 @@
  */
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import {Router} from '@angular/router';
+import { Router } from '@angular/router';
 
-import {tap} from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { CurrentUserService } from '../services/current-user.service';
 

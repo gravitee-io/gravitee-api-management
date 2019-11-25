@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Router, Routes} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
+import { Injectable } from '@angular/core';
+import { Router, Routes } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 
 export enum RouteType {
     main,
@@ -54,8 +54,8 @@ export class RouteService {
 
     getRoutes(type: RouteType) {
         const c = this.flattenedRoutes
-            .filter(({data}) => data && (data.type === type))
-            .map(({path, data: {title, icon, separator}}) => {
+            .filter(({ data }) => data && (data.type === type))
+            .map(({ path, data: { title, icon, separator } }) => {
                 return {
                     path,
                     icon,

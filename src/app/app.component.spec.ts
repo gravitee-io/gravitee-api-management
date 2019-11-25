@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {TestBed, async} from '@angular/core/testing';
-import {RouterTestingModule} from '@angular/router/testing';
-import {AppComponent} from './app.component';
-import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-import {Title} from '@angular/platform-browser';
-import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
-import {provideMagicalMock} from './test/mock.helper.spec';
-import {Observable, of} from 'rxjs';
+import { TestBed, async } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { AppComponent } from './app.component';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Title } from '@angular/platform-browser';
+import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { provideMagicalMock } from './test/mock.helper.spec';
+import { Observable, of } from 'rxjs';
 import any = jasmine.any;
-import {CurrentUserService} from './services/current-user.service';
-import {TranslateTestingModule} from './test/helper.spec';
-import {UserService} from "@gravitee/ng-portal-webclient";
+import { CurrentUserService } from './services/current-user.service';
+import { TranslateTestingModule } from './test/helper.spec';
+import { UserService } from '@gravitee/ng-portal-webclient';
 
 describe('AppComponent', () => {
   beforeEach(async(() => {

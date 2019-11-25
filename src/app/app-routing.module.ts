@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
-import {DashboardComponent} from './pages/dashboard/dashboard.component';
-import {CatalogComponent} from './pages/catalog/catalog.component';
-import {AppsComponent} from './pages/apps/apps.component';
-import {LoginComponent} from './pages/login/login.component';
-import {UserComponent} from './pages/user/user.component';
-import {LogoutComponent} from './pages/logout/logout.component';
-import {RegistrationComponent} from './pages/registration/registration.component';
-import {RegistrationConfirmationComponent} from './pages/registration/registration-confirmation/registration-confirmation.component';
-import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
-import {RouteType} from './services/route.service';
-import {LayoutComponent} from './layouts/layout/layout.component';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { CatalogComponent } from './pages/catalog/catalog.component';
+import { AppsComponent } from './pages/apps/apps.component';
+import { LoginComponent } from './pages/login/login.component';
+import { UserComponent } from './pages/user/user.component';
+import { LogoutComponent } from './pages/logout/logout.component';
+import { RegistrationComponent } from './pages/registration/registration.component';
+import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { RouteType } from './services/route.service';
+import { LayoutComponent } from './layouts/layout/layout.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
 import { AllComponent } from './pages/catalog/all/all.component';
 
@@ -38,12 +38,12 @@ export const routes: Routes = [
             {
                 path: 'dashboard',
                 component: DashboardComponent,
-                data: {title: i18n('route.dashboard'), type: RouteType.main}
+                data: { title: i18n('route.dashboard'), type: RouteType.main }
             },
             {
-                path: 'catalog', data: {title: i18n('route.catalog'), type: RouteType.main}, component: CatalogComponent,
+                path: 'catalog', data: { title: i18n('route.catalog'), type: RouteType.main }, component: CatalogComponent,
                 children: [
-                    {path: '', redirectTo: 'all', pathMatch: 'full'},
+                    { path: '', redirectTo: 'all', pathMatch: 'full' },
                     {
                         path: 'all',
                         component: AllComponent,
@@ -63,9 +63,9 @@ export const routes: Routes = [
                         }
                     }]
             },
-            {path: 'apps', component: AppsComponent, data: {title: i18n('route.apps'), type: RouteType.main}},
-            {path: 'login', component: LoginComponent, data: {title: i18n('route.login'), type: RouteType.login}},
-            {path: 'user', component: UserComponent, data: {title: i18n('route.user'), icon: 'general:user', type: RouteType.user}},
+            { path: 'apps', component: AppsComponent, data: { title: i18n('route.apps'), type: RouteType.main } },
+            { path: 'login', component: LoginComponent, data: { title: i18n('route.login'), type: RouteType.login } },
+            { path: 'user', component: UserComponent, data: { title: i18n('route.user'), icon: 'general:user', type: RouteType.user } },
             {
                 path: 'logout', component: LogoutComponent,
                 data: {
@@ -75,10 +75,10 @@ export const routes: Routes = [
                     type: RouteType.user
                 }
             },
-            {path: 'registration', component: RegistrationComponent}
+            { path: 'registration', component: RegistrationComponent }
         ]
     },
-    {path: 'registration/confirm/:token', component: RegistrationConfirmationComponent},
+    { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent },
 ];
 
 @NgModule({

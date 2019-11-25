@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {BrowserModule} from '@angular/platform-browser';
-import {NgModule, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-import {ReactiveFormsModule} from '@angular/forms';
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 
-import {HttpClient, HttpClientModule, HTTP_INTERCEPTORS} from '@angular/common/http';
+import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
-import {TranslateLoader, TranslateModule, TranslateCompiler} from '@ngx-translate/core';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import { TranslateLoader, TranslateModule, TranslateCompiler } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
 import { MESSAGE_FORMAT_CONFIG } from 'ngx-translate-messageformat-compiler';
 
-import {AppRoutingModule} from './app-routing.module';
-import {AppComponent} from './app.component';
-import {LoginComponent} from './pages/login/login.component';
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { LoginComponent } from './pages/login/login.component';
 
-import {ApiModule, BASE_PATH} from '@gravitee/ng-portal-webclient';
-import {environment} from '../environments/environment';
+import { ApiModule, BASE_PATH } from '@gravitee/ng-portal-webclient';
+import { environment } from '../environments/environment';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { CatalogComponent } from './pages/catalog/catalog.component';
 import { AppsComponent } from './pages/apps/apps.component';
@@ -81,10 +81,10 @@ import { UserAvatarComponent } from './components/user-avatar/user-avatar.compon
     })
   ],
   providers: [
-    {provide: BASE_PATH, useValue: environment.PORTAL_API_BASE_PATH},
-    {provide: MESSAGE_FORMAT_CONFIG, useValue: {locales: environment.locales}},
+    { provide: BASE_PATH, useValue: environment.PORTAL_API_BASE_PATH },
+    { provide: MESSAGE_FORMAT_CONFIG, useValue: { locales: environment.locales } },
     CurrentUserService,
-    {provide: HTTP_INTERCEPTORS, useClass: APIRequestInterceptor, multi: true}
+    { provide: HTTP_INTERCEPTORS, useClass: APIRequestInterceptor, multi: true }
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA,

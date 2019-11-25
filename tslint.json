@@ -61,6 +61,7 @@
     "no-redundant-jsdoc": true,
     "no-switch-case-fall-through": true,
     "no-var-requires": false,
+    "object-curly-spacing": [true, "always"],
     "object-literal-key-quotes": [
       true,
       "as-needed"
@@ -86,6 +87,7 @@
     "use-pipe-transform-interface": true
   },
   "rulesDirectory": [
-    "codelyzer"
+    "codelyzer",
+    "node_modules/tslint-eslint-rules/dist/rules"
   ]
 }

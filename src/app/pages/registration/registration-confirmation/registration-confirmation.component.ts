@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup} from '@angular/forms';
-import {ActivatedRoute} from '@angular/router';
-import {UsersService, FinalizeRegistrationInput} from '@gravitee/ng-portal-webclient';
-import {TranslateService} from '@ngx-translate/core';
-import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-webclient';
+import { TranslateService } from '@ngx-translate/core';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
   selector: 'app-registration-confirmation',
@@ -86,7 +86,7 @@ export class RegistrationConfirmationComponent implements OnInit {
         lastname: this.registrationConfirmationForm.value.lastname
       };
       // call the register resource from the API.
-      this.usersService.finalizeUserRegistration({FinalizeRegistrationInput: input}).subscribe(
+      this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input }).subscribe(
         (user) => {
           this.translateService.get(i18n('registrationConfirmation.notification.success')).subscribe((translatedMessage) => {
             this.notification = {

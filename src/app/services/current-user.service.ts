@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {BehaviorSubject} from 'rxjs';
-import {User} from '@gravitee/ng-portal-webclient';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { User } from '@gravitee/ng-portal-webclient';
 
 @Injectable()
 export class CurrentUserService {

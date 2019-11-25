@@ -16,13 +16,13 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LayoutComponent } from './layout.component';
-import {RouterTestingModule} from '@angular/router/testing';
-import {TranslateTestingModule} from '../../test/helper.spec';
-import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-import {provideMagicalMock} from '../../test/mock.helper.spec';
-import {Title} from '@angular/platform-browser';
-import {CurrentUserService} from '../../services/current-user.service';
-import {TranslateService} from '@ngx-translate/core';
+import { RouterTestingModule } from '@angular/router/testing';
+import { TranslateTestingModule } from '../../test/helper.spec';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { provideMagicalMock } from '../../test/mock.helper.spec';
+import { Title } from '@angular/platform-browser';
+import { CurrentUserService } from '../../services/current-user.service';
+import { TranslateService } from '@ngx-translate/core';
 import any = jasmine.any;
 
 describe('LayoutComponent', () => {

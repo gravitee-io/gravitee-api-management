@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, OnInit} from '@angular/core';
-import {User} from '@gravitee/ng-portal-webclient';
+import { Component, Input, OnInit } from '@angular/core';
+import { User } from '@gravitee/ng-portal-webclient';
 import jdenticon from 'jdenticon';
 
 @Component({

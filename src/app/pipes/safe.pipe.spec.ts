@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {SafePipe} from './safe.pipe';
+import { SafePipe } from './safe.pipe';
 import {
   DomSanitizer,
   SafeValue,
 } from '@angular/platform-browser';
-import {SecurityContext} from '@angular/core';
+import { SecurityContext } from '@angular/core';
 
 class MockDomSanitizer extends DomSanitizer {
   bypassSecurityTrustHtml = jasmine.createSpy('bypassSecurityTrustHtml');

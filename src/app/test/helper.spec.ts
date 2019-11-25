@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
-import {Observable, of} from 'rxjs';
-import {TestBed} from '@angular/core/testing';
+import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Observable, of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 
-const translations: any = {CARDS_TITLE: 'This is a test'};
+const translations: any = { CARDS_TITLE: 'This is a test' };
 
 class FakeLoader implements TranslateLoader {
   getTranslation(lang: string): Observable<any> {
@@ -26,7 +26,7 @@ class FakeLoader implements TranslateLoader {
 }
 
 export const TranslateTestingModule = TranslateModule.forRoot({
-  loader: {provide: TranslateLoader, useClass: FakeLoader},
+  loader: { provide: TranslateLoader, useClass: FakeLoader },
 });
 
 export function getTranslateServiceMock() {

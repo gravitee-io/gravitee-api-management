@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit} from '@angular/core';
-import {FormGroup, FormBuilder} from '@angular/forms';
-import {UsersService, RegisterUserInput} from '@gravitee/ng-portal-webclient';
-import {TranslateService} from '@ngx-translate/core';
-import {marker as i18n} from '@biesbjerg/ngx-translate-extract-marker';
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormBuilder } from '@angular/forms';
+import { UsersService, RegisterUserInput } from '@gravitee/ng-portal-webclient';
+import { TranslateService } from '@ngx-translate/core';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
   selector: 'app-registration',
@@ -63,7 +63,7 @@ export class RegistrationComponent implements OnInit {
         confirmation_page_url: window.location.href + '/confirm'
       };
       // call the register resource from the API.
-      this.usersService.registerNewUser({RegisterUserInput: input}).subscribe(
+      this.usersService.registerNewUser({ RegisterUserInput: input }).subscribe(
         user => {
           this.translateService
             .get(i18n('registration.notification.success'), {

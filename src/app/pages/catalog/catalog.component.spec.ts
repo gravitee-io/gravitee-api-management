@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import {CatalogComponent} from './catalog.component';
-import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
-import {AppComponent} from '../../app.component';
-import {provideMagicalMock} from '../../test/mock.helper.spec';
-import {Title} from '@angular/platform-browser';
-import {CurrentUserService} from '../../services/current-user.service';
-import {RouteService} from '../../services/route.service';
-import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
-import {of} from 'rxjs';
-import {RouterTestingModule} from '@angular/router/testing';
-import {TranslateTestingModule} from '../../test/helper.spec';
+import { CatalogComponent } from './catalog.component';
+import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { AppComponent } from '../../app.component';
+import { provideMagicalMock } from '../../test/mock.helper.spec';
+import { Title } from '@angular/platform-browser';
+import { CurrentUserService } from '../../services/current-user.service';
+import { RouteService } from '../../services/route.service';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { of } from 'rxjs';
+import { RouterTestingModule } from '@angular/router/testing';
+import { TranslateTestingModule } from '../../test/helper.spec';
 
 
 describe('CatalogComponent', () => {
