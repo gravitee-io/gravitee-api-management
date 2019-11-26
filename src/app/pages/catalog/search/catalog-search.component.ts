@@ -57,13 +57,13 @@ export class CatalogSearchComponent implements OnInit {
     this.route.queryParams
       .subscribe(params => {
         if (params.q) {
-          this.searchForm.reset({query: params.q });
+          this.searchForm.reset({ query: params.q });
         }
         if (params.size) {
           const closestPageSize = this.pageSizes.reduce((prev, curr) => {
             return (Math.abs(parseInt(curr, 10) - params.size) < Math.abs(parseInt(prev, 10) - params.size) ? curr : prev);
           });
-          this.paginationForm.reset({paginationSize: closestPageSize});
+          this.paginationForm.reset({ paginationSize: closestPageSize });
         }
         if (params.page) {
           this.currentPage = params.page;

@@ -69,7 +69,7 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   getLabels(api) {
-    return api.labels.map((label) => ({ value: label }));
+    return api.labels.map((label) => ({ value: label, major: true }));
   }
 
   getStates(api) {

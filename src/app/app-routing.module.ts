@@ -102,11 +102,11 @@ export const routes: Routes = [
           type: RouteType.user
         }
       },
-      { path: 'registration', component: RegistrationComponent }
+      { path: 'registration', component: RegistrationComponent },
+      { path: 'catalog/search', component: CatalogSearchComponent }
     ]
   },
-  { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent },
-  { path: 'catalog/search', component: CatalogSearchComponent },
+  { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent }
 ];
 
 @NgModule({

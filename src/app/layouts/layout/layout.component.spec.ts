@@ -24,6 +24,7 @@ import { Title } from '@angular/platform-browser';
 import { CurrentUserService } from '../../services/current-user.service';
 import { TranslateService } from '@ngx-translate/core';
 import any = jasmine.any;
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('LayoutComponent', () => {
 
@@ -31,7 +32,8 @@ describe('LayoutComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         RouterTestingModule,
-        TranslateTestingModule
+        TranslateTestingModule,
+        HttpClientTestingModule,
       ],
       declarations: [
         LayoutComponent

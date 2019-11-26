@@ -16,6 +16,11 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ContactComponent } from './contact.component';
+import { RouterTestingModule } from '@angular/router/testing';
+import { TranslateTestingModule } from '../../test/helper.spec';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('ContactComponent', () => {
   let component: ContactComponent;
@@ -23,7 +28,11 @@ describe('ContactComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ContactComponent ]
+      declarations: [ ContactComponent ],
+      imports: [ FormsModule, ReactiveFormsModule, TranslateTestingModule, HttpClientTestingModule],
+      schemas: [
+        CUSTOM_ELEMENTS_SCHEMA,
+      ],
     })
     .compileComponents();
   }));

@@ -16,6 +16,7 @@
 import { Injectable } from '@angular/core';
 import { Router, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { ApiService, PortalService } from '@gravitee/ng-portal-webclient';
 
 export enum RouteType {
   main,
@@ -32,7 +33,9 @@ export class RouteService {
   private flattenedRoutes: any[];
 
   constructor(private router: Router,
-              private translateService: TranslateService) {
+              private translateService: TranslateService,
+              private apiService: ApiService,
+              private portalService: PortalService) {
     this.flattenedRoutes = this.getFlattenedRoutes(this.router.config);
   }
 
@@ -56,13 +59,29 @@ export class RouteService {
     const c = this.flattenedRoutes
       .filter(({ data }) => data && (data.type === type))
       .map(({ path, data: { title, icon, separator, categoryApiQuery } }) => {
+
+        let help = null;
+        if (type === RouteType.catalog) {
+          if (categoryApiQuery) {
+            help = this.apiService
+              .getApis({ cat: categoryApiQuery })
+              .toPromise()
+              .then(({ metadata: { data: { total } } }) => total);
+          } else {
+            help = this.portalService
+              .getViews({})
+              .toPromise()
+              .then(({ metadata: { data: { total } } }) => total);
+          }
+        }
+
         return {
           path,
           icon,
-          active: this.router.isActive(`/${path}`, false),
+          active: this.router.isActive(`/${ path }`, false),
           title: this.translateService.get(title).toPromise(),
           separator,
-          categoryApiQuery
+          help
         };
       });
     return c;

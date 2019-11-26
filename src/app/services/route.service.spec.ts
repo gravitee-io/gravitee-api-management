@@ -20,11 +20,16 @@ import { provideMagicalMock } from '../test/mock.helper.spec';
 import { TranslateService } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { getTranslateServiceMock, TranslateTestingModule } from '../test/helper.spec';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { CatalogComponent } from '../pages/catalog/catalog.component';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { CurrentUserService } from './current-user.service';
 
 describe('RouteService', () => {
   beforeEach(() => TestBed.configureTestingModule({
     imports: [
       TranslateTestingModule,
+      HttpClientTestingModule,
       RouterTestingModule.withRoutes([
         { path: 'foobar', redirectTo: '' },
         { path: 'catalog', data: { type: RouteType.catalog }, redirectTo: '' },
@@ -33,7 +38,6 @@ describe('RouteService', () => {
           data: { type: RouteType.catalog },
           children: [{ path: 'catalogChild', data: { type: RouteType.catalog }, redirectTo: '' }, { path: 'otherChild', redirectTo: '' }]
         }
-
       ]),
     ],
     providers: [
