@@ -17,131 +17,84 @@
 .search__form {
   background-color: var(--gv-theme-color-darker);
   color: white;
-  padding: 40px;
-  text-align: center;
+  padding: 40px 25%;
 }
 
 .search__form__input {
-  text-align: left;
-  width: 50%;
+  width: 100%;
 }
 
-.search__results {
+.catalog-search {
+  background-color: white;
+}
+
+.catalog-search__list {
   display: flex;
   flex-direction: column;
-  padding: 40px 15%;
 }
 
-.search__results__pagination {
-  background-color: white;
+.catalog-search__pagination {
   border-top: 1px solid var(--gv-theme-layout--bgc);
-  font-weight: 600;
-  font-size: 10px;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: center;
+  padding: 5px 0;
 }
 
-.search__results__pagination gv-button {
-  --gv-icon--h: 20px;
-  --gv-icon--w: 20px;
-}
-
-.search__results__pagination__item {
-  margin: 0 6px;
-}
-
-.search__results__pagination__item > select {
-  margin-left: 5px;
-}
-
-.search__result__title {
-  background-color: white;
+.catalog-search__title {
   border-bottom: 1px solid var(--gv-theme-layout--bgc);
   margin: 0;
   padding: 25px 0 25px 24px;
-  font-weight: 600;
-  font-size: 30px;
-  line-height: 38px;
 }
 
-.search__result__subtitle {
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 20px;
-  margin-left: 8px;
-}
-
-
-.search__result__api {
-  background-color: white;
+/*
+  List APIs
+  TODO: move to component
+ */
+.apis {
   display: flex;
   align-items: center;
-  flex-flow: row nowrap;
-  padding: 12px 0;
+  padding: 8px;
 }
 
-.search__result__api__picture {
-  margin-left: 20px;
-  height: 40px;
-  width: 40px;
+.apis > div {
+  margin: 12px;
+  flex: 1;
+}
+.apis .api__picture {
+  max-width: 40px;
+  max-height: 40px;
   border-radius: 20px;
 }
 
-.search__result__api__name {
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 22px;
-  margin-left: 23px;
-  flex: 1;
-
+.apis .api__name {
+  min-width: 300px;
 }
 
-.search__result__api__version {
-  font-weight: normal;
-  font-size: 12px;
-  line-height: 20px;
+.apis .api__version {
   color: #D9D9D9;
-  margin-left: 19px;
-  flex: 0.25;
-
+  max-width: 25px;
 }
 
-.search__result__api__description {
+.apis  .api__description {
   background: #FAFAFA;
   border-radius: 2px;
-  font-weight: normal;
   font-size: 14px;
-  line-height: 22px;
-  margin-left: 40px;
   padding: 8px;
-  height: 80%;
   flex: 6;
-
 }
 
-.search__result__api__meta {
+.api__meta {
   display: flex;
   flex-direction: column;
-  margin-left: 22px;
-  flex: 3;
 }
 
-.search__result__api__meta__owner {
+.api__meta__owner {
   --gv-icon--c: #D9D9D9;
   --gv-icon--h: 14px;
   --gv-icon--w: 13px;
   color: #D9D9D9;
-  font-weight: normal;
-  font-size: 12px;
-  line-height: 20px;
 }
 
-.search__result__api__meta__tags {
+.api__meta__tags {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  flex: 1;
-
 }

@@ -13,7 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { SearchApisRequestParams } from '@gravitee/ng-portal-webclient';
+
 export enum SearchQueryParam {
-  PAGE = 'p',
-  SIZE = 's'
+  PAGE = 'page',
+  SIZE = 'size',
+  QUERY = 'q'
+}
+
+export class SearchRequestParams implements SearchApisRequestParams {
+  q: string;
+  page?: number;
+  size?: number;
+
+  constructor(q, size?, page?) {
+    this.q = q;
+    this.page = page;
+    this.size = size;
+  }
+
 }

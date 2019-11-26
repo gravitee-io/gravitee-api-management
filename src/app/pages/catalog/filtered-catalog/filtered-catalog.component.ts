@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ApiService, Api, CategoryApiQuery, PortalService } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-promote-api';
 import '@gravitee/ui-components/wc/gv-card-api-full';

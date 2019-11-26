@@ -15,13 +15,18 @@
  */
 .contact {
   background-color: white;
-  margin: 1rem auto;
-  padding: 0.5rem 3rem;
-  min-height: 80vh;
-  max-width: 1000px;
+  padding: 1.5rem 4rem;
+  max-width: 1076px;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  margin-bottom: 1.5rem;
 }
 
 .contact__input {
   --gv-button--p: 1rem 2rem;
-  float: right;
+  max-width: 250px;
+  align-self: flex-end;
 }

@@ -15,9 +15,13 @@
     limitations under the License.
 
 -->
+<div class="page__content">
+
 <form class="contact" [formGroup]="contactForm" (ngSubmit)="submit()">
+
   <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
-  <h1>{{ 'contact.title' | translate }}</h1>
+
+  <h2 class="title">{{ 'contact.title' | translate }}</h2>
 
   <gv-select
     label="{{ 'contact.apis.title' | translate }}"
@@ -67,3 +71,4 @@
   </gv-button>
 
 </form>
+</div>
