@@ -474,7 +474,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 notificationConfigEntity.setReferenceId(createdApi.getId());
                 notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
                 notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
-                notificationConfigEntity.setConfig("${api.primaryOwner.email}");
+                notificationConfigEntity.setConfig("${(api.primaryOwner.email)!''}");
                 genericNotificationConfigService.create(notificationConfigEntity);
 
                 //TODO add membership log
