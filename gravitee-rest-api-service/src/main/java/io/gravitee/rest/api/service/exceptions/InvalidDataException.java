@@ -17,29 +17,30 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class InvalidDataException extends AbstractManagementException {
 
-    public InvalidDataException() {
-    }
-
-    public InvalidDataException(Throwable cause) {
-        super(cause);
-    }
-
     public InvalidDataException(String message) {
         super(message);
-    }
-
-    public InvalidDataException(String message, Throwable cause) {
-        super(message, cause);
     }
 
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "data.invalid";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

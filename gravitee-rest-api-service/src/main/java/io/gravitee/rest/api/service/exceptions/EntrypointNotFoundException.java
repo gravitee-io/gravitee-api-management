@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
@@ -30,5 +34,15 @@ public class EntrypointNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "Entrypoint[" + entrypointId + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "entrypoint.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("entrypoint", entrypointId);
     }
 }

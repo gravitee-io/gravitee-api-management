@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
@@ -37,5 +40,20 @@ public class RatingNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "Rating [" + rating + "] can not be found" + (api == null ? "":" on the api [" + api + "]");
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "rating.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return new HashMap<String, String>() {
+            {
+                put("rating", rating);
+                put("api", api);
+            }
+        };
     }
 }

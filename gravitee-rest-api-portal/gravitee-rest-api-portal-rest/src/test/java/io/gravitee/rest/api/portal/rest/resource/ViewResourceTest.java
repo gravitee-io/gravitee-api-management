@@ -15,16 +15,20 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
-import static io.gravitee.common.http.HttpStatusCode.NOT_MODIFIED_304;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.portal.rest.model.View;
+import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
+import org.eclipse.jetty.http.HttpHeader;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -36,21 +40,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
-import org.eclipse.jetty.http.HttpHeader;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.ViewEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.View;
-import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
+import static io.gravitee.common.http.HttpStatusCode.*;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -122,9 +116,9 @@ public class ViewResourceTest extends AbstractResourceTest {
         assertEquals(1, errors.size());
         Error error = errors.get(0);
         assertNotNull(error);
-        assertEquals("404", error.getCode());
-        assertEquals("io.gravitee.rest.api.service.exceptions.ViewNotFoundException", error.getTitle());
-        assertEquals("View ["+UNKNOWN_VIEW+"] can not be found.", error.getDetail());
+        assertEquals("errors.view.notFound", error.getCode());
+        assertEquals("404", error.getStatus());
+        assertEquals("View ["+UNKNOWN_VIEW+"] can not be found.", error.getMessage());
     }
     
     @Test

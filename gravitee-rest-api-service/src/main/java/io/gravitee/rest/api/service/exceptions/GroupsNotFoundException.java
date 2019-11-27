@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
 import java.util.Set;
+
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -23,14 +26,24 @@ import java.util.Set;
  */
 public class GroupsNotFoundException extends AbstractNotFoundException {
 
-    private final Set<String> groupIds;
+    private final String groupIds;
 
     public GroupsNotFoundException(Set<String> groupIds) {
-        this.groupIds = groupIds;
+        this.groupIds = String.join(", ", groupIds);
     }
 
     @Override
     public String getMessage() {
         return "Groups [" + groupIds + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "groups.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("groups", groupIds);
     }
 }

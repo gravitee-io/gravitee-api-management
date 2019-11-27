@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
@@ -30,5 +34,15 @@ public class QualityRuleNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "Quality rule [" + qualityRule + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "qualityRule.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("qualityRule", qualityRule);
     }
 }

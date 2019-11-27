@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -31,5 +33,15 @@ public class InvalidApplicationTypeException extends AbstractManagementException
     @Override
     public String getMessage() {
         return "Application is defined with a missing type or multiple types (app / oauth)";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "application.invalid";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

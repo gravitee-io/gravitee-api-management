@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
 import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 
 /**
@@ -31,5 +33,15 @@ public class EmailDisabledException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "Email service is disabled";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "email.disabled";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

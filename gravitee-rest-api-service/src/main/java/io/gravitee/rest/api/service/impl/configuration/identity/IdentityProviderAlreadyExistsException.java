@@ -18,6 +18,10 @@ package io.gravitee.rest.api.service.impl.configuration.identity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -38,5 +42,15 @@ public class IdentityProviderAlreadyExistsException extends AbstractManagementEx
     @Override
     public String getMessage() {
         return "An identity provider with name [" + identityProviderName + "] already exists.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "identityProvider.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("identityProvider", identityProviderName);
     }
 }

@@ -17,7 +17,10 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 import static java.lang.String.format;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -39,5 +42,15 @@ public class LifecycleStateChangeNotAllowedException extends AbstractManagementE
     @Override
     public String getMessage() {
         return format("The API lifecycle state cannot be changed to %s.", lifecycleState);
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "api.lifecycleState.invalid";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("lifecycleState", lifecycleState);
     }
 }

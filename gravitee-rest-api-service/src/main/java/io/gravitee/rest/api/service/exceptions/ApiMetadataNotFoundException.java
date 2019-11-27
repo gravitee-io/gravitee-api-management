@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
@@ -32,5 +35,20 @@ public class ApiMetadataNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "The metadata [" + metadataId + "] can not be found on the api [" + apiId + "].";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "api.metadata.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return new HashMap<String, String>() {
+            {
+                put("api", apiId);
+                put("metadata", metadataId);
+            }
+        };
     }
 }

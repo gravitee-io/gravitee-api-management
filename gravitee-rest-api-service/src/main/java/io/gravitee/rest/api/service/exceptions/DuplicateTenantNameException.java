@@ -17,25 +17,39 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class DuplicateTenantNameException extends AbstractManagementException {
 
-        private final String tenantName;
+    private final String tenantName;
 
-        public DuplicateTenantNameException(String tenantName) {
-            this.tenantName = tenantName;
-        }
+    public DuplicateTenantNameException(String tenantName) {
+        this.tenantName = tenantName;
+    }
 
-        @Override
-        public int getHttpStatusCode() {
-            return HttpStatusCode.BAD_REQUEST_400;
-        }
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 
-        @Override
-        public String getMessage() {
-            return "The tenant '" + tenantName + "' already exists.";
-        }
+    @Override
+    public String getMessage() {
+        return "The tenant '" + tenantName + "' already exists.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "tenant.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("tenant", tenantName);
+    }
 }

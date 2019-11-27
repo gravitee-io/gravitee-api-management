@@ -15,27 +15,33 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.common.http.HttpStatusCode;
+import java.util.Map;
+
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PreconditionFailedException extends AbstractManagementException {
+public class PaginationInvalidException extends AbstractManagementException {
 
-        private final String message;
+    @Override
+    public int getHttpStatusCode() {
+        return BAD_REQUEST_400;
+    }
 
-        public PreconditionFailedException(String message) {
-            this.message = message;
-        }
+    @Override
+    public String getMessage() {
+        return "Pagination is not valid";
+    }
 
-        @Override
-        public int getHttpStatusCode() {
-            return HttpStatusCode.PRECONDITION_FAILED_412;
-        }
+    @Override
+    public String getTechnicalCode() {
+        return "pagination.invalid";
+    }
 
-        @Override
-        public String getMessage() {
-            return message;
-        }
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
+    }
 }

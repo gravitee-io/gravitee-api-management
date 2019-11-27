@@ -120,7 +120,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).request().put(Entity.json(new Application().id(UNKNOWN_APPLICATION)));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
-        assertEquals("'applicationId' is not the same that the application in payload", errorResponse.getErrors().get(0).getDetail());
+        assertEquals("'applicationId' is not the same that the application in payload", errorResponse.getErrors().get(0).getMessage());
     }
     
     @Test

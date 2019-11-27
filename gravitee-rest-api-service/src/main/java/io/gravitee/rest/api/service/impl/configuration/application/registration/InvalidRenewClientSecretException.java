@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.impl.configuration.application.registration
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -32,5 +34,15 @@ public class InvalidRenewClientSecretException extends AbstractManagementExcepti
     @Override
     public String getMessage() {
         return "Client Registration provider is defined with renew_client_secret support but is not correctly configured. Please check the renew endpoint and use a valid HTTP method (POST, PUT, PATCH)";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "clientRegistrationProvider.renewClientSecret.invalid";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

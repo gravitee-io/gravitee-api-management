@@ -31,23 +31,8 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.Response;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -369,9 +354,9 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(1, errors.size());
 
         Error error = errors.get(0);
-        assertEquals("400", error.getCode());
-        assertEquals("javax.ws.rs.BadRequestException", error.getTitle());
-        assertEquals("page is not valid", error.getDetail());
+        assertEquals("errors.pagination.invalid", error.getCode());
+        assertEquals("400", error.getStatus());
+        assertEquals("Pagination is not valid", error.getMessage());
     }
 
     @Test

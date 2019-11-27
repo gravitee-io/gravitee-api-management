@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.provider;
 
+import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,8 +48,8 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
                 detail += "\n"+invalidValue;
             }
             Error error = new Error()
-                    .title(violation.getPropertyPath().toString())
-                    .detail(detail);
+                    .code(violation.getPropertyPath().toString())
+                    .message(detail);
             response.addErrorsItem(error);
         }
         return response;

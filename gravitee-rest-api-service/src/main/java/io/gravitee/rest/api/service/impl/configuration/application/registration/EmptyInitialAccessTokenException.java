@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.impl.configuration.application.registration
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -32,5 +34,15 @@ public class EmptyInitialAccessTokenException extends AbstractManagementExceptio
     @Override
     public String getMessage() {
         return "Client Registration provider is defined with INITIAL_ACCESS_TOKEN type but no initial access token has been provided";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "clientRegistrationProvider.accessToken.missing";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

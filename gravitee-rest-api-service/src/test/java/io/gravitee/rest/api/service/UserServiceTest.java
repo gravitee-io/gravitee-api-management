@@ -261,7 +261,7 @@ public class UserServiceTest {
         verify(applicationService, never()).create(any(), eq(USER_NAME));
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test(expected = UserRegistrationUnavailableException.class)
     public void shouldNotCreateUserIfRegistrationIsDisabled() {
         when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.FALSE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
@@ -272,7 +272,7 @@ public class UserServiceTest {
         userService.finalizeRegistration(userEntity);
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test(expected = UserNotFoundException.class)
     public void createNewRegistrationUserThatIsNotCreatedYet() throws TechnicalException {
         when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);

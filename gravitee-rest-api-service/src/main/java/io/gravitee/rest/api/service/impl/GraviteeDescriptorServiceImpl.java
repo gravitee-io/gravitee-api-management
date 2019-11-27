@@ -59,7 +59,7 @@ public class GraviteeDescriptorServiceImpl extends TransactionalService implemen
 
 	private void assertVersion(GraviteeDescriptorEntity descriptorEntity) {
 		if (1 != descriptorEntity.getVersion()) {
-			throw new GraviteeDescriptorVersionException("Wrong Gravitee descriptor version: {" + descriptorEntity.getVersion() + "]");
+			throw new GraviteeDescriptorVersionException(descriptorEntity.getVersion());
 		}
 	}
 }

@@ -17,15 +17,20 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
- * @author Titouan COMPIEGNE
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class EventAlreadyExistsException extends AbstractManagementException {
+public class UserAlreadyFinalizedException extends AbstractManagementException {
 
-    private final String eventId;
+    private final String environment;
 
-    public EventAlreadyExistsException(String eventId) {
-        this.eventId = eventId;
+    public UserAlreadyFinalizedException(String environment) {
+        this.environment = environment;
     }
 
     @Override
@@ -35,6 +40,16 @@ public class EventAlreadyExistsException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "An event [" + eventId + "] already exists.";
+        return "User already finalized on environment " + environment + ".";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "user.finalized";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("environment", environment);
     }
 }

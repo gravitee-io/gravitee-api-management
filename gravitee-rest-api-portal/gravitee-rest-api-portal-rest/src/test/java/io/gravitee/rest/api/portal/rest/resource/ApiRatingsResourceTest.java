@@ -108,9 +108,9 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         
         Error error = errors.get(0);
         assertNotNull(error);
-        assertEquals("404", error.getCode());
-        assertEquals("io.gravitee.rest.api.service.exceptions.ApiNotFoundException", error.getTitle());
-        assertEquals("Api ["+API+"] can not be found.", error.getDetail());
+        assertEquals("errors.api.notFound", error.getCode());
+        assertEquals("404", error.getStatus());
+        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
     }
     
     @Test
@@ -132,9 +132,9 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         
         Error error = errors.get(0);
         assertNotNull(error);
-        assertEquals("503", error.getCode());
-        assertEquals("io.gravitee.rest.api.service.exceptions.ApiRatingUnavailableException", error.getTitle());
-        assertEquals("API rating service is unavailable.", error.getDetail());
+        assertEquals("errors.rating.disabled", error.getCode());
+        assertEquals("503", error.getStatus());
+        assertEquals("API rating service is unavailable.", error.getMessage());
     }
     
     @Test
@@ -192,9 +192,9 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         
         Error error = errors.get(0);
         assertNotNull(error);
-        assertEquals("404", error.getCode());
-        assertEquals("io.gravitee.rest.api.service.exceptions.ApiNotFoundException", error.getTitle());
-        assertEquals("Api ["+API+"] can not be found.", error.getDetail());
+        assertEquals("errors.api.notFound", error.getCode());
+        assertEquals("404", error.getStatus());
+        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
     }
     
     @Test
@@ -217,8 +217,8 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         
         Error error = errors.get(0);
         assertNotNull(error);
-        assertEquals("400", error.getCode());
-        assertEquals("javax.ws.rs.BadRequestException", error.getTitle());
-        assertEquals("Input must not be null.", error.getDetail());
+        assertEquals("errors.unexpected", error.getCode());
+        assertEquals("400", error.getStatus());
+        assertEquals("Input must not be null.", error.getMessage());
     }
 }

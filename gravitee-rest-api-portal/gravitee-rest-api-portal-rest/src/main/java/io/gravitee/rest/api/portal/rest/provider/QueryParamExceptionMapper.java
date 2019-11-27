@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.provider;
 
-import javax.ws.rs.BadRequestException;
+import org.glassfish.jersey.server.ParamException.QueryParamException;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-
-import org.glassfish.jersey.server.ParamException.QueryParamException;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -34,7 +33,7 @@ public class QueryParamExceptionMapper extends AbstractExceptionMapper<QueryPara
         return Response
             .status(error)
             .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(convert(error.getStatusCode(), BadRequestException.class.getName(), e.getCause().getMessage()))
+            .entity(convert(error.getStatusCode(), e.getCause().getMessage(), "queryParam", null))
             .build();
     }
 }

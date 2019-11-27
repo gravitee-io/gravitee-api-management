@@ -17,6 +17,9 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
@@ -39,5 +42,20 @@ public class RatingAlreadyExistsException extends AbstractManagementException {
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "rating.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return new HashMap<String, String>() {
+            {
+                put("api", api);
+                put("user", user);
+            }
+        };
     }
 }

@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author Guillaume Gillon
  */
@@ -36,5 +38,15 @@ public class UploadUnauthorized extends AbstractManagementException {
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "upload.unauthorized";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

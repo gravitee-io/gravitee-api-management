@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
@@ -30,5 +34,15 @@ public class ApiHeaderNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "Api header [" + id + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "apiHeader.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("apiHeader", id);
     }
 }

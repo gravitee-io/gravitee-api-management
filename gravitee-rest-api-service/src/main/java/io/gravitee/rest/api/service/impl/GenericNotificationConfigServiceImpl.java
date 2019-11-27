@@ -51,7 +51,7 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
     public GenericNotificationConfigEntity create(GenericNotificationConfigEntity entity) {
         if (entity.getNotifier() == null || entity.getNotifier().isEmpty()
                 || entity.getName() == null || entity.getName().isEmpty()) {
-            throw new BadNotificationConfigException("Name or notifier is missing !");
+            throw new BadNotificationConfigException();
         }
         try {
             GenericNotificationConfig notificationConfig = convert(entity);
@@ -70,7 +70,7 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
         try {
             if (entity.getNotifier() == null || entity.getNotifier().isEmpty()
                     || entity.getName() == null || entity.getName().isEmpty()) {
-                throw new BadNotificationConfigException("Name or notifier is missing !");
+                throw new BadNotificationConfigException();
             }
 
             if( entity.getId() == null || entity.getId().isEmpty()) {

@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -37,5 +40,15 @@ public class EmailFormatInvalidException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "Value [" + value + "] is not a valid email.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "email.invalid";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("email", value);
     }
 }

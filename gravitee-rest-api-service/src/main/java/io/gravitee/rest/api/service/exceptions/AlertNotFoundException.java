@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
@@ -30,5 +34,15 @@ public class AlertNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "Alert [" + alert + "] can not be found";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "alert.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("alert", alert);
     }
 }

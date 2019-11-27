@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -30,5 +34,15 @@ public class FetcherNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "Fetcher [" + fetcher + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "fetcher.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("fetcher", fetcher);
     }
 }

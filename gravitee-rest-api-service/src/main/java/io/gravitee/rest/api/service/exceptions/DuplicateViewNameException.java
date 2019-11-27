@@ -17,25 +17,39 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class DuplicateViewNameException extends AbstractManagementException {
 
-        private final String viewName;
+    private final String viewName;
 
-        public DuplicateViewNameException(String viewName) {
-            this.viewName = viewName;
-        }
+    public DuplicateViewNameException(String viewName) {
+        this.viewName = viewName;
+    }
 
-        @Override
-        public int getHttpStatusCode() {
-            return HttpStatusCode.BAD_REQUEST_400;
-        }
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 
-        @Override
-        public String getMessage() {
-            return "The view '" + viewName + "' already exists.";
-        }
+    @Override
+    public String getMessage() {
+        return "The view '" + viewName + "' already exists.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "view.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("view", viewName);
+    }
 }

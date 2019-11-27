@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
@@ -30,5 +34,15 @@ public class LogNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "Log [" + log + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "log.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("log", log);
     }
 }

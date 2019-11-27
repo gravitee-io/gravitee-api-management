@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 
 /**
@@ -31,5 +33,15 @@ public class ApiQualityMetricsDisableException extends AbstractManagementExcepti
     @Override
     public String getMessage() {
         return "API quality metrics are disabled.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "apiQuality.disabled";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

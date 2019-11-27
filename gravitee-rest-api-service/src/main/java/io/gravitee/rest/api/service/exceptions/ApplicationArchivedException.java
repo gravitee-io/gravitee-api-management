@@ -17,6 +17,10 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
@@ -37,5 +41,15 @@ public class ApplicationArchivedException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "Application [" + applicationName + "] is archived and cannot be modified.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "application.archived";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("application", applicationName);
     }
 }

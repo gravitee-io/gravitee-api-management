@@ -17,24 +17,31 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class NoValidDesciptorException extends AbstractManagementException {
+public class SubscriptionInvalidException extends AbstractManagementException {
 
-        private final String jsonDescriptor;
+    @Override
+    public String getMessage() {
+        return "At least an api and an application must be provided.";
+    }
 
-        public NoValidDesciptorException(String jsonDescriptor) {
-            this.jsonDescriptor = jsonDescriptor;
-        }
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 
-        @Override
-        public int getHttpStatusCode() {
-            return HttpStatusCode.BAD_REQUEST_400;
-        }
+    @Override
+    public String getTechnicalCode() {
+        return "subscription.invalid";
+    }
 
-        @Override
-        public String getMessage() {
-            return "The JSON descriptor: '" + jsonDescriptor + "' is not valid.";
-        }
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
+    }
 }

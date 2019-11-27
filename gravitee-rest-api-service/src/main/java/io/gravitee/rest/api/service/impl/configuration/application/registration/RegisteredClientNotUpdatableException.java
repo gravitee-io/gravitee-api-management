@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.impl.configuration.application.registration
 
 import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -26,5 +28,15 @@ public class RegisteredClientNotUpdatableException extends AbstractNotFoundExcep
     @Override
     public String getMessage() {
         return "Client can not be updated because some information are missing from the client registration provider.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "clientRegistrationProvider.clientInformation.missing";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

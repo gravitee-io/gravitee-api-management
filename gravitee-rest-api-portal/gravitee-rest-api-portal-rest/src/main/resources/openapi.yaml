@@ -2129,15 +2129,20 @@ components:
     #####################
     Error:
       properties:
+        status:
+          description: Status HTTP of the error
+          type: string
+        message:
+          description: Message of the error
+          type: string
         code:
-          description: Code of the error
+          description: Technical code of the error
           type: string
-        title:
-          description: Title of the error
-          type: string
-        detail:
-          description: Detail of the error
-          type: string
+        parameters:
+          description: Parameters
+          type: object
+          additionalProperties:
+            type: string
     Api:
       description: |
         Describes an API.

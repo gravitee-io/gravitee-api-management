@@ -17,16 +17,21 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+import java.util.Set;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiNotDeletableException extends AbstractManagementException {
 
-    private final String message;
+    private final String plans;
 
-    public ApiNotDeletableException(String message) {
-        this.message = message;
+    public ApiNotDeletableException(Set<String> plans) {
+        this.plans = String.join(", ", plans);
     }
 
     @Override
@@ -36,6 +41,16 @@ public class ApiNotDeletableException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return message;
+        return "Plan(s) [" + plans + "] must be closed before being able to delete the API !";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "api.notDeletable";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("plans", plans);
     }
 }

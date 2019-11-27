@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -41,5 +43,15 @@ public class TechnicalManagementException extends AbstractManagementException {
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.INTERNAL_SERVER_ERROR_500;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "unexpected";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

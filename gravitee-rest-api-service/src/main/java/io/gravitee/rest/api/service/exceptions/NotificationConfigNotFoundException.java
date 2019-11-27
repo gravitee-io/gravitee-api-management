@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
@@ -24,5 +26,15 @@ public class NotificationConfigNotFoundException extends AbstractNotFoundExcepti
     @Override
     public String getMessage() {
         return "No NotificationCofing can be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "notification.configuration.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

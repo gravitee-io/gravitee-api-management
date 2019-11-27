@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.impl.configuration.application.registration
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 
+import java.util.Map;
+
 public class DynamicClientRegistrationException extends AbstractManagementException {
 
     public DynamicClientRegistrationException(String message) {
@@ -31,5 +33,15 @@ public class DynamicClientRegistrationException extends AbstractManagementExcept
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "clientRegistrationProvider.exception";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

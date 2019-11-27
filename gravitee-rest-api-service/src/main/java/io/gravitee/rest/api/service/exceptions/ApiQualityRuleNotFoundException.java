@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
@@ -32,5 +35,20 @@ public class ApiQualityRuleNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "API quality rule [" + qualityRule + "] can not be found for api [" + api + "].";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "apiQuality.rule.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return new HashMap<String, String>() {
+            {
+                put("api", api);
+                put("qualityRule", qualityRule);
+            }
+        };
     }
 }

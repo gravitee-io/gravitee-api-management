@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
@@ -30,5 +33,15 @@ public class TagNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "Tag [" + tag + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "tag.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return Collections.singletonMap("tag", tag);
     }
 }

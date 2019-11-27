@@ -17,7 +17,11 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 import static java.lang.String.format;
+import static java.lang.String.valueOf;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -39,5 +43,15 @@ public class GroupMembersLimitationExceededException extends AbstractManagementE
     @Override
     public String getMessage() {
         return format("Limitation of %d members exceeded", limit);
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "group.invitation.limit";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("limit", valueOf(limit));
     }
 }

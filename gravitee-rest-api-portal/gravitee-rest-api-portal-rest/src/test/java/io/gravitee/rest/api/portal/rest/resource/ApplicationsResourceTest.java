@@ -15,40 +15,28 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
-import io.gravitee.rest.api.portal.rest.model.Application;
-import io.gravitee.rest.api.portal.rest.model.ApplicationInput;
-import io.gravitee.rest.api.portal.rest.model.ApplicationsResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Links;
-import io.gravitee.rest.api.portal.rest.model.OAuthClientSettings;
-import io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings;
+import io.gravitee.rest.api.portal.rest.model.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -134,9 +122,9 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(1, errors.size());
         
         Error error = errors.get(0);
-        assertEquals("400", error.getCode());
-        assertEquals("javax.ws.rs.BadRequestException", error.getTitle());
-        assertEquals("page is not valid", error.getDetail());
+        assertEquals("errors.pagination.invalid", error.getCode());
+        assertEquals("400", error.getStatus());
+        assertEquals("Pagination is not valid", error.getMessage());
     }
 
     @Test

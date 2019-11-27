@@ -17,7 +17,10 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 import static java.lang.String.format;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -39,5 +42,15 @@ public class ApiDeprecatedException extends AbstractManagementException {
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "api.deprecated";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("api", api);
     }
 }

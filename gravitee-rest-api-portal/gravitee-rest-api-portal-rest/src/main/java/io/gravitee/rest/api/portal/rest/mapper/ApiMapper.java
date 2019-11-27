@@ -15,16 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import io.gravitee.rest.api.service.ViewService;
-import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -35,12 +25,20 @@ import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.ViewService;
+import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @Component
 public class ApiMapper {
     

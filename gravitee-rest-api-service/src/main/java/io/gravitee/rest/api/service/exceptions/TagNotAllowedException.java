@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 import static java.lang.String.format;
 
@@ -27,19 +29,29 @@ import static java.lang.String.format;
  */
 public class TagNotAllowedException extends AbstractManagementException {
 
-        private final String[] tags;
+    private final String tags;
 
-        public TagNotAllowedException(String[] tags) {
-            this.tags = tags;
-        }
+    public TagNotAllowedException(String[] tags) {
+        this.tags = Arrays.toString(tags);
+    }
 
-        @Override
-        public int getHttpStatusCode() {
-            return HttpStatusCode.BAD_REQUEST_400;
-        }
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 
-        @Override
-        public String getMessage() {
-            return format("You are not allowed to use deployment on the tag(s) %s.", Arrays.toString(tags));
-        }
+    @Override
+    public String getMessage() {
+        return format("You are not allowed to use deployment on the tag(s) %s.", tags);
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "tag.notAllowed";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return Collections.singletonMap("tags", tags);
+    }
 }

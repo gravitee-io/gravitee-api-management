@@ -15,41 +15,32 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.portal.rest.model.MembersResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Links;
-import io.gravitee.rest.api.portal.rest.model.Member;
-import io.gravitee.rest.api.portal.rest.model.MemberInput;
-import io.gravitee.rest.api.portal.rest.model.TransferOwnershipInput;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -128,9 +119,9 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         assertEquals(1, errors.size());
         
         Error error = errors.get(0);
-        assertEquals("400", error.getCode());
-        assertEquals("javax.ws.rs.BadRequestException", error.getTitle());
-        assertEquals("page is not valid", error.getDetail());
+        assertEquals("errors.pagination.invalid", error.getCode());
+        assertEquals("400", error.getStatus());
+        assertEquals("Pagination is not valid", error.getMessage());
     }
     
     @Test
@@ -282,7 +273,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         assertEquals(1, errors.size());
         
         Error error = errors.get(0);
-        assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getDetail());
+        assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getMessage());
     }
     
     //404 PUT /members/{memberId}
@@ -319,7 +310,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         assertEquals(1, errors.size());
         
         Error error = errors.get(0);
-        assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getDetail());
+        assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getMessage());
     }
     
     //404 DELETE /members/{memberId}
@@ -378,6 +369,6 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         assertEquals(1, errors.size());
         
         Error error = errors.get(0);
-        assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getDetail());
+        assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getMessage());
     }
 }

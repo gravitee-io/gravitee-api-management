@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
 import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 
 /**
@@ -31,5 +33,15 @@ public class UserRegistrationUnavailableException extends AbstractManagementExce
     @Override
     public String getMessage() {
         return "User registration service is unavailable.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "user.registration.disabled";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

@@ -17,7 +17,10 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 import static java.lang.String.format;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -39,5 +42,15 @@ public class TransferNotAllowedException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return format("The plan [%s] cannot be transferred.", plan);
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "plan.transferNotAllowed";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("plan", plan);
     }
 }

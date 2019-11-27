@@ -18,17 +18,20 @@ package io.gravitee.rest.api.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.model.RoleScope;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RoleAlreadyExistsException extends AbstractManagementException {
 
-    private final RoleScope scope;
+    private final String scope;
     private final String name;
 
     public RoleAlreadyExistsException(RoleScope scope, String name) {
-        this.scope = scope;
+        this.scope = scope.name();
         this.name = name;
     }
 
@@ -40,5 +43,20 @@ public class RoleAlreadyExistsException extends AbstractManagementException {
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "role.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return new HashMap<String, String>() {
+            {
+                put("scope", scope);
+                put("name", name);
+            }
+        };
     }
 }

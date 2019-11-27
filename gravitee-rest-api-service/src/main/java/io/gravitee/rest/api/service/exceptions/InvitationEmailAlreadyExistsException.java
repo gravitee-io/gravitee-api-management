@@ -17,6 +17,10 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
@@ -37,5 +41,15 @@ public class InvitationEmailAlreadyExistsException extends AbstractManagementExc
     @Override
     public String getMessage() {
         return "An invitation with the email [" + email + "] already exists.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "invitation.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("email", email);
     }
 }

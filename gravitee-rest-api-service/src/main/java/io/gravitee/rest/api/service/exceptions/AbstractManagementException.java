@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -53,4 +55,8 @@ public abstract class AbstractManagementException extends RuntimeException {
     }
 
     public abstract int getHttpStatusCode();
+
+    public abstract String getTechnicalCode();
+
+    public abstract Map<String, String> getParameters();
 }

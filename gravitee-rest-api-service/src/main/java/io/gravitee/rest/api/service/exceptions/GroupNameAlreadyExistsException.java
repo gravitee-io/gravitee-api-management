@@ -17,6 +17,10 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
@@ -37,5 +41,15 @@ public class GroupNameAlreadyExistsException extends AbstractManagementException
     @Override
     public String getMessage() {
         return "A group with the name [" + name + "] already exists.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "group.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("group", name);
     }
 }

@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -31,5 +33,15 @@ public class ForbiddenAccessException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "You do not have sufficient rights to access this resource";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "forbidden";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

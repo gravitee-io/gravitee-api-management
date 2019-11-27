@@ -17,6 +17,10 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Azize Elamrani (azize at gravitee.io)
  * @author GraviteeSource Team
@@ -37,5 +41,15 @@ public class ApiContextPathAlreadyExistsException extends AbstractManagementExce
     @Override
     public String getMessage() {
         return "The path [" + apiContextPath + "] is already covered by an other API.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "api.contextPath.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("contextPath", apiContextPath);
     }
 }

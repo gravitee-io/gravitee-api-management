@@ -17,6 +17,11 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static java.lang.String.valueOf;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
@@ -39,5 +44,20 @@ public class StillPrimaryOwnerException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "The user is still primary owner of '" + apiCount + "' APIs and '" + applicationCount + "' Applications.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "user.notDeletable";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return new HashMap<String, String>() {
+            {
+                put("apiCount", valueOf(apiCount));
+                put("applicationCount", valueOf(applicationCount));
+            }
+        };
     }
 }

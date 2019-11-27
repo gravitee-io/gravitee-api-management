@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author Azize Elamrani (azize at gravitee.io)
  */
@@ -30,5 +32,15 @@ public class UnauthorizedAccessException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "You must be authenticated to access this resource";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "unauthorized";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

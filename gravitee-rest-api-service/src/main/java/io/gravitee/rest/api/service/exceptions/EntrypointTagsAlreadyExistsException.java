@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
@@ -31,5 +33,15 @@ public class EntrypointTagsAlreadyExistsException extends AbstractManagementExce
     @Override
     public String getMessage() {
         return "An entrypoint with this list of tags already exists.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "entrypoint.tags.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

@@ -17,25 +17,39 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class DuplicateEnvironmentNameException extends AbstractManagementException {
 
-        private final String environmentName;
+    private final String environmentName;
 
-        public DuplicateEnvironmentNameException(String environmentName) {
-            this.environmentName = environmentName;
-        }
+    public DuplicateEnvironmentNameException(String environmentName) {
+        this.environmentName = environmentName;
+    }
 
-        @Override
-        public int getHttpStatusCode() {
-            return HttpStatusCode.BAD_REQUEST_400;
-        }
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 
-        @Override
-        public String getMessage() {
-            return "The environment '" + environmentName + "' already exists.";
-        }
+    @Override
+    public String getMessage() {
+        return "The environment '" + environmentName + "' already exists.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "environment.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("environment", environmentName);
+    }
 }

@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  */
@@ -29,5 +33,15 @@ public class PortalNotificationNotFoundException extends AbstractNotFoundExcepti
     @Override
     public String getMessage() {
         return "Portal notification [" + portalNotification + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "notification.portal.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("notification", portalNotification);
     }
 }

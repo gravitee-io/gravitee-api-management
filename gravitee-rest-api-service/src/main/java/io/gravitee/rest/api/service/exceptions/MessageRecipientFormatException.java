@@ -17,12 +17,13 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class MessageRecipientFormatException extends AbstractManagementException {
-
 
     @Override
     public int getHttpStatusCode() {
@@ -32,5 +33,15 @@ public class MessageRecipientFormatException extends AbstractManagementException
     @Override
     public String getMessage() {
         return "Message recipients selection is missing or wrong.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "message.recipient.invalid";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

@@ -18,25 +18,39 @@ package io.gravitee.rest.api.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.PlanSecurityType;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class UnauthorizedPlanSecurityTypeException extends AbstractManagementException {
 
-    private final PlanSecurityType security;
+    private final String security;
 
     public UnauthorizedPlanSecurityTypeException(PlanSecurityType security) {
-        this.security = security;
+        this.security = security.name();
     }
 
     @Override
     public String getMessage() {
-        return "The security type " + this.security.name() + " is not allowed.";
+        return "The security type " + security + " is not allowed.";
     }
 
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "plan.security.typeNotAllowed";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("type", security);
     }
 }

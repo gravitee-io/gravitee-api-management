@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
@@ -23,16 +26,31 @@ public class GroupInvitationForbiddenException extends AbstractNotFoundException
 
     public enum Type {EMAIL,SYSTEM}
 
-    private final Type type;
+    private final String type;
     private final String group;
 
     public GroupInvitationForbiddenException(Type type, String group) {
-        this.type = type;
+        this.type = type.name().toLowerCase();
         this.group = group;
     }
 
     @Override
     public String getMessage() {
-        return "Invitation " + type.name().toLowerCase() + " is forbidden for group [" + group + "]";
+        return "Invitation " + type + " is forbidden for group [" + group + "]";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "group.invitation.forbidden";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return new HashMap<String, String>() {
+            {
+                put("type", type);
+                put("group", group);
+            }
+        };
     }
 }

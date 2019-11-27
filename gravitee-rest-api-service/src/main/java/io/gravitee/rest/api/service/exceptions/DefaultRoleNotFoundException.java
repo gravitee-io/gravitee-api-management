@@ -18,7 +18,9 @@ package io.gravitee.rest.api.service.exceptions;
 import io.gravitee.repository.management.model.RoleScope;
 
 import java.util.Arrays;
-import java.util.Optional;
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -26,19 +28,27 @@ import java.util.Optional;
  */
 public class DefaultRoleNotFoundException extends AbstractNotFoundException {
 
-    private final RoleScope[] scopes;
+    private final String scopes;
 
     public DefaultRoleNotFoundException(RoleScope... scopes) {
-        this.scopes = scopes;
+        this.scopes = Arrays.stream(scopes).
+                map(RoleScope::name).
+                reduce((s, s2) -> s + ", " + s2).
+                orElse("null");
     }
 
     @Override
     public String getMessage() {
-        return "Default roles for scopes [" +
-                Arrays.stream(scopes).
-                        map(RoleScope::name).
-                        reduce((s, s2) -> s + ", " + s2).
-                        orElse("null") +
-                "] can not be found.";
+        return "Default roles for scopes [" + scopes + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "role.default.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("scopes", scopes);
     }
 }

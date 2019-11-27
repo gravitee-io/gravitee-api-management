@@ -365,7 +365,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 int subscriptions = subscriptionService.findByPlan(plan).size();
                 if ((optPlan.get().getStatus() == Plan.Status.PUBLISHED || optPlan.get().getStatus() == Plan.Status.DEPRECATED)
                         && subscriptions > 0) {
-                    throw new PlanWithSubscriptionsException();
+                    throw new PlanWithSubscriptionsException(plan);
                 }
             }
 

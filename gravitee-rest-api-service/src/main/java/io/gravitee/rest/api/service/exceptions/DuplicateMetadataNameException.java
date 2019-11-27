@@ -17,25 +17,39 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class DuplicateMetadataNameException extends AbstractManagementException {
 
-        private final String metadataName;
+    private final String metadataName;
 
-        public DuplicateMetadataNameException(String metadataName) {
-            this.metadataName = metadataName;
-        }
+    public DuplicateMetadataNameException(String metadataName) {
+        this.metadataName = metadataName;
+    }
 
-        @Override
-        public int getHttpStatusCode() {
-            return HttpStatusCode.BAD_REQUEST_400;
-        }
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 
-        @Override
-        public String getMessage() {
-            return "The metadata '" + metadataName + "' already exists.";
-        }
+    @Override
+    public String getMessage() {
+        return "The metadata '" + metadataName + "' already exists.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "metadata.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("metadata", metadataName);
+    }
 }

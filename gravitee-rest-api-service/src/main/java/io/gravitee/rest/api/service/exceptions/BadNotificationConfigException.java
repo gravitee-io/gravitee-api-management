@@ -17,17 +17,13 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class BadNotificationConfigException extends AbstractManagementException {
-
-    private final String message;
-
-    public BadNotificationConfigException(String message) {
-        this.message = message;
-    }
 
     @Override
     public int getHttpStatusCode() {
@@ -36,6 +32,16 @@ public class BadNotificationConfigException extends AbstractManagementException 
 
     @Override
     public String getMessage() {
-        return message;
+        return "Name or notifier is missing !";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "notification.invalid";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

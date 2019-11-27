@@ -17,29 +17,30 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiKeyAlreadyExpiredException extends AbstractManagementException {
 
-    public ApiKeyAlreadyExpiredException() {
-    }
-
-    public ApiKeyAlreadyExpiredException(Throwable cause) {
-        super(cause);
-    }
-
     public ApiKeyAlreadyExpiredException(String message) {
         super(message);
-    }
-
-    public ApiKeyAlreadyExpiredException(String message, Throwable cause) {
-        super(message, cause);
     }
 
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "apiKey.expired";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

@@ -17,16 +17,21 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.lang.String.valueOf;
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GraviteeDescriptorVersionException extends AbstractManagementException {
 
-    private final String message;
+    private final int version;
 
-    public GraviteeDescriptorVersionException(String message) {
-        this.message = message;
+    public GraviteeDescriptorVersionException(int version) {
+        this.version = version;
     }
 
     @Override
@@ -36,6 +41,16 @@ public class GraviteeDescriptorVersionException extends AbstractManagementExcept
 
     @Override
     public String getMessage() {
-        return message;
+        return "Wrong Gravitee descriptor version: {" + version + "]";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "fetcher.descriptor.version";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("version", valueOf(version));
     }
 }

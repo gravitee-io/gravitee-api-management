@@ -17,25 +17,39 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class DuplicateTagNameException extends AbstractManagementException {
 
-        private final String tagName;
+    private final String tagName;
 
-        public DuplicateTagNameException(String tagName) {
-            this.tagName = tagName;
-        }
+    public DuplicateTagNameException(String tagName) {
+        this.tagName = tagName;
+    }
 
-        @Override
-        public int getHttpStatusCode() {
-            return HttpStatusCode.BAD_REQUEST_400;
-        }
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 
-        @Override
-        public String getMessage() {
-            return "The tag '" + tagName + "' already exists.";
-        }
+    @Override
+    public String getMessage() {
+        return "The tag '" + tagName + "' already exists.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "tag.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("tag", tagName);
+    }
 }

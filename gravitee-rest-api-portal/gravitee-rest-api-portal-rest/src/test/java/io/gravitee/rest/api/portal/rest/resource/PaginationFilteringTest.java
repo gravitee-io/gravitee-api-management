@@ -15,10 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.BadRequestException;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -93,7 +92,7 @@ public class PaginationFilteringTest {
         assertFalse(initList == resultList);
     }
 
-    @Test(expected = BadRequestException.class)
+    @Test(expected = PaginationInvalidException.class)
     public void shouldHaveBadRequestExceptionPageGreaterThanMaxPage() {
         Integer page = 20;
         Integer size = 10;
@@ -105,7 +104,7 @@ public class PaginationFilteringTest {
         paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
     }
 
-    @Test(expected = BadRequestException.class)
+    @Test(expected = PaginationInvalidException.class)
     public void shouldHaveBadRequestExceptionPageSmallThanMinPage() {
         Integer page = 0;
         Integer size = 10;

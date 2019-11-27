@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
@@ -30,5 +34,15 @@ public class ViewNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "View [" + viewId + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "view.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("view", viewId);
     }
 }

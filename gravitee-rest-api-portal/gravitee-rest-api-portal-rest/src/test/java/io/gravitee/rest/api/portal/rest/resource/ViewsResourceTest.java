@@ -15,32 +15,24 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-
-import javax.ws.rs.core.Response;
-
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.portal.rest.model.Links;
+import io.gravitee.rest.api.portal.rest.model.ViewsResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.ViewEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.ViewsResponse;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Links;
+import javax.ws.rs.core.Response;
+import java.util.*;
+import java.util.function.Function;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -106,9 +98,9 @@ public class ViewsResourceTest extends AbstractResourceTest {
         assertNotNull(errors);
         assertEquals(1, errors.size());
         Error error = errors.get(0);
-        assertEquals("400", error.getCode());
-        assertEquals("javax.ws.rs.BadRequestException", error.getTitle());
-        assertEquals("page is not valid", error.getDetail());
+        assertEquals("errors.pagination.invalid", error.getCode());
+        assertEquals("400", error.getStatus());
+        assertEquals("Pagination is not valid", error.getMessage());
     }
     
     @Test

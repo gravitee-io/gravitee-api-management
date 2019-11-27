@@ -15,37 +15,25 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.Response;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.*;
+
+import static io.gravitee.common.http.HttpStatusCode.*;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -98,9 +86,9 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         assertEquals(1, errors.size());
         Error error = errors.get(0);
         assertNotNull(error);
-        assertEquals("404", error.getCode());
-        assertEquals("io.gravitee.rest.api.service.exceptions.ApiNotFoundException", error.getTitle());
-        assertEquals("Api ["+API+"] can not be found.", error.getDetail());
+        assertEquals("errors.api.notFound", error.getCode());
+        assertEquals("404", error.getStatus());
+        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
     }
     
     @Test
@@ -115,9 +103,9 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         assertNotNull(errors);
         assertEquals(1, errors.size());
         Error error = errors.get(0);
-        assertEquals("404", error.getCode());
-        assertEquals("io.gravitee.rest.api.service.exceptions.PageNotFoundException", error.getTitle());
-        assertEquals("Page [" + UNKNOWN_PAGE + "] can not be found.", error.getDetail());
+        assertEquals("errors.page.notFound", error.getCode());
+        assertEquals("404", error.getStatus());
+        assertEquals("Page [" + UNKNOWN_PAGE + "] can not be found.", error.getMessage());
     }
     
     @Test

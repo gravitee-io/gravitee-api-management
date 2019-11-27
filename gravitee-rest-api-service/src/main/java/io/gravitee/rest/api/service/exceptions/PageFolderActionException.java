@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author Guillaume GILLON
  */
@@ -35,5 +37,15 @@ public class PageFolderActionException  extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "The folder page can not " + action;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "page.folder.invalid";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

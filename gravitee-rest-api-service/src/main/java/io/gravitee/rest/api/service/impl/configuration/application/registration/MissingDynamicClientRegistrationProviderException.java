@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.impl.configuration.application.registration
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -32,5 +34,15 @@ public class MissingDynamicClientRegistrationProviderException extends AbstractM
     @Override
     public String getMessage() {
         return "No Dynamic Client Registration provider has been defined, making impossible to create an oauth-based application.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "clientRegistrationProvider.missing";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

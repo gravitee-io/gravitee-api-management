@@ -17,6 +17,10 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -37,5 +41,15 @@ public class ApiAlreadyExistsException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "An api [" + apiName + "] already exists.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "api.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("api", apiName);
     }
 }

@@ -948,8 +948,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .collect(toSet());
 
                 if (!plansNotClosed.isEmpty()) {
-                    throw new ApiNotDeletableException("Plan(s) [" + String.join(", ", plansNotClosed) +
-                            "] must be closed before being able to delete the API !");
+                    throw new ApiNotDeletableException(plansNotClosed);
                 }
 
                 Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(apiId);

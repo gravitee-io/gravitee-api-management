@@ -17,6 +17,10 @@ package io.gravitee.rest.api.service.impl.configuration.identity;
 
 import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -32,5 +36,15 @@ public class IdentityProviderNotFoundException extends AbstractNotFoundException
     @Override
     public String getMessage() {
         return "Identity provider [" + id + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "identityProvider.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("identityProvider", id);
     }
 }

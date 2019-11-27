@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.glassfish.jersey.message.internal.MatchingEntityTag;
@@ -265,7 +266,7 @@ public abstract class AbstractResource {
         Integer totalPages = (int) Math.ceil((double) totalItems / size);
 
         if (startIndex >= totalItems || page < 1) {
-            throw new BadRequestException("page is not valid");
+            throw new PaginationInvalidException();
         } else {
 
             paginationMetadata.put(METADATA_PAGINATION_CURRENT_PAGE_KEY, String.valueOf(page));

@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Titouan COMPIEGNE
  */
@@ -29,5 +33,15 @@ public class PageNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         return "Page [" + pageName + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "page.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("page", pageName);
     }
 }

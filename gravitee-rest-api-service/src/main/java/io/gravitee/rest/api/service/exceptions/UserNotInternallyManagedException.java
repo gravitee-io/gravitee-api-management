@@ -17,6 +17,10 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
@@ -37,5 +41,15 @@ public class UserNotInternallyManagedException extends AbstractManagementExcepti
     @Override
     public String getMessage() {
         return "The user with id " + userId + " is not internally managed.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "user.notManaged";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("user", userId);
     }
 }

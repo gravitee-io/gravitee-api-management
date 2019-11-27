@@ -18,25 +18,37 @@ package io.gravitee.rest.api.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.model.RoleScope;
 
+import java.util.Map;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class SinglePrimaryOwnerException extends AbstractManagementException {
 
-    private RoleScope scope;
+    private String scope;
 
     public SinglePrimaryOwnerException(RoleScope scope) {
-        this.scope = scope;
+        this.scope = scope.name();
     }
 
     @Override
     public String getMessage() {
-        return "An " + scope.name() + " must always have only one PRIMARY_OWNER !";
+        return "An " + scope + " must always have only one PRIMARY_OWNER !";
     }
 
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return scope.toLowerCase() + "members.invalid";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

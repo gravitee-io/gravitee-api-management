@@ -17,6 +17,9 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -41,5 +44,21 @@ public class UserAlreadyExistsException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "A user [" + userId + "] already exists for environment " + environment + ".";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "user.exists";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return new HashMap<String, String>() {
+            {
+                put("user", userId);
+                put("environment", environment);
+                put("source", source);
+            }
+        };
     }
 }

@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -37,5 +39,15 @@ public class PlanNotSubscribableException extends AbstractManagementException {
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "plan.notSubscribable";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
     }
 }

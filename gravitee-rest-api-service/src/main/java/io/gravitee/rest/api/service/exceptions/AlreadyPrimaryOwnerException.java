@@ -17,6 +17,10 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
@@ -37,5 +41,15 @@ public class AlreadyPrimaryOwnerException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "The user " + userId + " is already a primary owner and cannot have a weaker role. Please use the transfer ownership feature.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "members.weakerRole";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("user", userId);
     }
 }

@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Map;
+
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -37,5 +40,15 @@ public class EmailRequiredException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "User [" + username + "] must have a configured email";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "email.required";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("username", username);
     }
 }

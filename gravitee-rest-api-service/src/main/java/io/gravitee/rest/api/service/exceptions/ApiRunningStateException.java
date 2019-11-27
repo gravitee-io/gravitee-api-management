@@ -17,6 +17,10 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -37,5 +41,15 @@ public class ApiRunningStateException extends AbstractManagementException {
     @Override
     public String getMessage() {
         return "API [" + apiName + "] is still running and must be stopped before being deleted !";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "api.running";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("api", apiName);
     }
 }

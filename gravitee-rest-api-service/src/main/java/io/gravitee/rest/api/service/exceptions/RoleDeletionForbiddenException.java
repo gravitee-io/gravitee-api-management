@@ -17,22 +17,40 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.repository.management.model.RoleScope;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RoleDeletionForbiddenException extends AbstractNotFoundException {
 
-    private final RoleScope scope;
+    private final String scope;
     private final String name;
 
     public RoleDeletionForbiddenException(RoleScope scope, String name) {
-        this.scope = scope;
+        this.scope = scope.name();
         this.name = name;
     }
 
     @Override
     public String getMessage() {
         return "Role [" + scope + "," + name + "] can not be deleted because marked as System or Default role.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "role.notDeletable";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return new HashMap<String, String>() {
+            {
+                put("scope", scope);
+                put("name", name);
+            }
+        };
     }
 }
