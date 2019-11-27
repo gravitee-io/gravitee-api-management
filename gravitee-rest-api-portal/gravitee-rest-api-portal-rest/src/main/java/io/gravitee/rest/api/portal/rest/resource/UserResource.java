@@ -19,7 +19,6 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.model.User;
-import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 
@@ -31,8 +30,9 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-
 import java.net.URI;
+
+import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.userURL;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -54,10 +54,8 @@ public class UserResource extends AbstractResource {
     public Response getCurrentUser() {
         final String authenticatedUser = getAuthenticatedUser();
         UserEntity userEntity = userService.findById(authenticatedUser);
-
         User currentUser = userMapper.convert(userEntity);
-        currentUser.setLinks(userMapper.computeUserLinks(PortalApiLinkHelper.userURL(uriInfo.getBaseUriBuilder())));
-        
+        currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), currentUser.getId()));
         return Response
                 .ok(currentUser)
                 .build();
@@ -82,7 +80,6 @@ public class UserResource extends AbstractResource {
         return Response
                 .ok(userMapper.convert(updatedUser))
                 .build();
-
     }
     
     @GET

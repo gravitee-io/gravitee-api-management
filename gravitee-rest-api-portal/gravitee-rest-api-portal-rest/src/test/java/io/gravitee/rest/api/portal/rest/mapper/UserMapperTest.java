@@ -129,7 +129,7 @@ public class UserMapperTest {
     public void testUserLinks() {
         String basePath = "/user";
 
-        UserLinks links = userMapper.computeUserLinks(basePath);
+        UserLinks links = userMapper.computeUserLinks(basePath, "");
 
         assertNotNull(links);
 

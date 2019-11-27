@@ -73,9 +73,9 @@ public class UserMapper {
         return registerUserEntity;
     }
 
-    public UserLinks computeUserLinks(String basePath) {
+    public UserLinks computeUserLinks(String basePath, String uniqueId) {
         UserLinks userLinks = new UserLinks();
-        userLinks.setAvatar(basePath + "/avatar");
+        userLinks.setAvatar(basePath + "/avatar?" + uniqueId);
         userLinks.setNotifications(basePath + "/notifications");
         userLinks.setSelf(basePath);
 
