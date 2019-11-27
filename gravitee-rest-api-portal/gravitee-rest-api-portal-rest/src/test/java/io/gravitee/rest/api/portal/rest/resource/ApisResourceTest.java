@@ -322,7 +322,40 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         Links links = apiResponse.getLinks();
         assertNotNull(links);
+    }
 
+    @Test
+    public void shouldGetAllApis() {
+        final Response response = target().queryParam("size", -1).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
+                .collect(Collectors.toList());
+        assertEquals(5, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(5, apiResponse.getData().size());
+    }
+
+    @Test
+    public void shouldGetMetaDataForAllApis() {
+        final Response response = target().queryParam("size", 0).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
+                .collect(Collectors.toList());
+        assertEquals(5, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(0, apiResponse.getData().size());
+        Map<String, String> metadata = apiResponse.getMetadata().get(AbstractResource.METADATA_DATA_KEY);
+        assertEquals("5",  metadata.get(AbstractResource.METADATA_DATA_TOTAL_KEY));
     }
 
     @Test

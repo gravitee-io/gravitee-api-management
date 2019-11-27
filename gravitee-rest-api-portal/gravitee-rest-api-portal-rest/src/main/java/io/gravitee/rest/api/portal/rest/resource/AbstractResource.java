@@ -29,7 +29,6 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
-
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.glassfish.jersey.message.internal.MatchingEntityTag;
 import org.slf4j.Logger;
@@ -43,14 +42,12 @@ import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
-
-import java.awt.Graphics2D;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -202,15 +199,12 @@ public abstract class AbstractResource {
         }
     }
 
-    void checkImageContent(final String picture) {
-        final Matcher matcher = PATTERN.matcher(picture);
-        if (matcher.find()) {
-            throw new UploadUnauthorized("Invalid content in the image");
-        }
-    }
-
     protected Links computePaginatedLinks(Integer page, Integer size, Integer totalItems) {
         Links paginatedLinks = null;
+
+        if (size == 0) {
+            return paginatedLinks;
+        }
 
         Integer totalPages = (int) Math.ceil((double) totalItems / size);
         if (page > 0 && page <= totalPages) {
@@ -295,15 +289,22 @@ public abstract class AbstractResource {
 
         int totalItems = dataList.size();
 
-        List paginatedList = null;
-        if (withPagination && totalItems > 0) {
+        List paginatedList;
+        if (withPagination && totalItems > 0 && paginationParam.getSize() > 0) {
             paginatedList = this.paginateResultList(dataList, totalItems, paginationParam.getPage(),
                     paginationParam.getSize(), paginationMetadata);
         } else {
+            if (paginationParam.getSize() < -1) {
+                throw new BadRequestException("Pagination size is not valid");
+            }
             paginatedList = dataList;
         }
 
         dataMetadata.put(METADATA_DATA_TOTAL_KEY, String.valueOf(paginatedList.size()));
+
+        if (withPagination && paginationParam.getSize() == 0) {
+            paginatedList = new ArrayList();
+        }
 
         return new DataResponse().data(paginatedList)
                 .metadata(this.computeMetadata(metadata, dataMetadata, paginationMetadata))

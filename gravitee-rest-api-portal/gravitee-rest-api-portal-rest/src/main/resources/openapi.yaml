@@ -1710,7 +1710,10 @@ components:
       name: size
       in: query
       required: false
-      description: The number of items per page for pagination.
+      description: |
+        The number of items per page for pagination.
+        If the size is 0, the response contains only metadata and returns the values as for a non-paged resource.
+        If the size is -1, the response contains all datas.
       schema:
         type: integer
         default: 10
