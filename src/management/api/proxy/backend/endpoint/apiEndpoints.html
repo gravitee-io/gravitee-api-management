@@ -36,8 +36,9 @@
                   <ng-md-icon icon="settings"></ng-md-icon>
                   <md-tooltip md-direction="left">Edit group</md-tooltip>
                 </md-button>
-                <md-button class="md-icon-button" aria-label="Delete group" ng-click="apiProxyCtrl.deleteGroup(group.name)">
-                  <ng-md-icon icon="delete"></ng-md-icon>
+                <md-button class="md-icon-button" aria-label="Delete group" ng-click="apiProxyCtrl.deleteGroup(group.name)" ng-disabled="apiProxyCtrl.api.proxy.groups.length == 1">
+                  <ng-md-icon icon="delete" ng-show="apiProxyCtrl.api.proxy.groups.length > 1"></ng-md-icon>
+                  <ng-md-icon icon="delete" style="fill: rgba(142, 158, 170, 0.54);" ng-show="apiProxyCtrl.api.proxy.groups.length == 1"></ng-md-icon>
                   <md-tooltip md-direction="left">Delete group</md-tooltip>
                 </md-button>
               </div>
