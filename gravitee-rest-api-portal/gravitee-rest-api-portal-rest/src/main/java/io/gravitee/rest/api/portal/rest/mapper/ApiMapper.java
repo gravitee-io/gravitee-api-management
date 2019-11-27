@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.gravitee.rest.api.service.ViewService;
+import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +46,10 @@ public class ApiMapper {
     
     @Autowired
     private RatingService ratingService;
-    
+
+    @Autowired
+    private ViewService viewService;
+
     public Api convert(ApiEntity api) {
         final Api apiItem = new Api();
         apiItem.setDescription(api.getDescription());
@@ -91,8 +96,15 @@ public class ApiMapper {
         }
         
         apiItem.setVersion(api.getVersion());
-        if(api.getViews() != null) {
-            apiItem.setViews(new ArrayList<String>(api.getViews()));
+        if (api.getViews() != null) {
+            apiItem.setViews(api.getViews().stream().filter(viewId -> {
+                try {
+                    viewService.findNotHiddenById(viewId);
+                    return true;
+                } catch (ViewNotFoundException v) {
+                    return false;
+                }
+            }).collect(Collectors.toList()));
         } else {
             apiItem.setViews(new ArrayList<String>());
         }
@@ -102,10 +114,10 @@ public class ApiMapper {
 
     public ApiLinks computeApiLinks(String basePath) {
         ApiLinks apiLinks = new ApiLinks();
-        apiLinks.setPages(basePath+"/pages");
-        apiLinks.setPicture(basePath+"/picture");
-        apiLinks.setPlans(basePath+"/plans");
-        apiLinks.setRatings(basePath+"/ratings");
+        apiLinks.setPages(basePath + "/pages");
+        apiLinks.setPicture(basePath + "/picture");
+        apiLinks.setPlans(basePath + "/plans");
+        apiLinks.setRatings(basePath + "/ratings");
         apiLinks.setSelf(basePath);
         
         return apiLinks;

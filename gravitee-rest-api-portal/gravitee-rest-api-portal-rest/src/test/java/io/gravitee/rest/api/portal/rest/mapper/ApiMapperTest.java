@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import io.gravitee.rest.api.service.ViewService;
+import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -72,15 +75,19 @@ public class ApiMapperTest {
     private static final String API_OWNER_FIRSTNAME  = "my-api-owner-firstname";
     private static final String API_OWNER_LASTNAME  = "my-api-owner-lastname";
     private static final String API_VIEW  = "my-api-view";
+    private static final String API_VIEW_HIDDEN  = "my-api-view-hidden";
 
     private ApiEntity apiEntity;
 
     @Mock
     private RatingService ratingService;
-    
+
     @Mock
     private SubscriptionService subscriptionService;
-    
+
+    @Mock
+    private ViewService viewService;
+
     @InjectMocks
     private ApiMapper apiMapper;
 
@@ -92,8 +99,10 @@ public class ApiMapperTest {
         apiEntity.setDescription(API_DESCRIPTION);
         apiEntity.setName(API_NAME);
         apiEntity.setLabels(new ArrayList<>(Arrays.asList(API_LABEL)));
-        apiEntity.setViews(new HashSet<>(Arrays.asList(API_VIEW)));
-        
+        doThrow(ViewNotFoundException.class).when(viewService).findNotHiddenById(API_VIEW_HIDDEN);
+
+        apiEntity.setViews(new HashSet<>(Arrays.asList(API_VIEW, API_VIEW_HIDDEN)));
+
         apiEntity.setEntrypoints(Arrays.asList(new ApiEntrypointEntity(API_ENTRYPOINT_1), new ApiEntrypointEntity(API+"/foo")));
         
         
