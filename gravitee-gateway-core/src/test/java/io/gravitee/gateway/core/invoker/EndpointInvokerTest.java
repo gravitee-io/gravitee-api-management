@@ -113,6 +113,22 @@ public class EndpointInvokerTest {
         compare("http://local.com?urlParam1&urlParam2", "http://local.com", parameters);
     }
 
+    @Test
+    public void shouldSupportAllParamsWithoutEncoding() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        compare("http://local.com/echo?foo=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/=*,+@!$%27[]()",
+                "http://local.com/echo?foo=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/=*,+@!$%27[]()",
+                parameters);
+    }
+
+    @Test
+    public void shouldSupportAllParamsWithEncoding() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        compare("http://local.com/echo?foo=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/=*,+@!$%2527[]()%253D%5C%7B%7D%22",
+                "http://local.com/echo?foo=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/=*,+@!$%27[]()%3D\\{}\"",
+                parameters);
+    }
+
     private void compare(String expectedUri, String endpointUri, MultiValueMap parameters) {
         ExecutionContext context = mockContext(parameters);
         ReadStream<Buffer> stream = mockStream();

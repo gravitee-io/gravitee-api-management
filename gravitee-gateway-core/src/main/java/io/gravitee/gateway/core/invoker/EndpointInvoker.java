@@ -37,8 +37,10 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -145,17 +147,17 @@ public class EndpointInvoker implements Invoker {
         return URI.create(uri);
     }
 
-    private URI buildURI(String uri, ExecutionContext executionContext) {
+    private URI buildURI(String uri, ExecutionContext executionContext) throws MalformedURLException, URISyntaxException {
         MultiValueMap<String, String> parameters = executionContext.request().parameters();
 
         if (parameters == null || parameters.isEmpty()) {
-            return URI.create(uri);
+            return createURI(uri);
         }
 
         return addQueryParameters(uri, parameters);
     }
 
-    private URI addQueryParameters(String uri, MultiValueMap<String, String> parameters) {
+    private URI addQueryParameters(String uri, MultiValueMap<String, String> parameters) throws MalformedURLException, URISyntaxException {
         StringJoiner parametersAsString = new StringJoiner(URI_PARAM_SEPARATOR);
         parameters.forEach( (paramName, paramValues) -> {
             if (paramValues != null) {
@@ -170,10 +172,18 @@ public class EndpointInvoker implements Invoker {
         });
 
         if (uri.contains(URI_QUERY_DELIMITER_CHAR_SEQUENCE)) {
-            return URI.create(uri + URI_PARAM_SEPARATOR_CHAR + parametersAsString.toString());
+            return createURI(uri + URI_PARAM_SEPARATOR_CHAR + parametersAsString.toString());
         } else {
-            return URI.create(uri + URI_QUERY_DELIMITER_CHAR + parametersAsString.toString());
+            return createURI(uri + URI_QUERY_DELIMITER_CHAR + parametersAsString.toString());
 
+        }
+    }
+    private URI createURI(final String uri) throws MalformedURLException, URISyntaxException {
+        try {
+            return new URI(uri);
+        } catch (URISyntaxException urie) {
+            final URL url = new URL(uri);
+            return new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
         }
     }
 
