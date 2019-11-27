@@ -46,6 +46,7 @@ import { SafePipe } from './pipes/safe.pipe';
 import { UserAvatarComponent } from './components/user-avatar/user-avatar.component';
 import { ContactComponent } from './pages/contact/contact.component';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
+import { NotificationService } from './services/notification.service';
 
 @NgModule({
   declarations: [
@@ -88,6 +89,7 @@ import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.co
     { provide: BASE_PATH, useValue: environment.portalApiBasePath },
     { provide: MESSAGE_FORMAT_CONFIG, useValue: { locales: environment.locales } },
     CurrentUserService,
+    NotificationService,
     { provide: HTTP_INTERCEPTORS, useClass: APIRequestInterceptor, multi: true }
   ],
   schemas: [

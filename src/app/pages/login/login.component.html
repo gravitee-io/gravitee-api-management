@@ -42,7 +42,7 @@
                  class="login__form__input">{{ 'login.button' | translate }}</gv-button>
     </form>
 
-    <p class="tc" *ngIf="providers && loginForm">{{ 'login.with_providers' | translate }}</p>
+    <p class="tc" *ngIf="providers && providers.length && loginForm">{{ 'login.withProviders' | translate }}</p>
 
     <gv-button *ngFor="let provider of providers"
                outlined
@@ -51,8 +51,6 @@
                (click)="authenticate(provider)">
       {{ provider.name }}
     </gv-button>
-
-    <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
 
     <p *ngIf="loginForm && registrationEnabled" class="tc">
       {{ 'login.signup.text' | translate }} <a routerLink="/registration">{{ 'login.signup.link' | translate }}</a>

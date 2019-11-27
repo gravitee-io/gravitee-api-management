@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  locales: ['en', 'fr', 'cs'],
-  pagination: {
-    default: '10',
-    sizes: ['5', '10', '25', '50', '100']
-  },
-  portalApiBasePath: '/portal/DEFAULT',
-  production: true
-};
+export class Notification {
+  type: string;
+  code: string;
+  message?: string;
+  parameters?: string;
+}
+

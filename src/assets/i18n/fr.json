@@ -1,109 +1,119 @@
 {
- "catalog": {
-  "search": "Rechercher une API, APP..."
- },
- "categories": {
-  "title": "Catégories"
- },
- "contact": {
-  "apis": {
-   "label": "Trouver une API",
-   "title": "Associer une API"
+  "catalog": {
+    "search": "Rechercher une API, APP..."
   },
-  "applications": {
-   "label": "Trouver une application",
-   "title": "Associer une application"
+  "categories": {
+    "title": "Catégories"
   },
-  "button": "Envoyer votre demande",
-  "content": {
-   "label": "Expliquer votre demande...",
-   "title": "Votre demande"
+  "contact": {
+    "apis": {
+      "label": "Trouver une API",
+      "title": "Associer une API"
+    },
+    "applications": {
+      "label": "Trouver une application",
+      "title": "Associer une application"
+    },
+    "button": "Envoyer votre demande",
+    "content": {
+      "label": "Expliquer votre demande...",
+      "title": "Votre demande"
+    },
+    "receiveCopy": "Recevoir une copie par e-mail",
+    "subject": {
+      "label": "Expliquer le sujet...",
+      "title": "Sujet"
+    },
+    "success": "Votre demande a bien été transmise au responsable de la plateforme",
+    "title": "Votre demande"
   },
-  "error": "Une erreur est survenue",
-  "receive_copy": "Recevoir une copie par e-mail",
-  "subject": {
-   "label": "Expliquer le sujet...",
-   "title": "Sujet"
+  "errors": {
+    "email": {
+      "required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
+    },
+    "support": {
+      "disabled": "Le formulaire de contact n'est pas disponible pour le moment"
+    },
+    "user": {
+      "exists": "Il existe déjà un utilisateur avec l'email : {user}",
+      "finalized": "Le compte a déjà été finalisé"
+    }
   },
-  "success": "Votre demande a bien été transmise au responsable de la plateforme.",
-  "title": "Votre demande"
- },
- "filteredCatalog": {
-  "defaultView": "Toutes les APIs",
-  "filter": "Filtrer les résultats",
-  "othersApi": {
-   "subTitle": "Découvrez les différentes APIs à la une ce mois-ci",
-   "title": "Les autres API's"
+  "filteredCatalog": {
+    "defaultView": "Toutes les APIs",
+    "filter": "Filtrer les résultats",
+    "othersApi": {
+      "subTitle": "Découvrez les différentes APIs à la une ce mois-ci",
+      "title": "Les autres API's"
+    }
+  },
+  "login": {
+    "button": "Se connecter",
+    "notification": {
+      "error": "Identifiant ou mot de passe invalide"
+    },
+    "password": "Mot de passe",
+    "signup": {
+      "link": "Enregistrez-vous",
+      "text": "Pas encore de compte ?"
+    },
+    "title": "Identifiez-vous",
+    "username": "Identifiant",
+    "withProviders": "Ou"
+  },
+  "registration": {
+    "backHome": "Retour au portail",
+    "backLogin": "Retour à la page d'identification",
+    "button": "S'enregistrer",
+    "email": "Adresse email",
+    "firstname": "Prénom",
+    "lastname": "Nom",
+    "notification": {
+      "success": "Enregistrement confirmé ! Un email a été envoyé à : {email}"
+    },
+    "title": "Créer un compte"
+  },
+  "registrationConfirmation": {
+    "backHome": "Retour au portail",
+    "backLogin": "Retour à la page d'identification",
+    "backRegistration": "Retour à la page de création de compte",
+    "button": "Confirmer",
+    "confirmedPassword": "Confirmez le mot de passe",
+    "email": "Adresse email",
+    "firstname": "Prénom",
+    "lastname": "Nom",
+    "notification": {
+      "success": "Votre création de compte est confirmé"
+    },
+    "password": "Choisissez un mot de passe",
+    "title": "Finaliser son inscription",
+    "tokenExpired": "Votre demande de création de compte a expiré"
+  },
+  "route": {
+    "apps": "Applications",
+    "catalog": "Catalogue",
+    "catalogCategories": "Catégories",
+    "catalogFeatured": "Les APIs mises en avant",
+    "catalogStarred": "Les mieux notées",
+    "catalogTrending": "Les + tendances",
+    "contact": "Contact",
+    "dashboard": "Tableau de bord",
+    "login": "Se connecter",
+    "logout": "Se déconnecter",
+    "user": "Mon compte"
+  },
+  "search": {
+    "query": {
+      "label": "Rechercher sur Gravitee",
+      "placeholder": "Rechercher une API, APP..."
+    }
+  },
+  "site": {
+    "title": "Gravitee.io Portail"
+  },
+  "user": {
+    "displayName": "Nom",
+    "email": "Email",
+    "title": "Mon profil"
   }
- },
- "login": {
-  "button": "Se connecter",
-  "notification": {
-   "error": "Identifiant ou mot de passe invalide",
-   "success": "Authentification réussie"
-  },
-  "password": "Mot de passe",
-  "signup": {
-   "link": "Enregistrez-vous",
-   "text": "Pas encore de compte ?"
-  },
-  "title": "Identifiez-vous",
-  "username": "Identifiant",
-  "with_providers": "Ou"
- },
- "registration": {
-  "back_home": "Retour au portail",
-  "back_login": "Retour à la page d'identification",
-  "button": "S'enregistrer",
-  "email": "Adresse email",
-  "firstname": "Prénom",
-  "lastname": "Nom",
-  "notification": {
-   "success": "Enregistrement confirmé ! Un email a été envoyé à : {email}."
-  },
-  "title": "Créer un compte"
- },
- "registrationConfirmation": {
-  "back_home": "Retour au portail",
-  "back_login": "Retour à la page d'identification",
-  "back_registration": "Retour à la page de création de compte",
-  "button": "Confirmer",
-  "confirmedPassword": "Confirmez le mot de passe",
-  "email": "Adresse email",
-  "firstname": "Prénom",
-  "lastname": "Nom",
-  "notification": {
-   "success": "Votre compte est confirmé !"
-  },
-  "password": "Choisissez un mot de passe",
-  "title": "Finaliser son inscription",
-  "token_expired": "Votre demande de création de compte a expiré."
- },
- "route": {
-  "apps": "Applications",
-  "catalog": "Catalogue",
-  "catalog-categories": "Catégories",
-  "catalog-featured": "Les Top APIs",
-  "catalog-starred": "Les mieux notées",
-  "catalog-trending": "Les + tendances",
-  "contact": "Contact",
-  "dashboard": "Tableau de bord",
-  "login": "Se connecter",
-  "logout": "Se déconnecter",
-  "user": "Mon compte"
- },
- "search": {
-  "query": {
-   "label": "Rechercher sur Gravitee",
-   "placeholder": "Rechercher une API, APP..."
-  }
- },
- "site": {
-  "title": "Gravitee.io Portail"
- },
- "user": {
-  "display_name": "Nom",
-  "email": "Email",
-  "title": "Mon profil"
- }
 }

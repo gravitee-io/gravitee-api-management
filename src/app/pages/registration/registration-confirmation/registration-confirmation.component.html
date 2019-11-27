@@ -87,13 +87,12 @@
 
         </form>
         <a *ngIf="registrationConfirmationForm && !isTokenExpired && !isSubmitted" routerLink="/"
-           class="tc">{{ "registrationConfirmation.back_home" | translate }}</a>
+           class="tc">{{ "registrationConfirmation.backHome" | translate }}</a>
 
-        <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
         <a *ngIf="isTokenExpired" routerLink="/registration"
-           class="tc">{{ "registrationConfirmation.back_registration" | translate }}</a>
+           class="tc">{{ "registrationConfirmation.backRegistration" | translate }}</a>
         <a *ngIf="isSubmitted" routerLink="/login"
-           class="tc">{{ "registrationConfirmation.back_login" | translate }}</a>
+           class="tc">{{ "registrationConfirmation.backLogin" | translate }}</a>
       </div>
     </div>
   </div>

@@ -45,7 +45,7 @@ export const routes: Routes = [
             path: 'categories',
             component: CategoriesComponent,
             data: {
-              title: i18n('route.catalog-categories'),
+              title: i18n('route.catalogCategories'),
               type: RouteType.catalog,
               icon: 'layout:layout-arrange'
             }
@@ -54,7 +54,7 @@ export const routes: Routes = [
             path: 'featured',
             component: FilteredCatalogComponent,
             data: {
-              title: i18n('route.catalog-featured'),
+              title: i18n('route.catalogFeatured'),
               type: RouteType.catalog,
               icon: 'home:flower#2',
               categoryApiQuery: CategoryApiQuery.FEATURED
@@ -64,7 +64,7 @@ export const routes: Routes = [
             path: 'starred',
             component: FilteredCatalogComponent,
             data: {
-              title: i18n('route.catalog-starred'),
+              title: i18n('route.catalogStarred'),
               type: RouteType.catalog,
               icon: 'general:star',
               categoryApiQuery: CategoryApiQuery.STARRED
@@ -74,7 +74,7 @@ export const routes: Routes = [
             path: 'trendings',
             component: FilteredCatalogComponent,
             data: {
-              title: i18n('route.catalog-trending'),
+              title: i18n('route.catalogTrending'),
               type: RouteType.catalog,
               icon: 'home:fireplace',
               categoryApiQuery: CategoryApiQuery.TRENDINGS
@@ -103,10 +103,10 @@ export const routes: Routes = [
         }
       },
       { path: 'registration', component: RegistrationComponent },
+      { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent },
       { path: 'catalog/search', component: CatalogSearchComponent }
     ]
-  },
-  { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent }
+  }
 ];
 
 @NgModule({

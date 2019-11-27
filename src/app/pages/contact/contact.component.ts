@@ -17,10 +17,10 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ApplicationsService, ApiService, PortalService } from '@gravitee/ng-portal-webclient';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { TranslateService } from '@ngx-translate/core';
 import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-text';
 import '@gravitee/ui-components/wc/gv-checkbox';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-contact',
@@ -37,17 +37,13 @@ export class ContactComponent {
     label: string,
     value: string,
   }[];
-  notification: {
-    message: string,
-    type: string,
-  };
 
   constructor(
     private applicationsService: ApplicationsService,
     private apiService: ApiService,
     private portalService: PortalService,
-    private translateService: TranslateService,
     private formBuilder: FormBuilder,
+    private notificationService: NotificationService,
   ) {
     this.initFormGroup();
     this.applicationsService.getApplications({ size: 100 })
@@ -76,21 +72,7 @@ export class ContactComponent {
 
   submit() {
     this.portalService.createTicket({ TicketInput: this.contactForm.value }).subscribe(() => {
-      this.translateService.get(i18n('contact.success')).subscribe((translatedMessage) => {
-        this.notification = {
-          message: translatedMessage,
-          type : 'success'
-        };
-        this.initFormGroup();
-      });
-    },
-      (error) => {
-        this.translateService.get(i18n('contact.error')).subscribe((translatedMessage) => {
-          this.notification = {
-            message: JSON.stringify(error),
-            type : 'error'
-          };
-        });
-      });
+      this.notificationService.success(i18n('contact.success'));
+    });
   }
 }

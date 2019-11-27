@@ -18,10 +18,7 @@
 <div class="page__content">
 
 <form class="contact" [formGroup]="contactForm" (ngSubmit)="submit()">
-
-  <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
-
-  <h2 class="title">{{ 'contact.title' | translate }}</h2>
+  <h2>{{ 'contact.title' | translate }}</h2>
 
   <gv-select
     label="{{ 'contact.apis.title' | translate }}"
@@ -60,7 +57,7 @@
   </gv-text>
 
   <gv-checkbox
-    label="{{ 'contact.receive_copy' | translate }}"
+    label="{{ 'contact.receiveCopy' | translate }}"
     formControlName="copy_to_sender"
     name="copy_to_sender"
     ngDefaultControl>

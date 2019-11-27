@@ -20,12 +20,14 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { CurrentUserService } from '../services/current-user.service';
+import { NotificationService } from '../services/notification.service';
 
 @Injectable()
 export class APIRequestInterceptor implements HttpInterceptor {
   constructor(
     private router: Router,
-    private currentUserService: CurrentUserService
+    private currentUserService: CurrentUserService,
+    private notificationService: NotificationService,
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -42,6 +44,9 @@ export class APIRequestInterceptor implements HttpInterceptor {
           if (err.status === 401) {
             this.currentUserService.revokeUser();
           }
+        }
+        if (err.error && err.error.errors) {
+          this.notificationService.error(err.error.errors[0].code, err.error.errors[0].parameters);
         }
       }
     ));

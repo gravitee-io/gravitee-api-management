@@ -20,6 +20,8 @@ import { Title } from '@angular/platform-browser';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { UserService } from '@gravitee/ng-portal-webclient';
 import { CurrentUserService } from './services/current-user.service';
+import { NotificationService } from './services/notification.service';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-root',
@@ -31,16 +33,18 @@ export class AppComponent implements OnInit {
       private titleService: Title,
       private translateService: TranslateService,
       private userService: UserService,
-      private currentUserService: CurrentUserService
-  ) {
-  }
+      private currentUserService: CurrentUserService,
+      private notificationService: NotificationService,
+      private router: Router,
+  ) {}
 
   ngOnInit() {
       this.translateService.addLangs(environment.locales);
       this.translateService.setDefaultLang(environment.locales[0]);
       const browserLang = this.translateService.getBrowserLang();
-      this.translateService.use(browserLang.match(/en|fr/) ? browserLang : 'en');
+      this.translateService.use(environment.locales.includes(browserLang) ? browserLang : 'en');
       this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
       this.userService.getCurrentUser().subscribe((user) => this.currentUserService.changeUser(user));
+      this.router.events.subscribe(() => this.notificationService.reset());
   }
 }

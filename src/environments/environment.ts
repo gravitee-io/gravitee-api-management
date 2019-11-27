@@ -18,7 +18,7 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  locales: ['en', 'fr'],
+  locales: ['en', 'fr', 'cs'],
   pagination: {
     default: '10',
     sizes: ['5', '10', '25', '50', '100']

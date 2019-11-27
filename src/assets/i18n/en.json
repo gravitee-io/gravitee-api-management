@@ -1,109 +1,119 @@
 {
- "catalog": {
-  "search": "Search API, APP ..."
- },
- "categories": {
-  "title": "Categories"
- },
- "contact": {
-  "apis": {
-   "label": "Find an API",
-   "title": "Associate an API"
+  "catalog": {
+    "search": "Search API, APP ..."
   },
-  "applications": {
-   "label": "Find an application",
-   "title": "Associate an application"
+  "categories": {
+    "title": "Categories"
   },
-  "button": "Send your request",
-  "content": {
-   "label": "Explain your request...",
-   "title": "Your request"
+  "contact": {
+    "apis": {
+      "label": "Find an API",
+      "title": "Associate an API"
+    },
+    "applications": {
+      "label": "Find an application",
+      "title": "Associate an application"
+    },
+    "button": "Send your request",
+    "content": {
+      "label": "Explain your request...",
+      "title": "Your request"
+    },
+    "receiveCopy": "Receive a copy by e-mail",
+    "subject": {
+      "label": "Explain the subject...",
+      "title": "Subject"
+    },
+    "success": "Your request has been sent to the platform manager",
+    "title": "Your request"
   },
-  "error": "An error occurs",
-  "receive_copy": "Receive a copy by e-mail",
-  "subject": {
-   "label": "Explain the subject...",
-   "title": "Subject"
+  "errors": {
+    "email": {
+      "required": "Please configure an e-mail to use the contact form"
+    },
+    "support": {
+      "disabled": "Contact form is not available at this time"
+    },
+    "user": {
+      "exists": "There is already a user with the email: {user}",
+      "finalized": "The account has already been finalized"
+    }
   },
-  "success": "Your request has been sent to the manager of the platform",
-  "title": "Your request"
- },
- "filteredCatalog": {
-  "defaultView": "All the APIs",
-  "filter": "Filter the results",
-  "othersApi": {
-   "subTitle": "Discover the different APIs in the headlines this month",
-   "title": "The others APIs"
+  "filteredCatalog": {
+    "defaultView": "All the APIs",
+    "filter": "Filter the results",
+    "othersApi": {
+      "subTitle": "Discover the different APIs in the headlines this month",
+      "title": "The others APIs"
+    }
+  },
+  "login": {
+    "button": "Sign in",
+    "notification": {
+      "error": "Invalid username or password"
+    },
+    "password": "Password",
+    "signup": {
+      "link": "Sign up !",
+      "text": "Don't have an account yet ?"
+    },
+    "title": "Who are you ?",
+    "username": "Username",
+    "withProviders": "Or"
+  },
+  "registration": {
+    "backHome": "Back to portal",
+    "backLogin": "Back to Sign in",
+    "button": "Sign up",
+    "email": "Email",
+    "firstname": "First name",
+    "lastname": "Last name",
+    "notification": {
+      "success": "Registration confirmed! An email has been sent to: {email}"
+    },
+    "title": "Create an account"
+  },
+  "registrationConfirmation": {
+    "backHome": "Back to portal",
+    "backLogin": "Back to Sign in",
+    "backRegistration": "Back to registration",
+    "button": "Confirm",
+    "confirmedPassword": "Confirm your password",
+    "email": "Email",
+    "firstname": "First name",
+    "lastname": "Last name",
+    "notification": {
+      "success": "Your account creation is confirmed"
+    },
+    "password": "Choose a password",
+    "title": "Confirm the registration",
+    "tokenExpired": "Your account creation request has expired"
+  },
+  "route": {
+    "apps": "Applications",
+    "catalog": "Catalog",
+    "catalogCategories": "Categories",
+    "catalogFeatured": "Featured",
+    "catalogStarred": "Starred",
+    "catalogTrending": "Trending",
+    "contact": "Contact",
+    "dashboard": "Dashboard",
+    "login": "Sign in",
+    "logout": "Sign out",
+    "user": "My profile"
+  },
+  "search": {
+    "query": {
+      "label": "Search in Gravitee",
+      "placeholder": "Search API, APP ..."
+    }
+  },
+  "site": {
+    "title": "Gravitee.io Portal"
+  },
+  "user": {
+    "displayName": "Name",
+    "email": "Email",
+    "title": "My profile"
   }
- },
- "login": {
-  "button": "Sign in",
-  "notification": {
-   "error": "Invalid username or password.",
-   "success": "Log in successful"
-  },
-  "password": "Password",
-  "signup": {
-   "link": "Sign up !",
-   "text": "Don't have an account yet ?"
-  },
-  "title": "Who are you ?",
-  "username": "Username",
-  "with_providers": "Or"
- },
- "registration": {
-  "back_home": "Back to portal",
-  "back_login": "Back to Sign in",
-  "button": "Sign up",
-  "email": "Email",
-  "firstname": "First name",
-  "lastname": "Last name",
-  "notification": {
-   "success": "Registration OK ! An email has been sent to : {email}."
-  },
-  "title": "Create an account"
- },
- "registrationConfirmation": {
-  "back_home": "Back to portal",
-  "back_login": "Back to Sign in",
-  "back_registration": "Back to registration",
-  "button": "Confirm",
-  "confirmedPassword": "Confirm your password",
-  "email": "Email",
-  "firstname": "First name",
-  "lastname": "Last name",
-  "notification": {
-   "success": "Your account has been confirmed !"
-  },
-  "password": "Choose a password",
-  "title": "Confirm the registration",
-  "token_expired": "Your registration has expired"
- },
- "route": {
-  "apps": "Applications",
-  "catalog": "Catalog",
-  "catalog-categories": "Categories",
-  "catalog-featured": "Featured",
-  "catalog-starred": "Starred",
-  "catalog-trending": "Trending",
-  "contact": "Contact",
-  "dashboard": "Dashboard",
-  "login": "Sign in",
-  "logout": "Sign out",
-  "user": "My profile"
- },
- "search": {
-  "query": {
-   "label": "Search in Gravitee",
-   "placeholder": "Search API, APP ..."
-  }
- },
- "site": {
-  "title": "Gravitee.io Portal"
- },
- "user": {
-  "display_name": "Name",
-  "email": "Email",
-  "title": "My profile"
- }
 }

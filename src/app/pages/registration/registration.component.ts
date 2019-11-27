@@ -16,7 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { UsersService, RegisterUserInput } from '@gravitee/ng-portal-webclient';
-import { TranslateService } from '@ngx-translate/core';
+import { NotificationService } from '../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
@@ -27,17 +27,12 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 export class RegistrationComponent implements OnInit {
   isSubmitted: boolean;
   registrationForm: FormGroup;
-  notification: {
-    message: string;
-    type: string;
-  };
 
   constructor(
     private usersService: UsersService,
     private formBuilder: FormBuilder,
-    private translateService: TranslateService
-  ) {
-  }
+    private notificationService: NotificationService,
+  ) {}
 
   ngOnInit() {
     this.registrationForm = this.formBuilder.group({
@@ -65,24 +60,8 @@ export class RegistrationComponent implements OnInit {
       // call the register resource from the API.
       this.usersService.registerNewUser({ RegisterUserInput: input }).subscribe(
         user => {
-          this.translateService
-            .get(i18n('registration.notification.success'), {
-              email: user.email
-            })
-            .subscribe(translatedMessage => {
-              this.notification = {
-                message: translatedMessage,
-                type: 'success'
-              };
-            });
+          this.notificationService.success(i18n('registration.notification.success'), { email: user.email });
           this.isSubmitted = true;
-        },
-        httpError => {
-          this.notification = {
-            message: httpError.error.errors[0].detail,
-            type: 'error'
-          };
-          console.error(httpError);
         }
       );
     }

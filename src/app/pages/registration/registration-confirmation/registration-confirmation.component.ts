@@ -17,7 +17,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-webclient';
-import { TranslateService } from '@ngx-translate/core';
+import { NotificationService } from '../../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
@@ -32,16 +32,12 @@ export class RegistrationConfirmationComponent implements OnInit {
   token: string;
   userFromToken: any;
   isTokenExpired: boolean;
-  notification: {
-    message: string,
-    type: string,
-  };
 
   constructor(
     private usersService: UsersService,
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
-    private translateService: TranslateService,
+    private notificationService: NotificationService,
   ) {
   }
 
@@ -61,13 +57,7 @@ export class RegistrationConfirmationComponent implements OnInit {
       });
     } else {
       this.isTokenExpired = true;
-      this.translateService.get(i18n('registrationConfirmation.token_expired')).subscribe((translatedMessage) => {
-        this.notification = {
-          message: translatedMessage,
-          type: 'info'
-        };
-      });
-
+      this.notificationService.info(i18n('registrationConfirmation.tokenExpired'));
     }
   }
 
@@ -87,21 +77,9 @@ export class RegistrationConfirmationComponent implements OnInit {
       };
       // call the register resource from the API.
       this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input }).subscribe(
-        (user) => {
-          this.translateService.get(i18n('registrationConfirmation.notification.success')).subscribe((translatedMessage) => {
-            this.notification = {
-              message: translatedMessage,
-              type: 'success'
-            };
-          });
+        () => {
+          this.notificationService.success(i18n('registrationConfirmation.notification.success'));
           this.isSubmitted = true;
-        },
-        (httpError) => {
-          this.notification = {
-            message: httpError.error.errors[0].detail,
-            type: 'error'
-          };
-          console.error(httpError);
         }
       );
     }

@@ -59,12 +59,10 @@
     </form>
 
     <p class="tc">
-      <a *ngIf="registrationForm && !isSubmitted" routerLink="/login">{{ "registration.back_login" | translate }}</a>
+      <a *ngIf="registrationForm && !isSubmitted" routerLink="/login">{{ "registration.backLogin" | translate }}</a>
     </p>
 
-    <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
-
-    <a *ngIf="isSubmitted" routerLink="/" class="tc">{{ "registration.back_home" | translate }}</a>
+    <a *ngIf="isSubmitted" routerLink="/" class="tc">{{ "registration.backHome" | translate }}</a>
 
   </div>
 </div>

@@ -1,109 +1,119 @@
 {
- "catalog": {
-  "search": "Vyhledat API, APP ..."
- },
- "categories": {
-  "title": "Kategories"
- },
- "contact": {
-  "apis": {
-   "label": "Najít API",
-   "title": "Přiřadit API"
+  "catalog": {
+    "search": "Vyhledat API, APP ..."
   },
-  "applications": {
-   "label": "Najít aplikaci",
-   "title": "Přiřadit aplikaci"
+  "categories": {
+    "title": "Kategories"
   },
-  "button": "Odeslat požadavek",
-  "content": {
-   "label": "Vysvětlete svůj požadavek ...",
-   "title": "Vaše žádost"
+  "contact": {
+    "apis": {
+      "label": "Najít API",
+      "title": "Přiřadit API"
+    },
+    "applications": {
+      "label": "Najít aplikaci",
+      "title": "Přiřadit aplikaci"
+    },
+    "button": "Odeslat požadavek",
+    "content": {
+      "label": "Vysvětlete svůj požadavek ...",
+      "title": "Vaše žádost"
+    },
+    "receiveCopy": "Přijmout kopii e-mailem",
+    "subject": {
+      "label": "Vysvětlete téma ...",
+      "title": "Subject"
+    },
+    "success": "Vaše žádost byla odeslána správci platformy",
+    "title": "Vaše žádost"
   },
-  "error": "Došlo k chybě",
-  "receive_copy": "Přijmout kopii e-mailem",
-  "subject": {
-   "label": "Vysvětlete téma ...",
-   "title": "Subject"
+  "errors": {
+    "email": {
+      "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
+    },
+    "support": {
+      "disabled": "Kontaktní formulář zatím není k dispozici"
+    },
+    "user": {
+      "exists": "E-mail již existuje uživatel: {user}",
+      "finalized": "Účet již byl dokončen"
+    }
   },
-  "success": "Váš požadavek byl zaslán správci platformy.",
-  "title": "Vaše žádost"
- },
- "filteredCatalog": {
-  "defaultView": "Všechna API",
-  "filter": "Filtrujte výsledky",
-  "othersApi": {
-   "subTitle": "Objevte různá API v titulcích tento měsíc",
-   "title": "Ostatní APIs"
+  "filteredCatalog": {
+    "defaultView": "Všechna API",
+    "filter": "Filtrujte výsledky",
+    "othersApi": {
+      "subTitle": "Objevte různá API v titulcích tento měsíc",
+      "title": "Ostatní APIs"
+    }
+  },
+  "login": {
+    "button": "Přihlásit",
+    "notification": {
+      "error": "Neplatné uživatelské jméno nebo heslo"
+    },
+    "password": "Heslo",
+    "signup": {
+      "link": "Registrovat !",
+      "text": "Nemáte prozatím účet ?"
+    },
+    "title": "Kdo jste ?",
+    "username": "Uživatelské jméno",
+    "withProviders": "Nebo"
+  },
+  "registration": {
+    "backHome": "Zpátky na portal",
+    "backLogin": "Zpátky na přihlášení",
+    "button": "Registrovat",
+    "email": "Email",
+    "firstname": "Křestní jméno",
+    "lastname": "Přijmení",
+    "notification": {
+      "success": "Registrace potvrzena! E-mail byl odeslán na adresu: {email}"
+    },
+    "title": "Vytvořit účet"
+  },
+  "registrationConfirmation": {
+    "backHome": "Zpátky na portal",
+    "backLogin": "Zpátky na přihlášení",
+    "backRegistration": "Zpátky na registraci",
+    "button": "Potvrdit",
+    "confirmedPassword": "Potvrdit vaše heslo",
+    "email": "Email",
+    "firstname": "Křestní jméno",
+    "lastname": "Přijmení",
+    "notification": {
+      "success": "Vytvoření vašeho účtu je potvrzeno"
+    },
+    "password": "Vyberte heslo",
+    "title": "Potvrdit registraci",
+    "tokenExpired": "Platnost vašeho požadavku na vytvoření účtu vypršela"
+  },
+  "route": {
+    "apps": "Aplikace",
+    "catalog": "Katalog",
+    "catalogCategories": "Kategories",
+    "catalogFeatured": "Představoval",
+    "catalogStarred": "Označené hvězdičkou",
+    "catalogTrending": "Nejmodernější",
+    "contact": "Kontakt",
+    "dashboard": "Dashboard",
+    "login": "Přihlásit",
+    "logout": "Odhlásit",
+    "user": "Můj profil"
+  },
+  "search": {
+    "query": {
+      "label": "Hledat v Gravitee",
+      "placeholder": "Vyhledat API, APP ..."
+    }
+  },
+  "site": {
+    "title": "Gravitee.io Portal"
+  },
+  "user": {
+    "displayName": "Jméno",
+    "email": "Email",
+    "title": "Můj profil"
   }
- },
- "login": {
-  "button": "Přihlásit",
-  "notification": {
-   "error": "Neplatné uživatelské jméno nebo heslo.",
-   "success": "Přihlášení úspěšné"
-  },
-  "password": "Heslo",
-  "signup": {
-   "link": "Registrovat !",
-   "text": "Nemáte prozatím účet ?"
-  },
-  "title": "Kdo jste ?",
-  "username": "Uživatelské jméno",
-  "with_providers": "Nebo"
- },
- "registration": {
-  "back_home": "Zpátky na portal",
-  "back_login": "Zpátky na přihlášení",
-  "button": "Registrovat",
-  "email": "Email",
-  "firstname": "Křestní jméno",
-  "lastname": "Přijmení",
-  "notification": {
-   "success": "Registrace OK ! Email byl odeslán : {email}."
-  },
-  "title": "Vytvořit účet"
- },
- "registrationConfirmation": {
-  "back_home": "Zpátky na portal",
-  "back_login": "Zpátky na přihlášení",
-  "back_registration": "Zpátky na registraci",
-  "button": "Potvrdit",
-  "confirmedPassword": "Potvrdit vaše heslo",
-  "email": "Email",
-  "firstname": "Křestní jméno",
-  "lastname": "Přijmení",
-  "notification": {
-   "success": "Váš účet byl potvrzen !"
-  },
-  "password": "Vyberte heslo",
-  "title": "Potvrdit registraci",
-  "token_expired": "Vaše registrace vypršela"
- },
- "route": {
-  "apps": "Aplikace",
-  "catalog": "Katalog",
-  "catalog-categories": "Kategories",
-  "catalog-featured": "Představoval",
-  "catalog-starred": "Označené hvězdičkou",
-  "catalog-trending": "route.catalog-trending",
-  "contact": "Kontakt",
-  "dashboard": "Dashboard",
-  "login": "Přihlásit",
-  "logout": "Odhlásit",
-  "user": "Můj profil"
- },
- "search": {
-  "query": {
-   "label": "Hledat v Gravitee",
-   "placeholder": "Vyhledat API, APP ..."
-  }
- },
- "site": {
-  "title": "Gravitee.io Portal"
- },
- "user": {
-  "display_name": "Jméno",
-  "email": "Email",
-  "title": "Můj profil"
- }
 }

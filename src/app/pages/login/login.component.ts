@@ -23,9 +23,9 @@ import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-message';
-import { TranslateService } from '@ngx-translate/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { CurrentUserService } from '../../services/current-user.service';
+import { NotificationService } from '../../services/notification.service';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
   selector: 'app-login',
@@ -36,13 +36,7 @@ import { CurrentUserService } from '../../services/current-user.service';
 export class LoginComponent implements OnInit, AfterViewChecked {
 
   loginForm: FormGroup;
-  notification: {
-    message: string,
-    type: string,
-  };
-
   registrationEnabled: boolean;
-
   providers: IdentityProvider[];
 
   constructor(
@@ -50,7 +44,7 @@ export class LoginComponent implements OnInit, AfterViewChecked {
     private portalService: PortalService,
     private formBuilder: FormBuilder,
     private router: Router,
-    private translateService: TranslateService,
+    private notificationService: NotificationService,
     private currentUserService: CurrentUserService,
   ) {
     this.portalService.getPortalConfiguration().subscribe(
@@ -100,24 +94,11 @@ export class LoginComponent implements OnInit, AfterViewChecked {
       // call the login resource from the API.
       this.authService.login({ Authorization: authorization }).subscribe(
         () => {
-          this.translateService.get(i18n('login.notification.success')).subscribe((translatedMessage) => {
-            this.notification = {
-              message: translatedMessage,
-              type: 'success'
-            };
-          });
-
           // add routing to main page.
           this.router.navigate(['dashboard']).then(() => window.location.reload());
         },
-        (error) => {
-          this.translateService.get(i18n('login.notification.error')).subscribe((translatedMessage) => {
-            this.notification = {
-              message: translatedMessage,
-              type: 'error'
-            };
-          });
-          console.error(error);
+        () => {
+          this.notificationService.error(i18n('login.notification.error'));
           this.loginForm.reset();
         }
       );
