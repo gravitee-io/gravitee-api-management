@@ -19,10 +19,14 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -33,6 +37,7 @@ import javax.ws.rs.core.Response;
 import java.net.URI;
 
 import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.userURL;
+import static javax.ws.rs.core.Response.status;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -42,23 +47,30 @@ public class UserResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-
     @Inject
     private UserService userService;
-
     @Inject
     private UserMapper userMapper;
+    @Context
+    private HttpServletResponse response;
+    @Autowired
+    private JWTCookieGenerator jwtCookieGenerator;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCurrentUser() {
         final String authenticatedUser = getAuthenticatedUser();
-        UserEntity userEntity = userService.findById(authenticatedUser);
-        User currentUser = userMapper.convert(userEntity);
-        currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), currentUser.getId()));
-        return Response
-                .ok(currentUser)
-                .build();
+        try {
+            UserEntity userEntity = userService.findById(authenticatedUser);
+            User currentUser = userMapper.convert(userEntity);
+            currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), currentUser.getId()));
+            return Response
+                    .ok(currentUser)
+                    .build();
+        } catch (final UserNotFoundException unfe) {
+            response.addCookie(jwtCookieGenerator.generate(null));
+            return status(Response.Status.UNAUTHORIZED).build();
+        }
     }
 
     @PUT
