@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA, APP_INITIALIZER } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -47,6 +47,7 @@ import { UserAvatarComponent } from './components/user-avatar/user-avatar.compon
 import { ContactComponent } from './pages/contact/contact.component';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { NotificationService } from './services/notification.service';
+import { AppConfig } from './app.config';
 
 @NgModule({
   declarations: [
@@ -86,11 +87,13 @@ import { NotificationService } from './services/notification.service';
     })
   ],
   providers: [
-    { provide: BASE_PATH, useValue: environment.portalApiBasePath },
+    AppConfig,
+    { provide: APP_INITIALIZER, useFactory: ConfigFactory, deps: [AppConfig], multi: true },
+    { provide: BASE_PATH, useFactory: BaseUrlFactory, deps: [AppConfig] },
     { provide: MESSAGE_FORMAT_CONFIG, useValue: { locales: environment.locales } },
     CurrentUserService,
     NotificationService,
-    { provide: HTTP_INTERCEPTORS, useClass: APIRequestInterceptor, multi: true }
+    { provide: HTTP_INTERCEPTORS, useClass: APIRequestInterceptor, multi: true },
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA,
@@ -104,4 +107,12 @@ export class AppModule {
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http);
+}
+
+export function ConfigFactory(config: AppConfig) {
+  return () => config.load();
+}
+
+export function BaseUrlFactory(config: AppConfig) {
+  return config.get('baseUrl');
 }

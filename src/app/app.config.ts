@@ -13,7 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  locales: ['en', 'fr', 'cs'],
-  production: true
-};
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Injectable()
+export class AppConfig {
+
+  private config: object;
+
+  constructor(private http: HttpClient) {
+  }
+
+  public get(key: string) {
+    return key.split('.').reduce((prev, curr) => prev && prev[curr], this.config);
+  }
+
+  public load() {
+    return new Promise((resolve) => {
+      this.http.get('./assets/config.json').subscribe( (responseData) => {
+        this.config = responseData;
+        resolve(true);
+      });
+    });
+  }
+}

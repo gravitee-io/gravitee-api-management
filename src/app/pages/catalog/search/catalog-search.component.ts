@@ -22,8 +22,8 @@ import '@gravitee/ui-components/wc/gv-pagination';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { ApiService, ApisResponse, Api } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
-import { environment } from 'src/environments/environment';
 import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-query-param.enum';
+import { AppConfig } from '../../../app.config';
 
 @Component({
   selector: 'app-search',
@@ -33,7 +33,7 @@ import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-que
 export class CatalogSearchComponent implements OnInit {
 
   searchForm: FormGroup;
-  pageSizes = environment.pagination.sizes;
+  pageSizes: [];
   paginationData: any;
   paginationLinks: any;
   apiList: Api[];
@@ -45,10 +45,12 @@ export class CatalogSearchComponent implements OnInit {
     private formBuilder: FormBuilder,
     private apiService: ApiService,
     private activatedRoute: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private config: AppConfig,
   ) {
     this.searchForm = this.formBuilder.group({ query: '' });
-    this.paginationSize = environment.pagination.default;
+    this.paginationSize = config.get('pagination.size.default');
+    this.pageSizes = config.get('pagination.size.values');
   }
 
   ngOnInit() {

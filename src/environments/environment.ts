@@ -19,11 +19,6 @@
 
 export const environment = {
   locales: ['en', 'fr', 'cs'],
-  pagination: {
-    default: '10',
-    sizes: ['5', '10', '25', '50', '100']
-  },
-  portalApiBasePath: '/portal/DEFAULT',
   production: false
 };
 
