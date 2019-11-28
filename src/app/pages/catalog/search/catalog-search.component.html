@@ -23,7 +23,8 @@
     label="{{ 'search.query.label' | translate}}"
     formControlName="query"
     ngDefaultControl
-    class="search__form__input">
+    class="search__form__input"
+    [loading]="loaderService.isLoading | async">
   </gv-input>
 </form>
 

@@ -24,6 +24,7 @@ import { ApiService, ApisResponse, Api } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-query-param.enum';
 import { AppConfig } from '../../../app.config';
+import { LoaderService } from '../../../services/loader.service';
 
 @Component({
   selector: 'app-search',
@@ -47,6 +48,7 @@ export class CatalogSearchComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private config: AppConfig,
+    public loaderService: LoaderService,
   ) {
     this.searchForm = this.formBuilder.group({ query: '' });
     this.paginationSize = config.get('pagination.size.default');

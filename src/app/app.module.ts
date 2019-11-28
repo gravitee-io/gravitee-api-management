@@ -48,6 +48,7 @@ import { ContactComponent } from './pages/contact/contact.component';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { NotificationService } from './services/notification.service';
 import { AppConfig } from './app.config';
+import { LoaderService } from './services/loader.service';
 
 @NgModule({
   declarations: [
@@ -93,6 +94,7 @@ import { AppConfig } from './app.config';
     { provide: MESSAGE_FORMAT_CONFIG, useValue: { locales: environment.locales } },
     CurrentUserService,
     NotificationService,
+    LoaderService,
     { provide: HTTP_INTERCEPTORS, useClass: APIRequestInterceptor, multi: true },
   ],
   schemas: [

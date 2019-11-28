@@ -104,7 +104,7 @@
   },
   "search": {
     "query": {
-      "label": "Rechercher sur Gravitee",
+      "label": "Rechercher",
       "placeholder": "Rechercher une API, APP..."
     }
   },

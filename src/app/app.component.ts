@@ -21,7 +21,7 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { UserService } from '@gravitee/ng-portal-webclient';
 import { CurrentUserService } from './services/current-user.service';
 import { NotificationService } from './services/notification.service';
-import { Router } from '@angular/router';
+import { NavigationStart, Router } from '@angular/router';
 
 @Component({
     selector: 'app-root',
@@ -45,6 +45,10 @@ export class AppComponent implements OnInit {
       this.translateService.use(environment.locales.includes(browserLang) ? browserLang : 'en');
       this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
       this.userService.getCurrentUser().subscribe((user) => this.currentUserService.changeUser(user));
-      this.router.events.subscribe(() => this.notificationService.reset());
+      this.router.events.subscribe((event) => {
+        if (event instanceof NavigationStart) {
+          this.notificationService.reset();
+        }
+      });
   }
 }

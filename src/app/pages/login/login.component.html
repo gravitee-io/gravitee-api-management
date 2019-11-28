@@ -27,7 +27,8 @@
         label="{{ 'login.username' | translate}}"
         formControlName="username"
         ngDefaultControl
-        class="login__form__input">
+        class="login__form__input"
+        icon-left="communication:shield-user">
       </gv-input>
       <gv-input
         type="password"
@@ -36,7 +37,8 @@
         label="{{ 'login.password' | translate }}"
         formControlName="password"
         ngDefaultControl
-        class="login__form__input">
+        class="login__form__input"
+        icon-left="general:shield-protected">
       </gv-input>
       <gv-button [disabled]="!isFormValid()" primary
                  class="login__form__input">{{ 'login.button' | translate }}</gv-button>

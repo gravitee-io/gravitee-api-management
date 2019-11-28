@@ -21,6 +21,8 @@ import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-text';
 import '@gravitee/ui-components/wc/gv-checkbox';
 import { NotificationService } from '../../services/notification.service';
+import { LoaderService } from '../../services/loader.service';
+import { CurrentUserService } from '../../services/current-user.service';
 
 @Component({
   selector: 'app-contact',
@@ -37,6 +39,7 @@ export class ContactComponent {
     label: string,
     value: string,
   }[];
+  userHasEmail = true;
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -44,6 +47,8 @@ export class ContactComponent {
     private portalService: PortalService,
     private formBuilder: FormBuilder,
     private notificationService: NotificationService,
+    public loaderService: LoaderService,
+    private currentUserService: CurrentUserService,
   ) {
     this.initFormGroup();
     this.applicationsService.getApplications({ size: 100 })
@@ -58,6 +63,13 @@ export class ContactComponent {
           return { label: `${api.name} (${api.version})`, value: api.id };
         });
       });
+    this.currentUserService.currentUser.subscribe(value => {
+      if (value && !value.email) {
+        this.userHasEmail = false;
+        this.notificationService.warning(i18n('errors.email.required'));
+        this.contactForm.disable();
+      }
+    });
   }
 
   initFormGroup() {
@@ -71,8 +83,11 @@ export class ContactComponent {
   }
 
   submit() {
-    this.portalService.createTicket({ TicketInput: this.contactForm.value }).subscribe(() => {
-      this.notificationService.success(i18n('contact.success'));
-    });
+    if (!this.loaderService.get()) {
+      this.portalService.createTicket({ TicketInput: this.contactForm.value }).subscribe(() => {
+        this.notificationService.success(i18n('contact.success'));
+        this.initFormGroup();
+      });
+    }
   }
 }

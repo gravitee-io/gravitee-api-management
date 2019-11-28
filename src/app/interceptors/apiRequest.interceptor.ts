@@ -17,10 +17,11 @@ import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 
-import { tap } from 'rxjs/operators';
+import {finalize, tap} from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { CurrentUserService } from '../services/current-user.service';
 import { NotificationService } from '../services/notification.service';
+import { LoaderService } from '../services/loader.service';
 
 @Injectable()
 export class APIRequestInterceptor implements HttpInterceptor {
@@ -28,6 +29,7 @@ export class APIRequestInterceptor implements HttpInterceptor {
     private router: Router,
     private currentUserService: CurrentUserService,
     private notificationService: NotificationService,
+    private loaderService: LoaderService,
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -36,6 +38,7 @@ export class APIRequestInterceptor implements HttpInterceptor {
         'X-Requested-With': 'XMLHttpRequest' // avoid browser to prompt for credentials if 401
       }
     });
+    this.loaderService.show();
 
     return next.handle(request).pipe(tap(
       () => {},
@@ -49,6 +52,6 @@ export class APIRequestInterceptor implements HttpInterceptor {
           this.notificationService.error(err.error.errors[0].code, err.error.errors[0].parameters);
         }
       }
-    ));
+    ), finalize(() => this.loaderService.hide()));
   }
 }

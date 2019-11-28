@@ -104,7 +104,7 @@
   },
   "search": {
     "query": {
-      "label": "Hledat v Gravitee",
+      "label": "Hledat",
       "placeholder": "Vyhledat API, APP ..."
     }
   },

@@ -34,6 +34,10 @@ export class NotificationService {
     this.notify('info', code, parameters);
   }
 
+  warning(code: string, parameters?) {
+    this.notify('warning', code, parameters);
+  }
+
   private notify(type: string, code: string, parameters) {
     const notif = new Notification();
     notif.type = type;
