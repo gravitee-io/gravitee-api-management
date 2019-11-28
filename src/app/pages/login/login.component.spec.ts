@@ -22,7 +22,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CurrentUserService } from '../../services/current-user.service';
-import { provideMagicalMock } from 'src/app/test/mock.helper.spec';
+import { provideMock } from 'src/app/test/mock.helper.spec';
+import { NotificationService } from '../../services/notification.service';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -36,7 +37,8 @@ describe('LoginComponent', () => {
         CUSTOM_ELEMENTS_SCHEMA,
       ],
       providers: [
-        provideMagicalMock(CurrentUserService),
+        provideMock(CurrentUserService),
+        provideMock(NotificationService)
       ]
     })
       .compileComponents();

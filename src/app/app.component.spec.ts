@@ -19,10 +19,11 @@ import { AppComponent } from './app.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
-import { provideMagicalMock } from './test/mock.helper.spec';
+import { provideMock } from './test/mock.helper.spec';
 import { CurrentUserService } from './services/current-user.service';
 import { TranslateTestingModule } from './test/helper.spec';
 import { UserService } from '@gravitee/ng-portal-webclient';
+import { NotificationService } from './services/notification.service';
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
@@ -39,10 +40,11 @@ describe('AppComponent', () => {
       ],
       providers: [
         AppComponent,
-        provideMagicalMock(Title),
-        provideMagicalMock(UserService),
-        provideMagicalMock(CurrentUserService),
-        provideMagicalMock(TranslateService)
+        provideMock(Title),
+        provideMock(UserService),
+        provideMock(CurrentUserService),
+        provideMock(TranslateService),
+        provideMock(NotificationService)
       ]
     }).compileComponents();
   }));

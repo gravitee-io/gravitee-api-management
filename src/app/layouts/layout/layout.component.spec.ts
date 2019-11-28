@@ -19,12 +19,13 @@ import { LayoutComponent } from './layout.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateTestingModule } from '../../test/helper.spec';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideMagicalMock } from '../../test/mock.helper.spec';
+import { provideMock } from '../../test/mock.helper.spec';
 import { Title } from '@angular/platform-browser';
 import { CurrentUserService } from '../../services/current-user.service';
 import { TranslateService } from '@ngx-translate/core';
 import any = jasmine.any;
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { NotificationService } from '../../services/notification.service';
 
 describe('LayoutComponent', () => {
 
@@ -43,9 +44,10 @@ describe('LayoutComponent', () => {
       ],
       providers: [
         LayoutComponent,
-        provideMagicalMock(Title),
-        provideMagicalMock(CurrentUserService),
-        provideMagicalMock(TranslateService)
+        provideMock(Title),
+        provideMock(CurrentUserService),
+        provideMock(TranslateService),
+        provideMock(NotificationService)
       ]
     }).compileComponents();
   }));

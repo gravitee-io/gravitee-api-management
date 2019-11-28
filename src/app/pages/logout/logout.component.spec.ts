@@ -21,7 +21,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateTestingModule } from '../../test/helper.spec';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { provideMagicalMock } from '../../test/mock.helper.spec';
+import { provideMock } from '../../test/mock.helper.spec';
 import { CurrentUserService } from '../../services/current-user.service';
 
 describe('LogoutComponent', () => {
@@ -35,7 +35,7 @@ describe('LogoutComponent', () => {
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
-      providers: [provideMagicalMock(CurrentUserService)]
+      providers: [provideMock(CurrentUserService)]
     })
       .compileComponents();
   }));

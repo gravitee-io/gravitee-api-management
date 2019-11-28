@@ -16,7 +16,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { UserComponent } from './user.component';
-import { provideMagicalMock } from '../../test/mock.helper.spec';
+import { provideMock } from '../../test/mock.helper.spec';
 import { CurrentUserService } from '../../services/current-user.service';
 import { UserService } from '@gravitee/ng-portal-webclient';
 import { TranslateTestingModule } from '../../test/helper.spec';
@@ -34,7 +34,7 @@ describe('UserComponent', () => {
     TestBed.configureTestingModule({
       declarations: [UserComponent, UserAvatarComponent, SafePipe],
       imports: [TranslateTestingModule],
-      providers: [provideMagicalMock(UserService), provideMagicalMock(CurrentUserService)],
+      providers: [provideMock(UserService), provideMock(CurrentUserService)],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ]

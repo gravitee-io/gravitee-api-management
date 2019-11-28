@@ -21,6 +21,8 @@ import { TranslateTestingModule } from '../../test/helper.spec';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { provideMock } from '../../test/mock.helper.spec';
+import { NotificationService } from '../../services/notification.service';
 
 describe('ContactComponent', () => {
   let component: ContactComponent;
@@ -33,6 +35,9 @@ describe('ContactComponent', () => {
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
+      providers: [
+        provideMock(NotificationService)
+      ]
     })
     .compileComponents();
   }));

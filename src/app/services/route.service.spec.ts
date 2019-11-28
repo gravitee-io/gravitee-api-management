@@ -16,7 +16,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { RouteService, RouteType } from './route.service';
-import { provideMagicalMock } from '../test/mock.helper.spec';
+import { provideMock } from '../test/mock.helper.spec';
 import { TranslateService } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { getTranslateServiceMock, TranslateTestingModule } from '../test/helper.spec';
@@ -41,7 +41,7 @@ describe('RouteService', () => {
       ]),
     ],
     providers: [
-      provideMagicalMock(TranslateService)
+      provideMock(TranslateService)
     ]
   }));
 

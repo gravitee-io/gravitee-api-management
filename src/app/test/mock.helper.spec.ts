@@ -17,7 +17,7 @@ import { Provider, Type } from '@angular/core';
 
 export type Mock<T> = T & { [P in keyof T]: T[P] & jasmine.Spy };
 
-export function createMagicalMock<T>(type: Type<T>): Mock<T> {
+export function createMock<T>(type: Type<T>): Mock<T> {
   const target: any = {};
 
   function installProtoMethods(proto: any) {
@@ -36,15 +36,10 @@ export function createMagicalMock<T>(type: Type<T>): Mock<T> {
 
     installProtoMethods(Object.getPrototypeOf(proto));
   }
-
   installProtoMethods(type.prototype);
-
   return target;
 }
 
-export function provideMagicalMock<T>(type: Type<T>): Provider {
-  return {
-    provide: type,
-    useFactory: () => createMagicalMock(type)
-  };
+export function provideMock<T>(type: Type<T>): Provider {
+  return { provide: type, useFactory: () => createMock(type) };
 }

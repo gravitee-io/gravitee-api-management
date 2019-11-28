@@ -9,7 +9,7 @@
     "build": "ng build --aot",
     "build:prod": "ng build --prod=true",
     "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --codeCoverage=true",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox --source-map=false --codeCoverage=true",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "e2e": "ng e2e",

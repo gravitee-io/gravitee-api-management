@@ -17,7 +17,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CatalogComponent } from './catalog.component';
 import { TranslateService } from '@ngx-translate/core';
-import { provideMagicalMock } from '../../test/mock.helper.spec';
+import { provideMock } from '../../test/mock.helper.spec';
 import { CurrentUserService } from '../../services/current-user.service';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -43,8 +43,8 @@ describe('CatalogComponent', () => {
         CUSTOM_ELEMENTS_SCHEMA,
       ],
       providers: [
-        provideMagicalMock(CurrentUserService),
-        provideMagicalMock(TranslateService)
+        provideMock(CurrentUserService),
+        provideMock(TranslateService)
       ]
     }).compileComponents();
   }));

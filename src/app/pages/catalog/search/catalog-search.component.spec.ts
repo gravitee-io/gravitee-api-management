@@ -21,6 +21,9 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateTestingModule } from 'src/app/test/helper.spec';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideMock } from '../../../test/mock.helper.spec';
+import { NotificationService } from '../../../services/notification.service';
+import { AppConfig } from '../../../app.config';
 
 describe('CatalogSearchComponent', () => {
   let component: CatalogSearchComponent;
@@ -40,6 +43,10 @@ describe('CatalogSearchComponent', () => {
       ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
+      ],
+      providers: [
+        provideMock(NotificationService),
+        provideMock(AppConfig)
       ]
     })
     .compileComponents();
