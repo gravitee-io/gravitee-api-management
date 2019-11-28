@@ -111,7 +111,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         Error error = errors.get(0);
         assertEquals("errors.subscription.invalid", error.getCode());
         assertEquals("400", error.getStatus());
-        assertEquals("At least an api and an application must be provided.", error.getMessage());
+        assertEquals("At least an api or an application must be provided.", error.getMessage());
     }
     
     @Test

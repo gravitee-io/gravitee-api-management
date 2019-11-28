@@ -27,7 +27,7 @@ public class SubscriptionInvalidException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "At least an api and an application must be provided.";
+        return "At least an api or an application must be provided.";
     }
 
     @Override
