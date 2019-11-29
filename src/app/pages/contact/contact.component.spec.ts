@@ -16,13 +16,14 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ContactComponent } from './contact.component';
-import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateTestingModule } from '../../test/helper.spec';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { provideMock } from '../../test/mock.helper.spec';
 import { NotificationService } from '../../services/notification.service';
+import { LoaderService } from '../../services/loader.service';
+import { CurrentUserService } from '../../services/current-user.service';
 
 describe('ContactComponent', () => {
   let component: ContactComponent;
@@ -36,7 +37,9 @@ describe('ContactComponent', () => {
         CUSTOM_ELEMENTS_SCHEMA,
       ],
       providers: [
-        provideMock(NotificationService)
+        provideMock(NotificationService),
+        provideMock(LoaderService),
+        provideMock(CurrentUserService)
       ]
     })
     .compileComponents();
@@ -45,10 +48,15 @@ describe('ContactComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ContactComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+    });
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component).toBeTruthy();
+    });
   });
 });

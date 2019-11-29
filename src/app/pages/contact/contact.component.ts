@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ApplicationsService, ApiService, PortalService } from '@gravitee/ng-portal-webclient';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -29,7 +29,7 @@ import { CurrentUserService } from '../../services/current-user.service';
   templateUrl: './contact.component.html',
   styleUrls: ['./contact.component.css']
 })
-export class ContactComponent {
+export class ContactComponent implements OnInit {
   contactForm: FormGroup;
   applications: {
     label: string,
@@ -51,16 +51,19 @@ export class ContactComponent {
     private currentUserService: CurrentUserService,
   ) {
     this.initFormGroup();
+  }
+
+  ngOnInit(): void {
     this.applicationsService.getApplications({ size: 100 })
       .subscribe((response) => {
         this.applications = response.data.map(application => {
-          return { label: `${application.name} (${application.owner.display_name})`, value: application.id };
+          return { label: `${ application.name } (${ application.owner.display_name })`, value: application.id };
         });
       });
     this.apiService.getApis({ size: 100 })
       .subscribe((response) => {
         this.apis = response.data.map(api => {
-          return { label: `${api.name} (${api.version})`, value: api.id };
+          return { label: `${ api.name } (${ api.version })`, value: api.id };
         });
       });
     this.currentUserService.currentUser.subscribe(value => {

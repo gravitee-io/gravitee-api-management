@@ -24,6 +24,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { provideMock } from '../../../test/mock.helper.spec';
 import { NotificationService } from '../../../services/notification.service';
 import { AppConfig } from '../../../app.config';
+import { LoaderService } from '../../../services/loader.service';
 
 describe('CatalogSearchComponent', () => {
   let component: CatalogSearchComponent;
@@ -46,7 +47,8 @@ describe('CatalogSearchComponent', () => {
       ],
       providers: [
         provideMock(NotificationService),
-        provideMock(AppConfig)
+        provideMock(AppConfig),
+        provideMock(LoaderService)
       ]
     })
     .compileComponents();
