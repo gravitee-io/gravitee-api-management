@@ -37,7 +37,7 @@ import { UserComponent } from './pages/user/user.component';
 import { LogoutComponent } from './pages/logout/logout.component';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
-import { ApiRequestInterceptor } from './interceptors/apiRequest.interceptor';
+import { ApiRequestInterceptor } from './interceptors/api-request.interceptor';
 import { CurrentUserService } from './services/current-user.service';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
 import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
