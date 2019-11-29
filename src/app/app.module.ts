@@ -49,6 +49,8 @@ import { ApiLabelsPipe } from './pipes/api-labels.pipe';
 import { ConfigurationService } from './services/configuration.service';
 import { ApiComponent } from './pages/api/api.component';
 import { ApiDocumentationComponent } from './pages/api-documentation/api-documentation.component';
+import { MarkdownModule } from 'ngx-markdown';
+import { DocumentationComponent } from './pages/documentation/documentation.component';
 
 @NgModule({
   declarations: [
@@ -71,12 +73,18 @@ import { ApiDocumentationComponent } from './pages/api-documentation/api-documen
     SafePipe,
     UserAvatarComponent,
     UserComponent,
+    ContactComponent,
+    CatalogSearchComponent,
+    DocumentationComponent,
+    ApiStatesPipe,
+    ApiLabelsPipe,
   ],
   imports: [
     ApiModule,
     AppRoutingModule,
     BrowserModule,
     HttpClientModule,
+    MarkdownModule.forRoot({ loader: HttpClient }),
     ReactiveFormsModule,
     TranslateModule.forRoot({
       loader: {
@@ -104,7 +112,7 @@ import { ApiDocumentationComponent } from './pages/api-documentation/api-documen
     ApiLabelsPipe
   ],
   schemas: [
-    CUSTOM_ELEMENTS_SCHEMA,
+    CUSTOM_ELEMENTS_SCHEMA
   ],
   bootstrap: [
     AppComponent

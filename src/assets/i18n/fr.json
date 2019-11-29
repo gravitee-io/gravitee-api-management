@@ -37,6 +37,11 @@
     "success": "Votre demande a bien été transmise au responsable de la plateforme",
     "title": "Votre demande"
   },
+  "documentation": {
+    "swagger": {
+      "badFormat": "La page que vous essayez d'afficher n'est pas au format swagger / OpenAPI"
+    }
+  },
   "errors": {
     "email": {
       "required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
@@ -187,6 +192,7 @@
     "catalogTrending": "Les + tendances",
     "contact": "Contact",
     "dashboard": "Tableau de bord",
+    "documentation": "Documentation",
     "login": "Se connecter",
     "logout": "Se déconnecter",
     "user": "Mon compte"
@@ -202,6 +208,6 @@
   "user": {
     "displayName": "Nom",
     "email": "Email",
-    "title": "Mon profil"
+    "title": "Mon compte"
   }
 }

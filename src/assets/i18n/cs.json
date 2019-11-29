@@ -37,6 +37,11 @@
     "success": "Vaše žádost byla odeslána správci platformy",
     "title": "Vaše žádost"
   },
+  "documentation": {
+    "swagger": {
+      "badFormat": "Stránka, kterou se pokoušíte zobrazit, není ve formátu swagger / OpenAPI\n"
+    }
+  },
   "errors": {
     "email": {
       "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
@@ -187,9 +192,10 @@
     "catalogTrending": "Nejmodernější",
     "contact": "Kontakt",
     "dashboard": "Dashboard",
+    "documentation": "Dokumentace",
     "login": "Přihlásit",
     "logout": "Odhlásit",
-    "user": "Můj profil"
+    "user": "Můj účet"
   },
   "search": {
     "results": {
@@ -202,6 +208,6 @@
   "user": {
     "displayName": "Jméno",
     "email": "Email",
-    "title": "Můj profil"
+    "title": "Můj účet"
   }
 }

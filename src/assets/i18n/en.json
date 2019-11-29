@@ -37,6 +37,11 @@
     "success": "Your request has been sent to the platform manager",
     "title": "Your request"
   },
+  "documentation": {
+    "swagger": {
+      "badFormat": "The page you are trying to view is not in swagger / OpenAPI format"
+    }
+  },
   "errors": {
     "email": {
       "required": "Please configure an e-mail to use the contact form"
@@ -127,7 +132,7 @@
     "error": "An error occurred while loading the API"
   },
   "gv-rating": {
-    "notes": "Notes"
+    "notes": "Ratings"
   },
   "gv-row-api": {
     "empty": "No results to display",
@@ -187,9 +192,10 @@
     "catalogTrending": "Trending",
     "contact": "Contact",
     "dashboard": "Dashboard",
+    "documentation": "Documentation",
     "login": "Sign in",
     "logout": "Sign out",
-    "user": "My profile"
+    "user": "My account"
   },
   "search": {
     "results": {
@@ -202,6 +208,6 @@
   "user": {
     "displayName": "Name",
     "email": "Email",
-    "title": "My profile"
+    "title": "My account"
   }
 }

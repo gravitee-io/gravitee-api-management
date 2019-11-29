@@ -29,7 +29,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { ConfigurationService } from '../../../services/configuration.service';
-import { Feature } from '../../../model/feature';
+import { FeatureEnum } from '../../../model/feature.enum';
 
 @Component({
   selector: 'app-all',
@@ -254,7 +254,7 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   hasViewMode() {
-    return this.config.hasFeature(Feature.viewMode);
+    return this.config.hasFeature(FeatureEnum.viewMode);
   }
 
   _getCategoryPath() {

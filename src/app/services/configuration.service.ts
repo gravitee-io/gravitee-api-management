@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Feature } from '../model/feature';
+import { FeatureEnum } from '../model/feature.enum';
 
 @Injectable({
   providedIn: 'root'
@@ -41,7 +41,7 @@ export class ConfigurationService {
     });
   }
 
-  public hasFeature(feature: Feature): boolean {
+  public hasFeature(feature: FeatureEnum): boolean {
     return this.get(feature);
   }
 }

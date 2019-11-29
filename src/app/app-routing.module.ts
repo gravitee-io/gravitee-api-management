@@ -30,7 +30,8 @@ import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filte
 import { CategoryApiQuery } from '@gravitee/ng-portal-webclient';
 import { ContactComponent } from './pages/contact/contact.component';
 import { FeatureGuardService } from './services/feature-guard.service';
-import { Feature } from './model/feature';
+import { DocumentationComponent } from './pages/documentation/documentation.component';
+import { FeatureEnum } from './model/feature.enum';
 import { AuthGuardService } from './services/auth-guard.service';
 import { Role } from './model/role.enum';
 import { ApiComponent } from './pages/api/api.component';
@@ -84,7 +85,7 @@ export const routes: Routes = [
             component: CategoriesComponent,
             canActivate: [FeatureGuardService],
             data: {
-              expectedFeature: Feature.viewMode,
+              expectedFeature: FeatureEnum.viewMode,
               title: i18n('route.catalogCategories'),
               icon: 'layout:layout-arrange',
               menu: true
@@ -95,7 +96,7 @@ export const routes: Routes = [
             component: FilteredCatalogComponent,
             canActivate: [FeatureGuardService],
             data: {
-              expectedFeature: Feature.viewMode,
+              expectedFeature: FeatureEnum.viewMode,
               title: i18n('route.catalogCategory'),
               menu: true
             },
@@ -119,7 +120,7 @@ export const routes: Routes = [
               icon: 'general:star',
               menu: true,
               categoryApiQuery: CategoryApiQuery.STARRED,
-              expectedFeature: Feature.rating,
+              expectedFeature: FeatureEnum.rating,
             }
           },
           {
@@ -135,6 +136,7 @@ export const routes: Routes = [
         ]
       },
       { path: 'apps', component: AppsComponent, data: { title: i18n('route.apps') } },
+      { path: 'documentation', data: { title: i18n('route.documentation') }, component: DocumentationComponent },
       {
         path: 'user', data: { menu: { hiddenPaths: ['login', 'logout'] } },
         children: [
@@ -161,7 +163,7 @@ export const routes: Routes = [
             data: {
               title: i18n('route.contact'),
               icon: 'communication:contact#1',
-              expectedFeature: Feature.contact,
+              expectedFeature: FeatureEnum.contact,
               expectedRole: Role.AUTH_USER
             }
           },

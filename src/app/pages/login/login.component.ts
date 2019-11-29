@@ -27,7 +27,7 @@ import { CurrentUserService } from '../../services/current-user.service';
 import { NotificationService } from '../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ConfigurationService } from '../../services/configuration.service';
-import { Feature } from '../../model/feature';
+import { FeatureEnum } from '../../model/feature.enum';
 
 @Component({
   selector: 'app-login',
@@ -50,13 +50,13 @@ export class LoginComponent implements OnInit {
     private currentUserService: CurrentUserService,
     private config: ConfigurationService,
   ) {
-    if (config.hasFeature(Feature.localLogin)) {
+    if (config.hasFeature(FeatureEnum.localLogin)) {
       this.loginForm = this.formBuilder.group({
         username: '',
         password: '',
       });
     }
-    this.registrationEnabled = config.hasFeature(Feature.userRegistration);
+    this.registrationEnabled = config.hasFeature(FeatureEnum.userRegistration);
   }
 
   ngOnInit() {

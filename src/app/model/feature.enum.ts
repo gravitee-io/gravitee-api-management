@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum Feature {
+export enum FeatureEnum {
   contact = 'portal.support.enabled',
   localLogin = 'authentication.localLogin.enabled',
   rating = 'portal.rating.enabled',

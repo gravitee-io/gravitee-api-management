@@ -131,3 +131,22 @@ h4.title {
   font-size: 14px;
   line-height: 22px;
 }
+
+.skeleton {
+  animation-direction: alternate;
+  animation-duration: 500ms;
+  animation-iteration-count: infinite;
+  animation-name: skeleton-pulse;
+  color: transparent;
+  cursor: progress;
+  user-select: none;
+}
+
+@keyframes skeleton-pulse {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0.45;
+  }
+}
