@@ -24,6 +24,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CatalogComponent } from '../pages/catalog/catalog.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CurrentUserService } from './current-user.service';
+import { FeatureGuardService } from './feature-guard.service';
 
 describe('RouteService', () => {
   beforeEach(() => TestBed.configureTestingModule({
@@ -41,7 +42,8 @@ describe('RouteService', () => {
       ]),
     ],
     providers: [
-      provideMock(TranslateService)
+      provideMock(TranslateService),
+      provideMock(FeatureGuardService),
     ]
   }));
 
@@ -51,6 +53,9 @@ describe('RouteService', () => {
   });
 
   it('should get flattened routes by type', () => {
+    let featureGuardServiceMock: jasmine.SpyObj<FeatureGuardService>;
+    featureGuardServiceMock = TestBed.get(FeatureGuardService);
+    featureGuardServiceMock.canActivate.and.returnValue(true);
     getTranslateServiceMock();
     const service: RouteService = TestBed.get(RouteService);
     const { catalog } = RouteType;

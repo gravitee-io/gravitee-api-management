@@ -23,7 +23,7 @@
       <gv-promote-api *ngIf="promotedApi" src="{{promotedApi._links.picture}}"
                       title="{{promotedApi.name}}"
                       description="{{promotedApi.description}}"
-                      [rating]="ratingEnabled ? promotedApi.rating_summary : null"
+                      [rating]="promotedApi.rating_summary"
                       alt="{{promotedApi.name}}"></gv-promote-api>
     </div>
 
@@ -62,7 +62,7 @@
                         subscribers="{{(86.07 * (i+1.2)).toFixed(0)}}"
                         hits="{{(6.07 * (i+1.2)).toFixed(0)}}M+"
                         health="{{(100-i*i)}}%"
-                        [rating]="ratingEnabled ? api.rating_summary : null">
+                        [rating]="api.rating_summary">
 
       </gv-card-api-full>
     </section>

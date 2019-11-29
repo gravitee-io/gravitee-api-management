@@ -15,14 +15,14 @@
  */
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Feature } from './model/feature';
 
 @Injectable()
 export class AppConfig {
 
   private config: object;
 
-  constructor(private http: HttpClient) {
-  }
+  constructor(private http: HttpClient) {}
 
   public get(key: string) {
     return key.split('.').reduce((prev, curr) => prev && prev[curr], this.config);
@@ -30,10 +30,16 @@ export class AppConfig {
 
   public load() {
     return new Promise((resolve) => {
-      this.http.get('./assets/config.json').subscribe( (responseData) => {
-        this.config = responseData;
-        resolve(true);
+      this.http.get('./assets/config.json').subscribe( (configJson: any) => {
+        this.http.get(configJson.baseUrl + '/configuration').subscribe( (configPortal) => {
+          this.config = { ...configJson, ...configPortal };
+          resolve(true);
+        });
       });
     });
+  }
+
+  public hasFeature(feature: Feature): boolean {
+    return this.get(feature);
   }
 }

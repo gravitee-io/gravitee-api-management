@@ -37,7 +37,7 @@ import { UserComponent } from './pages/user/user.component';
 import { LogoutComponent } from './pages/logout/logout.component';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
-import { APIRequestInterceptor } from './interceptors/apiRequest.interceptor';
+import { ApiRequestInterceptor } from './interceptors/apiRequest.interceptor';
 import { CurrentUserService } from './services/current-user.service';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
 import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
@@ -49,6 +49,7 @@ import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.co
 import { NotificationService } from './services/notification.service';
 import { AppConfig } from './app.config';
 import { LoaderService } from './services/loader.service';
+import { FeatureGuardService } from './services/feature-guard.service';
 
 @NgModule({
   declarations: [
@@ -78,7 +79,7 @@ import { LoaderService } from './services/loader.service';
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
+        useFactory: (http: HttpClient) => new TranslateHttpLoader(http),
         deps: [HttpClient]
       },
       compiler: {
@@ -89,13 +90,14 @@ import { LoaderService } from './services/loader.service';
   ],
   providers: [
     AppConfig,
-    { provide: APP_INITIALIZER, useFactory: ConfigFactory, deps: [AppConfig], multi: true },
-    { provide: BASE_PATH, useFactory: BaseUrlFactory, deps: [AppConfig] },
+    { provide: APP_INITIALIZER, useFactory: (config: AppConfig) => () => config.load(), deps: [AppConfig], multi: true },
+    { provide: BASE_PATH, useFactory: (config: AppConfig) => config.get('baseUrl'), deps: [AppConfig] },
     { provide: MESSAGE_FORMAT_CONFIG, useValue: { locales: environment.locales } },
     CurrentUserService,
     NotificationService,
     LoaderService,
-    { provide: HTTP_INTERCEPTORS, useClass: APIRequestInterceptor, multi: true },
+    FeatureGuardService,
+    { provide: HTTP_INTERCEPTORS, useClass: ApiRequestInterceptor, multi: true },
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA,
@@ -105,16 +107,4 @@ import { LoaderService } from './services/loader.service';
   ]
 })
 export class AppModule {
-}
-
-export function HttpLoaderFactory(http: HttpClient) {
-  return new TranslateHttpLoader(http);
-}
-
-export function ConfigFactory(config: AppConfig) {
-  return () => config.load();
-}
-
-export function BaseUrlFactory(config: AppConfig) {
-  return config.get('baseUrl');
 }

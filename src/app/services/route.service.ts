@@ -17,6 +17,8 @@ import { Injectable } from '@angular/core';
 import { Router, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiService, PortalService } from '@gravitee/ng-portal-webclient';
+import { FeatureGuardService } from './feature-guard.service';
+import { log } from 'util';
 
 export enum RouteType {
   main,
@@ -24,7 +26,6 @@ export enum RouteType {
   user,
   catalog
 }
-
 
 @Injectable({
   providedIn: 'root'
@@ -35,7 +36,8 @@ export class RouteService {
   constructor(private router: Router,
               private translateService: TranslateService,
               private apiService: ApiService,
-              private portalService: PortalService) {
+              private portalService: PortalService,
+              private featureGuardService: FeatureGuardService) {
     this.flattenedRoutes = this.getFlattenedRoutes(this.router.config);
   }
 
@@ -57,9 +59,8 @@ export class RouteService {
 
   getRoutes(type: RouteType) {
     const c = this.flattenedRoutes
-      .filter(({ data }) => data && (data.type === type))
+      .filter(route => route.data && (route.data.type === type) && this.featureGuardService.canActivate(route))
       .map(({ path, data: { title, icon, separator, categoryApiQuery } }) => {
-
         let help = null;
         if (type === RouteType.catalog) {
           if (categoryApiQuery) {

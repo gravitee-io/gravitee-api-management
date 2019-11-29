@@ -24,6 +24,8 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CurrentUserService } from '../../services/current-user.service';
 import { provideMock } from 'src/app/test/mock.helper.spec';
 import { NotificationService } from '../../services/notification.service';
+import { FeatureGuardService } from '../../services/feature-guard.service';
+import { AppConfig } from '../../app.config';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -38,7 +40,9 @@ describe('LoginComponent', () => {
       ],
       providers: [
         provideMock(CurrentUserService),
-        provideMock(NotificationService)
+        provideMock(NotificationService),
+        provideMock(FeatureGuardService),
+        provideMock(AppConfig),
       ]
     })
       .compileComponents();

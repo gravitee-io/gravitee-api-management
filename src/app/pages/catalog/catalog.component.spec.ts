@@ -23,6 +23,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateTestingModule } from '../../test/helper.spec';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { FeatureGuardService } from '../../services/feature-guard.service';
 
 
 describe('CatalogComponent', () => {
@@ -44,7 +45,8 @@ describe('CatalogComponent', () => {
       ],
       providers: [
         provideMock(CurrentUserService),
-        provideMock(TranslateService)
+        provideMock(TranslateService),
+        provideMock(FeatureGuardService),
       ]
     }).compileComponents();
   }));

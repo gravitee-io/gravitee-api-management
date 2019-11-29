@@ -22,9 +22,10 @@ import { Injectable } from '@angular/core';
 import { CurrentUserService } from '../services/current-user.service';
 import { NotificationService } from '../services/notification.service';
 import { LoaderService } from '../services/loader.service';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Injectable()
-export class APIRequestInterceptor implements HttpInterceptor {
+export class ApiRequestInterceptor implements HttpInterceptor {
   constructor(
     private router: Router,
     private currentUserService: CurrentUserService,
@@ -44,7 +45,9 @@ export class APIRequestInterceptor implements HttpInterceptor {
       () => {},
       (err: any) => {
         if (err instanceof HttpErrorResponse) {
-          if (err.status === 401) {
+          if (err.status === 0) {
+            this.notificationService.error(i18n('errors.server.unavailable'));
+          } else if (err.status === 401) {
             this.currentUserService.revokeUser();
           }
         }

@@ -31,6 +31,9 @@
     "email": {
       "required": "Please configure an e-mail to use the contact form"
     },
+    "server": {
+      "unavailable": "Server unavailable"
+    },
     "support": {
       "disabled": "Contact form is not available at this time"
     },

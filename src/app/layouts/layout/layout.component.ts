@@ -45,8 +45,7 @@ export class LayoutComponent implements OnInit {
     private currentUserService: CurrentUserService,
     private routeService: RouteService,
     private notificationService: NotificationService,
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     this.currentUserService.currentUser.subscribe(newCurrentUser => this.currentUser = newCurrentUser);

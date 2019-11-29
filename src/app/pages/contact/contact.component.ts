@@ -39,7 +39,6 @@ export class ContactComponent implements OnInit {
     label: string,
     value: string,
   }[];
-  userHasEmail = true;
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -49,11 +48,10 @@ export class ContactComponent implements OnInit {
     private notificationService: NotificationService,
     public loaderService: LoaderService,
     private currentUserService: CurrentUserService,
-  ) {
-    this.initFormGroup();
-  }
+  ) {}
 
   ngOnInit(): void {
+    this.initFormGroup();
     this.applicationsService.getApplications({ size: 100 })
       .subscribe((response) => {
         this.applications = response.data.map(application => {
@@ -68,7 +66,6 @@ export class ContactComponent implements OnInit {
       });
     this.currentUserService.currentUser.subscribe(value => {
       if (value && !value.email) {
-        this.userHasEmail = false;
         this.notificationService.warning(i18n('errors.email.required'));
         this.contactForm.disable();
       }

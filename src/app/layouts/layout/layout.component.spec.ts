@@ -26,6 +26,7 @@ import { TranslateService } from '@ngx-translate/core';
 import any = jasmine.any;
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NotificationService } from '../../services/notification.service';
+import { FeatureGuardService } from '../../services/feature-guard.service';
 
 describe('LayoutComponent', () => {
 
@@ -47,7 +48,8 @@ describe('LayoutComponent', () => {
         provideMock(Title),
         provideMock(CurrentUserService),
         provideMock(TranslateService),
-        provideMock(NotificationService)
+        provideMock(NotificationService),
+        provideMock(FeatureGuardService),
       ]
     }).compileComponents();
   }));

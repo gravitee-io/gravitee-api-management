@@ -13,22 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-
-@Injectable()
-export class LoaderService {
-  isLoading = new BehaviorSubject<boolean>(undefined);
-
-  show() {
-    this.isLoading.next(true);
-  }
-
-  hide() {
-    this.isLoading.next(false);
-  }
-
-  get() {
-    return this.isLoading.getValue();
-  }
+export enum Feature {
+  contact = 'portal.support.enabled',
+  localLogin = 'authentication.localLogin.enabled',
+  rating = 'portal.rating.enabled',
+  userRegistration = 'portal.userCreation.enabled',
 }

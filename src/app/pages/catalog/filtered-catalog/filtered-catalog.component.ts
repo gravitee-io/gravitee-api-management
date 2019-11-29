@@ -44,9 +44,7 @@ export class FilteredCatalogComponent implements OnInit {
   private page: number;
   private size: number;
   public views: Array<string>;
-  public ratingEnabled: boolean;
   public currentView: string;
-
 
   constructor(private apiService: ApiService,
               private portalService: PortalService,
@@ -108,10 +106,6 @@ export class FilteredCatalogComponent implements OnInit {
 
     this.apiService.getApis({ cat: this.categoryApiQuery }).subscribe(({ metadata: { data: { total } } }) => {
       this.total = total;
-    });
-
-    this.portalService.getPortalConfiguration().subscribe((res) => {
-      this.ratingEnabled = res.portal.rating.enabled === true;
     });
   }
 

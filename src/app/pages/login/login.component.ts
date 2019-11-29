@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { AfterViewChecked, Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { AuthenticationService, PortalService, IdentityProvider } from '@gravitee/ng-portal-webclient';
+import { AuthenticationService, IdentityProvider, PortalService } from '@gravitee/ng-portal-webclient';
 
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';
@@ -26,6 +26,8 @@ import '@gravitee/ui-components/wc/gv-message';
 import { CurrentUserService } from '../../services/current-user.service';
 import { NotificationService } from '../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { AppConfig } from '../../app.config';
+import { Feature } from '../../model/feature';
 
 @Component({
   selector: 'app-login',
@@ -46,18 +48,15 @@ export class LoginComponent implements OnInit, AfterViewChecked {
     private router: Router,
     private notificationService: NotificationService,
     private currentUserService: CurrentUserService,
+    private config: AppConfig,
   ) {
-    this.portalService.getPortalConfiguration().subscribe(
-      (configuration) => {
-        if (configuration.authentication.localLogin.enabled) {
-          this.loginForm = this.formBuilder.group({
-            username: '',
-            password: '',
-          });
-        }
-        this.registrationEnabled = configuration.portal.userCreation.enabled;
-      }
-    );
+    if (config.hasFeature(Feature.localLogin)) {
+      this.loginForm = this.formBuilder.group({
+        username: '',
+        password: '',
+      });
+    }
+    this.registrationEnabled = config.hasFeature(Feature.userRegistration);
   }
 
   ngAfterViewChecked() {

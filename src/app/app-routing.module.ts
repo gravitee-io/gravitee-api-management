@@ -31,6 +31,8 @@ import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.co
 import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
 import { CategoryApiQuery } from '@gravitee/ng-portal-webclient';
 import { ContactComponent } from './pages/contact/contact.component';
+import { FeatureGuardService } from './services/feature-guard.service';
+import { Feature } from './model/feature';
 
 export const routes: Routes = [
   {
@@ -63,11 +65,13 @@ export const routes: Routes = [
           {
             path: 'starred',
             component: FilteredCatalogComponent,
+            canActivate: [FeatureGuardService],
             data: {
               title: i18n('route.catalogStarred'),
               type: RouteType.catalog,
               icon: 'general:star',
-              categoryApiQuery: CategoryApiQuery.STARRED
+              categoryApiQuery: CategoryApiQuery.STARRED,
+              expectedFeature: Feature.rating
             }
           },
           {
@@ -87,10 +91,12 @@ export const routes: Routes = [
       { path: 'user', component: UserComponent, data: { title: i18n('route.user'), icon: 'general:user', type: RouteType.user } },
       {
         path: 'contact', component: ContactComponent,
+        canActivate: [FeatureGuardService],
         data: {
           title: i18n('route.contact'),
           icon: 'communication:contact#1',
-          type: RouteType.user
+          type: RouteType.user,
+          expectedFeature: Feature.contact
         }
       },
       {

@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { AppConfig } from '../app.config';
+import { ActivatedRouteSnapshot, CanActivate } from '@angular/router';
 
 @Injectable()
-export class LoaderService {
-  isLoading = new BehaviorSubject<boolean>(undefined);
+export class FeatureGuardService implements CanActivate {
 
-  show() {
-    this.isLoading.next(true);
+  constructor(private config: AppConfig) {
   }
 
-  hide() {
-    this.isLoading.next(false);
-  }
-
-  get() {
-    return this.isLoading.getValue();
+  canActivate(route: ActivatedRouteSnapshot): boolean {
+    if (route.data && route.data.expectedFeature) {
+      return this.config.hasFeature(route.data.expectedFeature);
+    }
+    return true;
   }
 }
