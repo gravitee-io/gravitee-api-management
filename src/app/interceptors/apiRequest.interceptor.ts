@@ -17,7 +17,7 @@ import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 
-import {finalize, tap} from 'rxjs/operators';
+import { finalize, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { CurrentUserService } from '../services/current-user.service';
 import { NotificationService } from '../services/notification.service';
