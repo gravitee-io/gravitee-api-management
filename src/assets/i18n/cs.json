@@ -37,6 +37,7 @@
     "support": {
       "disabled": "Kontaktní formulář zatím není k dispozici"
     },
+    "unexpected": "Vyskytla se neočekávaná chyba",
     "user": {
       "exists": "E-mail již existuje uživatel: {user}",
       "finalized": "Účet již byl dokončen"

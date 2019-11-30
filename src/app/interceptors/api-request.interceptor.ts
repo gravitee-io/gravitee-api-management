@@ -42,7 +42,7 @@ export class ApiRequestInterceptor implements HttpInterceptor {
     this.loaderService.show();
 
     return next.handle(request).pipe(tap(
-      () => {},
+      () => { this.notificationService.reset(); },
       (err: any) => {
         if (err instanceof HttpErrorResponse) {
           if (err.status === 0) {
@@ -52,7 +52,8 @@ export class ApiRequestInterceptor implements HttpInterceptor {
           }
         }
         if (err.error && err.error.errors) {
-          this.notificationService.error(err.error.errors[0].code, err.error.errors[0].parameters);
+          const error = err.error.errors[0];
+          this.notificationService.error(error.code, error.parameters, error.message);
         }
       }
     ), finalize(() => this.loaderService.hide()));

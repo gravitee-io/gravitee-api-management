@@ -37,6 +37,7 @@
     "support": {
       "disabled": "Contact form is not available at this time"
     },
+    "unexpected": "An unexpected error occurred",
     "user": {
       "exists": "There is already a user with the email: {user}",
       "finalized": "The account has already been finalized"

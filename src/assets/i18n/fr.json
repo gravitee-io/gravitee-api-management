@@ -37,6 +37,7 @@
     "support": {
       "disabled": "Le formulaire de contact n'est pas disponible pour le moment"
     },
+    "unexpected": "Une erreur inattendue est survenue",
     "user": {
       "exists": "Il existe déjà un utilisateur avec l'email : {user}",
       "finalized": "Le compte a déjà été finalisé"

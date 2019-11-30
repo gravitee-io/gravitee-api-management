@@ -22,27 +22,28 @@ export class NotificationService {
   private notificationSource = new BehaviorSubject<Notification>(undefined);
   notification = this.notificationSource.asObservable();
 
-  success(code: string, parameters?) {
-    this.notify('success', code, parameters);
+  success(code: string, parameters?: object, fallbackMessage?: string) {
+    this.notify('success', code, parameters, fallbackMessage);
   }
 
-  error(code: string, parameters?) {
-    this.notify('error', code, parameters);
+  error(code: string, parameters?: object, fallbackMessage?: string) {
+    this.notify('error', code, parameters, fallbackMessage);
   }
 
-  info(code: string, parameters?) {
-    this.notify('info', code, parameters);
+  info(code: string, parameters?: object, fallbackMessage?: string) {
+    this.notify('info', code, parameters, fallbackMessage);
   }
 
-  warning(code: string, parameters?) {
-    this.notify('warning', code, parameters);
+  warning(code: string, parameters?: object, fallbackMessage?: string) {
+    this.notify('warning', code, parameters, fallbackMessage);
   }
 
-  private notify(type: string, code: string, parameters) {
+  private notify(type: string, code: string, parameters: object, message?: string) {
     const notif = new Notification();
     notif.type = type;
     notif.code = code;
     notif.parameters = parameters;
+    notif.message = message;
     this.notificationSource.next(notif);
   }
 

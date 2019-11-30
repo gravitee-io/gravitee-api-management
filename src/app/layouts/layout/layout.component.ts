@@ -25,7 +25,6 @@ import '@gravitee/ui-components/wc/gv-user-menu';
 import '@gravitee/ui-components/wc/gv-user-menu';
 import { NotificationService } from '../../services/notification.service';
 import { Notification } from '../../model/notification';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
   selector: 'app-layout',
@@ -50,13 +49,15 @@ export class LayoutComponent implements OnInit {
   ngOnInit() {
     this.currentUserService.currentUser.subscribe(newCurrentUser => this.currentUser = newCurrentUser);
     this.notificationService.notification.subscribe(notification => {
-      if (notification && !notification.message) {
-        this.translateService.get(i18n(notification.code), notification.parameters).subscribe((translatedMessage) => {
-          notification.message = translatedMessage;
+      if (notification) {
+        this.translateService.get(notification.code, notification.parameters).subscribe((translatedMessage) => {
+          if (notification.code !== translatedMessage || !notification.message) {
+            notification.message = translatedMessage;
+          }
           this.notification = notification;
         });
       } else {
-        this.notification = notification;
+        delete this.notification;
       }
     });
     this.mainRoutes = this.routeService.getRoutes(RouteType.main);

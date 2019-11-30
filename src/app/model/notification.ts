@@ -17,6 +17,6 @@ export class Notification {
   type: string;
   code: string;
   message?: string;
-  parameters?: string;
+  parameters?: object;
 }
 
