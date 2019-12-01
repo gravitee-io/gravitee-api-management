@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,43 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Pipe, PipeTransform } from '@angular/core';
 
-.search__form {
-  background-color: var(--gv-theme-color-darker);
-  color: white;
-  padding: 40px 25%;
-}
+@Pipe({
+  name: 'apiLabels'
+})
+export class ApiLabelsPipe implements PipeTransform {
 
-.search__form__input {
-  width: 100%;
-}
+  transform(value: any, ...args: any[]): any {
+    return null;
+  }
 
-.catalog-search {
-  background-color: white;
-}
-
-.catalog-search__list {
-  display: flex;
-  flex-direction: column;
-}
-
-.catalog-search__pagination {
-  border-top: 1px solid var(--gv-theme-layout--bgc);
-  padding: 1rem;
-  display: flex;
-  justify-content: center;
-}
-
-.catalog-search__title {
-  display: flex;
-  border-bottom: 1px solid var(--gv-theme-layout--bgc);
-  padding: 25px;
-}
-
-.catalog-search__title .title {
-  flex: 1;
-}
-
-.catalog-search__title gv-select {
-  max-width: 55px;
 }

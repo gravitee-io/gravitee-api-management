@@ -26,7 +26,7 @@ import '@gravitee/ui-components/wc/gv-card-category';
 })
 export class CategoriesComponent implements OnInit {
   nbCategories: string;
-  categories: View[];
+  categories: Array<Promise<View>>;
 
   constructor(
     private portalService: PortalService,
@@ -34,17 +34,22 @@ export class CategoriesComponent implements OnInit {
   }
 
   ngOnInit() {
-
-    this.portalService.getViews({}).subscribe(
-      (viewResponse) => {
-        this.categories = viewResponse.data;
-        this.nbCategories = viewResponse.metadata.data.total;
+    this.categories = new Array(6);
+    this.portalService.getViews({}).subscribe({
+        next: (viewResponse) => {
+          this.categories = viewResponse.data.map((category) => Promise.resolve(category));
+          this.nbCategories = viewResponse.metadata.data.total;
+        },
+        error: (err) => {
+          // @ts-ignore
+          this.categories.fill(() => Promise.reject(err));
+        }
       }
     );
   }
 
   getCategoryBackgroundColor(index) {
-    return `--gv-card-category--bgc: var(--gv-theme-color-category-${index % 6 + 1})`;
+    return `--gv-card-category--bgc: var(--gv-theme-color-category-${ index % 6 + 1 })`;
   }
 
   searchAPIsByCategory(categoryId: string) {

@@ -50,6 +50,8 @@ import { NotificationService } from './services/notification.service';
 import { AppConfig } from './app.config';
 import { LoaderService } from './services/loader.service';
 import { FeatureGuardService } from './services/feature-guard.service';
+import { ApiStatesPipe } from './pipes/api-states.pipe';
+import { ApiLabelsPipe } from './pipes/api-labels.pipe';
 
 @NgModule({
   declarations: [
@@ -69,6 +71,8 @@ import { FeatureGuardService } from './services/feature-guard.service';
     UserAvatarComponent,
     ContactComponent,
     CatalogSearchComponent,
+    ApiStatesPipe,
+    ApiLabelsPipe,
   ],
   imports: [
     ApiModule,
@@ -98,6 +102,8 @@ import { FeatureGuardService } from './services/feature-guard.service';
     LoaderService,
     FeatureGuardService,
     { provide: HTTP_INTERCEPTORS, useClass: ApiRequestInterceptor, multi: true },
+    ApiStatesPipe,
+    ApiLabelsPipe
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA,

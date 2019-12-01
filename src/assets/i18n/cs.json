@@ -1,5 +1,15 @@
 {
   "catalog": {
+    "defaultView": "Všechna API",
+    "display": {
+      "cards": "Zobrazovací karty",
+      "list": "Zobrazit seznam"
+    },
+    "filter": "Filtrujte výsledky",
+    "othersApi": {
+      "subTitle": "Objevte různá API v titulcích tento měsíc",
+      "title": "Ostatní APIs"
+    },
     "search": "Vyhledat API, APP ..."
   },
   "categories": {
@@ -41,14 +51,6 @@
     "user": {
       "exists": "E-mail již existuje uživatel: {user}",
       "finalized": "Účet již byl dokončen"
-    }
-  },
-  "filteredCatalog": {
-    "defaultView": "Všechna API",
-    "filter": "Filtrujte výsledky",
-    "othersApi": {
-      "subTitle": "Objevte různá API v titulcích tento měsíc",
-      "title": "Ostatní APIs"
     }
   },
   "login": {

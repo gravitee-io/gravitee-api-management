@@ -25,6 +25,9 @@ import { provideMock } from '../../../test/mock.helper.spec';
 import { NotificationService } from '../../../services/notification.service';
 import { AppConfig } from '../../../app.config';
 import { LoaderService } from '../../../services/loader.service';
+import { FilteredCatalogComponent } from '../filtered-catalog/filtered-catalog.component';
+import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
+import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 
 describe('CatalogSearchComponent', () => {
   let component: CatalogSearchComponent;
@@ -40,7 +43,7 @@ describe('CatalogSearchComponent', () => {
         HttpClientTestingModule
       ],
       declarations: [
-        CatalogSearchComponent
+        CatalogSearchComponent, ApiStatesPipe, ApiLabelsPipe
       ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
@@ -48,10 +51,10 @@ describe('CatalogSearchComponent', () => {
       providers: [
         provideMock(NotificationService),
         provideMock(AppConfig),
-        provideMock(LoaderService)
+        provideMock(LoaderService), ApiStatesPipe, ApiLabelsPipe
       ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

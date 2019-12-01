@@ -1,5 +1,15 @@
 {
   "catalog": {
+    "defaultView": "All the APIs",
+    "display": {
+      "cards": "Display cards",
+      "list": "Display list"
+    },
+    "filter": "Filter the results",
+    "othersApi": {
+      "subTitle": "Discover the different APIs in the headlines this month",
+      "title": "The others APIs"
+    },
     "search": "Search API, APP ..."
   },
   "categories": {
@@ -41,14 +51,6 @@
     "user": {
       "exists": "There is already a user with the email: {user}",
       "finalized": "The account has already been finalized"
-    }
-  },
-  "filteredCatalog": {
-    "defaultView": "All the APIs",
-    "filter": "Filter the results",
-    "othersApi": {
-      "subTitle": "Discover the different APIs in the headlines this month",
-      "title": "The others APIs"
     }
   },
   "login": {

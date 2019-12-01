@@ -21,6 +21,9 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TranslateTestingModule } from '../../../test/helper.spec';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CatalogComponent } from '../catalog.component';
+import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
+import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
+import { CatalogSearchComponent } from '../search/catalog-search.component';
 
 describe('FilteredCatalogComponent', () => {
   let component: FilteredCatalogComponent;
@@ -33,10 +36,11 @@ describe('FilteredCatalogComponent', () => {
         RouterTestingModule,
         TranslateTestingModule
       ],
-      declarations: [FilteredCatalogComponent],
+      declarations: [FilteredCatalogComponent, ApiStatesPipe, ApiLabelsPipe],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
+      providers: [ApiStatesPipe, ApiLabelsPipe]
     })
       .compileComponents();
   }));

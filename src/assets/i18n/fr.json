@@ -1,5 +1,15 @@
 {
   "catalog": {
+    "defaultView": "Toutes les APIs",
+    "display": {
+      "cards": "Affichage carte",
+      "list": "Affichage liste"
+    },
+    "filter": "Filtrer les résultats",
+    "othersApi": {
+      "subTitle": "Découvrez les différentes APIs à la une ce mois-ci",
+      "title": "Les autres API's"
+    },
     "search": "Rechercher une API, APP..."
   },
   "categories": {
@@ -41,14 +51,6 @@
     "user": {
       "exists": "Il existe déjà un utilisateur avec l'email : {user}",
       "finalized": "Le compte a déjà été finalisé"
-    }
-  },
-  "filteredCatalog": {
-    "defaultView": "Toutes les APIs",
-    "filter": "Filtrer les résultats",
-    "othersApi": {
-      "subTitle": "Découvrez les différentes APIs à la une ce mois-ci",
-      "title": "Les autres API's"
     }
   },
   "login": {

@@ -61,6 +61,9 @@
     --gv-theme-layout--pr: 8px;
     --gv-theme-layout--pl: 8px;
   }
+  gv-card-category, gv-card-api-full {
+    max-width: 425px;
+  }
 }
 
 /* (1280x720) Galaxy Note 2, WXGA */
@@ -68,6 +71,10 @@
   :root {
     --gv-theme-layout--pr: 0px;
     --gv-theme-layout--pl: 0px;
+  }
+
+  gv-card-category, gv-card-api-full {
+    max-width: 400px;
   }
 }
 

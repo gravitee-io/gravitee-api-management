@@ -20,53 +20,42 @@
 
   <section class="catalog__section__top">
     <div>
-      <gv-promote-api *ngIf="promotedApi" src="{{promotedApi._links.picture}}"
-                      title="{{promotedApi.name}}"
-                      description="{{promotedApi.description}}"
-                      [rating]="promotedApi.rating_summary"
-                      alt="{{promotedApi.name}}"></gv-promote-api>
+      <gv-promote-api [api]="promotedApi"></gv-promote-api>
     </div>
 
     <article class="catalog__article__random" *ngIf="randomList">
-      <h3 class="title">{{'filteredCatalog.othersApi.title' | translate}}
-        <p>{{'filteredCatalog.othersApi.subTitle' | translate}}</p></h3>
+      <h3 class="title">{{'catalog.othersApi.title' | translate}}
+        <p>{{'catalog.othersApi.subTitle' | translate}}</p></h3>
 
       <div class="catalog__cards catalog__cards__random">
-        <gv-card-api *ngFor="let api of randomList"
-                     title="{{api.name}}"
-                     picture="{{api._links.picture}}"
-                     [states]="this.getStates(api)"
-                     version="{{api.version}}"></gv-card-api>
+        <gv-card-api *ngFor="let api of randomList" [api]="api"></gv-card-api>
       </div>
 
     </article>
   </section>
 
-  <div class="catalog__section__all" *ngIf="hasData()">
-    <div class="catalog__section__all__title">
+  <div class="catalog__section__content">
+    <div class="catalog__section__content__title">
+
       <h2 class="title"></h2>
-      <gv-select *ngIf="hasViews()"
-                 [attr.placeholder]="'filteredCatalog.filter' | translate"
-                 [options]="this.getViews()">
+      <gv-option [options]="options"></gv-option>
+      <gv-select [value]="this.currentView"
+                 (input)="this.onSelectView($event)"
+                 [attr.placeholder]="'catalog.filter' | translate"
+                 [options]="this.views">
       </gv-select>
     </div>
 
-    <section class="catalog__cards">
-      <gv-card-api-full *ngFor="let api of allApis; let i = index;"
-                        title="{{api.name}}"
-                        picture="{{api._links.picture}}"
-                        description="{{api.description}}"
-                        version="{{api.version}}"
-                        [states]="this.getStates(api)"
-                        [labels]="this.getLabels(api)"
-                        subscribers="{{(86.07 * (i+1.2)).toFixed(0)}}"
-                        hits="{{(6.07 * (i+1.2)).toFixed(0)}}M+"
-                        health="{{(100-i*i)}}%"
-                        [rating]="api.rating_summary">
-
-      </gv-card-api-full>
+    <section *ngIf="inDefaultDisplay()" class="catalog__cards">
+      <gv-card-api-full *ngFor="let api of allApis" [api]="api"></gv-card-api-full>
     </section>
 
+    <section *ngIf="!inDefaultDisplay()" class="catalog__list">
+      <gv-row-api *ngFor="let api of allApis" [api]="api"></gv-row-api>
+    </section>
+    <div class="catalog__section__content__pagination">
+      <gv-pagination [data]="paginationData" hideEmpty="true"></gv-pagination>
+    </div>
   </div>
 </div>
 
