@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { Router, Routes } from '@angular/router';
+import { Route, Router, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiService, PortalService } from '@gravitee/ng-portal-webclient';
 import { FeatureGuardService } from './feature-guard.service';
@@ -52,9 +52,34 @@ export class RouteService {
         delete route.children;
         return this.getFlattenedRoutes(children.concat(route));
       }
+      if (route.redirectTo && route.data && route.data.fallbackRedirectTo) {
+        const targetRoute = tmpRoutes.find(r => r.path.endsWith(route.redirectTo));
+        if (!this.featureGuardService.canActivate(targetRoute)) {
+          const routeConfig = this.getRouteConfig(this.router.config, route);
+          if (routeConfig) {
+            routeConfig.redirectTo = route.data.fallbackRedirectTo;
+          }
+        }
+      }
       return route;
     });
     return [].concat(...flattenedRoutes);
+  }
+
+  getRouteConfig(routes: Routes, targetRoute: Route): Route {
+    let routeConfig = null;
+    if (routes) {
+      routes.forEach(route => {
+        if (route.children) {
+          routeConfig = this.getRouteConfig(route.children, targetRoute);
+        } else {
+          if (route.redirectTo === targetRoute.redirectTo) {
+            routeConfig = route;
+          }
+        }
+      });
+    }
+    return routeConfig;
   }
 
   getRoutes(type: RouteType) {

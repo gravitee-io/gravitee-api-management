@@ -18,4 +18,5 @@ export enum Feature {
   localLogin = 'authentication.localLogin.enabled',
   rating = 'portal.rating.enabled',
   userRegistration = 'portal.userCreation.enabled',
+  viewMode = 'portal.apis.viewMode.enabled',
 }

@@ -42,14 +42,16 @@ export const routes: Routes = [
       {
         path: 'catalog', data: { title: i18n('route.catalog'), type: RouteType.main }, component: CatalogComponent,
         children: [
-          { path: '', redirectTo: 'categories', pathMatch: 'full' },
+          { path: '', redirectTo: 'categories', pathMatch: 'full', data: { fallbackRedirectTo: 'featured' } },
           {
             path: 'categories',
             component: CategoriesComponent,
+            canActivate: [FeatureGuardService],
             data: {
               title: i18n('route.catalogCategories'),
               type: RouteType.catalog,
-              icon: 'layout:layout-arrange'
+              icon: 'layout:layout-arrange',
+              expectedFeature: Feature.viewMode
             }
           },
           {
