@@ -15,14 +15,15 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.portal.rest.model.HttpMethod;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.model.Request;
 import io.gravitee.rest.api.portal.rest.model.Response;
+import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -37,7 +38,7 @@ public class LogMapper {
         logItem.setApi(applicationRequest.getApi());
         logItem.setHost(applicationRequest.getHost());
         logItem.setId(applicationRequest.getId());
-        logItem.setMetadata(applicationRequest.getMetadata());
+        logItem.setMetadata(applicationRequest.getMetadata() == null ? null : new HashMap(applicationRequest.getMetadata()));
         logItem.setMethod(HttpMethod.fromValue(applicationRequest.getMethod().name()));
         logItem.setPath(applicationRequest.getPath());
         logItem.setPlan(applicationRequest.getPlan());

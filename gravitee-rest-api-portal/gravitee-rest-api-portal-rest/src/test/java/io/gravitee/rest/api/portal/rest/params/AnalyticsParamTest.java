@@ -18,7 +18,6 @@ package io.gravitee.rest.api.portal.rest.params;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.portal.rest.resource.param.AnalyticsParam;
 import io.gravitee.rest.api.portal.rest.resource.param.AnalyticsTypeParam;
-
 import org.junit.Test;
 
 import javax.ws.rs.BadRequestException;
@@ -99,7 +98,7 @@ public class AnalyticsParamTest {
         params.setTo(1);
         params.setInterval(10_000);
         params.setTypeParam(new AnalyticsTypeParam("COUNT"));
-        testParams(params, "'from' query parameter value must be greater than 'to'");
+        testParams(params, "'from' query parameter value must not be greater than 'to'");
     }
     
     @Test

@@ -49,7 +49,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -62,7 +61,6 @@ public abstract class AbstractResource {
 
     public static final String MANAGEMENT_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
     public static final String PORTAL_ADMIN = RoleScope.PORTAL.name() + ':' + SystemRole.ADMIN.name();
-    private static final Pattern PATTERN = Pattern.compile("<script");
 
     protected static final String METADATA_DATA_KEY = "data";
     protected static final String METADATA_DATA_TOTAL_KEY = "total";
@@ -260,7 +258,7 @@ public abstract class AbstractResource {
     }
 
     protected List paginateResultList(List list, Integer totalItems, Integer page, Integer size,
-            Map<String, String> paginationMetadata) {
+            Map<String, Object> paginationMetadata) {
         Integer startIndex = (page - 1) * size;
         Integer lastIndex = Math.min(startIndex + size, totalItems);
         Integer totalPages = (int) Math.ceil((double) totalItems / size);
@@ -269,14 +267,14 @@ public abstract class AbstractResource {
             throw new PaginationInvalidException();
         } else {
 
-            paginationMetadata.put(METADATA_PAGINATION_CURRENT_PAGE_KEY, String.valueOf(page));
-            paginationMetadata.put(METADATA_PAGINATION_SIZE_KEY, String.valueOf(size));
+            paginationMetadata.put(METADATA_PAGINATION_CURRENT_PAGE_KEY, page);
+            paginationMetadata.put(METADATA_PAGINATION_SIZE_KEY, size);
 
-            paginationMetadata.put(METADATA_PAGINATION_FIRST_ITEM_INDEX_KEY, String.valueOf(startIndex + 1));
-            paginationMetadata.put(METADATA_PAGINATION_LAST_ITEM_INDEX_KEY, String.valueOf(lastIndex));
+            paginationMetadata.put(METADATA_PAGINATION_FIRST_ITEM_INDEX_KEY, startIndex + 1);
+            paginationMetadata.put(METADATA_PAGINATION_LAST_ITEM_INDEX_KEY, lastIndex);
 
-            paginationMetadata.put(METADATA_PAGINATION_TOTAL_KEY, String.valueOf(totalItems));
-            paginationMetadata.put(METADATA_PAGINATION_TOTAL_PAGE_KEY, String.valueOf(totalPages));
+            paginationMetadata.put(METADATA_PAGINATION_TOTAL_KEY, totalItems);
+            paginationMetadata.put(METADATA_PAGINATION_TOTAL_PAGE_KEY, totalPages);
 
             return list.subList(startIndex, lastIndex);
         }
@@ -284,9 +282,9 @@ public abstract class AbstractResource {
     }
 
     protected DataResponse createDataResponse(List dataList, PaginationParam paginationParam,
-            Map<String, Map<String, String>> metadata, boolean withPagination) {
-        Map<String, String> dataMetadata = new HashMap<>();
-        Map<String, String> paginationMetadata = new HashMap<>();
+            Map<String, Map<String, Object>> metadata, boolean withPagination) {
+        Map<String, Object> dataMetadata = new HashMap<>();
+        Map<String, Object> paginationMetadata = new HashMap<>();
 
         int totalItems = dataList.size();
 
@@ -301,7 +299,7 @@ public abstract class AbstractResource {
             paginatedList = dataList;
         }
 
-        dataMetadata.put(METADATA_DATA_TOTAL_KEY, String.valueOf(paginatedList.size()));
+        dataMetadata.put(METADATA_DATA_TOTAL_KEY, paginatedList.size());
 
         if (withPagination && paginationParam.getSize() == 0) {
             paginatedList = new ArrayList();
@@ -312,8 +310,8 @@ public abstract class AbstractResource {
                 .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems));
     }
 
-    protected Map<String, Map<String, String>> computeMetadata(Map<String, Map<String, String>> metadata,
-            Map<String, String> dataMetadata, Map<String, String> paginationMetadata) {
+    protected Map<String, Map<String, Object>> computeMetadata(Map<String, Map<String, Object>> metadata,
+            Map<String, Object> dataMetadata, Map<String, Object> paginationMetadata) {
         if (metadata == null) {
             metadata = new HashMap<>();
         }
@@ -333,12 +331,12 @@ public abstract class AbstractResource {
     }
 
     protected Response createListResponse(List dataList, PaginationParam paginationParam,
-            Map<String, Map<String, String>> metadata) {
+            Map<String, Map<String, Object>> metadata) {
         return createListResponse(dataList, paginationParam, metadata, true);
     }
 
     protected Response createListResponse(List dataList, PaginationParam paginationParam,
-            Map<String, Map<String, String>> metadata, boolean withPagination) {
+            Map<String, Map<String, Object>> metadata, boolean withPagination) {
         return Response.ok(createDataResponse(dataList, paginationParam, metadata, withPagination)).build();
     }
 
@@ -368,7 +366,7 @@ public abstract class AbstractResource {
 
     private class DataResponse {
         private List data = null;
-        private Map<String, Map<String, String>> metadata = null;
+        private Map<String, Map<String, Object>> metadata = null;
         private Links links;
 
         public DataResponse data(List data) {
@@ -382,14 +380,14 @@ public abstract class AbstractResource {
             return data;
         }
 
-        public DataResponse metadata(Map<String, Map<String, String>> metadata) {
+        public DataResponse metadata(Map<String, Map<String, Object>> metadata) {
             this.metadata = metadata;
             return this;
         }
 
         @javax.annotation.Nullable
         @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-        public Map<String, Map<String, String>> getMetadata() {
+        public Map<String, Map<String, Object>> getMetadata() {
             return metadata;
         }
 

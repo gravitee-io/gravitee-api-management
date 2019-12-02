@@ -252,18 +252,18 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(2, apiResponse.getData().size());
         assertEquals("1", ((Api) apiResponse.getData().get(0)).getId());
         assertEquals("4", ((Api) apiResponse.getData().get(1)).getId());
-        Map<String, Map<String, String>> metadata = apiResponse.getMetadata();
+        Map<String, Map<String, Object>> metadata = apiResponse.getMetadata();
         assertNotNull(metadata);
         assertEquals(3, metadata.size());
 
-        Map<String, String> dataMetadata = metadata.get(AbstractResource.METADATA_DATA_KEY);
+        Map<String, Object> dataMetadata = metadata.get(AbstractResource.METADATA_DATA_KEY);
         assertNotNull(dataMetadata);
         assertEquals(1, dataMetadata.size());
-        Map<String, String> subscriptionsMetadata = metadata.get("subscriptions");
+        Map<String, Object> subscriptionsMetadata = metadata.get("subscriptions");
         assertNotNull(subscriptionsMetadata);
         assertEquals(2, subscriptionsMetadata.size());
-        assertEquals("2", subscriptionsMetadata.get("1")); // 2 subscriptions for API 1
-        assertEquals("1", subscriptionsMetadata.get("4")); // 1 subscription for API 4
+        assertEquals(2, subscriptionsMetadata.get("1")); // 2 subscriptions for API 1
+        assertEquals(1, subscriptionsMetadata.get("4")); // 1 subscription for API 4
     }
 
     @Test
@@ -281,11 +281,11 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(2, apiResponse.getData().size());
         assertEquals("5", ((Api) apiResponse.getData().get(0)).getId());
         assertEquals("6", ((Api) apiResponse.getData().get(1)).getId());
-        Map<String, Map<String, String>> metadata = apiResponse.getMetadata();
+        Map<String, Map<String, Object>> metadata = apiResponse.getMetadata();
         assertNotNull(metadata);
         assertEquals(2, metadata.size());
 
-        Map<String, String> dataMetadata = metadata.get(AbstractResource.METADATA_DATA_KEY);
+        Map<String, Object> dataMetadata = metadata.get(AbstractResource.METADATA_DATA_KEY);
         assertNotNull(dataMetadata);
         assertEquals(1, dataMetadata.size());
     }
@@ -339,8 +339,8 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(0, apiResponse.getData().size());
-        Map<String, String> metadata = apiResponse.getMetadata().get(AbstractResource.METADATA_DATA_KEY);
-        assertEquals("5",  metadata.get(AbstractResource.METADATA_DATA_TOTAL_KEY));
+        Map<String, Object> metadata = apiResponse.getMetadata().get(AbstractResource.METADATA_DATA_KEY);
+        assertEquals(5,  metadata.get(AbstractResource.METADATA_DATA_TOTAL_KEY));
     }
 
     @Test

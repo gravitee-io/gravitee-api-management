@@ -17,8 +17,6 @@ package io.gravitee.rest.api.portal.rest.resource.param;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -91,7 +89,7 @@ public class LogsParam {
         }
 
         if (from >= to) {
-            throw new BadRequestException("'from' query parameter value must be greater than 'to'");
+            throw new BadRequestException("'from' query parameter value must not be greater than 'to'");
         }
         
         if (!"ASC".equals(order) && !"DESC".equals(order)) {

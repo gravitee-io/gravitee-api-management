@@ -15,22 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static java.lang.String.format;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
@@ -46,6 +30,16 @@ import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.LogsService;
+
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -82,9 +76,10 @@ public class ApplicationLogsResource extends AbstractResource {
                 .collect(Collectors.toList());
         
         //No pagination, because logsService did it already
-        return createListResponse(logs, paginationParam, searchLogResponse.getMetadata(), false);
+        return createListResponse(logs, paginationParam, (searchLogResponse.getMetadata() == null ? null : new HashMap(searchLogResponse.getMetadata())), false);
     }
 
+    @SuppressWarnings("unchecked")
     protected SearchLogResponse<ApplicationRequestItem> getSearchLogResponse(String applicationId,
             PaginationParam paginationParam, LogsParam logsParam) {
         logsParam.validate();
@@ -135,7 +130,7 @@ public class ApplicationLogsResource extends AbstractResource {
         //Does application exists ?
         applicationService.findById(applicationId);
         
-        final SearchLogResponse searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
+        final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
         return Response
                 .ok(logsService.exportAsCsv(searchLogResponse))
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", applicationId, System.currentTimeMillis()))

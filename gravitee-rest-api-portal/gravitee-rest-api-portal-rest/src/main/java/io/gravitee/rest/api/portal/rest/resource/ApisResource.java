@@ -41,7 +41,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -183,17 +182,17 @@ public class ApisResource extends AbstractResource {
 
         // link an api with its nb of subscritions
         Map<ApiEntity, Long> apisWithCount = new HashMap<>();
-        Map<String, Map<String, String>> apisMetadata = new HashMap<>();
-        Map<String, String> subscriptionsMetadata = new HashMap<>();
+        Map<String, Map<String, Object>> apisMetadata = new HashMap<>();
+        Map<String, Object> subscriptionsMetadata = new HashMap<>();
         apisMetadata.put("subscriptions", subscriptionsMetadata);
         apis.forEach(api -> {
             Long apiSubscriptionsCount = subscribedApiWithCount.get(api.getId());
             if ((!excluded && apiSubscriptionsCount != null) || (excluded && apiSubscriptionsCount == null)) {
                 //creation of a map which will be sorted to retrieve apis in the right order
-                apisWithCount.put(api, apiSubscriptionsCount == null ? 0 : apiSubscriptionsCount);
+                apisWithCount.put(api, apiSubscriptionsCount == null ? 0L : apiSubscriptionsCount);
 
                 //creation of a metadata map
-                subscriptionsMetadata.put(api.getId(), apiSubscriptionsCount == null ? "0" : apiSubscriptionsCount.toString());
+                subscriptionsMetadata.put(api.getId(), apiSubscriptionsCount == null ? 0L : apiSubscriptionsCount);
             }
         });
 
@@ -276,9 +275,9 @@ public class ApisResource extends AbstractResource {
 
     private class FilteredApi {
         Collection<ApiEntity> filteredApis;
-        Map<String, Map<String, String>> metadata;
+        Map<String, Map<String, Object>> metadata;
 
-        public FilteredApi(Collection<ApiEntity> filteredApis, Map<String, Map<String, String>> metadata) {
+        public FilteredApi(Collection<ApiEntity> filteredApis, Map<String, Map<String, Object>> metadata) {
             super();
             this.filteredApis = filteredApis;
             this.metadata = metadata;
@@ -288,7 +287,7 @@ public class ApisResource extends AbstractResource {
             return filteredApis;
         }
 
-        public Map<String, Map<String, String>> getMetadata() {
+        public Map<String, Map<String, Object>> getMetadata() {
             return metadata;
         }
     }

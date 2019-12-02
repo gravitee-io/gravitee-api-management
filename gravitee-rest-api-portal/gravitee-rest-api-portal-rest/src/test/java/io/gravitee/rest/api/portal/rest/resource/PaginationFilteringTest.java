@@ -50,20 +50,21 @@ public class PaginationFilteringTest {
         Integer totalItems = 100;
 
         initList = initIntegerList(totalItems);
-        Map<String, String> paginatedMetadata = new HashMap<>();
+        Map<String, Object> paginatedMetadata = new HashMap<>();
 
+        @SuppressWarnings("unchecked")
         List<Integer> resultList = paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
         assertEquals(10, resultList.size());
         assertEquals(20, resultList.get(0).intValue());
         assertEquals(29, resultList.get(9).intValue());
 
-        assertEquals(String.valueOf(page),
+        assertEquals(page,
                 paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_CURRENT_PAGE_KEY));
-        assertEquals("21", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_FIRST_ITEM_INDEX_KEY));
-        assertEquals("30", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_LAST_ITEM_INDEX_KEY));
-        assertEquals("10", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_SIZE_KEY));
-        assertEquals("100", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_KEY));
-        assertEquals("10", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_PAGE_KEY));
+        assertEquals(21, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_FIRST_ITEM_INDEX_KEY));
+        assertEquals(30, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_LAST_ITEM_INDEX_KEY));
+        assertEquals(10, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_SIZE_KEY));
+        assertEquals(100, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_KEY));
+        assertEquals(10, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_PAGE_KEY));
 
         assertFalse(initList == resultList);
     }
@@ -75,19 +76,20 @@ public class PaginationFilteringTest {
         Integer totalItems = 8;
 
         initList = initIntegerList(totalItems);
-        Map<String, String> paginatedMetadata = new HashMap<>();
+        Map<String, Object> paginatedMetadata = new HashMap<>();
 
+        @SuppressWarnings("unchecked")
         List<Integer> resultList = paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
         assertEquals(8, resultList.size());
         assertEquals(0, resultList.get(0).intValue());
         assertEquals(7, resultList.get(7).intValue());
 
-        assertEquals(String.valueOf(page), paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_CURRENT_PAGE_KEY));
-        assertEquals("1", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_FIRST_ITEM_INDEX_KEY));
-        assertEquals("8", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_LAST_ITEM_INDEX_KEY));
-        assertEquals("10", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_SIZE_KEY));
-        assertEquals("8", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_KEY));
-        assertEquals("1", paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_PAGE_KEY));
+        assertEquals(page, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_CURRENT_PAGE_KEY));
+        assertEquals(1, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_FIRST_ITEM_INDEX_KEY));
+        assertEquals(8, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_LAST_ITEM_INDEX_KEY));
+        assertEquals(10, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_SIZE_KEY));
+        assertEquals(8, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_KEY));
+        assertEquals(1, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_TOTAL_PAGE_KEY));
 
         assertFalse(initList == resultList);
     }
@@ -99,7 +101,7 @@ public class PaginationFilteringTest {
         Integer totalItems = 10;
 
         initList = initIntegerList(totalItems);
-        Map<String, String> paginatedMetadata = new HashMap<>();
+        Map<String, Object> paginatedMetadata = new HashMap<>();
 
         paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
     }
@@ -111,7 +113,7 @@ public class PaginationFilteringTest {
         Integer totalItems = 10;
 
         initList = initIntegerList(totalItems);
-        Map<String, String> paginatedMetadata = new HashMap<>();
+        Map<String, Object> paginatedMetadata = new HashMap<>();
 
         paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata);
     }
@@ -122,12 +124,12 @@ public class PaginationFilteringTest {
 
     @Test
     public void testComputeMetadataWithoutInitList() {
-        Map<String, String> dataMetadata = new HashMap<>();
-        dataMetadata.put("KEY", "VALUE");
-        Map<String, String> paginationMetadata = new HashMap<>();
-        paginationMetadata.put("KEY", "VALUE");
+        Map<String, Object> dataMetadata = new HashMap<>();
+        dataMetadata.put("KEY", 1);
+        Map<String, Object> paginationMetadata = new HashMap<>();
+        paginationMetadata.put("KEY", true);
 
-        Map<String, Map<String, String>> metadata = paginatedResourceForTest.computeMetadata(null, dataMetadata, paginationMetadata);
+        Map<String, Map<String, Object>> metadata = paginatedResourceForTest.computeMetadata(null, dataMetadata, paginationMetadata);
         assertNotNull(metadata);
         assertEquals(2, metadata.size());
 
@@ -137,16 +139,16 @@ public class PaginationFilteringTest {
 
     @Test
     public void testComputeMetadataWithInitList() {
-        Map<String, Map<String, String>> initMetadata = new HashMap<>();
-        Map<String, String> testMetadata = new HashMap<>();
+        Map<String, Map<String, Object>> initMetadata = new HashMap<>();
+        Map<String, Object> testMetadata = new HashMap<>();
         testMetadata.put("foo", "bar");
         initMetadata.put("test", testMetadata);
 
-        Map<String, String> dataMetadata = new HashMap<>();
-        dataMetadata.put("KEY", "VALUE");
-        Map<String, String> paginationMetadata = new HashMap<>();
+        Map<String, Object> dataMetadata = new HashMap<>();
+        dataMetadata.put("KEY", 12);
+        Map<String, Object> paginationMetadata = new HashMap<>();
 
-        Map<String, Map<String, String>> metadata = paginatedResourceForTest.computeMetadata(initMetadata, dataMetadata, paginationMetadata);
+        Map<String, Map<String, Object>> metadata = paginatedResourceForTest.computeMetadata(initMetadata, dataMetadata, paginationMetadata);
 
         assertNotNull(metadata);
         assertEquals(2, metadata.size());

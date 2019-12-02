@@ -15,36 +15,31 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
-import io.gravitee.rest.api.portal.rest.model.LogsResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Log;
+import io.gravitee.rest.api.portal.rest.model.LogsResponse;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -78,9 +73,6 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         HashMap<String, String> appMetadata = new HashMap<String, String>();
         appMetadata.put(APPLICATION, APPLICATION);
         metadata.put(APPLICATION, appMetadata);
-        HashMap<String, String> listMetadata = new HashMap<String, String>();
-        listMetadata.put(AbstractResource.METADATA_DATA_TOTAL_KEY, "2");
-        metadata.put(AbstractResource.METADATA_DATA_KEY, listMetadata);
         searchResponse.setMetadata(metadata);
         
         doReturn(searchResponse).when(logsService).findByApplication(eq(APPLICATION), any());
@@ -116,7 +108,12 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         
         LogsResponse logsResponse = response.readEntity(LogsResponse.class);
         assertEquals(2, logsResponse.getData().size());
-        assertEquals(metadata, logsResponse.getMetadata());
+        
+        Map<String, Map<String, Object>> logsMetadata = logsResponse.getMetadata();
+        assertEquals(2, logsMetadata.size());
+        assertEquals(APPLICATION, logsMetadata.get(APPLICATION).get(APPLICATION));
+        assertEquals(2, logsMetadata.get(AbstractResource.METADATA_DATA_KEY).get(AbstractResource.METADATA_DATA_TOTAL_KEY));
+
         Links links = logsResponse.getLinks();
         assertNotNull(links);
     }
@@ -125,7 +122,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNoLogAndNoLink() {
         SearchLogResponse<ApplicationRequestItem> emptySearchResponse = new SearchLogResponse<>(0);
-        emptySearchResponse.setLogs(Collections.EMPTY_LIST);
+        emptySearchResponse.setLogs(Collections.emptyList());
         doReturn(emptySearchResponse).when(logsService).findByApplication(eq(APPLICATION), any());
         
         final Response response = target(APPLICATION).path("logs")

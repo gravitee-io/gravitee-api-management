@@ -3179,12 +3179,12 @@ components:
         body:
           type: string
     MetadataMap:
-      description: Map of Map of String
+      description: Map of Map of Object
       type: object
       additionalProperties:
         type: object
         additionalProperties:
-          type: string
+          type: object
     Bucket:
       properties:
         buckets:

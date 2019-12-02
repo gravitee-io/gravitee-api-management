@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.params;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.portal.rest.resource.param.LogsParam;
-
 import org.junit.Test;
 
 import javax.ws.rs.BadRequestException;
@@ -72,7 +71,7 @@ public class LogsParamTest {
         LogsParam params = new LogsParam();
         params.setFrom(10);
         params.setTo(1);
-        testParams(params, "'from' query parameter value must be greater than 'to'");
+        testParams(params, "'from' query parameter value must not be greater than 'to'");
     }
     
     @Test

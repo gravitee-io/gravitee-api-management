@@ -15,21 +15,17 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
 import io.gravitee.rest.api.model.analytics.HitsAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
-import io.gravitee.rest.api.portal.rest.model.Bucket;
-import io.gravitee.rest.api.portal.rest.model.CountAnalytics;
-import io.gravitee.rest.api.portal.rest.model.DateHistoAnalytics;
-import io.gravitee.rest.api.portal.rest.model.GroupByAnalytics;
-import io.gravitee.rest.api.portal.rest.model.Timerange;
+import io.gravitee.rest.api.portal.rest.model.*;
+import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -57,7 +53,7 @@ public class AnalyticsMapper {
                     .map(b-> new Bucket()
                             .data(Arrays.asList(b.getData()))
                             .field(b.getField())
-                            .metadata(b.getMetadata())
+                            .metadata(b.getMetadata() == null ? null : new HashMap(b.getMetadata()))
                             .name(b.getName())
                             .buckets(this.convertBucketList(b.getBuckets()))
                         )
@@ -75,7 +71,7 @@ public class AnalyticsMapper {
 
     public GroupByAnalytics convert(TopHitsAnalytics analytics) {
         GroupByAnalytics analyticsItem = new GroupByAnalytics();
-        analyticsItem.setMetadata(analytics.getMetadata());
+        analyticsItem.setMetadata(analytics.getMetadata() == null ? null : new HashMap(analytics.getMetadata()));
         analyticsItem.setValues(analytics.getValues());
         return analyticsItem;
     }
