@@ -33,7 +33,7 @@
     <name>Gravitee.io APIM - Management</name>
 
     <properties>
-        <gravitee-node.version>1.6.0</gravitee-node.version>
+        <gravitee-node.version>1.6.1-SNAPSHOT</gravitee-node.version>
         <gravitee-definition.version>1.20.0</gravitee-definition.version>
         <gravitee-common.version>1.16.0</gravitee-common.version>
         <gravitee-plugin.version>1.10.0</gravitee-plugin.version>
