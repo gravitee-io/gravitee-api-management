@@ -25,7 +25,7 @@ import '@gravitee/ui-components/wc/gv-card-category';
   styleUrls: ['./categories.component.css']
 })
 export class CategoriesComponent implements OnInit {
-  nbCategories: string;
+  nbCategories: number;
   categories: Array<Promise<View>>;
 
   constructor(
@@ -38,7 +38,7 @@ export class CategoriesComponent implements OnInit {
     this.portalService.getViews({}).subscribe({
         next: (viewResponse) => {
           this.categories = viewResponse.data.map((category) => Promise.resolve(category));
-          this.nbCategories = viewResponse.metadata.data.total;
+          this.nbCategories = Number(viewResponse.metadata.data.total);
         },
         error: (err) => {
           // @ts-ignore
