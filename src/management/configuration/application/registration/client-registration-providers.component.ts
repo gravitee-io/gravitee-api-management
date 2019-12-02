@@ -74,6 +74,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
         }
       }).then( response => {
         NotificationService.show("Client registration is now " + (this.settings.application.registration.enabled?"mandatory":"optional") );
+        Constants.application.registration = response.data.application.registration;
       });
     };
   }
