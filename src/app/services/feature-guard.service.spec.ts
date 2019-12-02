@@ -13,29 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { User } from '@gravitee/ng-portal-webclient';
+import { TestBed } from '@angular/core/testing';
+import { FeatureGuardService } from './feature-guard.service';
+import { provideMock } from '../test/mock.helper.spec';
+import { HttpClient } from '@angular/common/http';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class CurrentUserService {
-  private currentUserSource = new BehaviorSubject<User>(undefined);
-  currentUser = this.currentUserSource.asObservable();
+describe('FeatureGuardService', () => {
+  beforeEach(() => TestBed.configureTestingModule({
+    providers: [
+      provideMock(HttpClient),
+    ]
+  }));
 
-  constructor() {
-  }
-
-  changeUser(newCurrentUser: User) {
-    this.currentUserSource.next(newCurrentUser);
-  }
-
-  revokeUser() {
-    this.currentUserSource.next(undefined);
-  }
-
-  get(): User {
-    return this.currentUserSource.getValue();
-  }
-}
+  it('should be created', () => {
+    const service: FeatureGuardService = TestBed.get(FeatureGuardService);
+    expect(service).toBeTruthy();
+  });
+});

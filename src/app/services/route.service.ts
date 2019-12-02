@@ -18,7 +18,6 @@ import { Route, Router, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiService, PortalService } from '@gravitee/ng-portal-webclient';
 import { FeatureGuardService } from './feature-guard.service';
-import { log } from 'util';
 
 export enum RouteType {
   main,

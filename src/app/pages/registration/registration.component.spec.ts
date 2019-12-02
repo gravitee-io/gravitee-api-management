@@ -16,7 +16,6 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RegistrationComponent } from './registration.component';
-import { TranslateModule } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateTestingModule } from '../../test/helper.spec';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -24,7 +23,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { provideMock } from '../../test/mock.helper.spec';
 import { NotificationService } from '../../services/notification.service';
-import { AppConfig } from '../../app.config';
+import { ConfigurationService } from '../../services/configuration.service';
 
 describe('RegistrationComponent', () => {
   let component: RegistrationComponent;
@@ -39,7 +38,7 @@ describe('RegistrationComponent', () => {
       ],
       providers: [
         provideMock(NotificationService),
-        provideMock(AppConfig)
+        provideMock(ConfigurationService)
       ]
     })
       .compileComponents();

@@ -23,7 +23,7 @@ import { FormGroup, FormBuilder } from '@angular/forms';
 import { ApiService, ApisResponse, Api } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-query-param.enum';
-import { AppConfig } from '../../../app.config';
+import { ConfigurationService } from '../../../services/configuration.service';
 import { LoaderService } from '../../../services/loader.service';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 
@@ -47,7 +47,7 @@ export class CatalogSearchComponent implements OnInit {
     private apiService: ApiService,
     private activatedRoute: ActivatedRoute,
     private router: Router,
-    private config: AppConfig,
+    private config: ConfigurationService,
     private apiLabelsPipe: ApiLabelsPipe,
     public loaderService: LoaderService,
   ) {

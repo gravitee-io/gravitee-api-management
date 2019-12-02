@@ -17,7 +17,9 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Notification } from '../model/notification';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class NotificationService {
   private notificationSource = new BehaviorSubject<Notification>(undefined);
   notification = this.notificationSource.asObservable();

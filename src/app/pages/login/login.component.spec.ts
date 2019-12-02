@@ -25,7 +25,7 @@ import { CurrentUserService } from '../../services/current-user.service';
 import { provideMock } from 'src/app/test/mock.helper.spec';
 import { NotificationService } from '../../services/notification.service';
 import { FeatureGuardService } from '../../services/feature-guard.service';
-import { AppConfig } from '../../app.config';
+import { ConfigurationService } from '../../services/configuration.service';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -42,7 +42,7 @@ describe('LoginComponent', () => {
         provideMock(CurrentUserService),
         provideMock(NotificationService),
         provideMock(FeatureGuardService),
-        provideMock(AppConfig),
+        provideMock(ConfigurationService),
       ]
     })
       .compileComponents();

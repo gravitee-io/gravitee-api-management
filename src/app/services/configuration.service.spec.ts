@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { ConfigurationService } from './configuration.service';
-import { ActivatedRouteSnapshot, CanActivate } from '@angular/router';
+import { provideMock } from '../test/mock.helper.spec';
+import { TranslateService } from '@ngx-translate/core';
+import { FeatureGuardService } from './feature-guard.service';
+import { HttpClient } from '@angular/common/http';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class FeatureGuardService implements CanActivate {
+describe('ConfigurationService', () => {
+  beforeEach(() => TestBed.configureTestingModule({
+    providers: [
+      provideMock(HttpClient),
+    ]
+  }));
 
-  constructor(private config: ConfigurationService) {
-  }
-
-  canActivate(route: ActivatedRouteSnapshot): boolean {
-    if (route.data && route.data.expectedFeature) {
-      return this.config.hasFeature(route.data.expectedFeature);
-    }
-    return true;
-  }
-}
+  it('should be created', () => {
+    const service: ConfigurationService = TestBed.get(ConfigurationService);
+    expect(service).toBeTruthy();
+  });
+});

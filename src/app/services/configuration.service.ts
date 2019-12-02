@@ -15,10 +15,12 @@
  */
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Feature } from './model/feature';
+import { Feature } from '../model/feature';
 
-@Injectable()
-export class AppConfig {
+@Injectable({
+  providedIn: 'root'
+})
+export class ConfigurationService {
 
   private config: object;
 

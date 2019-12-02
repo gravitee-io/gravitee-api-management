@@ -23,9 +23,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { provideMock } from '../../../test/mock.helper.spec';
 import { NotificationService } from '../../../services/notification.service';
-import { AppConfig } from '../../../app.config';
+import { ConfigurationService } from '../../../services/configuration.service';
 import { LoaderService } from '../../../services/loader.service';
-import { FilteredCatalogComponent } from '../filtered-catalog/filtered-catalog.component';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 
@@ -50,7 +49,7 @@ describe('CatalogSearchComponent', () => {
       ],
       providers: [
         provideMock(NotificationService),
-        provideMock(AppConfig),
+        provideMock(ConfigurationService),
         provideMock(LoaderService), ApiStatesPipe, ApiLabelsPipe
       ]
     })

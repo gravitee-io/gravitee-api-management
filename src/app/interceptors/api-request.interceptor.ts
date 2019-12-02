@@ -42,7 +42,7 @@ export class ApiRequestInterceptor implements HttpInterceptor {
     this.loaderService.show();
 
     return next.handle(request).pipe(tap(
-      () => { this.notificationService.reset(); },
+      () => {},
       (err: any) => {
         if (err instanceof HttpErrorResponse) {
           if (err.status === 0) {

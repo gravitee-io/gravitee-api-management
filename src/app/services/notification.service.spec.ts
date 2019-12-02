@@ -13,29 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { User } from '@gravitee/ng-portal-webclient';
+import { TestBed } from '@angular/core/testing';
+import { NotificationService } from './notification.service';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class CurrentUserService {
-  private currentUserSource = new BehaviorSubject<User>(undefined);
-  currentUser = this.currentUserSource.asObservable();
+describe('NotificationService', () => {
+  beforeEach(() => TestBed.configureTestingModule({}));
 
-  constructor() {
-  }
-
-  changeUser(newCurrentUser: User) {
-    this.currentUserSource.next(newCurrentUser);
-  }
-
-  revokeUser() {
-    this.currentUserSource.next(undefined);
-  }
-
-  get(): User {
-    return this.currentUserSource.getValue();
-  }
-}
+  it('should be created', () => {
+    const service: NotificationService = TestBed.get(NotificationService);
+    expect(service).toBeTruthy();
+  });
+});

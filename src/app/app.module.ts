@@ -38,7 +38,6 @@ import { LogoutComponent } from './pages/logout/logout.component';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
 import { ApiRequestInterceptor } from './interceptors/api-request.interceptor';
-import { CurrentUserService } from './services/current-user.service';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
 import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
 import { LayoutComponent } from './layouts/layout/layout.component';
@@ -46,12 +45,9 @@ import { SafePipe } from './pipes/safe.pipe';
 import { UserAvatarComponent } from './components/user-avatar/user-avatar.component';
 import { ContactComponent } from './pages/contact/contact.component';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
-import { NotificationService } from './services/notification.service';
-import { AppConfig } from './app.config';
-import { LoaderService } from './services/loader.service';
-import { FeatureGuardService } from './services/feature-guard.service';
 import { ApiStatesPipe } from './pipes/api-states.pipe';
 import { ApiLabelsPipe } from './pipes/api-labels.pipe';
+import { ConfigurationService } from './services/configuration.service';
 
 @NgModule({
   declarations: [
@@ -93,14 +89,14 @@ import { ApiLabelsPipe } from './pipes/api-labels.pipe';
     })
   ],
   providers: [
-    AppConfig,
-    { provide: APP_INITIALIZER, useFactory: (config: AppConfig) => () => config.load(), deps: [AppConfig], multi: true },
-    { provide: BASE_PATH, useFactory: (config: AppConfig) => config.get('baseUrl'), deps: [AppConfig] },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (config: ConfigurationService) => () => config.load(),
+      deps: [ConfigurationService],
+      multi: true
+    },
+    { provide: BASE_PATH, useFactory: (config: ConfigurationService) => config.get('baseUrl'), deps: [ConfigurationService] },
     { provide: MESSAGE_FORMAT_CONFIG, useValue: { locales: environment.locales } },
-    CurrentUserService,
-    NotificationService,
-    LoaderService,
-    FeatureGuardService,
     { provide: HTTP_INTERCEPTORS, useClass: ApiRequestInterceptor, multi: true },
     ApiStatesPipe,
     ApiLabelsPipe
