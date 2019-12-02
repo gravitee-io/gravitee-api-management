@@ -53,6 +53,10 @@
       "finalized": "Účet již byl dokončen"
     }
   },
+  "gv-pagination": {
+    "next": "Next",
+    "previous": "Předchozí"
+  },
   "login": {
     "button": "Přihlásit",
     "notification": {

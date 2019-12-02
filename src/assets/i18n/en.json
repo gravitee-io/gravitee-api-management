@@ -53,6 +53,10 @@
       "finalized": "The account has already been finalized"
     }
   },
+  "gv-pagination": {
+    "next": "Next",
+    "previous": "Previous"
+  },
   "login": {
     "button": "Sign in",
     "notification": {

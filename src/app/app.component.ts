@@ -22,33 +22,40 @@ import { UserService } from '@gravitee/ng-portal-webclient';
 import { CurrentUserService } from './services/current-user.service';
 import { NotificationService } from './services/notification.service';
 import { NavigationStart, Router } from '@angular/router';
+import { addTranslations, setLanguage } from '@gravitee/ui-components/src/lib/i18n';
 
 @Component({
-    selector: 'app-root',
-    templateUrl: './app.component.html'
+  selector: 'app-root',
+  templateUrl: './app.component.html'
 })
 export class AppComponent implements OnInit {
 
   constructor(
-      private titleService: Title,
-      private translateService: TranslateService,
-      private userService: UserService,
-      private currentUserService: CurrentUserService,
-      private notificationService: NotificationService,
-      private router: Router,
-  ) {}
+    private titleService: Title,
+    private translateService: TranslateService,
+    private userService: UserService,
+    private currentUserService: CurrentUserService,
+    private notificationService: NotificationService,
+    private router: Router,
+  ) {
+  }
 
   ngOnInit() {
-      this.translateService.addLangs(environment.locales);
-      this.translateService.setDefaultLang(environment.locales[0]);
-      const browserLang = this.translateService.getBrowserLang();
-      this.translateService.use(environment.locales.includes(browserLang) ? browserLang : 'en');
-      this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
-      this.userService.getCurrentUser().subscribe((user) => this.currentUserService.changeUser(user));
-      this.router.events.subscribe((event) => {
-        if (event instanceof NavigationStart) {
-          this.notificationService.reset();
-        }
-      });
+    this.translateService.addLangs(environment.locales);
+    this.translateService.setDefaultLang(environment.locales[0]);
+    const browserLang = this.translateService.getBrowserLang();
+    this.translateService.use(environment.locales.includes(browserLang) ? browserLang : 'en');
+    this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
+    this.translateService.getTranslation(this.translateService.currentLang).subscribe(translation => {
+      setLanguage(this.translateService.currentLang);
+      addTranslations(this.translateService.currentLang, translation);
+    });
+
+    this.userService.getCurrentUser().subscribe((user) => this.currentUserService.changeUser(user));
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        this.notificationService.reset();
+      }
+    });
   }
 }
