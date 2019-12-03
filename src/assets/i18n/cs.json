@@ -53,6 +53,52 @@
       "finalized": "Účet již byl dokončen"
     }
   },
+  "footer": {
+    "categorized": {
+      "catalog": {
+        "links": {
+          "documentations": "Dokumentace",
+          "moreInfo": "Další informace",
+          "products": "Zobrazit produkty"
+        },
+        "title": "API Catalog"
+      },
+      "help": {
+        "links": {
+          "contact": "kontaktujte nás",
+          "faq": "FAQ",
+          "support": "Support"
+        },
+        "title": "Potřebujete pomoc"
+      },
+      "howItWorks": {
+        "links": {
+          "blog": "Blog",
+          "ebooks": "ebooks",
+          "events": "události",
+          "news": "News"
+        },
+        "title": "Jak to funguje"
+      },
+      "resources": {
+        "links": {
+          "blog": "Blog",
+          "ebooks": "ebooks",
+          "events": "události",
+          "news": "News"
+        },
+        "title": "Zdroje"
+      }
+    },
+    "links": {
+      "cgu": "CGU",
+      "cookies": "cookies",
+      "mentions": "Právní upozornění",
+      "rgpd": "RGPD",
+      "status": "Status"
+    },
+    "rights": "© Všechna práva vyhrazena 2019"
+  },
   "gv-pagination": {
     "next": "Next",
     "previous": "Předchozí"

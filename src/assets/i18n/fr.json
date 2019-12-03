@@ -53,6 +53,52 @@
       "finalized": "Le compte a déjà été finalisé"
     }
   },
+  "footer": {
+    "categorized": {
+      "catalog": {
+        "links": {
+          "documentations": "Documentations",
+          "moreInfo": "En savoir plus",
+          "products": "Voir les produits"
+        },
+        "title": "Catalogue d'API"
+      },
+      "help": {
+        "links": {
+          "contact": "Nous contacter",
+          "faq": "FAQ",
+          "support": "Support"
+        },
+        "title": "Besoin d'aide"
+      },
+      "howItWorks": {
+        "links": {
+          "blog": "Blog",
+          "ebooks": "Ebooks",
+          "events": "Événements",
+          "news": "Nouveautés"
+        },
+        "title": "Comment ça marche"
+      },
+      "resources": {
+        "links": {
+          "blog": "Blog",
+          "ebooks": "Ebooks",
+          "events": "Événements",
+          "news": "Nouveautés"
+        },
+        "title": "Ressources"
+      }
+    },
+    "links": {
+      "cgu": "CGU",
+      "cookies": "Cookies",
+      "mentions": "Mentions légales",
+      "rgpd": "RGPD",
+      "status": "Statut"
+    },
+    "rights": "© Droits réservés 2019"
+  },
   "gv-pagination": {
     "next": "Suivant",
     "previous": "Précédent"

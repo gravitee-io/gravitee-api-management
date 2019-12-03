@@ -25,6 +25,7 @@ import '@gravitee/ui-components/wc/gv-user-menu';
 import '@gravitee/ui-components/wc/gv-user-menu';
 import { NotificationService } from '../../services/notification.service';
 import { Notification } from '../../model/notification';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
   selector: 'app-layout',
@@ -36,6 +37,7 @@ export class LayoutComponent implements OnInit {
   public userRoutes: object[];
   public currentUser: User;
   public notification: Notification;
+  public links: any;
 
   constructor(
     private titleService: Title,
@@ -62,6 +64,48 @@ export class LayoutComponent implements OnInit {
     });
     this.mainRoutes = this.routeService.getRoutes(RouteType.main);
     this.userRoutes = this.routeService.getRoutes(RouteType.user);
+
+    this.links = {
+      categorized: [
+        {
+          title: i18n('footer.categorized.catalog.title'), links: [
+            { title: i18n('footer.categorized.catalog.links.moreInfo'), link: '/' },
+            { title: i18n('footer.categorized.catalog.links.products'), link: '/' },
+            { title: i18n('footer.categorized.catalog.links.documentations'), link: '/' },
+          ]
+        },
+        {
+          title: i18n('footer.categorized.help.title'), links: [
+            { title: i18n('footer.categorized.help.links.contact'), link: '/' },
+            { title: i18n('footer.categorized.help.links.support'), link: '/' },
+            { title: i18n('footer.categorized.help.links.faq'), link: '/' },
+          ]
+        },
+        {
+          title: i18n('footer.categorized.resources.title'), links: [
+            { title: i18n('footer.categorized.resources.links.news'), link: '/' },
+            { title: i18n('footer.categorized.resources.links.blog'), link: '/' },
+            { title: i18n('footer.categorized.resources.links.ebooks'), link: '/' },
+            { title: i18n('footer.categorized.resources.links.events'), link: '/' },
+          ]
+        },
+        {
+          title: i18n('footer.categorized.howItWorks.title'), links: [
+            { title: i18n('footer.categorized.howItWorks.links.news'), link: '/' },
+            { title: i18n('footer.categorized.howItWorks.links.blog'), link: '/' },
+            { title: i18n('footer.categorized.howItWorks.links.ebooks'), link: '/' },
+            { title: i18n('footer.categorized.howItWorks.links.events'), link: '/' },
+          ]
+        },
+      ],
+      global: [
+        { title: i18n('footer.links.mentions'), link: '/' },
+        { title: i18n('footer.links.cgu'), link: '/' },
+        { title: i18n('footer.links.cookies'), link: '/' },
+        { title: i18n('footer.links.rgpd'), link: '/' },
+        { title: i18n('footer.links.status'), link: '/' },
+      ]
+    };
   }
 
   showLogin() {

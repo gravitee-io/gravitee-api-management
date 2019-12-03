@@ -18,7 +18,7 @@
 <div class="layout">
   <header class="bg-white w-100 dt layout__header">
     <div class="w-20 dtc v-mid">
-      <a href="" class="layout__header__logo link" title="{{ 'site.title' | translate }}"></a>
+      <a [routerLink]="'/'" class="layout__header__logo link" title="{{ 'site.title' | translate }}"></a>
     </div>
 
     <gv-nav [routes]="mainRoutes" class="w-60 dtc v-mid tc"></gv-nav>
@@ -40,11 +40,24 @@
 
 
   <footer>
-    <section class="footer__links">
-
+    <section class="layout__footer__top">
+      <div class="w-20 v-mid fl">
+        <a [routerLink]="'/'" class="layout__footer__top__logo link" title="{{ 'site.title' | translate }}"></a>
+      </div>
+      <div class="layout__footer__top__category" *ngFor="let category of links.categorized">
+        <span class="layout__footer__top__category__title">{{category.title | translate}}</span>
+        <ul class="layout__footer__top__category__links">
+          <li *ngFor="let link of category.links"><a [href]="link.link">{{link.title | translate}}</a></li>
+        </ul>
+      </div>
     </section>
-    <section class="footer__end">
-
+    <section class="layout__footer__bottom">
+      <ul class="layout__footer__bottom__links">
+        <li *ngFor="let link of links.global"><a [href]="link.link">{{link.title | translate}}</a></li>
+      </ul>
+      <ul class="layout__footer__bottom__rights">
+        <li>{{ 'footer.rights' | translate }}</li>
+      </ul>
     </section>
   </footer>
 </div>

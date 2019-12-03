@@ -53,6 +53,52 @@
       "finalized": "The account has already been finalized"
     }
   },
+  "footer": {
+    "categorized": {
+      "catalog": {
+        "links": {
+          "documentations": "Documentations",
+          "moreInfo": "Learn more",
+          "products": "See the products"
+        },
+        "title": "API Catalog"
+      },
+      "help": {
+        "links": {
+          "contact": "contact us",
+          "faq": "FAQ",
+          "support": "Support"
+        },
+        "title": "Need help"
+      },
+      "howItWorks": {
+        "links": {
+          "blog": "Blog",
+          "ebooks": "Ebooks",
+          "events": "Events",
+          "news": "News"
+        },
+        "title": "How it works"
+      },
+      "resources": {
+        "links": {
+          "blog": "Blog",
+          "ebooks": "Ebooks",
+          "events": "Events",
+          "news": "News"
+        },
+        "title": "Resources"
+      }
+    },
+    "links": {
+      "cgu": "CGU",
+      "cookies": "Cookies",
+      "mentions": "Legal notices",
+      "rgpd": "RGPD",
+      "status": "Status"
+    },
+    "rights": "© All rights reserved 2019"
+  },
   "gv-pagination": {
     "next": "Next",
     "previous": "Previous"
