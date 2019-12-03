@@ -107,13 +107,21 @@
     "empty": "Žádné rozhraní API k zobrazení zde",
     "error": "Při načítání API došlo k chybě"
   },
+  "gv-metrics": {
+    "subscribers": "Předplatitelé",
+    "hits": "Zásah",
+    "health": "Zdraví"
+  },
   "gv-pagination": {
-    "next": "Next",
+    "next": "Další",
     "previous": "Předchozí"
   },
   "gv-promote-api": {
     "empty": "Žádné rozhraní API k zobrazení zde",
     "error": "Při načítání API došlo k chybě"
+  },
+  "gv-rating": {
+    "notes": "Poznámky"
   },
   "gv-row-api": {
     "empty": "Žádné výsledky k zobrazení",

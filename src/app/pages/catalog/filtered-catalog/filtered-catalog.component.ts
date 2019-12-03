@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { ApiService, Api, CategoryApiQuery, PortalService } from '@gravitee/ng-portal-webclient';
+import { ApiService, Api, CategoryApiQuery, PortalService, ApiMetrics } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-promote-api';
 import '@gravitee/ui-components/wc/gv-card-api-full';
 import '@gravitee/ui-components/wc/gv-card-api';
@@ -44,6 +44,7 @@ export class FilteredCatalogComponent implements OnInit {
   private size: number;
 
   allApis: Array<Promise<Api>>;
+  allApisMetrics: Array<Promise<ApiMetrics>>;
   randomList: Promise<any>[];
   promotedApi: Promise<{} | Api>;
   categoryApiQuery: CategoryApiQuery;
@@ -62,6 +63,7 @@ export class FilteredCatalogComponent implements OnInit {
               private apiLabels: ApiLabelsPipe) {
     // @ts-ignore
     this.allApis = [];
+    this.allApisMetrics = [];
     this.randomList = [];
   }
 
@@ -156,6 +158,8 @@ export class FilteredCatalogComponent implements OnInit {
             // @ts-ignore
             this.views = defaultViews.concat(this._getViews(allList));
             this.allApis = allList.slice(withPromotedApi).map((a) => {
+              // metrics only needed in default view
+              this.allApisMetrics.push(this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise());
               a.states = this.apiStates.transform(a);
               a.labels = this.apiLabels.transform(a);
               return Promise.resolve(a);

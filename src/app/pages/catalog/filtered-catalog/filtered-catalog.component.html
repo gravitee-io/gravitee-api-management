@@ -47,7 +47,7 @@
     </div>
 
     <section *ngIf="inDefaultDisplay()" class="catalog__cards">
-      <gv-card-api-full *ngFor="let api of allApis" [api]="api"></gv-card-api-full>
+      <gv-card-api-full *ngFor="let api of allApis; let index = index" [api]="api" [metrics]="allApisMetrics[index]"></gv-card-api-full>
     </section>
 
     <section *ngIf="!inDefaultDisplay()" class="catalog__list">

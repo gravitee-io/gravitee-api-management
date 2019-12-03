@@ -107,6 +107,11 @@
     "empty": "Aucune API à afficher ici",
     "error": "Une erreur est survenue pendant de le chargement de l'API"
   },
+  "gv-metrics": {
+    "subscribers": "Souscriptions",
+    "hits": "Appels",
+    "health": "Santé"
+  },
   "gv-pagination": {
     "next": "Suivant",
     "previous": "Précédent"
@@ -114,6 +119,9 @@
   "gv-promote-api": {
     "empty": "Aucune API à afficher ici",
     "error": "Une erreur est survenue pendant de le chargement de l'API"
+  },
+  "gv-rating": {
+    "notes": "Notes"
   },
   "gv-row-api": {
     "empty": "Aucun résultat à afficher",

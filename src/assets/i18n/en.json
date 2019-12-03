@@ -107,6 +107,11 @@
     "empty": "No API to display here",
     "error": "An error occurred while loading the API"
   },
+  "gv-metrics": {
+    "subscribers": "Subscribers",
+    "hits": "Hits",
+    "health": "Health"
+  },
   "gv-pagination": {
     "next": "Next",
     "previous": "Previous"
@@ -114,6 +119,9 @@
   "gv-promote-api": {
     "empty": "No API to display here",
     "error": "An error occurred while loading the API"
+  },
+  "gv-rating": {
+    "notes": "Notes"
   },
   "gv-row-api": {
     "empty": "No results to display",
