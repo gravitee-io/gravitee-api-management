@@ -226,6 +226,7 @@ public class ApiMapperTest {
         assertNotNull(links);
         
         assertEquals(basePath, links.getSelf());
+        assertEquals(basePath+"/metrics", links.getMetrics());
         assertEquals(basePath+"/pages", links.getPages());
         assertEquals(basePath+"/picture", links.getPicture());
         assertEquals(basePath+"/plans", links.getPlans());

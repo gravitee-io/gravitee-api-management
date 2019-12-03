@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  */
 @Component
 public class ApiMapper {
-    
+
     @Autowired
     private RatingService ratingService;
 
@@ -51,30 +51,30 @@ public class ApiMapper {
     public Api convert(ApiEntity api) {
         final Api apiItem = new Api();
         apiItem.setDescription(api.getDescription());
-        
+
         List<ApiEntrypointEntity> apiEntrypoints = api.getEntrypoints();
-        if(apiEntrypoints != null) {
-            List<String> entrypoints = apiEntrypoints.stream()
-                    .map(ApiEntrypointEntity::getTarget)
+        if (apiEntrypoints != null) {
+            List<String> entrypoints = apiEntrypoints.stream().map(ApiEntrypointEntity::getTarget)
                     .collect(Collectors.toList());
             apiItem.setEntrypoints(entrypoints);
         }
-        
-        apiItem.setDraft(api.getLifecycleState() == ApiLifecycleState.UNPUBLISHED || api.getLifecycleState() == ApiLifecycleState.CREATED);
-        
+
+        apiItem.setDraft(api.getLifecycleState() == ApiLifecycleState.UNPUBLISHED
+                || api.getLifecycleState() == ApiLifecycleState.CREATED);
+
         apiItem.setId(api.getId());
-        
+
         List<String> apiLabels = api.getLabels();
-        if(apiLabels != null) {
+        if (apiLabels != null) {
             apiItem.setLabels(new ArrayList<String>(apiLabels));
         } else {
             apiItem.setLabels(new ArrayList<String>());
         }
-        
+
         apiItem.setName(api.getName());
-        
+
         PrimaryOwnerEntity primaryOwner = api.getPrimaryOwner();
-        if(primaryOwner != null) {
+        if (primaryOwner != null) {
             User owner = new User();
             owner.setId(primaryOwner.getId());
             owner.setDisplayName(primaryOwner.getDisplayName());
@@ -83,16 +83,14 @@ public class ApiMapper {
         }
         apiItem.setPages(null);
         apiItem.setPlans(null);
-        
+
         if (ratingService.isEnabled()) {
             final RatingSummaryEntity ratingSummaryEntity = ratingService.findSummaryByApi(api.getId());
-            RatingSummary ratingSummary = new RatingSummary()
-                    .average(ratingSummaryEntity.getAverageRate())
-                    .count(BigDecimal.valueOf(ratingSummaryEntity.getNumberOfRatings()))
-                    ;
+            RatingSummary ratingSummary = new RatingSummary().average(ratingSummaryEntity.getAverageRate())
+                    .count(BigDecimal.valueOf(ratingSummaryEntity.getNumberOfRatings()));
             apiItem.setRatingSummary(ratingSummary);
         }
-        
+
         apiItem.setVersion(api.getVersion());
         if (api.getViews() != null) {
             apiItem.setViews(api.getViews().stream().filter(viewId -> {
@@ -106,12 +104,13 @@ public class ApiMapper {
         } else {
             apiItem.setViews(new ArrayList<String>());
         }
-        
+
         return apiItem;
     }
 
     public ApiLinks computeApiLinks(String basePath) {
         ApiLinks apiLinks = new ApiLinks();
+        apiLinks.setMetrics(basePath +"/metrics");
         apiLinks.setPages(basePath + "/pages");
         apiLinks.setPicture(basePath + "/picture");
         apiLinks.setPlans(basePath + "/plans");

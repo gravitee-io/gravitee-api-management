@@ -15,22 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PlanEntity;
@@ -49,6 +33,18 @@ import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
+
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
@@ -57,86 +53,80 @@ public class ApiResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-    
+
     @Inject
     private ApiMapper apiMapper;
     @Inject
     private PageMapper pageMapper;
     @Inject
     private PlanMapper planMapper;
-    
+
     @Inject
     private PageService pageService;
     @Inject
     private PlanService planService;
     @Inject
     private GroupService groupService;
-    
+
     private static final String INCLUDE_PAGES = "pages";
     private static final String INCLUDE_PLANS = "plans";
-    
+
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getApiByApiId(@PathParam("apiId") String apiId, @QueryParam("include") List<String> include) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-        if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
-            
+        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+
             ApiEntity apiEntity = apiService.findById(apiId);
             Api api = apiMapper.convert(apiEntity);
-            
-            if(include.contains(INCLUDE_PAGES)) {
-                List<Page> pages = pageService
-                        .search(new PageQuery.Builder()
-                                .api(apiId)
-                                .build())
-                        .stream()
+
+            if (include.contains(INCLUDE_PAGES)) {
+                List<Page> pages = pageService.search(new PageQuery.Builder().api(apiId).build()).stream()
                         .filter(page -> isDisplayable(apiEntity, page.isPublished(), page.getExcludedGroups()))
-                        .map(pageMapper::convert)
-                        .map(page-> page.content(null))
-                        .collect(Collectors.toList());
+                        .map(pageMapper::convert).map(page -> page.content(null)).collect(Collectors.toList());
                 api.setPages(pages);
             }
-            if(include.contains(INCLUDE_PLANS)) {
+            if (include.contains(INCLUDE_PLANS)) {
                 String user = getAuthenticatedUserOrNull();
                 List<Plan> plans = planService.findByApi(apiId).stream()
                         .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
-                        .filter(plan -> (isAuthenticated() || groupService.
-                                isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())))
-                        .sorted(Comparator.comparingInt(PlanEntity::getOrder))
-                        .map(p->planMapper.convert(p, user))
+                        .filter(plan -> (isAuthenticated() || groupService.isUserAuthorizedToAccessApiData(apiEntity,
+                                plan.getExcludedGroups(), getAuthenticatedUserOrNull())))
+                        .sorted(Comparator.comparingInt(PlanEntity::getOrder)).map(p -> planMapper.convert(p, user))
                         .collect(Collectors.toList());
                 api.setPlans(plans);
             }
-                    
+
             api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())));
-            
-            return Response
-                    .ok(api)
-                    .build();
+
+            return Response.ok(api).build();
         }
         throw new ApiNotFoundException(apiId);
     }
 
     private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {
-        return (isAuthenticated())
-                ||
-                ( pageService.isDisplayable(api, isPagePublished, getAuthenticatedUserOrNull()) &&
-                        groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull()));
+        return (isAuthenticated()) || (pageService.isDisplayable(api, isPagePublished, getAuthenticatedUserOrNull())
+                && groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull()));
 
     }
-    
+
     @GET
     @Path("picture")
-    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
+    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
     public Response getPictureByApiId(@Context Request request, @PathParam("apiId") String apiId) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-        if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
+        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             InlinePictureEntity image = apiService.getPicture(apiId);
 
             return createPictureReponse(request, image);
         }
         throw new ApiNotFoundException(apiId);
+    }
+
+    @Path("metrics")
+    public ApiMetricsResource getApiMetricsResource() {
+        return resourceContext.getResource(ApiMetricsResource.class);
     }
 
     @Path("pages")

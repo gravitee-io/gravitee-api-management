@@ -45,7 +45,7 @@ import static org.mockito.Mockito.reset;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(loader=AnnotationConfigContextLoader.class)
+@ContextConfiguration(loader = AnnotationConfigContextLoader.class)
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
     protected void resetAllMocks() {
@@ -103,8 +103,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(configMapper);
         reset(identityProviderMapper);
         reset(viewEnhancer);
+        reset(healthCheckService);
     }
-    
+
     public AbstractResourceTest() {
         super(new AuthenticationProviderManager() {
             @Override
@@ -204,7 +205,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected AnalyticsService analyticsService;
-    
+
     @Autowired
     protected PortalNotificationConfigService portalNotificationConfigService;
 
@@ -216,19 +217,19 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected TopApiService topApiService;
-    
+
     @Autowired
     protected ViewService viewService;
-    
+
     @Autowired
     protected TicketService ticketService;
-    
+
     @Autowired
     protected ConfigService configService;
-    
+
     @Autowired
     protected JWTCookieGenerator jwtCookieGenerator;
-    
+
     @Autowired
     protected ApiMapper apiMapper;
 
@@ -276,23 +277,24 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ViewEnhancer viewEnhancer;
-    
+
     @Autowired
     protected PortalNotificationMapper portalNotificationMapper;
 
     @Autowired
     protected IdentityProviderMapper identityProviderMapper;
-    
-    
-    
+
+    @Autowired
+    protected HealthCheckService healthCheckService;
+
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/portal/rest/resource/jwt.properties")
     static class ContextConfiguration {
 
-    	@Bean
-    	public ApiService apiService() {
-    		return mock(ApiService.class);
-    	}
+        @Bean
+        public ApiService apiService() {
+            return mock(ApiService.class);
+        }
 
         @Bean
         public ApplicationService applicationService() {
@@ -366,7 +368,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
         @Bean
         public JWTCookieGenerator jwtCookieGenerator() {
-    	    return mock(JWTCookieGenerator.class);
+            return mock(JWTCookieGenerator.class);
         }
 
         @Bean
@@ -523,7 +525,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public AnalyticsMapper analyticsMapper() {
             return mock(AnalyticsMapper.class);
         }
-        
+
         @Bean
         public NotificationConfigMapper notificationConfigMapper() {
             return mock(NotificationConfigMapper.class);
@@ -533,7 +535,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public PortalNotificationMapper portalNotificationMapper() {
             return mock(PortalNotificationMapper.class);
         }
-        
+
         @Bean
         public ViewMapper viewMapper() {
             return mock(ViewMapper.class);
@@ -557,6 +559,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ViewEnhancer viewEnhancer() {
             return mock(ViewEnhancer.class);
+        }
+
+        @Bean
+        public HealthCheckService healthCheckService() {
+            return mock(HealthCheckService.class);
         }
     }
 }

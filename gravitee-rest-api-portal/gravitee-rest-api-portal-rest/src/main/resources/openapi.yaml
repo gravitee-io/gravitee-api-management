@@ -124,6 +124,33 @@ paths:
           $ref: '#/components/responses/APINotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /apis/{apiId}/metrics:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+    get:
+      tags:
+        - Api
+      summary: Get API metrics
+      description:  |
+        Get some metrics about an API :
+          * number of subscribers
+          * number of hits during the last 7 days
+          * health ratio over the last week
+
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
+      operationId: getApiMetricsByApiId
+      security: []
+      responses:
+        200:
+          description: API metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiMetrics'
+        404:
+          $ref: '#/components/responses/APINotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}/pages:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
@@ -2211,6 +2238,18 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Plan'
+    ApiMetrics:
+      properties:
+        subscribers:
+          type: number
+          description: Number of applications that have subscribed to this API.
+        hits:
+          type: number
+          description: Number of calls on this API, during last 7 days.
+        health:
+           type: number
+           description: Healthcheck ratio over the last 7 days. It's a decimal number between 0 and 1.
+           example: 0.9876
     Page:
       required:
         - id
@@ -3250,6 +3289,8 @@ components:
     ApiLinks:
       properties:
         self:
+          type: string
+        metrics:
           type: string
         pages:
           type: string
