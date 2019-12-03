@@ -98,7 +98,7 @@ export class LoginComponent implements OnInit, AfterViewChecked {
         },
         () => {
           this.notificationService.error(i18n('login.notification.error'));
-          this.loginForm.reset();
+          this.loginForm.setValue({ username: this.loginForm.value.username, password: '' });
         }
       );
     }

@@ -99,9 +99,25 @@
     },
     "rights": "© Droits réservés 2019"
   },
+  "gv-card-api-full": {
+    "empty": "Aucune API à afficher ici",
+    "error": "Une erreur est survenue pendant de le chargement de l'API"
+  },
+  "gv-card-api": {
+    "empty": "Aucune API à afficher ici",
+    "error": "Une erreur est survenue pendant de le chargement de l'API"
+  },
   "gv-pagination": {
     "next": "Suivant",
     "previous": "Précédent"
+  },
+  "gv-promote-api": {
+    "empty": "Aucune API à afficher ici",
+    "error": "Une erreur est survenue pendant de le chargement de l'API"
+  },
+  "gv-row-api": {
+    "empty": "Aucun résultat à afficher",
+    "error": "Une erreur est survenue pendant de le chargement de l'API"
   },
   "login": {
     "button": "Se connecter",
@@ -162,6 +178,9 @@
     "query": {
       "label": "Rechercher",
       "placeholder": "Rechercher une API, APP..."
+    },
+    "results": {
+      "label": "{totalElements} résultat(s)"
     }
   },
   "site": {

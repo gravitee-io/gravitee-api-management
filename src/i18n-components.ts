@@ -16,6 +16,14 @@
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 i18n([
-  'gv-pagination.previous',
+  'gv-card-api.empty',
+  'gv-card-api.error',
+  'gv-card-api-full.empty',
+  'gv-card-api-full.error',
   'gv-pagination.next',
+  'gv-pagination.previous',
+  'gv-promote-api.empty',
+  'gv-promote-api.error',
+  'gv-row-api.empty',
+  'gv-row-api.error',
 ]);

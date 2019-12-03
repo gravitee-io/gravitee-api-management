@@ -35,8 +35,8 @@
       <div class="catalog-search">
 
         <div class="catalog-search__title">
-          <h1 class="title">API <span>({{ totalElements }})</span></h1>
-          <gv-select [options]="pageSizes" small [value]="paginationSize" (input)="this.onChangePageSize($event)"></gv-select>
+          <h1 class="title" *ngIf="hasResult()">{{ 'search.results.label' | translate : { "totalElements": totalElements } }}</h1>
+          <gv-select *ngIf="totalElements" [options]="pageSizes" small [value]="paginationSize" (input)="this.onChangePageSize($event)"></gv-select>
         </div>
 
         <div *ngIf="apiResults" class="catalog-search__list">

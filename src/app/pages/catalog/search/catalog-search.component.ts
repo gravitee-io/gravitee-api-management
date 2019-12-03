@@ -38,7 +38,7 @@ export class CatalogSearchComponent implements OnInit {
   pageSizes: [];
   paginationData: any;
   apiResults: Array<Promise<Api>>;
-  totalElements: string;
+  totalElements: number;
   currentPage;
   paginationSize: number;
 
@@ -65,7 +65,7 @@ export class CatalogSearchComponent implements OnInit {
       if (params.has(SearchQueryParam.SIZE)) {
         const size = parseInt(params.get(SearchQueryParam.SIZE), 10);
         const closestPageSize = this.pageSizes.reduce((prev, curr) => {
-          return (Math.abs(parseInt(curr, 10) - size) < Math.abs(parseInt(prev, 10) - size) ? curr : prev);
+          return (Math.abs(curr - size) < Math.abs(prev - size) ? curr : prev);
         });
         this.paginationSize = closestPageSize;
 
@@ -77,19 +77,24 @@ export class CatalogSearchComponent implements OnInit {
 
   _loadData() {
     this.apiResults = new Array(this.paginationSize);
-    this.apiService.searchApis(new SearchRequestParams(this.searchForm.value.query, this.paginationSize, this.currentPage))
+    this.apiService.searchApis(new SearchRequestParams(this.searchForm.value.query || '*', this.paginationSize, this.currentPage))
       .subscribe({
         next: (apisResponse: ApisResponse) => {
-          this.apiResults = apisResponse.data.map((a) => {
-            a.labels = this.apiLabelsPipe.transform(a);
-            return Promise.resolve(a);
-          });
+          if (apisResponse.data.length) {
+            this.apiResults = apisResponse.data.map((a) => {
+              a.labels = this.apiLabelsPipe.transform(a);
+              return Promise.resolve(a);
+            });
+          } else {
+            // @ts-ignore
+            this.apiResults = [Promise.resolve({})];
+          }
           this.paginationData = apisResponse.metadata.pagination;
-          this.totalElements = (this.paginationData ? this.paginationData.total : '0');
+          this.totalElements = (this.paginationData ? this.paginationData.total : 0);
         },
         error: (err) => {
           // @ts-ignore
-          this.apiResults.fill(() => Promise.reject(err));
+          this.apiResults = this.apiResults.map(() => Promise.reject(err));
         }
       });
   }
@@ -108,9 +113,13 @@ export class CatalogSearchComponent implements OnInit {
   }
 
   onSubmitSearch() {
-    if (this.searchForm.valid && this.searchForm.value.query !== '') {
+    if (this.searchForm.valid) {
       const queryParams = new SearchRequestParams(this.searchForm.value.query, this.paginationSize);
       this.router.navigate([], { queryParams });
     }
+  }
+
+  hasResult(): boolean {
+    return this.totalElements != null;
   }
 }

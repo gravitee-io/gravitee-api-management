@@ -2,8 +2,8 @@
   "baseUrl": "/portal/DEFAULT",
   "pagination": {
     "size": {
-      "default": "10",
-      "values": ["5", "10", "25", "50", "100"]
+      "default": 10,
+      "values": [5, 10, 25, 50, 100]
     }
   }
 }

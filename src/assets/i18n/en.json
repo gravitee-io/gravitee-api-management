@@ -99,9 +99,25 @@
     },
     "rights": "© All rights reserved 2019"
   },
+  "gv-card-api-full": {
+    "empty": "No API to display here",
+    "error": "An error occurred while loading the API"
+  },
+  "gv-card-api": {
+    "empty": "No API to display here",
+    "error": "An error occurred while loading the API"
+  },
   "gv-pagination": {
     "next": "Next",
     "previous": "Previous"
+  },
+  "gv-promote-api": {
+    "empty": "No API to display here",
+    "error": "An error occurred while loading the API"
+  },
+  "gv-row-api": {
+    "empty": "No results to display",
+    "error": "An error occurred while loading the API"
   },
   "login": {
     "button": "Sign in",
@@ -162,6 +178,9 @@
     "query": {
       "label": "Search",
       "placeholder": "Search API, APP ..."
+    },
+    "results": {
+      "label": "{totalElements} result(s)"
     }
   },
   "site": {

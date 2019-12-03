@@ -47,7 +47,6 @@ export class FilteredCatalogComponent implements OnInit {
   randomList: Promise<any>[];
   promotedApi: Promise<{} | Api>;
   categoryApiQuery: CategoryApiQuery;
-  total: number;
   views: Array<string>;
   currentView: string;
   paginationData: any;
@@ -128,11 +127,6 @@ export class FilteredCatalogComponent implements OnInit {
       });
 
     this._loadCards();
-
-    this.apiService.getApis({ cat: this.categoryApiQuery }).subscribe(({ metadata: { data: { total } } }) => {
-      this.total = Number(total);
-    });
-
   }
 
   async _loadCards() {

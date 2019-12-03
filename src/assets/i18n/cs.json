@@ -99,9 +99,25 @@
     },
     "rights": "© Všechna práva vyhrazena 2019"
   },
+  "gv-card-api-full": {
+    "empty": "Žádné rozhraní API k zobrazení zde",
+    "error": "Při načítání API došlo k chybě"
+  },
+  "gv-card-api": {
+    "empty": "Žádné rozhraní API k zobrazení zde",
+    "error": "Při načítání API došlo k chybě"
+  },
   "gv-pagination": {
     "next": "Next",
     "previous": "Předchozí"
+  },
+  "gv-promote-api": {
+    "empty": "Žádné rozhraní API k zobrazení zde",
+    "error": "Při načítání API došlo k chybě"
+  },
+  "gv-row-api": {
+    "empty": "Žádné výsledky k zobrazení",
+    "error": "Při načítání API došlo k chybě"
   },
   "login": {
     "button": "Přihlásit",
@@ -162,6 +178,9 @@
     "query": {
       "label": "Hledat",
       "placeholder": "Vyhledat API, APP ..."
+    },
+    "results": {
+      "label": "{totalElements} výsledek"
     }
   },
   "site": {

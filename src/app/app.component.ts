@@ -44,12 +44,11 @@ export class AppComponent implements OnInit {
     this.translateService.addLangs(environment.locales);
     this.translateService.setDefaultLang(environment.locales[0]);
     const browserLang = this.translateService.getBrowserLang();
-    this.translateService.use(environment.locales.includes(browserLang) ? browserLang : 'en');
-    this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
-    this.translateService.getTranslation(this.translateService.currentLang).subscribe(translation => {
+    this.translateService.use(environment.locales.includes(browserLang) ? browserLang : 'en').subscribe((translations) => {
       setLanguage(this.translateService.currentLang);
-      addTranslations(this.translateService.currentLang, translation);
+      addTranslations(this.translateService.currentLang, translations);
     });
+    this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
 
     this.userService.getCurrentUser().subscribe((user) => this.currentUserService.changeUser(user));
     this.router.events.subscribe((event) => {

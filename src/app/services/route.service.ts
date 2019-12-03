@@ -84,29 +84,13 @@ export class RouteService {
   getRoutes(type: RouteType) {
     const c = this.flattenedRoutes
       .filter(route => route.data && (route.data.type === type) && this.featureGuardService.canActivate(route))
-      .map(({ path, data: { title, icon, separator, categoryApiQuery } }) => {
-        let help = null;
-        if (type === RouteType.catalog) {
-          if (categoryApiQuery) {
-            help = this.apiService
-              .getApis({ cat: categoryApiQuery, size: 0 })
-              .toPromise()
-              .then(({ metadata: { data: { total } } }) => total);
-          } else {
-            help = this.portalService
-              .getViews({ size: 0 })
-              .toPromise()
-              .then(({ metadata: { data: { total } } }) => total);
-          }
-        }
-
+      .map(({ path, data: { title, icon, separator } }) => {
         return {
           path,
           icon,
           active: this.router.isActive(`/${ path }`, false),
           title: this.translateService.get(title).toPromise(),
           separator,
-          help
         };
       });
     return c;
