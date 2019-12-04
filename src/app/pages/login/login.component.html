@@ -23,6 +23,7 @@
     <form *ngIf="loginForm" [formGroup]="loginForm" (ngSubmit)="login()">
       <gv-input
         required
+        autofocus
         name="username"
         label="{{ 'login.username' | translate}}"
         formControlName="username"
