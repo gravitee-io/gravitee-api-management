@@ -31,7 +31,6 @@ import { LoginComponent } from './pages/login/login.component';
 import { ApiModule, BASE_PATH } from '@gravitee/ng-portal-webclient';
 import { environment } from '../environments/environment';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { CatalogComponent } from './pages/catalog/catalog.component';
 import { AppsComponent } from './pages/apps/apps.component';
 import { UserComponent } from './pages/user/user.component';
 import { LogoutComponent } from './pages/logout/logout.component';
@@ -54,7 +53,6 @@ import { ConfigurationService } from './services/configuration.service';
     AppComponent,
     LayoutComponent,
     DashboardComponent,
-    CatalogComponent,
     AppsComponent,
     LoginComponent,
     UserComponent,

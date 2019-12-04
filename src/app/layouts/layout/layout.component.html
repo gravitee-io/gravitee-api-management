@@ -24,16 +24,19 @@
     <gv-nav [routes]="mainRoutes" class="w-60 dtc v-mid tc"></gv-nav>
 
     <div class="w-20 dtc v-mid tr">
-      <gv-nav-link *ngIf="showLogin()" path="/login" [attr.title]="'route.login' | translate"></gv-nav-link>
-      <gv-user-menu *ngIf="currentUser" [routes]="userRoutes"
-        class="layout__user-menu" username="{{currentUser.display_name}}">
-        <app-user-avatar [user]="currentUser"></app-user-avatar>
+      <gv-user-menu [routes]="userRoutes" class="layout__user-menu" [username]="this.getUserName()">
+        <app-user-avatar *ngIf="currentUser" [user]="currentUser"></app-user-avatar>
       </gv-user-menu>
     </div>
 
   </header>
 
   <div class="layout__content">
+    <gv-menu [routes]="menuRoutes" [small]="menuSmall">
+      <gv-input slot="right" *ngIf="hasSearch"
+                type="search" [attr.placeholder]="'catalog.search' | translate"></gv-input>
+
+    </gv-menu>
     <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
     <router-outlet></router-outlet>
   </div>
@@ -47,13 +50,17 @@
       <div class="layout__footer__top__category" *ngFor="let category of links.categorized">
         <span class="layout__footer__top__category__title">{{category.title | translate}}</span>
         <ul class="layout__footer__top__category__links">
-          <li *ngFor="let link of category.links"><a [href]="link.link">{{link.title | translate}}</a></li>
+          <li *ngFor="let link of category.links">
+            <a [href]="link.link">{{link.title | translate}}</a>
+          </li>
         </ul>
       </div>
     </section>
     <section class="layout__footer__bottom">
       <ul class="layout__footer__bottom__links">
-        <li *ngFor="let link of links.global"><a [href]="link.link">{{link.title | translate}}</a></li>
+        <li *ngFor="let link of links.global">
+          <a [href]="link.link">{{link.title | translate}}</a>
+        </li>
       </ul>
       <ul class="layout__footer__bottom__rights">
         <li>{{ 'footer.rights' | translate }}</li>

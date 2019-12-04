@@ -106,3 +106,7 @@
   color: var(--gv-theme-color-lighter);
   text-decoration: none;
 }
+
+gv-menu gv-input {
+  width: 100%;
+}

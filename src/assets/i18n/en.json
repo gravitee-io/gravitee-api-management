@@ -173,6 +173,7 @@
     "apps": "Applications",
     "catalog": "Catalog",
     "catalogCategories": "Categories",
+    "catalogCategory": "Category",
     "catalogFeatured": "Featured",
     "catalogStarred": "Starred",
     "catalogTrending": "Trending",
@@ -183,10 +184,6 @@
     "user": "My profile"
   },
   "search": {
-    "query": {
-      "label": "Search",
-      "placeholder": "Search API, APP ..."
-    },
     "results": {
       "label": "{totalElements} result(s)"
     }

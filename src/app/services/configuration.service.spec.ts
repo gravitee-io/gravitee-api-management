@@ -16,8 +16,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ConfigurationService } from './configuration.service';
 import { provideMock } from '../test/mock.helper.spec';
-import { TranslateService } from '@ngx-translate/core';
-import { FeatureGuardService } from './feature-guard.service';
 import { HttpClient } from '@angular/common/http';
 
 describe('ConfigurationService', () => {

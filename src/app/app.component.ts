@@ -21,7 +21,8 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { UserService } from '@gravitee/ng-portal-webclient';
 import { CurrentUserService } from './services/current-user.service';
 import { NotificationService } from './services/notification.service';
-import { NavigationStart, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, NavigationStart, Router } from '@angular/router';
+import { RouteService } from './services/route.service';
 import { addTranslations, setLanguage } from '@gravitee/ui-components/src/lib/i18n';
 
 @Component({
@@ -37,7 +38,18 @@ export class AppComponent implements OnInit {
     private currentUserService: CurrentUserService,
     private notificationService: NotificationService,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
+    private routeService: RouteService
   ) {
+
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        this.notificationService.reset();
+      } else if (event instanceof NavigationEnd) {
+        const currentRoute: ActivatedRoute = this.routeService.findCurrentRoute(this.activatedRoute);
+        this._setBrowserTitle(currentRoute);
+      }
+    });
   }
 
   ngOnInit() {
@@ -50,11 +62,19 @@ export class AppComponent implements OnInit {
     });
     this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
 
-    this.userService.getCurrentUser().subscribe((user) => this.currentUserService.changeUser(user));
-    this.router.events.subscribe((event) => {
-      if (event instanceof NavigationStart) {
-        this.notificationService.reset();
+    this.currentUserService.changeUser(this.userService.getCurrentUser());
+
+  }
+
+  private _setBrowserTitle(currentRoute: ActivatedRoute) {
+    this.translateService.get(i18n('site.title')).subscribe((siteTitle) => {
+      const data = currentRoute.snapshot.data;
+      if (data && data.title) {
+        this.translateService.get(data.title).subscribe((title) => this.titleService.setTitle(`${ siteTitle } - ${ title }`));
+      } else {
+        this.translateService.get(data.title).subscribe((title) => this.titleService.setTitle(siteTitle));
       }
     });
   }
+
 }

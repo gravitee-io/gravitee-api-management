@@ -17,9 +17,13 @@ import { TestBed } from '@angular/core/testing';
 import { FeatureGuardService } from './feature-guard.service';
 import { provideMock } from '../test/mock.helper.spec';
 import { HttpClient } from '@angular/common/http';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('FeatureGuardService', () => {
   beforeEach(() => TestBed.configureTestingModule({
+    imports: [
+      RouterTestingModule
+    ],
     providers: [
       provideMock(HttpClient),
     ]

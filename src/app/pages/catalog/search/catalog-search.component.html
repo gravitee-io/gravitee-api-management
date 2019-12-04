@@ -15,19 +15,6 @@
     limitations under the License.
 
 -->
-<form [formGroup]="searchForm" (ngSubmit)="onSubmitSearch()" class="search__form">
-  <gv-input
-    name="query"
-    type="search"
-    placeholder="{{ 'search.query.placeholder' | translate}}"
-    label="{{ 'search.query.label' | translate}}"
-    formControlName="query"
-    ngDefaultControl
-    class="search__form__input"
-    [loading]="loaderService.isLoading | async">
-  </gv-input>
-</form>
-
 <div class="layout">
   <div class="layout__content">
     <div class="page__content">

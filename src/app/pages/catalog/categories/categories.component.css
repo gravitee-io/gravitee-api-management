@@ -18,3 +18,8 @@
   display: flex;
   flex-wrap: wrap;
 }
+
+gv-card-category {
+  flex: 1;
+  margin: 0.5rem;
+}

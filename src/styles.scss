@@ -61,7 +61,7 @@
     --gv-theme-layout--pr: 8px;
     --gv-theme-layout--pl: 8px;
   }
-  gv-card-category, gv-card-api-full {
+  gv-card-category {
     max-width: 425px;
   }
 }
@@ -69,12 +69,12 @@
 /* (1280x720) Galaxy Note 2, WXGA */
 @media only screen and (min-device-width: 720px) and (max-device-width: 1280px) {
   :root {
-    --gv-theme-layout--pr: 0px;
-    --gv-theme-layout--pl: 0px;
+    --gv-theme-layout--pr: 10px;
+    --gv-theme-layout--pl: 10px;
   }
 
-  gv-card-category, gv-card-api-full {
-    max-width: 400px;
+  gv-card-category {
+    max-width: 410px;
   }
 }
 

@@ -173,6 +173,7 @@
     "apps": "Applications",
     "catalog": "Catalogue",
     "catalogCategories": "Catégories",
+    "catalogCategory": "Catégorie",
     "catalogFeatured": "Les APIs mises en avant",
     "catalogStarred": "Les mieux notées",
     "catalogTrending": "Les + tendances",
@@ -183,10 +184,6 @@
     "user": "Mon compte"
   },
   "search": {
-    "query": {
-      "label": "Rechercher",
-      "placeholder": "Rechercher une API, APP..."
-    },
     "results": {
       "label": "{totalElements} résultat(s)"
     }

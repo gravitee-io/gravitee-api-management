@@ -15,21 +15,21 @@
     limitations under the License.
 
 -->
-<div *ngIf="currentUserService.get()" class="bg-white">
+<div *ngIf="currentUser" class="bg-white">
   <h1>{{'user.title' | translate}}</h1>
   <div class="dt">
     <div class="w-80 dtc">
       <p>
         <span class="b">{{'user.displayName' | translate}} : </span>
-        <span>{{ currentUserService.get().display_name }}</span>
+        <span>{{ currentUser.display_name }}</span>
       </p>
       <p>
         <span class="b">{{'user.email' | translate}} : </span>
-        <span>{{ currentUserService.get().email }}</span>
+        <span>{{ currentUser.email }}</span>
       </p>
     </div>
     <div class="w-20 dtc v-mid">
-      <app-user-avatar [user]="currentUserService.get()" [size]="100"></app-user-avatar>
+      <app-user-avatar [user]="currentUser" [size]="100"></app-user-avatar>
     </div>
   </div>
 </div>

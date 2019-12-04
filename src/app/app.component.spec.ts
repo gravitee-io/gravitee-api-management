@@ -24,13 +24,15 @@ import { CurrentUserService } from './services/current-user.service';
 import { TranslateTestingModule } from './test/helper.spec';
 import { UserService } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from './services/notification.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
         RouterTestingModule,
-        TranslateTestingModule
+        TranslateTestingModule,
+        HttpClientTestingModule,
       ],
       declarations: [
         AppComponent
@@ -44,7 +46,7 @@ describe('AppComponent', () => {
         provideMock(UserService),
         provideMock(CurrentUserService),
         provideMock(TranslateService),
-        provideMock(NotificationService)
+        provideMock(NotificationService),
       ]
     }).compileComponents();
   }));

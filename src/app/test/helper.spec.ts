@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
+import { CurrentUserService } from '../services/current-user.service';
+import { User } from '@gravitee/ng-portal-webclient';
 
 const translations: any = { CARDS_TITLE: 'This is a test' };
 
@@ -30,10 +32,19 @@ export const TranslateTestingModule = TranslateModule.forRoot({
 });
 
 export function getTranslateServiceMock() {
-  let translateServiceMock: jasmine.SpyObj<TranslateService>;
-  translateServiceMock = TestBed.get(TranslateService);
-  translateServiceMock.getBrowserLang.and.returnValue('fr');
-  translateServiceMock.get.and.returnValue(of(''));
-  return translateServiceMock;
+  let translateService: jasmine.SpyObj<TranslateService>;
+  translateService = TestBed.get(TranslateService);
+  translateService.getBrowserLang.and.returnValue('fr');
+  translateService.get.and.returnValue(of(''));
+  return translateService;
+}
+
+export function getCurrentUserServiceMock(user?: User) {
+  const subject = new BehaviorSubject<User>(user);
+  let currentUserService: jasmine.SpyObj<CurrentUserService>;
+  currentUserService = TestBed.get(CurrentUserService);
+  // @ts-ignore
+  currentUserService.get.and.returnValue(subject);
+  return currentUserService;
 }
 

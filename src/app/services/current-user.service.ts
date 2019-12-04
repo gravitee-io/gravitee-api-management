@@ -14,28 +14,30 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { User } from '@gravitee/ng-portal-webclient';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { User, UserService } from '@gravitee/ng-portal-webclient';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class CurrentUserService {
-  private currentUserSource = new BehaviorSubject<User>(undefined);
-  currentUser = this.currentUserSource.asObservable();
+  private readonly currentUserSource: BehaviorSubject<User>;
 
   constructor() {
+    this.currentUserSource = new BehaviorSubject<User>(null);
   }
 
-  changeUser(newCurrentUser: User) {
-    this.currentUserSource.next(newCurrentUser);
+  changeUser(currentUser: Observable<User>) {
+    currentUser.subscribe((user) => {
+      if (this.currentUserSource.getValue() !== user) {
+        this.currentUserSource.next(user);
+      }
+    });
   }
 
   revokeUser() {
-    this.currentUserSource.next(undefined);
+    this.currentUserSource.next(null);
   }
 
-  get(): User {
-    return this.currentUserSource.getValue();
+  get(): BehaviorSubject<User> {
+    return this.currentUserSource;
   }
 }

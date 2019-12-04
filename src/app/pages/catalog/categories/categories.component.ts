@@ -17,6 +17,7 @@ import { Component, OnInit } from '@angular/core';
 import { PortalService, View } from '@gravitee/ng-portal-webclient';
 
 import '@gravitee/ui-components/wc/gv-card-category';
+import { ActivatedRoute, Router } from '@angular/router';
 
 
 @Component({
@@ -30,6 +31,7 @@ export class CategoriesComponent implements OnInit {
 
   constructor(
     private portalService: PortalService,
+    private router: Router
   ) {
   }
 
@@ -41,8 +43,7 @@ export class CategoriesComponent implements OnInit {
           this.nbCategories = Number(viewResponse.metadata.data.total);
         },
         error: (err) => {
-          // @ts-ignore
-          this.categories.fill(() => Promise.reject(err));
+          this.categories = this.categories.map(() => Promise.reject(err));
         }
       }
     );
@@ -52,7 +53,9 @@ export class CategoriesComponent implements OnInit {
     return `--gv-card-category--bgc: var(--gv-theme-color-category-${ index % 6 + 1 })`;
   }
 
-  searchAPIsByCategory(categoryId: string) {
-    console.log('calling /apis?views=' + categoryId);
+  async onCardClick(category: Promise<View>) {
+    const view = await category;
+    this.router.navigate([`/catalog/categories/${view.id}`]);
   }
+
 }

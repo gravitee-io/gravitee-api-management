@@ -59,7 +59,7 @@
     </form>
 
     <p class="tc">
-      <a *ngIf="registrationForm && !isSubmitted" routerLink="/login">{{ "registration.backLogin" | translate }}</a>
+      <a *ngIf="registrationForm && !isSubmitted" routerLink="/user/login">{{ "registration.backLogin" | translate }}</a>
     </p>
 
     <a *ngIf="isSubmitted" routerLink="/" class="tc">{{ "registration.backHome" | translate }}</a>

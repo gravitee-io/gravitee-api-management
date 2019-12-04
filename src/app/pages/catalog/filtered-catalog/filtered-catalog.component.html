@@ -16,46 +16,45 @@
 
 -->
 <div class="page__content">
-  <h1 class="title">{{this.getTitle() | translate}}</h1>
+  <h1 class="title">{{this.getTitle() | translate}} <span *ngIf="inCategory()">({{total}})</span></h1>
 
   <section class="catalog__section__top">
     <div>
-      <gv-promote-api [api]="promotedApi"></gv-promote-api>
+      <gv-promote-api [api]="promotedApi" [metrics]="promotedMetrics"></gv-promote-api>
     </div>
 
-    <article class="catalog__article__random" *ngIf="randomList">
+    <article class="catalog__article__random" *ngIf="!inCategory()">
       <h3 class="title">{{'catalog.othersApi.title' | translate}}
         <p>{{'catalog.othersApi.subTitle' | translate}}</p></h3>
 
       <div class="catalog__cards catalog__cards__random">
-        <gv-card-api *ngFor="let api of randomList" [api]="api"></gv-card-api>
+          <gv-card-api *ngFor="let api of randomList" [api]="api"></gv-card-api>
       </div>
-
     </article>
   </section>
 
-  <div class="catalog__section__content">
+  <section class="catalog__section__content">
     <div class="catalog__section__content__title">
-
       <h2 class="title"></h2>
-      <gv-option [options]="options"></gv-option>
-      <gv-select [value]="this.currentView"
+      <gv-option [options]="options" *ngIf="allApis.length > 0"></gv-option>
+      <gv-select *ngIf="canFilter()"
+                 [value]="this.currentView"
                  (input)="this.onSelectView($event)"
                  [attr.placeholder]="'catalog.filter' | translate"
                  [options]="this.views">
       </gv-select>
     </div>
 
-    <section *ngIf="inDefaultDisplay()" class="catalog__cards">
+    <div *ngIf="inDefaultDisplay()" class="catalog__cards catalog__all">
       <gv-card-api-full *ngFor="let api of allApis; let index = index" [api]="api" [metrics]="allApisMetrics[index]"></gv-card-api-full>
-    </section>
+    </div>
 
-    <section *ngIf="!inDefaultDisplay()" class="catalog__list">
+    <div *ngIf="!inDefaultDisplay()" class="catalog__list catalog__all">
       <gv-row-api *ngFor="let api of allApis" [api]="api"></gv-row-api>
-    </section>
+    </div>
     <div class="catalog__section__content__pagination">
       <gv-pagination [data]="paginationData" hideEmpty="true"></gv-pagination>
     </div>
-  </div>
+  </section>
 </div>
 

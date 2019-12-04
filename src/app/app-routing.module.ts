@@ -16,7 +16,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { CatalogComponent } from './pages/catalog/catalog.component';
 import { AppsComponent } from './pages/apps/apps.component';
 import { LoginComponent } from './pages/login/login.component';
 import { UserComponent } from './pages/user/user.component';
@@ -24,7 +23,6 @@ import { LogoutComponent } from './pages/logout/logout.component';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { RouteType } from './services/route.service';
 import { LayoutComponent } from './layouts/layout/layout.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
@@ -33,35 +31,55 @@ import { CategoryApiQuery } from '@gravitee/ng-portal-webclient';
 import { ContactComponent } from './pages/contact/contact.component';
 import { FeatureGuardService } from './services/feature-guard.service';
 import { Feature } from './model/feature';
+import { AuthGuardService } from './services/auth-guard.service';
+import { Role } from './model/role.enum';
 
 export const routes: Routes = [
   {
-    path: '', component: LayoutComponent, children: [
+    path: '', component: LayoutComponent, data: { menu: true }, children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DashboardComponent, data: { title: i18n('route.dashboard'), type: RouteType.main } },
       {
-        path: 'catalog', data: { title: i18n('route.catalog'), type: RouteType.main }, component: CatalogComponent,
+        path: 'dashboard', component: DashboardComponent, data: { title: i18n('route.dashboard') }
+      },
+      {
+        path: 'catalog',
+        data: {
+          title: i18n('route.catalog'),
+          menu: { slots: { right: true }, hiddenPaths: ['categories/'] },
+          fallbackRedirectTo: 'catalog/featured'
+        },
         children: [
-          { path: '', redirectTo: 'categories', pathMatch: 'full', data: { fallbackRedirectTo: 'featured' } },
+          { path: '', redirectTo: 'categories', pathMatch: 'full' },
+          { path: 'search', component: CatalogSearchComponent, data: { menu: { small: true } } },
           {
             path: 'categories',
             component: CategoriesComponent,
             canActivate: [FeatureGuardService],
             data: {
+              expectedFeature: Feature.viewMode,
               title: i18n('route.catalogCategories'),
-              type: RouteType.catalog,
               icon: 'layout:layout-arrange',
-              expectedFeature: Feature.viewMode
+              menu: true
             }
+          },
+          {
+            path: 'categories/:categoryId',
+            component: FilteredCatalogComponent,
+            canActivate: [FeatureGuardService],
+            data: {
+              expectedFeature: Feature.viewMode,
+              title: i18n('route.catalogCategory'),
+              menu: true
+            },
           },
           {
             path: 'featured',
             component: FilteredCatalogComponent,
             data: {
               title: i18n('route.catalogFeatured'),
-              type: RouteType.catalog,
               icon: 'home:flower#2',
-              categoryApiQuery: CategoryApiQuery.FEATURED
+              menu: true,
+              categoryApiQuery: CategoryApiQuery.FEATURED,
             }
           },
           {
@@ -70,10 +88,10 @@ export const routes: Routes = [
             canActivate: [FeatureGuardService],
             data: {
               title: i18n('route.catalogStarred'),
-              type: RouteType.catalog,
               icon: 'general:star',
+              menu: true,
               categoryApiQuery: CategoryApiQuery.STARRED,
-              expectedFeature: Feature.rating
+              expectedFeature: Feature.rating,
             }
           },
           {
@@ -81,38 +99,58 @@ export const routes: Routes = [
             component: FilteredCatalogComponent,
             data: {
               title: i18n('route.catalogTrending'),
-              type: RouteType.catalog,
               icon: 'home:fireplace',
-              categoryApiQuery: CategoryApiQuery.TRENDINGS
+              menu: true,
+              categoryApiQuery: CategoryApiQuery.TRENDINGS,
             }
           }
-         ]
+        ]
       },
-      { path: 'apps', component: AppsComponent, data: { title: i18n('route.apps'), type: RouteType.main } },
-      { path: 'login', component: LoginComponent, data: { title: i18n('route.login'), type: RouteType.login } },
-      { path: 'user', component: UserComponent, data: { title: i18n('route.user'), icon: 'general:user', type: RouteType.user } },
+      { path: 'apps', component: AppsComponent, data: { title: i18n('route.apps') } },
       {
-        path: 'contact', component: ContactComponent,
-        canActivate: [FeatureGuardService],
-        data: {
-          title: i18n('route.contact'),
-          icon: 'communication:contact#1',
-          type: RouteType.user,
-          expectedFeature: Feature.contact
-        }
-      },
-      {
-        path: 'logout', component: LogoutComponent,
-        data: {
-          title: i18n('route.logout'),
-          separator: true,
-          icon: 'home:door-open',
-          type: RouteType.user
-        }
-      },
-      { path: 'registration', component: RegistrationComponent },
-      { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent },
-      { path: 'catalog/search', component: CatalogSearchComponent }
+        path: 'user', data: { menu: { hiddenPaths: ['login', 'logout'] } },
+        children: [
+          {
+            path: 'login',
+            component: LoginComponent,
+            canActivate: [AuthGuardService],
+            data: { title: i18n('route.login'), expectedRole: Role.GUEST }
+          },
+          {
+            path: 'account',
+            component: UserComponent,
+            canActivate: [AuthGuardService],
+            data: {
+              title: i18n('route.user'),
+              icon: 'general:user',
+              expectedRole: Role.AUTH_USER
+            },
+          },
+          {
+            path: 'contact',
+            component: ContactComponent,
+            canActivate: [AuthGuardService, FeatureGuardService],
+            data: {
+              title: i18n('route.contact'),
+              icon: 'communication:contact#1',
+              expectedFeature: Feature.contact,
+              expectedRole: Role.AUTH_USER
+            }
+          },
+          {
+            path: 'logout', component: LogoutComponent,
+            canActivate: [AuthGuardService],
+            data: {
+              title: i18n('route.logout'),
+              separator: true,
+              icon: 'home:door-open',
+              expectedRole: Role.AUTH_USER
+            }
+          },
+          { path: 'registration', component: RegistrationComponent },
+          { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent }
+        ]
+      }
     ]
   }
 ];

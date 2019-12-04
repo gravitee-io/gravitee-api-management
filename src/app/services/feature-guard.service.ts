@@ -15,19 +15,19 @@
  */
 import { Injectable } from '@angular/core';
 import { ConfigurationService } from './configuration.service';
-import { ActivatedRouteSnapshot, CanActivate } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class FeatureGuardService implements CanActivate {
 
-  constructor(private config: ConfigurationService) {
+  constructor(private config: ConfigurationService, private router: Router) {
   }
 
-  canActivate(route: ActivatedRouteSnapshot): boolean {
+  canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
     if (route.data && route.data.expectedFeature) {
-      return this.config.hasFeature(route.data.expectedFeature);
+      if (!this.config.hasFeature(route.data.expectedFeature)) {
+        return this.router.parseUrl(route.data.fallbackRedirectTo);
+      }
     }
     return true;
   }

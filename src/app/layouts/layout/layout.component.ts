@@ -16,13 +16,13 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RoutesRecognized } from '@angular/router';
 import { CurrentUserService } from '../../services/current-user.service';
-import { RouteService, RouteType } from '../../services/route.service';
+import { RouteService } from '../../services/route.service';
 import { User } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-nav';
 import '@gravitee/ui-components/wc/gv-user-menu';
-import '@gravitee/ui-components/wc/gv-user-menu';
+import '@gravitee/ui-components/wc/gv-menu';
 import { NotificationService } from '../../services/notification.service';
 import { Notification } from '../../model/notification';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -33,11 +33,14 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 })
 export class LayoutComponent implements OnInit {
 
-  public mainRoutes: object[];
-  public userRoutes: object[];
+  public mainRoutes: Promise<any>[];
+  public userRoutes: Promise<any[]>;
+  public menuRoutes: Promise<any>[];
   public currentUser: User;
   public notification: Notification;
   public links: any;
+  public hasSearch: boolean;
+  menuSmall: boolean;
 
   constructor(
     private titleService: Title,
@@ -46,10 +49,22 @@ export class LayoutComponent implements OnInit {
     private currentUserService: CurrentUserService,
     private routeService: RouteService,
     private notificationService: NotificationService,
-  ) {}
+    private activatedRoute: ActivatedRoute
+  ) {
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this._onNavigationEnd();
+      }
+    });
+  }
 
-  ngOnInit() {
-    this.currentUserService.currentUser.subscribe(newCurrentUser => this.currentUser = newCurrentUser);
+  async ngOnInit() {
+    this.currentUserService.get().subscribe(newCurrentUser => {
+      this.currentUser = newCurrentUser;
+      this.userRoutes = this.routeService.getUserNav();
+    });
+
+    this.currentUserService.get().subscribe(newCurrentUser => this.currentUser = newCurrentUser);
     this.notificationService.notification.subscribe(notification => {
       if (notification) {
         this.translateService.get(notification.code, notification.parameters).subscribe((translatedMessage) => {
@@ -62,8 +77,6 @@ export class LayoutComponent implements OnInit {
         delete this.notification;
       }
     });
-    this.mainRoutes = this.routeService.getRoutes(RouteType.main);
-    this.userRoutes = this.routeService.getRoutes(RouteType.user);
 
     this.links = {
       categorized: [
@@ -108,8 +121,11 @@ export class LayoutComponent implements OnInit {
     };
   }
 
-  showLogin() {
-    return !this.currentUser && this.router.url !== '/login';
+  getUserName() {
+    if (this.currentUser) {
+      return this.currentUser.display_name;
+    }
+    return null;
   }
 
   @HostListener(':gv-nav-link:click', ['$event.detail'])
@@ -117,4 +133,29 @@ export class LayoutComponent implements OnInit {
     this.router.navigate([route.path]);
   }
 
+  private _onNavigationEnd() {
+    // @ts-ignore
+    this.mainRoutes = this.routeService.getChildrenNav(this.activatedRoute);
+    const currentRoute: ActivatedRoute = this.routeService.findCurrentRoute(this.activatedRoute);
+    this.hasSearch = false;
+    // @ts-ignore
+    this.menuRoutes = this.routeService.getSiblingsNav(currentRoute);
+
+    if (this.menuRoutes) {
+      if (currentRoute.snapshot.data.menu) {
+        this.menuSmall = currentRoute.snapshot.data.menu.small;
+      } else {
+        this.menuSmall = false;
+      }
+      const menuOptions = currentRoute.snapshot.parent.data.menu;
+      if (typeof menuOptions === 'object' && menuOptions.slots) {
+        this.hasSearch = menuOptions.slots.right != null;
+      }
+    }
+  }
+
+  @HostListener(':gv-input:submit', ['$event.detail'])
+  onSearchInput(queryInput: string) {
+    this.router.navigate(['/catalog/search'], { queryParams: { q: queryInput } });
+  }
 }

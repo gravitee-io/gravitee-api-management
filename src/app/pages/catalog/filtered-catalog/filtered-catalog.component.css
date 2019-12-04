@@ -24,8 +24,12 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  margin: 0 2rem;
+  margin-left: 1rem;
   max-width: 320px;
+}
+
+.catalog__article__random .title {
+  margin-left: 1rem;
 }
 
 .catalog__cards {
@@ -33,29 +37,41 @@
   flex-wrap: wrap;
 }
 
+.catalog__all {
+  margin: 1rem 0;
+}
+
+.catalog__list {
+  display: flex;
+  flex-direction: column;
+  margin: 1.5rem 0.5rem;
+}
+
 .catalog__cards__random {
-  justify-content: space-between;
   max-width: 320px;
   max-height: 340px;
   overflow: hidden;
+  justify-content: center;
+}
+
+gv-card-api {
+  margin: 1rem 0 1rem 1rem;
 }
 
 gv-card-api-full {
   flex: 1;
+  margin: 0.5rem;
 }
 
-gv-card-api-full {
-  margin-right: 2rem;
-}
-
-gv-card-api-full, gv-card-api {
-  margin-bottom: 2rem;
+gv-row-api {
+  margin: 0 0.5rem;
 }
 
 .catalog__section__content__title {
   display: flex;
   line-height: 24px;
   min-height: 24px;
+  margin-right: 0.5rem;
 }
 
 .catalog__section__content__title .title {
@@ -65,13 +81,5 @@ gv-card-api-full, gv-card-api {
 .catalog__section__content__pagination {
   display: flex;
   justify-content: flex-end;
-  margin: 0.5rem 0;
-}
-
-.catalog__section__content__pagination, .catalog__section__content__title {
-  margin-right: 30px;
-}
-
-gv-options {
-  align-self: center;
+  margin: 0.5rem 0.5rem 0 0;
 }

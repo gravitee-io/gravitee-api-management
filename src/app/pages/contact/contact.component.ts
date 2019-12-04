@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ApplicationsService, ApiService, PortalService } from '@gravitee/ng-portal-webclient';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -24,13 +24,14 @@ import { NotificationService } from '../../services/notification.service';
 import { LoaderService } from '../../services/loader.service';
 import { CurrentUserService } from '../../services/current-user.service';
 import { ActivatedRoute } from '@angular/router';
+import { delay } from 'rxjs/operators';
 
 @Component({
   selector: 'app-contact',
   templateUrl: './contact.component.html',
   styleUrls: ['./contact.component.css']
 })
-export class ContactComponent implements OnInit {
+export class ContactComponent implements OnInit, AfterViewInit {
   contactForm: FormGroup;
   applications: {
     label: string,
@@ -66,7 +67,10 @@ export class ContactComponent implements OnInit {
           return { label: `${ api.name } (${ api.version })`, value: api.id };
         });
       });
-    this.currentUserService.currentUser.subscribe(value => {
+  }
+
+  ngAfterViewInit() {
+    this.currentUserService.get().pipe(delay(0)).subscribe(value => {
       if (value && !value.email) {
         this.notificationService.warning(i18n('errors.email.required'));
         this.contactForm.disable();

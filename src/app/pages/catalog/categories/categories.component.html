@@ -21,9 +21,9 @@
 
   <section class="categories__section">
 
-    <gv-card-category (click)="searchAPIsByCategory(category.id)"
-                      *ngFor="let category of categories let i = index"
+    <gv-card-category *ngFor="let category of categories let i = index"
                       [category]="category"
+                      (click)="onCardClick(category)"
                       [style]="getCategoryBackgroundColor(i) | safe: 'style'">
     </gv-card-category>
 

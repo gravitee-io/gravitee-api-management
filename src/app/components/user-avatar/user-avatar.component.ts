@@ -37,10 +37,18 @@ export class UserAvatarComponent implements OnInit {
   }
 
   getRoundedStyle() {
-    return `--gv-image--w:${this.size}px; --gv-image--h:${this.size}px;--gv-image--of: cover; --gv-image--bdrs: 50%;`;
+    return `--gv-image--w:${ this.size }px; --gv-image--h:${ this.size }px;--gv-image--of: cover; --gv-image--bdrs: 50%;`;
   }
 
-  getDefaultAvatar() {
+  getDisplayName() {
+    return this.user.display_name;
+  }
+
+  getUserPicture() {
+    return this.user._links.avatar;
+  }
+
+  getDefaultPicture() {
     return jdenticon.toSvg(this.user.display_name, this.size);
   }
 

@@ -21,6 +21,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TranslateTestingModule } from 'src/app/test/helper.spec';
 import { SafePipe } from '../../../pipes/safe.pipe';
 import { UserAvatarComponent } from '../../../components/user-avatar/user-avatar.component';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('CategoriesComponent', () => {
   let component: CategoriesComponent;
@@ -30,7 +31,8 @@ describe('CategoriesComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,
-        TranslateTestingModule
+        TranslateTestingModule,
+        RouterTestingModule
       ],
       declarations: [
         CategoriesComponent,

@@ -173,6 +173,7 @@
     "apps": "Aplikace",
     "catalog": "Katalog",
     "catalogCategories": "Kategories",
+    "catalogCategory": "Kategorie",
     "catalogFeatured": "Představoval",
     "catalogStarred": "Označené hvězdičkou",
     "catalogTrending": "Nejmodernější",
@@ -183,10 +184,6 @@
     "user": "Můj profil"
   },
   "search": {
-    "query": {
-      "label": "Hledat",
-      "placeholder": "Vyhledat API, APP ..."
-    },
     "results": {
       "label": "{totalElements} výsledek"
     }

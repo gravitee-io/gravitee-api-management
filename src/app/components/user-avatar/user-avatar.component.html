@@ -15,6 +15,6 @@
     limitations under the License.
 
 -->
-<gv-image *ngIf="!hasError" src="{{user._links.avatar}}" alt="{{user.display_name}}"
+<gv-image *ngIf="!hasError" [src]="getUserPicture()" [alt]="getDisplayName()"
           [style]="getRoundedStyle() | safe: 'style'" (error)="hasError=true"></gv-image>
-<span *ngIf="hasError" [innerHTML]="getDefaultAvatar() | safe: 'html'" title="{{ user.display_name }}">
+<span *ngIf="hasError" [innerHTML]="getDefaultPicture() | safe: 'html'" [title]="getDisplayName()">

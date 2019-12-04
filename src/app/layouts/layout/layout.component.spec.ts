@@ -17,7 +17,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LayoutComponent } from './layout.component';
 import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from '../../test/helper.spec';
+import { getCurrentUserServiceMock, TranslateTestingModule } from '../../test/helper.spec';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { provideMock } from '../../test/mock.helper.spec';
 import { Title } from '@angular/platform-browser';
@@ -60,6 +60,7 @@ describe('LayoutComponent', () => {
   let titleMock: jasmine.SpyObj<Title>;
   beforeEach(() => {
     titleMock = TestBed.get(Title);
+    getCurrentUserServiceMock();
     fixture = TestBed.createComponent(LayoutComponent);
     app = fixture.componentInstance;
     fixture.whenStable().then(() => {

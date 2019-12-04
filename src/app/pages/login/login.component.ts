@@ -35,7 +35,7 @@ import { Feature } from '../../model/feature';
   styleUrls: ['./login.component.css']
 })
 
-export class LoginComponent implements OnInit, AfterViewChecked {
+export class LoginComponent implements OnInit {
 
   loginForm: FormGroup;
   registrationEnabled: boolean;
@@ -57,12 +57,6 @@ export class LoginComponent implements OnInit, AfterViewChecked {
       });
     }
     this.registrationEnabled = config.hasFeature(Feature.userRegistration);
-  }
-
-  ngAfterViewChecked() {
-    if (this.currentUserService.get()) {
-      this.router.navigate(['dashboard']);
-    }
   }
 
   ngOnInit() {

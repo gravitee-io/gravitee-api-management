@@ -13,30 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-
-import { CurrentUserService } from '../../services/current-user.service';
-import { User } from '@gravitee/ng-portal-webclient';
-
-@Component({
-  selector: 'app-user',
-  templateUrl: './user.component.html',
-  styleUrls: ['./user.component.css']
-})
-
-export class UserComponent implements OnInit {
-
-  public currentUser: User;
-
-  constructor(
-    private currentUserService: CurrentUserService
-  ) {
-  }
-
-  ngOnInit() {
-    this.currentUserService.get().subscribe((user) => {
-      this.currentUser = user;
-    });
-  }
-
+export enum Role {
+  GUEST = 'guest',
+  AUTH_USER = 'auth-user'
 }

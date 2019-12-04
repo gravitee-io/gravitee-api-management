@@ -15,53 +15,88 @@
  */
 import { TestBed } from '@angular/core/testing';
 
-import { RouteService, RouteType } from './route.service';
+import { RouteService } from './route.service';
 import { provideMock } from '../test/mock.helper.spec';
 import { TranslateService } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { getTranslateServiceMock, TranslateTestingModule } from '../test/helper.spec';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { CatalogComponent } from '../pages/catalog/catalog.component';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { CurrentUserService } from './current-user.service';
 import { FeatureGuardService } from './feature-guard.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthGuardService } from './auth-guard.service';
 
 describe('RouteService', () => {
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [
-      TranslateTestingModule,
-      HttpClientTestingModule,
-      RouterTestingModule.withRoutes([
-        { path: 'foobar', redirectTo: '' },
-        { path: 'catalog', data: { type: RouteType.catalog }, redirectTo: '' },
-        {
-          path: 'catalogWithChildren',
-          data: { type: RouteType.catalog },
-          children: [{ path: 'catalogChild', data: { type: RouteType.catalog }, redirectTo: '' }, { path: 'otherChild', redirectTo: '' }]
-        }
-      ]),
-    ],
-    providers: [
-      provideMock(TranslateService),
-      provideMock(FeatureGuardService),
-    ]
-  }));
 
-  it('should be created', () => {
-    const service: RouteService = TestBed.get(RouteService);
-    expect(service).toBeTruthy();
+  let router: Router;
+  let translateService: jasmine.SpyObj<TranslateService>;
+  let featureGuardService: jasmine.SpyObj<FeatureGuardService>;
+  let authGuardService: jasmine.SpyObj<AuthGuardService>;
+
+  let routeService: RouteService;
+
+  beforeEach(() => {
+
+    TestBed.configureTestingModule({
+      imports: [
+        TranslateTestingModule,
+        HttpClientTestingModule,
+        RouterTestingModule.withRoutes([
+          { path: 'foobar', redirectTo: '', children: [{ path: 'bar', redirectTo: '', children: [{ path: 'foo', redirectTo: '' }] }] },
+          { path: 'catalog', redirectTo: '' },
+          {
+            path: 'catalogWithChildren',
+            data: { menu: true },
+            children: [
+              { path: 'catalogChild', data: { title: 'Hey' }, redirectTo: '' },
+              { path: 'otherChild', data: {}, redirectTo: '' }
+            ]
+          }
+        ]),
+      ],
+      providers: [
+        provideMock(TranslateService),
+        provideMock(FeatureGuardService),
+        provideMock(ActivatedRoute)
+      ]
+    });
+
+    router = TestBed.get(Router);
+    translateService = getTranslateServiceMock();
+    featureGuardService = TestBed.get(FeatureGuardService);
+    authGuardService = TestBed.get(AuthGuardService);
+
+    routeService = new RouteService(router, translateService, featureGuardService, authGuardService);
   });
 
-  it('should get flattened routes by type', () => {
-    let featureGuardServiceMock: jasmine.SpyObj<FeatureGuardService>;
-    featureGuardServiceMock = TestBed.get(FeatureGuardService);
-    featureGuardServiceMock.canActivate.and.returnValue(true);
-    getTranslateServiceMock();
+  it('should be created', () => {
+    expect(routeService).toBeTruthy();
+    expect(routeService.getRouteByPath).toBeDefined();
+  });
+
+  it('should get route by path', () => {
+    const routeByPath = routeService.getRouteByPath('foobar');
+    expect(routeByPath.path).toEqual('foobar');
+  });
+
+  it('should get child route by path', () => {
+    const routeByPath = routeService.getRouteByPath('foo');
+    expect(routeByPath.path).toEqual('foo');
+  });
+
+  it('should get null children nav if parent does not have data.menu', async () => {
+    featureGuardService.canActivate.and.returnValue(true);
     const service: RouteService = TestBed.get(RouteService);
-    const { catalog } = RouteType;
-    const routes = service.getRoutes(catalog);
-    expect(routes.length).toEqual(3);
-    expect(routes.map((r) => r.path).sort()).toEqual(['catalog', 'catalogWithChildren/catalogChild', 'catalogWithChildren'].sort());
+    const catalog = routeService.getRouteByPath('catalog');
+    const routes = await service.getChildrenNav(catalog);
+    expect(routes).toEqual(null);
+  });
+
+  it('should get children nav if parent have data.menu and child have data.title', async () => {
+    featureGuardService.canActivate.and.returnValue(true);
+    const service: RouteService = TestBed.get(RouteService);
+    const catalog = routeService.getRouteByPath('catalogWithChildren');
+    const routes = await service.getChildrenNav(catalog);
+    expect(routes.length).toEqual(1);
   });
 
 });

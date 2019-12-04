@@ -20,10 +20,8 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TranslateTestingModule } from '../../../test/helper.spec';
 import { RouterTestingModule } from '@angular/router/testing';
-import { CatalogComponent } from '../catalog.component';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
-import { CatalogSearchComponent } from '../search/catalog-search.component';
 
 describe('FilteredCatalogComponent', () => {
   let component: FilteredCatalogComponent;
