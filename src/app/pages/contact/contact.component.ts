@@ -23,6 +23,7 @@ import '@gravitee/ui-components/wc/gv-checkbox';
 import { NotificationService } from '../../services/notification.service';
 import { LoaderService } from '../../services/loader.service';
 import { CurrentUserService } from '../../services/current-user.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-contact',
@@ -48,6 +49,7 @@ export class ContactComponent implements OnInit {
     private notificationService: NotificationService,
     public loaderService: LoaderService,
     private currentUserService: CurrentUserService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
@@ -74,7 +76,7 @@ export class ContactComponent implements OnInit {
 
   initFormGroup() {
     this.contactForm = this.formBuilder.group({
-      api: null,
+      api: this.route.snapshot.queryParams.api || null,
       application: null,
       subject: '',
       content: '',

@@ -207,5 +207,4 @@ export class FilteredCatalogComponent implements OnInit {
     queryParams[SearchQueryParam.PAGE] = 1;
     this.router.navigate([], { relativeTo: this.activatedRoute, queryParams, queryParamsHandling: 'merge' });
   }
-
 }
