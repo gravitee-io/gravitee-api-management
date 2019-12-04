@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.logging;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -33,6 +34,7 @@ public class LoggableClientResponse implements Response {
     private final Request request;
     private final Log log;
     private Buffer buffer;
+    private boolean isEventStream;
 
     public LoggableClientResponse(final Request request, final Response response) {
         this.request = request;
@@ -44,12 +46,14 @@ public class LoggableClientResponse implements Response {
     public WriteStream<Buffer> write(Buffer content) {
         if (buffer == null) {
             buffer = Buffer.buffer();
+            isEventStream = MediaType.TEXT_EVENT_STREAM.equalsIgnoreCase(response.headers().contentType());
+        }
+
+        if (!isEventStream) {
+            appendLog(buffer, content);
         }
 
         response.write(content);
-
-        appendLog(buffer, content);
-
         return response;
     }
 
