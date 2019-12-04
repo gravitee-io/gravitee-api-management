@@ -19,6 +19,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.core.processor.chain.DefaultProcessorChain;
 import io.gravitee.gateway.reactor.processor.alert.AlertProcessor;
+import io.gravitee.gateway.reactor.processor.reporter.ContextReporterProcessor;
 import io.gravitee.gateway.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.report.ReporterService;
@@ -59,6 +60,7 @@ public class ResponseProcessorChainFactory {
         return new DefaultProcessorChain<>(Arrays.asList(
                 new ResponseTimeProcessor(),
                 new ReporterProcessor(reporterService),
+                new ContextReporterProcessor(reporterService),
                 new AlertProcessor(eventProducer, node, port)
         ));
     }
