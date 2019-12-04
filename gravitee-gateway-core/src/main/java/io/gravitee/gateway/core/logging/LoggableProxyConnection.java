@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.logging;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
@@ -120,7 +121,7 @@ public class LoggableProxyConnection implements ProxyConnection {
     }
 
     class LoggableProxyResponse implements ProxyResponse {
-
+        private boolean isEventStream;
         private final ProxyResponse proxyResponse;
         private Buffer buffer;
 
@@ -136,10 +137,14 @@ public class LoggableProxyConnection implements ProxyConnection {
             proxyResponse.bodyHandler(chunk -> {
                 if (buffer == null) {
                     buffer = Buffer.buffer();
+                    isEventStream = MediaType.TEXT_EVENT_STREAM.equalsIgnoreCase(proxyResponse.headers().contentType());
+                }
+
+                if (!isEventStream) {
+                    appendLog(buffer, chunk);
                 }
 
                 bodyHandler.handle(chunk);
-                appendLog(buffer, chunk);
             });
 
             return this;
