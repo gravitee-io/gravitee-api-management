@@ -94,10 +94,48 @@ public class XForwardForProcessorTest {
     }
 
     @Test
+    public void test_with_one_X_Forward_for_in_Header_withPort() throws InterruptedException {
+        final CountDownLatch lock = new CountDownLatch(1);
+
+        when(headers.getFirst(HttpHeaders.X_FORWARDED_FOR)).thenReturn("197.225.30.74:5000");
+        when(request.remoteAddress()).thenReturn("192.168.0.1");
+
+        new XForwardForProcessor()
+                .handler(context -> {
+                    Assert.assertTrue(context.request() instanceof XForwardForRequest);
+                    Assert.assertEquals("197.225.30.74", context.request().remoteAddress());
+                    Assert.assertEquals("197.225.30.74", context.request().metrics().getRemoteAddress());
+                    lock.countDown();
+                })
+                .handle(context);
+
+        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+    }
+
+    @Test
     public void test_with_many_X_Forward_for_in_Header() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
 
         when(headers.getFirst(HttpHeaders.X_FORWARDED_FOR)).thenReturn("197.225.30.74, 10.0.0.1, 10.0.0.2");
+        when(request.remoteAddress()).thenReturn("192.168.0.1");
+
+        new XForwardForProcessor()
+                .handler(context -> {
+                    Assert.assertTrue(context.request() instanceof XForwardForRequest);
+                    Assert.assertEquals("197.225.30.74", context.request().remoteAddress());
+                    Assert.assertEquals("197.225.30.74", context.request().metrics().getRemoteAddress());
+                    lock.countDown();
+                })
+                .handle(context);
+
+        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    public void test_with_many_X_Forward_for_in_Header_withPorts() throws InterruptedException {
+        final CountDownLatch lock = new CountDownLatch(1);
+
+        when(headers.getFirst(HttpHeaders.X_FORWARDED_FOR)).thenReturn("197.225.30.74:5000, 10.0.0.1, 10.0.0.2");
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
