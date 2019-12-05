@@ -50,9 +50,6 @@ public class QualityRulesResource extends AbstractResource {
 
     @GET
     @Produces(APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_QUALITY_RULE, acls = RolePermissionAction.READ)
-    })
     public List<QualityRuleEntity> get() {
         return qualityRuleService.findAll();
     }
