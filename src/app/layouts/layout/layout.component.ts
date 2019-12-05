@@ -154,8 +154,7 @@ export class LayoutComponent implements OnInit {
     }
   }
 
-  @HostListener(':gv-input:submit', ['$event.detail'])
-  onSearchInput(queryInput: string) {
-    this.router.navigate(['/catalog/search'], { queryParams: { q: queryInput } });
+  onSearchInput({ detail }) {
+    this.router.navigate(['/catalog/search'], { queryParams: { q: detail } });
   }
 }

@@ -34,6 +34,7 @@
   <div class="layout__content">
     <gv-menu [routes]="menuRoutes" [small]="menuSmall">
       <gv-input slot="right" *ngIf="hasSearch"
+                (:gv-input:submit)="onSearchInput($event)"
                 type="search" [attr.placeholder]="'catalog.search' | translate"></gv-input>
 
     </gv-menu>
