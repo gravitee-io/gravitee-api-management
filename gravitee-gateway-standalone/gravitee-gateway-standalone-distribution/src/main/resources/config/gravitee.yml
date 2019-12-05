@@ -27,9 +27,11 @@
 #  ssl:
 #    clientAuth: false
 #    keystore:
+#      type: jks # Supports jks, pem, pkcs12
 #      path: ${gravitee.home}/security/keystore.jks
 #      password: secret
 #    truststore:
+#      type: jks # Supports jks, pem, pkcs12
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
 #  websocket:
