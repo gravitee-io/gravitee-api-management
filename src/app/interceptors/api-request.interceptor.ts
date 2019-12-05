@@ -35,9 +35,7 @@ export class ApiRequestInterceptor implements HttpInterceptor {
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     request = request.clone({
-      setHeaders: {
-        'X-Requested-With': 'XMLHttpRequest' // avoid browser to prompt for credentials if 401
-      }
+      setHeaders: { 'X-Requested-With': 'XMLHttpRequest', withCredentials: 'true' }
     });
     this.loaderService.show();
 
