@@ -72,6 +72,7 @@ export class LoginComponent implements OnInit {
   }
 
   authenticate(provider) {
+    // tslint:disable-next-line:no-console
     console.log('Authentication asked for \ ' + provider.name + ' (id = ' + provider.id + ')');
   }
 

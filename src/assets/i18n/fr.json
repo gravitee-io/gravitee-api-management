@@ -112,6 +112,12 @@
     "hits": "Appels",
     "health": "Santé"
   },
+  "gv-header-api": {
+    "contact": "Contact",
+    "empty": "Aucune API à afficher ici",
+    "error": "Une erreur est survenue pendant de le chargement de l'API",
+    "subscribe": "Souscrire"
+  },
   "gv-pagination": {
     "next": "Suivant",
     "previous": "Précédent"
@@ -172,6 +178,8 @@
   "route": {
     "apps": "Applications",
     "catalog": "Catalogue",
+    "catalogApi": "Api",
+    "catalogApiDocumentation": "Documentation",
     "catalogCategories": "Catégories",
     "catalogCategory": "Catégorie",
     "catalogFeatured": "Les APIs mises en avant",

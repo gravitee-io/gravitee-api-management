@@ -16,16 +16,18 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
-import { ActivatedRoute, NavigationEnd, Router, RoutesRecognized } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { CurrentUserService } from '../../services/current-user.service';
-import { RouteService } from '../../services/route.service';
-import { User } from '@gravitee/ng-portal-webclient';
+import { INavRoute, NavRouteService } from '../../services/nav-route.service';
+import { Api, ApiService, User } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-nav';
 import '@gravitee/ui-components/wc/gv-user-menu';
 import '@gravitee/ui-components/wc/gv-menu';
+import '@gravitee/ui-components/wc/gv-header-api';
 import { NotificationService } from '../../services/notification.service';
 import { Notification } from '../../model/notification';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { ContactComponent } from '../../pages/contact/contact.component';
 
 @Component({
   selector: 'app-layout',
@@ -41,15 +43,18 @@ export class LayoutComponent implements OnInit {
   public links: any;
   public hasSearch: boolean;
   menuSmall: boolean;
+  apiHeader: Promise<Api>;
+  breadcrumbsHeader: Promise<INavRoute[]>;
 
   constructor(
     private titleService: Title,
     private translateService: TranslateService,
     private router: Router,
     private currentUserService: CurrentUserService,
-    private routeService: RouteService,
+    private navRouteService: NavRouteService,
     private notificationService: NotificationService,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private apiService: ApiService,
   ) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -61,7 +66,7 @@ export class LayoutComponent implements OnInit {
   async ngOnInit() {
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
-      this.userRoutes = this.routeService.getUserNav();
+      this.userRoutes = this.navRouteService.getUserNav();
     });
 
     this.currentUserService.get().subscribe(newCurrentUser => this.currentUser = newCurrentUser);
@@ -129,32 +134,58 @@ export class LayoutComponent implements OnInit {
   }
 
   @HostListener(':gv-nav-link:click', ['$event.detail'])
-  onNavChange(route: { path: any; }) {
+  onNavChange(route: INavRoute) {
     this.router.navigate([route.path]);
   }
 
   private _onNavigationEnd() {
     // @ts-ignore
-    this.mainRoutes = this.routeService.getChildrenNav(this.activatedRoute);
-    const currentRoute: ActivatedRoute = this.routeService.findCurrentRoute(this.activatedRoute);
+    this.mainRoutes = this.navRouteService.getChildrenNav(this.activatedRoute);
+    const currentRoute: ActivatedRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
     this.hasSearch = false;
+    this.apiHeader = null;
     // @ts-ignore
-    this.menuRoutes = this.routeService.getSiblingsNav(currentRoute);
+    this.menuRoutes = this.navRouteService.getSiblingsNav(currentRoute);
 
     if (this.menuRoutes) {
-      if (currentRoute.snapshot.data.menu) {
-        this.menuSmall = currentRoute.snapshot.data.menu.small;
+      const menuOption = currentRoute.snapshot.data.menu;
+      if (menuOption) {
+        this.menuSmall = menuOption.small;
+        if (menuOption.slots && menuOption.slots.header) {
+
+          this.breadcrumbsHeader = this.navRouteService.getBreadcrumbs(this.activatedRoute);
+
+          currentRoute.params.subscribe({
+            next: (params) => {
+              const apiId = params.apiId ? params.apiId : '?';
+              this.apiHeader = this.apiService
+                .getApiByApiId({ apiId })
+                .toPromise()
+                .catch((err) => Promise.reject(err));
+            }
+          });
+        }
       } else {
         this.menuSmall = false;
       }
-      const menuOptions = currentRoute.snapshot.parent.data.menu;
-      if (typeof menuOptions === 'object' && menuOptions.slots) {
-        this.hasSearch = menuOptions.slots.right != null;
+      const parentMenuOption = currentRoute.snapshot.parent.data.menu;
+      if (typeof parentMenuOption === 'object' && parentMenuOption.slots) {
+        this.hasSearch = parentMenuOption.slots.right != null;
       }
     }
+    window.scrollTo(0, 0);
   }
 
   onSearchInput({ detail }) {
     this.router.navigate(['/catalog/search'], { queryParams: { q: detail } });
+  }
+
+
+  goToContact(api: Promise<Api>) {
+    api.then((_api) => {
+      const queryParams = {};
+      queryParams[ContactComponent.API_QUERY_PARAM] = _api.id;
+      this.router.navigate(['/user/contact'], { queryParams });
+    });
   }
 }

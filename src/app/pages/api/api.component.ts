@@ -13,25 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { Component, OnInit } from '@angular/core';
 
-i18n([
-  'gv-card-api.empty',
-  'gv-card-api.error',
-  'gv-card-api-full.empty',
-  'gv-card-api-full.error',
-  'gv-metrics.health',
-  'gv-metrics.hits',
-  'gv-metrics.subscribers',
-  'gv-header-api.contact',
-  'gv-header-api.empty',
-  'gv-header-api.error',
-  'gv-header-api.subscribe',
-  'gv-pagination.next',
-  'gv-pagination.previous',
-  'gv-promote-api.empty',
-  'gv-promote-api.error',
-  'gv-rating.notes',
-  'gv-row-api.empty',
-  'gv-row-api.error',
-]);
+@Component({
+  selector: 'app-api',
+  templateUrl: './api.component.html',
+  styleUrls: ['./api.component.css']
+})
+export class ApiComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit() {
+  }
+
+}

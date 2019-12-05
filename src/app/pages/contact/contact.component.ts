@@ -32,6 +32,9 @@ import { delay } from 'rxjs/operators';
   styleUrls: ['./contact.component.css']
 })
 export class ContactComponent implements OnInit, AfterViewInit {
+
+  static readonly API_QUERY_PARAM = 'api';
+
   contactForm: FormGroup;
   applications: {
     label: string,
@@ -51,7 +54,8 @@ export class ContactComponent implements OnInit, AfterViewInit {
     public loaderService: LoaderService,
     private currentUserService: CurrentUserService,
     private route: ActivatedRoute,
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
     this.initFormGroup();
@@ -80,7 +84,7 @@ export class ContactComponent implements OnInit, AfterViewInit {
 
   initFormGroup() {
     this.contactForm = this.formBuilder.group({
-      api: this.route.snapshot.queryParams.api || null,
+      api: this.route.snapshot.queryParams[ContactComponent.API_QUERY_PARAM] || null,
       application: null,
       subject: '',
       content: '',

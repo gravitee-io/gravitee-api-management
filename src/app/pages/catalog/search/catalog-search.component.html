@@ -27,7 +27,7 @@
         </div>
 
         <div *ngIf="apiResults" class="catalog-search__list">
-          <gv-row-api *ngFor="let api of apiResults" [api]="api"></gv-row-api>
+          <gv-row-api *ngFor="let api of apiResults" [api]="api" (click)="goToApi(api)"></gv-row-api>
         </div>
 
         <div *ngIf="paginationData" class="catalog-search__pagination">

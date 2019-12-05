@@ -33,8 +33,14 @@
 
   <div class="layout__content">
     <gv-menu [routes]="menuRoutes" [small]="menuSmall">
+
+      <gv-header-api slot="header" *ngIf="apiHeader" [api]="apiHeader"
+        [breadcrumbs]="breadcrumbsHeader"
+        [canSubscribe]="currentUser != null"
+        (:gv-header-api:contact)="goToContact(apiHeader)"></gv-header-api>
+
       <gv-input slot="right" *ngIf="hasSearch"
-                (:gv-input:submit)="onSearchInput($event)"
+        (:gv-input:submit)="onSearchInput($event)"
                 type="search" [attr.placeholder]="'catalog.search' | translate"></gv-input>
 
     </gv-menu>

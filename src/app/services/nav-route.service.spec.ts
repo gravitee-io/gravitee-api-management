@@ -15,7 +15,7 @@
  */
 import { TestBed } from '@angular/core/testing';
 
-import { RouteService } from './route.service';
+import { NavRouteService } from './nav-route.service';
 import { provideMock } from '../test/mock.helper.spec';
 import { TranslateService } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -25,14 +25,14 @@ import { FeatureGuardService } from './feature-guard.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthGuardService } from './auth-guard.service';
 
-describe('RouteService', () => {
+describe('NavRouteService', () => {
 
   let router: Router;
   let translateService: jasmine.SpyObj<TranslateService>;
   let featureGuardService: jasmine.SpyObj<FeatureGuardService>;
   let authGuardService: jasmine.SpyObj<AuthGuardService>;
 
-  let routeService: RouteService;
+  let routeService: NavRouteService;
 
   beforeEach(() => {
 
@@ -65,7 +65,7 @@ describe('RouteService', () => {
     featureGuardService = TestBed.get(FeatureGuardService);
     authGuardService = TestBed.get(AuthGuardService);
 
-    routeService = new RouteService(router, translateService, featureGuardService, authGuardService);
+    routeService = new NavRouteService(router, translateService, featureGuardService, authGuardService);
   });
 
   it('should be created', () => {
@@ -85,7 +85,7 @@ describe('RouteService', () => {
 
   it('should get null children nav if parent does not have data.menu', async () => {
     featureGuardService.canActivate.and.returnValue(true);
-    const service: RouteService = TestBed.get(RouteService);
+    const service: NavRouteService = TestBed.get(NavRouteService);
     const catalog = routeService.getRouteByPath('catalog');
     const routes = await service.getChildrenNav(catalog);
     expect(routes).toEqual(null);
@@ -93,7 +93,7 @@ describe('RouteService', () => {
 
   it('should get children nav if parent have data.menu and child have data.title', async () => {
     featureGuardService.canActivate.and.returnValue(true);
-    const service: RouteService = TestBed.get(RouteService);
+    const service: NavRouteService = TestBed.get(NavRouteService);
     const catalog = routeService.getRouteByPath('catalogWithChildren');
     const routes = await service.getChildrenNav(catalog);
     expect(routes.length).toEqual(1);

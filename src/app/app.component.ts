@@ -22,7 +22,7 @@ import { UserService } from '@gravitee/ng-portal-webclient';
 import { CurrentUserService } from './services/current-user.service';
 import { NotificationService } from './services/notification.service';
 import { ActivatedRoute, NavigationEnd, NavigationStart, Router } from '@angular/router';
-import { RouteService } from './services/route.service';
+import { NavRouteService } from './services/nav-route.service';
 import { addTranslations, setLanguage } from '@gravitee/ui-components/src/lib/i18n';
 
 @Component({
@@ -39,14 +39,14 @@ export class AppComponent implements OnInit {
     private notificationService: NotificationService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private routeService: RouteService
+    private navRouteService: NavRouteService
   ) {
 
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.notificationService.reset();
       } else if (event instanceof NavigationEnd) {
-        const currentRoute: ActivatedRoute = this.routeService.findCurrentRoute(this.activatedRoute);
+        const currentRoute: ActivatedRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
         this._setBrowserTitle(currentRoute);
       }
     });

@@ -47,26 +47,30 @@ import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.co
 import { ApiStatesPipe } from './pipes/api-states.pipe';
 import { ApiLabelsPipe } from './pipes/api-labels.pipe';
 import { ConfigurationService } from './services/configuration.service';
+import { ApiComponent } from './pages/api/api.component';
+import { ApiDocumentationComponent } from './pages/api-documentation/api-documentation.component';
 
 @NgModule({
   declarations: [
+    ApiComponent,
+    ApiDocumentationComponent,
+    ApiLabelsPipe,
+    ApiStatesPipe,
     AppComponent,
-    LayoutComponent,
-    DashboardComponent,
     AppsComponent,
+    CatalogSearchComponent,
+    CategoriesComponent,
+    ContactComponent,
+    DashboardComponent,
+    FilteredCatalogComponent,
+    LayoutComponent,
     LoginComponent,
-    UserComponent,
     LogoutComponent,
     RegistrationComponent,
     RegistrationConfirmationComponent,
-    CategoriesComponent,
-    FilteredCatalogComponent,
     SafePipe,
     UserAvatarComponent,
-    ContactComponent,
-    CatalogSearchComponent,
-    ApiStatesPipe,
-    ApiLabelsPipe,
+    UserComponent,
   ],
   imports: [
     ApiModule,

@@ -42,6 +42,7 @@
   color: var(--gv-theme-color-lighter);
   height: var(--gv-theme-layout-footer-top--h);
   padding-top: 55px;
+  padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pl);
 }
 
 .layout__footer__top__category {

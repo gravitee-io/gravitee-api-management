@@ -122,4 +122,10 @@ export class CatalogSearchComponent implements OnInit {
   hasResult(): boolean {
     return this.totalElements != null;
   }
+
+  goToApi(api: Promise<Api>) {
+    api.then((_api) => {
+      this.router.navigate(['/catalog/api/' + _api.id]);
+    });
+  }
 }

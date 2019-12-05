@@ -7,24 +7,26 @@
 :root {
   font-family: "IBM Plex Sans", "Nunito Sans", -apple-system, ".SFNSText-Regular", "San Francisco", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
+  --gv-header-api--pl: var(--gv-theme-layout--pl);
+  --gv-header-api--pr: var(--gv-theme-layout--pr);
+  --gv-menu--pl: var(--gv-theme-layout--pl);
+  --gv-menu--pr: var(--gv-theme-layout--pr);
+
   // ********** Layout ************
-  --gv-theme-layout--pt: 1rem;
-  --gv-theme-layout--pr: 8rem;
+  --gv-theme-layout--bgc: #E5E5E5;
   --gv-theme-layout--pb: 1rem;
   --gv-theme-layout--pl: 8rem;
-
-  --gv-theme-layout--bgc: #E5E5E5;
-
-  --gv-theme-layout-header--h: 3.8rem;
-  --gv-theme-layout-footer-top--h: 338px;
+  --gv-theme-layout--pr: 8rem;
+  --gv-theme-layout--pt: 1rem;
   --gv-theme-layout-footer-bottom--h: 150px;
+  --gv-theme-layout-footer-top--h: 338px;
+  --gv-theme-layout-header--h: 3.8rem;
 
   // ********** Page ************
-  --gv-theme-page--pt: 4rem;
   --gv-theme-page--pb: 4rem;
+  --gv-theme-page--pt: 4rem;
 
-  --gv-menu--pr: var(--gv-theme-layout--pr);
-  --gv-menu--pl: var(--gv-theme-layout--pl);
+
 }
 
 /* (1920x1080) Full HD Display */

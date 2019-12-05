@@ -112,6 +112,12 @@
     "hits": "Zásah",
     "health": "Zdraví"
   },
+  "gv-header-api": {
+    "contact": "Kontakt",
+    "empty": "Žádné rozhraní API k zobrazení zde",
+    "error": "Při načítání API došlo k chybě",
+    "subscribe": "Předplatit"
+  },
   "gv-pagination": {
     "next": "Další",
     "previous": "Předchozí"
@@ -172,6 +178,8 @@
   "route": {
     "apps": "Aplikace",
     "catalog": "Katalog",
+    "catalogApi": "Api",
+    "catalogApiDocumentation": "Dokumentace",
     "catalogCategories": "Kategories",
     "catalogCategory": "Kategorie",
     "catalogFeatured": "Představoval",

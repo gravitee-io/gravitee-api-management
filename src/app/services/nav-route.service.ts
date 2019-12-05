@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ActivatedRoute, Route, Router, Routes } from '@angular/router';
+import { ActivatedRoute, PRIMARY_OUTLET, Route, Router, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { FeatureGuardService } from './feature-guard.service';
 import { AuthGuardService } from './auth-guard.service';
 
+export interface INavRoute {
+  path: string;
+  title: string;
+  icon?: string;
+  active?: boolean;
+  separator?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
-export class RouteService {
+export class NavRouteService {
 
   constructor(private router: Router,
               private translateService: TranslateService,
@@ -30,13 +38,13 @@ export class RouteService {
               private authGuardService: AuthGuardService) {
   }
 
-  async getUserNav() {
+  async getUserNav(): Promise<INavRoute[]> {
     const parentPath = 'user';
     const userRoute = this.getRouteByPath(parentPath);
     return this.getChildrenNav(userRoute, parentPath, []);
   }
 
-  async getChildrenNav(aRoute: ActivatedRoute | Route, parentPath?: string, hiddenPaths?: Array<string>) {
+  async getChildrenNav(aRoute: ActivatedRoute | Route, parentPath?: string, hiddenPaths?: Array<string>): Promise<INavRoute[]> {
     // @ts-ignore
     const _route: { data, pathFromRoot, routeConfig, children, path } = aRoute instanceof ActivatedRoute ? aRoute.snapshot : aRoute;
 
@@ -62,12 +70,14 @@ export class RouteService {
             const path = `${ _parentPath }/${ child.path }`;
             const active = this.router.isActive(path, false);
             return this.translateService.get(child.data.title).toPromise().then((_title) => {
-              return {
+              const routeNav: INavRoute = {
                 path,
                 icon: child.data.icon,
                 title: _title,
-                active
+                active,
+                separator: child.data.separator
               };
+              return routeNav;
             });
           }
           return null;
@@ -84,10 +94,24 @@ export class RouteService {
     };
   }
 
-  async getSiblingsNav(activatedRoute: ActivatedRoute) {
+  async getSiblingsNav(activatedRoute: ActivatedRoute): Promise<INavRoute[]> {
     const data = activatedRoute.snapshot.data;
     if (data.menu) {
-      return this.getChildrenNav(activatedRoute.parent);
+      const params = activatedRoute.snapshot.params;
+      const childrenNav = this.getChildrenNav(activatedRoute.parent);
+      if (params) {
+        // Replace dynamic path param
+        return childrenNav.then((navRoutes) => {
+          return navRoutes.map((navRoute) => {
+            for (const key of Object.keys(params)) {
+              navRoute.path = navRoute.path.replace(`:${ key }`, params[key]);
+              navRoute.active = this.router.isActive(navRoute.path, true);
+            }
+            return navRoute;
+          });
+        });
+      }
+      return childrenNav;
     }
     return null;
   }
@@ -121,6 +145,39 @@ export class RouteService {
       return found;
     }
     return null;
+  }
+
+  getBreadcrumbs(route: ActivatedRoute, url: string = '', breadcrumbs: INavRoute[] = []): Promise<INavRoute[]> {
+    const ROUTE_DATA_BREADCRUMB = 'breadcrumb';
+
+    const children: ActivatedRoute[] = route.children;
+
+    if (children.length === 0) {
+      // @ts-ignore
+      return breadcrumbs;
+    }
+
+    for (const child of children) {
+      if (child.outlet !== PRIMARY_OUTLET) {
+        continue;
+      }
+
+      if (!child.snapshot.data.hasOwnProperty(ROUTE_DATA_BREADCRUMB)) {
+        return this.getBreadcrumbs(child, url, breadcrumbs);
+      }
+
+      if (child.snapshot.data[ROUTE_DATA_BREADCRUMB] === true) {
+        const routeURL: string = child.snapshot.url.map(segment => segment.path).join('/');
+        url += `/${ routeURL }`;
+
+        const breadcrumb = this.translateService.get(child.snapshot.data.title)
+          .toPromise()
+          .then((_title) => ({ title: _title, path: url }));
+        // @ts-ignore
+        breadcrumbs.push(breadcrumb);
+      }
+      return this.getBreadcrumbs(child, url, breadcrumbs);
+    }
   }
 
 }

@@ -13,25 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-i18n([
-  'gv-card-api.empty',
-  'gv-card-api.error',
-  'gv-card-api-full.empty',
-  'gv-card-api-full.error',
-  'gv-metrics.health',
-  'gv-metrics.hits',
-  'gv-metrics.subscribers',
-  'gv-header-api.contact',
-  'gv-header-api.empty',
-  'gv-header-api.error',
-  'gv-header-api.subscribe',
-  'gv-pagination.next',
-  'gv-pagination.previous',
-  'gv-promote-api.empty',
-  'gv-promote-api.error',
-  'gv-rating.notes',
-  'gv-row-api.empty',
-  'gv-row-api.error',
-]);
+import { ApiComponent } from './api.component';
+
+describe('ApiComponent', () => {
+  let component: ApiComponent;
+  let fixture: ComponentFixture<ApiComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [ ApiComponent ]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(ApiComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

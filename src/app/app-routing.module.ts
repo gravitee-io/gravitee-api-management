@@ -33,6 +33,8 @@ import { FeatureGuardService } from './services/feature-guard.service';
 import { Feature } from './model/feature';
 import { AuthGuardService } from './services/auth-guard.service';
 import { Role } from './model/role.enum';
+import { ApiComponent } from './pages/api/api.component';
+import { ApiDocumentationComponent } from './pages/api-documentation/api-documentation.component';
 
 export const routes: Routes = [
   {
@@ -45,12 +47,38 @@ export const routes: Routes = [
         path: 'catalog',
         data: {
           title: i18n('route.catalog'),
-          menu: { slots: { right: true }, hiddenPaths: ['categories/'] },
+          breadcrumb: true,
+          menu: { slots: { right: true }, hiddenPaths: ['categories/', 'api/'] },
           fallbackRedirectTo: 'catalog/featured'
         },
         children: [
           { path: '', redirectTo: 'categories', pathMatch: 'full' },
           { path: 'search', component: CatalogSearchComponent, data: { menu: { small: true } } },
+          {
+            path: 'api',
+            data: {
+              breadcrumb: false,
+              menu: { slots: { header: 'apiId' } }
+            },
+            children: [
+              {
+                path: ':apiId',
+                component: ApiComponent,
+                data: {
+                  breadcrumb: true,
+                  title: i18n('route.catalogApi')
+                }
+              },
+              {
+                path: ':apiId/doc',
+                component: ApiDocumentationComponent,
+                data: {
+                  breadcrumb: true,
+                  title: i18n('route.catalogApiDocumentation')
+                }
+              }
+            ]
+          },
           {
             path: 'categories',
             component: CategoriesComponent,

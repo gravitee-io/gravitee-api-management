@@ -112,6 +112,12 @@
     "hits": "Hits",
     "health": "Health"
   },
+  "gv-header-api": {
+    "contact": "contact",
+    "empty": "No API to display here",
+    "error": "An error occurred while loading the API",
+    "subscribe": "Subscribe",
+  },
   "gv-pagination": {
     "next": "Next",
     "previous": "Previous"
@@ -172,6 +178,8 @@
   "route": {
     "apps": "Applications",
     "catalog": "Catalog",
+    "catalogApi": "Api",
+    "catalogApiDocumentation": "Documentation",
     "catalogCategories": "Categories",
     "catalogCategory": "Category",
     "catalogFeatured": "Featured",
