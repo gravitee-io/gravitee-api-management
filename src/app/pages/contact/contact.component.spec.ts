@@ -24,6 +24,7 @@ import { provideMock } from '../../test/mock.helper.spec';
 import { NotificationService } from '../../services/notification.service';
 import { LoaderService } from '../../services/loader.service';
 import { CurrentUserService } from '../../services/current-user.service';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('ContactComponent', () => {
   let component: ContactComponent;
@@ -32,14 +33,14 @@ describe('ContactComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ ContactComponent ],
-      imports: [ FormsModule, ReactiveFormsModule, TranslateTestingModule, HttpClientTestingModule],
+      imports: [ FormsModule, ReactiveFormsModule, TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
       providers: [
         provideMock(NotificationService),
         provideMock(LoaderService),
-        provideMock(CurrentUserService)
+        provideMock(CurrentUserService),
       ]
     })
     .compileComponents();
