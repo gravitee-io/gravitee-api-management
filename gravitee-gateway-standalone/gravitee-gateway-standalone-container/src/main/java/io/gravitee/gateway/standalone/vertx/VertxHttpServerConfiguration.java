@@ -39,11 +39,17 @@ public class VertxHttpServerConfiguration {
     @Value("${http.ssl.clientAuth:false}")
     private boolean clientAuth;
 
+    @Value("${http.ssl.keystore.type:#{null}}")
+    private String keyStoreType;
+
     @Value("${http.ssl.keystore.path:#{null}}")
     private String keyStorePath;
 
     @Value("${http.ssl.keystore.password:#{null}}")
     private String keyStorePassword;
+
+    @Value("${http.ssl.truststore.type:#{null}}")
+    private String trustStoreType;
 
     @Value("${http.ssl.truststore.path:#{null}}")
     private String trustStorePath;
@@ -187,5 +193,21 @@ public class VertxHttpServerConfiguration {
 
     public void setWebsocketEnabled(boolean websocketEnabled) {
         this.websocketEnabled = websocketEnabled;
+    }
+
+    public String getKeyStoreType() {
+        return keyStoreType;
+    }
+
+    public void setKeyStoreType(String keyStoreType) {
+        this.keyStoreType = keyStoreType;
+    }
+
+    public String getTrustStoreType() {
+        return trustStoreType;
+    }
+
+    public void setTrustStoreType(String trustStoreType) {
+        this.trustStoreType = trustStoreType;
     }
 }
