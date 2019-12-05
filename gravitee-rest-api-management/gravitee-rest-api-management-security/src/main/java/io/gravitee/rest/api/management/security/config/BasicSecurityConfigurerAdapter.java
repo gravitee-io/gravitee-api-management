@@ -134,7 +134,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         config.setAllowedMethods(getPropertiesAsList("http.cors.allow-methods", "OPTIONS, GET, POST, PUT, DELETE, PATCH"));
         config.setExposedHeaders(getPropertiesAsList("http.cors.exposed-headers", "ETag"));
         config.setMaxAge(environment.getProperty("http.cors.max-age", Long.class, 1728000L));
-        config.setExposedHeaders(Collections.singletonList("ETag"));
 
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

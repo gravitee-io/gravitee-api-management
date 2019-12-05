@@ -67,7 +67,6 @@ import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
 @Configuration
 @Profile("basic")
 @EnableWebSecurity
-@Order(101)
 public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
@@ -140,11 +139,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         final CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(getPropertiesAsList("http.cors.allow-origin", "*"));
-        config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match"));
+        config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With"));
         config.setAllowedMethods(getPropertiesAsList("http.cors.allow-methods", "OPTIONS, GET, POST, PUT, DELETE, PATCH"));
-        config.setExposedHeaders(getPropertiesAsList("http.cors.exposed-headers", "ETag"));
+        config.setExposedHeaders(getPropertiesAsList("http.cors.exposed-headers", ""));
         config.setMaxAge(environment.getProperty("http.cors.max-age", Long.class, 1728000L));
-        config.setExposedHeaders(Collections.singletonList("ETag"));
 
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
