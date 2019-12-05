@@ -75,11 +75,29 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
       });
     };
 
+    this.isClickable = function(result) {
+      return $state.current.name === 'management.platform' && !result.metadata.unknown
+        && (this.widget.chart.request.field === 'api' || this.widget.chart.request.field === 'application');
+    };
+
     this.goto = function(key) {
-      if (this.widget.chart.request.field === 'api') {
-        this.$state.go('management.apis.detail.analytics.overview', {apiId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q:this.widget.chart.request.query});
-      } else if (this.widget.chart.request.field === 'application') {
-        this.$state.go('management.applications.application.analytics', {applicationId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q:this.widget.chart.request.query});
+      //only on platform analytics
+      if ($state.current.name === 'management.platform') {
+        if (this.widget.chart.request.field === 'api') {
+          this.$state.go('management.apis.detail.analytics.overview', {
+            apiId: key,
+            from: this.widget.chart.request.from,
+            to: this.widget.chart.request.to,
+            q: this.widget.chart.request.query
+          });
+        } else if (this.widget.chart.request.field === 'application') {
+          this.$state.go('management.applications.application.analytics', {
+            applicationId: key,
+            from: this.widget.chart.request.from,
+            to: this.widget.chart.request.to,
+            q: this.widget.chart.request.query
+          });
+        }
       }
     };
   }
