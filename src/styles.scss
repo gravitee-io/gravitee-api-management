@@ -15,6 +15,10 @@
 
   --gv-theme-layout--bgc: #E5E5E5;
 
+  --gv-theme-layout-header--h: 3.8rem;
+  --gv-theme-layout-footer-top--h: 338px;
+  --gv-theme-layout-footer-bottom--h: 150px;
+
   // ********** Page ************
   --gv-theme-page--pt: 4rem;
   --gv-theme-page--pb: 4rem;
@@ -81,6 +85,7 @@
 .page__content {
   padding: var(--gv-theme-page--pt) var(--gv-theme-layout--pr) var(--gv-theme-page--pb) var(--gv-theme-layout--pl);
   max-width: calc(1412 + var(--gv-theme-page--pr) + var(--gv-theme-page--pl));
+  min-height: calc(100vh - var(--gv-theme-layout-footer-top--h) - var(--gv-theme-layout-footer-bottom--h) - var(--gv-theme-layout-header--h));
 }
 
 .page__content section {

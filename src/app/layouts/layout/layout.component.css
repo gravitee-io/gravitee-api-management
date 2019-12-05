@@ -27,7 +27,7 @@
   background-image: var(--gv-theme-logo);
   background-size: contain;
   background-repeat: no-repeat;
-  height: 3.8rem;
+  height: var(--gv-theme-layout-header--h);
   width: 100%;
   display: inline-block;
 }
@@ -40,7 +40,7 @@
 .layout__footer__top {
   background-color: var(--gv-theme-color-dark);
   color: var(--gv-theme-color-lighter);
-  height: 338px;
+  height: var(--gv-theme-layout-footer-top--h);
   padding-top: 55px;
 }
 
@@ -84,7 +84,7 @@
 .layout__footer__bottom {
   background-color: var(--gv-theme-color-darker);
   color: var(--gv-theme-color-lighter);
-  height: 150px;
+  height: var(--gv-theme-layout-footer-bottom--h);
   padding-top: 55px;
 }
 
