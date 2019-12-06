@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.logging;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.ssl.SSLInfo;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -31,12 +32,14 @@ public class LoggableClientResponse implements Response {
 
     private final Response response;
     private final Request request;
+    private final LogConfiguration logConfiguration;
     private final Log log;
     private Buffer buffer;
 
-    public LoggableClientResponse(final Request request, final Response response) {
+    public LoggableClientResponse(final Request request, final Response response, LogConfiguration logConfiguration) {
         this.request = request;
         this.response = response;
+        this.logConfiguration = logConfiguration;
         this.log = this.request.metrics().getLog();
     }
 
@@ -74,6 +77,9 @@ public class LoggableClientResponse implements Response {
     private void calculate(Buffer buffer) {
         // Here we are sure that headers has been full processed by policies
         log.getClientResponse().setHeaders(headers());
+        if (logConfiguration.isLogSSLInformation() && request.sslSession() != null) {
+            log.getClientResponse().setSslInfo(new SSLInfo(request.sslSession(), logConfiguration.isLogCertificateChains()));
+        }
 
         if (buffer != null) {
             log.getClientResponse().setBody(buffer.toString());
@@ -118,5 +124,9 @@ public class LoggableClientResponse implements Response {
 
     protected void appendLog(Buffer buffer, Buffer chunk) {
         buffer.appendBuffer(chunk);
+    }
+
+    public LogConfiguration getLogConfiguration() {
+        return logConfiguration;
     }
 }

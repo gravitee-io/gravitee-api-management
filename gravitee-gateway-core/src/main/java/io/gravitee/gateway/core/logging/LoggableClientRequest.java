@@ -16,12 +16,15 @@
 package io.gravitee.gateway.core.logging;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.ssl.SSLInfo;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.RequestWrapper;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.reporter.api.log.Log;
+
+import javax.net.ssl.SSLPeerUnverifiedException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,10 +33,12 @@ import io.gravitee.reporter.api.log.Log;
 public class LoggableClientRequest extends RequestWrapper {
 
     private final Log log;
+    private final LogConfiguration logConfiguration;
     private Buffer buffer;
 
-    public LoggableClientRequest(final Request request) {
+    public LoggableClientRequest(final Request request, final LogConfiguration logConfiguration) {
         super(request);
+        this.logConfiguration = logConfiguration;
         this.log = new Log(request.metrics().timestamp().toEpochMilli());
         this.log.setRequestId(request.id());
 
@@ -45,6 +50,19 @@ public class LoggableClientRequest extends RequestWrapper {
         log.getClientRequest().setMethod(this.method());
         log.getClientRequest().setUri(this.uri());
         log.getClientRequest().setHeaders(new HttpHeaders(this.headers()));
+
+        if (this.sslSession() != null) {
+            this.request.metrics().setSslProtocol(this.sslSession().getProtocol());
+            this.request.metrics().setSslLocalPrincipal(this.sslSession().getLocalPrincipal() != null ? this.sslSession().getLocalPrincipal().getName() : null);
+            try {
+                this.request.metrics().setSslPeerPrincipal(this.sslSession().getPeerPrincipal() != null ? this.sslSession().getPeerPrincipal().getName() : null);
+            } catch (SSLPeerUnverifiedException peerEx) {
+                this.request.metrics().setSslPeerPrincipal(SSLInfo.UNVERIFIED);
+            }
+        }
+        if (logConfiguration.isLogSSLInformation() && this.sslSession() != null) {
+            log.getClientRequest().setSslInfo(new SSLInfo(this.sslSession(), logConfiguration.isLogCertificateChains()));
+        }
     }
 
     @Override
@@ -75,5 +93,9 @@ public class LoggableClientRequest extends RequestWrapper {
 
     protected void appendLog(Buffer buffer, Buffer chunk) {
         buffer.appendBuffer(chunk);
+    }
+
+    public LogConfiguration getLogConfiguration() {
+        return logConfiguration;
     }
 }

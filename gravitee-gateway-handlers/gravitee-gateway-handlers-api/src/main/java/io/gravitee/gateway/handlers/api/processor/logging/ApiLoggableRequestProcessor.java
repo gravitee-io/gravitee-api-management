@@ -20,6 +20,7 @@ import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.logging.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
 import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessor;
+import io.gravitee.gateway.core.logging.LogConfiguration;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,10 +29,9 @@ import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessor;
 public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
 
     private final LoggingMode mode;
-    private int maxSizeLogMessage;
 
-    public ApiLoggableRequestProcessor(Logging logging) {
-        super(new ExpressionLanguageBasedConditionEvaluator(logging.getCondition()));
+    public ApiLoggableRequestProcessor(Logging logging, LogConfiguration logConfig) {
+        super(new ExpressionLanguageBasedConditionEvaluator(logging.getCondition()), logConfig);
         this.mode = logging.getMode();
     }
 
@@ -41,15 +41,11 @@ public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
         if (evaluate) {
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.client", mode.isClientMode());
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy", mode.isProxyMode());
-            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.max.size.log.message", maxSizeLogMessage);
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.max.size.log.message", this.getLogConfiguration().getMaxSizeLogMessage());
 
             return mode.isClientMode();
         }
 
         return false;
-    }
-
-    public void setMaxSizeLogMessage(int maxSizeLogMessage) {
-        this.maxSizeLogMessage = maxSizeLogMessage;
     }
 }
