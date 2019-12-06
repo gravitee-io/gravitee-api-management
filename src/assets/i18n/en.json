@@ -1,4 +1,14 @@
 {
+  "api": {
+    "list": {
+      "connectedApp": "Connected App"
+    },
+    "miscellaneous": {
+      "lastUpdate": "Last update: ",
+      "publisher": "Publisher: ",
+      "version": "Version: "
+    }
+  },
   "catalog": {
     "defaultView": "All the APIs",
     "display": {
@@ -118,6 +128,18 @@
     "empty": "No API to display here",
     "error": "An error occurred while loading the API",
     "subscribe": "Subscribe"
+  },
+  "gv-info-api": {
+    "categories": "Categories",
+    "error": "An error occurred while loading the API",
+    "labels": "Labels",
+    "metrics": "Metrics",
+    "moreInfo": "More information",
+    "ratings": "Ratings",
+    "resources": "Resources"
+  },
+  "gv-list": {
+    "error": "An error occurred while loading list"
   },
   "gv-metrics": {
     "health": "Health",

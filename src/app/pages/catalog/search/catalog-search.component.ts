@@ -85,7 +85,7 @@ export class CatalogSearchComponent implements OnInit {
       .then((apisResponse: ApisResponse) => {
         if (apisResponse.data.length) {
           this.apiResults = apisResponse.data.map((a) => {
-            a.labels = this.apiLabelsPipe.transform(a);
+            // a.labels = this.apiLabelsPipe.transform(a);
             return Promise.resolve(a);
           });
         } else {

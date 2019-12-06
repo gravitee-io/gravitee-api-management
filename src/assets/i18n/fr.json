@@ -1,4 +1,14 @@
 {
+  "api": {
+    "list": {
+      "connectedApp": "Applications liées"
+    },
+    "miscellaneous": {
+      "lastUpdate": "Mise à jour : ",
+      "publisher": "Propriétaire : ",
+      "version": "Version : "
+    }
+  },
   "catalog": {
     "defaultView": "Toutes les APIs",
     "display": {
@@ -118,6 +128,18 @@
     "empty": "Aucune API à afficher ici",
     "error": "Une erreur est survenue pendant de le chargement de l'API",
     "subscribe": "Souscrire"
+  },
+  "gv-info-api": {
+    "categories": "Catégories",
+    "error": "Une erreur est survenue pendant le chargement des informations de l'API",
+    "labels": "Tags",
+    "metrics": "Statistiques",
+    "moreInfo": "Informations supplémentaires",
+    "ratings": "Notes",
+    "resources": "Ressources"
+  },
+  "gv-list": {
+    "error": "Une erreur est survenue pendant de le chargement de la liste"
   },
   "gv-metrics": {
     "health": "Santé",

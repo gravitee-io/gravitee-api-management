@@ -15,8 +15,17 @@
     limitations under the License.
 
 -->
-<div class="page__content">
-  <section>
+<div class="page__content api" *ngIf="currentApi">
+  <section class="api__section">
+    <div *ngIf="description" class="api__section__description">
+      <h4 class="title">Description</h4>
+      <p>{{ description }}</p>
+    </div>
     <app-gv-page *ngIf="homepage" [page]="homepage"></app-gv-page>
   </section>
+  
+  <aside class="api__aside">
+    <gv-info-api [api]="currentApi" [metrics]="currentApiMetrics" [resources]="resources" [miscellaneous]="miscellaneous"></gv-info-api>
+    <gv-list [items]="linkedApp" title="{{ 'api.list.connectedApp' | translate }}"></gv-list>
+  </aside>
 </div>

@@ -1,4 +1,14 @@
 {
+  "api": {
+    "list": {
+      "connectedApp": "Připojené aplikace"
+    },
+    "miscellaneous": {
+      "lastUpdate": "Poslední aktualizace: ",
+      "publisher": "Vydavatel: ",
+      "version": "Verze: "
+    }
+  },
   "catalog": {
     "defaultView": "Všechna API",
     "display": {
@@ -118,6 +128,18 @@
     "empty": "Žádné rozhraní API k zobrazení zde",
     "error": "Při načítání API došlo k chybě",
     "subscribe": "Předplatit"
+  },
+  "gv-info-api": {
+    "categories": "Kategories",
+    "error": "Při načítání API došlo k chybě",
+    "labels": "Značka",
+    "metrics": "Několik čísel",
+    "moreInfo": "Více informací",
+    "ratings": "Poznámky",
+    "resources": "Zdroje"
+  },
+  "gv-list": {
+    "error": "Při načítání seznamu došlo k chybě"
   },
   "gv-metrics": {
     "health": "Zdraví",

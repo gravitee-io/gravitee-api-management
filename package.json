@@ -26,7 +26,7 @@
     "@angular/platform-browser": "^8.2.9",
     "@angular/platform-browser-dynamic": "^8.2.9",
     "@angular/router": "^8.2.9",
-    "@gravitee/ng-portal-webclient": "^1.0.0-SNAPSHOT.201912031501",
+    "@gravitee/ng-portal-webclient": "^1.0.0-SNAPSHOT.201912101616",
     "@gravitee/ui-components": "github:gravitee-io/gravitee-ui-components",
     "@ngx-translate/core": "^11.0.1",
     "@ngx-translate/http-loader": "^4.0.0",

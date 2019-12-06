@@ -69,8 +69,6 @@ import { GvContactComponent } from './components/gv-contact/gv-contact.component
     ApiDocumentationComponent,
     ApiContactComponent,
     ApiLabelsPipe,
-    ApiLabelsPipe,
-    ApiStatesPipe,
     ApiStatesPipe,
     AppComponent,
     AppsComponent,

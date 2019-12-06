@@ -13,3 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+ .api {
+  display: flex;
+}
+
+.api__section {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  max-width: 80%;
+  margin: 0 32px;
+}
+
+.api__section__description {
+ background-color: white;
+ width: 100%;
+ border-radius: 4px;
+ padding: 24px 50px;
+}
+
+app-gv-page {
+  background-color: white;
+}
+
+.api__aside {
+  display: flex;
+  flex-direction: column;
+  --gv-rating--s: 24px;
+}
+
+.api__section > *, .api__aside > * {
+ margin-bottom: 32px;
+}

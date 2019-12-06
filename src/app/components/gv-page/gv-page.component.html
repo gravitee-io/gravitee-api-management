@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div [ngClass]="{dn: isSwaggerParsing}" class="gv-page-container">
+<div [ngClass]="{dn: isSwaggerParsing, markdown: isMarkdown(currentPage)}" class="gv-page-container">
   <markdown *ngIf="isMarkdown(currentPage)" [data]="currentPage.content"></markdown>
   <div [ngClass]="{dn: !isSwagger(currentPage)}" id="redoc"></div>
 </div>

@@ -20,6 +20,8 @@ import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { TranslateTestingModule } from 'src/app/test/helper.spec';
 
 describe('ApiGeneralComponent', () => {
   let component: ApiGeneralComponent;
@@ -28,7 +30,10 @@ describe('ApiGeneralComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ ApiGeneralComponent, GvPageComponent ],
-      imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule ]
+      imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule, TranslateTestingModule ],
+      schemas: [
+        CUSTOM_ELEMENTS_SCHEMA,
+      ]
     })
     .compileComponents();
   }));
