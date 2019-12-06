@@ -36,11 +36,11 @@
 	<properties>
 		<!-- Gravitee's project versions -->
 		<gravitee-gateway-api.version>1.20.0</gravitee-gateway-api.version>
-		<gravitee-common.version>1.16.0</gravitee-common.version>
+		<gravitee-common.version>1.16.1-SNAPSHOT</gravitee-common.version>
 		<gravitee-reporter-api.version>1.17.0</gravitee-reporter-api.version>
 		<gravitee-policy-api.version>1.6.0</gravitee-policy-api.version>
-		<gravitee-repository.version>1.30.0</gravitee-repository.version>
-		<gravitee-node.version>1.6.0</gravitee-node.version>
+		<gravitee-repository.version>1.30.1-SNAPSHOT</gravitee-repository.version>
+		<gravitee-node.version>1.6.1-SNAPSHOT</gravitee-node.version>
 		<freemarker.version>2.3.26-incubating</freemarker.version>
 	</properties>
 
