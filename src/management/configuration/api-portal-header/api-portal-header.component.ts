@@ -124,6 +124,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
         }
       }).then( response => {
         NotificationService.show("Views are now " + (this.settings.portal.apis.apiHeaderShowViews.enabled?"visible":"hidden"));
+        Constants.portal.apis.apiHeaderShowViews = response.data.portal.apis.apiHeaderShowViews;
       });
     };
 
@@ -138,6 +139,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
         }
       }).then( response => {
         NotificationService.show("Tags are now " + (this.settings.portal.apis.apiHeaderShowTags.enabled?"visible":"hidden"));
+        Constants.portal.apis.apiHeaderShowTags = response.data.portal.apis.apiHeaderShowTags;
       });
     };
 

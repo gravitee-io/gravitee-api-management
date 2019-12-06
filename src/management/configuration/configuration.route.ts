@@ -190,7 +190,11 @@ function configurationRouterConfig($stateProvider) {
       }
     })
     .state('management.settings.groups', {
-      url: '/groups',
+      abstract: true,
+      url: '/groups'
+    })
+    .state('management.settings.groups.list', {
+      url: '/',
       component: 'groups',
       resolve: {
         groups: (GroupService: GroupService) =>
@@ -207,8 +211,24 @@ function configurationRouterConfig($stateProvider) {
         }
       }
     })
-    .state('management.settings.group', {
-      url: '/groups/:groupId',
+    .state('management.settings.groups.create', {
+      url: '/new',
+      component: 'group',
+      resolve: {
+        tags: (TagService: TagService) => TagService.list().then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-group'
+        },
+        perms: {
+          only: ['management-group-r']
+        }
+      }
+    })
+    .state('management.settings.groups.group', {
+      url: '/:groupId',
       component: 'group',
       resolve: {
         group: (GroupService: GroupService, $stateParams) =>
@@ -478,11 +498,11 @@ function configurationRouterConfig($stateProvider) {
       }
     })
     .state('management.settings.users', {
-      url: '/users?q',
+      url: '/users?q&page',
       component: 'users',
       resolve: {
-        usersPage: (UserService: UserService, $stateParams) =>
-          UserService.list($stateParams.q).then(response => response.data)
+        usersPage: (UserService: UserService, $state, $stateParams) =>
+          UserService.list($stateParams.q, $stateParams.page).then(response => response.data)
       },
       data: {
         menu: null,
@@ -491,6 +511,12 @@ function configurationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['management-user-c', 'management-user-r', 'management-user-u', 'management-user-d']
+        }
+      },
+      params: {
+        page: {
+          value: '1',
+          dynamic: true
         }
       }
     })

@@ -35,76 +35,9 @@ const GroupsComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
     this.$rootScope = $rootScope;
-    this.$onInit = () => {
-      this.initEventRules();
-    };
 
-    this.initEventRules = () => {
-      this.apiByDefault = {};
-      this.applicationByDefault = {};
-      _.forEach(this.groups, (group) => {
-        this.apiByDefault[group.id] = false;
-        this.applicationByDefault[group.id] = false;
-        if (group.event_rules) {
-          this.apiByDefault[group.id] = _.indexOf(_.map(group.event_rules, "event"), "API_CREATE") >= 0;
-          this.applicationByDefault[group.id] = _.indexOf(_.map(group.event_rules, "event"), "APPLICATION_CREATE") >= 0;
-        }
-      });
-    };
-
-    this.showAddGroupModal = () => {
-      $mdDialog.show({
-        controller: 'DialogAddGroupController',
-        controllerAs: 'dialogAddGroupCtrl',
-        template: require('./add-group.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          currentName: '',
-          currentDefaultApi: false,
-          currentDefaultApplication: false,
-          action: 'Add'
-        }
-      }).then( (newGroup) => {
-        if (newGroup && newGroup.name) {
-          GroupService.updateEventRules(newGroup, newGroup.defaultApi, newGroup.defaultApplication);
-          GroupService.create(newGroup).then(() => {
-            NotificationService.show('Group ' + newGroup.name + ' has been added.');
-            GroupService.list().then( (response) => {
-              this.groups = _.filter(response.data, 'manageable');
-                this.initEventRules();
-              }
-            );
-          });
-        }
-      });
-    };
-
-    this.showRenameGroupModal = (ev, group) => {
-      ev.stopPropagation();
-      $mdDialog.show({
-        controller: 'DialogAddGroupController',
-        controllerAs: 'dialogAddGroupCtrl',
-        template: require('./add-group.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          currentName: group.name,
-          currentDefaultApi: this.apiByDefault[group.id],
-          currentDefaultApplication: this.applicationByDefault[group.id],
-          action: 'Edit'
-        }
-      }).then( (updatedGroup) => {
-        if (updatedGroup && updatedGroup.name) {
-          group.name = updatedGroup.name;
-          GroupService.update(group).then(() => {
-            NotificationService.show('Group ' + group.name + ' has been updated.');
-            GroupService.list().then( (response) => {
-              this.groups = _.filter(response.data, 'manageable');
-                this.initEventRules();
-              }
-            );
-          });
-        }
-      });
+    this.create = () => {
+      $state.go('management.settings.groups.create');
     };
 
     this.removeGroup = (ev, groupId, groupName) => {
@@ -143,9 +76,13 @@ const GroupsComponent: ng.IComponentOptions = {
 
     this.selectGroupUrl = (group: any) => {
       if (group.manageable) {
-        return $state.href('management.settings.group', {groupId: group.id});
+        return $state.go('management.settings.groups.group', {groupId: group.id});
       }
       return null;
+    };
+
+    this.hasEvent = (group: any, event: string) => {
+      return group.event_rules && group.event_rules.findIndex(rule => rule.event === event) !== -1;
     };
   }
 };

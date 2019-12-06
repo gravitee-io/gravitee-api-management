@@ -17,14 +17,30 @@
 -->
 <div class="gv-forms" layout="column">
     <div class="gv-forms-header">
-        <h1>{{$ctrl.group.name}}</h1>
-        <a ui-sref="management.settings.groups">Back to groups</a>
+        <h1 ng-if="$ctrl.updateMode">{{$ctrl.group.name}}</h1>
+        <h1 ng-if="!$ctrl.updateMode">Create a group</h1>
+        <a ui-sref="management.settings.groups.list">Back to groups</a>
     </div>
 
     <form name="formGroup" class="gv-form" ng-submit="$ctrl.update()">
       <h2>General</h2>
       <div class="gv-form-content" layout="column">
-        <div layout="row">
+        <div layout-gt-sm="row">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Name</label>
+            <input ng-model="$ctrl.group.name" type="text" required name="name" maxlength="50">
+            <div class="hint" ng-if="$ctrl.formGroup.name.$valid || $ctrl.formGroup.name.$pristine">Group Name</div>
+            <div ng-messages="$ctrl.formGroup.name.$error">
+              <div ng-message="required">Group name is required.</div>
+              <div ng-message="md-maxlength">The group name has to be less than 50 characters long.</div>
+            </div>
+          </md-input-container>
+        </div>
+      </div>
+
+      <h2>Roles & Members</h2>
+      <div class="gv-form-content" layout="column">
+        <div layout="row" ng-if="$ctrl.updateMode">
           <div layout="row" flex="50">
             <b style="margin: 26px 10px 26px 0">Default API Role</b>
             <md-select placeholder="Default API Role" class="gv-input-number"
@@ -65,20 +81,68 @@
             </md-checkbox>
           </div>
         </div>
+      </div>
 
-        <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.canSave()">
-          <md-button class="md-raised md-primary" type="submit" ng-disabled="formGroup.$invalid || formGroup.$pristine">
-            Save
+      <h2>Associations</h2>
+      <div class="gv-form-content" layout="column">
+        <md-checkbox
+              ng-model="$ctrl.apiByDefault"
+              ng-click="$event.stopPropagation()"
+              aria-label="Associate to every new API"
+              class="md-primary md-align-top-left"
+              flex>
+              Associate automatically to every new API
+        </md-checkbox>
+        <md-checkbox
+              ng-model="$ctrl.applicationByDefault"
+              aria-label="Associate to every new application"
+              class="md-primary md-align-top-left"
+              flex>
+              Associate automatically to every new application
+        </md-checkbox>
+
+        <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.updateMode">
+          <md-button
+                     aria-label="Associate to existing APIs"
+                     ng-click="$ctrl.associateToApis()"
+                     class="md-actions md-raised md-primary">
+            Associate to existing APIs
           </md-button>
+
+          <md-button
+            aria-label="Associate to existing applications"
+            ng-click="$ctrl.associateToApplications()"
+            class="md-actions md-raised md-primary">
+            Associate to existing applications
+          </md-button>
+        </div>
+      </div>
+
+      <h2>Actions</h2>
+      <div class="gv-form-content" layout="column">
+        <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.canSave()">
+          <md-button ng-if="$ctrl.updateMode" class="md-raised md-primary" type="submit"
+                     ng-disabled="formGroup.$invalid || formGroup.$pristine"
+                     permission permission-only="['management-group-u']">
+            Update
+          </md-button>
+
+          <md-button ng-if="!$ctrl.updateMode" class="md-raised md-primary" type="submit"
+                     ng-disabled="formGroup.$invalid || formGroup.$pristine"
+                     permission permission-only="['management-group-c']">
+            Create
+          </md-button>
+
           <md-button class="md-raised" type="button" ng-click="$ctrl.reset()" ng-disabled="formGroup.$invalid || formGroup.$pristine">
             Reset
           </md-button>
         </div>
       </div>
+
     </form>
 
-    <div class="gv-form">
-        <h2></h2>
+    <div class="gv-form" ng-if="$ctrl.updateMode">
+        <h2>Dependents</h2>
         <div class="gv-form-content" layout="column">
           <md-tabs md-dynamic-height>
             <md-tab md-on-select="currentTab='users'">

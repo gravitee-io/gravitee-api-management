@@ -81,6 +81,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
         }
       }).then( response => {
         NotificationService.show("Authentication is now " + (this.settings.authentication.forceLogin.enabled?"mandatory":"optional") );
+        Constants.authentication.forceLogin =  response.data.authentication.forceLogin;
       });
     };
 
@@ -93,6 +94,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
         }
       }).then( response => {
         NotificationService.show("Login form is now " + (this.settings.authentication.localLogin.enabled?"enabled":"disabled"));
+        Constants.authentication.localLogin =  response.data.authentication.localLogin;
       });
     };
   }
