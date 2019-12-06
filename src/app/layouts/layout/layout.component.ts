@@ -173,7 +173,6 @@ export class LayoutComponent implements OnInit {
         this.hasSearch = parentMenuOption.slots.right != null;
       }
     }
-    window.scrollTo(0, 0);
   }
 
   onSearchInput({ detail }) {
