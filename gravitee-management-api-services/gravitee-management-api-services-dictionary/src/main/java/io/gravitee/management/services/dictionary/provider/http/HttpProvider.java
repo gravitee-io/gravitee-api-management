@@ -15,12 +15,16 @@
  */
 package io.gravitee.management.services.dictionary.provider.http;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.management.services.dictionary.model.DynamicProperty;
 import io.gravitee.management.services.dictionary.provider.Provider;
 import io.gravitee.management.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
 import io.gravitee.management.services.dictionary.provider.http.mapper.JoltMapper;
 import io.gravitee.management.services.dictionary.provider.http.vertx.VertxCompletableFuture;
+import io.gravitee.node.api.Node;
+import io.gravitee.node.api.utils.NodeUtils;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
@@ -50,6 +54,8 @@ public class HttpProvider implements Provider {
     private JoltMapper mapper;
 
     private Vertx vertx;
+
+    private Node node;
 
     public HttpProvider(final HttpProviderConfiguration configuration) {
         Objects.requireNonNull(configuration, "Configuration must not be null");
@@ -84,6 +90,9 @@ public class HttpProvider implements Provider {
                     requestUri.getHost(),
                     requestUri.toString()
             );
+
+            request.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
+            request.putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
 
             request.handler(response -> {
                 if (response.statusCode() == HttpStatusCode.OK_200) {
@@ -135,5 +144,9 @@ public class HttpProvider implements Provider {
 
     public void setVertx(Vertx vertx) {
         this.vertx = vertx;
+    }
+
+    public void setNode(Node node) {
+        this.node = node;
     }
 }

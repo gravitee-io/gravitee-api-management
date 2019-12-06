@@ -76,7 +76,8 @@ public class ApiService_DeleteTest {
     private TopApiService topApiService;
     @Mock
     private AlertService alertService;
-
+    @Mock
+    private PageService pageService;
     @Mock
     private ApiQualityRuleRepository apiQualityRuleRepository;
 

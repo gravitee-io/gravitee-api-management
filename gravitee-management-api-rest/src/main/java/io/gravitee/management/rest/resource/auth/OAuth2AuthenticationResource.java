@@ -344,7 +344,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                         map.put(field, userInfoPath.read(mapping));
                     }
                 } catch (Exception e) {
-                    LOGGER.error("Using mapping: \"{}\", no fields are located in {}", mapping, userInfo);
+                    LOGGER.warn("Using mapping: \"{}\", no fields are located in {}", mapping, userInfo);
                 }
             }
         }

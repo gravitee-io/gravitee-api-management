@@ -166,6 +166,12 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
                 View view = convert(viewEntity);
                 Optional<View> viewOptional = viewRepository.findById(view.getId());
                 if (viewOptional.isPresent()) {
+                    // check if picture has been set
+                    if (view.getPicture() == null) {
+                        // Picture can not be updated when re-ordering views
+                        view.setPicture(viewOptional.get().getPicture());
+                    }
+
                     savedViews.add(convert(viewRepository.update(view)));
                     auditService.createPortalAuditLog(
                             Collections.singletonMap(VIEW, view.getId()),

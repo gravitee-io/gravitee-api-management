@@ -33,6 +33,7 @@ public interface GroupService {
     GroupEntity create(NewGroupEntity group);
     GroupEntity update(String groupId, UpdateGroupEntity group);
     GroupEntity findById(String groupId);
+    void associate(String groupId, String associationType);
     Set<GroupEntity> findByIds(Set<String> groupIds);
     Set<GroupEntity> findByEvent(GroupEvent event);
     Set<GroupEntity> findByUser(String user);

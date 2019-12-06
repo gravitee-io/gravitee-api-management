@@ -20,10 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.Logging;
-import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -34,6 +32,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +50,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -118,6 +118,11 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
                 .thenReturn(Collections.singleton(po));
         final Proxy proxy = new Proxy();
+        EndpointGroup endpointGroup = new EndpointGroup();
+        Endpoint endpoint = new HttpEndpoint(null, null);
+        endpointGroup.setEndpoints(singleton(endpoint));
+        proxy.setGroups(singleton(endpointGroup));
+
         existingApi.setProxy(proxy);
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
         existingApi.setLifecycleState(io.gravitee.management.model.api.ApiLifecycleState.CREATED);
