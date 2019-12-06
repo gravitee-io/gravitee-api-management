@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -55,7 +56,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
      */
     private final Logger logger = LoggerFactory.getLogger(AnalyticsServiceImpl.class);
 
-    private static final String APPLICATION_KEYLESS = "1";
+    private static final String APPLICATION_KEYLESS = "?";
 
     @Autowired
     private AnalyticsRepository analyticsRepository;
@@ -244,7 +245,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             groupByResponse.values()
                     .stream()
                     .collect(Collectors.toMap(
-                            GroupByResponse.Bucket::name, GroupByResponse.Bucket::value,
+                            // https://stackoverflow.com/questions/5525795/does-javascript-guarantee-object-property-order/5525820#5525820
+                            // because javascript does not preserve the order, we have to convert all "1" keys to a non int value
+                            bucket -> "1".equals(bucket.name()) ? "?" : bucket.name(),
+                            GroupByResponse.Bucket::value,
                             (v1,v2) ->{ throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));},
                             LinkedHashMap::new)));
 
@@ -264,7 +268,6 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                         case "geoip.country_iso_code": metadata.put(key, getCountryName(key)); break;
                         default:
                             metadata.put(key, getGenericMetadata(key)); break;
-
                     }
                 }
             }
