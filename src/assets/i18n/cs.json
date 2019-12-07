@@ -37,10 +37,8 @@
     "success": "Vaše žádost byla odeslána správci platformy",
     "title": "Vaše žádost"
   },
-  "documentation": {
-    "swagger": {
-      "badFormat": "Stránka, kterou se pokoušíte zobrazit, není ve formátu swagger / OpenAPI\n"
-    }
+  "dashboard": {
+    "welcome": "Vítejte {username},"
   },
   "errors": {
     "email": {
@@ -112,16 +110,24 @@
     "empty": "Žádné rozhraní API k zobrazení zde",
     "error": "Při načítání API došlo k chybě"
   },
-  "gv-metrics": {
-    "subscribers": "Předplatitelé",
-    "hits": "Zásah",
-    "health": "Zdraví"
+  "gv-documentation": {
+    "empty": "Momentálně žádná dokumentace"
   },
   "gv-header-api": {
     "contact": "Kontakt",
     "empty": "Žádné rozhraní API k zobrazení zde",
     "error": "Při načítání API došlo k chybě",
     "subscribe": "Předplatit"
+  },
+  "gv-metrics": {
+    "health": "Zdraví",
+    "hits": "Zásah",
+    "subscribers": "Předplatitelé"
+  },
+  "gv-page": {
+    "swagger": {
+      "badFormat": "Stránka, kterou se pokoušíte zobrazit, není ve formátu swagger / OpenAPI\n"
+    }
   },
   "gv-pagination": {
     "next": "Další",
@@ -183,7 +189,7 @@
   "route": {
     "apps": "Aplikace",
     "catalog": "Katalog",
-    "catalogApi": "Api",
+    "catalogApi": "Obecné informace",
     "catalogApiDocumentation": "Dokumentace",
     "catalogCategories": "Kategories",
     "catalogCategory": "Kategorie",
@@ -193,6 +199,7 @@
     "contact": "Kontakt",
     "dashboard": "Dashboard",
     "documentation": "Dokumentace",
+    "homepage": "Domovská stránka",
     "login": "Přihlásit",
     "logout": "Odhlásit",
     "user": "Můj účet"

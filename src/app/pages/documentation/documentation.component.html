@@ -15,13 +15,4 @@
     limitations under the License.
 
 -->
-<div class="documentation page__content">
-  <div class="documentation__menu">
-    <gv-tree [items]="menu" [closed]="isSwagger(currentPage)" [selectedItem]="currentMenuItem"></gv-tree>
-  </div>
-  <div [ngClass]="{dn: isSwaggerParsing, documentation__content_swagger: isSwagger(currentPage)}" class="documentation__content">
-    <markdown *ngIf="isMarkdown(currentPage)" [data]="currentPage.content" class="documentation__content__markdown"></markdown>
-    <div [ngClass]="{dn: !isSwagger(currentPage)}" id="redoc" class="documentation__content__redoc"></div>
-  </div>
-  <div [ngClass]="{dn: !isSwaggerParsing}" class="documentation__content skeleton"></div>
-</div>
+<app-gv-documentation [pages]="pages"></app-gv-documentation>

@@ -67,6 +67,8 @@ export class LayoutComponent implements OnInit {
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
       this.userRoutes = this.navRouteService.getUserNav();
+      // @ts-ignore
+      this.mainRoutes = this.navRouteService.getChildrenNav(this.activatedRoute);
     });
 
     this.currentUserService.get().subscribe(newCurrentUser => this.currentUser = newCurrentUser);

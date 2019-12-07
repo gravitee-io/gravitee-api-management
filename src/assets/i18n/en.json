@@ -37,10 +37,8 @@
     "success": "Your request has been sent to the platform manager",
     "title": "Your request"
   },
-  "documentation": {
-    "swagger": {
-      "badFormat": "The page you are trying to view is not in swagger / OpenAPI format"
-    }
+  "dashboard": {
+    "welcome": "Welcome {username},"
   },
   "errors": {
     "email": {
@@ -112,16 +110,24 @@
     "empty": "No API to display here",
     "error": "An error occurred while loading the API"
   },
-  "gv-metrics": {
-    "subscribers": "Subscribers",
-    "hits": "Hits",
-    "health": "Health"
+  "gv-documentation": {
+    "empty": "No documentation for the moment"
   },
   "gv-header-api": {
     "contact": "contact",
     "empty": "No API to display here",
     "error": "An error occurred while loading the API",
-    "subscribe": "Subscribe",
+    "subscribe": "Subscribe"
+  },
+  "gv-metrics": {
+    "health": "Health",
+    "hits": "Hits",
+    "subscribers": "Subscribers"
+  },
+  "gv-page": {
+    "swagger": {
+      "badFormat": "The page you are trying to view is not in swagger / OpenAPI format"
+    }
   },
   "gv-pagination": {
     "next": "Next",
@@ -183,7 +189,7 @@
   "route": {
     "apps": "Applications",
     "catalog": "Catalog",
-    "catalogApi": "Api",
+    "catalogApi": "General informations",
     "catalogApiDocumentation": "Documentation",
     "catalogCategories": "Categories",
     "catalogCategory": "Category",
@@ -193,6 +199,7 @@
     "contact": "Contact",
     "dashboard": "Dashboard",
     "documentation": "Documentation",
+    "homepage": "Home page",
     "login": "Sign in",
     "logout": "Sign out",
     "user": "My account"

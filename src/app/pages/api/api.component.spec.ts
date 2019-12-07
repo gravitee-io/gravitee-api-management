@@ -16,6 +16,10 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ApiComponent } from './api.component';
+import { GvPageComponent } from '../../components/gv-page/gv-page.component';
+import { MarkdownModule } from 'ngx-markdown';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('ApiComponent', () => {
   let component: ApiComponent;
@@ -23,7 +27,8 @@ describe('ApiComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ApiComponent ]
+      declarations: [ ApiComponent, GvPageComponent ],
+      imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule ]
     })
     .compileComponents();
   }));
@@ -31,6 +36,7 @@ describe('ApiComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ApiComponent);
     component = fixture.componentInstance;
+    component.homepage = null;
     fixture.detectChanges();
   });
 

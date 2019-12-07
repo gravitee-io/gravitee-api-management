@@ -17,6 +17,6 @@
 -->
 <div class="page__content">
   <section>
-    <h1>Welcome to Dashboard</h1>
+    <h1 *ngIf="currentUser">{{'dashboard.welcome' | translate : { username: currentUser.first_name || currentUser.display_name } }}</h1>
   </section>
 </div>

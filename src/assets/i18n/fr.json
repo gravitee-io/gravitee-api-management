@@ -37,10 +37,8 @@
     "success": "Votre demande a bien été transmise au responsable de la plateforme",
     "title": "Votre demande"
   },
-  "documentation": {
-    "swagger": {
-      "badFormat": "La page que vous essayez d'afficher n'est pas au format swagger / OpenAPI"
-    }
+  "dashboard": {
+    "welcome": "Bienvenue {username},"
   },
   "errors": {
     "email": {
@@ -112,16 +110,24 @@
     "empty": "Aucune API à afficher ici",
     "error": "Une erreur est survenue pendant de le chargement de l'API"
   },
-  "gv-metrics": {
-    "subscribers": "Souscriptions",
-    "hits": "Appels",
-    "health": "Santé"
+  "gv-documentation": {
+    "empty": "Aucune documentation pour le moment"
   },
   "gv-header-api": {
     "contact": "Contact",
     "empty": "Aucune API à afficher ici",
     "error": "Une erreur est survenue pendant de le chargement de l'API",
     "subscribe": "Souscrire"
+  },
+  "gv-metrics": {
+    "health": "Santé",
+    "hits": "Appels",
+    "subscribers": "Souscriptions"
+  },
+  "gv-page": {
+    "swagger": {
+      "badFormat": "La page que vous essayez d'afficher n'est pas au format swagger / OpenAPI"
+    }
   },
   "gv-pagination": {
     "next": "Suivant",
@@ -183,7 +189,7 @@
   "route": {
     "apps": "Applications",
     "catalog": "Catalogue",
-    "catalogApi": "Api",
+    "catalogApi": "Informations générales",
     "catalogApiDocumentation": "Documentation",
     "catalogCategories": "Catégories",
     "catalogCategory": "Catégorie",
@@ -193,6 +199,7 @@
     "contact": "Contact",
     "dashboard": "Tableau de bord",
     "documentation": "Documentation",
+    "homepage": "Page d'accueil",
     "login": "Se connecter",
     "logout": "Se déconnecter",
     "user": "Mon compte"

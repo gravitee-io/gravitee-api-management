@@ -13,26 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.documentation {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  padding: var(--gv-theme-page--pt) 50px var(--gv-theme-page--pb) 0;
-}
 
-.documentation__menu {
-  height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h));
-}
-
-.documentation__content {
-  background-color: white;
-  flex: 1;
-  border-radius: 5px;
-  padding: 10px 50px;
-  height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h));
-  overflow: scroll;
-}
-
-.documentation__content_swagger {
-  padding: 0;
-}

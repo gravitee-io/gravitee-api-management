@@ -36,13 +36,17 @@ import { AuthGuardService } from './services/auth-guard.service';
 import { Role } from './model/role.enum';
 import { ApiComponent } from './pages/api/api.component';
 import { ApiDocumentationComponent } from './pages/api-documentation/api-documentation.component';
+import { HomepageComponent } from './pages/homepage/homepage.component';
 
 export const routes: Routes = [
   {
-    path: '', component: LayoutComponent, data: { menu: true }, children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+    path: '', component: LayoutComponent, data: { menu: { hiddenPaths: [''] } }, children: [
+      { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false } },
       {
-        path: 'dashboard', component: DashboardComponent, data: { title: i18n('route.dashboard') }
+        path: 'dashboard',
+        component: DashboardComponent,
+        data: { title: i18n('route.dashboard'), expectedRole: Role.AUTH_USER },
+        canActivate: [AuthGuardService]
       },
       {
         path: 'catalog',

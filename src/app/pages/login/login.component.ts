@@ -89,7 +89,7 @@ export class LoginComponent implements OnInit {
       this.authService.login({ Authorization: authorization }).subscribe(
         () => {
           // add routing to main page.
-          this.router.navigate(['dashboard']).then(() => window.location.reload());
+          this.router.navigate(['']).then(() => window.location.reload());
         },
         () => {
           this.notificationService.error(i18n('login.notification.error'));

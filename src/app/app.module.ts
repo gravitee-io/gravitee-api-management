@@ -51,6 +51,9 @@ import { ApiComponent } from './pages/api/api.component';
 import { ApiDocumentationComponent } from './pages/api-documentation/api-documentation.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { DocumentationComponent } from './pages/documentation/documentation.component';
+import { GvPageComponent } from './components/gv-page/gv-page.component';
+import { HomepageComponent } from './pages/homepage/homepage.component';
+import { GvDocumentationComponent } from './components/gv-documentation/gv-documentation.component';
 
 @NgModule({
   declarations: [
@@ -78,6 +81,9 @@ import { DocumentationComponent } from './pages/documentation/documentation.comp
     DocumentationComponent,
     ApiStatesPipe,
     ApiLabelsPipe,
+    GvPageComponent,
+    HomepageComponent,
+    GvDocumentationComponent,
   ],
   imports: [
     ApiModule,
