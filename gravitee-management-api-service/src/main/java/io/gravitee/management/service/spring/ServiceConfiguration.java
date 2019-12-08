@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.spring;
 
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
@@ -69,7 +70,7 @@ public class ServiceConfiguration {
 		ObjectMapper objectMapper = new GraviteeMapper();
 		PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
 		objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
-
+		objectMapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
 		// register API serializer
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(ApiEntity.class, apiSerializer());
