@@ -18,7 +18,8 @@ import { PortalService, View } from '@gravitee/ng-portal-webclient';
 
 import '@gravitee/ui-components/wc/gv-card-category';
 import { Router } from '@angular/router';
-import { TimeTooLongError } from '../../../components/TimeTooLongError';
+import { delay } from '../../../utils/utils';
+import { TimeTooLongError } from '../../../exceptions/TimeTooLongError';
 
 @Component({
   selector: 'app-categories',
@@ -37,7 +38,7 @@ export class CategoriesComponent implements OnInit {
 
   ngOnInit() {
 
-    Promise.race([this._loadCards(), this._loadSkeleton()])
+    Promise.race([this._loadCards(), delay(500)])
       .catch((err) => {
         if (err instanceof TimeTooLongError) {
           // @ts-ignore
@@ -64,14 +65,6 @@ export class CategoriesComponent implements OnInit {
   async onCardClick(category: Promise<View>) {
     const view = await category;
     await this.router.navigate([`/catalog/categories/${ view.id }`]);
-  }
-
-  private _loadSkeleton() {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        reject(new TimeTooLongError());
-      }, 500);
-    });
   }
 
 }

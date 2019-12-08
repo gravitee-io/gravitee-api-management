@@ -30,7 +30,8 @@ import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { FeatureEnum } from '../../../model/feature.enum';
-import { TimeTooLongError } from '../../../components/TimeTooLongError';
+import { TimeTooLongError } from '../../../exceptions/TimeTooLongError';
+import { delay } from '../../../utils/utils';
 
 @Component({
   selector: 'app-all',
@@ -91,7 +92,7 @@ export class FilteredCatalogComponent implements OnInit {
           this.page = page;
           this.size = size;
 
-          Promise.race([this._loadCategory(), this._loadSkeleton()])
+          Promise.race([this._loadCategory(), delay(500)])
             .catch((err) => {
               if (err instanceof TimeTooLongError) {
                 // @ts-ignore
@@ -108,7 +109,7 @@ export class FilteredCatalogComponent implements OnInit {
           this.page = page;
           this.size = size;
 
-          Promise.race([this._load(), this._loadSkeleton()]).catch((err) => {
+          Promise.race([this._load(), delay(500)]).catch((err) => {
             if (err instanceof TimeTooLongError) {
               // @ts-ignore
               this.promotedApi = new Promise(null);
@@ -134,14 +135,6 @@ export class FilteredCatalogComponent implements OnInit {
       // @ts-ignore
       option.title = '';
       return option;
-    });
-  }
-
-  private _loadSkeleton() {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        reject(new TimeTooLongError());
-      }, 500);
     });
   }
 

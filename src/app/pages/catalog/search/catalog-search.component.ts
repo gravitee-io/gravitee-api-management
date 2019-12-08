@@ -24,8 +24,9 @@ import { ApiService, ApisResponse, Api } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-query-param.enum';
 import { ConfigurationService } from '../../../services/configuration.service';
-import { LoaderService } from '../../../services/loader.service';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
+import { delay } from '../../../utils/utils';
+import { TimeTooLongError } from '../../../exceptions/TimeTooLongError';
 
 @Component({
   selector: 'app-search',
@@ -49,7 +50,6 @@ export class CatalogSearchComponent implements OnInit {
     private router: Router,
     private config: ConfigurationService,
     private apiLabelsPipe: ApiLabelsPipe,
-    public loaderService: LoaderService,
   ) {
     this.searchForm = this.formBuilder.group({ query: '' });
     this.paginationSize = config.get('pagination.size.default');
@@ -71,31 +71,33 @@ export class CatalogSearchComponent implements OnInit {
 
       }
       this.currentPage = params.get(SearchQueryParam.PAGE) || 1;
-      this._loadData();
+      Promise.race([this._loadData(), delay(500)]).catch((err) => {
+        if (err instanceof TimeTooLongError) {
+          this.apiResults = new Array<Promise<Api>>(this.paginationSize);
+        }
+      });
     });
   }
 
   _loadData() {
-    this.apiResults = new Array(this.paginationSize);
-    this.apiService.searchApis(new SearchRequestParams(this.searchForm.value.query || '*', this.paginationSize, this.currentPage))
-      .subscribe({
-        next: (apisResponse: ApisResponse) => {
-          if (apisResponse.data.length) {
-            this.apiResults = apisResponse.data.map((a) => {
-              a.labels = this.apiLabelsPipe.transform(a);
-              return Promise.resolve(a);
-            });
-          } else {
-            // @ts-ignore
-            this.apiResults = [Promise.resolve({})];
-          }
-          this.paginationData = apisResponse.metadata.pagination;
-          this.totalElements = (this.paginationData ? this.paginationData.total : 0);
-        },
-        error: (err) => {
+    return this.apiService.searchApis(new SearchRequestParams(this.searchForm.value.query || '*', this.paginationSize, this.currentPage))
+      .toPromise()
+      .then((apisResponse: ApisResponse) => {
+        if (apisResponse.data.length) {
+          this.apiResults = apisResponse.data.map((a) => {
+            a.labels = this.apiLabelsPipe.transform(a);
+            return Promise.resolve(a);
+          });
+        } else {
           // @ts-ignore
-          this.apiResults = this.apiResults.map(() => Promise.reject(err));
+          this.apiResults = [Promise.resolve({})];
         }
+        this.paginationData = apisResponse.metadata.pagination;
+        this.totalElements = (this.paginationData ? this.paginationData.total : 0);
+      })
+      .catch((err) => {
+        // @ts-ignore
+        this.apiResults = this.apiResults.map(() => Promise.reject(err));
       });
   }
 
