@@ -15,11 +15,21 @@
  */
 
 .categories__section {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 0.5rem;
 }
 
-gv-card-category {
-  flex: 1;
-  margin: 0.5rem;
+
+@media only screen and (max-device-width: 1280px) {
+
+  .categories__section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .categories__section > gv-card-category {
+    flex: 0 1 auto;
+  }
+
 }
