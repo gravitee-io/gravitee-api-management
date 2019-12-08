@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -91,6 +92,10 @@ public class ApiMapper {
             apiItem.setRatingSummary(ratingSummary);
         }
 
+        if (api.getUpdatedAt() != null) {
+            apiItem.setUpdatedAt(api.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
+        }
+
         apiItem.setVersion(api.getVersion());
         if (api.getViews() != null) {
             apiItem.setViews(api.getViews().stream().filter(viewId -> {
@@ -110,13 +115,13 @@ public class ApiMapper {
 
     public ApiLinks computeApiLinks(String basePath) {
         ApiLinks apiLinks = new ApiLinks();
-        apiLinks.setMetrics(basePath +"/metrics");
+        apiLinks.setMetrics(basePath + "/metrics");
         apiLinks.setPages(basePath + "/pages");
         apiLinks.setPicture(basePath + "/picture");
         apiLinks.setPlans(basePath + "/plans");
         apiLinks.setRatings(basePath + "/ratings");
         apiLinks.setSelf(basePath);
-        
+
         return apiLinks;
     }
 }

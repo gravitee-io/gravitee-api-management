@@ -212,6 +212,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**").permitAll()
 
                 // API requests
+                .antMatchers(HttpMethod.GET, uriPrefix + "/apis/*/subscribers").authenticated()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").permitAll()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/apis/_search").permitAll()
 

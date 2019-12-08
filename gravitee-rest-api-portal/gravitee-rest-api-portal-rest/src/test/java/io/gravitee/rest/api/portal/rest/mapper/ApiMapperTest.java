@@ -24,6 +24,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -93,6 +94,9 @@ public class ApiMapperTest {
 
     @Test
     public void testConvert() {
+        Instant now = Instant.now();
+        Date nowDate = Date.from(now);
+        
         //init
         apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
@@ -109,7 +113,6 @@ public class ApiMapperTest {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("meta", API);
         apiEntity.setMetadata(metadata);
-        
         apiEntity.setVersion(API_VERSION);
         
         UserEntity ownerEntity = new UserEntity();
@@ -129,7 +132,7 @@ public class ApiMapperTest {
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/foo")));
         apiEntity.setProxy(proxy);
         apiEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
-        apiEntity.setUpdatedAt(new Date());
+        apiEntity.setUpdatedAt(nowDate);
         
         
         //Test
@@ -160,6 +163,8 @@ public class ApiMapperTest {
         assertEquals(API_OWNER_ID, owner.getId());
         assertEquals(API_OWNER_EMAIL, owner.getEmail());
         assertEquals(API_OWNER_FIRSTNAME+' '+API_OWNER_LASTNAME, owner.getDisplayName());
+        
+        assertEquals(now.toEpochMilli(), responseApi.getUpdatedAt().toInstant().toEpochMilli());
         
         List<String> views = responseApi.getViews();
         assertNotNull(views);

@@ -343,6 +343,35 @@ paths:
           $ref: '#/components/responses/APINotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /apis/{apiId}/subscribers:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+    get:
+      tags:
+        - Api
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+
+      summary: List applications that subscribred to an API
+      description: |
+        If the current user is the owner of the API, all connected applications will be returned.
+        Else only applications that current is allowed to access will.
+
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
+      operationId: getSubscriberApplicationsByApiId
+      security: []
+      responses:
+        200:
+          description: List accessible applications for current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationsResponse'
+        404:
+          $ref: '#/components/responses/APINotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
 
   /applications:
     get:
@@ -2268,6 +2297,10 @@ components:
             type: string
         owner:
           $ref: '#/components/schemas/User'
+        updated_at:
+          description: Last update date and time.
+          type: string
+          format: date-time
         views:
           description: List of views this API belongs to.
           type: array

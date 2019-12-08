@@ -144,4 +144,8 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiRatingsResource.class);
     }
 
+    @Path("subscribers")
+    public ApiSubscribersResource getApiSubscribersResource() {
+        return resourceContext.getResource(ApiSubscribersResource.class);
+    }
 }
