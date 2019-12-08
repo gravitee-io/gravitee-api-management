@@ -20,9 +20,8 @@
   <h1 class="title" *ngIf="inCategory()">{{title}} <span>({{total}})</span></h1>
 
   <section class="catalog__section__top">
-    <div>
-      <gv-promote-api [api]="promotedApi" [metrics]="promotedMetrics" (:gv-promote-api:click)="goToApi(promotedApi)"></gv-promote-api>
-    </div>
+
+    <gv-promote-api [api]="promotedApi" [metrics]="promotedMetrics" (:gv-promote-api:click)="goToApi(promotedApi)"></gv-promote-api>
 
     <article class="catalog__article__random" *ngIf="!inCategory()">
       <h3 class="title">{{'catalog.othersApi.title' | translate}}
@@ -37,22 +36,22 @@
   <section class="catalog__section__content">
     <div class="catalog__section__content__title">
       <h2 class="title"></h2>
-      <gv-option [options]="options" *ngIf="allApis.length > 0"></gv-option>
       <gv-select *ngIf="canFilter()"
                  [value]="this.currentView"
                  (input)="this.onSelectView($event)"
                  [attr.placeholder]="'catalog.filter' | translate"
                  [options]="this.views">
       </gv-select>
+      <gv-option [options]="options" *ngIf="allApis.length > 0"></gv-option>
     </div>
 
-    <div *ngIf="inDefaultDisplay()" class="catalog__cards catalog__all">
+    <div *ngIf="inDefaultDisplay()" class="catalog__cards catalog__cards__all">
       <gv-card-api-full *ngFor="let api of allApis; let index = index" [api]="api"
                         (click)="goToApi(api)"
                         [metrics]="allApisMetrics[index]"></gv-card-api-full>
     </div>
 
-    <div *ngIf="!inDefaultDisplay()" class="catalog__list catalog__all">
+    <div *ngIf="!inDefaultDisplay()" class="catalog__list catalog__list__all">
       <gv-row-api *ngFor="let api of allApis" [api]="api" (click)="goToApi(api)"></gv-row-api>
     </div>
     <div class="catalog__section__content__pagination">
