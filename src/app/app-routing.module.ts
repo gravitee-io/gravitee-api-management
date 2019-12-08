@@ -18,7 +18,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { AppsComponent } from './pages/apps/apps.component';
 import { LoginComponent } from './pages/login/login.component';
-import { UserComponent } from './pages/user/user.component';
+import { AccountComponent } from './pages/account/account.component';
 import { LogoutComponent } from './pages/logout/logout.component';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
@@ -152,7 +152,7 @@ export const routes: Routes = [
           },
           {
             path: 'account',
-            component: UserComponent,
+            component: AccountComponent,
             canActivate: [AuthGuardService],
             data: {
               title: i18n('route.user'),

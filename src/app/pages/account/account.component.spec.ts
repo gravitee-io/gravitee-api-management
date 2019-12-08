@@ -15,7 +15,7 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { UserComponent } from './user.component';
+import { AccountComponent } from './account.component';
 import { provideMock } from '../../test/mock.helper.spec';
 import { CurrentUserService } from '../../services/current-user.service';
 import { UserService } from '@gravitee/ng-portal-webclient';
@@ -24,15 +24,15 @@ import { UserAvatarComponent } from '../../components/user-avatar/user-avatar.co
 import { SafePipe } from '../../pipes/safe.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
-describe('UserComponent', () => {
-  let component: UserComponent;
-  let fixture: ComponentFixture<UserComponent>;
+describe('AccountComponent', () => {
+  let component: AccountComponent;
+  let fixture: ComponentFixture<AccountComponent>;
 
   let userServiceMock: jasmine.SpyObj<UserService>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [UserComponent, UserAvatarComponent, SafePipe],
+      declarations: [AccountComponent, UserAvatarComponent, SafePipe],
       imports: [TranslateTestingModule],
       providers: [provideMock(UserService), provideMock(CurrentUserService)],
       schemas: [
@@ -45,7 +45,7 @@ describe('UserComponent', () => {
   beforeEach(() => {
     userServiceMock = TestBed.get(UserService);
 
-    fixture = TestBed.createComponent(UserComponent);
+    fixture = TestBed.createComponent(AccountComponent);
     component = fixture.componentInstance;
     fixture.whenStable().then(() => {
       fixture.detectChanges();

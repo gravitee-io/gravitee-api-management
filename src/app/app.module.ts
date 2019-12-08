@@ -32,7 +32,7 @@ import { ApiModule, BASE_PATH } from '@gravitee/ng-portal-webclient';
 import { environment } from '../environments/environment';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { AppsComponent } from './pages/apps/apps.component';
-import { UserComponent } from './pages/user/user.component';
+import { AccountComponent } from './pages/account/account.component';
 import { LogoutComponent } from './pages/logout/logout.component';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
@@ -57,17 +57,26 @@ import { GvDocumentationComponent } from './components/gv-documentation/gv-docum
 
 @NgModule({
   declarations: [
+    AccountComponent,
     ApiComponent,
     ApiDocumentationComponent,
     ApiLabelsPipe,
+    ApiLabelsPipe,
+    ApiStatesPipe,
     ApiStatesPipe,
     AppComponent,
     AppsComponent,
     CatalogSearchComponent,
+    CatalogSearchComponent,
     CategoriesComponent,
     ContactComponent,
+    ContactComponent,
     DashboardComponent,
+    DocumentationComponent,
     FilteredCatalogComponent,
+    GvDocumentationComponent,
+    GvPageComponent,
+    HomepageComponent,
     LayoutComponent,
     LoginComponent,
     LogoutComponent,
@@ -75,15 +84,6 @@ import { GvDocumentationComponent } from './components/gv-documentation/gv-docum
     RegistrationConfirmationComponent,
     SafePipe,
     UserAvatarComponent,
-    UserComponent,
-    ContactComponent,
-    CatalogSearchComponent,
-    DocumentationComponent,
-    ApiStatesPipe,
-    ApiLabelsPipe,
-    GvPageComponent,
-    HomepageComponent,
-    GvDocumentationComponent,
   ],
   imports: [
     ApiModule,

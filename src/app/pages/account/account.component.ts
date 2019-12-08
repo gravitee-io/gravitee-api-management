@@ -20,11 +20,11 @@ import { User } from '@gravitee/ng-portal-webclient';
 
 @Component({
   selector: 'app-user',
-  templateUrl: './user.component.html',
-  styleUrls: ['./user.component.css']
+  templateUrl: './account.component.html',
+  styleUrls: ['./account.component.css']
 })
 
-export class UserComponent implements OnInit {
+export class AccountComponent implements OnInit {
 
   public currentUser: User;
 
