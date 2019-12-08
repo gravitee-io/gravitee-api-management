@@ -18,9 +18,7 @@ import { PortalService, View } from '@gravitee/ng-portal-webclient';
 
 import '@gravitee/ui-components/wc/gv-card-category';
 import { Router } from '@angular/router';
-
-class TimeTooLongError extends Error {
-}
+import { TimeTooLongError } from '../../../components/TimeTooLongError';
 
 @Component({
   selector: 'app-categories',

@@ -30,6 +30,7 @@ import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { FeatureEnum } from '../../../model/feature.enum';
+import { TimeTooLongError } from '../../../components/TimeTooLongError';
 
 @Component({
   selector: 'app-all',
@@ -74,8 +75,6 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.promotedApi = new Promise(null);
-    this.randomList = new Array(4);
     this.currentDisplay = this.activatedRoute.snapshot.queryParamMap.get('display') || FilteredCatalogComponent.DEFAULT_DISPLAY;
     this._initDisplayOptions();
 
@@ -91,8 +90,16 @@ export class FilteredCatalogComponent implements OnInit {
         if (this.page !== page || this.size !== size) {
           this.page = page;
           this.size = size;
-          this.allApis = new Array(this.size);
-          this._loadCategory();
+
+          Promise.race([this._loadCategory(), this._loadSkeleton()])
+            .catch((err) => {
+              if (err instanceof TimeTooLongError) {
+                // @ts-ignore
+                this.promotedApi = new Promise(null);
+                this.randomList = new Array(4);
+                this.allApis = new Array(this.size);
+              }
+            });
         }
       } else {
         const view = params.get('view') || FilteredCatalogComponent.DEFAULT_VIEW;
@@ -100,13 +107,18 @@ export class FilteredCatalogComponent implements OnInit {
           this.currentView = view;
           this.page = page;
           this.size = size;
-          this.allApis = new Array(this.size);
-          this._load();
+
+          Promise.race([this._load(), this._loadSkeleton()]).catch((err) => {
+            if (err instanceof TimeTooLongError) {
+              // @ts-ignore
+              this.promotedApi = new Promise(null);
+              this.allApis = new Array(this.size);
+            }
+          });
         }
       }
     });
   }
-
 
   private _initDisplayOptions() {
     this.options = [
@@ -125,25 +137,39 @@ export class FilteredCatalogComponent implements OnInit {
     });
   }
 
-  async _load() {
+  private _loadSkeleton() {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new TimeTooLongError());
+      }, 500);
+    });
+  }
 
-    this.promotedApi = this._loadPromotedApi({ size: 1, cat: this.categoryApiQuery });
+  _load() {
+    let promotedApiPromise = null;
+    if (this.page === 1) {
+      promotedApiPromise = this._loadPromotedApi({ size: 1, cat: this.categoryApiQuery });
+    }
+    return Promise.all([
+      this._loadRandomList(),
+      this._loadCards(promotedApiPromise)
+    ]);
+  }
 
-    this.apiService.getApis({ size: FilteredCatalogComponent.RANDOM_MAX_SIZE, _cat: this.categoryApiQuery })
-      .subscribe({
-        next: (apiResponse) => {
-          this.randomList = apiResponse.data.map((a) => {
-            // @ts-ignore
-            a.states = this.apiStates.transform(a);
-            return Promise.resolve(a);
-          });
-        },
-        error: (err) => {
+  _loadRandomList() {
+    return this.apiService.getApis({ size: FilteredCatalogComponent.RANDOM_MAX_SIZE, _cat: this.categoryApiQuery })
+      .toPromise()
+      .then((apiResponse) => {
+        this.randomList = apiResponse.data.map((a) => {
           // @ts-ignore
-          this.randomList = this.randomList.fill(() => Promise.reject(err));
-        }
+          a.states = this.apiStates.transform(a);
+          return Promise.resolve(a);
+        });
+      })
+      .catch((err) => {
+        // @ts-ignore
+        this.randomList = this.randomList.fill(() => Promise.reject(err));
       });
-    this._loadCards(this.page === 1);
   }
 
   _loadPromotedApi(requestParams) {
@@ -154,66 +180,73 @@ export class FilteredCatalogComponent implements OnInit {
         if (promoted) {
           this.promotedMetrics = await this.apiService.getApiMetricsByApiId({ apiId: promoted.id }).toPromise();
         }
-        return promoted || {};
+        // @ts-ignore
+        this.promotedApi = promoted || {};
+        return this.promotedApi ;
       })
       .catch((err) => Promise.reject(err));
   }
 
   async _loadCategory() {
     this.title = '';
-    this.promotedApi = this._loadPromotedApi({ size: 1, view: this.currentView });
-    this._loadCards(true);
-    this.category = await this.portalService.getViewByViewId({ viewId: this.currentView }).toPromise();
-    const _meta = await this.apiService.getApis({ page: this.page, size: 0, view: this.currentView }).toPromise();
-    this.total = _meta.metadata.data.total;
-    this.title = this.category.name;
+    const _categoryPromise = this.portalService.getViewByViewId({ viewId: this.currentView })
+      .toPromise()
+      .then((response) => {
+        this.category = response;
+        this.title = this.category.name;
+      });
+    const _metaPromise = this.apiService.getApis({ page: this.page, size: 0, view: this.currentView })
+      .toPromise()
+      .then((_meta) => {
+        this.total = _meta.metadata.data.total;
+      });
+
+    return Promise.all([
+      _categoryPromise,
+      _metaPromise,
+      this._loadCards(this._loadPromotedApi({ size: 1, view: this.currentView }))]);
   }
 
-  async _loadCards(withPromotedApi: boolean) {
-    const size = this.size + (withPromotedApi ? 1 : 0);
+  async _loadCards(promotedApiPromise) {
+    const size = this.size + (promotedApiPromise ? 1 : 0);
 
-    forkJoin([
+    return forkJoin([
       this.apiService.getApis({ page: this.page, size, cat: this.categoryApiQuery, view: this.currentView }),
       this.translateService.get(i18n('catalog.defaultView')),
     ])
       .pipe(map(([allPage, label]) => [allPage.data, label, allPage.metadata]))
-      .subscribe({
-        next: async ([allList, label, metadata]) => {
+      .toPromise()
+      .then(async ([allList, label, metadata]) => {
 
-          this.paginationData = metadata.pagination;
+        this.paginationData = metadata.pagination;
 
-          if (this.hasViewMode() && this.views == null) {
-            this.apiService.getApis({ size: -1, cat: this.categoryApiQuery })
-              .subscribe((apisResponse) => {
+        if (this.hasViewMode() && this.views == null) {
+          this.apiService.getApis({ size: -1, cat: this.categoryApiQuery })
+            .subscribe((apisResponse) => {
+              // @ts-ignore
+              const views = this._getViews(apisResponse.data.slice(1));
+              if (views.length > 0) {
                 // @ts-ignore
-                const views = this._getViews(apisResponse.data.slice(1));
-                if (views.length > 0) {
-                  // @ts-ignore
-                  this.views = [{ value: FilteredCatalogComponent.DEFAULT_VIEW, label }].concat(views);
-                } else {
-                  this.views = [];
-                }
-              });
-          }
-
-          if (withPromotedApi) {
-            // @ts-ignore
-            allList = await this.promotedApi.then((promoted) => allList.filter((api) => promoted.id && api.id !== promoted.id));
-          }
-
-          this.allApis = allList.map((a) => {
-            this.allApisMetrics.push(this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise());
-            a.states = this.apiStates.transform(a);
-            a.labels = this.apiLabels.transform(a);
-            return Promise.resolve(a);
-          });
-
-
-        },
-        error: (err) => {
-          // @ts-ignore
-          this.allApis.fill(() => Promise.reject(err));
+                this.views = [{ value: FilteredCatalogComponent.DEFAULT_VIEW, label }].concat(views);
+              } else {
+                this.views = [];
+              }
+            });
         }
+        if (promotedApiPromise) {
+          // @ts-ignore
+          allList = await promotedApiPromise.then((promoted) => allList.filter((api) => promoted.id && api.id !== promoted.id));
+        }
+
+        this.allApis = allList.map((a) => {
+          this.allApisMetrics.push(this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise());
+          a.states = this.apiStates.transform(a);
+          a.labels = this.apiLabels.transform(a);
+          return Promise.resolve(a);
+        });
+      })
+      .catch((err) => {
+        this.allApis = this.allApis.map(() => Promise.reject(err));
       });
   }
 
