@@ -17,8 +17,10 @@ import { Component, OnInit } from '@angular/core';
 import { PortalService, View } from '@gravitee/ng-portal-webclient';
 
 import '@gravitee/ui-components/wc/gv-card-category';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 
+class TimeTooLongError extends Error {
+}
 
 @Component({
   selector: 'app-categories',
@@ -27,7 +29,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 })
 export class CategoriesComponent implements OnInit {
   nbCategories: number;
-  categories: Array<Promise<View>>;
+  categories: Array<View>;
 
   constructor(
     private portalService: PortalService,
@@ -36,17 +38,25 @@ export class CategoriesComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.categories = new Array(6);
-    this.portalService.getViews({}).subscribe({
-        next: (viewResponse) => {
-          this.categories = viewResponse.data.map((category) => Promise.resolve(category));
-          this.nbCategories = Number(viewResponse.metadata.data.total);
-        },
-        error: (err) => {
-          this.categories = this.categories.map(() => Promise.reject(err));
+
+    Promise.race([this._loadCards(), this._loadSkeleton()])
+      .catch((err) => {
+        if (err instanceof TimeTooLongError) {
+          // @ts-ignore
+          this.categories = new Array<View>(6);
+          // @ts-ignore
+          this.nbCategories = 6;
         }
-      }
-    );
+      });
+  }
+
+  private _loadCards() {
+    return this.portalService.getViews({}).toPromise().then((response) => {
+      // @ts-ignore
+      this.categories = response.data;
+      // @ts-ignore
+      this.nbCategories = response.data.length;
+    });
   }
 
   getCategoryBackgroundColor(index) {
@@ -55,7 +65,15 @@ export class CategoriesComponent implements OnInit {
 
   async onCardClick(category: Promise<View>) {
     const view = await category;
-    this.router.navigate([`/catalog/categories/${view.id}`]);
+    await this.router.navigate([`/catalog/categories/${ view.id }`]);
+  }
+
+  private _loadSkeleton() {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new TimeTooLongError());
+      }, 500);
+    });
   }
 
 }
