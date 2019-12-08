@@ -16,11 +16,13 @@
 .contact {
   background-color: white;
   padding: 1.5rem 4rem;
+}
+
+.contact form {
   max-width: 1076px;
   display: flex;
   flex-direction: column;
 }
-
 .title {
   margin-bottom: 1.5rem;
 }

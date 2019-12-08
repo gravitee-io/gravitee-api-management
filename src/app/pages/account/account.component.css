@@ -13,9 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-div {
-  color: var(--gv-theme-color-darker);
-  margin: 1rem auto;
-  padding: 1rem;
-  max-width: 50rem;
+.account {
+  background-color: white;
+  padding: 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 50vh;
+}
+
+.title {
+  margin-bottom: 1.5rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: row;
+}
+
+.user-info {
+  flex: 1;
 }

@@ -16,56 +16,58 @@
 
 -->
 <div class="page__content">
+  <div class="contact">
+    <form [formGroup]="contactForm" (ngSubmit)="submit()">
+      <h2>{{ 'contact.title' | translate }}</h2>
 
-<form class="contact" [formGroup]="contactForm" (ngSubmit)="submit()">
-  <h2>{{ 'contact.title' | translate }}</h2>
+      <gv-select
+        label="{{ 'contact.apis.title' | translate }}"
+        placeholder="{{ 'contact.apis.label' | translate }}"
+        [options]="apis"
+        formControlName="api"
+        name="api"
+        ngDefaultControl>
+      </gv-select>
 
-  <gv-select
-    label="{{ 'contact.apis.title' | translate }}"
-    placeholder="{{ 'contact.apis.label' | translate }}"
-    [options]="apis"
-    formControlName="api"
-    name="api"
-    ngDefaultControl>
-  </gv-select>
+      <gv-select
+        label="{{ 'contact.applications.title' | translate }}"
+        placeholder="{{ 'contact.applications.label' | translate }}"
+        [options]="applications"
+        formControlName="application"
+        name="application"
+        ngDefaultControl>
+      </gv-select>
 
-  <gv-select
-    label="{{ 'contact.applications.title' | translate }}"
-    placeholder="{{ 'contact.applications.label' | translate }}"
-    [options]="applications"
-    formControlName="application"
-    name="application"
-    ngDefaultControl>
-  </gv-select>
+      <gv-input
+        required
+        label="{{ 'contact.subject.title' | translate }}"
+        placeholder="{{ 'contact.subject.label' | translate }}"
+        formControlName="subject"
+        name="subject"
+        ngDefaultControl>
+      </gv-input>
 
-  <gv-input
-    required
-    label="{{ 'contact.subject.title' | translate }}"
-    placeholder="{{ 'contact.subject.label' | translate }}"
-    formControlName="subject"
-    name="subject"
-    ngDefaultControl>
-  </gv-input>
+      <gv-text
+        required
+        label="{{ 'contact.content.title' | translate }}"
+        placeholder="{{ 'contact.content.label' | translate }}"
+        formControlName="content"
+        name="content"
+        ngDefaultControl>
+      </gv-text>
 
-  <gv-text
-    required
-    label="{{ 'contact.content.title' | translate }}"
-    placeholder="{{ 'contact.content.label' | translate }}"
-    formControlName="content"
-    name="content"
-    ngDefaultControl>
-  </gv-text>
+      <gv-checkbox
+        label="{{ 'contact.receiveCopy' | translate }}"
+        formControlName="copy_to_sender"
+        name="copy_to_sender"
+        ngDefaultControl>
+      </gv-checkbox>
 
-  <gv-checkbox
-    label="{{ 'contact.receiveCopy' | translate }}"
-    formControlName="copy_to_sender"
-    name="copy_to_sender"
-    ngDefaultControl>
-  </gv-checkbox>
+      <gv-button class="contact__input" [disabled]="contactForm.invalid || contactForm.disabled" primary [loading]="loaderService.isLoading | async">
+        {{ 'contact.button' | translate }}
+      </gv-button>
 
-  <gv-button class="contact__input" [disabled]="contactForm.invalid || contactForm.disabled" primary [loading]="loaderService.isLoading | async">
-    {{ 'contact.button' | translate }}
-  </gv-button>
+    </form>
+  </div>
 
-</form>
 </div>

@@ -15,21 +15,23 @@
     limitations under the License.
 
 -->
-<div *ngIf="currentUser" class="bg-white">
-  <h1>{{'user.title' | translate}}</h1>
-  <div class="dt">
-    <div class="w-80 dtc">
-      <p>
-        <span class="b">{{'user.displayName' | translate}} : </span>
-        <span>{{ currentUser.display_name }}</span>
-      </p>
-      <p>
-        <span class="b">{{'user.email' | translate}} : </span>
-        <span>{{ currentUser.email }}</span>
-      </p>
-    </div>
-    <div class="w-20 dtc v-mid">
-      <app-user-avatar [user]="currentUser" [size]="100"></app-user-avatar>
+<div class="page__content">
+  <div *ngIf="currentUser" class="account">
+    <h2>{{'user.title' | translate}}</h2>
+    <div class="content">
+      <div class="user-info">
+        <p>
+          <span class="b">{{'user.displayName' | translate}} : </span>
+          <span>{{ currentUser.display_name }}</span>
+        </p>
+        <p>
+          <span class="b">{{'user.email' | translate}} : </span>
+          <span>{{ currentUser.email }}</span>
+        </p>
+      </div>
+      <div>
+        <app-user-avatar [user]="currentUser" [size]="100"></app-user-avatar>
+      </div>
     </div>
   </div>
 </div>

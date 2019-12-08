@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 .page__content__login, .page__content__registration, .page__content__registration-confirmation {
-  background-color: var(--gv-theme-color-darker);
 }
 
 .login, .registration, .registration-confirmation {
