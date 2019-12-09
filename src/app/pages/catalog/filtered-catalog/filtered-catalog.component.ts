@@ -296,7 +296,7 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   goToApi(api: Promise<Api>) {
-    api.then((_api) => {
+    Promise.resolve(api).then((_api) => {
       this.router.navigate(['/catalog/api/' + _api.id]);
     });
   }
