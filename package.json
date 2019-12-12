@@ -13,7 +13,8 @@
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "e2e": "ng e2e",
-    "generate:i18n": "ngx-translate-extract -i ./src -o ./src/assets/i18n/*.json -c -s --fi '  ' -f namespaced-json -k -m i18n"
+    "generate:i18n": "ngx-translate-extract -i ./src -o ./src/assets/i18n/*.json -c -s --fi '  ' -f namespaced-json -k -m i18n",
+    "install:sdk": "npm i --save /tmp/gravitee-ng-portal-webclient.tgz"
   },
   "private": true,
   "dependencies": {
