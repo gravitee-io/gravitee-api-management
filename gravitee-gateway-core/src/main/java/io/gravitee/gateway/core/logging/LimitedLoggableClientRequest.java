@@ -17,6 +17,9 @@ package io.gravitee.gateway.core.logging;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.core.logging.utils.LoggingUtils;
+
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.appendBuffer;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -33,6 +36,6 @@ public class LimitedLoggableClientRequest extends LoggableClientRequest {
 
     @Override
     protected void appendLog(Buffer buffer, Buffer chunk) {
-        buffer.appendBuffer(chunk, maxSizeLogMessage);
+        appendBuffer(buffer, chunk, maxSizeLogMessage);
     }
 }

@@ -43,17 +43,17 @@ public class LoggableClientResponse implements Response {
     }
 
     @Override
-    public WriteStream<Buffer> write(Buffer content) {
+    public WriteStream<Buffer> write(Buffer chunk) {
         if (buffer == null) {
             buffer = Buffer.buffer();
             isEventStream = MediaType.TEXT_EVENT_STREAM.equalsIgnoreCase(response.headers().contentType());
         }
 
         if (!isEventStream) {
-            appendLog(buffer, content);
+            appendLog(buffer, chunk);
         }
 
-        response.write(content);
+        response.write(chunk);
         return response;
     }
 
