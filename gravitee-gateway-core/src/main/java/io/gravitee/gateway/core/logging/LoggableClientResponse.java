@@ -16,13 +16,15 @@
 package io.gravitee.gateway.core.logging;
 
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.MediaType;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.reporter.api.log.Log;
+
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isResponseContentTypeLoggable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,11 +36,13 @@ public class LoggableClientResponse implements Response {
     private final Request request;
     private final Log log;
     private Buffer buffer;
-    private boolean isEventStream;
+    private final ExecutionContext context;
+    private boolean isContentTypeLoggable;
 
-    public LoggableClientResponse(final Request request, final Response response) {
+    public LoggableClientResponse(final Request request, final Response response, final ExecutionContext context) {
         this.request = request;
         this.response = response;
+        this.context = context;
         this.log = this.request.metrics().getLog();
     }
 
@@ -46,10 +50,10 @@ public class LoggableClientResponse implements Response {
     public WriteStream<Buffer> write(Buffer chunk) {
         if (buffer == null) {
             buffer = Buffer.buffer();
-            isEventStream = MediaType.TEXT_EVENT_STREAM.equalsIgnoreCase(response.headers().contentType());
+            isContentTypeLoggable = isResponseContentTypeLoggable(response.headers().contentType(), context);
         }
 
-        if (!isEventStream) {
+        if (isContentTypeLoggable) {
             appendLog(buffer, chunk);
         }
 
