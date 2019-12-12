@@ -54,6 +54,10 @@ import { DocumentationComponent } from './pages/documentation/documentation.comp
 import { GvPageComponent } from './components/gv-page/gv-page.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { GvDocumentationComponent } from './components/gv-documentation/gv-documentation.component';
+import { GvSearchComponent } from './components/gv-search/gv-search.component';
+import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
+import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
+import { GvMenuHeaderComponent } from './components/gv-menu-header/gv-menu-header.component';
 
 @NgModule({
   declarations: [
@@ -75,6 +79,9 @@ import { GvDocumentationComponent } from './components/gv-documentation/gv-docum
     DocumentationComponent,
     FilteredCatalogComponent,
     GvDocumentationComponent,
+    GvMenuHeaderComponent,
+    GvMenuRightSlotDirective,
+    GvMenuTopSlotDirective,
     GvPageComponent,
     HomepageComponent,
     LayoutComponent,
@@ -83,8 +90,10 @@ import { GvDocumentationComponent } from './components/gv-documentation/gv-docum
     RegistrationComponent,
     RegistrationConfirmationComponent,
     SafePipe,
+    GvSearchComponent,
     UserAvatarComponent,
   ],
+  entryComponents: [GvSearchComponent, GvMenuHeaderComponent],
   imports: [
     ApiModule,
     AppRoutingModule,

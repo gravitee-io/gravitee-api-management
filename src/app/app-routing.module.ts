@@ -13,30 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { AppsComponent } from './pages/apps/apps.component';
-import { LoginComponent } from './pages/login/login.component';
 import { AccountComponent } from './pages/account/account.component';
-import { LogoutComponent } from './pages/logout/logout.component';
-import { RegistrationComponent } from './pages/registration/registration.component';
-import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { LayoutComponent } from './layouts/layout/layout.component';
-import { CategoriesComponent } from './pages/catalog/categories/categories.component';
-import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
-import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
-import { CategoryApiQuery } from '@gravitee/ng-portal-webclient';
-import { ContactComponent } from './pages/contact/contact.component';
-import { FeatureGuardService } from './services/feature-guard.service';
-import { DocumentationComponent } from './pages/documentation/documentation.component';
-import { FeatureEnum } from './model/feature.enum';
-import { AuthGuardService } from './services/auth-guard.service';
-import { Role } from './model/role.enum';
 import { ApiComponent } from './pages/api/api.component';
 import { ApiDocumentationComponent } from './pages/api-documentation/api-documentation.component';
+import { AppsComponent } from './pages/apps/apps.component';
+import { AuthGuardService } from './services/auth-guard.service';
+import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
+import { CategoriesComponent } from './pages/catalog/categories/categories.component';
+import { CategoryApiQuery } from '@gravitee/ng-portal-webclient';
+import { ContactComponent } from './pages/contact/contact.component';
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { DocumentationComponent } from './pages/documentation/documentation.component';
+import { FeatureEnum } from './model/feature.enum';
+import { FeatureGuardService } from './services/feature-guard.service';
+import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
+import { GvMenuHeaderComponent } from './components/gv-menu-header/gv-menu-header.component';
+import { GvSearchComponent } from './components/gv-search/gv-search.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
+import { LayoutComponent } from './layouts/layout/layout.component';
+import { LoginComponent } from './pages/login/login.component';
+import { LogoutComponent } from './pages/logout/logout.component';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { NgModule } from '@angular/core';
+import { RegistrationComponent } from './pages/registration/registration.component';
+import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
+import { Role } from './model/role.enum';
+import { RouterModule, Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
@@ -53,24 +55,25 @@ export const routes: Routes = [
         data: {
           title: i18n('route.catalog'),
           breadcrumb: true,
-          menu: { slots: { right: true }, hiddenPaths: ['categories/', 'api/'] },
+          menu: { hiddenPaths: ['categories/', 'api/'] },
           fallbackRedirectTo: 'catalog/featured'
         },
         children: [
           { path: '', redirectTo: 'categories', pathMatch: 'full' },
-          { path: 'search', component: CatalogSearchComponent, data: { menu: { small: true } } },
+          { path: 'search', component: CatalogSearchComponent, data: { menu: { slots: { right: GvSearchComponent } } } },
           {
             path: 'api',
             data: {
               breadcrumb: false,
-              menu: { slots: { header: 'apiId' } }
             },
             children: [
               {
                 path: ':apiId',
                 component: ApiComponent,
                 data: {
+                  menu: { slots: { top: GvMenuHeaderComponent, right: GvSearchComponent } },
                   breadcrumb: true,
+                  icon: 'general:clipboard',
                   title: i18n('route.catalogApi')
                 }
               },
@@ -78,7 +81,9 @@ export const routes: Routes = [
                 path: ':apiId/doc',
                 component: ApiDocumentationComponent,
                 data: {
+                  menu: { slots: { top: GvMenuHeaderComponent, right: GvSearchComponent } },
                   breadcrumb: true,
+                  icon: 'home:library',
                   title: i18n('route.catalogApiDocumentation')
                 }
               }
@@ -92,7 +97,7 @@ export const routes: Routes = [
               expectedFeature: FeatureEnum.viewMode,
               title: i18n('route.catalogCategories'),
               icon: 'layout:layout-arrange',
-              menu: true
+              menu: { slots: { right: GvSearchComponent } },
             }
           },
           {
@@ -102,7 +107,7 @@ export const routes: Routes = [
             data: {
               expectedFeature: FeatureEnum.viewMode,
               title: i18n('route.catalogCategory'),
-              menu: true
+              menu: { slots: { right: GvSearchComponent } },
             },
           },
           {
@@ -111,7 +116,7 @@ export const routes: Routes = [
             data: {
               title: i18n('route.catalogFeatured'),
               icon: 'home:flower#2',
-              menu: true,
+              menu: { slots: { right: GvSearchComponent } },
               categoryApiQuery: CategoryApiQuery.FEATURED,
             }
           },
@@ -122,7 +127,7 @@ export const routes: Routes = [
             data: {
               title: i18n('route.catalogStarred'),
               icon: 'general:star',
-              menu: true,
+              menu: { slots: { right: GvSearchComponent } },
               categoryApiQuery: CategoryApiQuery.STARRED,
               expectedFeature: FeatureEnum.rating,
             }
@@ -133,7 +138,7 @@ export const routes: Routes = [
             data: {
               title: i18n('route.catalogTrending'),
               icon: 'home:fireplace',
-              menu: true,
+              menu: { slots: { right: GvSearchComponent } },
               categoryApiQuery: CategoryApiQuery.TRENDINGS,
             }
           }

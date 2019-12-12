@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
-import { Title } from '@angular/platform-browser';
-import { TranslateService } from '@ngx-translate/core';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { CurrentUserService } from '../../services/current-user.service';
-import { INavRoute, NavRouteService } from '../../services/nav-route.service';
-import { Api, ApiService, User } from '@gravitee/ng-portal-webclient';
+import '@gravitee/ui-components/wc/gv-header-api';
+import '@gravitee/ui-components/wc/gv-menu';
 import '@gravitee/ui-components/wc/gv-nav';
 import '@gravitee/ui-components/wc/gv-user-menu';
-import '@gravitee/ui-components/wc/gv-menu';
-import '@gravitee/ui-components/wc/gv-header-api';
-import { NotificationService } from '../../services/notification.service';
-import { Notification } from '../../model/notification';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { ApiService, User } from '@gravitee/ng-portal-webclient';
+import { Component, ComponentFactoryResolver, HostListener, OnInit, ViewChild } from '@angular/core';
+import { CurrentUserService } from '../../services/current-user.service';
+import { GvMenuRightSlotDirective } from '../../directives/gv-menu-right-slot.directive';
+import { GvMenuTopSlotDirective } from '../../directives/gv-menu-top-slot.directive';
+import { INavRoute, NavRouteService } from '../../services/nav-route.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { ContactComponent } from '../../pages/contact/contact.component';
+import { Notification } from '../../model/notification';
+import { NotificationService } from '../../services/notification.service';
+import { Title } from '@angular/platform-browser';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-layout',
@@ -41,10 +42,8 @@ export class LayoutComponent implements OnInit {
   public currentUser: User;
   public notification: Notification;
   public links: any;
-  public hasSearch: boolean;
-  menuSmall: boolean;
-  apiHeader: Promise<Api>;
-  breadcrumbsHeader: Promise<INavRoute[]>;
+  @ViewChild(GvMenuTopSlotDirective, { static: true }) appGvMenuTopSlot: GvMenuTopSlotDirective;
+  @ViewChild(GvMenuRightSlotDirective, { static: true }) appGvMenuRightSlot: GvMenuRightSlotDirective;
 
   constructor(
     private titleService: Title,
@@ -55,6 +54,7 @@ export class LayoutComponent implements OnInit {
     private notificationService: NotificationService,
     private activatedRoute: ActivatedRoute,
     private apiService: ApiService,
+    private componentFactoryResolver: ComponentFactoryResolver
   ) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -144,49 +144,30 @@ export class LayoutComponent implements OnInit {
     // @ts-ignore
     this.mainRoutes = this.navRouteService.getChildrenNav(this.activatedRoute);
     const currentRoute: ActivatedRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
-    this.hasSearch = false;
-    this.apiHeader = null;
     // @ts-ignore
     this.menuRoutes = this.navRouteService.getSiblingsNav(currentRoute);
-
     if (this.menuRoutes) {
       const menuOption = currentRoute.snapshot.data.menu;
-      if (menuOption) {
-        this.menuSmall = menuOption.small;
-        if (menuOption.slots && menuOption.slots.header) {
-
-          this.breadcrumbsHeader = this.navRouteService.getBreadcrumbs(this.activatedRoute);
-
-          currentRoute.params.subscribe({
-            next: (params) => {
-              const apiId = params.apiId ? params.apiId : '?';
-              this.apiHeader = this.apiService
-                .getApiByApiId({ apiId })
-                .toPromise()
-                .catch((err) => Promise.reject(err));
-            }
-          });
-        }
+      if (typeof menuOption === 'object' && menuOption.slots) {
+        this._injectComponent(this.appGvMenuTopSlot.viewContainerRef, menuOption.slots.top);
+        this._injectComponent(this.appGvMenuRightSlot.viewContainerRef, menuOption.slots.right);
       } else {
-        this.menuSmall = false;
+        this._clearMenuSlots();
       }
-      const parentMenuOption = currentRoute.snapshot.parent.data.menu;
-      if (typeof parentMenuOption === 'object' && parentMenuOption.slots) {
-        this.hasSearch = parentMenuOption.slots.right != null;
-      }
+    } else {
+      this._clearMenuSlots();
     }
   }
 
-  onSearchInput({ detail }) {
-    this.router.navigate(['/catalog/search'], { queryParams: { q: detail } });
+  private _clearMenuSlots() {
+    this.appGvMenuTopSlot.viewContainerRef.clear();
+    this.appGvMenuRightSlot.viewContainerRef.clear();
   }
 
-
-  goToContact(api: Promise<Api>) {
-    api.then((_api) => {
-      const queryParams = {};
-      queryParams[ContactComponent.API_QUERY_PARAM] = _api.id;
-      this.router.navigate(['/user/contact'], { queryParams });
-    });
+  private _injectComponent(viewContainerRef, slot) {
+    if (slot && viewContainerRef.length === 0) {
+      const componentFactory = this.componentFactoryResolver.resolveComponentFactory(slot);
+      viewContainerRef.createComponent(componentFactory);
+    }
   }
 }
