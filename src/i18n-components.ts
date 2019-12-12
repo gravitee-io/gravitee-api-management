@@ -31,6 +31,7 @@ i18n([
   'gv-pagination.previous',
   'gv-promote-api.empty',
   'gv-promote-api.error',
+  'gv-promote-api.view',
   'gv-rating.notes',
   'gv-row-api.empty',
   'gv-row-api.error',

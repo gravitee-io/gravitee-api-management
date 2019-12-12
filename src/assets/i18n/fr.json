@@ -135,7 +135,8 @@
   },
   "gv-promote-api": {
     "empty": "Aucune API à afficher ici",
-    "error": "Une erreur est survenue pendant de le chargement de l'API"
+    "error": "Une erreur est survenue pendant de le chargement de l'API",
+    "view": "Voir l'API"
   },
   "gv-rating": {
     "notes": "Notes"

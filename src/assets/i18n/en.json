@@ -135,7 +135,8 @@
   },
   "gv-promote-api": {
     "empty": "No API to display here",
-    "error": "An error occurred while loading the API"
+    "error": "An error occurred while loading the API",
+    "view": "View API"
   },
   "gv-rating": {
     "notes": "Ratings"

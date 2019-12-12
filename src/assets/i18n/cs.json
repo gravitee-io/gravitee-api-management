@@ -135,7 +135,8 @@
   },
   "gv-promote-api": {
     "empty": "Žádné rozhraní API k zobrazení zde",
-    "error": "Při načítání API došlo k chybě"
+    "error": "Při načítání API došlo k chybě",
+    "view": "Podívejte se na API"
   },
   "gv-rating": {
     "notes": "Poznámky"
