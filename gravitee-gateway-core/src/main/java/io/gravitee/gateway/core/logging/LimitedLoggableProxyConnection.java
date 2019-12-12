@@ -21,6 +21,8 @@ import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.appendBuffer;
+
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
@@ -36,7 +38,7 @@ public class LimitedLoggableProxyConnection extends LoggableProxyConnection {
 
     @Override
     protected void appendLog(Buffer buffer, Buffer chunk) {
-        buffer.appendBuffer(chunk, maxSizeLogMessage);
+        appendBuffer(buffer, chunk, maxSizeLogMessage);
     }
 
     protected ProxyConnection responseHandler(ProxyConnection proxyConnection, Handler<ProxyResponse> responseHandler) {
@@ -63,7 +65,7 @@ public class LimitedLoggableProxyConnection extends LoggableProxyConnection {
 
         @Override
         protected void appendLog(Buffer buffer, Buffer chunk) {
-            buffer.appendBuffer(chunk, maxSizeLogMessage);
+            appendBuffer(buffer, chunk, maxSizeLogMessage);
         }
     }
 }
