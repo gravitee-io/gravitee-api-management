@@ -103,8 +103,8 @@ public class EndpointInvoker implements Invoker {
                 if (loggingAttr != null && ((boolean) loggingAttr)) {
                     int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context);
                     proxyConnection = maxSizeLogMessage == -1 ?
-                            new LoggableProxyConnection(proxyConnection, proxyRequest) :
-                            new LimitedLoggableProxyConnection(proxyConnection, proxyRequest, maxSizeLogMessage);
+                            new LoggableProxyConnection(proxyConnection, proxyRequest, context) :
+                            new LimitedLoggableProxyConnection(proxyConnection, proxyRequest, context, maxSizeLogMessage);
                 }
 
                 connectionHandler.handle(proxyConnection);

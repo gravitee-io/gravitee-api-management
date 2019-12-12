@@ -23,12 +23,14 @@ import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
 
     private final LoggingMode mode;
     private int maxSizeLogMessage;
+    private String excludedResponseTypes;
 
     public ApiLoggableRequestProcessor(Logging logging) {
         super(new ExpressionLanguageBasedConditionEvaluator(logging.getCondition()));
@@ -42,6 +44,7 @@ public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.client", mode.isClientMode());
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy", mode.isProxyMode());
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.max.size.log.message", maxSizeLogMessage);
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.excluded.types", excludedResponseTypes);
 
             return mode.isClientMode();
         }
@@ -51,5 +54,9 @@ public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
 
     public void setMaxSizeLogMessage(int maxSizeLogMessage) {
         this.maxSizeLogMessage = maxSizeLogMessage;
+    }
+
+    public void setExcludedResponseTypes(String excludedResponseTypes) {
+        this.excludedResponseTypes = excludedResponseTypes;
     }
 }
