@@ -168,6 +168,8 @@ export class LayoutComponent implements OnInit {
     if (slot && viewContainerRef.length === 0) {
       const componentFactory = this.componentFactoryResolver.resolveComponentFactory(slot);
       viewContainerRef.createComponent(componentFactory);
+    } else if (slot == null) {
+      viewContainerRef.clear();
     }
   }
 }
