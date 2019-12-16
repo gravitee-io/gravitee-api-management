@@ -14,31 +14,22 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { ApiService, Page, PortalService } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
-  selector: 'app-api',
-  templateUrl: './api.component.html',
-  styleUrls: ['./api.component.css']
+  selector: 'app-api-contact',
+  templateUrl: './api-contact.component.html',
+  styleUrls: ['./api-contact.component.css']
 })
-export class ApiComponent implements OnInit {
+export class ApiContactComponent implements OnInit {
 
-  homepage: Page;
+  apiId: string;
 
   constructor(
-    private apiService: ApiService,
     private route: ActivatedRoute,
   ) { }
 
   ngOnInit() {
-    const apiId = this.route.snapshot.params.apiId;
-    if (apiId) {
-      this.apiService.getPagesByApiId({ apiId, homepage: true })
-        .subscribe(response => {
-          this.homepage = response.data[0];
-        });
-    }
+    this.apiId = this.route.snapshot.params.apiId;
   }
-
 }

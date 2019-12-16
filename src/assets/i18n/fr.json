@@ -15,28 +15,6 @@
   "categories": {
     "title": "Catégories"
   },
-  "contact": {
-    "apis": {
-      "label": "Trouver une API",
-      "title": "Associer une API"
-    },
-    "applications": {
-      "label": "Trouver une application",
-      "title": "Associer une application"
-    },
-    "button": "Envoyer votre demande",
-    "content": {
-      "label": "Expliquer votre demande...",
-      "title": "Votre demande"
-    },
-    "receiveCopy": "Recevoir une copie par e-mail",
-    "subject": {
-      "label": "Expliquer le sujet...",
-      "title": "Sujet"
-    },
-    "success": "Votre demande a bien été transmise au responsable de la plateforme",
-    "title": "Votre demande"
-  },
   "dashboard": {
     "welcome": "Bienvenue {username},"
   },
@@ -109,6 +87,28 @@
   "gv-card-api": {
     "empty": "Aucune API à afficher ici",
     "error": "Une erreur est survenue pendant de le chargement de l'API"
+  },
+  "gv-contact": {
+    "apis": {
+      "label": "Trouver une API",
+      "title": "Associer une API"
+    },
+    "applications": {
+      "label": "Trouver une application",
+      "title": "Associer une application"
+    },
+    "button": "Envoyer votre demande",
+    "content": {
+      "label": "Expliquer votre demande...",
+      "title": "Votre demande"
+    },
+    "receiveCopy": "Recevoir une copie par e-mail",
+    "subject": {
+      "label": "Expliquer le sujet...",
+      "title": "Sujet"
+    },
+    "success": "gv-contact.success",
+    "title": "Votre demande"
   },
   "gv-documentation": {
     "empty": "Aucune documentation pour le moment"
@@ -191,6 +191,7 @@
     "apps": "Applications",
     "catalog": "Catalogue",
     "catalogApi": "Informations générales",
+    "catalogApiContact": "Contact",
     "catalogApiDocumentation": "Documentation",
     "catalogCategories": "Catégories",
     "catalogCategory": "Catégorie",

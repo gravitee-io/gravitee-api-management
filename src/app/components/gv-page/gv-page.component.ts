@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ApiService, Page, PortalService } from '@gravitee/ng-portal-webclient';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NotificationService } from '../../services/notification.service';

@@ -15,28 +15,6 @@
   "categories": {
     "title": "Categories"
   },
-  "contact": {
-    "apis": {
-      "label": "Find an API",
-      "title": "Associate an API"
-    },
-    "applications": {
-      "label": "Find an application",
-      "title": "Associate an application"
-    },
-    "button": "Send your request",
-    "content": {
-      "label": "Explain your request...",
-      "title": "Your request"
-    },
-    "receiveCopy": "Receive a copy by e-mail",
-    "subject": {
-      "label": "Explain the subject...",
-      "title": "Subject"
-    },
-    "success": "Your request has been sent to the platform manager",
-    "title": "Your request"
-  },
   "dashboard": {
     "welcome": "Welcome {username},"
   },
@@ -109,6 +87,28 @@
   "gv-card-api": {
     "empty": "No API to display here",
     "error": "An error occurred while loading the API"
+  },
+  "gv-contact": {
+    "apis": {
+      "label": "Find an API",
+      "title": "Associate an API"
+    },
+    "applications": {
+      "label": "Find an application",
+      "title": "Associate an application"
+    },
+    "button": "Send your request",
+    "content": {
+      "label": "Explain your request...",
+      "title": "Your request"
+    },
+    "receiveCopy": "Receive a copy by e-mail",
+    "subject": {
+      "label": "Explain the subject...",
+      "title": "Subject"
+    },
+    "success": "Your request has been sent to the platform manager",
+    "title": "Your request"
   },
   "gv-documentation": {
     "empty": "No documentation for the moment"
@@ -191,6 +191,7 @@
     "apps": "Applications",
     "catalog": "Catalog",
     "catalogApi": "General informations",
+    "catalogApiContact": "Contact",
     "catalogApiDocumentation": "Documentation",
     "catalogCategories": "Categories",
     "catalogCategory": "Category",

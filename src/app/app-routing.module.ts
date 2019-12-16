@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { AccountComponent } from './pages/account/account.component';
-import { ApiComponent } from './pages/api/api.component';
-import { ApiDocumentationComponent } from './pages/api-documentation/api-documentation.component';
+import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { AppsComponent } from './pages/apps/apps.component';
 import { AuthGuardService } from './services/auth-guard.service';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
@@ -39,6 +38,8 @@ import { RegistrationComponent } from './pages/registration/registration.compone
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
 import { Role } from './model/role.enum';
 import { RouterModule, Routes } from '@angular/router';
+import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
+import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
 
 export const routes: Routes = [
   {
@@ -69,7 +70,7 @@ export const routes: Routes = [
             children: [
               {
                 path: ':apiId',
-                component: ApiComponent,
+                component: ApiGeneralComponent,
                 data: {
                   menu: { slots: { top: GvMenuHeaderComponent, right: GvSearchComponent } },
                   breadcrumb: true,
@@ -85,6 +86,19 @@ export const routes: Routes = [
                   breadcrumb: true,
                   icon: 'home:library',
                   title: i18n('route.catalogApiDocumentation')
+                }
+              },
+              {
+                path: ':apiId/contact',
+                component: ApiContactComponent,
+                canActivate: [AuthGuardService, FeatureGuardService],
+                data: {
+                  menu: { slots: { top: GvMenuHeaderComponent, right: GvSearchComponent } },
+                  breadcrumb: true,
+                  icon: 'communication:contact#1',
+                  title: i18n('route.catalogApiContact'),
+                  expectedFeature: FeatureEnum.contact,
+                  expectedRole: Role.AUTH_USER
                 }
               }
             ]

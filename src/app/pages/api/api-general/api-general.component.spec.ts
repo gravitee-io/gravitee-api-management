@@ -15,26 +15,26 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ApiComponent } from './api.component';
-import { GvPageComponent } from '../../components/gv-page/gv-page.component';
+import { ApiGeneralComponent } from './api-general.component';
+import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-describe('ApiComponent', () => {
-  let component: ApiComponent;
-  let fixture: ComponentFixture<ApiComponent>;
+describe('ApiGeneralComponent', () => {
+  let component: ApiGeneralComponent;
+  let fixture: ComponentFixture<ApiGeneralComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ApiComponent, GvPageComponent ],
+      declarations: [ ApiGeneralComponent, GvPageComponent ],
       imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiComponent);
+    fixture = TestBed.createComponent(ApiGeneralComponent);
     component = fixture.componentInstance;
     component.homepage = null;
     fixture.detectChanges();

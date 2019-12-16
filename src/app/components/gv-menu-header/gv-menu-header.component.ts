@@ -17,7 +17,6 @@ import '@gravitee/ui-components/wc/gv-header-api';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Api, ApiService, User } from '@gravitee/ng-portal-webclient';
 import { Component, OnInit } from '@angular/core';
-import { ContactComponent } from '../../pages/contact/contact.component';
 import { CurrentUserService } from '../../services/current-user.service';
 import { INavRoute, NavRouteService } from '../../services/nav-route.service';
 
@@ -51,14 +50,6 @@ export class GvMenuHeaderComponent implements OnInit {
 
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
-    });
-  }
-
-  goToContact(api: Promise<Api>) {
-    api.then((_api) => {
-      const queryParams = {};
-      queryParams[ContactComponent.API_QUERY_PARAM] = _api.id;
-      this.router.navigate(['/user/contact'], { queryParams });
     });
   }
 

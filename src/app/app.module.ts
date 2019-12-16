@@ -47,8 +47,9 @@ import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.co
 import { ApiStatesPipe } from './pipes/api-states.pipe';
 import { ApiLabelsPipe } from './pipes/api-labels.pipe';
 import { ConfigurationService } from './services/configuration.service';
-import { ApiComponent } from './pages/api/api.component';
-import { ApiDocumentationComponent } from './pages/api-documentation/api-documentation.component';
+import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
+import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
+import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { DocumentationComponent } from './pages/documentation/documentation.component';
 import { GvPageComponent } from './components/gv-page/gv-page.component';
@@ -59,12 +60,14 @@ import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.direct
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
 import { GvMenuHeaderComponent } from './components/gv-menu-header/gv-menu-header.component';
 import { CurrentUserService } from './services/current-user.service';
+import { GvContactComponent } from './components/gv-contact/gv-contact.component';
 
 @NgModule({
   declarations: [
     AccountComponent,
-    ApiComponent,
+    ApiGeneralComponent,
     ApiDocumentationComponent,
+    ApiContactComponent,
     ApiLabelsPipe,
     ApiLabelsPipe,
     ApiStatesPipe,
@@ -93,6 +96,7 @@ import { CurrentUserService } from './services/current-user.service';
     SafePipe,
     GvSearchComponent,
     UserAvatarComponent,
+    GvContactComponent,
   ],
   entryComponents: [GvSearchComponent, GvMenuHeaderComponent],
   imports: [

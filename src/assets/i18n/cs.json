@@ -15,28 +15,6 @@
   "categories": {
     "title": "Kategories"
   },
-  "contact": {
-    "apis": {
-      "label": "Najít API",
-      "title": "Přiřadit API"
-    },
-    "applications": {
-      "label": "Najít aplikaci",
-      "title": "Přiřadit aplikaci"
-    },
-    "button": "Odeslat požadavek",
-    "content": {
-      "label": "Vysvětlete svůj požadavek ...",
-      "title": "Vaše žádost"
-    },
-    "receiveCopy": "Přijmout kopii e-mailem",
-    "subject": {
-      "label": "Vysvětlete téma ...",
-      "title": "Subject"
-    },
-    "success": "Vaše žádost byla odeslána správci platformy",
-    "title": "Vaše žádost"
-  },
   "dashboard": {
     "welcome": "Vítejte {username},"
   },
@@ -109,6 +87,28 @@
   "gv-card-api": {
     "empty": "Žádné rozhraní API k zobrazení zde",
     "error": "Při načítání API došlo k chybě"
+  },
+  "gv-contact": {
+    "apis": {
+      "label": "Najít API",
+      "title": "Přiřadit API"
+    },
+    "applications": {
+      "label": "Najít aplikaci",
+      "title": "Přiřadit aplikaci"
+    },
+    "button": "Odeslat požadavek",
+    "content": {
+      "label": "Vysvětlete svůj požadavek ...",
+      "title": "Vaše žádost"
+    },
+    "receiveCopy": "Přijmout kopii e-mailem",
+    "subject": {
+      "label": "Vysvětlete téma ...",
+      "title": "Subject"
+    },
+    "success": "Vaše žádost byla odeslána správci platformy",
+    "title": "Vaše žádost"
   },
   "gv-documentation": {
     "empty": "Momentálně žádná dokumentace"
@@ -191,6 +191,7 @@
     "apps": "Aplikace",
     "catalog": "Katalog",
     "catalogApi": "Obecné informace",
+    "catalogApiContact": "Kontakt",
     "catalogApiDocumentation": "Dokumentace",
     "catalogCategories": "Kategories",
     "catalogCategory": "Kategorie",
