@@ -71,7 +71,6 @@ export class LayoutComponent implements OnInit {
       this.mainRoutes = this.navRouteService.getChildrenNav(this.activatedRoute);
     });
 
-    this.currentUserService.get().subscribe(newCurrentUser => this.currentUser = newCurrentUser);
     this.notificationService.notification.subscribe(notification => {
       if (notification) {
         this.translateService.get(notification.code, notification.parameters).subscribe((translatedMessage) => {

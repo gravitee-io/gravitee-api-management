@@ -61,9 +61,6 @@ export class AppComponent implements OnInit {
       addTranslations(this.translateService.currentLang, translations);
     });
     this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
-
-    this.currentUserService.changeUser(this.userService.getCurrentUser());
-
   }
 
   private _setBrowserTitle(currentRoute: ActivatedRoute) {

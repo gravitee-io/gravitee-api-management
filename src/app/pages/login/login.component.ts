@@ -23,7 +23,6 @@ import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-message';
-import { CurrentUserService } from '../../services/current-user.service';
 import { NotificationService } from '../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ConfigurationService } from '../../services/configuration.service';
@@ -47,7 +46,6 @@ export class LoginComponent implements OnInit {
     private formBuilder: FormBuilder,
     private router: Router,
     private notificationService: NotificationService,
-    private currentUserService: CurrentUserService,
     private config: ConfigurationService,
   ) {
     if (config.hasFeature(FeatureEnum.localLogin)) {

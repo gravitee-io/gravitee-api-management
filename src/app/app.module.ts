@@ -58,6 +58,7 @@ import { GvSearchComponent } from './components/gv-search/gv-search.component';
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
 import { GvMenuHeaderComponent } from './components/gv-menu-header/gv-menu-header.component';
+import { CurrentUserService } from './services/current-user.service';
 
 @NgModule({
   declarations: [
@@ -116,8 +117,8 @@ import { GvMenuHeaderComponent } from './components/gv-menu-header/gv-menu-heade
   providers: [
     {
       provide: APP_INITIALIZER,
-      useFactory: (config: ConfigurationService) => () => config.load(),
-      deps: [ConfigurationService],
+      useFactory: initApp,
+      deps: [ConfigurationService, CurrentUserService],
       multi: true
     },
     { provide: BASE_PATH, useFactory: (config: ConfigurationService) => config.get('baseUrl'), deps: [ConfigurationService] },
@@ -134,4 +135,9 @@ import { GvMenuHeaderComponent } from './components/gv-menu-header/gv-menu-heade
   ]
 })
 export class AppModule {
+}
+
+
+export function initApp(config: ConfigurationService, currentUserService: CurrentUserService) {
+  return () => config.load().then(() => currentUserService.load());
 }

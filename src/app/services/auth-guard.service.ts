@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
 import { Role } from '../model/role.enum';
 import { CurrentUserService } from './current-user.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuardService implements CanActivate {
 
-  constructor(private currentUserService: CurrentUserService) {
+  constructor(private currentUserService: CurrentUserService, private router: Router) {
   }
 
-  canActivate(route: ActivatedRouteSnapshot): Promise<boolean> {
+  canActivate(route: ActivatedRouteSnapshot): Promise<boolean | UrlTree> {
     if (route && route.data) {
       const expectedRole = route.data.expectedRole;
       if (expectedRole) {
         return new Promise((resolve) => {
           this.currentUserService.get().subscribe((user) => {
             if (expectedRole === Role.AUTH_USER && user == null || expectedRole === Role.GUEST && user) {
-              resolve(false);
+              resolve(this.router.parseUrl('/'));
             } else {
               resolve(true);
             }

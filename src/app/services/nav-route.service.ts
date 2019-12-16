@@ -66,7 +66,7 @@ export class NavRouteService {
         .filter((child) => this.featureGuardService.canActivate(child) === true)
         .map(async (child) => {
           const hasAuth = await this.authGuardService.canActivate(child);
-          if (hasAuth) {
+          if (hasAuth === true) {
             const path = `${ _parentPath }/${ child.path }`;
             const active = this.router.isActive(path, false);
             return this.translateService.get(child.data.title).toPromise().then((_title) => {

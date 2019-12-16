@@ -21,7 +21,6 @@ import { TranslateTestingModule } from '../../test/helper.spec';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { CurrentUserService } from '../../services/current-user.service';
 import { provideMock } from 'src/app/test/mock.helper.spec';
 import { NotificationService } from '../../services/notification.service';
 import { FeatureGuardService } from '../../services/feature-guard.service';
@@ -39,7 +38,6 @@ describe('LoginComponent', () => {
         CUSTOM_ELEMENTS_SCHEMA,
       ],
       providers: [
-        provideMock(CurrentUserService),
         provideMock(NotificationService),
         provideMock(FeatureGuardService),
         provideMock(ConfigurationService),

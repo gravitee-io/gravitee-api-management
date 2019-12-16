@@ -49,7 +49,6 @@ export class GvMenuHeaderComponent implements OnInit {
         .catch((err) => Promise.reject(err));
     }
 
-
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
     });

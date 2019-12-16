@@ -15,9 +15,17 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { CurrentUserService } from './current-user.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('CurrentUserService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
+  beforeEach(() => TestBed.configureTestingModule({
+
+    imports: [
+      HttpClientTestingModule,
+    ]
+
+  }));
 
   it('should be created', () => {
     const service: CurrentUserService = TestBed.get(CurrentUserService);
