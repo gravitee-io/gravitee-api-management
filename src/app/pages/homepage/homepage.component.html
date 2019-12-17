@@ -19,4 +19,12 @@
   <section>
     <app-gv-page *ngIf="homepage" [page]="homepage"></app-gv-page>
   </section>
+  <section *ngIf="topApis">
+    <h2>{{'homepage.apis' | translate}}</h2>
+    <div class="homepage-apis">
+      <gv-card-api-full *ngFor="let api of topApis; let index = index" [api]="api"
+                        (click)="goToApi(api)"
+                        [metrics]="allApisMetrics[index]"></gv-card-api-full>
+    </div>
+  </section>
 </div>

@@ -145,6 +145,12 @@
     "empty": "No results to display",
     "error": "An error occurred while loading the API"
   },
+  "homepage": {
+    "apis": "APIs of the moment",
+    "explore": "Explore APIs",
+    "signup": "Sign up",
+    "title": "Unleash the power of your APIs."
+  },
   "login": {
     "button": "Sign in",
     "notification": {
@@ -212,7 +218,7 @@
     }
   },
   "site": {
-    "title": "Gravitee.io Portal"
+    "title": "API portal of Gravitee.io"
   },
   "user": {
     "displayName": "Name",

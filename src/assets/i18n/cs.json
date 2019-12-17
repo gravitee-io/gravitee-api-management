@@ -145,6 +145,12 @@
     "empty": "Žádné výsledky k zobrazení",
     "error": "Při načítání API došlo k chybě"
   },
+  "homepage": {
+    "apis": "Rozhraní API tohoto okamžiku",
+    "explore": "Prozkoumejte API",
+    "signup": "Zaregistrujte se",
+    "title": "Uvolněte sílu vašich API."
+  },
   "login": {
     "button": "Přihlásit",
     "notification": {
@@ -212,7 +218,7 @@
     }
   },
   "site": {
-    "title": "Gravitee.io Portal"
+    "title": "API portál Gravitee.io"
   },
   "user": {
     "displayName": "Jméno",

@@ -19,6 +19,11 @@ import { HomepageComponent } from './homepage.component';
 import { GvPageComponent } from '../../components/gv-page/gv-page.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { FilteredCatalogComponent } from '../catalog/filtered-catalog/filtered-catalog.component';
+import { ApiStatesPipe } from '../../pipes/api-states.pipe';
+import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('HomepageComponent', () => {
   let component: HomepageComponent;
@@ -26,8 +31,12 @@ describe('HomepageComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ HomepageComponent, GvPageComponent ],
-      imports: [ MarkdownModule, HttpClientTestingModule ]
+      declarations: [ HomepageComponent, GvPageComponent, ApiStatesPipe, ApiLabelsPipe ],
+      imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule ],
+      schemas: [
+        CUSTOM_ELEMENTS_SCHEMA,
+      ],
+      providers: [ApiStatesPipe, ApiLabelsPipe],
     })
     .compileComponents();
   }));
@@ -35,10 +44,15 @@ describe('HomepageComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(HomepageComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+    });
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component).toBeTruthy();
+    });
   });
 });

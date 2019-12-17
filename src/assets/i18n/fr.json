@@ -145,6 +145,12 @@
     "empty": "Aucun résultat à afficher",
     "error": "Une erreur est survenue pendant de le chargement de l'API"
   },
+  "homepage": {
+    "apis": "Les APIs du moment",
+    "explore": "Explorez les APIs",
+    "signup": "Créez un compte",
+    "title": "Libérez la puissance de vos APIs."
+  },
   "login": {
     "button": "Se connecter",
     "notification": {
@@ -212,7 +218,7 @@
     }
   },
   "site": {
-    "title": "Gravitee.io Portail"
+    "title": "Portail d'API de Gravitee.io"
   },
   "user": {
     "displayName": "Nom",

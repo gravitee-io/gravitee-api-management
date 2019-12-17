@@ -29,6 +29,8 @@ import { Notification } from '../../model/notification';
 import { NotificationService } from '../../services/notification.service';
 import { Title } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
+import { ConfigurationService } from '../../services/configuration.service';
+import { FeatureEnum } from '../../model/feature.enum';
 
 @Component({
   selector: 'app-layout',
@@ -54,7 +56,8 @@ export class LayoutComponent implements OnInit {
     private notificationService: NotificationService,
     private activatedRoute: ActivatedRoute,
     private apiService: ApiService,
-    private componentFactoryResolver: ComponentFactoryResolver
+    private componentFactoryResolver: ComponentFactoryResolver,
+    private configurationService: ConfigurationService,
   ) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -170,5 +173,25 @@ export class LayoutComponent implements OnInit {
     } else if (slot == null) {
       viewContainerRef.clear();
     }
+  }
+
+  isHomepage(): boolean {
+    return '/' === this.router.url;
+  }
+
+  isAuthenticated(): boolean {
+    return this.currentUserService.get().getValue() !== null;
+  }
+
+  displaySignUp(): boolean {
+    return this.configurationService.hasFeature(FeatureEnum.userRegistration) && !this.isAuthenticated();
+  }
+
+  displayShadowNav(): boolean {
+    return this.isHomepage() && !this.isAuthenticated();
+  }
+
+  goTo(path: string) {
+    this.router.navigate([path]);
   }
 }

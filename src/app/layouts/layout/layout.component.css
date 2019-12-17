@@ -32,6 +32,48 @@
   display: inline-block;
 }
 
+.layout__header__homepage__logo {
+  background-image: var(--gv-theme-logo-light);
+  background-size: contain;
+  background-repeat: no-repeat;
+  height: var(--gv-theme-layout-header--h);
+  width: 100%;
+  display: inline-block;
+}
+
+.layout__header__homepage__title {
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1.4em;
+  max-width: 50%;
+  margin-top: 200px;
+  text-shadow: 1px 1px 1px #000;
+}
+
+.layout__header__homepage__link {
+  --gv-button--p: 1rem 2rem;
+  --gv-button--bdrs: 5px;
+}
+
+.layout__header__homepage__background {
+  background-size: cover;
+  background-image: var(--gv-theme-background-image, url(/assets/images/background_image.jpg));
+  background-repeat: no-repeat;
+  background-position: center center;
+  height: 600px;
+  color: white;
+}
+
+.layout__nav {
+  --gv-nav-link--c: white;
+  --gv-nav-link--tsh: 1px 1px 1px #000;
+}
+
+.layout__user-menu {
+  --gv-user-menu--c: white;
+  --gv-user-menu--tsh: 1px 1px 1px #000;
+}
+
 .layout__content {
   background-color: var(--gv-theme-layout--bgc);
   flex-grow: 1;

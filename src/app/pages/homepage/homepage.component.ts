@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { Page, PortalService } from '@gravitee/ng-portal-webclient';
+import { Api, ApiMetrics, ApiService, Page, PortalService } from '@gravitee/ng-portal-webclient';
+import { Router } from '@angular/router';
+import { ApiStatesPipe } from '../../pipes/api-states.pipe';
+import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
 
 @Component({
   selector: 'app-homepage',
@@ -24,16 +27,33 @@ import { Page, PortalService } from '@gravitee/ng-portal-webclient';
 export class HomepageComponent implements OnInit {
 
   public homepage: Page;
+  public topApis: Api[];
+  public allApisMetrics: Promise<ApiMetrics>[] = [];
 
   constructor(
-    private portalService: PortalService
+    private portalService: PortalService,
+    private apiService: ApiService,
+    private router: Router,
+    private apiStates: ApiStatesPipe,
+    private apiLabels: ApiLabelsPipe,
   ) { }
 
   ngOnInit() {
-    this.portalService.getPages({ homepage: true })
-      .subscribe(response => {
-        this.homepage = response.data[0];
+    this.portalService.getPages({ homepage: true }).subscribe(response => {
+      this.homepage = response.data[0];
+    });
+    this.apiService.getApis({ cat: 'FEATURED', size: 3 }).subscribe(response => {
+      this.topApis = response.data.map((a) => {
+        this.allApisMetrics.push(this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise());
+        // @ts-ignore
+        a.states = this.apiStates.transform(a);
+        a.labels = this.apiLabels.transform(a);
+        return a;
       });
+    });
   }
 
+  goToApi(api: Api) {
+    this.router.navigate(['/catalog/api/' + api.id]);
+  }
 }
