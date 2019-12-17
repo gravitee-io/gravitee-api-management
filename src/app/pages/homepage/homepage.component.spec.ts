@@ -24,6 +24,7 @@ import { FilteredCatalogComponent } from '../catalog/filtered-catalog/filtered-c
 import { ApiStatesPipe } from '../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { TranslateTestingModule } from '../../test/helper.spec';
 
 describe('HomepageComponent', () => {
   let component: HomepageComponent;
@@ -32,7 +33,7 @@ describe('HomepageComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ HomepageComponent, GvPageComponent, ApiStatesPipe, ApiLabelsPipe ],
-      imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule ],
+      imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule, TranslateTestingModule ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
