@@ -29,6 +29,7 @@
               }
             ],
             "styles": [
+              "node_modules/@ibm/plex/scss/ibm-plex.scss",
               "src/styles.scss",
               "node_modules/tachyons/css/tachyons.css"
             ],
@@ -103,6 +104,7 @@
               }
             ],
             "styles": [
+              "node_modules/@ibm/plex/scss/ibm-plex.scss",
               "src/styles.scss",
               "node_modules/tachyons/css/tachyons.css"
             ],

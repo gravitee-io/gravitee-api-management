@@ -28,6 +28,7 @@
     "@angular/router": "^8.2.9",
     "@gravitee/ng-portal-webclient": "^1.0.0-SNAPSHOT.201912101616",
     "@gravitee/ui-components": "github:gravitee-io/gravitee-ui-components",
+    "@ibm/plex": "^4.0.2",
     "@ngx-translate/core": "^11.0.1",
     "@ngx-translate/http-loader": "^4.0.0",
     "jdenticon": "^2.2.0",
