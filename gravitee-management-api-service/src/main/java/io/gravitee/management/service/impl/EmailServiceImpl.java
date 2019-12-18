@@ -19,7 +19,6 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import io.gravitee.management.service.EmailNotification;
 import io.gravitee.management.service.EmailService;
-import io.gravitee.management.service.exceptions.EmailDisabledException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -106,8 +105,6 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                 LOGGER.error("Error while sending email notification", ex);
                 throw new TechnicalManagementException("Error while sending email notification", ex);
             }
-        } else {
-            throw new EmailDisabledException();
         }
     }
 
