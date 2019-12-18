@@ -18,7 +18,7 @@ import NotificationService from "../../../services/notification.service";
 import DocumentationService from "../../../services/documentation.service";
 import {StateService} from "@uirouter/core";
 import {IScope} from "angular";
-import _ = require('lodash');
+import _ = require("lodash");
 import UserService from "../../../services/user.service";
 
 interface IPageScope extends IScope {
@@ -30,11 +30,11 @@ interface IPageScope extends IScope {
 }
 const EditPageComponent: ng.IComponentOptions = {
   bindings: {
-    resolvedPage: '<',
-    resolvedGroups: '<',
-    resolvedFetchers: '<'
+    resolvedPage: "<",
+    resolvedGroups: "<",
+    resolvedFetchers: "<"
   },
-  template: require('./edit-page.html'),
+  template: require("./edit-page.html"),
   controller: function (
     NotificationService: NotificationService,
     DocumentationService: DocumentationService,
@@ -42,7 +42,7 @@ const EditPageComponent: ng.IComponentOptions = {
     $state: StateService,
     $scope: IPageScope
   ) {
-    'ngInject';
+    "ngInject";
     this.apiId = $state.params.apiId;
     this.tabs = ["content", "config", "fetchers", "access-control"];
     const indexOfTab = this.tabs.indexOf($state.params.tab);
@@ -55,7 +55,7 @@ const EditPageComponent: ng.IComponentOptions = {
       this.page = this.resolvedPage;
       this.groups = this.resolvedGroups;
       this.fetchers = this.resolvedFetchers;
-      if( DocumentationService.supportedTypes().indexOf(this.page.type) < 0) {
+      if ( DocumentationService.supportedTypes().indexOf(this.page.type) < 0) {
         $state.go("management.settings.documentation");
       }
 
@@ -78,21 +78,30 @@ const EditPageComponent: ng.IComponentOptions = {
         mode: "javascript",
       };
 
-      if (this.page['excluded_groups']) {
-        this.page.authorizedGroups = _.difference(_.map(this.groups, 'id'), this.page['excluded_groups']);
+      if (this.page.excluded_groups) {
+        this.page.authorizedGroups = _.difference(_.map(this.groups, "id"), this.page.excluded_groups);
       } else {
-        this.page.authorizedGroups = _.map(this.groups, 'id');
+        this.page.authorizedGroups = _.map(this.groups, "id");
       }
       if (this.apiId) {
         this.canUpdate = UserService.isUserHasPermissions(["api-documentation-u"]);
       } else {
         this.canUpdate = UserService.isUserHasPermissions(["portal-documentation-u"]);
       }
+
+      if (this.page.type === "SWAGGER") {
+        if (!this.page.configuration) {
+          this.page.configuration = {};
+        }
+        if (!this.page.configuration.viewer) {
+          this.page.configuration.viewer = "Swagger";
+        }
+      }
     };
 
     this.initEditor = () => {
       $scope.editorReadonly = false;
-      if(!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
+      if (!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
         _.forEach(this.fetchers, fetcher => {
           if (fetcher.id === this.page.source.type) {
             $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
@@ -124,7 +133,7 @@ const EditPageComponent: ng.IComponentOptions = {
       // Convert authorized groups to excludedGroups
       this.page.excluded_groups = [];
       if (this.groups) {
-        this.page.excluded_groups = _.difference(_.map(this.groups, 'id'), this.page.authorizedGroups);
+        this.page.excluded_groups = _.difference(_.map(this.groups, "id"), this.page.authorizedGroups);
       }
 
       DocumentationService.update(this.page, this.apiId)

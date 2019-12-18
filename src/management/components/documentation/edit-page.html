@@ -125,8 +125,13 @@
                                Publish this page
                             </md-checkbox>
                         </md-input-container>
+                        <h3>OpenAPI documentation viewer: </h3>
+                        <md-radio-group ng-model="$ctrl.page.configuration.viewer">
+                            <md-radio-button value="Swagger" class="md-primary">Swagger-UI (Default)</md-radio-button>
+                            <md-radio-button value="Redoc">Redoc</md-radio-button>          
+                        </md-radio-group>
                         <!-- SWAGGER Configuration -->
-                        <div ng-if="$ctrl.page.type === 'SWAGGER'" layout="column">
+                        <div ng-if="$ctrl.page.type === 'SWAGGER' && $ctrl.page.configuration.viewer === 'Swagger'" layout="column">
                             <h3>Swagger</h3>
                             <md-checkbox ng-model="$ctrl.page.configuration.tryIt" ng-true-value="'true'" ng-false-value="'false'">
                               Enable "Try it!" mode
