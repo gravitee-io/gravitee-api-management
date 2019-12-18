@@ -25,7 +25,6 @@ import io.gravitee.rest.api.model.PortalConfigEntity.Portal.PortalRating.RatingC
 import io.gravitee.rest.api.model.PortalConfigEntity.Portal.PortalUploadMedia;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Enabled;
-
 import org.springframework.stereotype.Component;
 
 /**

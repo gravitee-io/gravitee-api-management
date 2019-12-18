@@ -19,6 +19,8 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.model.Metadata;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.Page.TypeEnum;
+import io.gravitee.rest.api.portal.rest.model.PageConfiguration.DocExpansionEnum;
+import io.gravitee.rest.api.portal.rest.model.PageConfiguration.ViewerEnum;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
 import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import org.junit.Test;
@@ -42,7 +44,17 @@ import static org.junit.Assert.*;
 public class PageMapperTest {
 
     private static final String PAGE_ID = "my-page-id";
-    private static final String PAGE_CONFIGURATION = "my-page-configuration";
+    private static final String PAGE_CONFIGURATION_DISPLAY_OPERATION_ID = "false";
+    private static final String PAGE_CONFIGURATION_DOC_EXPANSION = "list";
+    private static final String PAGE_CONFIGURATION_ENABLE_FILTERING = "true";
+    private static final String PAGE_CONFIGURATION_MAX_DISPLAYED_TAGS = "42";
+    private static final String PAGE_CONFIGURATION_SHOW_COMMON_EXTENSIONS = "false";
+    private static final String PAGE_CONFIGURATION_SHOW_EXTENSIONS = "true";
+    private static final String PAGE_CONFIGURATION_SHOW_URL = "false";
+    private static final String PAGE_CONFIGURATION_TRY_IT = "true";
+    private static final String PAGE_CONFIGURATION_TRY_IT_ANONYMOUS = "false";
+    private static final String PAGE_CONFIGURATION_TRY_IT_URL = "http://try.it/url";
+    private static final String PAGE_CONFIGURATION_VIEWER = "Redoc";
     private static final String PAGE_CONTRIBUTOR = "my-page-contributor";
     private static final String PAGE_NAME = "my-page-name";
     private static final String PAGE_PARENT = "my-page-parent";
@@ -61,7 +73,17 @@ public class PageMapperTest {
         pageEntity.setLastContributor(PAGE_CONTRIBUTOR);
         
         Map<String, String> configuration = new HashMap<>();
-        configuration.put("config", PAGE_CONFIGURATION);
+        configuration.put(PageMapper.DISPLAY_OPERATION_ID, PAGE_CONFIGURATION_DISPLAY_OPERATION_ID);
+        configuration.put(PageMapper.DOC_EXPANSION, PAGE_CONFIGURATION_DOC_EXPANSION);
+        configuration.put(PageMapper.ENABLE_FILTERING, PAGE_CONFIGURATION_ENABLE_FILTERING);
+        configuration.put(PageMapper.MAX_DISPLAYED_TAGS, PAGE_CONFIGURATION_MAX_DISPLAYED_TAGS);
+        configuration.put(PageMapper.SHOW_COMMON_EXTENSIONS, PAGE_CONFIGURATION_SHOW_COMMON_EXTENSIONS);
+        configuration.put(PageMapper.SHOW_EXTENSIONS, PAGE_CONFIGURATION_SHOW_EXTENSIONS);
+        configuration.put(PageMapper.SHOW_URL, PAGE_CONFIGURATION_SHOW_URL);
+        configuration.put(PageMapper.TRY_IT, PAGE_CONFIGURATION_TRY_IT);
+        configuration.put(PageMapper.TRY_IT_ANONYMOUS, PAGE_CONFIGURATION_TRY_IT_ANONYMOUS);
+        configuration.put(PageMapper.TRY_IT_URL, PAGE_CONFIGURATION_TRY_IT_URL);
+        configuration.put(PageMapper.VIEWER, PAGE_CONFIGURATION_VIEWER);
         pageEntity.setConfiguration(configuration);
         pageEntity.setId(PAGE_ID);
         
@@ -82,14 +104,20 @@ public class PageMapperTest {
         Page responsePage = pageMapper.convert(pageEntity);
         assertNotNull(responsePage);
         
-        List<PageConfiguration> pageConfigurationList = responsePage.getConfiguraton(); 
-        assertNotNull(pageConfigurationList);
-        assertEquals(1, pageConfigurationList.size());
-        PageConfiguration pg = pageConfigurationList.get(0);
-        assertNotNull(pg);
-        assertEquals("config", pg.getKey());
-        assertEquals(PAGE_CONFIGURATION, pg.getValue());
-        
+        PageConfiguration pageConfiguration = responsePage.getConfiguration(); 
+        assertNotNull(pageConfiguration);
+        assertFalse(pageConfiguration.getDisplayOperationId());
+        assertEquals(DocExpansionEnum.LIST, pageConfiguration.getDocExpansion());
+        assertTrue(pageConfiguration.getEnableFiltering());
+        assertEquals(42, pageConfiguration.getMaxDisplayedTags());
+        assertFalse(pageConfiguration.getShowCommonExtensions());
+        assertTrue(pageConfiguration.getShowExtensions());
+        assertEquals(PAGE_CONFIGURATION_SHOW_URL, pageConfiguration.getShowUrl());
+        assertTrue(pageConfiguration.getTryIt());
+        assertFalse(pageConfiguration.getTryItAnonymous());
+        assertEquals(PAGE_CONFIGURATION_TRY_IT_URL, pageConfiguration.getTryItUrl());
+        assertEquals(ViewerEnum.REDOC, pageConfiguration.getViewer());
+
         assertEquals(PAGE_ID, responsePage.getId());
 
         List<Metadata> metadatas = responsePage.getMetadata();
@@ -105,7 +133,6 @@ public class PageMapperTest {
         assertEquals(PAGE_PARENT, responsePage.getParent());
         
         assertEquals(TypeEnum.SWAGGER, responsePage.getType());
-        
         assertEquals(now.toEpochMilli(), responsePage.getUpdatedAt().toInstant().toEpochMilli());
     }
  
@@ -122,8 +149,8 @@ public class PageMapperTest {
         Page responsePage = pageMapper.convert(pageEntity);
         assertNotNull(responsePage);
         
-        List<PageConfiguration> pageConfigurationList = responsePage.getConfiguraton(); 
-        assertNull(pageConfigurationList);
+        PageConfiguration pageConfiguration = responsePage.getConfiguration(); 
+        assertNull(pageConfiguration);
         
         List<Metadata> metadatas = responsePage.getMetadata();
         assertNull(metadatas);

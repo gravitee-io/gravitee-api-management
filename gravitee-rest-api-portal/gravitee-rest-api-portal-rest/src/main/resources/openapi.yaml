@@ -2375,11 +2375,8 @@ components:
           description: Last update date and time.
           type: string
           format: date-time
-        configuraton:
-          description: Array of key-value about the page.
-          type: array
-          items:
-            $ref: '#/components/schemas/PageConfiguration'
+        configuration:
+          $ref: '#/components/schemas/PageConfiguration'
         metadata:
           description: Array of metadata about the page. This array is filled when the page has been fetched from a distant source (GitHub, GitLab, etc...).
           type: array
@@ -3247,10 +3244,54 @@ components:
     PageConfiguration:
       description: Technical information about the page
       properties:
-        key:
+        try_it:
+          type: boolean
+          description: Enable "Try It!" mode in documentation page.
+        try_it_anonymous:
+          type: boolean
+          description: Enable "Try It!" mode in documentation page for anonymous users.
+        try_it_url:
           type: string
-        value:
+          description: Base URL used to try the API.
+        show_url:
           type: string
+          description: Show the URL to download the content.
+        display_operation_id:
+          type: boolean
+          description: Display the operationId in the operations list.
+        doc_expansion:
+          type: string
+          description: |
+            Default expansion setting for the operations and tags.\
+            Possibles values are :
+             - list : Expands only the tags
+             - full : Expands the tags and operations
+             - none : Expands nothing. DEFAULT.
+          enum:
+            - list
+            - full
+            - none
+        enable_filtering:
+          type: boolean
+          description: Add a top bar to filter content.
+        show_extensions:
+          type: boolean
+          description: Display vendor extension (X-) fields and values for Operations, Parameters, and Schema.
+        show_common_extensions:
+          type: boolean
+          description: Display extensions (pattern, maxLength, minLength, maximum, minimum) fields and values for Parameters.
+        max_displayed_tags:
+          type: number
+          description: |
+            Number of max tagged operations displayed. \
+            Limits the number of tagged operations displayed to at most this many (negative means show all operations).\
+            No limit by default.
+        viewer:
+          type: string
+          description: The type of viewer for OpenAPI specification. Default is 'Swagger'
+          enum:
+            - Swagger
+            - Redoc
     RatingAnswer:
       properties:
         author:
