@@ -13,81 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
-import { ApiService, Page, PortalService } from '@gravitee/ng-portal-webclient';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { NotificationService } from '../../services/notification.service';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, ViewChild, ComponentFactoryResolver, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Page, PageConfiguration } from '@gravitee/ng-portal-webclient';
 
-declare let Redoc: any;
+import { GvPageContentSlotDirective } from 'src/app/directives/gv-page-content-slot.directive';
+import { GvPageSwaggerUIComponent } from '../gv-page-swaggerui/gv-page-swaggerui.component';
+import { GvPageRedocComponent } from '../gv-page-redoc/gv-page-redoc.component';
+import { GvPageMarkdownComponent } from '../gv-page-markdown/gv-page-markdown.component';
 
 @Component({
   selector: 'app-gv-page',
   templateUrl: './gv-page.component.html',
   styleUrls: ['./gv-page.component.css']
 })
-export class GvPageComponent {
-  isSwaggerParsing = false;
-  currentPage: Page;
+export class GvPageComponent implements OnChanges {
 
-  @Input() set page(page: Page) {
-    if (page) {
-      const apiId = this.route.snapshot.params.apiId;
-      if (apiId) {
-        this.apiService.getPageByApiIdAndPageId({ apiId, pageId: page.id, include: ['content'] }).subscribe(response => {
-          this.refresh(response);
-        });
-      } else {
-        this.portalService.getPageByPageId({ pageId: page.id, include: ['content'] }).subscribe(response => {
-          this.refresh(response);
-        });
-      }
-    }
-  }
+  @ViewChild(GvPageContentSlotDirective, { static: true }) appGvPageContentSlot: GvPageContentSlotDirective;
+  @Input () page: Page;
+
 
   constructor(
-    private portalService: PortalService,
-    private apiService: ApiService,
-    private notificationService: NotificationService,
-    private route: ActivatedRoute,
+    private componentFactoryResolver: ComponentFactoryResolver,
     ) { }
 
-  isMarkdown(page: Page) {
-    return page && page.type.toUpperCase() === Page.TypeEnum.MARKDOWN;
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.page) {
+      this._loadViewer();
+    }
   }
 
-  isSwagger(page: Page) {
-    return page && page.type.toUpperCase() === Page.TypeEnum.SWAGGER;
-  }
-
-  refresh(page: Page) {
-    if (this.isSwagger(page)) {
-      this.isSwaggerParsing = true;
-      let redocElement = document.getElementById('redoc');
-      if (!redocElement) {
-        redocElement = document.createElement('div');
-        redocElement.setAttribute('id', 'redoc');
-        document.querySelector('.gv-page-container').appendChild(redocElement);
-      }
-      // @ts-ignore
-      Redoc.init(page._links.content, { }, document.getElementById('redoc'),
-        (errors) => {
-          if (errors) {
-            document.querySelector('.gv-page-container').removeChild(redocElement);
-            this.notificationService.error(i18n('gv-page.swagger.badFormat'));
-          } else {
-            this.currentPage = page;
-            this.isSwaggerParsing = false;
-          }
-        }
-      );
+  private _loadViewer() {
+    let componentFactory;
+    if (this.page && this.page.type.toUpperCase() === Page.TypeEnum.MARKDOWN) {
+      componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageMarkdownComponent);
     } else {
-      this.isSwaggerParsing = false;
-      this.currentPage = page;
-      const redocTag = document.getElementById('redoc');
-      if (redocTag) {
-        document.querySelector('.gv-page-container').removeChild(redocTag);
+      const documentationViewer = (this.page.configuration ? this.page.configuration.viewer : '');
+      if (documentationViewer && documentationViewer.toUpperCase() === PageConfiguration.ViewerEnum.Redoc.toUpperCase()) {
+        componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageRedocComponent);
+      } else {
+        componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageSwaggerUIComponent);
       }
     }
+    this.appGvPageContentSlot.viewContainerRef.clear();
+    const viewerPage: any = this.appGvPageContentSlot.viewContainerRef.createComponent(componentFactory);
+    viewerPage.instance.page = this.page;
   }
 }

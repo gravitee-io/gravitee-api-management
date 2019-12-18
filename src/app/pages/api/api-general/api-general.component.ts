@@ -57,11 +57,16 @@ export class ApiGeneralComponent implements OnInit {
 
         this.description = api.description;
 
-        this.apiServices.getSubscriberApplicationsByApiId({ apiId }).subscribe((response) => {
-          this.linkedApp = Promise.resolve(
-            response.data.map((app) => ({ name: app.name, description: app.description, picture: (app._links ? app._links.picture : '') }))
-          );
-        });
+        this.linkedApp = this.apiServices.getSubscriberApplicationsByApiId({ apiId })
+          .toPromise()
+          .then((response) => {
+            return response.data.map((app) => ({
+              name: app.name,
+              description: app.description,
+              picture: (app._links ? app._links.picture : '')
+            }));
+          })
+          .catch(() => []);
 
         this.translateService.get( [i18n('api.miscellaneous.version'), i18n('api.miscellaneous.lastUpdate'), i18n('api.miscellaneous.publisher')] )
           .subscribe(

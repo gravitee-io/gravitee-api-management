@@ -53,14 +53,18 @@ import { ApiContactComponent } from './pages/api/api-contact/api-contact.compone
 import { MarkdownModule } from 'ngx-markdown';
 import { DocumentationComponent } from './pages/documentation/documentation.component';
 import { GvPageComponent } from './components/gv-page/gv-page.component';
+import { GvPageRedocComponent } from './components/gv-page-redoc/gv-page-redoc.component';
+import { GvPageSwaggerUIComponent } from './components/gv-page-swaggerui/gv-page-swaggerui.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { GvDocumentationComponent } from './components/gv-documentation/gv-documentation.component';
 import { GvSearchComponent } from './components/gv-search/gv-search.component';
+import { GvPageContentSlotDirective } from './directives/gv-page-content-slot.directive';
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
 import { GvMenuHeaderComponent } from './components/gv-menu-header/gv-menu-header.component';
 import { CurrentUserService } from './services/current-user.service';
 import { GvContactComponent } from './components/gv-contact/gv-contact.component';
+import { GvPageMarkdownComponent } from './components/gv-page-markdown/gv-page-markdown.component';
 
 @NgModule({
   declarations: [
@@ -84,7 +88,11 @@ import { GvContactComponent } from './components/gv-contact/gv-contact.component
     GvMenuHeaderComponent,
     GvMenuRightSlotDirective,
     GvMenuTopSlotDirective,
+    GvPageContentSlotDirective,
     GvPageComponent,
+    GvPageMarkdownComponent,
+    GvPageRedocComponent,
+    GvPageSwaggerUIComponent,
     HomepageComponent,
     LayoutComponent,
     LoginComponent,
@@ -96,7 +104,7 @@ import { GvContactComponent } from './components/gv-contact/gv-contact.component
     UserAvatarComponent,
     GvContactComponent,
   ],
-  entryComponents: [GvSearchComponent, GvMenuHeaderComponent],
+  entryComponents: [GvSearchComponent, GvMenuHeaderComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
   imports: [
     ApiModule,
     AppRoutingModule,
