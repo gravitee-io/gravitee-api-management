@@ -564,19 +564,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Optional<Api> api = apiRepository.findById(apiId);
 
             if (api.isPresent()) {
-                Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndRole(
-                        MembershipReferenceType.API,
-                        api.get().getId(),
-                        RoleScope.API,
-                        SystemRole.PRIMARY_OWNER.name())
-                        .stream()
-                        .findFirst();
-                if (!primaryOwnerMembership.isPresent()) {
-                    LOGGER.error("The API {} doesn't have any primary owner.", apiId);
-                    throw new TechnicalException("The API " + apiId + " doesn't have any primary owner.");
-                }
-
-                return convert(api.get(), userService.findById(primaryOwnerMembership.get().getUserId()));
+                return convert(api.get(), getPrimaryOwner(api.get()));
             }
 
             throw new ApiNotFoundException(apiId);
@@ -584,6 +572,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
+    }
+
+    private UserEntity getPrimaryOwner(Api api) throws TechnicalException {
+        Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndRole(
+                MembershipReferenceType.API,
+                api.getId(),
+                RoleScope.API,
+                SystemRole.PRIMARY_OWNER.name())
+                .stream()
+                .findFirst();
+        if (!primaryOwnerMembership.isPresent()) {
+            LOGGER.error("The API {} doesn't have any primary owner.", api.getId());
+            throw new TechnicalException("The API " + api.getId() + " doesn't have any primary owner.");
+        }
+
+        return userService.findById(primaryOwnerMembership.get().getUserId());
     }
 
     @Override
@@ -1487,7 +1491,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
-            ApiEntity apiEntity = convert(apiRepository.update(api));
+            ApiEntity apiEntity = convert(apiRepository.update(api), getPrimaryOwner(api));
             // Audit
             auditService.createApiAuditLog(
                     apiId,

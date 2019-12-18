@@ -69,7 +69,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     private String defaultFrom;
 
     public void sendEmailNotification(final EmailNotification emailNotification) {
-        if (enabled) {
+        if (enabled && emailNotification.getTo() != null && emailNotification.getTo().length > 0) {
             try {
                 final MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
 

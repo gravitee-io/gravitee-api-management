@@ -26,6 +26,7 @@ import io.gravitee.management.model.EventQuery;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.mixin.ApiMixin;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
@@ -34,9 +35,7 @@ import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +52,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_StartTest {
@@ -89,11 +90,20 @@ public class ApiService_StartTest {
     private NotifierService notifierService;
 
     @Before
-    public void setUp() {
+    public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         UserEntity u = mock(UserEntity.class);
+        when(u.getId()).thenReturn("uid");
         when(userService.findById(any())).thenReturn(u);
+        Membership po = mock(Membership.class);
+        when(membershipRepository.findByReferenceAndRole(
+                eq(MembershipReferenceType.API),
+                anyString(),
+                eq(RoleScope.API),
+                eq(SystemRole.PRIMARY_OWNER.name()))).thenReturn(singleton(po));
+        when(po.getUserId()).thenReturn("uid");
+        when(api.getId()).thenReturn(API_ID);
     }
 
     @Test
