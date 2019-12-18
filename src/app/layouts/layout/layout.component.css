@@ -21,6 +21,7 @@
 
 .layout__header {
   padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pl);
+  background-color: white;
 }
 
 .layout__header__logo {
