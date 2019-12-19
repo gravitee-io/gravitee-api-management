@@ -56,13 +56,13 @@
           "size": 1000
   <#if query.sort()?has_content>
           ,"order": {
-            "${query.sort().getField()}":"${query.sort().getOrder()?lower_case}"
+            "${query.sort().getType().name()?lower_case}_${query.sort().getField()}":"${query.sort().getOrder()?lower_case}"
           }
         },
         "aggregations":{
       <#switch query.sort().getType().name()>
           <#case "AVG">
-          "${query.sort().getField()}":{
+          "avg_${query.sort().getField()}":{
             "avg":{
               "field":"${query.sort().getField()}"
             }
