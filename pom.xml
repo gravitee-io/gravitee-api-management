@@ -52,8 +52,10 @@
             <exclude>node/**</exclude>
             <exclude>node_modules/**</exclude>
             <exclude>dockerfiles/**</exclude>
+            <exclude>scripts/**</exclude>
             <exclude>coverage/**</exclude>
             <exclude>dist/**</exclude>
+            <exclude>tmp/**</exclude>
             <exclude>**/*.scss</exclude>
             <exclude>**/*.woff2</exclude>
           </excludes>

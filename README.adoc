@@ -72,6 +72,16 @@ npm run install-sdk
 popd
 ```
 
+== Review
+
+If you want review a pull request with changes on https://github.com/gravitee-io/gravitee-ui-components[Gravitee UI Components]
+and/or https://github.com/gravitee-io/gravitee-clients-sdk[gravitee-clients-sdk] dependencies, you can use link:scripts/install.sh[]
+for automatic installation of branch with same name.
+Don't forget to reset your package.json and package-lock.json after reviewing.
+
+
+```
+```
 == i18n
 
 This project use the internationalization (i18n) library for Angular http://www.ngx-translate.com
