@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-info-api';
 import { ApiService, Api, Page } from '@gravitee/ng-portal-webclient';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ApiMetrics } from '@gravitee/ng-portal-webclient/model/apiMetrics';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
@@ -41,6 +41,7 @@ export class ApiGeneralComponent implements OnInit {
     private apiServices: ApiService,
     private route: ActivatedRoute,
     private translateService: TranslateService,
+    private router: Router,
   ) { }
 
   ngOnInit() {
@@ -83,5 +84,15 @@ export class ApiGeneralComponent implements OnInit {
           });
       });
     }
+  }
+
+  @HostListener(':gv-info-api:click-view', ['$event.detail.tagValue'])
+  onClickView(tagValue: string) {
+    this.router.navigate(['catalog/categories', tagValue]);
+  }
+
+  @HostListener(':gv-info-api:click-label', ['$event.detail.tagValue'])
+  onClickLabel(tagValue: string) {
+    this.router.navigate(['catalog/search'], { queryParams: { q: tagValue } });
   }
 }

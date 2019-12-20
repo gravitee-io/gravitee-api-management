@@ -40,7 +40,6 @@ app-gv-page {
 .api__aside {
   display: flex;
   flex-direction: column;
-  --gv-rating--s: 24px;
 }
 
 .api__section > *, .api__aside > * {
