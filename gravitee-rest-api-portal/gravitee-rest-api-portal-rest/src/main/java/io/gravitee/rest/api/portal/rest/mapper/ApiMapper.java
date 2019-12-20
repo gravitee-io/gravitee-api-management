@@ -20,10 +20,12 @@ import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.ViewService;
 import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
@@ -48,6 +50,9 @@ public class ApiMapper {
 
     @Autowired
     private ViewService viewService;
+
+    @Autowired
+    private ParameterService parameterService;
 
     public Api convert(ApiEntity api) {
         final Api apiItem = new Api();
@@ -97,7 +102,9 @@ public class ApiMapper {
         }
 
         apiItem.setVersion(api.getVersion());
-        if (api.getViews() != null) {
+
+        boolean isViewModeEnabled = this.parameterService.findAsBoolean(Key.PORTAL_APIS_VIEW_ENABLED);
+        if (isViewModeEnabled && api.getViews() != null) {
             apiItem.setViews(api.getViews().stream().filter(viewId -> {
                 try {
                     viewService.findNotHiddenById(viewId);
