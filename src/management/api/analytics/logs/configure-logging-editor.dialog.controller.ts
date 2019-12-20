@@ -53,7 +53,7 @@ export class Condition {
     } else if (this.type.id !== 'request-header' && this.type.id !== 'request-param') {
       return `${this.type.statement} ${this.operator} '${this.value}'`;
     } else {
-      return `${this.type.statement}['${this.param1}'][0] ${this.operator} '${this.value}'`;
+      return `${this.type.statement}['${this.param1}'] != null && ${this.type.statement}['${this.param1}'][0] ${this.operator} '${this.value}'`;
     }
   }
 }
