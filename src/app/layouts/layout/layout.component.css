@@ -66,8 +66,8 @@
 }
 
 .layout__nav {
-  --gv-nav-link--c: white;
-  --gv-nav-link--tsh: 1px 1px 1px #000;
+  --gv-link--c: white;
+  --gv-link--tsh: 1px 1px 1px #000;
 }
 
 .layout__user-menu {
