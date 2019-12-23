@@ -34,11 +34,13 @@ export class ApiRequestInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    this.loaderService.show();
     request = request.clone({
-      setHeaders: { 'X-Requested-With': 'XMLHttpRequest' },
+      setHeaders: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
       withCredentials: true
     });
-    this.loaderService.show();
 
     return next.handle(request).pipe(tap(
       () => {},

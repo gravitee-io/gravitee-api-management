@@ -38,5 +38,4 @@ export class AccountComponent implements OnInit {
       this.currentUser = user;
     });
   }
-
 }

@@ -22,7 +22,7 @@
       <div class="user-info">
         <p>
           <span class="b">{{'user.displayName' | translate}} : </span>
-          <span>{{ currentUser.display_name }}</span>
+          <span>{{ currentUser.first_name ? (currentUser.first_name + ' ' + currentUser.last_name) : currentUser.display_name }}</span>
         </p>
         <p>
           <span class="b">{{'user.email' | translate}} : </span>

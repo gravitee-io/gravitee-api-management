@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { AuthService } from '../../services/auth.service';
+import { TestBed } from '@angular/core/testing';
 
-@Component({
-  selector: 'app-logout',
-  templateUrl: './logout.component.html',
-  styleUrls: ['./logout.component.css']
-})
-export class LogoutComponent implements OnInit {
+import { AuthService } from './auth.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { provideMock } from '../test/mock.helper.spec';
 
-  constructor(
-    private authService: AuthService,
-  ) {}
+describe('AuthService', () => {
+  beforeEach(() => TestBed.configureTestingModule({
+    imports: [HttpClientTestingModule],
+    providers: [provideMock(OAuthService)]
+  }));
 
-  ngOnInit() {
-    this.authService.logout();
-  }
-}
+  it('should be created', () => {
+    const service: AuthService = TestBed.get(AuthService);
+    expect(service).toBeTruthy();
+  });
+});

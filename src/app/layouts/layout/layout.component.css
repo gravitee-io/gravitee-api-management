@@ -72,6 +72,7 @@
 
 .layout__user-menu {
   --gv-user-menu--c: white;
+  --gv-icon--c: white;
   --gv-user-menu--tsh: 1px 1px 1px #000;
 }
 

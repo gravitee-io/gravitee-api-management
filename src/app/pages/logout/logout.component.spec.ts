@@ -16,13 +16,14 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LogoutComponent } from './logout.component';
-import { TranslateModule } from '@ngx-translate/core';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateTestingModule } from '../../test/helper.spec';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { provideMock } from '../../test/mock.helper.spec';
 import { CurrentUserService } from '../../services/current-user.service';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { AuthService } from '../../services/auth.service';
 
 describe('LogoutComponent', () => {
   let component: LogoutComponent;
@@ -35,7 +36,9 @@ describe('LogoutComponent', () => {
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
-      providers: [provideMock(CurrentUserService)]
+      providers: [
+        provideMock(AuthService),
+      ]
     })
       .compileComponents();
   }));

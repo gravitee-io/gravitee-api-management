@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewChecked, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { AuthenticationService, IdentityProvider, PortalService } from '@gravitee/ng-portal-webclient';
+import { IdentityProvider, PortalService } from '@gravitee/ng-portal-webclient';
 
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-message';
 import { NotificationService } from '../../services/notification.service';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ConfigurationService } from '../../services/configuration.service';
 import { FeatureEnum } from '../../model/feature.enum';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -41,12 +41,12 @@ export class LoginComponent implements OnInit {
   providers: IdentityProvider[];
 
   constructor(
-    private authService: AuthenticationService,
     private portalService: PortalService,
     private formBuilder: FormBuilder,
     private router: Router,
     private notificationService: NotificationService,
     private config: ConfigurationService,
+    private authService: AuthService,
   ) {
     if (config.hasFeature(FeatureEnum.localLogin)) {
       this.loginForm = this.formBuilder.group({
@@ -69,31 +69,20 @@ export class LoginComponent implements OnInit {
       );
   }
 
+  login() {
+    if (this.isFormValid()) {
+      this.authService.login(this.loginForm.value.username, this.loginForm.value.password).then(
+        () => {},
+        () => { this.loginForm.setValue({ username: this.loginForm.value.username, password: '' }); }
+      );
+    }
+  }
+
   authenticate(provider) {
-    // tslint:disable-next-line:no-console
-    console.log('Authentication asked for \ ' + provider.name + ' (id = ' + provider.id + ')');
+    this.authService.authenticate(provider);
   }
 
   isFormValid() {
     return this.loginForm.valid.valueOf();
-  }
-
-  login() {
-    if (this.isFormValid()) {
-      // create basic authorization header
-      const authorization: string = 'Basic ' + btoa(this.loginForm.value.username + ':' + this.loginForm.value.password);
-
-      // call the login resource from the API.
-      this.authService.login({ Authorization: authorization }).subscribe(
-        () => {
-          // add routing to main page.
-          this.router.navigate(['']).then(() => window.location.reload());
-        },
-        () => {
-          this.notificationService.error(i18n('login.notification.error'));
-          this.loginForm.setValue({ username: this.loginForm.value.username, password: '' });
-        }
-      );
-    }
   }
 }

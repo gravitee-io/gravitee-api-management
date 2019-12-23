@@ -65,6 +65,8 @@ import { GvMenuHeaderComponent } from './components/gv-menu-header/gv-menu-heade
 import { CurrentUserService } from './services/current-user.service';
 import { GvContactComponent } from './components/gv-contact/gv-contact.component';
 import { GvPageMarkdownComponent } from './components/gv-page-markdown/gv-page-markdown.component';
+import { OAuthModule } from 'angular-oauth2-oidc';
+import { AuthService } from './services/auth.service';
 
 @NgModule({
   declarations: [
@@ -122,13 +124,14 @@ import { GvPageMarkdownComponent } from './components/gv-page-markdown/gv-page-m
         provide: TranslateCompiler,
         useClass: TranslateMessageFormatCompiler
       }
-    })
+    }),
+    OAuthModule.forRoot(),
   ],
   providers: [
     {
       provide: APP_INITIALIZER,
       useFactory: initApp,
-      deps: [ConfigurationService, CurrentUserService],
+      deps: [ConfigurationService, AuthService, CurrentUserService],
       multi: true
     },
     { provide: BASE_PATH, useFactory: (config: ConfigurationService) => config.get('baseUrl'), deps: [ConfigurationService] },
@@ -147,7 +150,8 @@ import { GvPageMarkdownComponent } from './components/gv-page-markdown/gv-page-m
 export class AppModule {
 }
 
-
-export function initApp(config: ConfigurationService, currentUserService: CurrentUserService) {
-  return () => config.load().then(() => currentUserService.load());
+export function initApp(configurationService: ConfigurationService, authService: AuthService, currentUserService: CurrentUserService) {
+  return () => configurationService.load().then(
+    () => authService.load().then(() => currentUserService.load())
+  );
 }

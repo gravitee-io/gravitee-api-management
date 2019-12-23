@@ -25,6 +25,7 @@ import { provideMock } from 'src/app/test/mock.helper.spec';
 import { NotificationService } from '../../services/notification.service';
 import { FeatureGuardService } from '../../services/feature-guard.service';
 import { ConfigurationService } from '../../services/configuration.service';
+import { OAuthService } from 'angular-oauth2-oidc';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -41,6 +42,7 @@ describe('LoginComponent', () => {
         provideMock(NotificationService),
         provideMock(FeatureGuardService),
         provideMock(ConfigurationService),
+        provideMock(OAuthService),
       ]
     })
       .compileComponents();

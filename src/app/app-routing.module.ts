@@ -191,7 +191,8 @@ export const routes: Routes = [
             }
           },
           {
-            path: 'logout', component: LogoutComponent,
+            path: 'logout',
+            component: LogoutComponent,
             canActivate: [AuthGuardService],
             data: {
               title: i18n('route.logout'),

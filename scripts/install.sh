@@ -6,7 +6,7 @@ then
   mkdir -p tmp
   pushd tmp
   {
-    git clone --single-branch --branch $branch https://github.com/gravitee-io/gravitee-clients-sdk.git
+    git clone --single-branch --branch "$branch" https://github.com/gravitee-io/gravitee-clients-sdk.git
     if [ -d "gravitee-clients-sdk" ]
     then
       pushd gravitee-clients-sdk

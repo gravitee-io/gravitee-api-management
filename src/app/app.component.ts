@@ -18,7 +18,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../environments/environment';
 import { Title } from '@angular/platform-browser';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { UserService } from '@gravitee/ng-portal-webclient';
 import { CurrentUserService } from './services/current-user.service';
 import { NotificationService } from './services/notification.service';
 import { ActivatedRoute, NavigationEnd, NavigationStart, Router } from '@angular/router';
@@ -34,14 +33,12 @@ export class AppComponent implements OnInit {
   constructor(
     private titleService: Title,
     private translateService: TranslateService,
-    private userService: UserService,
     private currentUserService: CurrentUserService,
     private notificationService: NotificationService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private navRouteService: NavRouteService
+    private navRouteService: NavRouteService,
   ) {
-
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.notificationService.reset();
@@ -69,9 +66,8 @@ export class AppComponent implements OnInit {
       if (data && data.title) {
         this.translateService.get(data.title).subscribe((title) => this.titleService.setTitle(`${ siteTitle } - ${ title }`));
       } else {
-        this.translateService.get(data.title).subscribe((title) => this.titleService.setTitle(siteTitle));
+        this.titleService.setTitle(siteTitle);
       }
     });
   }
-
 }
