@@ -125,53 +125,57 @@
                                Publish this page
                             </md-checkbox>
                         </md-input-container>
-                        <h3>OpenAPI documentation viewer: </h3>
-                        <md-radio-group ng-model="$ctrl.page.configuration.viewer">
-                            <md-radio-button value="Swagger" class="md-primary">Swagger-UI (Default)</md-radio-button>
-                            <md-radio-button value="Redoc">Redoc</md-radio-button>          
-                        </md-radio-group>
                         <!-- SWAGGER Configuration -->
-                        <div ng-if="$ctrl.page.type === 'SWAGGER' && $ctrl.page.configuration.viewer === 'Swagger'" layout="column">
-                            <h3>Swagger</h3>
-                            <md-checkbox ng-model="$ctrl.page.configuration.tryIt" ng-true-value="'true'" ng-false-value="'false'">
-                              Enable "Try it!" mode
-                            </md-checkbox>
-                            <md-checkbox ng-model="$ctrl.page.configuration.tryItAnonymous" ng-true-value="'true'" ng-false-value="'false'">
-                              Allow "Try it!" for anonymous users
-                            </md-checkbox>
-                            <md-input-container class="md-block">
-                                <label>Base URL</label>
-                                <input type="text" ng-model="$ctrl.page.configuration.tryItURL" ng-disabled="$ctrl.page.configuration.tryIt === 'false'">
-                                <div class="hint">Base URL used to try the API</div>
-                            </md-input-container>
-                            <md-checkbox ng-model="$ctrl.page.configuration.showURL" ng-true-value="'true'" ng-false-value="'false'">
-                                Show the URL to download the content
-                            </md-checkbox>
-                            <md-checkbox ng-model="$ctrl.page.configuration.displayOperationId" ng-true-value="'true'" ng-false-value="'false'">
-                                Display the operationId in the operations list
-                            </md-checkbox>
-                            <md-input-container class="md-block">
-                                <label>Default expansion setting for the operations and tags</label>
-                                <md-select ng-model="$ctrl.page.configuration.docExpansion">
-                                    <md-option ng-value="'list'">Expands only the tags</md-option>
-                                    <md-option ng-value="'full'">Expands the tags and operations</md-option>
-                                    <md-option ng-value="'none'">Expands nothing</md-option>
-                                </md-select>
-                            </md-input-container>
-                            <md-checkbox ng-model="$ctrl.page.configuration.enableFiltering" ng-true-value="'true'" ng-false-value="'false'" class="md-block">
-                                Add a top bar to filter content
-                            </md-checkbox>
-                            <md-checkbox ng-model="$ctrl.page.configuration.showExtensions" ng-true-value="'true'" ng-false-value="'false'" class="md-block">
-                                Display vendor extension (X-) fields and values for Operations, Parameters, and Schema
-                            </md-checkbox>
-                            <md-checkbox ng-model="$ctrl.page.configuration.showCommonExtensions" ng-true-value="'true'" ng-false-value="'false'">
-                                Display extensions (pattern, maxLength, minLength, maximum, minimum) fields and values for Parameters
-                            </md-checkbox>
-                            <md-input-container class="md-block">
-                                <label>Number of max tagged operations displayed</label>
-                                <input type="number" ng-model="$ctrl.page.configuration.maxDisplayedTags">
-                                <div class="hint">Limits the number of tagged operations displayed to at most this many (-1 means show all operations).</div>
-                            </md-input-container>
+                        <div ng-if="$ctrl.page.type === 'SWAGGER'" layout="column">
+
+                            <h3>OpenAPI documentation viewer: </h3>
+                            <md-radio-group ng-model="$ctrl.page.configuration.viewer">
+                                <md-radio-button value="Swagger" class="md-primary">Swagger-UI (Default)</md-radio-button>
+                                <md-radio-button value="Redoc">Redoc</md-radio-button>          
+                            </md-radio-group>
+
+                            <div ng-if="$ctrl.page.configuration.viewer === 'Swagger'" layout="column">
+                                <h3>Swagger</h3>
+                                <md-checkbox ng-model="$ctrl.page.configuration.tryIt" ng-true-value="'true'" ng-false-value="'false'">
+                                Enable "Try it!" mode
+                                </md-checkbox>
+                                <md-checkbox ng-model="$ctrl.page.configuration.tryItAnonymous" ng-true-value="'true'" ng-false-value="'false'">
+                                Allow "Try it!" for anonymous users
+                                </md-checkbox>
+                                <md-input-container class="md-block">
+                                    <label>Base URL</label>
+                                    <input type="text" ng-model="$ctrl.page.configuration.tryItURL" ng-disabled="$ctrl.page.configuration.tryIt === 'false'">
+                                    <div class="hint">Base URL used to try the API</div>
+                                </md-input-container>
+                                <md-checkbox ng-model="$ctrl.page.configuration.showURL" ng-true-value="'true'" ng-false-value="'false'">
+                                    Show the URL to download the content
+                                </md-checkbox>
+                                <md-checkbox ng-model="$ctrl.page.configuration.displayOperationId" ng-true-value="'true'" ng-false-value="'false'">
+                                    Display the operationId in the operations list
+                                </md-checkbox>
+                                <md-input-container class="md-block">
+                                    <label>Default expansion setting for the operations and tags</label>
+                                    <md-select ng-model="$ctrl.page.configuration.docExpansion">
+                                        <md-option ng-value="'list'">Expands only the tags</md-option>
+                                        <md-option ng-value="'full'">Expands the tags and operations</md-option>
+                                        <md-option ng-value="'none'">Expands nothing</md-option>
+                                    </md-select>
+                                </md-input-container>
+                                <md-checkbox ng-model="$ctrl.page.configuration.enableFiltering" ng-true-value="'true'" ng-false-value="'false'" class="md-block">
+                                    Add a top bar to filter content
+                                </md-checkbox>
+                                <md-checkbox ng-model="$ctrl.page.configuration.showExtensions" ng-true-value="'true'" ng-false-value="'false'" class="md-block">
+                                    Display vendor extension (X-) fields and values for Operations, Parameters, and Schema
+                                </md-checkbox>
+                                <md-checkbox ng-model="$ctrl.page.configuration.showCommonExtensions" ng-true-value="'true'" ng-false-value="'false'">
+                                    Display extensions (pattern, maxLength, minLength, maximum, minimum) fields and values for Parameters
+                                </md-checkbox>
+                                <md-input-container class="md-block">
+                                    <label>Number of max tagged operations displayed</label>
+                                    <input type="number" ng-model="$ctrl.page.configuration.maxDisplayedTags">
+                                    <div class="hint">Limits the number of tagged operations displayed to at most this many (-1 means show all operations).</div>
+                                </md-input-container>
+                            </div>
                         </div>
                     </md-tab-body>
                 </md-tab>
