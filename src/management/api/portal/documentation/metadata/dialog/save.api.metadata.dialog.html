@@ -59,6 +59,7 @@
             <input type="text" ng-model="$ctrl.metadata.value" placeholder="{{$ctrl.metadata.defaultValue}}"
                    md-autofocus="{{$ctrl.metadata.key && !$ctrl.metadata.apiId?'true':'false'}}"
                    gv-metadata-format="$ctrl.metadata.format" ng-pattern="pattern" gv-metadata-validator>
+            <div class="hint">Supports Freemarker</div>
           </md-input-container>
 
           <md-input-container ng-if="$ctrl.metadata.key && !$ctrl.metadata.apiId && $ctrl.metadata.format === 'boolean'" flex>
