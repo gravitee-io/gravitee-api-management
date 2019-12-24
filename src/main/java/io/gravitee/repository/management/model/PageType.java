@@ -22,10 +22,6 @@ package io.gravitee.repository.management.model;
  */
 public enum PageType {
 
-	MARKDOWN,
-	RAML,
-	SWAGGER,
-	FOLDER,
-	ROOT
-	
+    LINK, MARKDOWN, SWAGGER, SYSTEM_FOLDER, FOLDER, ROOT
+
 }
