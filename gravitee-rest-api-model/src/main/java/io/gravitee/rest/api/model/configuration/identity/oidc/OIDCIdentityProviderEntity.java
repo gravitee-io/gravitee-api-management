@@ -123,11 +123,6 @@ public class OIDCIdentityProviderEntity extends SocialIdentityProviderEntity {
         return null;
     }
 
-    @Override
-    public String getState() {
-        return null;
-    }
-
     public void setColor(String color) {
         this.color = color;
     }

@@ -24,17 +24,15 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.rest.api.management.rest.model.TokenEntity;
+import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
-import io.gravitee.rest.api.management.rest.model.TokenEntity;
-import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.management.rest.resource.auth.AbstractAuthenticationResource;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,13 +54,10 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static javax.ws.rs.client.Entity.json;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Christophe LANNOY (chrislannoy.java at gmail.com)
@@ -126,11 +121,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
             @Override
             public String getDisplay() {
-                return null;
-            }
-
-            @Override
-            public String getState() {
                 return null;
             }
 

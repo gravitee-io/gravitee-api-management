@@ -15,19 +15,18 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import javax.inject.Inject;
-
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.ServerProperties;
-
 import io.gravitee.rest.api.portal.rest.filter.GraviteeContextFilter;
 import io.gravitee.rest.api.portal.rest.filter.PermissionsFilter;
 import io.gravitee.rest.api.portal.rest.filter.SecurityContextFilter;
 import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.provider.*;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
+
+import javax.inject.Inject;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -63,7 +62,8 @@ public class GraviteePortalApplication extends ResourceConfig {
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);
-        
+
+        register(PayloadInputBodyReader.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
         property(ServerProperties.BV_DISABLE_VALIDATE_ON_EXECUTABLE_OVERRIDE_CHECK, true);

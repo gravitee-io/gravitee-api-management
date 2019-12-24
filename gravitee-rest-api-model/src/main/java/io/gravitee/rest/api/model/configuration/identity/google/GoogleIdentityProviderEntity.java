@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.model.configuration.identity.google;
 
-import java.util.*;
-
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
+
+import java.util.*;
 
 public class GoogleIdentityProviderEntity extends SocialIdentityProviderEntity {
 
@@ -66,11 +66,6 @@ public class GoogleIdentityProviderEntity extends SocialIdentityProviderEntity {
     @Override
     public String getDisplay() {
         return "popup";
-    }
-
-    @Override
-    public String getState() {
-        return null;
     }
 
     @Override

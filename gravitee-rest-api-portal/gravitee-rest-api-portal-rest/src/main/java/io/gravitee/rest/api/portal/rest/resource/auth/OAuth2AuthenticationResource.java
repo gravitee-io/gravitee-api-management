@@ -15,48 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.auth;
 
-import static java.util.Collections.singleton;
-import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
-
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-import javax.inject.Singleton;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
-import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import io.gravitee.common.http.MediaType;
-import io.gravitee.el.spel.function.JsonPathFunction;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -66,7 +26,38 @@ import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderE
 import io.gravitee.rest.api.portal.rest.model.PayloadInput;
 import io.gravitee.rest.api.portal.rest.utils.BlindTrustManager;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
-import io.swagger.annotations.Api;
+import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Singleton;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.singleton;
+import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -169,7 +160,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             accessData.add(REDIRECT_URI_KEY, payloadInput.getRedirectUri());
             accessData.add(CLIENT_SECRET, identityProvider.getClientSecret());
             accessData.add(CODE_KEY, payloadInput.getCode());
-            accessData.add(GRANT_TYPE_KEY, AUTH_CODE);
+            accessData.add(CODE_VERIFIER_KEY, payloadInput.getCodeVerifier());
+            accessData.add(GRANT_TYPE_KEY, payloadInput.getGrantType());
             Response response = client.target(identityProvider.getTokenEndpoint())
                     .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
                     .post(Entity.form(accessData));

@@ -15,24 +15,28 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.auth;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static javax.ws.rs.client.Entity.json;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.JWTVerifyException;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
+import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
+import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
+import io.gravitee.rest.api.portal.rest.model.Token;
+import io.gravitee.rest.api.portal.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.expression.spel.SpelEvaluationException;
+import org.springframework.expression.spel.SpelMessage;
 
+import javax.ws.rs.core.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -44,32 +48,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.expression.spel.SpelEvaluationException;
-import org.springframework.expression.spel.SpelMessage;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.JWTVerifyException;
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
-import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
-import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
-import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
-import io.gravitee.rest.api.portal.rest.model.PayloadInput;
-import io.gravitee.rest.api.portal.rest.model.Token;
-import io.gravitee.rest.api.portal.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static javax.ws.rs.client.Entity.form;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Christophe LANNOY (chrislannoy.java at gmail.com)
@@ -133,11 +119,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
             @Override
             public String getDisplay() {
-                return null;
-            }
-
-            @Override
-            public String getState() {
                 return null;
             }
 
@@ -222,9 +203,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- CALL
 
-        PayloadInput payload = createPayload("the_client_id","http://localhost/callback","CoDe","StAtE");;
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id","http://localhost/callback","CoDe");
 
-        Response response = target().request().post(json(payload));
+        Response response = target().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString());
@@ -263,14 +245,11 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertNull(response.getCookies().get(HttpHeaders.AUTHORIZATION));
     }
 
-    private PayloadInput createPayload(String clientId, String redirectUri, String code, String state) {
-
-        PayloadInput payload = new PayloadInput()
-                .clientId(clientId)
-                .redirectUri(redirectUri)
-                .code(code)
-                .state(state);
-
+    private MultivaluedMap<String, String> createPayload(String clientId, String redirectUri, String code) {
+        final MultivaluedMap<String, String> payload = new MultivaluedHashMap<>();
+        payload.add("client_id", clientId);
+        payload.add("redirect_uri", redirectUri);
+        payload.add("code", code);
         return payload;
     }
 
@@ -301,9 +280,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- CALL
 
-        PayloadInput payload = createPayload("the_client_id","http://localhost/callback","CoDe","StAtE");;
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id","http://localhost/callback","CoDe");
 
-        Response response = target().request().post(json(payload));
+        Response response = target().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(0)).createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString());
@@ -334,9 +314,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         when(userService.createOrUpdateUserFromSocialIdentityProvider(refEq(identityProvider),anyString())).thenThrow(new EmailRequiredException(USER_NAME));
         // -- CALL
 
-        PayloadInput payload = createPayload("the_client_id","http://localhost/callback","CoDe","StAtE");
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id","http://localhost/callback","CoDe");
 
-        Response response = target().request().post(json(payload));
+        Response response = target().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString());
@@ -359,10 +340,11 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     private void mockExchangeAuthorizationCodeForAccessToken() throws IOException {
         String tokenRequestBody = ""
                 + "code=CoDe&"
-                + "grant_type=authorization_code&"
+                + "grant_type=&"
                 + "redirect_uri=http%3A%2F%2Flocalhost%2Fcallback&"
                 + "client_secret=the_client_secret&"
-                + "client_id=the_client_id";
+                + "client_id=the_client_id&"
+                + "code_verifier=";
 
         stubFor(
                 post("/token")
@@ -408,9 +390,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- CALL
 
-        PayloadInput payload = createPayload("the_client_id","http://localhost/callback","CoDe","StAtE");;
+        final MultivaluedMap<String, String> payload =
+                createPayload("the_client_id","http://localhost/callback","CoDe");
 
-        Response response = target().request().post(json(payload));
+        Response response = target().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString());

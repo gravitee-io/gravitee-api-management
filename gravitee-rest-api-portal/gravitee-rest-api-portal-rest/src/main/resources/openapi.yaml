@@ -1609,6 +1609,26 @@ paths:
                 $ref: '#/components/schemas/ConfigurationIdentitiesResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /configuration/identities/{identityProviderId}:
+    parameters:
+      - $ref: '#/components/parameters/identityProviderIdParam'
+    get:
+      tags:
+        - Portal
+      summary: Get an identity provider.
+      operationId: getPortalIdentityProvider
+      description: |
+        Get a specific identity provider by its id.
+      security: []
+      responses:
+        200:
+          description: An identity provider
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityProvider'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /info:
     get:
       tags:
@@ -1681,7 +1701,7 @@ paths:
       requestBody:
         description: OAuth2 payload for authentication.
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
               $ref: '#/components/schemas/PayloadInput'
       responses:
@@ -1798,6 +1818,13 @@ components:
       name: identity
       in: path
       required: true
+      schema:
+        type: string
+    identityProviderIdParam:
+      name: identityProviderId
+      in: path
+      required: true
+      description: Id of an identity provider.
       schema:
         type: string
     ###############
@@ -3111,7 +3138,10 @@ components:
         code:
           type: string
           minLength: 1
-        state:
+        grant_type:
+          type: string
+          minLength: 1
+        code_verifier:
           type: string
     TicketInput:
       required:

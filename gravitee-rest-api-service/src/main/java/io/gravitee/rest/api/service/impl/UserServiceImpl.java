@@ -908,7 +908,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     if (mapping.contains("{#")) {
                         map.put(field, templateEngine.getValue(mapping, String.class));
                     } else {
-                        map.put(field, userInfoPath.read(mapping));
+                        map.put(field, userInfoPath.read(mapping, String.class));
                     }
                 } catch (Exception e) {
                     LOGGER.error("Using mapping: \"{}\", no fields are located in {}", mapping, userInfo);

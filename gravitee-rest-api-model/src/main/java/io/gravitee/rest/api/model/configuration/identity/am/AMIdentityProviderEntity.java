@@ -110,11 +110,6 @@ public class AMIdentityProviderEntity extends SocialIdentityProviderEntity {
         return null;
     }
 
-    @Override
-    public String getState() {
-        return null;
-    }
-
     public void setColor(String color) {
         this.color = color;
     }

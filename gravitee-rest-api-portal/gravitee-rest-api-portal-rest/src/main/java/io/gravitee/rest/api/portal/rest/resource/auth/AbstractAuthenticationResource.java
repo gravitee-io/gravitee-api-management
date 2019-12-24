@@ -15,29 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.auth;
 
-import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.Response;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import com.auth0.jwt.JWTSigner;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
@@ -50,6 +30,23 @@ import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.JWTHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -73,8 +70,8 @@ abstract class AbstractAuthenticationResource {
     public static final String REDIRECT_URI_KEY = "redirect_uri";
     public static final String CLIENT_SECRET = "client_secret";
     public static final String CODE_KEY = "code";
+    public static final String CODE_VERIFIER_KEY = "code_verifier";
     public static final String GRANT_TYPE_KEY = "grant_type";
-    public static final String AUTH_CODE = "authorization_code";
     public static final String TOKEN = "token";
 
     protected Map<String, Object> getResponseEntity(final Response response) throws IOException {

@@ -24,10 +24,7 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
 import java.util.List;
@@ -61,11 +58,17 @@ public class ConfigurationResource extends AbstractResource {
     @Path("identities")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalIdentityProviders(@BeanParam PaginationParam paginationParam) {
-
         List<IdentityProvider> identities = socialIdentityProviderService.findAll().stream()
                 .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
                 .map(identityProviderMapper::convert)
                 .collect(Collectors.toList());
         return createListResponse(identities, paginationParam);
+    }
+
+    @GET
+    @Path("identities/{identityProviderId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPortalIdentityProvider(@PathParam("identityProviderId") String identityProviderId) {
+        return Response.ok(identityProviderMapper.convert(socialIdentityProviderService.findById(identityProviderId))).build();
     }
 }

@@ -133,8 +133,6 @@ public abstract class SocialIdentityProviderEntity {
 
     public abstract String getDisplay();
 
-    public abstract String getState();
-
     public abstract String getColor();
 
     public abstract String getIcon();
