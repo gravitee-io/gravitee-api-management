@@ -95,6 +95,9 @@ public class ApiService_CreateTest {
     @Mock
     private GenericNotificationConfigService genericNotificationConfigService;
 
+    @Mock
+    private ApiMetadataService apiMetadataService;
+
     @Before
     public void init() {
         final SecurityContext securityContext = mock(SecurityContext.class);
@@ -207,6 +210,7 @@ public class ApiService_CreateTest {
         verify(membershipRepository, times(1)).create(any());
         verify(auditService, times(1)).createApiAuditLog(any(), any(), eq(API_CREATED), any(), eq(null) , any());
         verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(apiMetadataService, times(1)).create(any());
     }
 
     @Test(expected = TechnicalManagementException.class)

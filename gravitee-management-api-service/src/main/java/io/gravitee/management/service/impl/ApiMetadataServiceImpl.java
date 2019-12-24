@@ -165,7 +165,7 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
             throw new DuplicateMetadataNameException(optionalMetadata.get().getName());
         }
 
-        metadataService.checkMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue());
+        metadataService.checkMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue(), apiEntity);
 
         try {
             final Metadata metadata = convertForAPI(metadataEntity);

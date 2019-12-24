@@ -30,6 +30,7 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.management.model.EventType;
+import io.gravitee.management.model.MetadataFormat;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.*;
@@ -42,6 +43,7 @@ import io.gravitee.management.model.plan.PlanQuery;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.search.SearchResult;
+import io.gravitee.management.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.HookScope;
@@ -69,6 +71,7 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -308,6 +311,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
             pageService.createPage(createdApi.getId(), page);
         }
+
         return createdApi;
     }
 
@@ -317,10 +321,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (portalEntrypoint != null) {
             graviteeUrls.add(portalEntrypoint + apiContextPath);
         }
-        
+
         List<EntrypointEntity> entrypoints = entrypointService.findAll();
         entrypoints.stream().map(entrypoint -> entrypoint.getValue() + apiContextPath).forEach(graviteeUrls::add);
-        
+
         return swaggerService.replaceServerList(payload, graviteeUrls);
     }
 
@@ -406,6 +410,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
                 notificationConfigEntity.setConfig("${api.primaryOwner.email}");
                 genericNotificationConfigService.create(notificationConfigEntity);
+
+                // create the default mail support metadata
+                NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
+                newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
+                newApiMetadataEntity.setName(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
+                newApiMetadataEntity.setDefaultValue("${api.primaryOwner.email}");
+                newApiMetadataEntity.setValue("${api.primaryOwner.email}");
+                newApiMetadataEntity.setApiId(createdApi.getId());
+                apiMetadataService.create(newApiMetadataEntity);
 
                 //TODO add membership log
                 ApiEntity apiEntity = convert(createdApi, primaryOwner);
@@ -1348,7 +1361,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiModelEntity findByIdForTemplates(String apiId) {
+    public ApiModelEntity findByIdForTemplates(String apiId, boolean decodeTemplate) {
         final ApiEntity apiEntity = findById(apiId);
 
         final ApiModelEntity apiModelEntity = new ApiModelEntity();
@@ -1379,6 +1392,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(),
                     metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
             apiModelEntity.setMetadata(mapMetadata);
+            if (decodeTemplate) {
+                try {
+                    Template apiMetadataTemplate = new Template(apiModelEntity.getId(), new StringReader(mapMetadata.toString()), freemarkerConfiguration);
+                    String decodedValue = FreeMarkerTemplateUtils.processTemplateIntoString(apiMetadataTemplate, Collections.singletonMap("api", apiModelEntity));
+                    Map<String, String> metadataDecoded = Arrays
+                            .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                            .map(entry -> entry.split("="))
+                            .collect(Collectors.toMap(entry -> entry[0], entry -> entry[1]));
+                    apiModelEntity.setMetadata(metadataDecoded);
+                } catch (Exception ex) {
+                    throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
+                }
+            }
         }
         return apiModelEntity;
     }

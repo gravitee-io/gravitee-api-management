@@ -90,7 +90,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             }
             emailTo = emailMetadata.getValue();
         } else {
-            api = apiService.findByIdForTemplates(ticketEntity.getApi());
+            api = apiService.findByIdForTemplates(ticketEntity.getApi(), true);
             final String apiMetadataEmailSupport = api.getMetadata().get(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
             if (apiMetadataEmailSupport == null) {
                 throw new IllegalStateException("The support email API metadata has not been found");

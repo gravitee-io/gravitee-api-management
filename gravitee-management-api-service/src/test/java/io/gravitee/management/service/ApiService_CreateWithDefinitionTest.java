@@ -106,7 +106,10 @@ public class ApiService_CreateWithDefinitionTest {
     private SearchEngineService searchEngineService;
 
     @Mock
-    private  GenericNotificationConfigService  genericNotificationConfigService;
+    private GenericNotificationConfigService  genericNotificationConfigService;
+
+    @Mock
+    private ApiMetadataService apiMetadataService;
 
     @Before
     public void init() {

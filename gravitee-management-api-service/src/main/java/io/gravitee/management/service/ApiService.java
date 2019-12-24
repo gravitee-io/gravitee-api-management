@@ -79,7 +79,11 @@ public interface ApiService {
 
     void checkContextPath(String newContextPath) throws TechnicalException;
 
-    ApiModelEntity findByIdForTemplates(String apiId);
+    ApiModelEntity findByIdForTemplates(String apiId, boolean decodeTemplate);
+
+    default ApiModelEntity findByIdForTemplates(String apiId) {
+        return findByIdForTemplates(apiId, false);
+    }
 
     boolean exists(String apiId);
 
