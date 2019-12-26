@@ -290,7 +290,9 @@ div#api-navbar:before{
 }
 
 
-#pageHeader.sticky #header-detail {
+#pageHeader.sticky #header-detail,
+#pageHeader.sticky #header-tags,
+#pageHeader.sticky #header-views {
   opacity: 0;
 }
 
