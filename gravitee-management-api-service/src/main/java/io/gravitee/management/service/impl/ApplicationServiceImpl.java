@@ -450,6 +450,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setUpdatedAt(new Date());
             application.setStatus(ApplicationStatus.ARCHIVED);
             applicationRepository.update(application);
+            // remove notifications
+            genericNotificationConfigService.deleteReference(NotificationReferenceType.APPLICATION, applicationId);
             // Audit
             auditService.createApplicationAuditLog(
                     application.getId(),

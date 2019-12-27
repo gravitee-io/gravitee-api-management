@@ -325,6 +325,19 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
+    public void deleteMembers(MembershipReferenceType referenceType, String referenceId) {
+        try {
+            LOGGER.debug("Delete members for {} {}", referenceType, referenceId);
+            membershipRepository.deleteMembers(referenceType, referenceId);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete members for {} {}", referenceType, referenceId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete members for " + referenceType + " " + referenceId, ex);
+        }
+    }
+
+
+
+    @Override
     public void transferApiOwnership(String apiId, MembershipUser user, RoleEntity newPrimaryOwnerRole) {
         this.transferOwnership(API, RoleScope.API, apiId, user, newPrimaryOwnerRole);
     }

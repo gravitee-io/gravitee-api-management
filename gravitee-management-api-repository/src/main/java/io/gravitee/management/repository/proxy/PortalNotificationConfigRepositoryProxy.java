@@ -60,4 +60,9 @@ public class PortalNotificationConfigRepositoryProxy extends AbstractProxy<Porta
     public void deleteByUser(String user) throws TechnicalException {
         target.deleteByUser(user);
     }
+
+    @Override
+    public void deleteReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+        target.deleteReference(referenceType, referenceId);
+    }
 }

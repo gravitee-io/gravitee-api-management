@@ -132,6 +132,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
     @Autowired
+    private PortalNotificationConfigService portalNotificationConfigService;
+    @Autowired
     private NotifierService notifierService;
     @Autowired
     private SwaggerService swaggerService;
@@ -878,6 +880,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 topApiService.delete(apiId);
                 // Delete API
                 apiRepository.delete(apiId);
+                // Delete all membership references
+                membershipService.deleteMembers(MembershipReferenceType.API, apiId);
+                // Delete notifications
+                genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
+                portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
                 // Audit
                 auditService.createApiAuditLog(
                         apiId,
