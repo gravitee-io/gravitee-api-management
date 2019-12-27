@@ -121,6 +121,10 @@ reporters:
   # logging configuration
   #logging:
   #  max_size: -1 # max size per API log content respectively : client-request, client-response, proxy-request and proxy-response in MB (-1 means no limit)
+  #  ssl:
+  #      enabled: false # whether the info about SSL (TLS) in case of HTTPS should be added to log messages (is useful when you use 2-way SSL auth)
+  #      certs:
+  #        enabled: false # log the certificates chain for SSL connection
   # Elasticsearch reporter
   elasticsearch:
     enabled: true # Is the reporter enabled or not (default to true)

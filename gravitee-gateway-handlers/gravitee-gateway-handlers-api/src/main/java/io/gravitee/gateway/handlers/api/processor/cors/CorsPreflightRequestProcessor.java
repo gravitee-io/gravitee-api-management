@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.processor.cors;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.utils.GraviteeConstants;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -55,7 +56,7 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
     private void handlePreflightRequest(Request request, Response response) {
         // In case of pre-flight request, we are not able to define what is the calling application.
         // Define it as unknown
-        request.metrics().setApplication( "1");
+        request.metrics().setApplication(GraviteeConstants.UNKNOWN_APPLICATION);
 
         // 1. If the Origin header is not present terminate this set of steps. The request is outside the scope of
         //  this specification.

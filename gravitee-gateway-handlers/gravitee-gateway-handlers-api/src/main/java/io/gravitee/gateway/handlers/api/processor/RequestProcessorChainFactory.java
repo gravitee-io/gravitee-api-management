@@ -34,6 +34,7 @@ import io.gravitee.gateway.policy.PolicyChainProvider;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.security.core.SecurityPolicyChainProvider;
 import io.gravitee.gateway.security.core.SecurityPolicyResolver;
+import io.gravitee.gateway.core.logging.LogConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
@@ -50,6 +51,12 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
 
     @Value("${reporters.logging.max_size:-1}")
     private int maxSizeLogMessage;
+
+    @Value("${reporters.logging.ssl.enabled:false}")
+    private boolean logSSLInfo;
+
+    @Value("${reporters.logging.ssl.certs.enabled:false}")
+    private boolean logSSLCertificates;
 
     public void afterPropertiesSet() {
         ApiPolicyResolver apiPolicyResolver = new ApiPolicyResolver();
@@ -80,10 +87,10 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             providers.add(new ProcessorSupplier<>(new Supplier<StreamableProcessor<ExecutionContext, Buffer>>() {
                     @Override
                     public StreamableProcessor<ExecutionContext, Buffer> get() {
-                        ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
-                        // log max size limit is in MB format
-                        // -1 means no limit
-                        processor.setMaxSizeLogMessage((maxSizeLogMessage <= - 1) ? -1 : maxSizeLogMessage * (1024 * 1024));
+                        ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging(),
+                                (new LogConfiguration.Builder())
+                                        .maxSizeLogMessage(maxSizeLogMessage * (1024 * 1024))
+                                        .withSsl(logSSLInfo, logSSLCertificates).build());
 
                         return new StreamableProcessorDecorator<>(processor);
                     }

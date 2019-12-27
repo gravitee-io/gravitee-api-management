@@ -16,18 +16,15 @@
 package io.gravitee.gateway.reactor.processor.notfound;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.utils.GraviteeConstants;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 
 public class NotFoundReporter extends AbstractProcessor<ExecutionContext> {
-
-    private static final String UNKNOWN_SERVICE = "1";
-
     private final ReporterService reporterService;
     private final boolean logEnabled;
 
@@ -39,8 +36,8 @@ public class NotFoundReporter extends AbstractProcessor<ExecutionContext> {
     @Override
     public void handle(ExecutionContext context) {
         Metrics metrics = context.request().metrics();
-        metrics.setApi(UNKNOWN_SERVICE);
-        metrics.setApplication(UNKNOWN_SERVICE);
+        metrics.setApi(GraviteeConstants.UNKNOWN_API);
+        metrics.setApplication(GraviteeConstants.UNKNOWN_APPLICATION);
 
         if (logEnabled) {
             Buffer payload = Buffer.buffer();

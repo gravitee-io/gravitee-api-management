@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.common.utils.GraviteeConstants;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -28,12 +29,6 @@ import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 
 public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> {
-
-    /**
-     * Code for an unknown caller / application
-     */
-    private static final String APPLICATION_NAME_ANONYMOUS = "1";
-
     private final static ObjectMapper mapper = new ObjectMapper();
 
     @Override
@@ -43,7 +38,7 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
         // If no application has been associated to the request (for example in case security chain can not be processed
         // correctly) set the default application to track it.
         if (context.request().metrics().getApplication() == null) {
-            context.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
+            context.request().metrics().setApplication(GraviteeConstants.UNKNOWN_APPLICATION);
         }
 
         handleFailure(context, failure);

@@ -22,8 +22,8 @@ import io.gravitee.gateway.core.logging.LimitedLoggableClientResponse;
 import io.gravitee.gateway.core.logging.LoggableClientRequest;
 import io.gravitee.gateway.core.logging.LoggableClientResponse;
 import io.gravitee.gateway.core.logging.condition.evaluation.ConditionEvaluator;
-import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
+import io.gravitee.gateway.core.logging.LogConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +37,11 @@ public class LoggableRequestProcessor extends AbstractProcessor<ExecutionContext
 
     private final ConditionEvaluator evaluator;
 
-    public LoggableRequestProcessor(final ConditionEvaluator evaluator) {
+    private final LogConfiguration logConfiguration;
+
+    public LoggableRequestProcessor(final ConditionEvaluator evaluator, LogConfiguration logConfiguration) {
         this.evaluator = evaluator;
+        this.logConfiguration = logConfiguration;
     }
 
     @Override
@@ -48,14 +51,12 @@ public class LoggableRequestProcessor extends AbstractProcessor<ExecutionContext
 
             if (condition) {
 
-                int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context);
-
-                ((MutableExecutionContext) context).request(maxSizeLogMessage == - 1 ?
-                        new LoggableClientRequest(context.request()) :
-                        new LimitedLoggableClientRequest(context.request(), maxSizeLogMessage));
-                ((MutableExecutionContext) context).response(maxSizeLogMessage == - 1 ?
-                        new LoggableClientResponse(context.request(), context.response()) :
-                        new LimitedLoggableClientResponse(context.request(), context.response(), maxSizeLogMessage));
+                ((MutableExecutionContext) context).request(logConfiguration.getMaxSizeLogMessage() == - 1 ?
+                        new LoggableClientRequest(context.request(), logConfiguration) :
+                        new LimitedLoggableClientRequest(context.request(), logConfiguration));
+                ((MutableExecutionContext) context).response(logConfiguration.getMaxSizeLogMessage() == - 1 ?
+                        new LoggableClientResponse(context.request(), context.response(), logConfiguration) :
+                        new LimitedLoggableClientResponse(context.request(), context.response(), logConfiguration));
             }
         } catch (Exception ex) {
             logger.warn("Unexpected error while evaluating logging condition for the API {} and context path {} : {}", context.getAttribute(ExecutionContext.ATTR_API), context.getAttribute(ExecutionContext.ATTR_CONTEXT_PATH), ex.getMessage());
@@ -66,5 +67,9 @@ public class LoggableRequestProcessor extends AbstractProcessor<ExecutionContext
 
     protected boolean evaluate(ExecutionContext context) throws Exception {
         return evaluator.evaluate(context.request(), context);
+    }
+
+    public LogConfiguration getLogConfiguration() {
+        return logConfiguration;
     }
 }
