@@ -296,7 +296,6 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         httpClientOptions.setUsePooledBuffers(true);
         httpClientOptions.setMaxPoolSize(endpoint.getHttpClientOptions().getMaxConcurrentConnections());
         httpClientOptions.setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
-        httpClientOptions.setLogActivity(true);
 
         // Configure proxy
         HttpProxy proxy = endpoint.getHttpProxy();
