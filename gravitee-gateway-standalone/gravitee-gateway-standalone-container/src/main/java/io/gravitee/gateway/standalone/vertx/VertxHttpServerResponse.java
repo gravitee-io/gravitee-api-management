@@ -17,15 +17,13 @@ package io.gravitee.gateway.standalone.vertx;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.WriteStream;
-import io.gravitee.reporter.api.http.Metrics;
 import io.netty.buffer.ByteBuf;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.http.HttpVersion;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,41 +31,38 @@ import io.vertx.core.http.HttpVersion;
  */
 public class VertxHttpServerResponse implements Response {
 
-    private final HttpServerResponse httpServerResponse;
+    protected final HttpServerResponse serverResponse;
+    private final Request serverRequest;
+    protected final HttpHeaders headers = new HttpHeaders();
 
-    private final HttpHeaders headers = new HttpHeaders();
+    private HttpHeaders trailers;
 
-    private final Metrics metrics;
-
-    private final HttpVersion version;
-
-    public VertxHttpServerResponse(final HttpServerRequest httpServerRequest, final Metrics metrics) {
-        this.httpServerResponse = httpServerRequest.response();
-        version = httpServerRequest.version();
-        this.metrics = metrics;
+    public VertxHttpServerResponse(final VertxHttpServerRequest serverRequest) {
+        this.serverRequest = serverRequest;
+        this.serverResponse = serverRequest.getNativeServerRequest().response();
     }
 
     @Override
     public int status() {
-        return httpServerResponse.getStatusCode();
+        return serverResponse.getStatusCode();
     }
 
     @Override
     public String reason() {
-        return httpServerResponse.getStatusMessage();
+        return serverResponse.getStatusMessage();
     }
 
     @Override
     public Response reason(String reason) {
         if (reason != null) {
-            httpServerResponse.setStatusMessage(reason);
+            serverResponse.setStatusMessage(reason);
         }
         return this;
     }
 
     @Override
     public Response status(int statusCode) {
-        httpServerResponse.setStatusCode(statusCode);
+        serverResponse.setStatusCode(statusCode);
         return this;
     }
 
@@ -78,71 +73,73 @@ public class VertxHttpServerResponse implements Response {
 
     @Override
     public boolean ended() {
-        return httpServerResponse.ended();
+        return serverResponse.ended();
+    }
+
+    @Override
+    public HttpHeaders trailers() {
+        if (trailers == null) {
+            trailers = new HttpHeaders();
+        }
+        return trailers;
     }
 
     @Override
     public Response write(Buffer chunk) {
         if (valid()) {
-            if (!httpServerResponse.headWritten()) {
+            if (!serverResponse.headWritten()) {
                 writeHeaders();
 
                 // Vertx requires to set the chunked flag if transfer_encoding header as the "chunked" value
                 String transferEncodingHeader = headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
                 if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncodingHeader)) {
-                    httpServerResponse.setChunked(true);
+                    serverResponse.setChunked(true);
                 } else if (transferEncodingHeader == null) {
                     String connectionHeader = headers().getFirst(HttpHeaders.CONNECTION);
                     String contentLengthHeader = headers().getFirst(HttpHeaders.CONTENT_LENGTH);
-                    if (HttpHeadersValues.CONNECTION_CLOSE.equalsIgnoreCase(connectionHeader)
-                            && contentLengthHeader == null) {
-                        httpServerResponse.setChunked(true);
+                    if (contentLengthHeader == null) {
+                        serverResponse.setChunked(true);
                     }
                 }
             }
 
-            metrics.setResponseContentLength(metrics.getResponseContentLength() + chunk.length());
-            httpServerResponse.write(io.vertx.core.buffer.Buffer.buffer((ByteBuf) chunk.getNativeBuffer()));
+            serverRequest.metrics().setResponseContentLength(serverRequest.metrics().getResponseContentLength() + chunk.length());
+            serverResponse.write(io.vertx.core.buffer.Buffer.buffer((ByteBuf) chunk.getNativeBuffer()));
         }
         return this;
     }
 
     @Override
     public WriteStream<Buffer> drainHandler(Handler<Void> drainHandler) {
-        httpServerResponse.drainHandler((aVoid -> drainHandler.handle(null)));
+        serverResponse.drainHandler((aVoid -> drainHandler.handle(null)));
         return this;
     }
 
     @Override
     public boolean writeQueueFull() {
-        return valid() && httpServerResponse.writeQueueFull();
+        return valid() && serverResponse.writeQueueFull();
     }
 
     @Override
     public void end() {
         if (valid()) {
-            if (!httpServerResponse.headWritten()) {
+            if (!serverResponse.headWritten()) {
                 writeHeaders();
             }
 
-            httpServerResponse.end();
+            if (trailers != null) {
+                trailers.forEach(serverResponse::putTrailer);
+            }
+
+            serverResponse.end();
         }
     }
 
     private boolean valid() {
-        return !httpServerResponse.closed() && !httpServerResponse.ended();
+        return !serverResponse.closed() && !serverResponse.ended();
     }
 
-    private void writeHeaders() {
-        // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
-        // connection-specific header fields must be remove from response headers
-        headers.forEach((headerName, headerValues) -> {
-            if (version == HttpVersion.HTTP_1_0 || version == HttpVersion.HTTP_1_1
-                    || (!headerName.equalsIgnoreCase(HttpHeaders.CONNECTION)
-                    && !headerName.equalsIgnoreCase(HttpHeaders.KEEP_ALIVE)
-                    && !headerName.equalsIgnoreCase(HttpHeaders.TRANSFER_ENCODING))) {
-                httpServerResponse.putHeader(headerName, headerValues);
-            }
-        });
+    protected void writeHeaders() {
+        headers.forEach(serverResponse::putHeader);
     }
 }

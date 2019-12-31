@@ -31,7 +31,7 @@
     <name>Gravitee.io APIM - Gateway - Standalone - Container</name>
 
     <properties>
-        <jetty92.wiremock.version>9.2.30.v20200428</jetty92.wiremock.version>
+        <jetty94.wiremock.version>9.4.28.v20200408</jetty94.wiremock.version>
     </properties>
 
     <dependencyManagement>
@@ -40,52 +40,52 @@
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-server</artifactId>
-                <version>${jetty92.wiremock.version}</version>
+                <version>${jetty94.wiremock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-http</artifactId>
-                <version>${jetty92.wiremock.version}</version>
+                <version>${jetty94.wiremock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-util</artifactId>
-                <version>${jetty92.wiremock.version}</version>
+                <version>${jetty94.wiremock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-io</artifactId>
-                <version>${jetty92.wiremock.version}</version>
+                <version>${jetty94.wiremock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-servlet</artifactId>
-                <version>${jetty92.wiremock.version}</version>
+                <version>${jetty94.wiremock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-servlets</artifactId>
-                <version>${jetty92.wiremock.version}</version>
+                <version>${jetty94.wiremock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-continuation</artifactId>
-                <version>${jetty92.wiremock.version}</version>
+                <version>${jetty94.wiremock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-security</artifactId>
-                <version>${jetty92.wiremock.version}</version>
+                <version>${jetty94.wiremock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-webapp</artifactId>
-                <version>${jetty92.wiremock.version}</version>
+                <version>${jetty94.wiremock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-xml</artifactId>
-                <version>${jetty92.wiremock.version}</version>
+                <version>${jetty94.wiremock.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -257,7 +257,7 @@
         <!-- Wiremock -->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock</artifactId>
+            <artifactId>wiremock-jre8</artifactId>
             <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
@@ -266,6 +266,26 @@
             <artifactId>vertx-unit</artifactId>
             <version>${vertx.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-grpc</artifactId>
+            <version>${vertx.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>${protobuf-java.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- 19.0 ??? 20.0 is required -->
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -300,6 +320,42 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
+
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.4.1.Final</version>
+            </extension>
+        </extensions>
+
+        <plugins>
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>0.6.1</version>
+                <configuration>
+                    <!--
+                      The version of protoc must match protobuf-java. If you don't depend on
+                      protobuf-java directly, you will be transitively depending on the
+                      protobuf-java version that grpc depends on.
+                    -->
+                    <protoTestSourceRoot>src/test/resources</protoTestSourceRoot>
+                    <protocArtifact>com.google.protobuf:protoc:${protobuf-java.version}:exe:${os.detected.classifier}</protocArtifact>
+                    <pluginId>grpc-java</pluginId>
+                    <pluginArtifact>io.vertx:protoc-gen-grpc-java:1.25.0:exe:${os.detected.classifier}</pluginArtifact>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <goals>
+                            <goal>test-compile</goal>
+                            <goal>test-compile-custom</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 
     <profiles>

@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.vertx.core.Vertx;
 
@@ -71,6 +72,11 @@ public class TimeoutServerResponse implements Response {
     }
 
     @Override
+    public HttpHeaders trailers() {
+        return response.trailers();
+    }
+
+    @Override
     public WriteStream<Buffer> write(Buffer buffer) {
         return response.write(buffer);
     }
@@ -101,5 +107,10 @@ public class TimeoutServerResponse implements Response {
     @Override
     public boolean writeQueueFull() {
         return response.writeQueueFull();
+    }
+
+    @Override
+    public Response writeCustomFrame(HttpFrame frame) {
+        return response.writeCustomFrame(frame);
     }
 }

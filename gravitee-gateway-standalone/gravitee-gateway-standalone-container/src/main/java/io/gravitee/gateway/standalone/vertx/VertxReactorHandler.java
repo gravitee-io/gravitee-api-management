@@ -16,11 +16,16 @@
 package io.gravitee.gateway.standalone.vertx;
 
 import io.gravitee.common.http.IdGenerator;
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactor.Reactor;
+import io.gravitee.gateway.standalone.vertx.grpc.VertxGrpcServerRequest;
+import io.gravitee.gateway.standalone.vertx.http2.VertxHttp2ServerRequest;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpVersion;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,10 +44,19 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
 
     @Override
     public void handle(HttpServerRequest httpServerRequest) {
-        Request request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
-        Response response = new VertxHttpServerResponse(httpServerRequest, request.metrics());
+        VertxHttpServerRequest request;
 
-        route(request, response);
+        if (httpServerRequest.version() == HttpVersion.HTTP_2) {
+            if (MediaType.APPLICATION_GRPC.equals(httpServerRequest.getHeader(HttpHeaders.CONTENT_TYPE))) {
+                request = new VertxGrpcServerRequest(httpServerRequest, idGenerator);
+            } else {
+                request = new VertxHttp2ServerRequest(httpServerRequest, idGenerator);
+            }
+        } else {
+            request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+        }
+
+        route(request, request.create());
     }
 
     protected void route(final Request request, final Response response) {

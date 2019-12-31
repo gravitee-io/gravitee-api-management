@@ -22,8 +22,10 @@ import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.reporter.api.http.Metrics;
 import io.vertx.core.MultiMap;
@@ -45,18 +47,18 @@ public class VertxHttpServerRequest implements Request {
     private final String id;
     private final long timestamp;
 
-    private final HttpServerRequest httpServerRequest;
+    protected final HttpServerRequest serverRequest;
 
     private MultiValueMap<String, String> queryParameters = null;
 
     private HttpHeaders headers = null;
 
-    protected final Metrics metrics;
+    private final Metrics metrics;
 
     private Handler<Long> timeoutHandler;
 
     public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
-        this.httpServerRequest = httpServerRequest;
+        this.serverRequest = httpServerRequest;
         this.timestamp = System.currentTimeMillis();
         this.id = idGenerator.randomString();
 
@@ -65,9 +67,9 @@ public class VertxHttpServerRequest implements Request {
         this.metrics.setHttpMethod(method());
         this.metrics.setLocalAddress(localAddress());
         this.metrics.setRemoteAddress(remoteAddress());
-        this.metrics.setHost(httpServerRequest.host());
+        this.metrics.setHost(serverRequest.host());
         this.metrics.setUri(uri());
-        this.metrics.setUserAgent(httpServerRequest.getHeader(HttpHeaders.USER_AGENT));
+        this.metrics.setUserAgent(serverRequest.getHeader(HttpHeaders.USER_AGENT));
     }
 
     @Override
@@ -82,12 +84,12 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public String uri() {
-        return httpServerRequest.uri();
+        return serverRequest.uri();
     }
 
     @Override
     public String path() {
-        return httpServerRequest.path();
+        return serverRequest.path();
     }
 
     @Override
@@ -103,7 +105,7 @@ public class VertxHttpServerRequest implements Request {
     @Override
     public MultiValueMap<String, String> parameters() {
         if (queryParameters == null) {
-            queryParameters = URIUtils.parameters(httpServerRequest.uri());
+            queryParameters = URIUtils.parameters(serverRequest.uri());
         }
 
         return queryParameters;
@@ -112,7 +114,7 @@ public class VertxHttpServerRequest implements Request {
     @Override
     public HttpHeaders headers() {
         if (headers == null) {
-            MultiMap vertxHeaders = httpServerRequest.headers();
+            MultiMap vertxHeaders = serverRequest.headers();
             headers = new HttpHeaders(vertxHeaders.size());
             for(Map.Entry<String, String> header : vertxHeaders) {
                 headers.add(header.getKey(), header.getValue());
@@ -124,22 +126,22 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public HttpMethod method() {
-        return HttpMethod.valueOf(httpServerRequest.method().name());
+        return HttpMethod.valueOf(serverRequest.method().name());
     }
 
     @Override
     public String scheme() {
-        return httpServerRequest.scheme();
+        return serverRequest.scheme();
     }
 
     @Override
     public String rawMethod() {
-        return httpServerRequest.rawMethod();
+        return serverRequest.rawMethod();
     }
 
     @Override
     public HttpVersion version() {
-        return HttpVersion.valueOf(httpServerRequest.version().name());
+        return HttpVersion.valueOf(serverRequest.version().name());
     }
 
     @Override
@@ -149,25 +151,25 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public String remoteAddress() {
-        SocketAddress address = httpServerRequest.remoteAddress();
+        SocketAddress address = serverRequest.remoteAddress();
         return (address != null) ? address.host() : null;
     }
 
     @Override
     public String localAddress() {
-        SocketAddress address = httpServerRequest.localAddress();
+        SocketAddress address = serverRequest.localAddress();
         return (address != null) ? address.host() : null;
     }
 
     @Override
     public SSLSession sslSession() {
-        return httpServerRequest.sslSession();
+        return serverRequest.sslSession();
     }
 
     @Override
     public Request bodyHandler(Handler<Buffer> bodyHandler) {
-        if (! httpServerRequest.isEnded()) {
-            httpServerRequest.handler(event -> {
+        if (! serverRequest.isEnded()) {
+            serverRequest.handler(event -> {
                 bodyHandler.handle(Buffer.buffer(event.getBytes()));
                 metrics.setRequestContentLength(metrics.getRequestContentLength() + event.length());
             });
@@ -178,7 +180,7 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public Request endHandler(Handler<Void> endHandler) {
-        httpServerRequest.endHandler(new io.vertx.core.Handler<Void>() {
+        serverRequest.endHandler(new io.vertx.core.Handler<Void>() {
             @Override
             public void handle(Void event) {
                 endHandler.handle(event);
@@ -189,13 +191,13 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public Request pause() {
-        httpServerRequest.pause();
+        serverRequest.pause();
         return this;
     }
 
     @Override
     public Request resume() {
-        httpServerRequest.resume();
+        serverRequest.resume();
         return this;
     }
 
@@ -206,7 +208,7 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public boolean ended() {
-        return httpServerRequest.isEnded();
+        return serverRequest.isEnded();
     }
 
     @Override
@@ -227,5 +229,18 @@ public class VertxHttpServerRequest implements Request {
     @Override
     public WebSocket websocket() {
         throw new IllegalStateException();
+    }
+
+    @Override
+    public Request customFrameHandler(Handler<HttpFrame> frameHandler) {
+        return this;
+    }
+
+    public HttpServerRequest getNativeServerRequest() {
+        return serverRequest;
+    }
+
+    public Response create() {
+        return new VertxHttpServerResponse(this);
     }
 }

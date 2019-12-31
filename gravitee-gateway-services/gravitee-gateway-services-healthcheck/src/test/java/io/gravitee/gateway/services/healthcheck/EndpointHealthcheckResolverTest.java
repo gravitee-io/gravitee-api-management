@@ -15,10 +15,7 @@
  */
 package io.gravitee.gateway.services.healthcheck;
 
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.EndpointType;
-import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
@@ -71,7 +68,7 @@ public class EndpointHealthcheckResolverTest {
 
         when(mockProxy.getGroups()).thenReturn(Collections.singleton(mockEndpointGroup));
 
-        when(mockEndpointGroup.getEndpoints()).thenReturn(new HashSet<>(Arrays.asList(mockEndpoint, mock(HttpEndpoint.class))));
+        when(mockEndpointGroup.getEndpoints()).thenReturn(new HashSet<>(Arrays.asList(mockEndpoint, mock(Endpoint.class))));
 
         when(mockEndpoint.getType()).thenReturn(EndpointType.HTTP);
         when(mockEndpoint.isBackup()).thenReturn(false);

@@ -18,10 +18,12 @@ package io.gravitee.gateway.services.healthcheck;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointType;
+import io.gravitee.definition.model.endpoint.GrpcEndpoint;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.services.healthcheck.rule.DefaultEndpointRule;
+import io.gravitee.gateway.services.healthcheck.grpc.GrpcEndpointRule;
+import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -54,7 +56,7 @@ public class EndpointHealthcheckResolver {
                 .stream()
                 .filter(group -> group.getEndpoints() != null)
                 .peek(group -> group.getEndpoints().forEach(endpoint -> {
-                    if (endpoint instanceof HttpEndpoint) {
+                    if (HttpEndpoint.class.isAssignableFrom(endpoint.getClass())) {
                         final HttpEndpoint httpEndpoint = ((HttpEndpoint) endpoint);
                         final boolean inherit = endpoint.getInherit() != null && endpoint.getInherit();
                         // inherit or discovered endpoints
@@ -67,7 +69,7 @@ public class EndpointHealthcheckResolver {
                     }
                 }))
                 .flatMap(group -> group.getEndpoints().stream())
-                .filter(endpoint -> endpoint.getType() == EndpointType.HTTP)
+                .filter(endpoint -> HttpEndpoint.class.isAssignableFrom(endpoint.getClass()))
                 .map(endpoint -> (HttpEndpoint) endpoint);
 
         // Filtering endpoints according to tenancy configuration
@@ -96,28 +98,33 @@ public class EndpointHealthcheckResolver {
                                 && endpoint.getHealthCheck().isInherit()
                                 && hcEnabled)));
 
-        return httpEndpoints.map((Function<HttpEndpoint, EndpointRule>) endpoint -> new DefaultEndpointRule(
-                api.getId(),
-                endpoint,
-                (endpoint.getHealthCheck() == null || endpoint.getHealthCheck().isInherit()) ?
-                        rootHealthCheck : endpoint.getHealthCheck())).collect(Collectors.toList());
+        return httpEndpoints.map((Function<HttpEndpoint, EndpointRule>) endpoint -> {
+            HealthCheckService healthcheck = (endpoint.getHealthCheck() == null || endpoint.getHealthCheck().isInherit()) ?
+                    rootHealthCheck : endpoint.getHealthCheck();
+            if (endpoint.getType() == EndpointType.GRPC) {
+                return new GrpcEndpointRule(api.getId(), (GrpcEndpoint) endpoint, healthcheck);
+            } else {
+                return new HttpEndpointRule(api.getId(), endpoint, healthcheck);
+            }
+        }).collect(Collectors.toList());
     }
 
-    public EndpointRule resolve(Api api, Endpoint endpoint) {
-        if (endpoint.getType() == EndpointType.HTTP) {
+    public <T extends Endpoint> EndpointRule resolve(Api api, T endpoint) {
+        if (endpoint.getType() == EndpointType.HTTP || endpoint.getType() == EndpointType.GRPC) {
             HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
             HealthCheckService rootHealthCheck = api.getServices().get(HealthCheckService.class);
             boolean hcEnabled = (rootHealthCheck != null && rootHealthCheck.isEnabled());
 
             if (hcEnabled || httpEndpoint.getHealthCheck() != null) {
-                return new DefaultEndpointRule(
-                        api.getId(),
-                        endpoint,
-                        (httpEndpoint.getHealthCheck() == null || httpEndpoint.getHealthCheck().isInherit()) ?
-                                rootHealthCheck : httpEndpoint.getHealthCheck());
+                HealthCheckService healthcheck = (httpEndpoint.getHealthCheck() == null || httpEndpoint.getHealthCheck().isInherit()) ?
+                        rootHealthCheck : httpEndpoint.getHealthCheck();
+                if (endpoint.getType() == EndpointType.HTTP) {
+                    return new HttpEndpointRule(api.getId(), httpEndpoint, healthcheck);
+                } else if (endpoint.getType() == EndpointType.GRPC) {
+                    return new GrpcEndpointRule(api.getId(), (GrpcEndpoint) httpEndpoint, healthcheck);
+                }
             }
         }
-
 
         return null;
     }

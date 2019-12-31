@@ -18,6 +18,8 @@ package io.gravitee.gateway.services.healthcheck;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.services.healthcheck.Step;
 import io.gravitee.definition.model.services.schedule.Trigger;
+import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
+import io.vertx.core.Vertx;
 
 import java.util.List;
 
@@ -25,13 +27,15 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EndpointRule {
+public interface EndpointRule<T extends Endpoint> {
 
     String api();
 
-    Endpoint endpoint();
+    T endpoint();
 
     Trigger trigger();
 
     List<Step> steps();
+
+    EndpointRuleHandler<T> createRunner(Vertx vertx, EndpointRule<T> rule);
 }
