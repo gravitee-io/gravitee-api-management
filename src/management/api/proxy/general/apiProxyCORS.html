@@ -40,6 +40,7 @@
         <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowOrigin"
                   ng-required="apiProxyCtrl.api.proxy.cors.enabled"
                   md-removable="apiProxyCtrl.api.proxy.cors.enabled" placeholder="*, mydomain.com, ..."
+                  md-on-add="apiProxyCtrl.controlAllowOrigin($chip, $index)"
                   readonly="!apiProxyCtrl.api.proxy.cors.enabled">
           <md-chip-template>
             <strong>{{$chip}}</strong>

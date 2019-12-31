@@ -129,7 +129,7 @@ class ApiProxyController {
     // Context-path editable
     this.contextPathEditable =this.UserService.currentUser.id === this.api.owner.id;
 
-    this.api.proxy.cors = this.api.proxy.cors || {allowOrigin: ['*'], allowHeaders: [], allowMethods: [], exposeHeaders: [], maxAge: -1, allowCredentials: false};
+    this.api.proxy.cors = this.api.proxy.cors || {allowOrigin: [], allowHeaders: [], allowMethods: [], exposeHeaders: [], maxAge: -1, allowCredentials: false};
   }
 
   removeEndpoints() {
@@ -298,6 +298,26 @@ class ApiProxyController {
 
   isTagDisabled(tag: any): boolean {
     return !_.includes(this.userTags, tag.id);
+  }
+
+  controlAllowOrigin(chip, index, ev) {
+    if ("*" === chip) {
+      let that = this;
+      this.$mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to allow all origin ?',
+          confirmButton: 'Yes, I want to allow all origin.'
+        }
+      }).then(function (response) {
+        if (!response) {
+          that.api.proxy.cors.allowOrigin.splice(index, 1);
+        }
+      });
+    }
   }
 }
 
