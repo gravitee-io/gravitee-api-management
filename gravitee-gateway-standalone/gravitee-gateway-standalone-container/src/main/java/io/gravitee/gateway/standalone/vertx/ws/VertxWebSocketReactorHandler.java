@@ -17,17 +17,18 @@ package io.gravitee.gateway.standalone.vertx.ws;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.IdGenerator;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactor.Reactor;
+import io.gravitee.gateway.standalone.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.standalone.vertx.VertxReactorHandler;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpVersion;
 
 /**
+ * HTTP 1.x support for WebSockets.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class VertxWebSocketReactorHandler extends VertxReactorHandler {
@@ -41,23 +42,27 @@ public class VertxWebSocketReactorHandler extends VertxReactorHandler {
 
     @Override
     public void handle(HttpServerRequest httpServerRequest) {
-        Request request;
-        Response response;
-
         if (isWebSocket(httpServerRequest)) {
-            request = new VertxWebSocketServerRequest(httpServerRequest, idGenerator);
-            response = new VertxWebSocketServerResponse(httpServerRequest, request);
-            route(request, response);
+            VertxHttpServerRequest request = new VertxWebSocketServerRequest(httpServerRequest, idGenerator);
+            route(request, request.create());
         } else {
             super.handle(httpServerRequest);
         }
     }
 
+    /**
+     * We are only considering HTTP_1.x requests for now.
+     * There is a dedicated RFC to support WebSockets over HTTP2: https://tools.ietf.org/html/rfc8441
+     *
+     * @param httpServerRequest
+     * @return
+     */
     private boolean isWebSocket(HttpServerRequest httpServerRequest) {
         String connectionHeader = httpServerRequest.getHeader(HttpHeaders.CONNECTION);
         String upgradeHeader = httpServerRequest.getHeader(HttpHeaders.UPGRADE);
 
-        return httpServerRequest.method() == HttpMethod.GET &&
+        return (httpServerRequest.version() == HttpVersion.HTTP_1_0 || httpServerRequest.version() == HttpVersion.HTTP_1_1) &&
+                httpServerRequest.method() == HttpMethod.GET &&
                 HttpHeaderValues.UPGRADE.contentEqualsIgnoreCase(connectionHeader) &&
                 HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader);
     }

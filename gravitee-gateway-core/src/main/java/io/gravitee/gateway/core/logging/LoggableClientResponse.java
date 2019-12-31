@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.reporter.api.log.Log;
 
@@ -111,6 +112,16 @@ public class LoggableClientResponse implements Response {
     @Override
     public boolean ended() {
         return response.ended();
+    }
+
+    @Override
+    public HttpHeaders trailers() {
+        return response.trailers();
+    }
+
+    @Override
+    public Response writeCustomFrame(HttpFrame frame) {
+        return response.writeCustomFrame(frame);
     }
 
     @Override

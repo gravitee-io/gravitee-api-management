@@ -43,6 +43,7 @@ public class LimitedLoggableProxyConnection extends LoggableProxyConnection {
         appendBuffer(buffer, chunk, maxSizeLogMessage);
     }
 
+    @Override
     protected ProxyConnection responseHandler(ProxyConnection proxyConnection, Handler<ProxyResponse> responseHandler,
                                               final ExecutionContext context) {
         return proxyConnection.responseHandler(new LimitedLoggableProxyResponseHandler(responseHandler, context));

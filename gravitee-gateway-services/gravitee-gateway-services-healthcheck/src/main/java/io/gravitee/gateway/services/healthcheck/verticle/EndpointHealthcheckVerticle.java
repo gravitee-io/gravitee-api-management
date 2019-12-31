@@ -29,14 +29,15 @@ import io.gravitee.gateway.services.healthcheck.EndpointHealthcheckResolver;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRuleHandler;
 import io.gravitee.gateway.services.healthcheck.reporter.StatusReporter;
+import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
 
@@ -51,17 +52,18 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private StatusReporter statusReporter;
+
     @Autowired
     private EndpointHealthcheckResolver endpointResolver;
+
     @Autowired
     private AlertEventProducer alertEventProducer;
 
     @Autowired
     private Node node;
-    @Value("${http.port:8082}")
-    private String port;
 
     private final Map<Api, List<EndpointRuleTrigger>> apiTimers = new HashMap<>();
 
@@ -129,11 +131,10 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     }
 
     private void addTrigger(Api api, EndpointRule rule) {
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+        EndpointRuleHandler runner = rule.createRunner(vertx, rule);
         runner.setStatusHandler(statusReporter);
         runner.setAlertEventProducer(alertEventProducer);
         runner.setNode(node);
-        runner.setPort(port);
 
         long timerId = vertx.setPeriodic(getDelayMillis(rule.trigger()), runner);
         apiTimers.get(api).add(new EndpointRuleTrigger(timerId, rule.endpoint()));

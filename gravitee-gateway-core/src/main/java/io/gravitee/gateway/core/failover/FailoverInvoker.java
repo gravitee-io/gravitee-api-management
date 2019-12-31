@@ -118,7 +118,7 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
         }
     }
 
-    private class FailoverClientResponse implements ProxyResponse {
+    private static class FailoverClientResponse implements ProxyResponse {
 
         private Handler<Void> endHandler;
 

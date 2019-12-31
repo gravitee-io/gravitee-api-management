@@ -22,7 +22,7 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
-import io.gravitee.gateway.http.connector.VertxHttpClient;
+import io.gravitee.gateway.http.connector.http.HttpConnector;
 import io.gravitee.reporter.api.http.Metrics;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
@@ -58,7 +58,7 @@ public class VertxHttpClientTest {
     @Mock
     HttpClient httpClient;
 
-    VertxHttpClient vertxHttpClient = new VertxHttpClient(null);
+    HttpConnector vertxHttpClient = new HttpConnector(null);
 
     @Before
     public void init() {

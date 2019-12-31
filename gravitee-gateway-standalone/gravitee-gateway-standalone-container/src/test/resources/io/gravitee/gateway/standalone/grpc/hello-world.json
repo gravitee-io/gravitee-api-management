@@ -1,0 +1,21 @@
+{
+  "id": "api-hello-world",
+  "name": "hello-world",
+
+  "proxy": {
+    "context_path": "/helloworld.Greeter",
+    "endpoints": [
+      {
+        "name": "endpoint",
+        "type": "grpc",
+        "target": "grpc://localhost:50051/helloworld.Greeter"
+      }
+    ],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}

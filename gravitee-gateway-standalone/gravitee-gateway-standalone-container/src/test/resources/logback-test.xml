@@ -28,7 +28,7 @@
 
     <logger name="io.gravitee" level="DEBUG" />
     <logger name="org.springframework" level="INFO" additivity="false"/>
-    <logger name="org.eclipse.jetty" level="INFO" additivity="false"/>
+    <logger name="org.eclipse.jetty" level="INFO" />
     <logger name="org.apache.http.wire" level="DEBUG" />
     <logger name="io.netty.handler.logging.LoggingHandler" level="DEBUG" />
 

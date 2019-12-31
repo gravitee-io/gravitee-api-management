@@ -107,7 +107,7 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
                 .stream()
                 .filter(filter())
                 .peek(endpoint -> {
-                    if (endpoint instanceof HttpEndpoint) {
+                    if (HttpEndpoint.class.isAssignableFrom(endpoint.getClass())) {
                         final HttpEndpoint httpEndpoint = ((HttpEndpoint) endpoint);
                         final boolean inherit = endpoint.getInherit() != null && endpoint.getInherit();
                         // inherit or discovered endpoints
