@@ -85,6 +85,7 @@
                 required
                 ng-model="$ctrl.application.settings.oauth.redirect_uris"
                 placeholder="Enter a redirect URI"
+                md-add-on-blur="true"
                 md-on-remove="$ctrl.formApplication.$setDirty()"
                 ng-click="$ctrl.formApplication.$setDirty()"></md-chips>
               <div class="hint">

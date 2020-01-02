@@ -65,7 +65,10 @@
 
         <md-input-container permission permission-only="'api-definition-u'" class="flex">
           <label>Labels</label>
-          <md-chips ng-model="portalCtrl.api.labels" placeholder="Enter a label" ng-click="portalCtrl.formApi.$setDirty()"></md-chips>
+          <md-chips ng-model="portalCtrl.api.labels"
+                    placeholder="Enter a label"
+                    md-add-on-blur="true"
+                    ng-click="portalCtrl.formApi.$setDirty()"></md-chips>
         </md-input-container>
         <div permission permission-except="'api-definition-u'">
           <label>Labels</label>

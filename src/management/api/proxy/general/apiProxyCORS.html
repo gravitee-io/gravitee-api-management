@@ -41,6 +41,7 @@
                   ng-required="apiProxyCtrl.api.proxy.cors.enabled"
                   md-removable="apiProxyCtrl.api.proxy.cors.enabled" placeholder="*, mydomain.com, ..."
                   md-on-add="apiProxyCtrl.controlAllowOrigin($chip, $index)"
+                  md-add-on-blur="true"
                   readonly="!apiProxyCtrl.api.proxy.cors.enabled">
           <md-chip-template>
             <strong>{{$chip}}</strong>
@@ -77,8 +78,11 @@
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
           <label>Access-Control-Allow-Headers</label>
-        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowHeaders" md-autocomplete-snap
-                  md-require-match="false" readonly="!apiProxyCtrl.api.proxy.cors.enabled">
+        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowHeaders"
+                  md-autocomplete-snap
+                  md-add-on-blur="true"
+                  md-require-match="false"
+                  readonly="!apiProxyCtrl.api.proxy.cors.enabled">
           <md-autocomplete
             md-search-text="searchHeaders"
             md-items="item in apiProxyCtrl.querySearchHeaders(searchHeaders)"
@@ -124,7 +128,9 @@
 
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
-        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.exposeHeaders" md-autocomplete-snap
+        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.exposeHeaders"
+                  md-autocomplete-snap
+                  md-add-on-blur="true"
                   md-require-match="false"
                   readonly="!apiProxyCtrl.api.proxy.cors.enabled">
           <md-autocomplete
