@@ -16,13 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import org.junit.Test;
-
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.Visibility;
+import com.sun.research.ws.wadl.HTTPMethods;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -39,7 +40,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "apis/"+API_NAME+"/pages/"+PAGE_NAME;
+        return "apis/"+API_NAME+"/pages/";
     }
 
     @Test
@@ -54,7 +55,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         pageMock.setName(PAGE_NAME);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
-        final Response response = target().request().get();
+        final Response response = target(PAGE_NAME).request().get();
 
         assertEquals(OK_200, response.getStatus());
         final PageEntity responsePage = response.readEntity(PageEntity.class);
@@ -78,7 +79,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         pageMock.setName(PAGE_NAME);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
-        final Response response = target().request().get();
+        final Response response = target(PAGE_NAME).request().get();
 
         assertEquals(OK_200, response.getStatus());
         final PageEntity responsePage = response.readEntity(PageEntity.class);
@@ -102,7 +103,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         pageMock.setName(PAGE_NAME);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
-        final Response response = target().request().get();
+        final Response response = target(PAGE_NAME).request().get();
 
         assertEquals(OK_200, response.getStatus());
         final PageEntity responsePage = response.readEntity(PageEntity.class);
@@ -112,5 +113,55 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         verify(apiService, times(1)).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME);
         verify(pageService, never()).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
+    }
+    
+    @Test
+    public void shouldNotCreateSystemFolder() {
+        NewPageEntity newPageEntity = new NewPageEntity();
+        newPageEntity.setType(PageType.SYSTEM_FOLDER);
+        final Response response = target().request().post(Entity.json(newPageEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        
+    }
+    
+    @Test
+    public void shouldNotDeleteSystemFolder() {
+        reset(apiService, pageService, membershipService);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("SYSTEM_FOLDER");
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
+        
+        final Response response = target(PAGE_NAME).request().delete();
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        
+    }
+    
+    @Test
+    public void shouldNotUpdateSystemFolder() {
+        reset(apiService, pageService, membershipService);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("SYSTEM_FOLDER");
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
+        
+        final Response response = target(PAGE_NAME).request().put(Entity.json(new UpdatePageEntity()));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+    }
+    
+    @Test
+    public void shouldNotUpdatePatchSystemFolder() {
+        reset(apiService, pageService, membershipService);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("SYSTEM_FOLDER");
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
+        
+        final Response response = target(PAGE_NAME).request().method(javax.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
     }
 }

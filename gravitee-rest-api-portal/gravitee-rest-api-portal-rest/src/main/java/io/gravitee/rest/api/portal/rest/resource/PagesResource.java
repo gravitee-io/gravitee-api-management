@@ -29,8 +29,12 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -55,14 +59,40 @@ public class PagesResource extends AbstractResource {
     public Response getPages(@BeanParam PaginationParam paginationParam, @QueryParam("homepage") Boolean homepage,
             @QueryParam("parent") String parent) {
 
-        List<Page> pages = pageService.search(new PageQuery.Builder().homepage(homepage).parent(parent).build())
-                .stream()
-                .filter(pageEntity -> isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups()))
-                .map(pageMapper::convert)
-                .map(this::addPageLink)
-                .collect(Collectors.toList());
+        Stream<Page> pageStream = pageService.search(new PageQuery.Builder().homepage(homepage).published(true).build()).stream()
+                .filter(pageEntity -> isDisplayable(pageEntity.getExcludedGroups(), pageEntity.getType()))
+                .map(pageMapper::convert).map(this::addPageLink);
+
+        final List<Page> pages;
+        if (parent != null) {
+            pages = new ArrayList<>();
+            final Map<String, Page> pagesMap = pageStream.collect(Collectors.toMap(Page::getId, page -> page));
+            pagesMap.values().forEach(page -> {
+                List<String> ancestors = this.getAncestors(pagesMap, page);
+                if (ancestors.contains(parent)) {
+                    pages.add(page);
+                }
+            });
+        } else {
+            pages = pageStream.collect(Collectors.toList());
+        }
 
         return createListResponse(pages, paginationParam);
+    }
+
+    private List<String> getAncestors(Map<String, Page> pages, Page page) {
+        final List<String> ancestors = new ArrayList<>();
+        final String parentId = page.getParent();
+        if (parentId == null) {
+            return ancestors;
+        }
+        ancestors.add(parentId);
+        final Page parentPage = pages.get(parentId);
+        if (parentPage != null) {
+            ancestors.addAll(getAncestors(pages, parentPage));
+        }
+
+        return ancestors;
     }
 
     @Path("{pageId}")
@@ -70,16 +100,14 @@ public class PagesResource extends AbstractResource {
         return resourceContext.getResource(PageResource.class);
     }
 
-    private boolean isDisplayable(boolean isPagePublished, List<String> excludedGroups) {
-        return isPagePublished
-                && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull());
+    private boolean isDisplayable(List<String> excludedGroups, String pageType) {
+        return groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull())
+                && !"SYSTEM_FOLDER".equals(pageType);
     }
-    
-    
+
     private Page addPageLink(Page page) {
-        return page.links(pageMapper.computePageLinks(
-                PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getId()),
-                PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getParent())
-                ));
+        return page.links(
+                pageMapper.computePageLinks(PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getId()),
+                        PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getParent())));
     }
 }

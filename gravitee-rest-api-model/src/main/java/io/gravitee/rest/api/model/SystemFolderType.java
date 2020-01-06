@@ -15,34 +15,24 @@
  */
 package io.gravitee.rest.api.model;
 
-import java.util.List;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
-
 /**
  * @author Ludovic Dussart (ludovic.dussart at gmail.com)
  * @author Guillaume GILLON
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * Managed types for page documentation
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) Managed types
+ *         for page documentation
  *
  */
-public enum PageType {
+public enum SystemFolderType {
 
-	MARKDOWN(unmodifiableList(asList("md", "markdown"))),
-	SWAGGER(unmodifiableList(asList("json", "yaml", "yml"))),
-	FOLDER(emptyList()),
-    LINK(emptyList()),
-    ROOT(emptyList()),
-    SYSTEM_FOLDER(emptyList());
+    HEADER("Header"), FOOTER("Footer"), SUBFOOTER("SubFooter"), ASIDE("Aside");
 
-	List<String> extensions;
-	PageType(List<String> extensions) {
-		this.extensions = extensions;
-	}
+    String folderName;
 
-	public List<String> extensions() {
-		return extensions;
-	}
+    SystemFolderType(String folderName) {
+        this.folderName = folderName;
+    }
+
+    public String folderName() {
+        return folderName;
+    }
 }

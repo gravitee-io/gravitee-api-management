@@ -32,9 +32,12 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -62,16 +65,45 @@ public class ApiPagesResource extends AbstractResource {
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             final ApiEntity apiEntity = apiService.findById(apiId);
-            List<Page> pages = pageService
-                    .search(new PageQuery.Builder().api(apiId).homepage(homepage).parent(parent).build()).stream()
-                    .filter(pageEntity -> isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups()))
+            
+            Stream<Page> pageStream = pageService.search(new PageQuery.Builder().api(apiId).homepage(homepage).build()).stream()
+                    .filter(pageEntity -> isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups(), pageEntity.getType()))
                     .map(pageMapper::convert)
-                    .map(page -> this.addPageLink(apiId, page))
-                    .collect(Collectors.toList());
+                    .map(page -> this.addPageLink(apiId, page));
+
+            List<Page> pages;
+            if (parent != null) {
+                pages = new ArrayList<>();
+
+                Map<String, Page> pagesMap = pageStream.collect(Collectors.toMap(Page::getId, page -> page));
+                pagesMap.values().forEach(page -> {
+                    List<String> ancestors = this.getAncestors(pagesMap, page);
+                    if (ancestors.contains(parent)) {
+                        pages.add(page);
+                    }
+                });
+            } else {
+                pages = pageStream.collect(Collectors.toList());
+            }
 
             return createListResponse(pages, paginationParam);
         }
         throw new ApiNotFoundException(apiId);
+    }
+
+    private List<String> getAncestors(Map<String, Page> pages, Page page) {
+        List<String> ancestors = new ArrayList<>();
+        String parentId = page.getParent();
+        if (parentId == null) {
+            return ancestors;
+        }
+        ancestors.add(parentId);
+        Page parentPage = pages.get(parentId);
+        if (parentPage != null) {
+            ancestors.addAll(getAncestors(pages, parentPage));
+        }
+
+        return ancestors;
     }
 
     @Path("{pageId}")
@@ -79,9 +111,11 @@ public class ApiPagesResource extends AbstractResource {
         return resourceContext.getResource(ApiPageResource.class);
     }
 
-    private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {
+    private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups, String pageType) {
         return pageService.isDisplayable(api, isPagePublished, getAuthenticatedUserOrNull())
-                && groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull());
+                && groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull())
+                && !"SYSTEM_FOLDER".equals(pageType);
+
 
     }
     

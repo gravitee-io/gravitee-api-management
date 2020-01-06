@@ -257,6 +257,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
 
+
+
         return createdApi;
     }
 
@@ -450,6 +452,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
 
                 Api createdApi = apiRepository.create(repoApi);
+                
+                //Create SystemFolder
+                NewPageEntity asideSystemFolder = new NewPageEntity();
+                asideSystemFolder.setName(SystemFolderType.ASIDE.folderName());
+                asideSystemFolder.setPublished(true);
+                asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
+                pageService.createPage(createdApi.getId(), asideSystemFolder);
+                
                 // Audit
                 auditService.createApiAuditLog(
                         createdApi.getId(),

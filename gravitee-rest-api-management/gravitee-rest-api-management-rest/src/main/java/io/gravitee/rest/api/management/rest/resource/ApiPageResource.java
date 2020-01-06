@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -24,10 +25,10 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.*;
 
@@ -45,9 +46,6 @@ import java.util.List;
  */
 @Api(tags = {"API"})
 public class ApiPageResource extends AbstractResource {
-
-    @Inject
-    private ApiService apiService;
 
     @Inject
     private PageService pageService;
@@ -115,8 +113,11 @@ public class ApiPageResource extends AbstractResource {
             @PathParam("api") String api,
             @PathParam("page") String page,
             @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
-        pageService.findById(page);
-
+        PageEntity existingPage = pageService.findById(page);
+        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+            throw new PageSystemFolderActionException("Update"); 
+        }
+        
         updatePageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.update(page, updatePageEntity);
     }
@@ -156,7 +157,10 @@ public class ApiPageResource extends AbstractResource {
             @PathParam("api") String api,
             @PathParam("page") String page,
             @ApiParam(name = "page") UpdatePageEntity updatePageEntity) {
-        pageService.findById(page);
+        PageEntity existingPage = pageService.findById(page);
+        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+            throw new PageSystemFolderActionException("Update"); 
+        }
 
         updatePageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.update(page, updatePageEntity, true);
@@ -174,7 +178,10 @@ public class ApiPageResource extends AbstractResource {
     public void deletePage(
             @PathParam("api") String api,
             @PathParam("page") String page) {
-        pageService.findById(page);
+        PageEntity existingPage = pageService.findById(page);
+        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+            throw new PageSystemFolderActionException("Delete"); 
+        }
 
         pageService.delete(page);
     }

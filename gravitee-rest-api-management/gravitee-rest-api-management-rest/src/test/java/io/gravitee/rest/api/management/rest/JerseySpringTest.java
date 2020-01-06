@@ -21,6 +21,7 @@ import io.gravitee.rest.api.security.authentication.AuthenticationProviderManage
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -33,10 +34,14 @@ import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Priority;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.PATCH;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.Principal;
@@ -86,6 +91,7 @@ public abstract class JerseySpringTest {
     {
         _jerseyTest = new JerseyTest()
         {
+            
             @Override
             protected Application configure()
             {
@@ -106,6 +112,8 @@ public abstract class JerseySpringTest {
 
                 config.register(ObjectMapperResolver.class);
                 config.register(MultiPartFeature.class);
+                config.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
+
             }
         };
     }

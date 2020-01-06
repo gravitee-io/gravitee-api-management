@@ -126,6 +126,7 @@ public class ApiMapper {
 
     public ApiLinks computeApiLinks(String basePath) {
         ApiLinks apiLinks = new ApiLinks();
+        apiLinks.setLinks(basePath + "/links");
         apiLinks.setMetrics(basePath + "/metrics");
         apiLinks.setPages(basePath + "/pages");
         apiLinks.setPicture(basePath + "/picture");

@@ -122,6 +122,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected VirtualHostService virtualHostService;
+    
+    @Autowired
+    protected ConfigService configService;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -245,6 +248,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public VirtualHostService virtualHostService() {
             return mock(VirtualHostService.class);
+        }
+
+        @Bean
+        public ConfigService configService() {
+            return mock(ConfigService.class);
         }
     }
 }

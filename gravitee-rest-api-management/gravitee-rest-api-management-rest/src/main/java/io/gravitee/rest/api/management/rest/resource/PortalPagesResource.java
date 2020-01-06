@@ -24,6 +24,7 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.*;
 
@@ -132,6 +133,9 @@ public class PortalPagesResource extends AbstractResource {
     })
     public Response createPage(
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
+        if(newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
+            throw new PageSystemFolderActionException("Create");
+        }
         int order = pageService.findMaxPortalPageOrder() + 1;
         newPageEntity.setOrder(order);
         newPageEntity.setLastContributor(getAuthenticatedUser());
@@ -161,8 +165,10 @@ public class PortalPagesResource extends AbstractResource {
     public PageEntity updatePage(
             @PathParam("page") String page,
             @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
-        pageService.findById(page);
-
+        PageEntity existingPage = pageService.findById(page);
+        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+            throw new PageSystemFolderActionException("Update"); 
+        }
         updatePageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.update(page, updatePageEntity);
     }
@@ -182,8 +188,10 @@ public class PortalPagesResource extends AbstractResource {
     public PageEntity partialUpdatePage(
             @PathParam("page") String page,
             @ApiParam(name = "page", required = true) @NotNull UpdatePageEntity updatePageEntity) {
-        pageService.findById(page);
-
+        PageEntity existingPage =pageService.findById(page);
+        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+            throw new PageSystemFolderActionException("Update");
+        }
         updatePageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.update(page, updatePageEntity, true);
     }
@@ -253,8 +261,10 @@ public class PortalPagesResource extends AbstractResource {
     })
     public void deletePage(
             @PathParam("page") String page) {
-        pageService.findById(page);
-
+        PageEntity existingPage = pageService.findById(page);
+        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+            throw new PageSystemFolderActionException("Delete"); 
+        }
         pageService.delete(page);
     }
 

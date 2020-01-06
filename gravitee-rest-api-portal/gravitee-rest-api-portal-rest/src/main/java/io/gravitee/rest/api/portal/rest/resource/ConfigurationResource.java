@@ -16,18 +16,23 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.ConfigurationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.IdentityProviderMapper;
-import io.gravitee.rest.api.portal.rest.model.IdentityProvider;
+import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +43,9 @@ public class ConfigurationResource extends AbstractResource {
 
     @Autowired
     private ConfigService configService;
+
+    @Autowired
+    private PageService pageService;
 
     @Autowired
     private SocialIdentityProviderService socialIdentityProviderService;
@@ -71,4 +79,78 @@ public class ConfigurationResource extends AbstractResource {
     public Response getPortalIdentityProvider(@PathParam("identityProviderId") String identityProviderId) {
         return Response.ok(identityProviderMapper.convert(socialIdentityProviderService.findById(identityProviderId))).build();
     }
+
+	@GET
+    @Path("links")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPortalLinks() {
+        Map<String, List<CategorizedLinks>> portalLinks = new HashMap<>();
+        pageService.search(new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build()).stream()
+                .filter(PageEntity::isPublished)
+                .forEach(sysPage -> {
+                    List<CategorizedLinks> catLinksList = new ArrayList<>();
+
+                    // for pages under sysFolder                    
+                    List<Link> links = getLinksFromFolder(sysPage);
+                    if(!links.isEmpty()) {
+                        CategorizedLinks catLinks = new CategorizedLinks();
+                        catLinks.setCategory(sysPage.getName());
+                        catLinks.setLinks(links);
+                        catLinks.setRoot(true);
+                        catLinksList.add(catLinks);
+                    }
+                    
+                    // for pages into folders
+                    pageService.search(new PageQuery.Builder().parent(sysPage.getId()).build()).stream()
+                        .filter(PageEntity::isPublished)
+                        .filter(p -> p.getType().equals("FOLDER"))
+                        .forEach(folder -> {
+                            List<Link> folderLinks = getLinksFromFolder(folder);
+                            if(folderLinks != null && !folderLinks.isEmpty()) {
+                                CategorizedLinks catLinks = new CategorizedLinks();
+                                catLinks.setCategory(folder.getName());
+                                catLinks.setLinks(folderLinks);
+                                catLinks.setRoot(false);
+                                catLinksList.add(catLinks);
+                            }
+
+                        });
+                    if(!catLinksList.isEmpty()) {
+                        portalLinks.put(sysPage.getName().toLowerCase(), catLinksList);
+                    }
+                });
+
+        return Response
+                .ok(new LinksResponse().slots(portalLinks))
+                .build();
+    }
+
+    private List<Link> getLinksFromFolder(PageEntity folder) {
+        return pageService.search(new PageQuery.Builder().parent(folder.getId()).build()).stream()
+                .filter(PageEntity::isPublished)
+                .filter(p -> !p.getType().equals("FOLDER"))
+                .map(p -> {
+                    if("LINK".equals(p.getType())) {
+                        Link link = new Link()
+                                .name(p.getName())
+                                .resourceRef(p.getConfiguration().get("resourceRef"))
+                                .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get("resourceType")))
+                                ;
+                        String isFolderConfig = p.getConfiguration().get("isFolder");
+                        if(isFolderConfig != null && !isFolderConfig.isEmpty()) {
+                            link.setFolder(Boolean.valueOf(isFolderConfig));
+                        }
+
+                        return link;
+                    } else {
+                        return new Link()
+                                .name(p.getName())
+                                .resourceRef(p.getId())
+                                .resourceType(ResourceTypeEnum.PAGE)
+                                ;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+    
 }

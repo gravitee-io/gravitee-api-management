@@ -144,7 +144,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
-        verify(pageService, times(2)).createPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, times(3)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never()).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipUser(admin.getId(), null),
@@ -192,7 +192,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
-        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never()).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipUser(admin.getId(), null),
@@ -233,7 +233,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
-        verify(pageService, times(2)).createPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, times(3)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
@@ -266,7 +266,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
-        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());

@@ -15,25 +15,23 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.PageLinks;
+import io.gravitee.rest.api.portal.rest.model.PagesResponse;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.List;
+
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.portal.rest.model.PagesResponse;
-import io.gravitee.rest.api.portal.rest.model.Page;
-import io.gravitee.rest.api.portal.rest.model.PageLinks;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -52,10 +50,7 @@ public class PagesResourceTest extends AbstractResourceTest {
         PageEntity publishedPage = new PageEntity();
         publishedPage.setPublished(true);
         
-        PageEntity unpublishedPage = new PageEntity();
-        unpublishedPage.setPublished(false);
-        
-        doReturn(Arrays.asList(publishedPage, unpublishedPage)).when(pageService).search(any());
+        doReturn(singletonList(publishedPage)).when(pageService).search(any());
         
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());

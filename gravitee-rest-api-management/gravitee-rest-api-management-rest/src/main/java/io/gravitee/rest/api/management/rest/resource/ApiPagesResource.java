@@ -27,6 +27,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -109,6 +110,9 @@ public class ApiPagesResource extends AbstractResource {
     public Response createPage(
             @PathParam("api") String api,
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
+        if(newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
+            throw new PageSystemFolderActionException("Create");
+        }
         int order = pageService.findMaxApiPageOrderByApi(api) + 1;
         newPageEntity.setOrder(order);
         newPageEntity.setLastContributor(getAuthenticatedUser());

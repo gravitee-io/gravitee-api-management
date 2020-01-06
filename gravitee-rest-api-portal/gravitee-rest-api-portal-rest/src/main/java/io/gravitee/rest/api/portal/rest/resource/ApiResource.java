@@ -16,17 +16,14 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
-import io.gravitee.rest.api.portal.rest.model.Api;
-import io.gravitee.rest.api.portal.rest.model.Page;
-import io.gravitee.rest.api.portal.rest.model.Plan;
+import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
@@ -40,9 +37,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -124,6 +119,79 @@ public class ApiResource extends AbstractResource {
         throw new ApiNotFoundException(apiId);
     }
 
+    @GET
+    @Path("links")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getApiLinks(@PathParam("apiId") String apiId) {
+        Map<String, List<CategorizedLinks>> apiLinks = new HashMap<>();
+        pageService.search(new PageQuery.Builder().api(apiId).type(PageType.SYSTEM_FOLDER).build()).stream()
+                .filter(PageEntity::isPublished)
+                .forEach(sysPage -> {
+                    List<CategorizedLinks> catLinksList = new ArrayList<>();
+
+                    // for pages under sysFolder                    
+                    List<Link> links = getLinksFromFolder(sysPage, apiId);
+                    if(!links.isEmpty()) {
+                        CategorizedLinks catLinks = new CategorizedLinks();
+                        catLinks.setCategory(sysPage.getName());
+                        catLinks.setLinks(links);
+                        catLinks.setRoot(true);
+                        catLinksList.add(catLinks);
+                    }
+                    
+                    // for pages into folders
+                    pageService.search(new PageQuery.Builder().api(apiId).parent(sysPage.getId()).build()).stream()
+                        .filter(PageEntity::isPublished)
+                        .filter(p -> p.getType().equals("FOLDER"))
+                        .forEach(folder -> {
+                            List<Link> folderLinks = getLinksFromFolder(folder, apiId);
+                            if(folderLinks != null && !folderLinks.isEmpty()) {
+                                CategorizedLinks catLinks = new CategorizedLinks();
+                                catLinks.setCategory(folder.getName());
+                                catLinks.setLinks(folderLinks);
+                                catLinks.setRoot(false);
+                                catLinksList.add(catLinks);
+                            }
+
+                        });
+                    if(!catLinksList.isEmpty()) {
+                        apiLinks.put(sysPage.getName().toLowerCase(), catLinksList);
+                    }
+                });
+
+        return Response
+                .ok(new LinksResponse().slots(apiLinks))
+                .build();
+    }
+
+    private List<Link> getLinksFromFolder(PageEntity folder, String apiId) {
+        return pageService.search(new PageQuery.Builder().api(apiId).parent(folder.getId()).build()).stream()
+                .filter(PageEntity::isPublished)
+                .filter(p -> !p.getType().equals("FOLDER"))
+                .map(p -> {
+                    if("LINK".equals(p.getType())) {
+                        Link link = new Link()
+                                .name(p.getName())
+                                .resourceRef(p.getConfiguration().get("resourceRef"))
+                                .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get("resourceType")))
+                                ;
+                        String isFolderConfig = p.getConfiguration().get("isFolder");
+                        if(isFolderConfig != null && !isFolderConfig.isEmpty()) {
+                            link.setFolder(Boolean.valueOf(isFolderConfig));
+                        }
+
+                        return link;
+                    } else {
+                        return new Link()
+                                .name(p.getName())
+                                .resourceRef(p.getId())
+                                .resourceType(ResourceTypeEnum.PAGE)
+                                ;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+    
     @Path("metrics")
     public ApiMetricsResource getApiMetricsResource() {
         return resourceContext.getResource(ApiMetricsResource.class);

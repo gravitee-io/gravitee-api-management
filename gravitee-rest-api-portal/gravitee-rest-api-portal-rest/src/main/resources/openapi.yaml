@@ -122,6 +122,26 @@ paths:
           $ref: '#/components/responses/APINotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /apis/{apiId}/links:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+    get:
+      tags:
+        - Api
+      summary: Get the API links from Aside SYSTEM_FOLDER.
+      operationId: getApiLinks
+      description: |
+        Get all the links (internal and external) to be displayed in the detail of the API.
+      security: []
+      responses:
+        200:
+          description: List of Links
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinksResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}/metrics:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
@@ -1630,6 +1650,24 @@ paths:
                 $ref: '#/components/schemas/IdentityProvider'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /configuration/links:
+    get:
+      tags:
+        - Portal
+      summary: Get the portal links for header and footer.
+      operationId: getPortalLinks
+      description: |
+        Get all the links (internal and external) to be displayed in the header and in the footer of the portal.
+      security: []
+      responses:
+        200:
+          description: List of Links
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinksResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /info:
     get:
       tags:
@@ -2284,6 +2322,19 @@ components:
             $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
+    LinksResponse:
+      properties:
+        slots:
+          description: |
+            Map of CategorizedLinks. Keys of the map can be:
+            * aside
+            * header
+            * footer
+            * subfooter
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/CategorizedLinks'
     #####################
     # Resources Objects #
     #####################
@@ -2414,6 +2465,7 @@ components:
           - MARKDOWN
           - FOLDER
           - ROOT
+          - LINK
         order:
           description: Order of the documentation page in its folder.
           type: integer
@@ -3098,6 +3150,36 @@ components:
           $ref: '#/components/schemas/Enabled'
         backend_to_backend:
           $ref: '#/components/schemas/Enabled'
+    CategorizedLinks:
+      properties:
+        root:
+          type: boolean
+          description: true if the links of this category are in system folder and not in a subfolder.
+        category:
+          type: string
+          description: name of the group of links
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+    Link:
+      properties:
+        name:
+          type: string
+          description: Name of the link.
+        resourceRef:
+          type: string
+          description: target of the link. Can be either a URL id resourceType is 'external' or a UUID if resourceType is 'page' or 'view'.
+        resourceType:
+          type: string
+          description: the type of the link.
+          enum:
+            - external
+            - page
+            - view
+        folder:
+          type: boolean
+          description: true if resourceType is 'page' and resourceRef is the id of a folder.
     #################
     # Input Objects #
     #################
@@ -3491,6 +3573,8 @@ components:
     ApiLinks:
       properties:
         self:
+          type: string
+        links:
           type: string
         metrics:
           type: string
