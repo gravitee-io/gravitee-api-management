@@ -338,7 +338,13 @@ function apisPortalRouterConfig($stateProvider) {
           const q = new DocumentationQuery();
           q.type = "FOLDER";
           return DocumentationService.search(q, $stateParams.apiId)
-            .then(response => response.data)
+            .then(response => response.data);
+        },
+        systemFolders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = "SYSTEM_FOLDER";
+          return DocumentationService.search(q, $stateParams.apiId)
+            .then(response => response.data);
         }
       },
       data: {
@@ -365,7 +371,30 @@ function apisPortalRouterConfig($stateProvider) {
         resolvedFetchers: (FetcherService: FetcherService) => {
           return FetcherService.list().then(response => {
             return response.data;
-          })
+          });
+        },
+        folders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = "FOLDER";
+          return DocumentationService.search(q, $stateParams.apiId)
+            .then(response => response.data);
+        },
+        systemFolders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = "SYSTEM_FOLDER";
+          return DocumentationService.search(q, $stateParams.apiId)
+            .then(response => response.data);
+        },
+        pageResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === "LINK") {
+            const q = new DocumentationQuery();
+            return DocumentationService.search(q, $stateParams.apiId).then(response => response. data);
+          }
+        },
+        viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
+          if ($stateParams.type === "LINK") {
+            return ViewService.list(true).then(response => response.data);
+          }
         }
       },
       data: {
@@ -416,9 +445,9 @@ function apisPortalRouterConfig($stateProvider) {
         }
       }
     })
-    .state('management.apis.detail.portal.editdocumentation', {
-      url: '/documentation/:pageId?:tab',
-      component: 'editPage',
+    .state("management.apis.detail.portal.editdocumentation", {
+      url: "/documentation/:pageId?:tab&type",
+      component: "editPage",
       resolve: {
         resolvedPage: (DocumentationService: DocumentationService, $stateParams: StateParams) =>
           DocumentationService.get($stateParams.apiId, $stateParams.pageId).then(response => response.data),
@@ -431,6 +460,29 @@ function apisPortalRouterConfig($stateProvider) {
           return FetcherService.list().then(response => {
             return response.data;
           });
+        },
+        folders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = "FOLDER";
+          return DocumentationService.search(q, $stateParams.apiId)
+            .then(response => response.data);
+        },
+        systemFolders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = "SYSTEM_FOLDER";
+          return DocumentationService.search(q, $stateParams.apiId)
+            .then(response => response.data);
+        },
+        pageResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === "LINK") {
+            const q = new DocumentationQuery();
+            return DocumentationService.search(q, $stateParams.apiId).then(response => response. data);
+          }
+        },
+        viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
+          if ($stateParams.type === "LINK") {
+            return ViewService.list(true).then(response => response.data);
+          }
         }
       },
       data: {

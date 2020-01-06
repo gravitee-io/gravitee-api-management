@@ -15,11 +15,12 @@
  */
 
 import NotificationService from "../../../services/notification.service";
-import DocumentationService from "../../../services/documentation.service";
+import DocumentationService, { DocumentationQuery, FolderSituation } from "../../../services/documentation.service";
 import {StateService} from "@uirouter/core";
 import {IScope} from "angular";
 import _ = require("lodash");
 import UserService from "../../../services/user.service";
+import ViewService from "../../../services/view.service";
 
 interface IPageScope extends IScope {
   getContentMode: string;
@@ -32,7 +33,11 @@ const EditPageComponent: ng.IComponentOptions = {
   bindings: {
     resolvedPage: "<",
     resolvedGroups: "<",
-    resolvedFetchers: "<"
+    resolvedFetchers: "<",
+    folders: "<",
+    systemFolders: "<",
+    pageResources: "<",
+    viewResources: "<"
   },
   template: require("./edit-page.html"),
   controller: function (
@@ -55,7 +60,13 @@ const EditPageComponent: ng.IComponentOptions = {
       this.page = this.resolvedPage;
       this.groups = this.resolvedGroups;
       this.fetchers = this.resolvedFetchers;
-      if ( DocumentationService.supportedTypes().indexOf(this.page.type) < 0) {
+
+      this.foldersById = _.keyBy(this.folders, "id");
+      this.systemFoldersById = _.keyBy(this.systemFolders, "id");
+      this.pageList = this.buildPageList(this.pageResources);
+      this.viewResources = _.filter(this.viewResources, (v) => v.id !== "all");
+
+      if ( DocumentationService.supportedTypes(this.getFolderSituation(this.page.parentId)).indexOf(this.page.type) < 0) {
         $state.go("management.settings.documentation");
       }
 
@@ -99,6 +110,65 @@ const EditPageComponent: ng.IComponentOptions = {
       }
     };
 
+    this.getFolderSituation = (folderId: string) => {
+      if (!folderId) {
+        return FolderSituation.ROOT;
+      }
+      if (this.systemFoldersById[folderId]) {
+        return FolderSituation.SYSTEM_FOLDER;
+      }
+      if (this.foldersById[folderId]) {
+        const parentFolderId = this.foldersById[folderId].parentId;
+        if (this.systemFoldersById[parentFolderId]) {
+          return FolderSituation.FOLDER_IN_SYSTEM_FOLDER;
+        }
+        return FolderSituation.FOLDER_IN_FOLDER;
+      }
+      console.debug("impossible to determine folder situation : " + folderId);
+    };
+
+    this.buildPageList = (pagesToFilter: any[]) => {
+      let pageList = _
+        .filter(pagesToFilter, (p) => p.type === "MARKDOWN" || p.type === "SWAGGER" || (p.type === "FOLDER" && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
+        .map((page) => { return {
+          id: page.id,
+          name: page.name,
+          type: page.type,
+          fullPath: this.getFolderPath(page.parentId)
+        };
+      }).sort((a, b) => {
+        let comparison = 0;
+        if (a.fullPath > b.fullPath) {
+          comparison = 1;
+        } else if (a.fullPath < b.fullPath) {
+          comparison = -1;
+        }
+        return comparison;
+      });
+
+      pageList.unshift( {id: "root", name: "", type: "FOLDER", fullPath: ""});
+      return pageList;
+    };
+
+    this.getFolder = (id: string) => {
+      if (id) {
+        let folder = this.foldersById[id];
+        if (!folder) {
+          folder = this.systemFoldersById[id];
+        }
+        return folder;
+      }
+    };
+
+    this.getFolderPath = (parentFolderId: string) => {
+      const parent = this.getFolder(parentFolderId);
+      if (parent) {
+        return this.getFolderPath(parent.parentId) + "/" + parent.name;
+      } else {
+        return "";
+      }
+    };
+
     this.initEditor = () => {
       $scope.editorReadonly = false;
       if (!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
@@ -128,8 +198,27 @@ const EditPageComponent: ng.IComponentOptions = {
       $scope.fetcherJsonSchema = this.emptyFetcher;
     };
 
-    this.save = () => {
+    this.checkIfFolder = () => {
+      if (this.page.configuration.resourceRef) {
+        if (this.page.configuration.resourceRef === "root") {
+          this.page.configuration.isFolder = true;
+        } else {
+          const folder = this.getFolder(this.page.configuration.resourceRef);
+          if (folder) {
+            this.page.configuration.isFolder = true;
+          } else {
+            this.page.configuration.isFolder = false;
+          }
+        }
+      }
+    };
 
+    this.onChangeLinkType = () => {
+      delete this.page.configuration.resourceRef;
+      delete this.page.configuration.isFolder;
+    };
+
+    this.save = () => {
       // Convert authorized groups to excludedGroups
       this.page.excluded_groups = [];
       if (this.groups) {
@@ -142,7 +231,7 @@ const EditPageComponent: ng.IComponentOptions = {
           if (this.apiId) {
             $state.go("management.apis.detail.portal.editdocumentation", {pageId: this.page.id, tab: this.currentTab}, {reload: true});
           } else {
-            $state.go("management.settings.editdocumentation", {pageId: this.page.id, tab: this.currentTab}, {reload: true});
+            $state.go("management.settings.editdocumentation", {pageId: this.page.id, type: this.page.type, tab: this.currentTab}, {reload: true});
           }
       });
     };
@@ -169,7 +258,7 @@ const EditPageComponent: ng.IComponentOptions = {
       if (this.apiId) {
         $state.go("management.apis.detail.portal.editdocumentation", {pageId: this.page.id}, {reload: true});
       } else {
-        $state.go("management.settings.editdocumentation", {pageId: this.page.id}, {reload: true});
+        $state.go("management.settings.editdocumentation", {pageId: this.page.id, type: this.page.type}, {reload: true});
       }
     };
 
@@ -198,7 +287,7 @@ const EditPageComponent: ng.IComponentOptions = {
       if (this.apiId) {
         $state.transitionTo("management.apis.detail.portal.editdocumentation", {apiId: this.apiId, pageId: this.page.id, tab: this.currentTab}, {notify: false});
       } else {
-        $state.transitionTo("management.settings.editdocumentation", {pageId: this.page.id, tab: this.currentTab}, {notify: false});
+        $state.transitionTo("management.settings.editdocumentation", {pageId: this.page.id, type: this.pageType, tab: this.currentTab}, {notify: false});
       }
     };
 
@@ -208,6 +297,7 @@ const EditPageComponent: ng.IComponentOptions = {
         this.reset();
       });
     };
+
   }
 };
 

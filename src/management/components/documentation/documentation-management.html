@@ -38,7 +38,7 @@
                 <span ng-if="$first || !$last ">&nbsp;/&nbsp;</span>
             </span>
             </h2>
-            <div ng-if="$ctrl.breadcrumb.length > 1">
+            <div ng-if="$ctrl.breadcrumb.length > 1 && $ctrl.currentFolder.type != 'SYSTEM_FOLDER'">
                 <md-button type="button"
                            class="md-raised md-primary"
                            ng-click="$ctrl.toggleRenameFolder()"
@@ -67,11 +67,12 @@
             </div>
         </div>
         <div class="gv-form-content" layout="column">
-            <md-table-container ng-if="$ctrl.pages.length > 0">
+            <md-table-container ng-if="$ctrl.pages.length > 0 || ($ctrl.systemFolders.length > 0 && $ctrl.rootDir=='') ">
                 <table md-table class="gv-table-dense">
                     <thead md-head>
                     <tr md-row>
                         <th md-column class="column-with-logo">Name</th>
+                        <th md-column width="48px"></th>
                         <th md-column width="48px"></th>
                         <th md-column width="48px"></th>
                         <th md-column width="76px"></th>
@@ -80,6 +81,20 @@
                     </tr>
                     </thead>
                     <tbody md-body>
+                    <tr md-row ng-if="!$ctrl.rootDir || $ctrl.rootDir == ''" ng-repeat="page in $ctrl.systemFolders">
+                        <td md-cell>
+                            <md-icon md-svg-src="assets/logo_{{page.type | lowercase}}.svg" style="margin-right: 12px;"></md-icon>
+                            <span>
+                                <a ng-href="{{$ctrl.openUrl(page)}}">{{page.name}}</a>
+                            </span>
+                        </td>
+                        <td md-cell width="48px"></td>
+                        <td md-cell width="48px"></td>
+                        <td md-cell width="48px"></td>
+                        <td md-cell width="76px"></td>
+                        <td md-cell width="1%"></td>
+                        <td md-cell width="48px"></td>
+                    </tr>
                     <tr md-row ng-repeat="page in $ctrl.pages">
                         <td md-cell>
                             <md-icon md-svg-src="assets/logo_{{page.type | lowercase}}.svg" style="margin-right: 12px;"></md-icon>
@@ -94,6 +109,14 @@
                             </span>
                         </td>
                         <td md-cell width="48px">
+                            <ng-md-icon icon="link" ng-click="$ctrl.createShortCut(page)"
+                                        style="font-size: 24px; height: 24px;"
+                                        ng-if="$ctrl.canCreateShortCut(page.id, page.type)"
+                                        permission permission-only="['portal-documentation-u', 'api-documentation-u']">
+                                <md-tooltip md-direction="top" md-visible="false">Create a Link in ...</md-tooltip>
+                            </ng-md-icon>
+                        </td>
+                        <td md-cell width="48px">
                             <ng-md-icon icon="archive" ng-click="$ctrl.moveToFolder(page)"
                                         style="font-size: 24px; height: 24px;"
                                         ng-if="page.type !== 'folder'"
@@ -102,12 +125,12 @@
                             </ng-md-icon>
                         </td>
                         <td md-cell width="48px">
-                            <ng-md-icon ng-if="!page.published && page.type !== 'folder'" icon="cloud_queue" ng-click="$ctrl.togglePublish(page)"
+                            <ng-md-icon ng-if="!page.published && page.type !== 'LINK'" icon="cloud_queue" ng-click="$ctrl.togglePublish(page)"
                                         style="font-size: 24px; height: 24px;"
                                         permission permission-only="['portal-documentation-u', 'api-documentation-u']">
                                 <md-tooltip md-direction="top" md-visible="false">Publish this page</md-tooltip>
                             </ng-md-icon>
-                            <ng-md-icon ng-if="page.published && page.type !== 'folder'" icon="cloud_done" ng-click="$ctrl.togglePublish(page)"
+                            <ng-md-icon ng-if="page.published && page.type !== 'LINK'" icon="cloud_done" ng-click="$ctrl.togglePublish(page)"
                                         style="font-size: 24px; height: 24px;"
                                         permission permission-only="['portal-documentation-u', 'api-documentation-u']">
                                 <md-tooltip md-direction="top" md-visible="false">Unpublish this page</md-tooltip>
@@ -137,7 +160,7 @@
                 </table>
             </md-table-container>
 
-            <gravitee-empty-state ng-if="$ctrl.pages.length == 0"
+            <gravitee-empty-state ng-if="$ctrl.rootDir != '' && $ctrl.pages.length == 0"
                                   icon="insert_drive_file"
                                   model="Page"
                                   message="Documentation will appear here"

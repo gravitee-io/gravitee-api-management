@@ -17,11 +17,7 @@
 -->
 <md-dialog aria-label="confirm-dialog">
     <md-dialog-content layout-padding>
-        <h4>Move "{{itemName}}" to ...</h4>
-        <div>
-            <md-icon md-svg-src="assets/logo_folder.svg"></md-icon>
-            <a ng-click="ctrl.select(-1)">/</a>
-        </div>
+        <h4>{{title}}</h4>
         <div ng-repeat="folder in folders">
             <md-icon md-svg-src="assets/logo_folder.svg"></md-icon>
             <a ng-click="ctrl.select(folder.id)">{{folder.path}}</a>

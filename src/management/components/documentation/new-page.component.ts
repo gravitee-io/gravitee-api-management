@@ -15,9 +15,11 @@
  */
 
 import NotificationService from "../../../services/notification.service";
-import DocumentationService from "../../../services/documentation.service";
+import DocumentationService, { DocumentationQuery, FolderSituation } from "../../../services/documentation.service";
 import {StateService} from "@uirouter/core";
+import _ = require("lodash");
 import {IScope} from "angular";
+import ViewService from "../../../services/view.service";
 
 interface IPageScope extends IScope {
   getContentMode: string;
@@ -25,16 +27,20 @@ interface IPageScope extends IScope {
 }
 const NewPageComponent: ng.IComponentOptions = {
   bindings: {
-    resolvedFetchers: '<'
+    resolvedFetchers: "<",
+    folders: "<",
+    systemFolders: "<",
+    pageResources: "<",
+    viewResources: "<"
   },
-  template: require('./new-page.html'),
+  template: require("./new-page.html"),
   controller: function (
     NotificationService: NotificationService,
     DocumentationService: DocumentationService,
     $state: StateService,
     $scope: IPageScope
   ) {
-    'ngInject';
+    "ngInject";
     this.apiId = $state.params.apiId;
 
     this.page = {
@@ -43,7 +49,7 @@ const NewPageComponent: ng.IComponentOptions = {
       parentId: $state.params.parent
     };
 
-    $scope.getContentMode = 'inline';
+    $scope.getContentMode = "inline";
 
     this.codeMirrorOptions = {
       lineWrapping: true,
@@ -55,9 +61,13 @@ const NewPageComponent: ng.IComponentOptions = {
 
 
     this.$onInit = () => {
-      this.fetchers = this.resolvedFetchers;
+      this.foldersById = _.keyBy(this.folders, "id");
+      this.systemFoldersById = _.keyBy(this.systemFolders, "id");
+      this.pageList = this.buildPageList(this.pageResources);
+      this.viewResources = _.filter(this.viewResources, (v) => v.id !== "all");
 
-      if( DocumentationService.supportedTypes().indexOf(this.page.type) < 0) {
+      this.fetchers = this.resolvedFetchers;
+      if (DocumentationService.supportedTypes(this.getFolderSituation(this.page.parentId)).indexOf(this.page.type) < 0) {
         $state.go("management.settings.documentation", {parent: $state.params.parent});
       }
 
@@ -68,6 +78,65 @@ const NewPageComponent: ng.IComponentOptions = {
       };
       $scope.fetcherJsonSchema = this.emptyFetcher;
       this.fetcherJsonSchemaForm = ["*"];
+    };
+
+    this.buildPageList = (pagesToFilter: any[]) => {
+      let pageList = _
+        .filter(pagesToFilter, (p) => p.type === "MARKDOWN" || p.type === "SWAGGER" || (p.type === "FOLDER" && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
+        .map((page) => { return {
+          id: page.id,
+          name: page.name,
+          type: page.type,
+          fullPath: this.getFolderPath(page.parentId)
+        };
+      }).sort((a, b) => {
+        let comparison = 0;
+        if (a.fullPath > b.fullPath) {
+          comparison = 1;
+        } else if (a.fullPath < b.fullPath) {
+          comparison = -1;
+        }
+        return comparison;
+      });
+
+      pageList.unshift( {id: "root", name: "", type: "FOLDER", fullPath: ""});
+      return pageList;
+    };
+
+    this.getFolderSituation = (folderId: string) => {
+      if (!folderId) {
+        return FolderSituation.ROOT;
+      }
+      if (this.systemFoldersById[folderId]) {
+        return FolderSituation.SYSTEM_FOLDER;
+      }
+      if (this.foldersById[folderId]) {
+        const parentFolderId = this.foldersById[folderId].parentId;
+        if (this.systemFoldersById[parentFolderId]) {
+          return FolderSituation.FOLDER_IN_SYSTEM_FOLDER;
+        }
+        return FolderSituation.FOLDER_IN_FOLDER;
+      }
+      console.debug("impossible to determine folder situation : " + folderId);
+    };
+
+    this.getFolder = (id: string) => {
+      if (id) {
+        let folder = this.foldersById[id];
+        if (!folder) {
+          folder = this.systemFoldersById[id];
+        }
+        return folder;
+      }
+    };
+
+    this.getFolderPath = (parentFolderId: string) => {
+      const parent = this.getFolder(parentFolderId);
+      if (parent) {
+        return this.getFolderPath(parent.parentId) + "/" + parent.name;
+      } else {
+        return "";
+      }
     };
 
     this.configureFetcher = (fetcher) => {
@@ -82,15 +151,35 @@ const NewPageComponent: ng.IComponentOptions = {
       $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
     };
 
+    this.checkIfFolder = () => {
+      if (this.page.configuration.resourceRef) {
+        if (this.page.configuration.resourceRef === "root") {
+          this.page.configuration.isFolder = true;
+        } else {
+          const folder = this.getFolder(this.page.configuration.resourceRef);
+          if (folder) {
+            this.page.configuration.isFolder = true;
+          } else {
+            this.page.configuration.isFolder = false;
+          }
+        }
+      }
+    };
+
+    this.onChangeLinkType = () => {
+      delete this.page.configuration.resourceRef;
+      delete this.page.configuration.isFolder;
+    };
+
     this.save = () => {
       DocumentationService.create(this.page, this.apiId)
         .then( (response: any) => {
           const page = response.data;
           NotificationService.show("'" + page.name + "' has been created");
-          if (page.type === 'FOLDER') {
+          if (page.type === "FOLDER") {
             this.gotoParent();
           } else {
-            this.gotoEdit(page.id);
+            this.gotoEdit(page);
           }
       });
     };
@@ -117,11 +206,17 @@ const NewPageComponent: ng.IComponentOptions = {
       }
     };
 
-    this.gotoEdit = (pageId: string) => {
+    this.gotoEdit = (page) => {
       if (this.apiId) {
-        $state.go("management.apis.detail.portal.editdocumentation", {pageId: pageId});
+        $state.go("management.apis.detail.portal.editdocumentation", {apiId: this.apiId, pageId: page.id, type: page.type});
       } else {
-        $state.go("management.settings.editdocumentation", {pageId: pageId});
+        $state.go("management.settings.editdocumentation", {pageId: page.id, type: page.type});
+      }
+    };
+
+    this.updateLinkName = (resourceName: string) => {
+      if (!this.page.name || this.page.name === "") {
+        this.page.name = resourceName;
       }
     };
   }

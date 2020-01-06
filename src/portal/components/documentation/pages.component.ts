@@ -18,6 +18,7 @@ import {StateService, StateParams} from '@uirouter/core';
 
 class PortalPagesComponentCtrl implements ng.IComponentController {
   public resolvedPages: any[];
+  pages = [];
   private api: string;
   private selectedPage;
 
@@ -28,7 +29,6 @@ class PortalPagesComponentCtrl implements ng.IComponentController {
     'ngInject';
   }
 
-  pages = [];
 
   $onInit() {
     const pagesMap: any = _.keyBy(this.resolvedPages, 'id');
@@ -50,7 +50,7 @@ class PortalPagesComponentCtrl implements ng.IComponentController {
     }
 
     this.pages = _.sortBy(
-      _.filter(_.values(pagesMap), (p) => !p.parentId),
+      _.filter(_.values(pagesMap), (p) => !p.parentId && p.type !== "SYSTEM_FOLDER"),
       ["order"]);
 
     if (this.pages.length && !this.$stateParams.pageId) {

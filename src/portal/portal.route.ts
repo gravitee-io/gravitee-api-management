@@ -45,7 +45,7 @@ function portalRouterConfig($stateProvider) {
           q.root = true;
           return DocumentationService
             .search(q)
-            .then(response => _.filter(response.data, (p) => { return p.type!=='FOLDER'; }));
+            .then(response => _.filter(response.data, (p) => { return p.type !== "FOLDER" && p.type !== "SYSTEM_FOLDER"; }));
         }
       }
     })

@@ -15,9 +15,9 @@
  */
 
 import NotificationService from "../../../services/notification.service";
-import DocumentationService, {DocumentationQuery} from "../../../services/documentation.service";
+import DocumentationService, {DocumentationQuery, FolderSituation} from "../../../services/documentation.service";
 import {StateService} from "@uirouter/core";
-import _ = require('lodash');
+import _ = require("lodash");
 import {IScope} from "angular";
 
 interface IDocumentationManagementScope extends IScope {
@@ -26,10 +26,11 @@ interface IDocumentationManagementScope extends IScope {
 
 const DocumentationManagementComponent: ng.IComponentOptions = {
   bindings: {
-    pages: '<',
-    folders: '<'
+    pages: "<",
+    folders: "<",
+    systemFolders: "<",
   },
-  template: require('./documentation-management.html'),
+  template: require("./documentation-management.html"),
   controller: function (
     NotificationService: NotificationService,
     DocumentationService: DocumentationService,
@@ -38,36 +39,62 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     $mdDialog: angular.material.IDialogService,
     $rootScope: IScope
   ) {
-    'ngInject';
+    "ngInject";
     this.$rootScope = $rootScope;
     this.apiId = $state.params.apiId;
 
     this.$onInit = () => {
       // remove the ROOT page
-      this.pages = this.filterROOTPages(this.pages);
+      this.pages = this.filterROOTAndSystemPages(this.pages);
 
       this.rootDir = $state.params.parent;
-      this.supportedTypes = DocumentationService.supportedTypes();
-      this.foldersById = _.keyBy(this.folders, 'id');
+      this.foldersById = _.keyBy(this.folders, "id");
+      this.systemFoldersById = _.keyBy(this.systemFolders, "id");
+
+      this.currentFolder = this.getFolder(this.rootDir);
+      this.supportedTypes = DocumentationService.supportedTypes(this.getFolderSituation(this.rootDir));
       this.breadcrumb = this.generateBreadcrumb();
       $scope.renameFolder = false;
     };
 
-    this.filterROOTPages = (pagesToFilter: any[]) => {
-      return _.filter(pagesToFilter, (p) => p.type !== 'ROOT');
+    this.getFolderSituation = (folderId: string) => {
+      if (!folderId) {
+        return FolderSituation.ROOT;
+      }
+      if (this.systemFoldersById[folderId]) {
+        return FolderSituation.SYSTEM_FOLDER;
+      }
+      if (this.foldersById[folderId]) {
+        const parentFolderId = this.foldersById[folderId].parentId;
+        if (this.systemFoldersById[parentFolderId]) {
+          return FolderSituation.FOLDER_IN_SYSTEM_FOLDER;
+        }
+        return FolderSituation.FOLDER_IN_FOLDER;
+      }
+      console.debug("impossible to determine folder situation : " + folderId);
+    };
+
+    this.canCreateShortCut = (pageId: string, pageType: string) => {
+      return pageType === "SWAGGER"
+      || pageType === "MARKDOWN"
+      || (pageType === "FOLDER" && this.getFolderSituation(pageId) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER);
+    };
+
+    this.filterROOTAndSystemPages = (pagesToFilter: any[]) => {
+      return _.filter(pagesToFilter, (p) => p.type !== "ROOT" && p.type !== "SYSTEM_FOLDER");
     };
 
     this.toggleRenameFolder = () => {
       $scope.renameFolder = !$scope.renameFolder;
       if ($scope.renameFolder) {
-        this.newFolderName = this.breadcrumb[this.breadcrumb.length -1].name;
+        this.newFolderName = this.breadcrumb[this.breadcrumb.length - 1].name;
       }
     };
 
     this.renameFolder = () => {
       DocumentationService.partialUpdate("name", this.newFolderName , this.rootDir, this.apiId).then( (response) => {
-        NotificationService.show('Folder ' + this.newFolderName + ' has been changed with success');
-        this.breadcrumb[this.breadcrumb.length -1].name = response.data.name;
+        NotificationService.show("Folder " + this.newFolderName + " has been changed with success");
+        this.breadcrumb[this.breadcrumb.length - 1].name = response.data.name;
         this.toggleRenameFolder();
       });
     };
@@ -81,48 +108,129 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       return result.reverse();
     };
 
-    this.moveToFolder = (page: any) => {
+    this.getFolder = (id: string) => {
+      if (id) {
+        let folder = this.foldersById[id];
+        if (!folder) {
+          folder = this.systemFoldersById[id];
+        }
+        return folder;
+      }
+    };
+
+    this.createShortCut = (page: any) => {
       $mdDialog.show({
-        controller: 'MoveToFolderDialogController',
-        controllerAs: 'ctrl',
-        template: require('./movetofolder.dialog.html'),
+        controller: "SelectFolderDialogController",
+        controllerAs: "ctrl",
+        template: require("./selectfolder.dialog.html"),
         clickOutsideToClose: true,
         locals: {
-          itemName: page.name,
-          folders: this.generateMoveToFolder(page.id)
+          title: "Create shortcut for \"" + page.name + "\" in...",
+          folders: this.generateCreateShortCutFolder(),
         }
       }).then( (destinationId) => {
         if (destinationId) {
-          DocumentationService.partialUpdate("parentId", destinationId == -1 ? "" : destinationId, page.id, this.apiId).then( () => {
-            NotificationService.show('"' + page.name + '" has been moved with success');
+          const newLink = {
+            name: page.name,
+            parentId: destinationId,
+            type: "LINK",
+            published: page.published,
+            configuration: {
+              resourceType: "page",
+              resourceRef: page.id,
+              isFolder: page.type === "FOLDER"
+            }
+          };
+          DocumentationService.create(newLink, this.apiId).then( () => {
+            NotificationService.show("\"Link to " + page.name + "\" has been created with success");
             this.refresh();
           });
         }
       });
     };
 
-    this.generateMoveToFolder = (pageId: string) => {
+    this.generateCreateShortCutFolder = () => {
       let result = [];
-      if (this.folders) {
-        _.forEach(this.folders, (f) => {
-          const path = this.getFolderPath(f.id, pageId);
-          if (path) {
-            result.push({
-              id: f.id,
-              path: path
-            });
+      if (this.folders || this.systemFolders) {
+        const allFolders = _.concat(this.folders, this.systemFolders);
+        _.forEach(allFolders, (f) => {
+          const situation = this.getFolderSituation(f.id);
+          if (situation === FolderSituation.SYSTEM_FOLDER || situation === FolderSituation.FOLDER_IN_SYSTEM_FOLDER) {
+            const path = this.getFolderPath(f.id);
+            if (path) {
+              result.push({
+                id: f.id,
+                path: path
+              });
+            }
           }
         });
-        return _.orderBy(result, ['path'], ['asc']);
+        return _.orderBy(result, ["path"], ["asc"]);
+      }
+      return result;
+    };
+
+    this.moveToFolder = (page: any) => {
+      $mdDialog.show({
+        controller: "SelectFolderDialogController",
+        controllerAs: "ctrl",
+        template: require("./selectfolder.dialog.html"),
+        clickOutsideToClose: true,
+        locals: {
+          title: "Move \"" + page.name + "\" to...",
+          folders: this.generateMoveToFolder(page.id, page.type),
+        }
+      }).then( (destinationId) => {
+        if (destinationId) {
+          DocumentationService.partialUpdate("parentId", destinationId === -1 ? "" : destinationId, page.id, this.apiId).then( () => {
+            NotificationService.show("\"" + page.name + "\" has been moved with success");
+            this.refresh();
+          });
+        }
+      });
+    };
+
+    this.generateMoveToFolder = (pageId: string, pageType: string) => {
+      let result = [];
+      if (this.folders || this.systemFolders) {
+        const allFolders = _.concat(this.folders, this.systemFolders);
+
+        // If it can ba a link, it can't be moved in a system folder. If not, it can only be moved inside a system folder
+        const canBeALink = this.canCreateShortCut(pageId, pageType);
+
+        if (canBeALink) {
+          result.push({
+            id: -1,
+            path: "/"
+          });
+        }
+
+        _.forEach(allFolders, (f) => {
+          const situation = this.getFolderSituation(f.id);
+          if (
+              (canBeALink && (situation === FolderSituation.ROOT || situation === FolderSituation.FOLDER_IN_FOLDER))
+              || (!canBeALink && (situation === FolderSituation.SYSTEM_FOLDER || situation === FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
+          ) {
+            const path = this.getFolderPath(f.id, pageId);
+            if (path) {
+              result.push({
+                id: f.id,
+                path: path
+              });
+            }
+          }
+        });
+        return _.orderBy(result, ["path"], ["asc"]);
       }
       return result;
     };
 
     this.getFolderPath = (folderId: string, pageToMoveId: string) => {
       let hierarchyNames = [];
-      hierarchyNames.push(this.foldersById[folderId].name);
+      let folder = this.getFolder(folderId);
+      hierarchyNames.push(folder.name);
       this.getFolderParentName(folderId, hierarchyNames, pageToMoveId);
-      if (hierarchyNames.length == 0) {
+      if (hierarchyNames.length === 0) {
         return;
       }
       return "/ " + _.reduceRight(hierarchyNames, (path, name) => {
@@ -131,24 +239,31 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.getFolderParentName = (folderId: string, names: string[], pageToMoveId: string) => {
-      //do not move a folder to itself
+      const folder = this.getFolder(folderId);
+
+      // do not move a folder to itself
       if (folderId === pageToMoveId ||
-        (this.foldersById[folderId].parentId && pageToMoveId === this.foldersById[folderId].parentId)) {
+        (folder.parentId && pageToMoveId === folder.parentId)) {
         names.length = 0;
         return;
       }
 
-      if (this.foldersById[folderId].parentId) {
-        names.push(this.foldersById[this.foldersById[folderId].parentId].name);
-        this.getFolderParentName(this.foldersById[folderId].parentId, names, pageToMoveId);
+      if (folder.parentId ) {
+        const parentFolder = this.getFolder(folder.parentId);
+        if (parentFolder) {
+          names.push(parentFolder.name);
+          this.getFolderParentName(folder.parentId, names, pageToMoveId);
+        }
       }
     };
 
     this.addParentToBreadcrumb = (id: string, breadcrumb: any[]) => {
-      const folder = this.foldersById[id];
-      breadcrumb.push(folder);
-      if (folder.parentId) {
-        this.addParentToBreadcrumb(folder.parentId, breadcrumb);
+      let folder = this.getFolder(id);
+      if (folder) {
+        breadcrumb.push(folder);
+        if (folder.parentId) {
+          this.addParentToBreadcrumb(folder.parentId, breadcrumb);
+        }
       }
     };
 
@@ -159,28 +274,28 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       } else {
         q.root = true;
       }
-      DocumentationService.search(q, this.apiId).then((response) => this.pages = this.filterROOTPages(response.data));
+      DocumentationService.search(q, this.apiId).then((response) => this.pages = this.filterROOTAndSystemPages(response.data));
     };
 
     this.togglePublish = (page: any) => {
       page.published = !page.published;
       DocumentationService.partialUpdate("published", page.published, page.id, this.apiId).then( () => {
-        NotificationService.show('Page ' + page.name + ' has been ' + (page.published ? '':'un') + 'published with success');
+        NotificationService.show("Page " + page.name + " has been " + (page.published ? "" : "un") + "published with success");
       });
     };
 
     this.upward = (page: any) => {
-      page.order = page.order-1;
+      page.order = page.order - 1;
       DocumentationService.partialUpdate("order", page.order, page.id, this.apiId).then( () => {
-        NotificationService.show('Page ' + page.name + ' order has been changed with success');
+        NotificationService.show("Page " + page.name + " order has been changed with success");
         this.refresh();
       });
     };
 
     this.downward = (page: any) => {
-      page.order = page.order+1;
+      page.order = page.order + 1;
       DocumentationService.partialUpdate("order", page.order, page.id, this.apiId).then( () => {
-        NotificationService.show('Page ' + page.name + ' order has been changed with success');
+        NotificationService.show("Page " + page.name + " order has been changed with success");
         this.refresh();
       });
     };
@@ -188,18 +303,19 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     this.remove = (page: any) => {
       let that = this;
       $mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        controller: "DialogConfirmController",
+        controllerAs: "ctrl",
+        template: require("../../../components/dialog/confirmWarning.dialog.html"),
         clickOutsideToClose: true,
         locals: {
-          title: 'Would you like to remove "' +page.name + '" ?',
-          confirmButton: 'Remove'
+          title: "Would you like to remove \"" + page.name + "\" ?",
+          msg: page.type !== "LINK" ? "All related links will also be removed." : "",
+          confirmButton: "Remove"
         }
       }).then(function (response) {
         if (response) {
           DocumentationService.remove(page.id, that.apiId).then( () => {
-            NotificationService.show('Page ' + page.name + ' has been removed');
+            NotificationService.show("Page " + page.name + " has been removed");
             that.refresh();
           });
         }
@@ -208,33 +324,33 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
 
     this.newPage = (type: string) => {
       if (this.apiId) {
-        $state.go('management.apis.detail.portal.newdocumentation', {type: type, parent: this.rootDir});
+        $state.go("management.apis.detail.portal.newdocumentation", {type: type, parent: this.rootDir});
       } else {
-        $state.go('management.settings.newdocumentation', {type: type, parent: this.rootDir});
+        $state.go("management.settings.newdocumentation", {type: type, parent: this.rootDir});
       }
     };
 
     this.openUrl = (page: any) => {
-      if ('FOLDER' === page.type) {
+      if ("FOLDER" === page.type || "SYSTEM_FOLDER" === page.type) {
         if (this.apiId) {
-          return $state.href('management.apis.detail.portal.documentation', {apiId: this.apiId, parent: page.id});
+          return $state.href("management.apis.detail.portal.documentation", {apiId: this.apiId, type: page.type, parent: page.id});
         } else {
-          return $state.href('management.settings.documentation', {parent: page.id});
+          return $state.href("management.settings.documentation", {parent: page.id});
         }
       } else {
         if (this.apiId) {
-          return $state.href('management.apis.detail.portal.editdocumentation', {apiId: this.apiId, pageId: page.id});
+          return $state.href("management.apis.detail.portal.editdocumentation", {apiId: this.apiId, type: page.type, pageId: page.id});
         } else {
-          return $state.href('management.settings.editdocumentation', {pageId: page.id});
+          return $state.href("management.settings.editdocumentation", {pageId: page.id, type: page.type, tab: "content"});
         }
       }
     };
 
     this.importPages = () => {
       if (this.apiId) {
-        $state.go('management.apis.detail.portal.importdocumentation', {apiId: this.apiId});
+        $state.go("management.apis.detail.portal.importdocumentation", {apiId: this.apiId});
       } else {
-        $state.go('management.settings.importdocumentation');
+        $state.go("management.settings.importdocumentation");
       }
     };
 
@@ -242,7 +358,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       this.fetchAllInProgress = true;
       DocumentationService.fetchAll(this.apiId).then( () => {
         this.refresh();
-        NotificationService.show('Pages has been successfully fetched');
+        NotificationService.show("Pages has been successfully fetched");
       }).finally(() => {
         this.fetchAllInProgress = false;
       });

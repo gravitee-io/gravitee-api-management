@@ -16,7 +16,7 @@
 
 import {IHttpPromise} from "angular";
 import {IPromise} from "angular";
-import _ = require('lodash');
+import _ = require("lodash");
 
 export class DocumentationQuery {
   api: string;
@@ -37,6 +37,13 @@ export class ImportPageEntity {
   excluded_groups: string[];
 }
 
+export enum FolderSituation {
+  SYSTEM_FOLDER,
+  FOLDER_IN_SYSTEM_FOLDER,
+  ROOT,
+  FOLDER_IN_FOLDER
+}
+
 class DocumentationService {
   private folderPromise;
 
@@ -44,26 +51,34 @@ class DocumentationService {
     private $http: ng.IHttpService,
     private $q: ng.IQService,
     private Constants: any) {
-    'ngInject';
+    "ngInject";
   }
 
   url = (apiId: string, pageId?: string, importFiles?: boolean): string => {
     if (apiId) {
-      return `${this.Constants.baseURL}apis/${apiId}/pages/` + (importFiles?'_import':'') + (pageId ? pageId : '');
+      return `${this.Constants.baseURL}apis/${apiId}/pages/` + (importFiles ? "_import" : "") + (pageId ? pageId : "");
     }
-    return `${this.Constants.baseURL}portal/pages/` + (importFiles?'_import':'') + (pageId ? pageId : '');
+    return `${this.Constants.baseURL}portal/pages/` + (importFiles ? "_import" : "") + (pageId ? pageId : "");
+  }
 
-  };
-
-  supportedTypes = (): string[] => {
-    return ["SWAGGER", "MARKDOWN", "FOLDER"]
-  };
+  supportedTypes = (folderSituation: FolderSituation): string[] => {
+    switch (folderSituation) {
+      case FolderSituation.ROOT:
+        return ["SWAGGER", "MARKDOWN", "FOLDER"];
+      case FolderSituation.SYSTEM_FOLDER:
+        return ["FOLDER", "LINK"];
+      case FolderSituation.FOLDER_IN_FOLDER:
+        return ["SWAGGER", "MARKDOWN", "FOLDER"];
+      case FolderSituation.FOLDER_IN_SYSTEM_FOLDER:
+        return ["LINK"];
+    }
+  }
 
   partialUpdate = (propKey: string, propValue: any, pageId: string, apiId?: string): IHttpPromise<any> => {
     let prop = {};
     prop[propKey] = propValue;
     return this.$http.patch(this.url(apiId, pageId), prop);
-  };
+  }
 
   search = (q: DocumentationQuery, apiId?: string): IHttpPromise<any> => {
     let url: string = this.url(apiId);
@@ -73,21 +88,21 @@ class DocumentationService {
       const keys = Object.keys(q);
       _.forEach(keys, function (key) {
         let val = q[key];
-        if (val !== undefined && val !== '') {
-          url += key + '=' + val + '&';
+        if (val !== undefined && val !== "") {
+          url += key + "=" + val + "&";
         }
       });
     }
     return this.$http.get(url);
-  };
+  }
 
   remove = (pageId: string, apiId?: string): IHttpPromise<any> => {
     return this.$http.delete(this.url(apiId, pageId));
-  };
+  }
 
   create = (newPage: any, apiId?: string): IHttpPromise<any> => {
     return this.$http.post(this.url(apiId), newPage);
-  };
+  }
 
   update = (page: any, apiId?: string): IHttpPromise<any> => {
     return this.$http.put(this.url(apiId, page.id),
@@ -95,7 +110,7 @@ class DocumentationService {
         name: page.name,
         description: page.description,
         order: page.order,
-        content: page.content || '',
+        content: page.content || "",
         source: page.source,
         published: page.published,
         homepage: page.homepage,
@@ -104,11 +119,11 @@ class DocumentationService {
         parentId: page.parentId
       }
     );
-  };
+  }
 
   get(apiId: string, pageId?: string, portal?: boolean) {
     if (pageId) {
-      return this.$http.get(this.url(apiId, pageId) + (portal !== undefined?'?portal=' + portal:''));
+      return this.$http.get(this.url(apiId, pageId) + (portal !== undefined ? "?portal=" + portal : ""));
     }
   }
 
@@ -116,7 +131,7 @@ class DocumentationService {
     let deferred = this.$q.defer();
     let that = this;
     this.$http
-      .get(this.url(apiId), {params:{"homepage": true}})
+      .get(this.url(apiId), {params: {"homepage": true}})
       .then(function(response) {
         if ((<any[]>response.data).length > 0) {
           that
@@ -143,11 +158,11 @@ class DocumentationService {
   }
 
   fetch = (pageId: string, apiId?: string): IHttpPromise<any> => {
-    return this.$http.post(this.url(apiId, pageId) + '/_fetch', null, {timeout: 30000});
-  };
+    return this.$http.post(this.url(apiId, pageId) + "/_fetch", null, {timeout: 30000});
+  }
 
   fetchAll = (apiId: string): IHttpPromise<any> => {
-    return this.$http.post(this.url(apiId) + '_fetch', null, {timeout: 30000});
+    return this.$http.post(this.url(apiId) + "_fetch", null, {timeout: 30000});
   }
 }
 

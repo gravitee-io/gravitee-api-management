@@ -17,16 +17,16 @@ import {IScope} from "angular";
 
 interface IMoveToFolderScope extends IScope {
   folders: any[];
-  itemName: string;
+  title: string;
 }
-function MoveToFolderDialogController(
+function SelectFolderDialogController(
   $scope: IMoveToFolderScope,
   $mdDialog: angular.material.IDialogService,
   locals: any) {
-  'ngInject';
+  "ngInject";
 
   $scope.folders = locals.folders;
-  $scope.itemName = locals.itemName;
+  $scope.title = locals.title;
 
   this.cancel = () => {
     $mdDialog.hide();
@@ -37,4 +37,4 @@ function MoveToFolderDialogController(
   };
 }
 
-export default MoveToFolderDialogController;
+export default SelectFolderDialogController;
