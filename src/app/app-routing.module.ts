@@ -41,6 +41,7 @@ import { RegistrationComponent } from './pages/registration/registration.compone
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
 import { Role } from './model/role.enum';
 import { RouterModule, Routes } from '@angular/router';
+import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
 
 export const routes: Routes = [
@@ -170,7 +171,6 @@ export const routes: Routes = [
           }
         ]
       },
-      { path: 'documentation', data: { title: i18n('route.documentation') }, component: DocumentationComponent },
       {
         path: 'user', data: { menu: { hiddenPaths: ['login', 'logout'] } },
         children: [
@@ -215,6 +215,17 @@ export const routes: Routes = [
           { path: 'registration', component: RegistrationComponent },
           { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent }
         ]
+      },
+      { path: 'documentation', redirectTo: 'documentation/root' },
+      { path: 'documentation/:rootDir', component: DocumentationComponent },
+      { path: 'pages/:pageId', component: SinglePageComponent },
+      {
+        path: 'categories/:categoryId',
+        component: FilteredCatalogComponent,
+        canActivate: [FeatureGuardService],
+        data: {
+          expectedFeature: FeatureEnum.viewMode,
+        },
       },
       {
         path: 'applications',

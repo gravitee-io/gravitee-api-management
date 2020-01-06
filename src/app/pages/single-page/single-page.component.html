@@ -15,4 +15,6 @@
     limitations under the License.
 
 -->
-<app-gv-documentation [pages]="pages" [rootDir]="rootDir"></app-gv-documentation>
+<div class="page__content">
+  <app-gv-page *ngIf="singlePage" [page]="singlePage"></app-gv-page>
+</div>

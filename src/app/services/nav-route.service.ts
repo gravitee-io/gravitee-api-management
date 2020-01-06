@@ -25,6 +25,7 @@ export interface INavRoute {
   icon?: string;
   active?: boolean;
   separator?: boolean;
+  target?: string;
 }
 
 @Injectable({

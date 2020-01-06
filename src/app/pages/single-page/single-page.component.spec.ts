@@ -15,19 +15,20 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SubscriptionsComponent } from './subscriptions.component';
-import { TranslateTestingModule } from 'src/app/test/helper.spec';
+import { SinglePageComponent } from './single-page.component';
+import { GvPageComponent } from 'src/app/components/gv-page/gv-page.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 
-describe('SubscriptionsComponent', () => {
-  let component: SubscriptionsComponent;
-  let fixture: ComponentFixture<SubscriptionsComponent>;
+describe('SinglePageComponent', () => {
+  let component: SinglePageComponent;
+  let fixture: ComponentFixture<SinglePageComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ SubscriptionsComponent ],
-      imports: [ HttpClientTestingModule, TranslateTestingModule ],
+      declarations: [ SinglePageComponent, GvPageComponent ],
+      imports: [ HttpClientTestingModule, RouterTestingModule ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ]
@@ -36,8 +37,9 @@ describe('SubscriptionsComponent', () => {
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SubscriptionsComponent);
+    fixture = TestBed.createComponent(SinglePageComponent);
     component = fixture.componentInstance;
+    component.singlePage = null;
     fixture.detectChanges();
   });
 

@@ -18,6 +18,7 @@ import { Page } from '@gravitee/ng-portal-webclient';
 import { TreeItem } from '../../model/tree-item';
 import { NotificationService } from '../../services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import '@gravitee/ui-components/wc/gv-tree';
 
 @Component({
   selector: 'app-gv-documentation',
@@ -30,12 +31,18 @@ export class GvDocumentationComponent implements OnInit {
   currentMenuItem: TreeItem;
   menu: TreeItem[];
 
+  @Input() rootDir: string;
+
   @Input() set pages(pages: Page[]) {
     if (pages && pages.length) {
       let pageToDisplay;
       const pageId = this.route.snapshot.queryParams.page;
+      const folderId = this.route.snapshot.queryParams.folder;
       if (pageId) {
         pageToDisplay = this.getFirstPage(pages, pageId);
+      } else if (folderId) {
+        const folderPages = pages.filter(p => p.parent === folderId);
+        pageToDisplay = this.getFirstPage(folderPages);
       } else {
         pageToDisplay = this.getFirstPage(pages);
       }
@@ -72,8 +79,9 @@ export class GvDocumentationComponent implements OnInit {
         }
       }
     });
-
-    pagesMap = pagesMap.filter(page => !page.parent && page.type.toUpperCase() !== Page.TypeEnum.ROOT).sort(page => page.order);
+    pagesMap = pagesMap
+      .filter(page => (!page.parent && page.type.toUpperCase() !== Page.TypeEnum.ROOT) || ( page.parent && page.parent === this.rootDir) )
+      .sort(page => page.order);
     return this.buildMenu(pagesMap, selectedPage);
   }
 
@@ -88,6 +96,7 @@ export class GvDocumentationComponent implements OnInit {
         treeItem = new TreeItem(name, page, []);
       }
       result.push(treeItem);
+
       if (selectedPage && selectedPage === page.id) {
         this.currentMenuItem = treeItem;
       }
@@ -124,6 +133,10 @@ export class GvDocumentationComponent implements OnInit {
 
   isSwagger(page: Page) {
     return page && page.type.toUpperCase() === Page.TypeEnum.SWAGGER;
+  }
+
+  isFolder(page: Page) {
+    return page && page.type.toUpperCase() === Page.TypeEnum.FOLDER;
   }
 
   private getFirstPage(pages: any[], pageId?: string) {

@@ -57,19 +57,19 @@
       <div class="w-20 fl">
         <a [routerLink]="'/'" class="layout__footer__top__logo" title="{{ 'site.title' | translate }}"></a>
       </div>
-      <div class="layout__footer__top__category" *ngFor="let category of links.categorized">
+      <div class="layout__footer__top__category" *ngFor="let category of links.footer">
         <span class="layout__footer__top__category__title">{{category.title | translate}}</span>
         <ul class="layout__footer__top__category__links">
           <li *ngFor="let link of category.links">
-            <a [href]="link.link">{{link.title | translate}}</a>
+              <gv-link [path]="link.path" [target]="link.target" title="{{ link.title | translate }}"></gv-link>
           </li>
         </ul>
       </div>
     </section>
     <section class="layout__footer__bottom">
       <ul class="layout__footer__bottom__links">
-        <li *ngFor="let link of links.global">
-          <a [href]="link.link">{{link.title | translate}}</a>
+        <li *ngFor="let link of links.subfooter">
+            <gv-link [path]="link.path" [target]="link.target" title="{{ link.title | translate }}"></gv-link>
         </li>
       </ul>
       <ul class="layout__footer__bottom__rights">

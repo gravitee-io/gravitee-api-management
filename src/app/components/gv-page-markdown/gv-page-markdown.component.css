@@ -13,12 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  background-color: white;
-  width: 100%;
-  border-radius: 4px;
-}
-
 .markdown {
   min-height: 400px;
   max-height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h) - 20px);

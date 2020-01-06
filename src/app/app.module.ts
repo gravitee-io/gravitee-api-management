@@ -65,6 +65,7 @@ import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-comp
 import { UserAvatarComponent } from './components/user-avatar/user-avatar.component';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth.service';
+import { SinglePageComponent } from './pages/single-page/single-page.component';
 
 @NgModule({
   declarations: [
@@ -104,6 +105,7 @@ import { AuthService } from './services/auth.service';
     RegistrationComponent,
     RegistrationConfirmationComponent,
     SafePipe,
+    SinglePageComponent,
     UserAvatarComponent,
   ],
   entryComponents: [GvSearchComponent, GvHeaderApiComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],

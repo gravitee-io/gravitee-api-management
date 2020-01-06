@@ -33,10 +33,6 @@
  padding: 24px 50px;
 }
 
-app-gv-page {
-  background-color: white;
-}
-
 .api__aside {
   display: flex;
   flex-direction: column;

@@ -16,11 +16,12 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-info';
-import { ApiService, Api, Page } from '@gravitee/ng-portal-webclient';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ApiService, Api, Link, Page } from '@gravitee/ng-portal-webclient';
+import { ActivatedRoute, PRIMARY_OUTLET, Router } from '@angular/router';
 import { ApiMetrics } from '@gravitee/ng-portal-webclient/model/apiMetrics';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
+import { INavRoute } from 'src/app/services/nav-route.service';
 
 @Component({
   selector: 'app-api-general',
@@ -33,7 +34,7 @@ export class ApiGeneralComponent implements OnInit {
   currentApiMetrics: Promise<ApiMetrics>;
   homepage: Page;
   linkedApp: Promise<any[]>;
-  resources: string[];
+  resources: any[];
   miscellaneous: any[];
   isOnError: boolean;
   description: string;
@@ -52,9 +53,15 @@ export class ApiGeneralComponent implements OnInit {
       this.currentApiMetrics = this.apiServices.getApiMetricsByApiId({ apiId }).toPromise();
 
       this.currentApi.then((api) => {
-        // **** TODO : removed mocked data
-        this.resources = ['Repository', 'Homepage', 'Licence', 'Changelog', 'Download Extension'];
-        // ****
+        this.apiServices.getApiLinks({ apiId: api.id }).subscribe(apiLinks => {
+            if (apiLinks.slots && apiLinks.slots.aside) {
+              apiLinks.slots.aside.forEach((catLinks) => {
+                if (catLinks.root) {
+                  this.resources = this._buildLinks(apiId, catLinks.links);
+                }
+              });
+            }
+          });
 
         this.description = api.description;
 
@@ -86,13 +93,53 @@ export class ApiGeneralComponent implements OnInit {
     }
   }
 
-  @HostListener(':gv-info-api:click-view', ['$event.detail.tagValue'])
+  _buildLinks(apiId: string, links: Link[]) {
+    return links.map(element => {
+      let path: string;
+      let target: string;
+      switch (element.resourceType) {
+        case Link.ResourceTypeEnum.External:
+          path = element.resourceRef;
+          if (path.toLowerCase().startsWith('http')) {
+            target = '_blank';
+          }
+          break;
+        case Link.ResourceTypeEnum.Page:
+          path = '/catalog/api/' + apiId + '/doc';
+          if (element.folder && element.resourceRef !== 'root' ) {
+            path += '?folder=' + element.resourceRef;
+          } else if (!element.folder) {
+            path += '?page=' + element.resourceRef;
+          }
+          target = '_self';
+          break;
+        case Link.ResourceTypeEnum.View:
+          path = '/catalog/categories/' + element.resourceRef;
+          target = '_self';
+          break;
+      }
+      return { title: element.name, path, target };
+    });
+  }
+
+  @HostListener(':gv-info:click-view', ['$event.detail.tagValue'])
   onClickView(tagValue: string) {
     this.router.navigate(['catalog/categories', tagValue]);
   }
 
-  @HostListener(':gv-info-api:click-label', ['$event.detail.tagValue'])
+  @HostListener(':gv-info:click-label', ['$event.detail.tagValue'])
   onClickLabel(tagValue: string) {
     this.router.navigate(['catalog/search'], { queryParams: { q: tagValue } });
+  }
+
+  @HostListener(':gv-info:click-resource', ['$event.detail'])
+  onNavChange(route: INavRoute) {
+    if (route.target && route.target === '_blank') {
+      window.open(route.path, route.target);
+    } else {
+      const urlTree = this.router.parseUrl(route.path);
+      const path = urlTree.root.children[PRIMARY_OUTLET].segments.join('/');
+      this.router.navigate([path], { queryParams: urlTree.queryParams });
+    }
   }
 }

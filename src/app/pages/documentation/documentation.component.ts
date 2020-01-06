@@ -15,7 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { Page, PortalService } from '@gravitee/ng-portal-webclient';
-import '@gravitee/ui-components/wc/gv-tree';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-documentation',
@@ -25,15 +25,24 @@ import '@gravitee/ui-components/wc/gv-tree';
 export class DocumentationComponent implements OnInit {
 
   pages: Page[];
+  rootDir: string;
 
   constructor(
-    private portalService: PortalService
+    private portalService: PortalService,
+    private activeRoute: ActivatedRoute
   ) { }
 
   ngOnInit() {
-    this.portalService.getPages({ homepage: false, size: -1 })
-    .subscribe(pagesResponse => {
-      this.pages = pagesResponse.data;
+    this.activeRoute.params.subscribe((params) => {
+      if (params.rootDir && params.rootDir !== 'root' ) {
+        this.rootDir = params.rootDir;
+        this.portalService.getPages({ homepage: false, size: -1, parent: this.rootDir })
+          .subscribe(pagesResponse => { this.pages = pagesResponse.data; });
+      } else {
+        delete this.rootDir;
+        this.portalService.getPages({ homepage: false, size: -1 })
+          .subscribe(pagesResponse => { this.pages = pagesResponse.data; });
+      }
     });
   }
 }

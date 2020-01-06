@@ -42,8 +42,5 @@
 }
 
 app-gv-page {
-  background-color: white;
-  width: 100%;
   overflow: scroll;
-  border-radius: 5px;
 }
