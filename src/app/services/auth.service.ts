@@ -57,9 +57,13 @@ export class AuthService {
 
   login(username: string, password: string): Promise<boolean> {
     return new Promise((resolve) => {
-      const authorization: string = 'Basic ' + btoa(username + ':' + password);
+      const authorization: string = 'Basic ' + btoa(`${username}:${password}`);
       return this.authenticationService.login({ Authorization: authorization }).subscribe(
-        () => { this.router.navigate(['']).then(() => window.location.reload()); },
+        () => {
+          this.currentUserService.load().then(() => {
+            this.router.navigate(['']);
+          });
+        },
         () => {
           this.notificationService.error(i18n('login.notification.error'));
           resolve(false);
