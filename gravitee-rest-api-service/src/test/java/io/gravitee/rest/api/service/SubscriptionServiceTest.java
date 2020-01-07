@@ -143,6 +143,28 @@ public class SubscriptionServiceTest {
         assertEquals(2, subscriptions.size());
     }
 
+
+    @Test
+    public void shouldFindByApi() throws TechnicalException {
+        Subscription sub1 = new Subscription();
+        sub1.setId("subscription-1");
+        sub1.setStatus(Subscription.Status.ACCEPTED);
+        sub1.setApi(API_ID);
+
+        Subscription sub2 = new Subscription();
+        sub2.setId("subscription-2");
+        sub2.setStatus(Subscription.Status.REJECTED);
+        sub2.setApi(API_ID);
+
+        when(subscriptionRepository.search(new SubscriptionCriteria.Builder()
+                .apis(singleton(API_ID)).applications(null).build())).thenReturn(
+                asList(sub1, sub2));
+
+        Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(API_ID);
+
+        assertEquals(2, subscriptions.size());
+    }
+
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByApplicationBecauseTechnicalException() throws TechnicalException {
         when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenThrow(TechnicalException.class);

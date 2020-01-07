@@ -35,10 +35,10 @@ import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 
 @Component
 public class KeyMapper {
-    
+
     @Autowired
     PlanService planService;
-    
+
     protected static final Logger LOGGER = LoggerFactory.getLogger(KeyMapper.class);
 
     public Key convert(ApiKeyEntity apiKeyEntity) {
@@ -51,15 +51,17 @@ public class KeyMapper {
         } catch (PlanNotFoundException e) {
             LOGGER.warn("plan does not exist : {}", plan);
         }
-        
+
         keyItem.setApplication(apiKeyEntity.getApplication());
-        keyItem.setCreatedAt(apiKeyEntity.getCreatedAt().toInstant().atOffset( ZoneOffset.UTC ));
+        keyItem.setCreatedAt(apiKeyEntity.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
         keyItem.setId(apiKeyEntity.getKey());
         keyItem.setPaused(apiKeyEntity.isPaused());
         keyItem.setPlan(plan);
         keyItem.setRevoked(apiKeyEntity.isRevoked());
-        keyItem.setRevokedAt(apiKeyEntity.getRevokedAt().toInstant().atOffset( ZoneOffset.UTC ));
-        
+        if (apiKeyEntity.isRevoked()) {
+            keyItem.setRevokedAt(apiKeyEntity.getRevokedAt().toInstant().atOffset(ZoneOffset.UTC));
+        }
+
         return keyItem;
     }
 

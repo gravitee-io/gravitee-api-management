@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -42,6 +43,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.rest.api.model.SubscriptionStatus.*;
+
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
@@ -66,9 +69,11 @@ public class ApiSubscribersResource extends AbstractResource {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(currentUser);
         Optional<ApiEntity> optionalApi = userApis.stream().filter(a -> a.getId().equals(apiId)).findFirst();
         if (optionalApi.isPresent()) {
-            
+
             SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
             subscriptionQuery.setApi(apiId);
+
+            subscriptionQuery.setStatuses(Arrays.asList(ACCEPTED, PENDING, PAUSED));
 
             ApiEntity api = optionalApi.get();
             if(!api.getPrimaryOwner().getId().equals(currentUser) ) {
@@ -78,8 +83,8 @@ public class ApiSubscribersResource extends AbstractResource {
                 }
                 subscriptionQuery.setApplications(userApplications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
             }
-            
-            
+
+
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(apiId);
 
             Collection<SubscriptionEntity> subscriptions = subscriptionService.search(subscriptionQuery);
@@ -106,7 +111,7 @@ public class ApiSubscribersResource extends AbstractResource {
         }
         int compareTo = nbHitsByApp.get(o2.getId()).compareTo(nbHitsByApp.get(o1.getId()));
         if(compareTo != 0) {
-            return compareTo;    
+            return compareTo;
         }
         return o1.getName().compareTo(o2.getName());
     }

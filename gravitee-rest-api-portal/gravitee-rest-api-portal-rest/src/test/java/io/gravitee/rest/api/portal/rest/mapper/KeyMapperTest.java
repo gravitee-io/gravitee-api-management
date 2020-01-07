@@ -54,18 +54,18 @@ public class KeyMapperTest {
     private ApiKeyEntity apiKeyEntity;
     private final Instant now = Instant.now();
     private final Date nowDate = Date.from(now);
-    
+
     @Mock
     private PlanService planService;
-    
+
     @InjectMocks
     private KeyMapper keyMapper;
-    
+
     @Before
     public void init() {
         //init
         apiKeyEntity = new ApiKeyEntity();
-       
+
         apiKeyEntity.setApplication(APPLICATION);
         apiKeyEntity.setCreatedAt(nowDate);
         apiKeyEntity.setExpireAt(nowDate);
@@ -76,19 +76,19 @@ public class KeyMapperTest {
         apiKeyEntity.setRevokedAt(nowDate);
         apiKeyEntity.setSubscription(SUBSCRIPTION);
         apiKeyEntity.setUpdatedAt(nowDate);
-        
+
         PlanEntity planEntity = new PlanEntity();
         planEntity.setApi(API);
         doReturn(planEntity).when(planService).findById(PLAN);
         doThrow(PlanNotFoundException.class).when(planService).findById(UNKNOWN_PLAN);
     }
-    
+
     @Test
     public void testConvert() {
         //Test
         Key key = keyMapper.convert(apiKeyEntity);
         assertNotNull(key);
-        
+
         assertEquals(API, key.getApi());
         assertEquals(APPLICATION, key.getApplication());
         assertEquals(now.toEpochMilli(), key.getCreatedAt().toInstant().toEpochMilli());
@@ -96,17 +96,17 @@ public class KeyMapperTest {
         assertEquals(Boolean.FALSE, key.getPaused());
         assertEquals(PLAN, key.getPlan());
         assertEquals(Boolean.FALSE, key.getRevoked());
-        assertEquals(now.toEpochMilli(), key.getRevokedAt().toInstant().toEpochMilli());
+        assertNull(key.getRevokedAt());
     }
-    
+
     @Test
     public void testConvertWithoutPlan() {
         apiKeyEntity.setPlan(UNKNOWN_PLAN);
-        
+
         //Test
         Key key = keyMapper.convert(apiKeyEntity);
         assertNotNull(key);
-        
+
         assertNull(key.getApi());
         assertEquals(APPLICATION, key.getApplication());
         assertEquals(now.toEpochMilli(), key.getCreatedAt().toInstant().toEpochMilli());
@@ -114,8 +114,8 @@ public class KeyMapperTest {
         assertEquals(Boolean.FALSE, key.getPaused());
         assertEquals(UNKNOWN_PLAN, key.getPlan());
         assertEquals(Boolean.FALSE, key.getRevoked());
-        assertEquals(now.toEpochMilli(), key.getRevokedAt().toInstant().toEpochMilli());
-        
+        assertNull(key.getRevokedAt());
+
     }
-    
+
 }

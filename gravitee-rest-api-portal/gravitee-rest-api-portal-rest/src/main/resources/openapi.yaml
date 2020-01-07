@@ -355,7 +355,7 @@ paths:
 
       summary: List applications that subscribred to an API
       description: |
-        If the current user is the owner of the API, all connected applications will be returned.
+        If the current user is the owner of the API, all connected ACCEPTED, PAUSED & PENDING applications will be returned.
         Else only applications that current is allowed to access will.
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
@@ -1105,7 +1105,7 @@ paths:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
       description: |
-        List all subscriptions, filtered by api and/or by application. At least an api or an application must be provided.
+        List all ACCEPTED, PAUSED & PENDING subscriptions, filtered by api and/or by application. At least an api or an application must be provided.
 
         User must have the APPLICATION_SUBSCRIPTION[READ] permission to list subscription with application query param.\
         User must have the API_SUBSCRIPTION[READ] permission to list subscription with api query param.
@@ -1174,7 +1174,7 @@ paths:
         Get a subscription.
 
         User must have API_SUBSCRIPTION[CREATE] or APPLICATION_SUBSCRIPTION[CREATE] permission.
-      operationId: getSubscriptionBuySubscriptionId
+      operationId: getSubscriptionById
       responses:
         200:
           description: One subscription.
@@ -2419,7 +2419,7 @@ components:
           description: |
             Only returned with */apis/{apiId}/pages/{pageId}* and */pages/{pageId}*.
             Need *include* query param to contain 'content'.
-            
+
             The content of the page.
           type: string
 
@@ -2518,6 +2518,9 @@ components:
         applicationType:
           description: Type of the application (Web, Mobile, ...).
           type: string
+        hasClientId:
+          description:  True if the application has client id.
+          type: boolean
         owner:
           $ref: '#/components/schemas/User'
         created_at:
@@ -2756,6 +2759,7 @@ components:
             - PENDING
             - ACCEPTED
             - REJECTED
+            - PAUSED
         ###################
         # may be included #
         ###################

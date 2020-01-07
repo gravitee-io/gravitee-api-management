@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -38,6 +39,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,10 +55,10 @@ public class SubscriptionsResource extends AbstractResource {
 
     @Inject
     private SubscriptionService subscriptionService;
-    
+
     @Inject
     private SubscriptionMapper subscriptionMapper;
-    
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -65,9 +68,9 @@ public class SubscriptionsResource extends AbstractResource {
             newSubscriptionEntity.setApplication(subscriptionInput.getApplication());
             newSubscriptionEntity.setPlan(subscriptionInput.getPlan());
             newSubscriptionEntity.setRequest(subscriptionInput.getRequest());
-            
+
             SubscriptionEntity createdSubscription = subscriptionService.create(newSubscriptionEntity);
-            
+
             return Response
                     .ok(subscriptionMapper.convert(createdSubscription))
                     .build();
@@ -81,32 +84,31 @@ public class SubscriptionsResource extends AbstractResource {
         if(apiId == null && applicationId == null) {
             throw new SubscriptionInvalidException();
         }
-        if((applicationId == null && !hasPermission(RolePermission.API_SUBSCRIPTION, apiId, RolePermissionAction.READ)) 
+        if((applicationId == null && !hasPermission(RolePermission.API_SUBSCRIPTION, apiId, RolePermissionAction.READ))
                 || (apiId == null && !hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ))
                 || (!hasPermission(RolePermission.API_SUBSCRIPTION, apiId, RolePermissionAction.READ) && !hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ))
             ) {
             throw new ForbiddenAccessException();
         }
-        
+
         SubscriptionQuery query = new SubscriptionQuery();
         query.setApi(apiId);
         query.setApplication(applicationId);
-        
-        final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(query, new PageableImpl(paginationParam.getPage(), paginationParam.getSize()));
-        
-        List<Subscription> subscriptionList = pagedSubscriptions.getContent()
+        query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PENDING, SubscriptionStatus.PAUSED));
+
+        final Collection<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(query);
+
+        List<Subscription> subscriptionList = pagedSubscriptions
                 .stream()
                 .map(subscriptionMapper::convert)
                 .collect(Collectors.toList());
-        
-        
-        //No pagination, because subscriptionService did it already
-        return createListResponse(subscriptionList, paginationParam, false);
+
+        return createListResponse(subscriptionList, paginationParam);
     }
 
     @Path("{subscriptionId}")
     public SubscriptionResource getSubscriptionResource() {
         return resourceContext.getResource(SubscriptionResource.class);
     }
-    
+
 }

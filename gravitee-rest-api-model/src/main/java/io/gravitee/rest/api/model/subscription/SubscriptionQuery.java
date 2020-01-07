@@ -48,7 +48,9 @@ public class SubscriptionQuery {
     }
 
     public void setApi(String api) {
-        this.apis = Collections.singleton(api);
+        if (api != null) {
+            this.apis = Collections.singleton(api);
+        }
     }
 
     public Collection<String> getPlans() {
@@ -60,7 +62,9 @@ public class SubscriptionQuery {
     }
 
     public void setPlan(String plan) {
-        this.plans = Collections.singleton(plan);
+        if (plan != null) {
+            this.plans = Collections.singleton(plan);
+        }
     }
 
     public Collection<SubscriptionStatus> getStatuses() {
@@ -80,7 +84,9 @@ public class SubscriptionQuery {
     }
 
     public void setApplication(String application) {
-        this.applications = Collections.singleton(application);
+        if (application != null) {
+            this.applications = Collections.singleton(application);
+        }
     }
 
     public String getApiKey() {

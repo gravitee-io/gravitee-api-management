@@ -17,10 +17,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationSettings;
-import io.gravitee.rest.api.model.application.OAuthClientSettings;
-import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.application.*;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationLinks;
 import io.gravitee.rest.api.portal.rest.model.User;
@@ -37,7 +34,7 @@ import java.util.Set;
 
 @Component
 public class ApplicationMapper {
-    
+
     public Application convert(ApplicationListItem applicationListItem) {
         final Application application = new Application();
         application.setApplicationType(applicationListItem.getType());
@@ -55,7 +52,8 @@ public class ApplicationMapper {
         owner.setDisplayName(primaryOwner.getDisplayName());
         application.setOwner(owner);
         application.setUpdatedAt(applicationListItem.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        
+        ApplicationListItemSettings settings = applicationListItem.getSettings();
+        application.setHasClientId(settings != null && settings.getClientId() != null);
         return application;
     }
 
@@ -65,13 +63,13 @@ public class ApplicationMapper {
         applicationLinks.setNotifications(basePath+"/notifications");
         applicationLinks.setPicture(basePath+"/picture");
         applicationLinks.setSelf(basePath);
-        
+
         return applicationLinks;
     }
-    
+
     public Application convert(ApplicationEntity applicationEntity) {
         final Application application = new Application();
-        
+
         application.setApplicationType(applicationEntity.getType());
         application.setCreatedAt(applicationEntity.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
         application.setDescription(applicationEntity.getDescription());
@@ -85,12 +83,12 @@ public class ApplicationMapper {
         owner.id(applicationEntity.getPrimaryOwner().getId());
         application.setOwner(owner);
         application.setUpdatedAt(applicationEntity.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        
-        
+
+
         final ApplicationSettings applicationEntitySettings = applicationEntity.getSettings();
         if(applicationEntitySettings != null) {
             io.gravitee.rest.api.portal.rest.model.ApplicationSettings appSettings = new io.gravitee.rest.api.portal.rest.model.ApplicationSettings();
-            
+
             final SimpleApplicationSettings simpleAppEntitySettings = applicationEntitySettings.getApp();
             if(simpleAppEntitySettings != null) {
                 appSettings.app(new io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings()
@@ -100,7 +98,7 @@ public class ApplicationMapper {
                 ;
             } else {
                 final OAuthClientSettings oAuthClientEntitySettings = applicationEntitySettings.getoAuthClient();
-                
+
                 appSettings.oauth(new io.gravitee.rest.api.portal.rest.model.OAuthClientSettings()
                         .applicationType(oAuthClientEntitySettings.getApplicationType())
                         .clientId(oAuthClientEntitySettings.getClientId())
@@ -116,7 +114,7 @@ public class ApplicationMapper {
             }
             application.setSettings(appSettings);
         }
-        
+
         return application;
     }
 }
