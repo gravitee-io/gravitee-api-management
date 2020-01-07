@@ -13,69 +13,67 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA, APP_INITIALIZER } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
-
-import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-
-import { TranslateLoader, TranslateModule, TranslateCompiler } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
-import { MESSAGE_FORMAT_CONFIG } from 'ngx-translate-messageformat-compiler';
-
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-import { LoginComponent } from './pages/login/login.component';
-
-import { ApiModule, BASE_PATH } from '@gravitee/ng-portal-webclient';
-import { environment } from '../environments/environment';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { AppsComponent } from './pages/apps/apps.component';
 import { AccountComponent } from './pages/account/account.component';
-import { LogoutComponent } from './pages/logout/logout.component';
-import { RegistrationComponent } from './pages/registration/registration.component';
-import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
-import { ApiRequestInterceptor } from './interceptors/api-request.interceptor';
-import { CategoriesComponent } from './pages/catalog/categories/categories.component';
-import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
-import { LayoutComponent } from './layouts/layout/layout.component';
-import { SafePipe } from './pipes/safe.pipe';
-import { UserAvatarComponent } from './components/user-avatar/user-avatar.component';
-import { ContactComponent } from './pages/contact/contact.component';
-import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
-import { ApiStatesPipe } from './pipes/api-states.pipe';
-import { ApiLabelsPipe } from './pipes/api-labels.pipe';
-import { ConfigurationService } from './services/configuration.service';
-import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
-import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
-import { MarkdownModule } from 'ngx-markdown';
+import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
+import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
+import { ApiLabelsPipe } from './pipes/api-labels.pipe';
+import { ApiModule, BASE_PATH } from '@gravitee/ng-portal-webclient';
+import { ApiRequestInterceptor } from './interceptors/api-request.interceptor';
+import { ApiStatesPipe } from './pipes/api-states.pipe';
+import { ApiSubscribeComponent } from './pages/api-subscribe/api-subscribe.component';
+import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module';
+import { AppsComponent } from './pages/apps/apps.component';
+import { BrowserModule } from '@angular/platform-browser';
+import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
+import { CategoriesComponent } from './pages/catalog/categories/categories.component';
+import { ConfigurationService } from './services/configuration.service';
+import { ContactComponent } from './pages/contact/contact.component';
+import { CurrentUserService } from './services/current-user.service';
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DocumentationComponent } from './pages/documentation/documentation.component';
-import { GvPageComponent } from './components/gv-page/gv-page.component';
-import { GvPageRedocComponent } from './components/gv-page-redoc/gv-page-redoc.component';
-import { GvPageSwaggerUIComponent } from './components/gv-page-swaggerui/gv-page-swaggerui.component';
-import { HomepageComponent } from './pages/homepage/homepage.component';
+import { environment } from '../environments/environment';
+import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
+import { GvContactComponent } from './components/gv-contact/gv-contact.component';
 import { GvDocumentationComponent } from './components/gv-documentation/gv-documentation.component';
-import { GvSearchComponent } from './components/gv-search/gv-search.component';
-import { GvPageContentSlotDirective } from './directives/gv-page-content-slot.directive';
+import { GvHeaderApiComponent } from './components/gv-header-api/gv-header-api.component';
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
-import { GvMenuHeaderComponent } from './components/gv-menu-header/gv-menu-header.component';
-import { CurrentUserService } from './services/current-user.service';
-import { GvContactComponent } from './components/gv-contact/gv-contact.component';
+import { GvPageComponent } from './components/gv-page/gv-page.component';
+import { GvPageContentSlotDirective } from './directives/gv-page-content-slot.directive';
 import { GvPageMarkdownComponent } from './components/gv-page-markdown/gv-page-markdown.component';
+import { GvPageRedocComponent } from './components/gv-page-redoc/gv-page-redoc.component';
+import { GvPageSwaggerUIComponent } from './components/gv-page-swaggerui/gv-page-swaggerui.component';
+import { GvSearchComponent } from './components/gv-search/gv-search.component';
+import { HomepageComponent } from './pages/homepage/homepage.component';
+import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { LayoutComponent } from './layouts/layout/layout.component';
+import { LoginComponent } from './pages/login/login.component';
+import { LogoutComponent } from './pages/logout/logout.component';
+import { MarkdownModule } from 'ngx-markdown';
+import { MESSAGE_FORMAT_CONFIG } from 'ngx-translate-messageformat-compiler';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA, APP_INITIALIZER } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RegistrationComponent } from './pages/registration/registration.component';
+import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
+import { SafePipe } from './pipes/safe.pipe';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { TranslateLoader, TranslateModule, TranslateCompiler } from '@ngx-translate/core';
+import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
+import { UserAvatarComponent } from './components/user-avatar/user-avatar.component';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth.service';
 
 @NgModule({
   declarations: [
     AccountComponent,
-    ApiGeneralComponent,
-    ApiDocumentationComponent,
     ApiContactComponent,
+    ApiDocumentationComponent,
+    ApiGeneralComponent,
     ApiLabelsPipe,
     ApiStatesPipe,
+    ApiSubscribeComponent,
     AppComponent,
     AppsComponent,
     CatalogSearchComponent,
@@ -86,12 +84,14 @@ import { AuthService } from './services/auth.service';
     DashboardComponent,
     DocumentationComponent,
     FilteredCatalogComponent,
+    GvContactComponent,
     GvDocumentationComponent,
-    GvMenuHeaderComponent,
+    GvHeaderApiComponent,
     GvMenuRightSlotDirective,
     GvMenuTopSlotDirective,
     GvPageContentSlotDirective,
     GvPageComponent,
+    GvSearchComponent,
     GvPageMarkdownComponent,
     GvPageRedocComponent,
     GvPageSwaggerUIComponent,
@@ -102,11 +102,9 @@ import { AuthService } from './services/auth.service';
     RegistrationComponent,
     RegistrationConfirmationComponent,
     SafePipe,
-    GvSearchComponent,
     UserAvatarComponent,
-    GvContactComponent,
   ],
-  entryComponents: [GvSearchComponent, GvMenuHeaderComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
+  entryComponents: [GvSearchComponent, GvHeaderApiComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
   imports: [
     ApiModule,
     AppRoutingModule,

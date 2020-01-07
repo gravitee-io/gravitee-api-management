@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 import { AccountComponent } from './pages/account/account.component';
+import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
 import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
+import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
+import { ApiSubscribeComponent } from './pages/api-subscribe/api-subscribe.component';
 import { AppsComponent } from './pages/apps/apps.component';
 import { AuthGuardService } from './services/auth-guard.service';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
@@ -26,7 +29,7 @@ import { DocumentationComponent } from './pages/documentation/documentation.comp
 import { FeatureEnum } from './model/feature.enum';
 import { FeatureGuardService } from './services/feature-guard.service';
 import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
-import { GvMenuHeaderComponent } from './components/gv-menu-header/gv-menu-header.component';
+import { GvHeaderApiComponent } from './components/gv-header-api/gv-header-api.component';
 import { GvSearchComponent } from './components/gv-search/gv-search.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { LayoutComponent } from './layouts/layout/layout.component';
@@ -38,8 +41,6 @@ import { RegistrationComponent } from './pages/registration/registration.compone
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
 import { Role } from './model/role.enum';
 import { RouterModule, Routes } from '@angular/router';
-import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
-import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
 
 export const routes: Routes = [
   {
@@ -56,7 +57,7 @@ export const routes: Routes = [
         data: {
           title: i18n('route.catalog'),
           breadcrumb: true,
-          menu: { hiddenPaths: ['categories/', 'api/'] },
+          menu: { hiddenPaths: ['categories/:categoryId', 'api/'] },
           fallbackRedirectTo: 'catalog/featured'
         },
         children: [
@@ -66,13 +67,14 @@ export const routes: Routes = [
             path: 'api',
             data: {
               breadcrumb: false,
+              menu: { hiddenPaths: [':apiId/subscribe'] }
             },
             children: [
               {
                 path: ':apiId',
                 component: ApiGeneralComponent,
                 data: {
-                  menu: { slots: { top: GvMenuHeaderComponent, right: GvSearchComponent } },
+                  menu: { slots: { top: GvHeaderApiComponent, right: GvSearchComponent } },
                   breadcrumb: true,
                   icon: 'general:clipboard',
                   title: i18n('route.catalogApi')
@@ -82,7 +84,7 @@ export const routes: Routes = [
                 path: ':apiId/doc',
                 component: ApiDocumentationComponent,
                 data: {
-                  menu: { slots: { top: GvMenuHeaderComponent, right: GvSearchComponent } },
+                  menu: { slots: { top: GvHeaderApiComponent, right: GvSearchComponent } },
                   breadcrumb: true,
                   icon: 'home:library',
                   title: i18n('route.catalogApiDocumentation')
@@ -93,14 +95,23 @@ export const routes: Routes = [
                 component: ApiContactComponent,
                 canActivate: [AuthGuardService, FeatureGuardService],
                 data: {
-                  menu: { slots: { top: GvMenuHeaderComponent, right: GvSearchComponent } },
+                  menu: { slots: { top: GvHeaderApiComponent, right: GvSearchComponent } },
                   breadcrumb: true,
                   icon: 'communication:contact#1',
                   title: i18n('route.catalogApiContact'),
                   expectedFeature: FeatureEnum.contact,
                   expectedRole: Role.AUTH_USER
                 }
-              }
+              },
+              {
+                path: ':apiId/subscribe',
+                component: ApiSubscribeComponent,
+                data: {
+                  breadcrumb: false,
+                  title: i18n('route.catalogApiSubscribe'),
+                  menu: { slots: { top: GvHeaderApiComponent } },
+                }
+              },
             ]
           },
           {

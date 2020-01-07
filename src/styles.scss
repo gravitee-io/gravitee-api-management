@@ -24,8 +24,6 @@
   // ********** Page ************
   --gv-theme-page--pb: 4rem;
   --gv-theme-page--pt: 4rem;
-
-
 }
 
 /* (1920x1080) Full HD Display */
@@ -124,7 +122,8 @@ h4.title {
   line-height: 22px;
 }
 
-.skeleton {
+// TODO: remove .skeleton a when remove tachyons
+.skeleton, .skeleton a {
   animation-direction: alternate;
   animation-duration: 500ms;
   animation-iteration-count: infinite;

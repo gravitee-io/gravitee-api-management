@@ -16,5 +16,5 @@
 
 -->
 <gv-header-api slot="header" *ngIf="api" [api]="api"
-               [breadcrumbs]="breadcrumbsHeader"
-               [canSubscribe]="canSubscribe()"></gv-header-api>
+               [canSubscribe]="canSubscribe()"
+               (:gv-header-api:subscribe)="onSubscribe()"></gv-header-api>

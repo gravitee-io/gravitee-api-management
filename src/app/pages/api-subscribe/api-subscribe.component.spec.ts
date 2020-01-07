@@ -15,52 +15,51 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GvMenuHeaderComponent } from './gv-menu-header.component';
-import { RouterTestingModule } from '@angular/router/testing';
+import { ApiSubscribeComponent } from './api-subscribe.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideMock } from '../../test/mock.helper.spec';
-import { CurrentUserService } from '../../services/current-user.service';
+import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateTestingModule } from '../../test/helper.spec';
-import { TranslateService } from '@ngx-translate/core';
-import { ApiService } from '@gravitee/ng-portal-webclient';
+import { FilteredCatalogComponent } from '../catalog/filtered-catalog/filtered-catalog.component';
+import { ApiStatesPipe } from '../../pipes/api-states.pipe';
+import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-describe('GvMenuHeaderComponent', () => {
-  let component: GvMenuHeaderComponent;
-  let fixture: ComponentFixture<GvMenuHeaderComponent>;
+describe('ApiSubscribeComponent', () => {
+  let component: ApiSubscribeComponent;
+  let fixture: ComponentFixture<ApiSubscribeComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
+        HttpClientTestingModule,
         RouterTestingModule,
         TranslateTestingModule,
-        HttpClientTestingModule,
+        FormsModule,
+        ReactiveFormsModule
       ],
-      declarations: [
-        GvMenuHeaderComponent
-      ],
+      declarations: [ApiSubscribeComponent],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
-      providers: [
-        GvMenuHeaderComponent,
-        provideMock(TranslateService),
-        provideMock(CurrentUserService),
-        provideMock(ApiService)
-      ]
-    }).compileComponents();
+      providers: [ApiStatesPipe, ApiLabelsPipe]
+    })
+    .compileComponents();
   }));
 
+
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvMenuHeaderComponent);
+    fixture = TestBed.createComponent(ApiSubscribeComponent);
     component = fixture.componentInstance;
     fixture.whenStable().then(() => {
       fixture.detectChanges();
     });
   });
 
-
   it('should create', () => {
-    expect(component).toBeTruthy();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component).toBeTruthy();
+    });
   });
 });

@@ -88,10 +88,7 @@ export class NavRouteService {
   }
 
   private isVisiblePath(_hiddenPaths) {
-    return (child) => {
-      const path = child.path ? child.path.split(':')[0] : child.path;
-      return !_hiddenPaths.includes(path);
-    };
+    return (child) =>  !_hiddenPaths.includes(child.path);
   }
 
   async getSiblingsNav(activatedRoute: ActivatedRoute): Promise<INavRoute[]> {

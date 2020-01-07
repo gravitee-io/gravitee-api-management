@@ -17,12 +17,13 @@ then
       mv gravitee-ng-portal-webclient*.tgz gravitee-ng-portal-webclient.tgz
       popd
       popd
+      popd
       npm i --save tmp/gravitee-clients-sdk/dist/gravitee-ng-portal-webclient.tgz --silent
     fi
   } || {
     echo "gravitee-io/gravitee-clients-sdk doesn't have branch: $branch"
+    popd
   }
-  popd
 
   {
     npm install --save gravitee-io/gravitee-ui-components#$branch --silent

@@ -16,7 +16,6 @@
 import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
 import { ApiService, ApplicationsService, PortalService, User } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from '../../services/notification.service';
-import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { LoaderService } from '../../services/loader.service';
 import { CurrentUserService } from '../../services/current-user.service';
@@ -30,7 +29,6 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 })
 export class GvContactComponent implements OnInit, AfterViewInit {
 
-  static readonly API_QUERY_PARAM = 'api';
   @Input() apiId: string;
 
   contactForm: FormGroup;
@@ -51,7 +49,6 @@ export class GvContactComponent implements OnInit, AfterViewInit {
     private notificationService: NotificationService,
     public loaderService: LoaderService,
     private currentUserService: CurrentUserService,
-    private route: ActivatedRoute,
   ) {
   }
 

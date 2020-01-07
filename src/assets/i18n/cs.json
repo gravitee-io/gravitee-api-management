@@ -1,250 +1,333 @@
 {
-  "api": {
-    "list": {
-      "connectedApp": "Připojené aplikace"
-    },
-    "miscellaneous": {
-      "lastUpdate": "Poslední aktualizace: ",
-      "publisher": "Vydavatel: ",
-      "version": "Verze: "
-    }
-  },
-  "catalog": {
-    "defaultView": "Všechna API",
-    "display": {
-      "cards": "Zobrazovací karty",
-      "list": "Zobrazit seznam"
-    },
-    "filter": "Filtrujte výsledky",
-    "othersApi": {
-      "subTitle": "Objevte různá API v titulcích tento měsíc",
-      "title": "Ostatní APIs"
-    },
-    "search": "Vyhledat API, APP ..."
-  },
-  "categories": {
-    "title": "Kategories"
-  },
-  "dashboard": {
-    "welcome": "Vítejte {username},"
-  },
-  "errors": {
-    "email": {
-      "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
-    },
-    "server": {
-      "unavailable": "Server není k dispozici"
-    },
-    "support": {
-      "disabled": "Kontaktní formulář zatím není k dispozici"
-    },
-    "unexpected": "Vyskytla se neočekávaná chyba",
-    "user": {
-      "exists": "E-mail již existuje uživatel: {user}",
-      "finalized": "Účet již byl dokončen"
-    }
-  },
-  "footer": {
-    "categorized": {
-      "catalog": {
-        "links": {
-          "documentations": "Dokumentace",
-          "moreInfo": "Další informace",
-          "products": "Zobrazit produkty"
-        },
-        "title": "API Catalog"
-      },
-      "help": {
-        "links": {
-          "contact": "kontaktujte nás",
-          "faq": "FAQ",
-          "support": "Support"
-        },
-        "title": "Potřebujete pomoc"
-      },
-      "howItWorks": {
-        "links": {
-          "blog": "Blog",
-          "ebooks": "ebooks",
-          "events": "události",
-          "news": "News"
-        },
-        "title": "Jak to funguje"
-      },
-      "resources": {
-        "links": {
-          "blog": "Blog",
-          "ebooks": "ebooks",
-          "events": "události",
-          "news": "News"
-        },
-        "title": "Zdroje"
-      }
-    },
-    "links": {
-      "cgu": "CGU",
-      "cookies": "cookies",
-      "mentions": "Právní upozornění",
-      "rgpd": "RGPD",
-      "status": "Status"
-    },
-    "rights": "© Všechna práva vyhrazena 2019"
-  },
-  "gv-card-api-full": {
-    "empty": "Žádné rozhraní API k zobrazení zde",
-    "error": "Při načítání API došlo k chybě"
-  },
-  "gv-card-api": {
-    "empty": "Žádné rozhraní API k zobrazení zde",
-    "error": "Při načítání API došlo k chybě"
-  },
-  "gv-contact": {
-    "apis": {
-      "label": "Najít API",
-      "title": "Přiřadit API"
-    },
-    "applications": {
-      "label": "Najít aplikaci",
-      "title": "Přiřadit aplikaci"
-    },
-    "button": "Odeslat požadavek",
-    "content": {
-      "label": "Vysvětlete svůj požadavek ...",
-      "title": "Vaše žádost"
-    },
-    "receiveCopy": "Přijmout kopii e-mailem",
-    "subject": {
-      "label": "Vysvětlete téma ...",
-      "title": "Subject"
-    },
-    "success": "Vaše žádost byla odeslána správci platformy",
-    "title": "Vaše žádost"
-  },
-  "gv-documentation": {
-    "empty": "Momentálně žádná dokumentace"
-  },
-  "gv-header-api": {
-    "contact": "Kontakt",
-    "empty": "Žádné rozhraní API k zobrazení zde",
-    "error": "Při načítání API došlo k chybě",
-    "subscribe": "Předplatit"
-  },
-  "gv-info-api": {
-    "categories": "Kategories",
-    "error": "Při načítání API došlo k chybě",
-    "labels": "Značka",
-    "metrics": "Několik čísel",
-    "moreInfo": "Více informací",
-    "ratings": "Poznámky",
-    "resources": "Zdroje"
-  },
-  "gv-list": {
-    "error": "Při načítání seznamu došlo k chybě"
-  },
-  "gv-metrics": {
-    "health": "Zdraví",
-    "hits": "Zásah",
-    "subscribers": "Předplatitelé"
-  },
-  "gv-page": {
-    "swagger": {
-      "badFormat": "Stránka, kterou se pokoušíte zobrazit, není ve formátu swagger / OpenAPI\n"
-    }
-  },
-  "gv-pagination": {
-    "next": "Další",
-    "previous": "Předchozí"
-  },
-  "gv-promote-api": {
-    "empty": "Žádné rozhraní API k zobrazení zde",
-    "error": "Při načítání API došlo k chybě",
-    "view": "Podívejte se na API"
-  },
-  "gv-rating": {
-    "notes": "Poznámky"
-  },
-  "gv-row-api": {
-    "empty": "Žádné výsledky k zobrazení",
-    "error": "Při načítání API došlo k chybě"
-  },
-  "homepage": {
-    "apis": "Rozhraní API tohoto okamžiku",
-    "explore": "Prozkoumejte API",
-    "signup": "Zaregistrujte se",
-    "title": "Uvolněte sílu vašich API."
-  },
-  "login": {
-    "button": "Přihlásit",
-    "notification": {
-      "error": "Neplatné uživatelské jméno nebo heslo"
-    },
-    "password": "Heslo",
-    "signup": {
-      "link": "Registrovat !",
-      "text": "Nemáte prozatím účet ?"
-    },
-    "title": "Kdo jste ?",
-    "username": "Uživatelské jméno",
-    "withProviders": "Nebo"
-  },
-  "registration": {
-    "backHome": "Zpátky na portal",
-    "backLogin": "Zpátky na přihlášení",
-    "button": "Registrovat",
-    "email": "Email",
-    "firstname": "Křestní jméno",
-    "lastname": "Přijmení",
-    "notification": {
-      "success": "Registrace potvrzena! E-mail byl odeslán na adresu: {email}"
-    },
-    "title": "Vytvořit účet"
-  },
-  "registrationConfirmation": {
-    "backHome": "Zpátky na portal",
-    "backLogin": "Zpátky na přihlášení",
-    "backRegistration": "Zpátky na registraci",
-    "button": "Potvrdit",
-    "confirmedPassword": "Potvrdit vaše heslo",
-    "email": "Email",
-    "firstname": "Křestní jméno",
-    "lastname": "Přijmení",
-    "notification": {
-      "success": "Vytvoření vašeho účtu je potvrzeno"
-    },
-    "password": "Vyberte heslo",
-    "title": "Potvrdit registraci",
-    "tokenExpired": "Platnost vašeho požadavku na vytvoření účtu vypršela"
-  },
-  "route": {
-    "apps": "Aplikace",
-    "catalog": "Katalog",
-    "catalogApi": "Obecné informace",
-    "catalogApiContact": "Kontakt",
-    "catalogApiDocumentation": "Dokumentace",
-    "catalogCategories": "Kategories",
-    "catalogCategory": "Kategorie",
-    "catalogFeatured": "Představoval",
-    "catalogStarred": "Označené hvězdičkou",
-    "catalogTrending": "Nejmodernější",
-    "contact": "Kontakt",
-    "dashboard": "Dashboard",
-    "documentation": "Dokumentace",
-    "homepage": "Domovská stránka",
-    "login": "Přihlásit",
-    "logout": "Odhlásit",
-    "user": "Můj účet"
-  },
-  "search": {
-    "results": {
-      "label": "{totalElements} výsledek"
-    }
-  },
-  "site": {
-    "title": "API portál Gravitee.io"
-  },
-  "user": {
-    "displayName": "Jméno",
-    "email": "Email",
-    "title": "Můj účet"
-  }
+	"api": {
+		"list": {
+			"connectedApp": "Připojené aplikace"
+		},
+		"miscellaneous": {
+			"lastUpdate": "Poslední aktualizace: ",
+			"publisher": "Vydavatel: ",
+			"version": "Verze: "
+		}
+	},
+	"apiSubscribe": {
+		"apps": {
+			"alreadyLinked": "Aplikace je již propojena",
+			"chooseApp": "Vyberte aplikaci",
+			"comment": "Zanechte vlastníkovi API komentář",
+			"createApp": "Chci vytvořit aplikaci",
+			"description": "Tato aplikace představuje spojení mezi vámi jako spotřebitelem a přihlášením k odběru plánu API.",
+			"linkedApp": "V rozhraní API <b>{apiName}</b>již máte <b>{count}</b> {count, plural, =0{} one{application liée} other{applications liées}} .",
+			"missingClientId": "client_id chybí"
+		},
+		"chooseApp": {
+			"title": "Volba aplikace"
+		},
+		"choosePlan": {
+			"title": "Volba plánu"
+		},
+		"connectedApp": "{count, plural, =0{} one{Application liée} other{Applications liées}} v plánu {planName}",
+		"errors": {
+			"information": "Během předplatného došlo k chybě.",
+			"notConnected": "Přihlaste se nebo si vytvořte účet a přihlaste se k odběru API.",
+			"sorry": "Promiň!"
+		},
+		"exit": "volno",
+		"nextStep": "následující",
+		"noPlans": {
+			"contact": "Chtěl bych kontaktovat majitele a zjistit více",
+			"description": "Rozhraní API nemá v tuto chvíli k dispozici žádný plán."
+		},
+		"plan": "Plán",
+		"plans": {
+			"description": "Základní katalog pro organizování mých API",
+			"sample": "Můžete začít používat API",
+			"title": "Plány a funkce"
+		},
+		"previousStep": "Předchozí",
+		"success": {
+			"congratulations": "Výborně!",
+			"subscriptionAccepted": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je přijato!",
+			"subscriptionKey": "Zde je váš osobní klíč pro přístup k API",
+			"subscriptionPending": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> se ověřuje.",
+			"subscriptionRejected": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je odmítnuto."
+		},
+		"validate": {
+			"askConfirmation": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> bude dokončeno.",
+			"information": "{hasAutoValidation, select, true{La validation est automatique, une fois la souscription terminée vous allez pouvoir utiliser l'API.} other{La validation de votre souscription requiert l'approbation du propriétaire, vous recevrez un email dès que votre accès sera validé. } }",
+			"notCompleted": "Předplatné API <b>{apiName}</b> není dokončeno, vraťte se k předchozím krokům a zadejte chybějící informace.",
+			"subscription": "Potvrďte požadavek",
+			"title": "Validace"
+		}
+	},
+	"catalog": {
+		"defaultView": "Všechna API",
+		"display": {
+			"cards": "Zobrazovací karty",
+			"list": "Zobrazit seznam"
+		},
+		"filter": "Filtrujte výsledky",
+		"othersApi": {
+			"subTitle": "Objevte různá API v titulcích tento měsíc",
+			"title": "Ostatní APIs"
+		},
+		"search": "Vyhledat API..."
+	},
+	"categories": {
+		"title": "Kategories"
+	},
+	"dashboard": {
+		"welcome": "Vítejte {username},"
+	},
+	"errors": {
+		"email": {
+			"required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
+		},
+		"plan": {
+			"notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
+			"subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
+		},
+		"server": {
+			"unavailable": "Server není k dispozici"
+		},
+		"support": {
+			"disabled": "Kontaktní formulář zatím není k dispozici"
+		},
+		"unexpected": "Vyskytla se neočekávaná chyba",
+		"user": {
+			"exists": "E-mail již existuje uživatel: {user}",
+			"finalized": "Účet již byl dokončen"
+		}
+	},
+	"footer": {
+		"categorized": {
+			"catalog": {
+				"links": {
+					"documentations": "Dokumentace",
+					"moreInfo": "Další informace",
+					"products": "Zobrazit produkty"
+				},
+				"title": "API Catalog"
+			},
+			"help": {
+				"links": {
+					"contact": "kontaktujte nás",
+					"faq": "FAQ",
+					"support": "Support"
+				},
+				"title": "Potřebujete pomoc"
+			},
+			"howItWorks": {
+				"links": {
+					"blog": "Blog",
+					"ebooks": "ebooks",
+					"events": "události",
+					"news": "News"
+				},
+				"title": "Jak to funguje"
+			},
+			"resources": {
+				"links": {
+					"blog": "Blog",
+					"ebooks": "ebooks",
+					"events": "události",
+					"news": "News"
+				},
+				"title": "Zdroje"
+			}
+		},
+		"links": {
+			"cgu": "CGU",
+			"cookies": "cookies",
+			"mentions": "Právní upozornění",
+			"rgpd": "RGPD",
+			"status": "Status"
+		},
+		"rights": "© Všechna práva vyhrazena 2019"
+	},
+	"gv-card-api": {
+		"empty": "Žádné rozhraní API k zobrazení zde",
+		"error": "Při načítání API došlo k chybě"
+	},
+	"gv-card-api-full": {
+		"empty": "Žádné rozhraní API k zobrazení zde",
+		"error": "Při načítání API došlo k chybě"
+	},
+	"gv-code": {
+		"copy": "Kopírovat do schránky"
+	},
+	"gv-contact": {
+		"apis": {
+			"label": "Najít API",
+			"title": "Přiřadit API"
+		},
+		"applications": {
+			"label": "Najít aplikaci",
+			"title": "Přiřadit aplikaci"
+		},
+		"button": "Odeslat požadavek",
+		"content": {
+			"label": "Vysvětlete svůj požadavek ...",
+			"title": "Vaše žádost"
+		},
+		"receiveCopy": "Přijmout kopii e-mailem",
+		"subject": {
+			"label": "Vysvětlete téma ...",
+			"title": "Subject"
+		},
+		"success": "Vaše žádost byla odeslána správci platformy",
+		"title": "Vaše žádost"
+	},
+	"gv-documentation": {
+		"empty": "Momentálně žádná dokumentace"
+	},
+	"gv-header-api": {
+		"empty": "Žádné rozhraní API k zobrazení zde",
+		"error": "Při načítání API došlo k chybě",
+		"subscribe": "Předplatit"
+	},
+	"gv-info-api": {
+		"about": "Asi",
+		"categories": "Kategories",
+		"error": "Při načítání API došlo k chybě",
+		"labels": "Značka",
+		"metrics": "Statistika",
+		"moreInfo": "Více informací",
+		"ratings": "Poznámky",
+		"resources": "Zdroje"
+	},
+	"gv-input": {
+		"copy": "Kopírovat do schránky",
+		"search": "vyhledávat"
+	},
+	"gv-list": {
+		"accepted": "přijatý",
+		"acceptedSubscription": "předplatné bylo přijato",
+		"acceptedSubscriptions": "předplatné přijato",
+		"error": "Při načítání seznamu došlo k chybě",
+		"paused": "Přestávka",
+		"pausedSubscription": "předplatné na přestávku",
+		"pausedSubscriptions": "předplatné na konec",
+		"pending": "Čekání",
+		"pendingSubscription": "čeká na předplatné",
+		"pendingSubscriptions": "čeká na odběr"
+	},
+	"gv-metrics": {
+		"health": "Zdraví",
+		"hits": "Zásah",
+		"subscribers": "Předplatitelé"
+	},
+	"gv-page": {
+		"swagger": {
+			"badFormat": "Stránka, kterou se pokoušíte zobrazit, není ve formátu swagger / OpenAPI\n"
+		}
+	},
+	"gv-pagination": {
+		"next": "Další",
+		"previous": "Předchozí"
+	},
+	"gv-plans": {
+		"security": {
+			"apiKey": "Osobní klíč API",
+			"jwt": "Json Web Token",
+			"keyLess": "Žádný klíč API",
+			"oauth2": "Oauth 2"
+		},
+		"validation": {
+			"auto": "Automatické ověření",
+			"manual": "Ruční ověření"
+		}
+	},
+	"gv-promote-api": {
+		"empty": "Žádné rozhraní API k zobrazení zde",
+		"error": "Při načítání API došlo k chybě",
+		"view": "Podívejte se na API"
+	},
+	"gv-rating": {
+		"notes": "Poznámky"
+	},
+	"gv-row-api": {
+		"empty": "Žádné výsledky k zobrazení",
+		"error": "Při načítání API došlo k chybě"
+	},
+	"homepage": {
+		"apis": "Rozhraní API tohoto okamžiku",
+		"explore": "Prozkoumejte API",
+		"signup": "Zaregistrujte se",
+		"title": "Uvolněte sílu vašich API."
+	},
+	"login": {
+		"button": "Přihlásit",
+		"notification": {
+			"error": "Neplatné uživatelské jméno nebo heslo"
+		},
+		"password": "Heslo",
+		"signup": {
+			"link": "Registrovat !",
+			"text": "Nemáte prozatím účet ?"
+		},
+		"title": "Kdo jste ?",
+		"username": "Uživatelské jméno",
+		"withProviders": "Nebo"
+	},
+	"registration": {
+		"backHome": "Zpátky na portal",
+		"backLogin": "Zpátky na přihlášení",
+		"button": "Registrovat",
+		"email": "Email",
+		"firstname": "Křestní jméno",
+		"lastname": "Přijmení",
+		"notification": {
+			"success": "Registrace potvrzena! E-mail byl odeslán na adresu: {email}"
+		},
+		"title": "Vytvořit účet"
+	},
+	"registrationConfirmation": {
+		"backHome": "Zpátky na portal",
+		"backLogin": "Zpátky na přihlášení",
+		"backRegistration": "Zpátky na registraci",
+		"button": "Potvrdit",
+		"confirmedPassword": "Potvrdit vaše heslo",
+		"email": "Email",
+		"firstname": "Křestní jméno",
+		"lastname": "Přijmení",
+		"notification": {
+			"success": "Vytvoření vašeho účtu je potvrzeno"
+		},
+		"password": "Vyberte heslo",
+		"title": "Potvrdit registraci",
+		"tokenExpired": "Platnost vašeho požadavku na vytvoření účtu vypršela"
+	},
+	"route": {
+		"apps": "Aplikace",
+		"catalog": "Katalog",
+		"catalogApi": "Obecné informace",
+		"catalogApiContact": "Kontakt",
+		"catalogApiDocumentation": "Dokumentace",
+		"catalogApiSubscribe": "Předplatné",
+		"catalogCategories": "Kategories",
+		"catalogCategory": "Kategorie",
+		"catalogFeatured": "Představoval",
+		"catalogStarred": "Označené hvězdičkou",
+		"catalogTrending": "Nejmodernější",
+		"contact": "Kontakt",
+		"dashboard": "Dashboard",
+		"documentation": "Dokumentace",
+		"homepage": "Domovská stránka",
+		"login": "Přihlásit",
+		"logout": "Odhlásit",
+		"user": "Můj účet"
+	},
+	"search": {
+		"results": {
+			"label": "{totalElements} výsledek"
+		}
+	},
+	"site": {
+		"title": "API portál Gravitee.io"
+	},
+	"user": {
+		"displayName": "Jméno",
+		"email": "Email",
+		"title": "Můj účet"
+	}
 }
