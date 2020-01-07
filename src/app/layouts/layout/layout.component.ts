@@ -137,6 +137,7 @@ export class LayoutComponent implements OnInit {
     return null;
   }
 
+  @HostListener(':gv-nav:click', ['$event.detail'])
   @HostListener(':gv-link:click', ['$event.detail'])
   onNavChange(route: INavRoute) {
     this.router.navigate([route.path]);
