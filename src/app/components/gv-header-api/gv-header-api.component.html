@@ -15,6 +15,6 @@
     limitations under the License.
 
 -->
-<gv-header-api slot="header" *ngIf="api" [api]="api"
+<gv-header slot="header" *ngIf="api" [item]="api"
                [canSubscribe]="canSubscribe()"
-               (:gv-header-api:subscribe)="onSubscribe()"></gv-header-api>
+               (:gv-header-api:subscribe)="onSubscribe()"></gv-header>

@@ -50,11 +50,11 @@ export class CategoriesComponent implements OnInit {
   }
 
   private _loadCards() {
-    return this.portalService.getViews({}).toPromise().then((response) => {
+    return this.portalService.getViews({ size: -1 }).toPromise().then((response) => {
       // @ts-ignore
       this.categories = response.data;
       // @ts-ignore
-      this.nbCategories = response.data.length;
+      this.nbCategories = response.metadata.data.total;
     });
   }
 

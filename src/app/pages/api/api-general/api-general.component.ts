@@ -15,7 +15,7 @@
  */
 import { Component, OnInit, HostListener } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
-import '@gravitee/ui-components/wc/gv-info-api';
+import '@gravitee/ui-components/wc/gv-info';
 import { ApiService, Api, Page } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiMetrics } from '@gravitee/ng-portal-webclient/model/apiMetrics';

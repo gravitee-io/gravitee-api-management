@@ -16,8 +16,12 @@
 
 -->
 <div class="page__content">
+  <h1 class="title">{{'applications.title' | translate}} <span>({{ nbApplications }})</span></h1>
   <section>
-    <h1>Applications</h1>
+    <div class="applications">
+      <gv-card-full *ngFor="let application of applications; let index = index" [item]="application"
+                    [metrics]="metrics[index]"></gv-card-full>
+    </div>
   </section>
 </div>
 

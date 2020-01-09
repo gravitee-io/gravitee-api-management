@@ -13,3 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+section {
+  display: flex;
+}
+
+.table-container {
+  width: 45%;
+}
+
+.table-between {
+  width: 10%;
+}

@@ -15,7 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { ApiService, Page } from '@gravitee/ng-portal-webclient';
-import { ActivatedRoute, Route } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-api-documentation',

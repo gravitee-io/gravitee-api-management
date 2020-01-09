@@ -67,7 +67,11 @@ export class NavRouteService {
         .map(async (child) => {
           const hasAuth = await this.authGuardService.canActivate(child);
           if (hasAuth === true) {
-            const path = `${ _parentPath }/${ child.path }`;
+            let path = `${ _parentPath }/${ child.path }`;
+            // remove trailing slash to allow empty path
+            if (path.endsWith('/')) {
+              path = path.substring(0, path.length - 1);
+            }
             const active = this.router.isActive(path, false);
             return this.translateService.get(child.data.title).toPromise().then((_title) => {
               const routeNav: INavRoute = {

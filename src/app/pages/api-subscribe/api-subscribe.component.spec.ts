@@ -19,7 +19,6 @@ import { ApiSubscribeComponent } from './api-subscribe.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateTestingModule } from '../../test/helper.spec';
-import { FilteredCatalogComponent } from '../catalog/filtered-catalog/filtered-catalog.component';
 import { ApiStatesPipe } from '../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';

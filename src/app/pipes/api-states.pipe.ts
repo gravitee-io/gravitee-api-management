@@ -22,10 +22,13 @@ import { Api } from '@gravitee/ng-portal-webclient';
 export class ApiStatesPipe implements PipeTransform {
 
   transform(api: Api, ...args: any[]): any {
+    const states = [];
     if (api.draft) {
-      return [{ value: 'draft' }];
+      states.push({ value: 'draft' });
     }
-    return [{ value: 'running', major: true }];
+    if (api.running) {
+      states.push({ value: 'running', major: true });
+    }
+    return states;
   }
-
 }

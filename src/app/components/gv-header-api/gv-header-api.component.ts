@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@gravitee/ui-components/wc/gv-header-api';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { Api, ApiService, Subscription, SubscriptionService, User } from '@gravitee/ng-portal-webclient';
+import '@gravitee/ui-components/wc/gv-header';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Api, ApiService, User } from '@gravitee/ng-portal-webclient';
 import { Component, OnInit } from '@angular/core';
 import { CurrentUserService } from '../../services/current-user.service';
 import { NavRouteService } from '../../services/nav-route.service';

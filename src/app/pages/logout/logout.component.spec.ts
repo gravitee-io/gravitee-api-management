@@ -21,8 +21,6 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateTestingModule } from '../../test/helper.spec';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { provideMock } from '../../test/mock.helper.spec';
-import { CurrentUserService } from '../../services/current-user.service';
-import { OAuthService } from 'angular-oauth2-oidc';
 import { AuthService } from '../../services/auth.service';
 
 describe('LogoutComponent', () => {

@@ -16,7 +16,6 @@
 import { TestBed } from '@angular/core/testing';
 import { CurrentUserService } from './current-user.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 
 describe('CurrentUserService', () => {
   beforeEach(() => TestBed.configureTestingModule({

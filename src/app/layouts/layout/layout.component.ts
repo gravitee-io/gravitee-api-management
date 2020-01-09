@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@gravitee/ui-components/wc/gv-header-api';
+import '@gravitee/ui-components/wc/gv-header';
 import '@gravitee/ui-components/wc/gv-menu';
 import '@gravitee/ui-components/wc/gv-nav';
 import '@gravitee/ui-components/wc/gv-user-menu';

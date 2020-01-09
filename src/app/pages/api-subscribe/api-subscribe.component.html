@@ -148,7 +148,7 @@
   </div>
 
   <aside>
-    <gv-info-api [api]="api" with-dc="true"></gv-info-api>
+    <gv-info [item]="api" with-dc="true"></gv-info>
     <gv-list [items]="linkedApps" title="{{ 'apiSubscribe.connectedApp' | translate: { planName: getPlanName(), count: linkedApps ? linkedApps.length : 0 } }}"></gv-list>
   </aside>
 

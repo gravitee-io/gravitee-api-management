@@ -15,21 +15,21 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AppsComponent } from './apps.component';
+import { SubscriptionsComponent } from './subscriptions.component';
 
-describe('AppsComponent', () => {
-  let component: AppsComponent;
-  let fixture: ComponentFixture<AppsComponent>;
+describe('SubscriptionsComponent', () => {
+  let component: SubscriptionsComponent;
+  let fixture: ComponentFixture<SubscriptionsComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ AppsComponent ]
+      declarations: [ SubscriptionsComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(AppsComponent);
+    fixture = TestBed.createComponent(SubscriptionsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

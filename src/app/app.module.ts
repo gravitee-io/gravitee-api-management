@@ -24,7 +24,8 @@ import { ApiStatesPipe } from './pipes/api-states.pipe';
 import { ApiSubscribeComponent } from './pages/api-subscribe/api-subscribe.component';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { AppsComponent } from './pages/apps/apps.component';
+import { ApplicationsComponent } from './pages/applications/applications.component';
+import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
@@ -75,7 +76,8 @@ import { AuthService } from './services/auth.service';
     ApiStatesPipe,
     ApiSubscribeComponent,
     AppComponent,
-    AppsComponent,
+    ApplicationsComponent,
+    SubscriptionsComponent,
     CatalogSearchComponent,
     CatalogSearchComponent,
     CategoriesComponent,

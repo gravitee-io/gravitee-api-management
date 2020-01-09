@@ -15,9 +15,9 @@
  */
 import { Component, HostListener, OnInit } from '@angular/core';
 import { Api, ApiService, CategoryApiQuery, PortalService, View, ApiMetrics } from '@gravitee/ng-portal-webclient';
-import '@gravitee/ui-components/wc/gv-promote-api';
-import '@gravitee/ui-components/wc/gv-card-api-full';
-import '@gravitee/ui-components/wc/gv-card-api';
+import '@gravitee/ui-components/wc/gv-promote';
+import '@gravitee/ui-components/wc/gv-card-full';
+import '@gravitee/ui-components/wc/gv-card';
 import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-option';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';

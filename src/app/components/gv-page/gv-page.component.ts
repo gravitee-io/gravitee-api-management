@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, ViewChild, ComponentFactoryResolver, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, ViewChild, ComponentFactoryResolver, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Page, PageConfiguration } from '@gravitee/ng-portal-webclient';
 
 import { GvPageContentSlotDirective } from 'src/app/directives/gv-page-content-slot.directive';

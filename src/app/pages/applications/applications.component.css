@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+section {
+  display: flex;
+}
 
-@Component({
-  selector: 'app-apps',
-  templateUrl: './apps.component.html',
-  styleUrls: ['./apps.component.css']
-})
-export class AppsComponent implements OnInit {
+.table-container {
+  width: 40%;
+}
 
-  constructor() { }
+.table-between {
+  width: 20%;
+}
 
-  ngOnInit() {
-  }
-
+.applications {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 1rem;
+  width: 100%;
 }

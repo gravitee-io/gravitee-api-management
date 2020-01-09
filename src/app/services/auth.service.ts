@@ -85,6 +85,7 @@ export class AuthService {
     return new Promise((resolve) => {
       if (this.getProviderId()) {
         this._fetchProviderAndConfigure().finally(() => {
+          this.removeProviderId();
           this._logout(resolve);
         });
       } else {
@@ -135,6 +136,10 @@ export class AuthService {
         () => resolve(false)
       );
     });
+  }
+
+  removeProviderId() {
+    localStorage.removeItem('user-provider-id');
   }
 
   storeProviderId(providerId) {

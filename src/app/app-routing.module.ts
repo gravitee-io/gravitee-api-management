@@ -18,7 +18,7 @@ import { ApiContactComponent } from './pages/api/api-contact/api-contact.compone
 import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
 import { ApiSubscribeComponent } from './pages/api-subscribe/api-subscribe.component';
-import { AppsComponent } from './pages/apps/apps.component';
+import { ApplicationsComponent } from './pages/applications/applications.component';
 import { AuthGuardService } from './services/auth-guard.service';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
@@ -41,6 +41,7 @@ import { RegistrationComponent } from './pages/registration/registration.compone
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
 import { Role } from './model/role.enum';
 import { RouterModule, Routes } from '@angular/router';
+import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
 
 export const routes: Routes = [
   {
@@ -169,7 +170,6 @@ export const routes: Routes = [
           }
         ]
       },
-      { path: 'apps', component: AppsComponent, data: { title: i18n('route.apps') } },
       { path: 'documentation', data: { title: i18n('route.documentation') }, component: DocumentationComponent },
       {
         path: 'user', data: { menu: { hiddenPaths: ['login', 'logout'] } },
@@ -214,6 +214,34 @@ export const routes: Routes = [
           },
           { path: 'registration', component: RegistrationComponent },
           { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent }
+        ]
+      },
+      {
+        path: 'applications',
+        canActivate: [AuthGuardService],
+        data: {
+          title: i18n('route.applications'),
+          menu: {},
+          expectedRole: Role.AUTH_USER
+        },
+        children: [
+          { path: '', redirectTo: 'mine', pathMatch: 'full' },
+          {
+            path: 'mine',
+            component: ApplicationsComponent,
+            data: {
+              title: i18n('route.myApplications'),
+              icon: 'devices:server',
+            }
+          },
+          {
+            path: 'subscriptions',
+            component: SubscriptionsComponent,
+            data: {
+              title: i18n('route.mySubscriptions'),
+              icon: 'finance:share',
+            }
+          }
         ]
       }
     ]

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
-import { ApiService, ApplicationsService, PortalService, User } from '@gravitee/ng-portal-webclient';
+import { ApiService, ApplicationsService, PortalService } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from '../../services/notification.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { LoaderService } from '../../services/loader.service';

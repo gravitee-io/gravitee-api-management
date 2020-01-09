@@ -23,9 +23,9 @@
     </div>
     <app-gv-page *ngIf="homepage" [page]="homepage"></app-gv-page>
   </section>
-  
+
   <aside class="api__aside">
-    <gv-info-api [api]="currentApi" [metrics]="currentApiMetrics" [resources]="resources" [miscellaneous]="miscellaneous"></gv-info-api>
+    <gv-info [item]="currentApi" [metrics]="currentApiMetrics" [resources]="resources" [miscellaneous]="miscellaneous"></gv-info>
     <gv-list [items]="linkedApp" title="{{ 'api.list.connectedApp' | translate }}"></gv-list>
   </aside>
 </div>

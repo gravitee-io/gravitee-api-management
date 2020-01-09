@@ -20,7 +20,6 @@ import { GvPageComponent } from '../../components/gv-page/gv-page.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { FilteredCatalogComponent } from '../catalog/filtered-catalog/filtered-catalog.component';
 import { ApiStatesPipe } from '../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';

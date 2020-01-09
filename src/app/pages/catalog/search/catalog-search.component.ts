@@ -16,7 +16,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 
 import '@gravitee/ui-components/wc/gv-input';
-import '@gravitee/ui-components/wc/gv-row-api';
+import '@gravitee/ui-components/wc/gv-row';
 import '@gravitee/ui-components/wc/gv-pagination';
 
 import { FormGroup, FormBuilder } from '@angular/forms';

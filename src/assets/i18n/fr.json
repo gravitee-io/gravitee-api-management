@@ -1,333 +1,363 @@
 {
-	"api": {
-		"list": {
-			"connectedApp": "Applications liées"
-		},
-		"miscellaneous": {
-			"lastUpdate": "Mise à jour : ",
-			"publisher": "Propriétaire : ",
-			"version": "Version : "
-		}
-	},
-	"apiSubscribe": {
-		"apps": {
-			"alreadyLinked": "Application déjà liée",
-			"chooseApp": "Sélectionner une application",
-			"comment": "Laisser un commentaire au propriétaire de l'API",
-			"createApp": "Je souhaite créer une application",
-			"description": "L’application est le lien entre vous, en tant que consommateur, et la souscription à un plan d’API.",
-			"linkedApp": "Vous avez déjà <b>{count}</b> {count, plural, =0{} one{application liée} other{applications liées}} à l'API <b>{apiName}</b>.",
-			"missingClientId": "client_id manquant"
-		},
-		"chooseApp": {
-			"title": "Choix de l'application"
-		},
-		"choosePlan": {
-			"title": "Choix du plan"
-		},
-		"connectedApp": "{count, plural, =0{} one{Application liée} other{Applications liées}} au plan {planName}",
-		"errors": {
-			"information": "Une erreur est survenue lors de la souscription.",
-			"notConnected": "Connectez-vous ou créer un compte pour souscrire à l'API.",
-			"sorry": "Désolé !"
-		},
-		"exit": "Quitter",
-		"nextStep": "Suivant",
-		"noPlans": {
-			"contact": "Je souhaite contacter le propriétaire pour en savoir plus",
-			"description": "L'API n'a pas de plan disponible pour le moment."
-		},
-		"plan": "Plan",
-		"plans": {
-			"description": "Un catalogue essentiel pour organiser mes APIs",
-			"sample": "Vous pouvez commencer à utiliser l'API",
-			"title": "Plans et fonctionnalités"
-		},
-		"previousStep": "Précédent",
-		"success": {
-			"congratulations": "Bravo !",
-			"subscriptionAccepted": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est acceptée!",
-			"subscriptionKey": "Voici votre clé personnelle pour accèder à l'API",
-			"subscriptionPending": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est en cours de validation.",
-			"subscriptionRejected": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est rejetée."
-		},
-		"validate": {
-			"askConfirmation": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est sur le point d'être finalisée.",
-			"information": "{hasAutoValidation, select, true{La validation est automatique, une fois la souscription terminée vous allez pouvoir utiliser l'API.} other{La validation de votre souscription requiert l'approbation du propriétaire, vous recevrez un email dès que votre accès sera validé. } }",
-			"notCompleted": "La souscription à l'API <b>{apiName}</b> n'est pas complète, revenez aux étapes précédentes et saisissez les informations manquantes.",
-			"subscription": "Valider la demande",
-			"title": "Validation"
-		}
-	},
-	"catalog": {
-		"defaultView": "Toutes les APIs",
-		"display": {
-			"cards": "Affichage carte",
-			"list": "Affichage liste"
-		},
-		"filter": "Filtrer les résultats",
-		"othersApi": {
-			"subTitle": "Découvrez les différentes APIs à la une ce mois-ci",
-			"title": "Les autres API's"
-		},
-		"search": "Rechercher une API"
-	},
-	"categories": {
-		"title": "Catégories"
-	},
-	"dashboard": {
-		"welcome": "Bienvenue {username},"
-	},
-	"errors": {
-		"email": {
-			"required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
-		},
-		"plan": {
-			"notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
-			"subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
-		},
-		"server": {
-			"unavailable": "Serveur indisponible"
-		},
-		"support": {
-			"disabled": "Le formulaire de contact n'est pas disponible pour le moment"
-		},
-		"unexpected": "Une erreur inattendue est survenue",
-		"user": {
-			"exists": "Il existe déjà un utilisateur avec l'email : {user}",
-			"finalized": "Le compte a déjà été finalisé"
-		}
-	},
-	"footer": {
-		"categorized": {
-			"catalog": {
-				"links": {
-					"documentations": "Documentations",
-					"moreInfo": "En savoir plus",
-					"products": "Voir les produits"
-				},
-				"title": "Catalogue d'API"
-			},
-			"help": {
-				"links": {
-					"contact": "Nous contacter",
-					"faq": "FAQ",
-					"support": "Support"
-				},
-				"title": "Besoin d'aide"
-			},
-			"howItWorks": {
-				"links": {
-					"blog": "Blog",
-					"ebooks": "Ebooks",
-					"events": "Événements",
-					"news": "Nouveautés"
-				},
-				"title": "Comment ça marche"
-			},
-			"resources": {
-				"links": {
-					"blog": "Blog",
-					"ebooks": "Ebooks",
-					"events": "Événements",
-					"news": "Nouveautés"
-				},
-				"title": "Ressources"
-			}
-		},
-		"links": {
-			"cgu": "CGU",
-			"cookies": "Cookies",
-			"mentions": "Mentions légales",
-			"rgpd": "RGPD",
-			"status": "Statut"
-		},
-		"rights": "© Droits réservés 2019"
-	},
-	"gv-card-api": {
-		"empty": "Aucune API à afficher ici",
-		"error": "Une erreur est survenue pendant de le chargement de l'API"
-	},
-	"gv-card-api-full": {
-		"empty": "Aucune API à afficher ici",
-		"error": "Une erreur est survenue pendant de le chargement de l'API"
-	},
-	"gv-code": {
-		"copy": "Copier dans le presse papier"
-	},
-	"gv-contact": {
-		"apis": {
-			"label": "Trouver une API",
-			"title": "Associer une API"
-		},
-		"applications": {
-			"label": "Trouver une application",
-			"title": "Associer une application"
-		},
-		"button": "Envoyer votre demande",
-		"content": {
-			"label": "Expliquer votre demande...",
-			"title": "Votre demande"
-		},
-		"receiveCopy": "Recevoir une copie par e-mail",
-		"subject": {
-			"label": "Expliquer le sujet...",
-			"title": "Sujet"
-		},
-		"success": "gv-contact.success",
-		"title": "Votre demande"
-	},
-	"gv-documentation": {
-		"empty": "Aucune documentation pour le moment"
-	},
-	"gv-header-api": {
-		"empty": "Aucune API à afficher ici",
-		"error": "Une erreur est survenue pendant de le chargement de l'API.",
-		"subscribe": "Souscrire"
-	},
-	"gv-info-api": {
-		"about": "À propos",
-		"categories": "Catégories",
-		"error": "Une erreur est survenue pendant le chargement des informations de l'API",
-		"labels": "Tags",
-		"metrics": "Statistiques",
-		"moreInfo": "Informations supplémentaires",
-		"ratings": "Notes",
-		"resources": "Ressources"
-	},
-	"gv-input": {
-		"copy": "Copier dans le presse papier",
-		"search": "Rechercher"
-	},
-	"gv-list": {
-		"accepted": "accepté",
-		"acceptedSubscription": "souscription acceptée",
-		"acceptedSubscriptions": "souscriptions acceptées",
-		"error": "Une erreur est survenue pendant de le chargement de la liste",
-		"paused": "En pause",
-		"pausedSubscription": "souscription en pause",
-		"pausedSubscriptions": "souscriptions en pause",
-		"pending": "en attente",
-		"pendingSubscription": "souscription en attente",
-		"pendingSubscriptions": "souscriptions en attente"
-	},
-	"gv-metrics": {
-		"health": "Santé",
-		"hits": "Appels",
-		"subscribers": "Souscriptions"
-	},
-	"gv-page": {
-		"swagger": {
-			"badFormat": "La page que vous essayez d'afficher n'est pas au format swagger / OpenAPI"
-		}
-	},
-	"gv-pagination": {
-		"next": "Suivant",
-		"previous": "Précédent"
-	},
-	"gv-plans": {
-		"security": {
-			"apiKey": "Clé d'API personnelle",
-			"jwt": "Json Web Token",
-			"keyLess": "Aucune clé d'API",
-			"oauth2": "Oauth 2"
-		},
-		"validation": {
-			"auto": "Validation automatique",
-			"manual": "Validation manuelle"
-		}
-	},
-	"gv-promote-api": {
-		"empty": "Aucune API à afficher ici",
-		"error": "Une erreur est survenue pendant de le chargement de l'API",
-		"view": "Voir l'API"
-	},
-	"gv-rating": {
-		"notes": "Notes"
-	},
-	"gv-row-api": {
-		"empty": "Aucun résultat à afficher",
-		"error": "Une erreur est survenue pendant de le chargement de l'API"
-	},
-	"homepage": {
-		"apis": "Les APIs du moment",
-		"explore": "Explorez les APIs",
-		"signup": "Créez un compte",
-		"title": "Libérez la puissance de vos APIs."
-	},
-	"login": {
-		"button": "Se connecter",
-		"notification": {
-			"error": "Identifiant ou mot de passe invalide"
-		},
-		"password": "Mot de passe",
-		"signup": {
-			"link": "Enregistrez-vous",
-			"text": "Pas encore de compte ?"
-		},
-		"title": "Identifiez-vous",
-		"username": "Identifiant",
-		"withProviders": "Ou"
-	},
-	"registration": {
-		"backHome": "Retour au portail",
-		"backLogin": "Retour à la page d'identification",
-		"button": "S'enregistrer",
-		"email": "Adresse email",
-		"firstname": "Prénom",
-		"lastname": "Nom",
-		"notification": {
-			"success": "Enregistrement confirmé ! Un email a été envoyé à : {email}"
-		},
-		"title": "Créer un compte"
-	},
-	"registrationConfirmation": {
-		"backHome": "Retour au portail",
-		"backLogin": "Retour à la page d'identification",
-		"backRegistration": "Retour à la page de création de compte",
-		"button": "Confirmer",
-		"confirmedPassword": "Confirmez le mot de passe",
-		"email": "Adresse email",
-		"firstname": "Prénom",
-		"lastname": "Nom",
-		"notification": {
-			"success": "Votre création de compte est confirmé"
-		},
-		"password": "Choisissez un mot de passe",
-		"title": "Finaliser son inscription",
-		"tokenExpired": "Votre demande de création de compte a expiré"
-	},
-	"route": {
-		"apps": "Applications",
-		"catalog": "Catalogue",
-		"catalogApi": "Informations générales",
-		"catalogApiContact": "Contact",
-		"catalogApiDocumentation": "Documentation",
-		"catalogApiSubscribe": "Souscription",
-		"catalogCategories": "Catégories",
-		"catalogCategory": "Catégorie",
-		"catalogFeatured": "Les APIs mises en avant",
-		"catalogStarred": "Les mieux notées",
-		"catalogTrending": "Les + tendances",
-		"contact": "Contact",
-		"dashboard": "Tableau de bord",
-		"documentation": "Documentation",
-		"homepage": "Page d'accueil",
-		"login": "Se connecter",
-		"logout": "Se déconnecter",
-		"user": "Mon compte"
-	},
-	"search": {
-		"results": {
-			"label": "{totalElements} résultat(s)"
-		}
-	},
-	"site": {
-		"title": "Portail d'API de Gravitee.io"
-	},
-	"user": {
-		"displayName": "Nom",
-		"email": "Email",
-		"title": "Mon compte"
-	}
+  "api": {
+    "list": {
+      "connectedApp": "Applications liées"
+    },
+    "miscellaneous": {
+      "lastUpdate": "Mise à jour : ",
+      "publisher": "Propriétaire : ",
+      "version": "Version : "
+    }
+  },
+  "apiSubscribe": {
+    "apps": {
+      "alreadyLinked": "Application déjà liée",
+      "chooseApp": "Sélectionner une application",
+      "comment": "Laisser un commentaire au propriétaire de l'API",
+      "createApp": "Je souhaite créer une application",
+      "description": "L’application est le lien entre vous, en tant que consommateur, et la souscription à un plan d’API.",
+      "linkedApp": "Vous avez déjà <b>{count}</b> {count, plural, =0{} one{application liée} other{applications liées}} à l'API <b>{apiName}</b>.",
+      "missingClientId": "client_id manquant"
+    },
+    "chooseApp": {
+      "title": "Choix de l'application"
+    },
+    "choosePlan": {
+      "title": "Choix du plan"
+    },
+    "connectedApp": "{count, plural, =0{} one{Application liée} other{Applications liées}} au plan {planName}",
+    "errors": {
+      "information": "Une erreur est survenue lors de la souscription.",
+      "notConnected": "Connectez-vous ou créer un compte pour souscrire à l'API.",
+      "sorry": "Désolé !"
+    },
+    "exit": "Quitter",
+    "nextStep": "Suivant",
+    "noPlans": {
+      "contact": "Je souhaite contacter le propriétaire pour en savoir plus",
+      "description": "L'API n'a pas de plan disponible pour le moment."
+    },
+    "plan": "Plan",
+    "plans": {
+      "description": "Un catalogue essentiel pour organiser mes APIs",
+      "sample": "Vous pouvez commencer à utiliser l'API",
+      "title": "Plans et fonctionnalités"
+    },
+    "previousStep": "Précédent",
+    "success": {
+      "congratulations": "Bravo !",
+      "subscriptionAccepted": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est acceptée!",
+      "subscriptionKey": "Voici votre clé personnelle pour accèder à l'API",
+      "subscriptionPending": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est en cours de validation.",
+      "subscriptionRejected": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est rejetée."
+    },
+    "validate": {
+      "askConfirmation": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est sur le point d'être finalisée.",
+      "information": "{hasAutoValidation, select, true{La validation est automatique, une fois la souscription terminée vous allez pouvoir utiliser l'API.} other{La validation de votre souscription requiert l'approbation du propriétaire, vous recevrez un email dès que votre accès sera validé. } }",
+      "notCompleted": "La souscription à l'API <b>{apiName}</b> n'est pas complète, revenez aux étapes précédentes et saisissez les informations manquantes.",
+      "subscription": "Valider la demande",
+      "title": "Validation"
+    }
+  },
+  "applications": {
+    "title": "Mes applications"
+  },
+  "catalog": {
+    "defaultView": "Toutes les APIs",
+    "display": {
+      "cards": "Affichage carte",
+      "list": "Affichage liste"
+    },
+    "filter": "Filtrer les résultats",
+    "othersApi": {
+      "subTitle": "Découvrez les différentes APIs à la une ce mois-ci",
+      "title": "Les autres API's"
+    },
+    "search": "Rechercher une API"
+  },
+  "categories": {
+    "title": "Catégories"
+  },
+  "dashboard": {
+    "welcome": "Bienvenue {username},"
+  },
+  "errors": {
+    "email": {
+      "required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
+    },
+    "plan": {
+      "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
+      "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
+    },
+    "server": {
+      "unavailable": "Serveur indisponible"
+    },
+    "support": {
+      "disabled": "Le formulaire de contact n'est pas disponible pour le moment"
+    },
+    "unexpected": "Une erreur inattendue est survenue",
+    "user": {
+      "exists": "Il existe déjà un utilisateur avec l'email : {user}",
+      "finalized": "Le compte a déjà été finalisé"
+    }
+  },
+  "footer": {
+    "categorized": {
+      "catalog": {
+        "links": {
+          "documentations": "Documentations",
+          "moreInfo": "En savoir plus",
+          "products": "Voir les produits"
+        },
+        "title": "Catalogue d'API"
+      },
+      "help": {
+        "links": {
+          "contact": "Nous contacter",
+          "faq": "FAQ",
+          "support": "Support"
+        },
+        "title": "Besoin d'aide"
+      },
+      "howItWorks": {
+        "links": {
+          "blog": "Blog",
+          "ebooks": "Ebooks",
+          "events": "Événements",
+          "news": "Nouveautés"
+        },
+        "title": "Comment ça marche"
+      },
+      "resources": {
+        "links": {
+          "blog": "Blog",
+          "ebooks": "Ebooks",
+          "events": "Événements",
+          "news": "Nouveautés"
+        },
+        "title": "Ressources"
+      }
+    },
+    "links": {
+      "cgu": "CGU",
+      "cookies": "Cookies",
+      "mentions": "Mentions légales",
+      "rgpd": "RGPD",
+      "status": "Statut"
+    },
+    "rights": "© Droits réservés 2019"
+  },
+  "gv-card-full": {
+    "empty": "Aucune API à afficher ici",
+    "error": "Une erreur est survenue pendant de le chargement de l'API"
+  },
+  "gv-card": {
+    "empty": "Aucune API à afficher ici",
+    "error": "Une erreur est survenue pendant de le chargement de l'API"
+  },
+  "gv-code": {
+    "copy": "Copier dans le presse papier"
+  },
+  "gv-contact": {
+    "apis": {
+      "label": "Trouver une API",
+      "title": "Associer une API"
+    },
+    "applications": {
+      "label": "Trouver une application",
+      "title": "Associer une application"
+    },
+    "button": "Envoyer votre demande",
+    "content": {
+      "label": "Expliquer votre demande...",
+      "title": "Votre demande"
+    },
+    "receiveCopy": "Recevoir une copie par e-mail",
+    "subject": {
+      "label": "Expliquer le sujet...",
+      "title": "Sujet"
+    },
+    "success": "Votre demande a été envoyé au responsable",
+    "title": "Votre demande"
+  },
+  "gv-documentation": {
+    "empty": "Aucune documentation pour le moment"
+  },
+  "gv-header": {
+    "empty": "Aucune API à afficher ici",
+    "error": "Une erreur est survenue pendant de le chargement de l'API.",
+    "subscribe": "Souscrire"
+  },
+  "gv-info": {
+    "about": "À propos",
+    "categories": "Catégories",
+    "error": "Une erreur est survenue pendant le chargement des informations de l'API",
+    "labels": "Tags",
+    "metrics": "Statistiques",
+    "moreInfo": "Informations supplémentaires",
+    "ratings": "Notes",
+    "resources": "Ressources"
+  },
+  "gv-input": {
+    "copy": "Copier dans le presse papier",
+    "search": "Rechercher"
+  },
+  "gv-list": {
+    "accepted": "accepté",
+    "acceptedSubscription": "souscription acceptée",
+    "acceptedSubscriptions": "souscriptions acceptées",
+    "error": "Une erreur est survenue pendant de le chargement de la liste",
+    "paused": "En pause",
+    "pausedSubscription": "souscription en pause",
+    "pausedSubscriptions": "souscriptions en pause",
+    "pending": "en attente",
+    "pendingSubscription": "souscription en attente",
+    "pendingSubscriptions": "souscriptions en attente"
+  },
+  "gv-metrics": {
+    "health": "Santé",
+    "hits": "Appels",
+    "subscribers": "Souscriptions"
+  },
+  "gv-page": {
+    "swagger": {
+      "badFormat": "La page que vous essayez d'afficher n'est pas au format swagger / OpenAPI"
+    }
+  },
+  "gv-pagination": {
+    "next": "Suivant",
+    "previous": "Précédent"
+  },
+  "gv-plans": {
+    "security": {
+      "apiKey": "Clé d'API personnelle",
+      "jwt": "Json Web Token",
+      "keyLess": "Aucune clé d'API",
+      "oauth2": "Oauth 2"
+    },
+    "validation": {
+      "auto": "Validation automatique",
+      "manual": "Validation manuelle"
+    }
+  },
+  "gv-promote": {
+    "empty": "Aucune API à afficher ici",
+    "error": "Une erreur est survenue pendant de le chargement de l'API",
+    "view": "Voir l'API"
+  },
+  "gv-rating": {
+    "notes": "Notes"
+  },
+  "gv-row": {
+    "empty": "Aucun résultat à afficher",
+    "error": "Une erreur est survenue pendant de le chargement de l'API"
+  },
+  "gv-table": {
+    "accepted": "Accepté",
+    "paused": "En pause",
+    "pending": "En attente",
+    "rejected": "Rejeté"
+  },
+  "homepage": {
+    "apis": "Les APIs du moment",
+    "explore": "Explorez les APIs",
+    "signup": "Créez un compte",
+    "title": "Libérez la puissance de vos APIs."
+  },
+  "login": {
+    "button": "Se connecter",
+    "notification": {
+      "error": "Identifiant ou mot de passe invalide"
+    },
+    "password": "Mot de passe",
+    "signup": {
+      "link": "Enregistrez-vous",
+      "text": "Pas encore de compte ?"
+    },
+    "title": "Identifiez-vous",
+    "username": "Identifiant",
+    "withProviders": "Ou"
+  },
+  "registration": {
+    "backHome": "Retour au portail",
+    "backLogin": "Retour à la page d'identification",
+    "button": "S'enregistrer",
+    "email": "Adresse email",
+    "firstname": "Prénom",
+    "lastname": "Nom",
+    "notification": {
+      "success": "Enregistrement confirmé ! Un email a été envoyé à : {email}"
+    },
+    "title": "Créer un compte"
+  },
+  "registrationConfirmation": {
+    "backHome": "Retour au portail",
+    "backLogin": "Retour à la page d'identification",
+    "backRegistration": "Retour à la page de création de compte",
+    "button": "Confirmer",
+    "confirmedPassword": "Confirmez le mot de passe",
+    "email": "Adresse email",
+    "firstname": "Prénom",
+    "lastname": "Nom",
+    "notification": {
+      "success": "Votre création de compte est confirmé"
+    },
+    "password": "Choisissez un mot de passe",
+    "title": "Finaliser son inscription",
+    "tokenExpired": "Votre demande de création de compte a expiré"
+  },
+  "route": {
+    "applications": "Applications",
+    "catalog": "Catalogue",
+    "catalogApi": "Informations générales",
+    "catalogApiContact": "Contact",
+    "catalogApiDocumentation": "Documentation",
+    "catalogApiSubscribe": "Souscription",
+    "catalogCategories": "Catégories",
+    "catalogCategory": "Catégorie",
+    "catalogFeatured": "Les APIs mises en avant",
+    "catalogStarred": "Les mieux notées",
+    "catalogTrending": "Les + tendances",
+    "contact": "Contact",
+    "dashboard": "Tableau de bord",
+    "documentation": "Documentation",
+    "homepage": "Page d'accueil",
+    "login": "Se connecter",
+    "logout": "Se déconnecter",
+    "myApplications": "Mes applications",
+    "mySubscriptions": "Mes souscriptions",
+    "user": "Mon compte"
+  },
+  "search": {
+    "results": {
+      "label": "{totalElements} résultat(s)"
+    }
+  },
+  "site": {
+    "title": "Portail d'API de Gravitee.io"
+  },
+  "subscriptions": {
+    "applications": {
+      "init": "Vous n'avez pas d'application",
+      "last_update": "Dernière mise à jour",
+      "name": "Name",
+      "owner": "Propriétaire",
+      "title": "Applications"
+    },
+    "subscriptions": {
+      "api": "API",
+      "empty": "Pas de souscriptions pour cette application",
+      "end_date": "Date de fin",
+      "init": "Passer sur une application pour voir ses souscriptions",
+      "plan": "Plan",
+      "start_date": "Date de début",
+      "title": "Souscriptions"
+    },
+    "title": "Mes souscriptions"
+  },
+  "user": {
+    "displayName": "Nom",
+    "email": "Email",
+    "title": "Mon compte"
+  }
 }

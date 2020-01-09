@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, HostListener, Input, OnInit } from '@angular/core';
-import { Page, PortalService } from '@gravitee/ng-portal-webclient';
+import { Page } from '@gravitee/ng-portal-webclient';
 import { TreeItem } from '../../model/tree-item';
 import { NotificationService } from '../../services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';

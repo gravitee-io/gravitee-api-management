@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { ApplicationsService, ApiService, PortalService } from '@gravitee/ng-portal-webclient';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { Component } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-text';
 import '@gravitee/ui-components/wc/gv-checkbox';
-import { NotificationService } from '../../services/notification.service';
-import { LoaderService } from '../../services/loader.service';
-import { CurrentUserService } from '../../services/current-user.service';
-import { ActivatedRoute } from '@angular/router';
-import { delay } from 'rxjs/operators';
 
 @Component({
   selector: 'app-contact',

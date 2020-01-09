@@ -17,9 +17,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ApiDocumentationComponent } from './api-documentation.component';
 import { provideMock } from '../../../test/mock.helper.spec';
-import { PortalService, UserService } from '@gravitee/ng-portal-webclient';
-import { CurrentUserService } from '../../../services/current-user.service';
-import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
+import { PortalService } from '@gravitee/ng-portal-webclient';
 import { GvDocumentationComponent } from '../../../components/gv-documentation/gv-documentation.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TranslateTestingModule } from '../../../test/helper.spec';
