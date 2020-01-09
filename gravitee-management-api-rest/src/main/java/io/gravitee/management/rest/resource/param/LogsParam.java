@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.rest.resource.param;
 
+import io.swagger.annotations.ApiParam;
+
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
@@ -32,6 +34,9 @@ public class LogsParam {
     @QueryParam("to")
     private long to;
 
+    @ApiParam(name="query",
+            value = "The expresion used to search for logs. It looks like 'transaction:123-456-789 AND uri=\\\\/path\\\\/to\\\\/resource* AND response-time:[100 TO 200]'." +
+                    " Reserved characters that must be escaped + - = && || > < ! ( ) { } [ ] ^ \" ~ * ? : \\ /")
     @QueryParam("query")
     private String query;
 
