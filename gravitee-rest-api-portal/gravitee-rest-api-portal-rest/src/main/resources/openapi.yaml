@@ -1102,6 +1102,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/subscriptionApiQueryParam'
         - $ref: '#/components/parameters/subscriptionApplicationQueryParam'
+        - $ref: '#/components/parameters/subscriptionStatusesQueryParam'
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
       description: |
@@ -2106,6 +2107,21 @@ components:
       description: Id of an application.
       schema:
         type: string
+    subscriptionStatusesQueryParam:
+      name: statuses
+      in: query
+      required: false
+      description: Id of an application.
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - ACCEPTED
+            - CLOSED
+            - PAUSED
+            - PENDING
+            - REJECTED
     subscriptionIncludeQueryParam:
       name: include
       in: query
@@ -2311,7 +2327,13 @@ components:
           type: string
         draft:
           type: boolean
+          description: Whether or not the API is in draft.
+        public:
+          type: boolean
           description: Whether or not the API is public.
+        running:
+          type: boolean
+          description: Whether or not the API is running.
         entrypoints:
           description: List of all the avaible endpoints to call the API.
           type: array

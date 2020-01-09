@@ -20,10 +20,13 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Links;
+import io.gravitee.rest.api.portal.rest.model.Subscription;
+import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
+import io.gravitee.rest.api.portal.rest.model.SubscriptionsResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -31,17 +34,17 @@ import org.mockito.Mockito;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
+import static org.mockito.internal.util.collections.Sets.newSet;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -67,7 +70,10 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         subscriptionEntity1.setId(SUBSCRIPTION);
         SubscriptionEntity subscriptionEntity2 = new SubscriptionEntity();
         subscriptionEntity2.setId(ANOTHER_SUBSCRIPTION);
-        doReturn(Arrays.asList(subscriptionEntity1, subscriptionEntity2)).when(subscriptionService).search(any());
+        final Page<SubscriptionEntity> subscriptionPage =
+                new Page<>(asList(subscriptionEntity1, subscriptionEntity2), 0, 1, 2);
+        doReturn(subscriptionPage.getContent()).when(subscriptionService).search(any());
+        doReturn(subscriptionPage).when(subscriptionService).search(any(), any());
 
         doReturn(new Subscription().id(SUBSCRIPTION)).when(subscriptionMapper).convert(subscriptionEntity1);
         doReturn(new Subscription().id(ANOTHER_SUBSCRIPTION)).when(subscriptionMapper).convert(subscriptionEntity2);
@@ -89,6 +95,10 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetSubscriptionsForApi() {
+        final ApplicationListItem application = new ApplicationListItem();
+        application.setId(APPLICATION);
+        doReturn(newSet(application)).when(applicationService).findByUser(any());
+
         final Response response = target().queryParam("apiId", API).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -99,21 +109,16 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNoSubscription() {
         final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
-        List<Error> errors = errorResponse.getErrors();
-        assertNotNull(errors);
-        assertEquals(1, errors.size());
-        Error error = errors.get(0);
-        assertEquals("errors.subscription.invalid", error.getCode());
-        assertEquals("400", error.getStatus());
-        assertEquals("At least an api or an application must be provided.", error.getMessage());
+        SubscriptionsResponse subscriptionResponse = response.readEntity(SubscriptionsResponse.class);
+        assertEquals(0, subscriptionResponse.getData().size());
     }
 
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
-        doReturn(Collections.EMPTY_LIST).when(subscriptionService).search(any());
+        final Page<SubscriptionEntity> subscriptionPage = new Page<>(emptyList(), 0, 1, 2);
+        doReturn(subscriptionPage).when(subscriptionService).search(any(), any());
 
         //Test with default limit
         final Response response = target().queryParam("apiId", API).request().get();

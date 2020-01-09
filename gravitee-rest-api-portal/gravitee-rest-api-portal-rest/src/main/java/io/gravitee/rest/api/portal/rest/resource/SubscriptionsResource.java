@@ -20,6 +20,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -28,9 +29,9 @@ import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.rest.api.service.exceptions.SubscriptionInvalidException;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -39,10 +40,13 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -55,9 +59,10 @@ public class SubscriptionsResource extends AbstractResource {
 
     @Inject
     private SubscriptionService subscriptionService;
-
     @Inject
     private SubscriptionMapper subscriptionMapper;
+    @Inject
+    private ApplicationService applicationService;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -80,30 +85,59 @@ public class SubscriptionsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getSubscriptions(@QueryParam("apiId") String apiId, @QueryParam("applicationId") String applicationId, @BeanParam PaginationParam paginationParam) {
-        if(apiId == null && applicationId == null) {
-            throw new SubscriptionInvalidException();
-        }
-        if((applicationId == null && !hasPermission(RolePermission.API_SUBSCRIPTION, apiId, RolePermissionAction.READ))
-                || (apiId == null && !hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ))
-                || (!hasPermission(RolePermission.API_SUBSCRIPTION, apiId, RolePermissionAction.READ) && !hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ))
+    public Response getSubscriptions(@QueryParam("apiId") String apiId, @QueryParam("applicationId") String applicationId,
+                                     @QueryParam("statuses") List<SubscriptionStatus> statuses, @BeanParam PaginationParam paginationParam) {
+        if (!(apiId == null && applicationId == null)) {
+            if (
+                    (applicationId == null && !hasPermission(RolePermission.API_SUBSCRIPTION, apiId, RolePermissionAction.READ)) ||
+                    (apiId == null && !hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ)) ||
+                    (
+                        apiId != null && !hasPermission(RolePermission.API_SUBSCRIPTION, apiId, RolePermissionAction.READ) &&
+                        applicationId != null && !hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ)
+                    )
             ) {
-            throw new ForbiddenAccessException();
+                throw new ForbiddenAccessException();
+            }
         }
 
-        SubscriptionQuery query = new SubscriptionQuery();
-        query.setApi(apiId);
-        query.setApplication(applicationId);
-        query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PENDING, SubscriptionStatus.PAUSED));
+        final SubscriptionQuery query = new SubscriptionQuery();
+        if (apiId != null) {
+            query.setApi(apiId);
+        }
+        if (applicationId != null) {
+            query.setApplication(applicationId);
+        }
+        if (statuses != null && !statuses.isEmpty()) {
+            query.setStatuses(statuses);
+        }
 
-        final Collection<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(query);
+        final boolean withoutPagination = paginationParam.getSize() != null && paginationParam.getSize().equals(-1);
 
-        List<Subscription> subscriptionList = pagedSubscriptions
+        if (applicationId == null) {
+            final Set<ApplicationListItem> applications = applicationService.findByUser(getAuthenticatedUser());
+            if (applications == null || applications.isEmpty()) {
+                return createListResponse(emptyList(), paginationParam, !withoutPagination);
+            }
+            query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toSet()));
+        }
+
+        final Collection<SubscriptionEntity> subscriptions;
+        if (withoutPagination) {
+            subscriptions = subscriptionService.search(query);
+        } else {
+            final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(query, new PageableImpl(paginationParam.getPage(), paginationParam.getSize()));
+            if (pagedSubscriptions == null) {
+                subscriptions = emptyList();
+            } else {
+                subscriptions = pagedSubscriptions.getContent();
+            }
+        }
+
+        final List<Subscription> subscriptionList = subscriptions
                 .stream()
                 .map(subscriptionMapper::convert)
                 .collect(Collectors.toList());
-
-        return createListResponse(subscriptionList, paginationParam);
+        return createListResponse(subscriptionList, paginationParam, !withoutPagination);
     }
 
     @Path("{subscriptionId}")

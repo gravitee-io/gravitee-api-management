@@ -709,9 +709,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiQuery = new ApiQuery();
         }
         apiQuery.setLifecycleStates(Arrays.asList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
-        
+
+        if (isAdmin()) {
+            return new HashSet<>(search(apiQuery));
+        }
         return findByUser(userId, apiQuery);
-        
     }
     
     @Override

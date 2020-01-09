@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -67,14 +69,16 @@ public class ApiMapper {
 
         apiItem.setDraft(api.getLifecycleState() == ApiLifecycleState.UNPUBLISHED
                 || api.getLifecycleState() == ApiLifecycleState.CREATED);
+        apiItem.setRunning(api.getState() == Lifecycle.State.STARTED);
+        apiItem.setPublic(api.getVisibility() == Visibility.PUBLIC);
 
         apiItem.setId(api.getId());
 
         List<String> apiLabels = api.getLabels();
         if (apiLabels != null) {
-            apiItem.setLabels(new ArrayList<String>(apiLabels));
+            apiItem.setLabels(new ArrayList<>(apiLabels));
         } else {
-            apiItem.setLabels(new ArrayList<String>());
+            apiItem.setLabels(new ArrayList<>());
         }
 
         apiItem.setName(api.getName());
@@ -114,7 +118,7 @@ public class ApiMapper {
                 }
             }).collect(Collectors.toList()));
         } else {
-            apiItem.setViews(new ArrayList<String>());
+            apiItem.setViews(new ArrayList<>());
         }
 
         return apiItem;

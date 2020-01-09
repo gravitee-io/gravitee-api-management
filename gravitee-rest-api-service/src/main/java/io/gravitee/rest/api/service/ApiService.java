@@ -36,7 +36,7 @@ public interface ApiService {
     Set<ApiEntity> findAllLight();
 
     Set<ApiEntity> findByUser(String userId, ApiQuery apiQuery);
-    
+
     Set<ApiEntity> findPublishedByUser(String userId);
     Set<ApiEntity> findPublishedByUser(String userId, ApiQuery apiQuery);
 
