@@ -66,7 +66,7 @@ import { UserAvatarComponent } from './components/user-avatar/user-avatar.compon
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth.service';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
-import {TranslationService} from './services/translation.service';
+import { TranslationService } from './services/translation.service';
 
 @NgModule({
   declarations: [

@@ -231,11 +231,12 @@ export const routes: Routes = [
       },
       {
         path: 'applications',
-        canActivate: [AuthGuardService],
+        canActivate: [AuthGuardService, FeatureGuardService],
         data: {
           title: i18n('route.applications'),
           menu: {},
-          expectedRole: Role.AUTH_USER
+          expectedRole: Role.AUTH_USER,
+          expectedFeature: FeatureEnum.applications,
         },
         children: [
           { path: '', redirectTo: 'mine', pathMatch: 'full' },

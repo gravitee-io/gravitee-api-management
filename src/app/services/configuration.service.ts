@@ -34,7 +34,7 @@ export class ConfigurationService {
     return new Promise((resolve) => {
       this.http.get('./assets/config.json').subscribe( (configJson: any) => {
         this.http.get(configJson.baseUrl + '/configuration').subscribe( (configPortal) => {
-          this.config = { ...configJson, ...configPortal };
+          this.config = this._deepMerge(configJson, configPortal);
           resolve(true);
         });
       });
@@ -43,5 +43,15 @@ export class ConfigurationService {
 
   public hasFeature(feature: FeatureEnum): boolean {
     return this.get(feature);
+  }
+
+  _deepMerge(target, source) {
+    for (const key of Object.keys(source)) {
+      if (source[key] instanceof Object && key in target) {
+        Object.assign(source[key], this._deepMerge(target[key], source[key]));
+      }
+    }
+    Object.assign(target || {}, source);
+    return target;
   }
 }

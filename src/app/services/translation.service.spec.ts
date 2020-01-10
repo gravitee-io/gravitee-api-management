@@ -15,9 +15,14 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { TranslationService } from './translation.service';
+import { TranslateTestingModule } from '../test/helper.spec';
 
 describe('TranslationService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
+  beforeEach(() => TestBed.configureTestingModule({
+    imports: [
+      TranslateTestingModule,
+    ]
+  }));
 
   it('should be created', () => {
     const service: TranslationService = TestBed.get(TranslationService);
