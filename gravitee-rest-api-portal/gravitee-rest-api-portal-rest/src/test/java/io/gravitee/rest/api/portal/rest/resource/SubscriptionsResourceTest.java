@@ -209,7 +209,8 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
         assertEquals(FORBIDDEN_403, target().queryParam("applicationId", APPLICATION).request().get().getStatus());
         assertEquals(OK_200, target().queryParam("apiId", API).request().get().getStatus());
-        assertEquals(OK_200, target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get().getStatus());
+
+        assertEquals(FORBIDDEN_403, target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get().getStatus());
 
         //----
 
@@ -217,7 +218,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         doReturn(true).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION,  APPLICATION,  RolePermissionAction.READ);
 
         assertEquals(OK_200, target().queryParam("applicationId", APPLICATION).request().get().getStatus());
-        assertEquals(FORBIDDEN_403, target().queryParam("apiId", API).request().get().getStatus());
+        assertEquals(OK_200, target().queryParam("apiId", API).request().get().getStatus());
         assertEquals(OK_200, target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get().getStatus());
 
         //----
@@ -226,7 +227,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         doReturn(false).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION,  APPLICATION,  RolePermissionAction.READ);
 
         assertEquals(FORBIDDEN_403, target().queryParam("applicationId", APPLICATION).request().get().getStatus());
-        assertEquals(FORBIDDEN_403, target().queryParam("apiId", API).request().get().getStatus());
+        assertEquals(OK_200, target().queryParam("apiId", API).request().get().getStatus());
         assertEquals(FORBIDDEN_403, target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get().getStatus());
     }
 }

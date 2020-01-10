@@ -68,7 +68,7 @@ public class SubscriptionsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createSubscription(@Valid @NotNull(message = "Input must not be null.") SubscriptionInput subscriptionInput) {
-        if(hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionInput.getApplication(), RolePermissionAction.CREATE)) {
+        if (hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionInput.getApplication(), RolePermissionAction.CREATE)) {
             NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
             newSubscriptionEntity.setApplication(subscriptionInput.getApplication());
             newSubscriptionEntity.setPlan(subscriptionInput.getPlan());
@@ -87,31 +87,11 @@ public class SubscriptionsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSubscriptions(@QueryParam("apiId") String apiId, @QueryParam("applicationId") String applicationId,
                                      @QueryParam("statuses") List<SubscriptionStatus> statuses, @BeanParam PaginationParam paginationParam) {
-        if (!(apiId == null && applicationId == null)) {
-            if (
-                    (applicationId == null && !hasPermission(RolePermission.API_SUBSCRIPTION, apiId, RolePermissionAction.READ)) ||
-                    (apiId == null && !hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ)) ||
-                    (
-                        apiId != null && !hasPermission(RolePermission.API_SUBSCRIPTION, apiId, RolePermissionAction.READ) &&
-                        applicationId != null && !hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ)
-                    )
-            ) {
-                throw new ForbiddenAccessException();
-            }
-        }
-
-        final SubscriptionQuery query = new SubscriptionQuery();
-        if (apiId != null) {
-            query.setApi(apiId);
-        }
-        if (applicationId != null) {
-            query.setApplication(applicationId);
-        }
-        if (statuses != null && !statuses.isEmpty()) {
-            query.setStatuses(statuses);
-        }
 
         final boolean withoutPagination = paginationParam.getSize() != null && paginationParam.getSize().equals(-1);
+        final SubscriptionQuery query = new SubscriptionQuery();
+        query.setApi(apiId);
+        query.setApplication(applicationId);
 
         if (applicationId == null) {
             final Set<ApplicationListItem> applications = applicationService.findByUser(getAuthenticatedUser());
@@ -119,6 +99,12 @@ public class SubscriptionsResource extends AbstractResource {
                 return createListResponse(emptyList(), paginationParam, !withoutPagination);
             }
             query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toSet()));
+        } else if (!hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ)) {
+            throw new ForbiddenAccessException();
+        }
+
+        if (statuses != null && !statuses.isEmpty()) {
+            query.setStatuses(statuses);
         }
 
         final Collection<SubscriptionEntity> subscriptions;

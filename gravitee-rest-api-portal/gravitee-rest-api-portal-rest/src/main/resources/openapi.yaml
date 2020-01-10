@@ -400,6 +400,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/forSubscriptionParam'
       summary: List all the applications accessible to authenticated user.
       description: |
         List all the applications accessible to authenticated user.
@@ -1970,6 +1971,15 @@ components:
           enum:
             - pages
             - plans
+
+    #Applications filtering
+    forSubscriptionParam:
+      name: forSubscription
+      in: query
+      required: false
+      description: If true, only return applications with APPLICATION_SUBSCRIPTION[CREATE] permission.
+      schema:
+        type: boolean
 
     #Pages filtering
     homePageQueryParam:

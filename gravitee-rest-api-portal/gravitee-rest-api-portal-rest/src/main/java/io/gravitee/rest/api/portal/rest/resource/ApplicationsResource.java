@@ -18,17 +18,12 @@ package io.gravitee.rest.api.portal.rest.resource;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -60,7 +55,7 @@ public class ApplicationsResource extends AbstractResource {
 
     @Inject
     private ApplicationService applicationService;
-    
+
     @Inject
     private ApplicationMapper applicationMapper;
 
@@ -68,7 +63,7 @@ public class ApplicationsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-        @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.CREATE),
     })
     public Response createApplication(@Valid @NotNull(message = "Input must not be null.") ApplicationInput applicationInput) {
         NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
@@ -78,19 +73,19 @@ public class ApplicationsResource extends AbstractResource {
 
         final io.gravitee.rest.api.portal.rest.model.ApplicationSettings settings = applicationInput.getSettings();
         ApplicationSettings newApplicationEntitySettings = new ApplicationSettings();
-        
-        if(settings == null || (settings.getApp()==null && settings.getOauth() == null)) {
+
+        if (settings == null || (settings.getApp() == null && settings.getOauth() == null)) {
             newApplicationEntity.setSettings(newApplicationEntitySettings);
         } else {
             final io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings simpleAppInput = settings.getApp();
-            if(simpleAppInput != null) {
+            if (simpleAppInput != null) {
                 SimpleApplicationSettings sas = new SimpleApplicationSettings();
                 sas.setClientId(simpleAppInput.getClientId());
                 sas.setType(simpleAppInput.getType());
-                
+
                 newApplicationEntitySettings.setApp(sas);
             }
-            
+
             final io.gravitee.rest.api.portal.rest.model.OAuthClientSettings oauthAppInput = settings.getOauth();
             if (oauthAppInput != null) {
                 OAuthClientSettings ocs = new OAuthClientSettings();
@@ -104,14 +99,14 @@ public class ApplicationsResource extends AbstractResource {
                 ocs.setRedirectUris(oauthAppInput.getRedirectUris());
                 ocs.setRenewClientSecretSupported(oauthAppInput.getRenewClientSecretSupported().booleanValue());
                 ocs.setResponseTypes(oauthAppInput.getResponseTypes());
-    
+
                 newApplicationEntitySettings.setoAuthClient(ocs);
             }
         }
         newApplicationEntity.setSettings(newApplicationEntitySettings);
-        
+
         ApplicationEntity createdApplicationEntity = applicationService.create(newApplicationEntity, getAuthenticatedUser());
-        
+
         return Response
                 .status(Response.Status.CREATED)
                 .entity(applicationMapper.convert(createdApplicationEntity))
@@ -121,29 +116,33 @@ public class ApplicationsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-        @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.READ),
-        @Permission(value = RolePermission.PORTAL_APPLICATION, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.PORTAL_APPLICATION, acls = RolePermissionAction.READ)
     })
-    public Response getApplications(@BeanParam PaginationParam paginationParam) {
-        
-        List<Application> applicationsList = applicationService.findByUser(getAuthenticatedUser())
+    public Response getApplications(@BeanParam PaginationParam paginationParam,
+                                    @QueryParam("forSubscription") final boolean forSubscription) {
+
+        Stream<Application> applicationStream = applicationService.findByUser(getAuthenticatedUser())
                 .stream()
                 .map(applicationMapper::convert)
-                .map(this::addApplicationLinks)
-                .collect(Collectors.toList())
-                ;
-        
+                .map(this::addApplicationLinks);
+
+        if (forSubscription) {
+            applicationStream = applicationStream.filter((app) -> this.hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, app.getId(), RolePermissionAction.CREATE));
+        }
+
+        List<Application> applicationsList = applicationStream.collect(Collectors.toList());
         return createListResponse(applicationsList, paginationParam);
     }
-    
+
     private Application addApplicationLinks(Application application) {
         String basePath = uriInfo.getAbsolutePathBuilder().path(application.getId()).build().toString();
         return application.links(applicationMapper.computeApplicationLinks(basePath));
     }
-    
+
     @Path("{applicationId}")
     public ApplicationResource getApplicationResource() {
         return resourceContext.getResource(ApplicationResource.class);
     }
-    
+
 }
