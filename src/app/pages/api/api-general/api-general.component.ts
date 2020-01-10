@@ -36,7 +36,6 @@ export class ApiGeneralComponent implements OnInit {
   linkedApp: Promise<any[]>;
   resources: any[];
   miscellaneous: any[];
-  isOnError: boolean;
   description: string;
   constructor(
     private apiServices: ApiService,

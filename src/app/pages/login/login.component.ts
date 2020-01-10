@@ -15,7 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { IdentityProvider, PortalService } from '@gravitee/ng-portal-webclient';
 
@@ -39,6 +39,7 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   registrationEnabled: boolean;
   providers: IdentityProvider[];
+  private redirectUrl: string;
 
   constructor(
     private portalService: PortalService,
@@ -47,6 +48,7 @@ export class LoginComponent implements OnInit {
     private notificationService: NotificationService,
     private config: ConfigurationService,
     private authService: AuthService,
+    private activatedRoute: ActivatedRoute,
   ) {
     if (config.hasFeature(FeatureEnum.localLogin)) {
       this.loginForm = this.formBuilder.group({
@@ -58,6 +60,7 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.redirectUrl = this.activatedRoute.snapshot.queryParams.redirectUrl || '/';
     this.portalService.getPortalIdentityProviders()
       .subscribe(
         (configurationIdentitiesResponse) => {
@@ -71,7 +74,7 @@ export class LoginComponent implements OnInit {
 
   login() {
     if (this.isFormValid()) {
-      this.authService.login(this.loginForm.value.username, this.loginForm.value.password).then(
+      this.authService.login(this.loginForm.value.username, this.loginForm.value.password, this.redirectUrl).then(
         () => {},
         () => { this.loginForm.setValue({ username: this.loginForm.value.username, password: '' }); }
       );
@@ -79,7 +82,7 @@ export class LoginComponent implements OnInit {
   }
 
   authenticate(provider) {
-    this.authService.authenticate(provider);
+    this.authService.authenticate(provider, this.redirectUrl);
   }
 
   isFormValid() {

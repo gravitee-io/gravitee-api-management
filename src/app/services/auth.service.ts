@@ -55,13 +55,13 @@ export class AuthService {
     });
   }
 
-  login(username: string, password: string): Promise<boolean> {
+  login(username: string, password: string, redirectUrl: string = ''): Promise<boolean> {
     return new Promise((resolve) => {
       const authorization: string = 'Basic ' + btoa(`${username}:${password}`);
       return this.authenticationService.login({ Authorization: authorization }).subscribe(
         () => {
           this.currentUserService.load().then(() => {
-            this.router.navigate(['']);
+            this.router.navigate([redirectUrl]);
           });
         },
         () => {
@@ -73,10 +73,10 @@ export class AuthService {
     });
   }
 
-  authenticate(provider) {
+  authenticate(provider, redirectUrl: string = '') {
     if (provider) {
       this.storeProviderId(provider.id);
-      this._configure(provider);
+      this._configure(provider, redirectUrl);
       this.oauthService.initCodeFlow();
     }
   }
@@ -106,7 +106,8 @@ export class AuthService {
     );
   }
 
-  private _configure(provider) {
+  private _configure(provider, redirectUrl= '') {
+    const redirectUri =  window.location.origin + redirectUrl;
     this.oauthService.configure({
       clientId: provider.client_id,
       loginUrl: provider.authorizationEndpoint,
@@ -117,8 +118,8 @@ export class AuthService {
       logoutUrl: provider.userLogoutEndpoint ? provider.userLogoutEndpoint + '?target_url=' + window.location.origin : '',
       scope: provider.scopes.join(' '),
       responseType: 'code',
-      redirectUri: window.location.origin,
-      postLogoutRedirectUri: window.location.origin,
+      redirectUri,
+      postLogoutRedirectUri: window.location.origin ,
     });
   }
 

@@ -22,13 +22,11 @@ import '@gravitee/ui-components/wc/gv-code';
 import { Api, ApiService, Application, ApplicationsService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Plan } from '@gravitee/ng-portal-webclient';
 import StatusEnum = Subscription.StatusEnum;
 import { distinctUntilChanged } from 'rxjs/operators';
 import { ConfigurationService } from '../../services/configuration.service';
-import { NotificationService } from '../../services/notification.service';
-import { CurrentUserService } from '../../services/current-user.service';
 
 @Component({
   selector: 'app-api-subscribe',
@@ -42,7 +40,6 @@ export class ApiSubscribeComponent implements OnInit {
   private _currentPlan: Plan;
   private _commentLabel: any;
   private _planLabel: any;
-  private _alreadyLinkedLabel: any;
   private _missingClientIdLabel: any;
   private _allSubscriptions: Array<Subscription>;
   private _subscription: Subscription;
@@ -53,7 +50,7 @@ export class ApiSubscribeComponent implements OnInit {
   plans: any;
   application: any;
   subscribeForm: FormGroup;
-  applicationsList: { label: string; value: string }[];
+  availableApplications: { label: string; value: string }[];
   linkedApps: any[];
   apiId: any;
   skeleton: boolean;
@@ -63,6 +60,7 @@ export class ApiSubscribeComponent implements OnInit {
   showValidateLoader: boolean;
   hasSubscriptionError: boolean;
   subscriptionError: string;
+  private _canSubscribe: boolean;
 
   constructor(private apiService: ApiService,
               private router: Router,
@@ -73,31 +71,23 @@ export class ApiSubscribeComponent implements OnInit {
               private subscriptionService: SubscriptionService,
               private formBuilder: FormBuilder,
               private configurationService: ConfigurationService,
-              private notificationService: NotificationService,
-              private currentUserService: CurrentUserService,
   ) {
     this.currentStep = 1;
     this.skeleton = true;
     this._applications = [];
+    this._canSubscribe = true;
   }
 
   async ngOnInit() {
-    this.currentUserService.get().subscribe((user) => {
-      if (user == null) {
-        this.router
-          .navigate(['/user/login'], { replaceUrl: true })
-          .then(() => this.notificationService.warning(i18n('apiSubscribe.errors.notConnected')));
-      }
-    });
+    this.linkedApps = [];
     this.subscribeForm = this.formBuilder.group({
-      application: new FormControl(null),
-      plan: new FormControl(null),
+      application: new FormControl(null, [Validators.required]),
+      plan: new FormControl(null, [Validators.required]),
       request: new FormControl(''),
     });
     this.translateService.get([
       i18n('apiSubscribe.apps.comment'),
       i18n('apiSubscribe.plan'),
-      i18n('apiSubscribe.apps.alreadyLinked'),
       i18n('apiSubscribe.apps.missingClientId')
     ])
       .toPromise()
@@ -105,8 +95,7 @@ export class ApiSubscribeComponent implements OnInit {
         const translations = Object.values(_translations);
         this._commentLabel = translations[0];
         this._planLabel = translations[1];
-        this._alreadyLinkedLabel = translations[2];
-        this._missingClientIdLabel = translations[3];
+        this._missingClientIdLabel = translations[2];
       });
 
     this.apiId = this.route.snapshot.params.apiId;
@@ -117,12 +106,10 @@ export class ApiSubscribeComponent implements OnInit {
     });
 
     Promise.all([
-      this.subscriptionService.getSubscriptions({ apiId: this.apiId, size: -1 }).toPromise(),
-      this.applicationsService.getApplications({ size: -1 }).toPromise(),
+      this.applicationsService.getApplications({ size: -1, forSubscription: true }).toPromise(),
       this.apiService.getApiPlansByApiId({ apiId: this.apiId }).toPromise(),
-    ]).then(([allSubscriptionsResponse, allAppsResponse, apiPlansResponse]) => {
-
-      this._allSubscriptions = allSubscriptionsResponse.data;
+      this.getSubscriptions(),
+    ]).then(([allAppsResponse, apiPlansResponse]) => {
       this.plans = apiPlansResponse.data;
       this._applications = allAppsResponse.data;
 
@@ -289,7 +276,6 @@ export class ApiSubscribeComponent implements OnInit {
         } else {
           this.apiSample = null;
         }
-
         this._subscription = subscription;
 
       } catch (exception) {
@@ -340,7 +326,7 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   hasValidateAction() {
-    return !this.canNext() && !this.isKeyLess() && !this.hasSubscription() && !this.hasSubscriptionError;
+    return this._canSubscribe === true && !this.canNext() && !this.isKeyLess() && !this.hasSubscription() && !this.hasSubscriptionError;
   }
 
   getSubscriptionKey() {
@@ -348,43 +334,44 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   private updateApplications() {
-    const subscribedApps = [];
-    if (this._subscription) {
-      this._allSubscriptions = [this._subscription].concat(this._allSubscriptions);
-    }
-    const plan = this.getCurrentPlan();
-    let disabled = false;
-    let title;
-    this.applicationsList = this._applications.map(application => {
-      disabled = false;
-      title = undefined;
-      const label = `${ application.name } (${ application.owner.display_name })`;
-      const appSubscriptions = this._allSubscriptions.filter((sub) => sub.application === application.id);
-      if (appSubscriptions.length > 0) {
-        const appPlansSubscriptions = appSubscriptions.filter((subscription) => subscription.plan === plan.id);
-        if (appPlansSubscriptions.length > 0) {
-          subscribedApps.push({
-            name: application.name,
-            description: application.description,
-            picture: (application._links ? application._links.picture : ''),
-            subscriptions: appPlansSubscriptions
-          });
-          disabled = !this.canSubscribe(appPlansSubscriptions, plan);
-          if (disabled) {
-            title = this._alreadyLinkedLabel;
+    if (this._allSubscriptions) {
+      const subscribedApps = [];
+      if (this._subscription) {
+        this._allSubscriptions = [this._subscription].concat(this._allSubscriptions);
+      }
+      const plan = this.getCurrentPlan();
+      let disabled = false;
+      let title;
+      this.availableApplications = this._applications.map(application => {
+        disabled = false;
+        title = undefined;
+        const label = `${ application.name } (${ application.owner.display_name })`;
+        const appSubscriptions = this._allSubscriptions.filter((sub) => sub.application === application.id);
+        if (appSubscriptions.length > 0) {
+          const appPlansSubscriptions = appSubscriptions.filter((subscription) => subscription.plan === plan.id);
+          if (appPlansSubscriptions.length > 0) {
+            subscribedApps.push({
+              name: application.name,
+              description: application.description,
+              picture: (application._links ? application._links.picture : ''),
+              subscriptions: appPlansSubscriptions
+            });
+            if (!this.canSubscribe(appPlansSubscriptions, plan)) {
+              return null;
+            }
           }
         }
-      }
-      if (!disabled) {
-        disabled = !this.isSecure(application, plan);
-        if (disabled) {
-          title = this._missingClientIdLabel;
+        if (!disabled) {
+          disabled = !this.isSecure(application, plan);
+          if (disabled) {
+            title = this._missingClientIdLabel;
+          }
         }
-      }
 
-      return { label, value: application.id, disabled, title };
-    });
-    this.linkedApps = subscribedApps;
+        return { label, value: application.id, disabled, title };
+      }).filter((app) => app !== null);
+      this.linkedApps = subscribedApps;
+    }
   }
 
   private getCreatedAt() {
@@ -405,4 +392,20 @@ export class ApiSubscribeComponent implements OnInit {
     return true;
   }
 
+  hasAvailableApplications() {
+    return this.availableApplications && this.availableApplications.length > 0;
+  }
+
+  private getSubscriptions() {
+    return this.subscriptionService.getSubscriptions({ apiId: this.apiId, size: -1, statuses: [ 'ACCEPTED', 'PENDING', 'PAUSED' ] })
+      .toPromise()
+      .then(response => {
+        this._allSubscriptions = response.data;
+      })
+      .catch((err) => {
+        if (err.status === 403) {
+          this._canSubscribe = false;
+        }
+      });
+  }
 }

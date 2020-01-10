@@ -66,6 +66,7 @@ import { UserAvatarComponent } from './components/user-avatar/user-avatar.compon
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth.service';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
+import {TranslationService} from './services/translation.service';
 
 @NgModule({
   declarations: [
@@ -133,7 +134,7 @@ import { SinglePageComponent } from './pages/single-page/single-page.component';
     {
       provide: APP_INITIALIZER,
       useFactory: initApp,
-      deps: [ConfigurationService, AuthService, CurrentUserService],
+      deps: [ConfigurationService, AuthService, CurrentUserService, TranslationService],
       multi: true
     },
     { provide: BASE_PATH, useFactory: (config: ConfigurationService) => config.get('baseUrl'), deps: [ConfigurationService] },
@@ -152,8 +153,9 @@ import { SinglePageComponent } from './pages/single-page/single-page.component';
 export class AppModule {
 }
 
-export function initApp(configurationService: ConfigurationService, authService: AuthService, currentUserService: CurrentUserService) {
+export function initApp(configurationService: ConfigurationService, authService: AuthService, currentUserService: CurrentUserService,
+                        translationService: TranslationService) {
   return () => configurationService.load().then(
-    () => authService.load().then(() => currentUserService.load())
+    () => authService.load().then(() => currentUserService.load().then(() => translationService.load()))
   );
 }

@@ -11,13 +11,13 @@
   },
   "apiSubscribe": {
     "apps": {
-      "alreadyLinked": "Application déjà liée",
       "chooseApp": "Sélectionner une application",
       "comment": "Laisser un commentaire au propriétaire de l'API",
       "createApp": "Je souhaite créer une application",
       "description": "L’application est le lien entre vous, en tant que consommateur, et la souscription à un plan d’API.",
       "linkedApp": "Vous avez déjà <b>{count}</b> {count, plural, =0{} one{application liée} other{applications liées}} à l'API <b>{apiName}</b>.",
-      "missingClientId": "client_id manquant"
+      "missingClientId": "client_id manquant",
+      "noAvailableApplications": "Il n'y a aucune application disponible."
     },
     "chooseApp": {
       "title": "Choix de l'application"
@@ -46,6 +46,8 @@
     "previousStep": "Précédent",
     "success": {
       "congratulations": "Bravo !",
+      "discoverApi": "Commencez à découvrir l'API",
+      "goToHome": "Retour à l'accueil",
       "subscriptionAccepted": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est acceptée!",
       "subscriptionKey": "Voici votre clé personnelle pour accèder à l'API",
       "subscriptionPending": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est en cours de validation.",
@@ -85,6 +87,7 @@
     "email": {
       "required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
     },
+    "forbidden": "Vous ne disposez pas des droits suffisants pour accéder à cette ressource",
     "plan": {
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
@@ -147,11 +150,11 @@
     },
     "rights": "© Droits réservés 2019"
   },
-  "gv-card-full": {
+  "gv-card": {
     "empty": "Aucune API à afficher ici",
     "error": "Une erreur est survenue pendant de le chargement de l'API"
   },
-  "gv-card": {
+  "gv-card-full": {
     "empty": "Aucune API à afficher ici",
     "error": "Une erreur est survenue pendant de le chargement de l'API"
   },
@@ -203,16 +206,9 @@
     "search": "Rechercher"
   },
   "gv-list": {
-    "accepted": "accepté",
-    "acceptedSubscription": "souscription acceptée",
-    "acceptedSubscriptions": "souscriptions acceptées",
     "error": "Une erreur est survenue pendant de le chargement de la liste",
     "paused": "En pause",
-    "pausedSubscription": "souscription en pause",
-    "pausedSubscriptions": "souscriptions en pause",
-    "pending": "en attente",
-    "pendingSubscription": "souscription en attente",
-    "pendingSubscriptions": "souscriptions en attente"
+    "pending": "En attente"
   },
   "gv-metrics": {
     "health": "Santé",

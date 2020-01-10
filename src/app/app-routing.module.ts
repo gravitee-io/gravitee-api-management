@@ -43,6 +43,7 @@ import { Role } from './model/role.enum';
 import { RouterModule, Routes } from '@angular/router';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
+import { SubscribeGuardService } from './services/subscribe-guard.service';
 
 export const routes: Routes = [
   {
@@ -108,6 +109,7 @@ export const routes: Routes = [
               {
                 path: ':apiId/subscribe',
                 component: ApiSubscribeComponent,
+                canActivate: [SubscribeGuardService],
                 data: {
                   breadcrumb: false,
                   title: i18n('route.catalogApiSubscribe'),

@@ -50,17 +50,19 @@
             <p>{{ 'apiSubscribe.apps.description' | translate }}</p>
             <p *ngIf="hasLinkedApp()"
                [innerHTML]="'apiSubscribe.apps.linkedApp' | translate:{ count: getLinkedAppCount(), apiName: apiName }"></p>
+            <p *ngIf="!hasAvailableApplications()"> <b>{{ 'apiSubscribe.apps.noAvailableApplications' | translate }}</b> </p>
             <a href="">{{ 'apiSubscribe.apps.createApp' | translate }}</a>
           </div>
 
-          <gv-select label="{{ 'apiSubscribe.apps.chooseApp' | translate }}"
-                     [options]="applicationsList"
+          <gv-select *ngIf="hasAvailableApplications()" label="{{ 'apiSubscribe.apps.chooseApp' | translate }}"
+                     [options]="availableApplications"
                      required
                      formControlName="application"
                      name="application"
                      ngDefaultControl></gv-select>
 
-          <gv-text [attr.label]="getCommentLabel()"
+          <gv-text *ngIf="hasAvailableApplications()"
+                   [attr.label]="getCommentLabel()"
                    [required]="hasRequiredComment()"
                    formControlName="request"
                    name="request"
@@ -91,7 +93,7 @@
           <div *ngIf="hasSubscriptionAccepted()">
             <div class="message subscription-accepted">
 
-              <gv-icon shape="general:thunder"></gv-icon>
+              <gv-icon class="success-icon" shape="general:thunder"></gv-icon>
               <h2>{{'apiSubscribe.success.congratulations' | translate}} </h2>
               <p
                 [innerHTML]="'apiSubscribe.success.subscriptionAccepted' | translate: {planName: getPlanName(), appName: getApplicationName(), apiName: apiName}"></p>
@@ -99,6 +101,10 @@
                 <span>{{'apiSubscribe.success.subscriptionKey' | translate}}</span>
                 <gv-input type="clipboard" [value]="getSubscriptionKey()" small></gv-input>
               </p>
+              <div class="success-links">
+                <a [routerLink]="['/' ]">{{ 'apiSubscribe.success.goToHome' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon></a>
+                <a [routerLink]="['/catalog/api', apiId ]">{{ 'apiSubscribe.success.discoverApi' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon></a>
+              </div>
             </div>
             <div>
               <h3>{{'apiSubscribe.plans.sample' | translate}}</h3>
@@ -107,10 +113,14 @@
           </div>
 
           <div class="message" *ngIf="hasSubscriptionPending()">
-            <gv-icon shape="communication:urgent-mail"></gv-icon>
+            <gv-icon class="success-icon" shape="home:timer"></gv-icon>
             <h2>{{'apiSubscribe.success.congratulations' | translate}} </h2>
             <p
               [innerHTML]="'apiSubscribe.success.subscriptionPending' | translate: {planName: getPlanName(), appName: getApplicationName(), apiName: apiName}"></p>
+            <div class="success-links">
+              <a [routerLink]="['/' ]">{{ 'apiSubscribe.success.goToHome' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon></a>
+              <a [routerLink]="['/catalog/api', apiId ]">{{ 'apiSubscribe.success.discoverApi' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon></a>
+            </div>
           </div>
 
           <div class="message" *ngIf="hasSubscriptionRejected()">
@@ -123,7 +133,8 @@
 
     <div class="actions" *ngIf="hasStepper()">
       <div>
-        <gv-button (click)="onExit()" secondary
+        <gv-button (click)="onExit()" outlined
+                   *ngIf="!hasSubscription()"
                    icon="code:stop">{{ 'apiSubscribe.exit' | translate }}</gv-button>
         <gv-button *ngIf="hasPreviousAction()" (click)="onPrevious()" primary outlined
                    [disabled]="!canPrevious()"

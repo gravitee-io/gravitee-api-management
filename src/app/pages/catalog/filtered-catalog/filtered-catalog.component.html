@@ -21,7 +21,7 @@
 
   <section class="catalog__section__top">
 
-    <gv-promote [item]="promotedApi" [metrics]="promotedMetrics" (:gv-promote-api:click)="goToApi(promotedApi)"></gv-promote>
+    <gv-promote [item]="promotedApi" [metrics]="promotedMetrics" (:gv-promote:click)="goToApi(promotedApi)"></gv-promote>
 
     <article class="catalog__article__random" *ngIf="!inCategory()">
       <h3 class="title">{{'catalog.othersApi.title' | translate}}

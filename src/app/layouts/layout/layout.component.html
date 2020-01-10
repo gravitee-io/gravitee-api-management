@@ -59,6 +59,7 @@
       </div>
       <div class="layout__footer__top__category" *ngFor="let category of links.footer">
         <span class="layout__footer__top__category__title">{{category.title | translate}}</span>
+        <div class="layout__footer__top__category__title_border"></div>
         <ul class="layout__footer__top__category__links">
           <li *ngFor="let link of category.links">
               <gv-link [path]="link.path" [target]="link.target" title="{{ link.title | translate }}"></gv-link>

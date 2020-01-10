@@ -16,7 +16,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ApplicationsComponent } from './applications.component';
-import { TranslateTestingModule } from 'src/app/test/helper.spec';
+import { TranslateTestingModule } from '../../test/helper.spec';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 
@@ -27,10 +27,10 @@ describe('ApplicationsComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ ApplicationsComponent ],
-      imports: [ HttpClientTestingModule, TranslateTestingModule ],
+      imports: [ TranslateTestingModule, HttpClientTestingModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
-      ]
+      ],
     })
     .compileComponents();
   }));

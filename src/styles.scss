@@ -6,8 +6,11 @@
 :root {
   font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
 
-  --gv-header-api--pl: var(--gv-theme-layout--pl);
-  --gv-header-api--pr: var(--gv-theme-layout--pr);
+  --gv-theme-font--c: #262626;
+  color: var(--gv-theme-font--c);
+
+  --gv-header--pl: var(--gv-theme-layout--pl);
+  --gv-header--pr: var(--gv-theme-layout--pr);
   --gv-menu--pl: var(--gv-theme-layout--pl);
   --gv-menu--pr: var(--gv-theme-layout--pr);
 

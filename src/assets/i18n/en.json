@@ -11,13 +11,13 @@
   },
   "apiSubscribe": {
     "apps": {
-      "alreadyLinked": "Application already linked",
       "chooseApp": "Choose an application",
       "comment": "Leave a comment to the API owner",
       "createApp": "I want to create an application",
       "description": "The app is the link between you, as a consumer, and subscribing to an API plan.",
       "linkedApp": "You already have <b>{count}</b> {count, plural, = 0 {} one {linked application} other {linked applications}} with the API <b>{apiName}</b>.",
-      "missingClientId": "Missing client_id"
+      "missingClientId": "Missing client_id",
+      "noAvailableApplications": "There are no apps available."
     },
     "chooseApp": {
       "title": "Choice of application"
@@ -46,6 +46,8 @@
     "previousStep": "Previous",
     "success": {
       "congratulations": "Bravo !",
+      "discoverApi": "Start discovering the API",
+      "goToHome": "Back to home",
       "subscriptionAccepted": "The subscription of the application <b>{appName}</b> to the plan <b>{planName}</b> of the API <b>{apiName}</b> is accepted!",
       "subscriptionKey": "Here is your personal key to access the API",
       "subscriptionPending": "The subscription of the application <b>{appName}</b> to the plan <b>{planName}</b> of the API <b>{apiName}</b> is being validated.",
@@ -60,7 +62,7 @@
     }
   },
   "applications": {
-    "title": "applications.title"
+    "title": "Applications"
   },
   "catalog": {
     "defaultView": "All the APIs",
@@ -85,6 +87,7 @@
     "email": {
       "required": "Please configure an e-mail to use the contact form"
     },
+    "forbidden": "You do not have sufficient rights to access this resource",
     "plan": {
       "notSubscribable": "A client_id is required to subscribe to an OAuth2 or JWT plan.",
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."
@@ -147,13 +150,13 @@
     },
     "rights": "© All rights reserved 2019"
   },
-  "gv-card-full": {
-    "empty": "gv-card-full.empty",
-    "error": "gv-card-full.error"
-  },
   "gv-card": {
-    "empty": "gv-card.empty",
-    "error": "gv-card.error"
+    "empty": "No API to display here",
+    "error": "An error occurred while loading the API"
+  },
+  "gv-card-full": {
+    "empty": "No API to display here",
+    "error": "An error occurred while loading the API"
   },
   "gv-code": {
     "copy": "Copy to clipboard"
@@ -184,35 +187,28 @@
     "empty": "No documentation for the moment"
   },
   "gv-header": {
-    "empty": "gv-header.empty",
-    "error": "gv-header.error",
-    "subscribe": "gv-header.subscribe"
+    "empty": "No API to display here",
+    "error": "An error occurred while loading the API",
+    "subscribe": "Subscribe"
   },
   "gv-info": {
-    "about": "gv-info.about",
-    "categories": "gv-info.categories",
-    "error": "gv-info.error",
-    "labels": "gv-info.labels",
-    "metrics": "gv-info.metrics",
-    "moreInfo": "gv-info.moreInfo",
-    "ratings": "gv-info.ratings",
-    "resources": "gv-info.resources"
+    "about": "About",
+    "categories": "Categories",
+    "error": "An error occurred while loading the API",
+    "labels": "Labels",
+    "metrics": "Metrics",
+    "moreInfo": "More information",
+    "ratings": "Ratings",
+    "resources": "Resources"
   },
   "gv-input": {
     "copy": "Copy to clipboard",
     "search": "Search"
   },
   "gv-list": {
-    "accepted": "Running",
-    "acceptedSubscription": "accepted subscription",
-    "acceptedSubscriptions": "accepted subscriptions",
     "error": "An error occurred while loading list",
     "paused": "Paused",
-    "pausedSubscription": "paused subscription",
-    "pausedSubscriptions": "paused subscriptions",
-    "pending": "Pending",
-    "pendingSubscription": "pending subscription",
-    "pendingSubscriptions": "pending subscriptions"
+    "pending": "Pending"
   },
   "gv-metrics": {
     "health": "Health",
@@ -241,22 +237,22 @@
     }
   },
   "gv-promote": {
-    "empty": "gv-promote.empty",
-    "error": "gv-promote.error",
-    "view": "gv-promote.view"
+    "empty": "No API to display here",
+    "error": "An error occurred while loading the API",
+    "view": "View API"
   },
   "gv-rating": {
     "notes": "Ratings"
   },
   "gv-row": {
-    "empty": "gv-row.empty",
-    "error": "gv-row.error"
+    "empty": "No results to display",
+    "error": "An error occurred while loading the API"
   },
   "gv-table": {
-    "accepted": "gv-table.accepted",
-    "paused": "gv-table.paused",
-    "pending": "gv-table.pending",
-    "rejected": "gv-table.rejected"
+    "accepted": "Accepted",
+    "paused": "Paused",
+    "pending": "Pending",
+    "rejected": "Rejected"
   },
   "homepage": {
     "apis": "APIs of the moment",
@@ -307,7 +303,7 @@
     "tokenExpired": "Your account creation request has expired"
   },
   "route": {
-    "applications": "route.applications",
+    "applications": "Applications",
     "catalog": "Catalog",
     "catalogApi": "General informations",
     "catalogApiContact": "Contact",
@@ -324,8 +320,8 @@
     "homepage": "Home page",
     "login": "Sign in",
     "logout": "Sign out",
-    "myApplications": "route.myApplications",
-    "mySubscriptions": "route.mySubscriptions",
+    "myApplications": "My applications",
+    "mySubscriptions": "My subscriptions",
     "user": "My account"
   },
   "search": {

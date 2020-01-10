@@ -88,11 +88,31 @@
 .subscription-accepted gv-input {
   margin-left: 10px;
   width: 280px;
-  --gv-icon--c: #262626;
+  --gv-icon--c: var(--gv-theme-font--c);
 }
 
-.step-3 {
+.step-3 .subscription-accepted a {
+  color: white;
+}
+
+.step-3 .success-icon {
   --gv-icon--s: 128px;
+}
+
+.step-3 a {
+  color:  var(--gv-theme-font--c);
+  text-decoration: none;
+  --gv-icon--s: 24px;
+}
+
+.success-links {
+  display: flex;
+  margin-top: 5rem;
+  font-weight: bold;
+}
+
+.success-links a {
+  flex: 1;
 }
 
 .step-2 gv-select {

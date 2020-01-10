@@ -54,13 +54,13 @@ export class GvContactComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.initFormGroup();
-    this.applicationsService.getApplications({ size: 100 })
+    this.applicationsService.getApplications({ size: -1 })
       .subscribe((response) => {
         this.applications = response.data.map(application => {
           return { label: `${ application.name } (${ application.owner.display_name })`, value: application.id };
         });
       });
-    this.apiService.getApis({ size: 100 })
+    this.apiService.getApis({ size: -1 })
       .subscribe((response) => {
         this.apis = response.data.map(api => {
           return { label: `${ api.name } (${ api.version })`, value: api.id };

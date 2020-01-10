@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { TestBed } from '@angular/core/testing';
+import { TranslationService } from './translation.service';
 
-i18n([
-  'errors.email.required',
-  'errors.forbidden',
-  'errors.support.disabled',
-  'errors.unexpected',
-  'errors.user.exists',
-  'errors.user.finalized',
-]);
+describe('TranslationService', () => {
+  beforeEach(() => TestBed.configureTestingModule({}));
+
+  it('should be created', () => {
+    const service: TranslationService = TestBed.get(TranslationService);
+    expect(service).toBeTruthy();
+  });
+});

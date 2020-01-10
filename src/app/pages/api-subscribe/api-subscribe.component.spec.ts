@@ -43,7 +43,7 @@ describe('ApiSubscribeComponent', () => {
       ],
       providers: [ApiStatesPipe, ApiLabelsPipe]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
 

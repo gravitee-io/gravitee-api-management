@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../environments/environment';
 import { Title } from '@angular/platform-browser';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { CurrentUserService } from './services/current-user.service';
 import { NotificationService } from './services/notification.service';
 import { ActivatedRoute, NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { NavRouteService } from './services/nav-route.service';
-import { addTranslations, setLanguage } from '@gravitee/ui-components/src/lib/i18n';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html'
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
 
   constructor(
     private titleService: Title,
@@ -47,17 +45,6 @@ export class AppComponent implements OnInit {
         this._setBrowserTitle(currentRoute);
       }
     });
-  }
-
-  ngOnInit() {
-    this.translateService.addLangs(environment.locales);
-    this.translateService.setDefaultLang(environment.locales[0]);
-    const browserLang = this.translateService.getBrowserLang();
-    this.translateService.use(environment.locales.includes(browserLang) ? browserLang : 'en').subscribe((translations) => {
-      setLanguage(this.translateService.currentLang);
-      addTranslations(this.translateService.currentLang, translations);
-    });
-    this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
   }
 
   private _setBrowserTitle(currentRoute: ActivatedRoute) {

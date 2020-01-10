@@ -11,13 +11,13 @@
   },
   "apiSubscribe": {
     "apps": {
-      "alreadyLinked": "Aplikace je již propojena",
       "chooseApp": "Vyberte aplikaci",
       "comment": "Zanechte vlastníkovi API komentář",
       "createApp": "Chci vytvořit aplikaci",
       "description": "Tato aplikace představuje spojení mezi vámi jako spotřebitelem a přihlášením k odběru plánu API.",
       "linkedApp": "V rozhraní API <b>{apiName}</b>již máte <b>{count}</b> {count, plural, =0{} one{application liée} other{applications liées}} .",
-      "missingClientId": "client_id chybí"
+      "missingClientId": "client_id chybí",
+      "noAvailableApplications": "Nejsou k dispozici žádné aplikace."
     },
     "chooseApp": {
       "title": "Volba aplikace"
@@ -46,6 +46,8 @@
     "previousStep": "Předchozí",
     "success": {
       "congratulations": "Výborně!",
+      "discoverApi": "Začněte objevovat API",
+      "goToHome": "Zpět na domovskou stránku",
       "subscriptionAccepted": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je přijato!",
       "subscriptionKey": "Zde je váš osobní klíč pro přístup k API",
       "subscriptionPending": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> se ověřuje.",
@@ -60,7 +62,7 @@
     }
   },
   "applications": {
-    "title": "applications.title"
+    "title": "Moje aplikace"
   },
   "catalog": {
     "defaultView": "Všechna API",
@@ -85,6 +87,7 @@
     "email": {
       "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
     },
+    "forbidden": "Nemáte dostatečná práva pro přístup k tomuto prostředku",
     "plan": {
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
@@ -147,13 +150,13 @@
     },
     "rights": "© Všechna práva vyhrazena 2019"
   },
-  "gv-card-full": {
-    "empty": "gv-card-full.empty",
-    "error": "gv-card-full.error"
-  },
   "gv-card": {
-    "empty": "gv-card.empty",
-    "error": "gv-card.error"
+    "empty": "Žádné rozhraní API k zobrazení zde",
+    "error": "Při načítání API došlo k chybě"
+  },
+  "gv-card-full": {
+    "empty": "Žádné rozhraní API k zobrazení zde",
+    "error": "Při načítání API došlo k chybě"
   },
   "gv-code": {
     "copy": "Kopírovat do schránky"
@@ -184,35 +187,28 @@
     "empty": "Momentálně žádná dokumentace"
   },
   "gv-header": {
-    "empty": "gv-header.empty",
-    "error": "gv-header.error",
-    "subscribe": "gv-header.subscribe"
+    "empty": "Žádné rozhraní API k zobrazení zde",
+    "error": "Při načítání API došlo k chybě.",
+    "subscribe": "Předplatit"
   },
   "gv-info": {
-    "about": "gv-info.about",
-    "categories": "gv-info.categories",
-    "error": "gv-info.error",
-    "labels": "gv-info.labels",
-    "metrics": "gv-info.metrics",
-    "moreInfo": "gv-info.moreInfo",
-    "ratings": "gv-info.ratings",
-    "resources": "gv-info.resources"
+    "about": "Asi",
+    "categories": "Kategorie",
+    "error": "Při načítání informací API došlo k chybě",
+    "labels": "Tagy",
+    "metrics": "Statistika",
+    "moreInfo": "Další informace",
+    "ratings": "Poznámky",
+    "resources": "zdroje"
   },
   "gv-input": {
     "copy": "Kopírovat do schránky",
     "search": "vyhledávat"
   },
   "gv-list": {
-    "accepted": "přijatý",
-    "acceptedSubscription": "předplatné bylo přijato",
-    "acceptedSubscriptions": "předplatné přijato",
     "error": "Při načítání seznamu došlo k chybě",
     "paused": "Přestávka",
-    "pausedSubscription": "předplatné na přestávku",
-    "pausedSubscriptions": "předplatné na konec",
-    "pending": "Čekání",
-    "pendingSubscription": "čeká na předplatné",
-    "pendingSubscriptions": "čeká na odběr"
+    "pending": "Čekání"
   },
   "gv-metrics": {
     "health": "Zdraví",
@@ -221,7 +217,7 @@
   },
   "gv-page": {
     "swagger": {
-      "badFormat": "Stránka, kterou se pokoušíte zobrazit, není ve formátu swagger / OpenAPI\n"
+      "badFormat": "Stránka, kterou se pokoušíte zobrazit, není ve formátu swagger / OpenAPI"
     }
   },
   "gv-pagination": {
@@ -241,22 +237,22 @@
     }
   },
   "gv-promote": {
-    "empty": "gv-promote.empty",
-    "error": "gv-promote.error",
-    "view": "gv-promote.view"
+    "empty": "Žádné rozhraní API k zobrazení zde",
+    "error": "Při načítání API došlo k chybě\"",
+    "view": "Podívejte se na API"
   },
   "gv-rating": {
     "notes": "Poznámky"
   },
   "gv-row": {
-    "empty": "gv-row.empty",
-    "error": "gv-row.error"
+    "empty": "Žádné výsledky k zobrazení",
+    "error": "Při načítání API došlo k chybě"
   },
   "gv-table": {
-    "accepted": "gv-table.accepted",
-    "paused": "gv-table.paused",
-    "pending": "gv-table.pending",
-    "rejected": "gv-table.rejected"
+    "accepted": "Přijatý",
+    "paused": "Přestávka",
+    "pending": "Čekání",
+    "rejected": "Odmítnuto"
   },
   "homepage": {
     "apis": "Rozhraní API tohoto okamžiku",
@@ -307,7 +303,7 @@
     "tokenExpired": "Platnost vašeho požadavku na vytvoření účtu vypršela"
   },
   "route": {
-    "applications": "route.applications",
+    "applications": "Aplikace",
     "catalog": "Katalog",
     "catalogApi": "Obecné informace",
     "catalogApiContact": "Kontakt",

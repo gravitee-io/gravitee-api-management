@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { TestBed } from '@angular/core/testing';
 
-i18n([
-  'errors.email.required',
-  'errors.forbidden',
-  'errors.support.disabled',
-  'errors.unexpected',
-  'errors.user.exists',
-  'errors.user.finalized',
-]);
+import { SubscribeGuardService } from './subscribe-guard.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+
+describe('SubscribeGuardService', () => {
+
+  beforeEach(() => TestBed.configureTestingModule({
+    imports: [HttpClientTestingModule, RouterTestingModule],
+  }));
+  it('should be created', () => {
+    const service: SubscribeGuardService = TestBed.get(SubscribeGuardService);
+    expect(service).toBeTruthy();
+  });
+});
