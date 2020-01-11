@@ -68,6 +68,8 @@ public class ApplicationService_ArchiveTest {
 
     @Mock
     private AuditService auditService;
+    @Mock
+    private GenericNotificationConfigService genericNotificationConfigService;
 
     @Test
     public void shouldArchive() throws TechnicalException {

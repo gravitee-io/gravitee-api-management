@@ -75,6 +75,12 @@ public class ApiService_DeleteTest {
     private TopApiService topApiService;
     @Mock
     private PageService pageService;
+    @Mock
+    private MembershipService membershipService;
+    @Mock
+    private GenericNotificationConfigService genericNotificationConfigService;
+    @Mock
+    private PortalNotificationConfigService portalNotificationConfigService;
 
     @Before
     public void setUp() {
