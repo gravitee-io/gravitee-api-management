@@ -16,7 +16,7 @@
 package io.gravitee.gateway.core.logging;
 
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.MediaType;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
@@ -28,6 +28,8 @@ import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.log.Log;
 
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.*;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -35,11 +37,14 @@ import io.gravitee.reporter.api.log.Log;
 public class LoggableProxyConnection implements ProxyConnection {
 
     private final ProxyConnection proxyConnection;
+    private final ExecutionContext context;
     private final Log log;
     private Buffer buffer;
 
-    public LoggableProxyConnection(final ProxyConnection proxyConnection, final ProxyRequest proxyRequest) {
+    public LoggableProxyConnection(final ProxyConnection proxyConnection, final ProxyRequest proxyRequest,
+                                   final ExecutionContext context) {
         this.proxyConnection = proxyConnection;
+        this.context = context;
         Log log = proxyRequest.metrics().getLog();
 
         // If log is enable only for 'Proxy only' mode, the log structure is not yet created
@@ -70,7 +75,7 @@ public class LoggableProxyConnection implements ProxyConnection {
 
     @Override
     public ProxyConnection responseHandler(Handler<ProxyResponse> responseHandler) {
-        return responseHandler(proxyConnection, responseHandler);
+        return responseHandler(proxyConnection, responseHandler, context);
     }
 
     @Override
@@ -99,15 +104,18 @@ public class LoggableProxyConnection implements ProxyConnection {
         buffer.appendBuffer(chunk);
     }
 
-    protected ProxyConnection responseHandler(ProxyConnection proxyConnection, Handler<ProxyResponse> responseHandler) {
-        return proxyConnection.responseHandler(new LoggableProxyConnection.LoggableProxyResponseHandler(responseHandler));
+    protected ProxyConnection responseHandler(ProxyConnection proxyConnection, Handler<ProxyResponse> responseHandler,
+                                              final ExecutionContext context) {
+        return proxyConnection.responseHandler(new LoggableProxyConnection.LoggableProxyResponseHandler(responseHandler, context));
     }
 
     class LoggableProxyResponseHandler implements Handler<ProxyResponse> {
         private final Handler<ProxyResponse> responseHandler;
+        protected final ExecutionContext context;
 
-        LoggableProxyResponseHandler(final Handler<ProxyResponse> responseHandler) {
+        LoggableProxyResponseHandler(final Handler<ProxyResponse> responseHandler, final ExecutionContext context) {
             this.responseHandler = responseHandler;
+            this.context = context;
         }
 
         @Override
@@ -116,17 +124,19 @@ public class LoggableProxyConnection implements ProxyConnection {
         }
 
         protected void handle(Handler<ProxyResponse> responseHandler, ProxyResponse proxyResponse) {
-            responseHandler.handle(new LoggableProxyConnection.LoggableProxyResponse(proxyResponse));
+            responseHandler.handle(new LoggableProxyConnection.LoggableProxyResponse(proxyResponse, context));
         }
     }
 
     class LoggableProxyResponse implements ProxyResponse {
-        private boolean isEventStream;
         private final ProxyResponse proxyResponse;
+        private final ExecutionContext context;
         private Buffer buffer;
+        private boolean isContentTypeLoggable;
 
-        LoggableProxyResponse(final ProxyResponse proxyResponse) {
+        LoggableProxyResponse(final ProxyResponse proxyResponse, final ExecutionContext context) {
             this.proxyResponse = proxyResponse;
+            this.context = context;
 
             log.setProxyResponse(new Response(proxyResponse.status()));
             log.getProxyResponse().setHeaders(proxyResponse.headers());
@@ -137,10 +147,10 @@ public class LoggableProxyConnection implements ProxyConnection {
             proxyResponse.bodyHandler(chunk -> {
                 if (buffer == null) {
                     buffer = Buffer.buffer();
-                    isEventStream = MediaType.TEXT_EVENT_STREAM.equalsIgnoreCase(proxyResponse.headers().contentType());
+                    isContentTypeLoggable = isResponseContentTypeLoggable(proxyResponse.headers().contentType(), context);
                 }
 
-                if (!isEventStream) {
+                if (isContentTypeLoggable) {
                     appendLog(buffer, chunk);
                 }
 

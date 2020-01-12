@@ -38,10 +38,11 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
@@ -50,6 +51,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
 
     @Value("${reporters.logging.max_size:-1}")
     private int maxSizeLogMessage;
+    @Value("${reporters.logging.excluded_response_types:#{null}}")
+    private String excludedResponseTypes;
 
     public void afterPropertiesSet() {
         ApiPolicyResolver apiPolicyResolver = new ApiPolicyResolver();
@@ -77,18 +80,15 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         providers.add(securityPolicyChainProvider);
 
         if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
-            providers.add(new ProcessorSupplier<>(new Supplier<StreamableProcessor<ExecutionContext, Buffer>>() {
-                    @Override
-                    public StreamableProcessor<ExecutionContext, Buffer> get() {
-                        ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
-                        // log max size limit is in MB format
-                        // -1 means no limit
-                        processor.setMaxSizeLogMessage((maxSizeLogMessage <= - 1) ? -1 : maxSizeLogMessage * (1024 * 1024));
+            providers.add(new ProcessorSupplier<>(() -> {
+                ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
+                // log max size limit is in MB format
+                // -1 means no limit
+                processor.setMaxSizeLogMessage((maxSizeLogMessage <= - 1) ? -1 : maxSizeLogMessage * (1024 * 1024));
+                processor.setExcludedResponseTypes(excludedResponseTypes);
 
-                        return new StreamableProcessorDecorator<>(processor);
-                    }
-                }
-            ));
+                return new StreamableProcessorDecorator<>(processor);
+            }));
         }
 
         providers.add(planPolicyChainProvider);

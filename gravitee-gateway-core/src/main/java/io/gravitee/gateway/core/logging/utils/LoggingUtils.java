@@ -16,18 +16,60 @@
 package io.gravitee.gateway.core.logging.utils;
 
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.buffer.Buffer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+
+import java.util.List;
+import java.util.regex.Pattern;
+
+import static io.gravitee.common.http.MediaType.*;
+import static io.gravitee.common.http.MediaType.TEXT_HTML;
+import static java.util.Arrays.asList;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public final class LoggingUtils {
+
+    private static final String DEFAULT_EXCLUDED_CONTENT_TYPES = "video.*|audio.*|image.*|application\\/octet-stream|application\\/pdf";
+
+    private static Pattern EXCLUDED_CONTENT_TYPES_PATTERN;
 
     public static int getMaxSizeLogMessage(ExecutionContext executionContext) {
         try {
             return (int) executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.max.size.log.message");
         } catch (Exception ex) {
             return -1;
+        }
+    }
+
+    public static boolean isResponseContentTypeLoggable(final String contentType, final ExecutionContext executionContext) {
+        // init pattern
+        if (EXCLUDED_CONTENT_TYPES_PATTERN == null) {
+            try {
+                final String responseTypes =
+                        (String) executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.excluded.types");
+                EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(responseTypes);
+            } catch (Exception e) {
+                EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(DEFAULT_EXCLUDED_CONTENT_TYPES);
+            }
+        }
+
+        return contentType == null || !EXCLUDED_CONTENT_TYPES_PATTERN.matcher(contentType).find();
+    }
+
+    public static void appendBuffer(Buffer buffer, Buffer chunk, int maxLength) {
+        if ((buffer.length() + chunk.length()) > maxLength) {
+            final int remainingSpace = maxLength - buffer.length();
+            if (remainingSpace > 0) {
+                buffer.appendBuffer(chunk, remainingSpace);
+            }
+        } else {
+            buffer.appendBuffer(chunk);
         }
     }
 }

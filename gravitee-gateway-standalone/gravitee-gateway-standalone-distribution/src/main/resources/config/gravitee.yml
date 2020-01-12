@@ -119,8 +119,9 @@ cache:
 # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
 reporters:
   # logging configuration
-  #logging:
-  #  max_size: -1 # max size per API log content respectively : client-request, client-response, proxy-request and proxy-response in MB (-1 means no limit)
+#  logging:
+#    max_size: -1 # max size per API log content respectively : client-request, client-response, proxy-request and proxy-response in MB (-1 means no limit)
+#    excluded_response_types: video.*|audio.*|image.*|application\/octet-stream|application\/pdf # Response content types to exclude in logging (must be a regular expression)
   # Elasticsearch reporter
   elasticsearch:
     enabled: true # Is the reporter enabled or not (default to true)
