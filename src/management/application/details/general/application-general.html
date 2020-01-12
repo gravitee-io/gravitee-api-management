@@ -145,6 +145,7 @@
                     ng-model="$ctrl.application.settings.oauth.redirect_uris"
                     placeholder="Enter a redirect URI"
                     ng-click="$ctrl.formApplication.$setDirty()"
+                    md-add-on-blur="true"
                     md-on-remove="$ctrl.formApplication.$setDirty()"></md-chips>
           <div class="hint">
             URIs where the authorization server will send OAuth responses

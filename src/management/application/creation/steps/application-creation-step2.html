@@ -57,6 +57,7 @@
                   <label>Redirect URIs *</label>
                   <md-chips
                     required
+                    md-add-on-blur="true"
                     ng-model="$ctrl.parent.application.settings.oauth.redirect_uris"
                     placeholder="Enter a redirect URI"
                     md-on-remove="$ctrl.applicationForm.$setDirty()"

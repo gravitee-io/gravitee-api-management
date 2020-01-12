@@ -23,6 +23,7 @@ export class LogsQuery {
   page: number;
   size: number;
   field: string;
+  order: boolean;
 }
 
 interface IMembership {

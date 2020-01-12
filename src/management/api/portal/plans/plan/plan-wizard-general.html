@@ -51,8 +51,11 @@
           <div layout-gt-sm="row">
             <div class="md-block" flex-gt-sm>
               <label>Characteristics</label>
-              <md-chips ng-model="$ctrl.parent.plan.characteristics" placeholder="Enter a characteristic"
-                        secondary-placeholder="+Characteristic" ng-click="$ctrl.planGeneralForm.$setDirty()"></md-chips>
+              <md-chips ng-model="$ctrl.parent.plan.characteristics"
+                        placeholder="Enter a characteristic"
+                        md-add-on-blur="true"
+                        secondary-placeholder="+Characteristic"
+                        ng-click="$ctrl.planGeneralForm.$setDirty()"></md-chips>
             </div>
           </div>
 
