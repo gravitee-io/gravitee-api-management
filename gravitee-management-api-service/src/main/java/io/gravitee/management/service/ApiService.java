@@ -78,7 +78,11 @@ public interface ApiService {
 
     void deleteTagFromAPIs(String tagId);
 
-    ApiModelEntity findByIdForTemplates(String apiId);
+    ApiModelEntity findByIdForTemplates(String apiId, boolean decodeTemplate);
+
+    default ApiModelEntity findByIdForTemplates(String apiId) {
+        return findByIdForTemplates(apiId, false);
+    }
 
     boolean exists(String apiId);
 

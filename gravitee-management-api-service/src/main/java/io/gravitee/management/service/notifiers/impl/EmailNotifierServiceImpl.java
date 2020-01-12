@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.notifiers.impl;
 
+import freemarker.core.InvalidReferenceException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -89,7 +90,7 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
                             mail = tmpMail;
                         }
                     } catch (IOException | TemplateException e) {
-                        LOGGER.info("Email recipient cannot be interpreted {}", mail, e);
+                        LOGGER.debug("Email recipient cannot be interpreted {}", mail, e);
                         continue;
                     }
                 }

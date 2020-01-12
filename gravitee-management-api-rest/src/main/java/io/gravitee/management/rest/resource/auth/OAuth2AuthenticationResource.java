@@ -336,7 +336,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             String field = entry.getKey();
             String mapping = entry.getValue();
 
-            if (mapping != null) {
+            if (mapping != null && !mapping.isEmpty()) {
                 try {
                     if (mapping.contains("{#")) {
                         map.put(field, templateEngine.convert(mapping));

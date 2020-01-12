@@ -48,6 +48,11 @@ public class MembershipRepositoryProxy extends AbstractProxy<MembershipRepositor
     }
 
     @Override
+    public void deleteMembers(MembershipReferenceType referenceType, String referenceId) throws TechnicalException {
+        target.deleteMembers(referenceType, referenceId);
+    }
+
+    @Override
     public Set<Membership> findByIds(String userId, MembershipReferenceType referenceType, Set<String> referenceIds) throws TechnicalException {
         return target.findByIds(userId, referenceType, referenceIds);
     }
@@ -86,4 +91,5 @@ public class MembershipRepositoryProxy extends AbstractProxy<MembershipRepositor
     public Set<Membership> findByRole(RoleScope roleScope, String roleName) throws TechnicalException {
         return target.findByRole(roleScope, roleName);
     }
+
 }

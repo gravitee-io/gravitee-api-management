@@ -174,7 +174,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 						model.put("metadata", mapMetadata);
 					}
 				} else {
-					ApiModelEntity apiEntity = apiService.findByIdForTemplates(api);
+					ApiModelEntity apiEntity = apiService.findByIdForTemplates(api, true);
 					model.put("api", apiEntity);
 				}
 
@@ -335,7 +335,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		if (pageEntity.isPublished()) {
 			searchEngineService.index(pageEntity, false);
         }
-    
+
 }
 	private void fetchPage(final Page page) throws FetcherException {
 		Fetcher fetcher = this.getFetcher(page.getSource());

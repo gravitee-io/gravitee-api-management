@@ -99,7 +99,10 @@ public class ApiService_CreateWithDefinitionTest {
     private VirtualHostService virtualHostService;
 
     @Mock
-    private  GenericNotificationConfigService  genericNotificationConfigService;
+    private GenericNotificationConfigService  genericNotificationConfigService;
+
+    @Mock
+    private ApiMetadataService apiMetadataService;
 
     @Before
     public void init() {

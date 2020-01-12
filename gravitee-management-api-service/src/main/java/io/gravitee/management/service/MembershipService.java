@@ -38,6 +38,7 @@ public interface MembershipService {
     Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName);
     MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role);
     void deleteMember(MembershipReferenceType referenceType, String referenceId, String userId);
+    void deleteMembers(MembershipReferenceType referenceType, String referenceId);
     void transferApiOwnership(String apiId, MembershipUser user, RoleEntity newPrimaryOwnerRole);
     void transferApplicationOwnership(String applicationId, MembershipUser user, RoleEntity newPrimaryOwnerRole);
     Map<String, char[]> getMemberPermissions(ApiEntity api, String userId);

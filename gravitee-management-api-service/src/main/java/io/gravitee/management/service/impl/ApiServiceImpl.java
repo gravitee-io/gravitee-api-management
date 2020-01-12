@@ -30,6 +30,7 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.management.model.EventType;
+import io.gravitee.management.model.MetadataFormat;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.alert.AlertReferenceType;
@@ -44,6 +45,7 @@ import io.gravitee.management.model.plan.PlanQuery;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.search.SearchResult;
+import io.gravitee.management.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.HookScope;
@@ -74,6 +76,7 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -143,6 +146,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private TopApiService topApiService;
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
+    @Autowired
+    private PortalNotificationConfigService portalNotificationConfigService;
     @Autowired
     private NotifierService notifierService;
     @Autowired
@@ -380,7 +385,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
             });
         }
-        
+
         List<EntrypointEntity> entrypoints = entrypointService.findAll();
         entrypoints.stream().flatMap(new Function<EntrypointEntity, Stream<String>>() {
             @Override
@@ -388,7 +393,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 return virtualHosts.stream().map(virtualHost -> entrypoint.getValue() + virtualHost.getPath());
             }
         }).forEach(graviteeUrls::add);
-        
+
         return swaggerService.replaceServerList(payload, graviteeUrls);
     }
 
@@ -479,6 +484,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
                 notificationConfigEntity.setConfig("${api.primaryOwner.email}");
                 genericNotificationConfigService.create(notificationConfigEntity);
+
+                // create the default mail support metadata
+                NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
+                newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
+                newApiMetadataEntity.setName(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
+                newApiMetadataEntity.setDefaultValue("${api.primaryOwner.email}");
+                newApiMetadataEntity.setValue("${api.primaryOwner.email}");
+                newApiMetadataEntity.setApiId(createdApi.getId());
+                apiMetadataService.create(newApiMetadataEntity);
 
                 //TODO add membership log
                 ApiEntity apiEntity = convert(createdApi, primaryOwner);
@@ -606,19 +620,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Optional<Api> api = apiRepository.findById(apiId);
 
             if (api.isPresent()) {
-                Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndRole(
-                        MembershipReferenceType.API,
-                        api.get().getId(),
-                        RoleScope.API,
-                        SystemRole.PRIMARY_OWNER.name())
-                        .stream()
-                        .findFirst();
-                if (!primaryOwnerMembership.isPresent()) {
-                    LOGGER.error("The API {} doesn't have any primary owner.", apiId);
-                    throw new TechnicalException("The API " + apiId + " doesn't have any primary owner.");
-                }
-
-                ApiEntity apiEntity = convert(api.get(), userService.findById(primaryOwnerMembership.get().getUserId()));
+                ApiEntity apiEntity = convert(api.get(), getPrimaryOwner(api.get()));
 
                 // Compute entrypoints
                 calculateEntrypoints(apiEntity);
@@ -631,6 +633,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
+    }
+
+    private UserEntity getPrimaryOwner(Api api) throws TechnicalException {
+        Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndRole(
+                MembershipReferenceType.API,
+                api.getId(),
+                RoleScope.API,
+                SystemRole.PRIMARY_OWNER.name())
+                .stream()
+                .findFirst();
+        if (!primaryOwnerMembership.isPresent()) {
+            LOGGER.error("The API {} doesn't have any primary owner.", api.getId());
+            throw new TechnicalException("The API " + api.getId() + " doesn't have any primary owner.");
+        }
+
+        return userService.findById(primaryOwnerMembership.get().getUserId());
     }
 
     private void calculateEntrypoints(ApiEntity api) {
@@ -1022,6 +1040,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 topApiService.delete(apiId);
                 // Delete API
                 apiRepository.delete(apiId);
+                // Delete all membership references
+                membershipService.deleteMembers(MembershipReferenceType.API, apiId);
+                // Delete notifications
+                genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
+                portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
                 // Delete alerts
                 final List<AlertTriggerEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
                 alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
@@ -1521,7 +1544,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiModelEntity findByIdForTemplates(String apiId) {
+    public ApiModelEntity findByIdForTemplates(String apiId, boolean decodeTemplate) {
         final ApiEntity apiEntity = findById(apiId);
 
         final ApiModelEntity apiModelEntity = new ApiModelEntity();
@@ -1553,6 +1576,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(),
                     metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
             apiModelEntity.setMetadata(mapMetadata);
+            if (decodeTemplate) {
+                try {
+                    Template apiMetadataTemplate = new Template(apiModelEntity.getId(), new StringReader(mapMetadata.toString()), freemarkerConfiguration);
+                    String decodedValue = FreeMarkerTemplateUtils.processTemplateIntoString(apiMetadataTemplate, Collections.singletonMap("api", apiModelEntity));
+                    Map<String, String> metadataDecoded = Arrays
+                            .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                            .map(entry -> entry.split("="))
+                            .collect(Collectors.toMap(entry -> entry[0], entry -> entry[1]));
+                    apiModelEntity.setMetadata(metadataDecoded);
+                } catch (Exception ex) {
+                    throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
+                }
+            }
         }
         return apiModelEntity;
     }
@@ -1776,7 +1812,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
-            ApiEntity apiEntity = convert(apiRepository.update(api));
+            ApiEntity apiEntity = convert(apiRepository.update(api), getPrimaryOwner(api));
             // Audit
             auditService.createApiAuditLog(
                     apiId,

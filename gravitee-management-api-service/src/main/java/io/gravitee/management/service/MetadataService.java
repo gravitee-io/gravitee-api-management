@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 
 import java.util.List;
 
@@ -34,6 +35,8 @@ public interface MetadataService {
     void delete(String metadataId);
 
     void checkMetadataFormat(MetadataFormat format, String value);
+
+    void checkMetadataFormat(MetadataFormat format, String value, ApiEntity apiEntity);
 
     MetadataEntity findDefaultByKey(String key);
 }

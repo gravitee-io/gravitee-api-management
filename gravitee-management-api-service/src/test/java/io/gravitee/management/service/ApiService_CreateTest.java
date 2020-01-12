@@ -93,6 +93,9 @@ public class ApiService_CreateTest {
     private GenericNotificationConfigService genericNotificationConfigService;
     
     @Mock
+    private ApiMetadataService apiMetadataService;
+
+    @Mock
     private VirtualHostService virtualHostService;
     
     @Before
@@ -178,5 +181,6 @@ public class ApiService_CreateTest {
         verify(membershipRepository, times(1)).create(any());
         verify(auditService, times(1)).createApiAuditLog(any(), any(), eq(API_CREATED), any(), eq(null) , any());
         verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(apiMetadataService, times(1)).create(any());
     }
 }
