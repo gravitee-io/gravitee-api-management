@@ -35,35 +35,35 @@ public class LoggingUtilsTest {
     public void shouldLogByDefault() throws Exception {
         resetStatic();
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        assertTrue(LoggingUtils.isResponseContentTypeLoggable("application/json", executionContext));
+        assertTrue(LoggingUtils.isContentTypeLoggable("application/json", executionContext));
     }
 
     @Test
     public void shouldNotLogImageByDefault() throws Exception {
         resetStatic();
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        assertFalse(LoggingUtils.isResponseContentTypeLoggable("image/png", executionContext));
+        assertFalse(LoggingUtils.isContentTypeLoggable("image/png", executionContext));
     }
 
     @Test
     public void shouldNotLogAudioByDefault() throws Exception {
         resetStatic();
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        assertFalse(LoggingUtils.isResponseContentTypeLoggable("audio/ogg", executionContext));
+        assertFalse(LoggingUtils.isContentTypeLoggable("audio/ogg", executionContext));
     }
 
     @Test
     public void shouldNotLogVideoByDefault() throws Exception {
         resetStatic();
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        assertFalse(LoggingUtils.isResponseContentTypeLoggable("video/ogg", executionContext));
+        assertFalse(LoggingUtils.isContentTypeLoggable("video/ogg", executionContext));
     }
 
     @Test
     public void shouldNotLogPDFByDefault() throws Exception {
         resetStatic();
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        assertFalse(LoggingUtils.isResponseContentTypeLoggable("application/pdf", executionContext));
+        assertFalse(LoggingUtils.isContentTypeLoggable("application/pdf", executionContext));
     }
 
     @Test
@@ -71,14 +71,14 @@ public class LoggingUtilsTest {
         resetStatic();
         ExecutionContext executionContext = mock(ExecutionContext.class);
         when(executionContext.getAttribute("gravitee.attribute.logging.response.excluded.types")).thenReturn("foo/bar");
-        assertFalse(LoggingUtils.isResponseContentTypeLoggable("foo/bar", executionContext));
+        assertFalse(LoggingUtils.isContentTypeLoggable("foo/bar", executionContext));
     }
 
     @Test
     public void shouldLogCustom() throws Exception {
         resetStatic();
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        assertTrue(LoggingUtils.isResponseContentTypeLoggable("foo/bar", executionContext));
+        assertTrue(LoggingUtils.isContentTypeLoggable("foo/bar", executionContext));
     }
 
 

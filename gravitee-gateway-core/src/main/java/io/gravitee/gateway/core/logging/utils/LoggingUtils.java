@@ -17,15 +17,8 @@ package io.gravitee.gateway.core.logging.utils;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 
-import java.util.List;
 import java.util.regex.Pattern;
-
-import static io.gravitee.common.http.MediaType.*;
-import static io.gravitee.common.http.MediaType.TEXT_HTML;
-import static java.util.Arrays.asList;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -35,7 +28,8 @@ import static java.util.Arrays.asList;
  */
 public final class LoggingUtils {
 
-    private static final String DEFAULT_EXCLUDED_CONTENT_TYPES = "video.*|audio.*|image.*|application\\/octet-stream|application\\/pdf";
+    private static final String DEFAULT_EXCLUDED_CONTENT_TYPES =
+            "video.*|audio.*|image.*|application\\/octet-stream|application\\/pdf|text\\/event-stream";
 
     private static Pattern EXCLUDED_CONTENT_TYPES_PATTERN;
 
@@ -47,7 +41,7 @@ public final class LoggingUtils {
         }
     }
 
-    public static boolean isResponseContentTypeLoggable(final String contentType, final ExecutionContext executionContext) {
+    public static boolean isContentTypeLoggable(final String contentType, final ExecutionContext executionContext) {
         // init pattern
         if (EXCLUDED_CONTENT_TYPES_PATTERN == null) {
             try {

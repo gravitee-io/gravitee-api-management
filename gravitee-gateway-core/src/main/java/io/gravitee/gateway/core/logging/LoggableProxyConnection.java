@@ -37,13 +37,16 @@ import static io.gravitee.gateway.core.logging.utils.LoggingUtils.*;
 public class LoggableProxyConnection implements ProxyConnection {
 
     private final ProxyConnection proxyConnection;
+    private final ProxyRequest proxyRequest;
     private final ExecutionContext context;
     private final Log log;
     private Buffer buffer;
+    private boolean isContentTypeLoggable;
 
     public LoggableProxyConnection(final ProxyConnection proxyConnection, final ProxyRequest proxyRequest,
                                    final ExecutionContext context) {
         this.proxyConnection = proxyConnection;
+        this.proxyRequest = proxyRequest;
         this.context = context;
         Log log = proxyRequest.metrics().getLog();
 
@@ -91,11 +94,14 @@ public class LoggableProxyConnection implements ProxyConnection {
     public WriteStream<Buffer> write(Buffer chunk) {
         if (buffer == null) {
             buffer = Buffer.buffer();
+            isContentTypeLoggable = isContentTypeLoggable(proxyRequest.headers().contentType(), context);
         }
 
         proxyConnection.write(chunk);
 
-        appendLog(buffer, chunk);
+        if (isContentTypeLoggable) {
+            appendLog(buffer, chunk);
+        }
 
         return this;
     }
@@ -147,7 +153,7 @@ public class LoggableProxyConnection implements ProxyConnection {
             proxyResponse.bodyHandler(chunk -> {
                 if (buffer == null) {
                     buffer = Buffer.buffer();
-                    isContentTypeLoggable = isResponseContentTypeLoggable(proxyResponse.headers().contentType(), context);
+                    isContentTypeLoggable = isContentTypeLoggable(proxyResponse.headers().contentType(), context);
                 }
 
                 if (isContentTypeLoggable) {

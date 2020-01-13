@@ -16,12 +16,15 @@
 package io.gravitee.gateway.core.logging;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.RequestWrapper;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.reporter.api.log.Log;
+
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isContentTypeLoggable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,9 +34,12 @@ public class LoggableClientRequest extends RequestWrapper {
 
     private final Log log;
     private Buffer buffer;
+    private final ExecutionContext context;
+    private boolean isContentTypeLoggable;
 
-    public LoggableClientRequest(final Request request) {
+    public LoggableClientRequest(final Request request, final ExecutionContext context) {
         super(request);
+        this.context = context;
         this.log = new Log(request.metrics().timestamp().toEpochMilli());
         this.log.setRequestId(request.id());
 
@@ -52,9 +58,12 @@ public class LoggableClientRequest extends RequestWrapper {
         request.bodyHandler(chunk -> {
             if (buffer == null) {
                 buffer = Buffer.buffer();
+                isContentTypeLoggable = isContentTypeLoggable(request.headers().contentType(), context);
             }
             bodyHandler.handle(chunk);
-            appendLog(buffer, chunk);
+            if (isContentTypeLoggable) {
+                appendLog(buffer, chunk);
+            }
         });
 
         return this;

@@ -24,7 +24,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.reporter.api.log.Log;
 
-import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isResponseContentTypeLoggable;
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isContentTypeLoggable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -50,7 +50,7 @@ public class LoggableClientResponse implements Response {
     public WriteStream<Buffer> write(Buffer chunk) {
         if (buffer == null) {
             buffer = Buffer.buffer();
-            isContentTypeLoggable = isResponseContentTypeLoggable(response.headers().contentType(), context);
+            isContentTypeLoggable = isContentTypeLoggable(response.headers().contentType(), context);
         }
 
         if (isContentTypeLoggable) {
