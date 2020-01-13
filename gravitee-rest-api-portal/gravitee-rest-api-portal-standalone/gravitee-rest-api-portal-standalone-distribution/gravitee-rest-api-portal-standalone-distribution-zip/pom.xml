@@ -23,7 +23,7 @@
 	<parent>
         <groupId>io.gravitee.rest.api.portal.standalone.distribution</groupId>
         <artifactId>gravitee-rest-api-portal-standalone-distribution</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>3.0.0-alpha</version>
     </parent>
 
 	<artifactId>gravitee-rest-api-portal-standalone-distribution-zip</artifactId>
