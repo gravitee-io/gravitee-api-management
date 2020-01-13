@@ -68,10 +68,12 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
 
     this.addData = () => {
       this.data.push({});
+      this.onDataChanged();
     };
 
     this.removeData = (data) => {
       _.remove(this.data, data);
+      this.onDataChanged();
     };
   }
 };
