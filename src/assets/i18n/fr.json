@@ -342,7 +342,7 @@
     },
     "subscriptions": {
       "api": "API",
-      "empty": "Pas de souscriptions pour cette application",
+      "empty": "Pas de souscription pour cette application",
       "end_date": "Date de fin",
       "init": "Passer sur une application pour voir ses souscriptions",
       "plan": "Plan",
