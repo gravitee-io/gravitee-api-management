@@ -15,19 +15,18 @@
  */
 
 import NotificationService from "../../../services/notification.service";
-import DocumentationService, { DocumentationQuery, FolderSituation } from "../../../services/documentation.service";
+import DocumentationService, { FolderSituation } from "../../../services/documentation.service";
 import {StateService} from "@uirouter/core";
 import {IScope} from "angular";
 import _ = require("lodash");
 import UserService from "../../../services/user.service";
-import ViewService from "../../../services/view.service";
 
 interface IPageScope extends IScope {
-  getContentMode: string;
   fetcherJsonSchema: string;
   rename: boolean;
   editorReadonly: boolean;
   currentTab: string;
+  currentTranslation: any;
 }
 const EditPageComponent: ng.IComponentOptions = {
   bindings: {
@@ -44,12 +43,13 @@ const EditPageComponent: ng.IComponentOptions = {
     NotificationService: NotificationService,
     DocumentationService: DocumentationService,
     UserService: UserService,
+    $mdDialog: angular.material.IDialogService,
     $state: StateService,
     $scope: IPageScope
   ) {
     "ngInject";
     this.apiId = $state.params.apiId;
-    this.tabs = ["content", "config", "fetchers", "access-control"];
+    this.tabs = ["content", "translations", "config", "fetchers", "access-control"];
     const indexOfTab = this.tabs.indexOf($state.params.tab);
     this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
     this.currentTab = this.tabs[this.selectedTab];
@@ -108,6 +108,71 @@ const EditPageComponent: ng.IComponentOptions = {
           this.page.configuration.viewer = "Swagger";
         }
       }
+    };
+
+    this.selectTranslation = (translation: any) => {
+      this.currentTranslation = translation;
+      if (!this.currentTranslation.configuration.inheritContent) {
+        this.currentTranslation.configuration.inheritContent = "true";
+      }
+    };
+
+    this.addTranslation = () => {
+      this.currentTranslation = {
+        type: "TRANSLATION",
+        parentId: this.page.id,
+        configuration: {}
+      };
+      if (this.page.type === "MARKDOWN" || this.page.type === "SWAGGER") {
+        this.currentTranslation.configuration.inheritContent = "true";
+      }
+    };
+
+    this.saveTranslation = () => {
+      if (this.page.configuration && ("page" === this.page.configuration.resourceType || "view" === this.page.configuration.resourceType)) {
+        this.currentTranslation.content = this.page.content;
+      }
+      // save translation
+      if (!this.currentTranslation.id) {
+        DocumentationService.create(this.currentTranslation, this.apiId)
+        .then((response: any) => {
+          const page = response.data;
+          NotificationService.show("'" + page.name + "' has been created");
+          this.refreshTranslations();
+        });
+      } else {
+        DocumentationService.update(this.currentTranslation, this.apiId)
+          .then( (response: any) => {
+            NotificationService.show("'" + this.currentTranslation.name + "' has been updated");
+            this.refreshTranslations();
+          });
+        }
+    };
+
+    this.remove = (page: any) => {
+      let that = this;
+      $mdDialog.show({
+        controller: "DialogConfirmController",
+        controllerAs: "ctrl",
+        template: require("../../../components/dialog/confirmWarning.dialog.html"),
+        clickOutsideToClose: true,
+        locals: {
+          title: "Would you like to remove \"" + page.name + "\" ?",
+          confirmButton: "Remove"
+        }
+      }).then(function (response: any) {
+        if (response) {
+          DocumentationService.remove(page.id, that.apiId).then( () => {
+            NotificationService.show("Translation " + page.name + " has been removed");
+            that.refreshTranslations();
+          });
+        }
+      });
+    };
+
+    this.refreshTranslations = () => {
+      DocumentationService.get(this.apiId, this.page.id).then((response: any) => this.page.translations = response.data.translations);
+      delete this.currentTranslation;
     };
 
     this.getFolderSituation = (folderId: string) => {
@@ -199,11 +264,12 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.checkIfFolder = () => {
-      if (this.page.configuration.resourceRef) {
-        if (this.page.configuration.resourceRef === "root") {
+      if (this.page.content) {
+        if (this.page.content === "root") {
           this.page.configuration.isFolder = true;
+          this.page.configuration.inherit = "false";
         } else {
-          const folder = this.getFolder(this.page.configuration.resourceRef);
+          const folder = this.getFolder(this.page.content);
           if (folder) {
             this.page.configuration.isFolder = true;
           } else {
@@ -214,12 +280,20 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.onChangeLinkType = () => {
-      delete this.page.configuration.resourceRef;
+      delete this.page.content;
       delete this.page.configuration.isFolder;
+      if (this.page.configuration.resourceType === "external") {
+        delete this.page.configuration.inherit;
+        if (this.page.translations) {
+          _.forEach(this.page.translations, t => delete t.content);
+        }
+      } else if (!this.page.configuration.inherit) {
+        this.page.configuration.inherit = "true";
+      }
     };
 
     this.save = () => {
-      // Convert authorized groups to excludedGroups
+      // convert authorized groups to excludedGroups
       this.page.excluded_groups = [];
       if (this.groups) {
         this.page.excluded_groups = _.difference(_.map(this.groups, "id"), this.page.authorizedGroups);
@@ -282,13 +356,17 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.selectTab = (idx: number) => {
+      this.changeTab(idx);
+      if (this.apiId) {
+        $state.transitionTo("management.apis.detail.portal.editdocumentation", {apiId: this.apiId, type: this.page.type, pageId: this.page.id, tab: this.currentTab}, {notify: false});
+      } else {
+        $state.transitionTo("management.settings.editdocumentation", {pageId: this.page.id, type: this.page.type, tab: this.currentTab}, {notify: false});
+      }
+    };
+
+    this.changeTab = (idx: number) => {
       this.selectedTab = idx;
       this.currentTab = this.tabs[this.selectedTab];
-      if (this.apiId) {
-        $state.transitionTo("management.apis.detail.portal.editdocumentation", {apiId: this.apiId, pageId: this.page.id, tab: this.currentTab}, {notify: false});
-      } else {
-        $state.transitionTo("management.settings.editdocumentation", {pageId: this.page.id, type: this.pageType, tab: this.currentTab}, {notify: false});
-      }
     };
 
     this.fetch = () => {
@@ -298,7 +376,35 @@ const EditPageComponent: ng.IComponentOptions = {
       });
     };
 
-  }
+    this.updateLinkName = (resourceName: string) => {
+      if (this.page.configuration.inherit === "true" && resourceName !== "") {
+        this.page.name = resourceName;
+      }
+    };
+
+    this.updateLinkNameWithPageId = (resourceId: string) => {
+      const relatedPage = _.find(this.pageList, p => p.id === resourceId);
+      if (relatedPage) {
+        this.updateLinkName(relatedPage.name);
+      }
+    };
+
+    this.updateLinkNameWithViewId = (resourceId: string) => {
+      const relatedView = _.find(this.viewResources, p => p.id === resourceId);
+      if (relatedView) {
+        this.updateLinkName(relatedView.name);
+      }
+    };
+
+    this.updateTranslationContent = () => {
+      if ( this.currentTranslation.configuration.inheritContent === "false" && (!this.currentTranslation.content || this.currentTranslation.content === "")) {
+        this.currentTranslation.content = this.page.content;
+      }
+      if ( this.currentTranslation.configuration.inheritContent === "true") {
+        delete this.currentTranslation.content;
+      }
+    };
+  },
 };
 
 export default EditPageComponent;

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
-import {StateService, StateParams} from '@uirouter/core';
+import _ = require("lodash");
+import {StateService, StateParams} from "@uirouter/core";
 
 class PortalPagesComponentCtrl implements ng.IComponentController {
   public resolvedPages: any[];
@@ -26,35 +26,35 @@ class PortalPagesComponentCtrl implements ng.IComponentController {
     private $state: StateService,
     private $stateParams: StateParams,
     ) {
-    'ngInject';
+    "ngInject";
   }
 
 
   $onInit() {
-    const pagesMap: any = _.keyBy(this.resolvedPages, 'id');
-    for (let idx in this.resolvedPages) {
-      let page = this.resolvedPages[idx];
-      if (page["parentId"]) {
-        let rootPage = pagesMap[page["parentId"]];
+    const pagesMap: any = _.keyBy(this.resolvedPages, "id");
+
+    this.resolvedPages.forEach(page => {
+      if (page.parentId) {
+        let rootPage = pagesMap[page.parentId];
         if (!rootPage) {
-          console.error("Unable to find parent page with id:", page["parentId"]);
+          console.error("Unable to find parent page with id:", page.parentId);
           console.error("Child page is: ", page);
         } else {
           if (!rootPage.pages) {
             rootPage.pages = [page];
           } else {
-            rootPage.pages.push(page)
+            rootPage.pages.push(page);
           }
         }
       }
-    }
+    });
 
     this.pages = _.sortBy(
       _.filter(_.values(pagesMap), (p) => !p.parentId && p.type !== "SYSTEM_FOLDER"),
       ["order"]);
 
     if (this.pages.length && !this.$stateParams.pageId) {
-      let firstPage = _.find(this.pages, (p) => { return !p.parentId && p.type !== 'FOLDER'});
+      let firstPage = _.find(this.pages, (p) => { return !p.parentId && p.type !== "FOLDER"; });
       if (firstPage) {
         this.selectPage(firstPage);
       }
@@ -69,7 +69,7 @@ class PortalPagesComponentCtrl implements ng.IComponentController {
         this.selectedPage = page;
       }
     }
-  };
+  }
 
   selectPage (page) {
     if (this.selectedPage !== undefined) {
@@ -81,17 +81,17 @@ class PortalPagesComponentCtrl implements ng.IComponentController {
 
     page.selected = true;
     if (this.api) {
-      this.$state.go('portal.api.pages.page', {pageId: page.id});
+      this.$state.go("portal.api.pages.page", {pageId: page.id});
     } else {
-      this.$state.go('portal.pages.page', {pageId: page.id});
+      this.$state.go("portal.pages.page", {pageId: page.id});
     }
   }
 
   isFolder(page: any) {
-    return page.type === 'FOLDER';
+    return page.type === "FOLDER";
   }
 
-  toggleFolder(page:any) {
+  toggleFolder(page: any) {
     page.isFolderOpen = !page.isFolderOpen;
     page.icon = page.isFolderOpen ? "icon-angle-down" : "icon-angle-up";
   }
@@ -99,10 +99,10 @@ class PortalPagesComponentCtrl implements ng.IComponentController {
 
 const PortalPagesComponent: ng.IComponentOptions = {
   bindings: {
-    resolvedPages: '<',
-    api: '<'
+    resolvedPages: "<",
+    api: "<"
   },
-  template: require('./pages.html'),
+  template: require("./pages.html"),
   controller: PortalPagesComponentCtrl
 };
 

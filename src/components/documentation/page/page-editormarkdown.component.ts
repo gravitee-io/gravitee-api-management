@@ -16,7 +16,7 @@
 import "tui-editor/dist/tui-editor-extScrollSync";
 import "tui-editor/dist/tui-editor-extTable";
 import angular = require("angular");
-import { StateService } from '@uirouter/core';
+import { StateService, any } from "@uirouter/core";
 
 import * as TuiEditor from "tui-editor";
 
@@ -26,7 +26,7 @@ class ComponentCtrl implements ng.IComponentController {
   public options: any;
 
   private maxSize: number;
-
+  private tuiEditor: TuiEditor;
   constructor(private $http, private Constants, private $state: StateService) {
       "ngInject";
       var lastElement = Constants.portal.uploadMedia.maxSizeInOctet;
@@ -69,12 +69,14 @@ class ComponentCtrl implements ng.IComponentController {
     let maxSize = this.maxSize;
 
     if (Constants.portal.uploadMedia.enabled) {
-      //toolbarItems
+      // toolbarItems
       toolbarItems.splice(15, 0, "image");
     }
 
-
-    var tuiEditor = new TuiEditor(Object.assign({
+    if (this.tuiEditor) {
+      this.tuiEditor.remove();
+    }
+    this.tuiEditor = new TuiEditor(Object.assign({
       el: document.querySelector("#editSection"),
       initialEditType: "markdown",
       previewStyle: "vertical",
@@ -86,7 +88,7 @@ class ComponentCtrl implements ng.IComponentController {
       toolbarItems: toolbarItems,
       events: {
         change: (change) => {
-          this.page.content = tuiEditor.getMarkdown();
+          this.page.content = this.tuiEditor.getMarkdown();
         }
       },
       hooks: {

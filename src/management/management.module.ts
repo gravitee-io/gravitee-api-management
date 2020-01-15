@@ -401,7 +401,7 @@ import DeleteEntrypointDialogController from "./configuration/tags/entrypoint/de
 import TagComponent from "./configuration/tags/tag/tag.component";
 import TagController from "./configuration/tags/tag/tag.controller";
 
-import SelectFolderDialogController from "./components/documentation/selectfolder.controller";
+import SelectFolderDialogController from "./components/documentation/dialog/selectfolder.controller";
 // API Response Templates
 import ApiResponseTemplatesController
   from "../management/api/proxy/general/response-templates/response-templates.controller";
@@ -524,7 +524,7 @@ require("../../node_modules/@highcharts/map-collection/custom/world.js");
 
 (<any>window).jsyaml = jsyaml;
 
-window["moment"] = moment;
+window.moment = moment;
 require("angular-moment-picker");
 
 (<any>window).tinycolor = tinycolor;

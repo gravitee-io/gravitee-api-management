@@ -80,18 +80,24 @@ class DocumentationService {
     return this.$http.patch(this.url(apiId, pageId), prop);
   }
 
-  search = (q: DocumentationQuery, apiId?: string): IHttpPromise<any> => {
+  search = (q: DocumentationQuery, apiId?: string, translated?: boolean): IHttpPromise<any> => {
     let url: string = this.url(apiId);
-    if (q) {
+    if (q || translated) {
       // add query parameters
-      url += "?";
-      const keys = Object.keys(q);
-      _.forEach(keys, function (key) {
-        let val = q[key];
-        if (val !== undefined && val !== "") {
-          url += key + "=" + val + "&";
-        }
-      });
+      let queryParams: string[] = [];
+      if (q) {
+        const keys = Object.keys(q);
+        _.forEach(keys, key => {
+          let val = q[key];
+          if (val !== undefined && val !== "") {
+            queryParams.push(key + "=" + val);
+          }
+        });
+      }
+      if (translated) {
+        queryParams.push("translated=" + translated);
+      }
+      url += "?" + queryParams.join("&");
     }
     return this.$http.get(url);
   }
@@ -121,9 +127,17 @@ class DocumentationService {
     );
   }
 
-  get(apiId: string, pageId?: string, portal?: boolean) {
+  get(apiId: string, pageId?: string, portal?: boolean, translated?: boolean) {
     if (pageId) {
-      return this.$http.get(this.url(apiId, pageId) + (portal !== undefined ? "?portal=" + portal : ""));
+      let url: string = this.url(apiId, pageId);
+      let params: any = {};
+      if (portal && portal !== undefined) {
+        params.portal = portal;
+      }
+      if (translated) {
+        params.translated = translated;
+      }
+      return this.$http.get(url, {params});
     }
   }
 

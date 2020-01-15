@@ -22,6 +22,7 @@ import {IScope} from "angular";
 
 interface IDocumentationManagementScope extends IScope {
   renameFolder: boolean;
+  translateFolder: boolean;
 }
 
 const DocumentationManagementComponent: ng.IComponentOptions = {
@@ -55,6 +56,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       this.supportedTypes = DocumentationService.supportedTypes(this.getFolderSituation(this.rootDir));
       this.breadcrumb = this.generateBreadcrumb();
       $scope.renameFolder = false;
+      $scope.translateFolder = false;
     };
 
     this.getFolderSituation = (folderId: string) => {
@@ -81,7 +83,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.filterROOTAndSystemPages = (pagesToFilter: any[]) => {
-      return _.filter(pagesToFilter, (p) => p.type !== "ROOT" && p.type !== "SYSTEM_FOLDER");
+      return _.filter(pagesToFilter, (p) => p.type !== "ROOT" && p.type !== "SYSTEM_FOLDER" && p.type !== "TRANSLATION");
     };
 
     this.toggleRenameFolder = () => {
@@ -122,7 +124,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       $mdDialog.show({
         controller: "SelectFolderDialogController",
         controllerAs: "ctrl",
-        template: require("./selectfolder.dialog.html"),
+        template: require("./dialog/selectfolder.dialog.html"),
         clickOutsideToClose: true,
         locals: {
           title: "Create shortcut for \"" + page.name + "\" in...",
@@ -132,13 +134,14 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
         if (destinationId) {
           const newLink = {
             name: page.name,
+            content: page.id,
             parentId: destinationId,
             type: "LINK",
             published: page.published,
             configuration: {
               resourceType: "page",
-              resourceRef: page.id,
-              isFolder: page.type === "FOLDER"
+              isFolder: page.type === "FOLDER",
+              inherit: "true"
             }
           };
           DocumentationService.create(newLink, this.apiId).then( () => {
@@ -174,7 +177,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       $mdDialog.show({
         controller: "SelectFolderDialogController",
         controllerAs: "ctrl",
-        template: require("./selectfolder.dialog.html"),
+        template: require("./dialog/selectfolder.dialog.html"),
         clickOutsideToClose: true,
         locals: {
           title: "Move \"" + page.name + "\" to...",
@@ -277,6 +280,13 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       DocumentationService.search(q, this.apiId).then((response) => this.pages = this.filterROOTAndSystemPages(response.data));
     };
 
+    this.refreshCurrentFolder = () => {
+      if (this.rootDir) {
+        DocumentationService.get(this.apiId, this.rootDir).then((response) => this.currentFolder = response.data);
+        delete this.currentTranslation;
+      }
+    };
+
     this.togglePublish = (page: any) => {
       page.published = !page.published;
       DocumentationService.partialUpdate("published", page.published, page.id, this.apiId).then( () => {
@@ -317,6 +327,10 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
           DocumentationService.remove(page.id, that.apiId).then( () => {
             NotificationService.show("Page " + page.name + " has been removed");
             that.refresh();
+            that.refreshCurrentFolder();
+            if (that.currentTranslation.id === page.id ) {
+              delete that.currentTranslation;
+            }
           });
         }
       });
@@ -367,6 +381,39 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     this.hasExternalDoc = () => {
       let externalPages = this.pages.filter(page => page.hasOwnProperty("source"));
       return externalPages.length > 0;
+    };
+
+    this.toggleTranslateFolder = () => {
+      $scope.translateFolder = !$scope.translateFolder;
+
+    };
+
+    this.saveFolderTranslation = () => {
+      if (!this.currentTranslation.id) {
+        DocumentationService.create(this.currentTranslation, this.apiId)
+        .then((response: any) => {
+          const page = response.data;
+          NotificationService.show("'" + page.name + "' has been created");
+          this.refreshCurrentFolder();
+        });
+      } else {
+        DocumentationService.update(this.currentTranslation, this.apiId)
+        .then( (response) => {
+          NotificationService.show("'" + this.currentTranslation.name + "' has been updated");
+          this.refreshCurrentFolder();
+        });
+      }
+    };
+
+    this.selectTranslation = (translation: any) => {
+      this.currentTranslation = translation;
+    };
+
+    this.addTranslation = () => {
+      this.currentTranslation = {
+        type: "TRANSLATION",
+        parentId: this.currentFolder.id
+      };
     };
   }
 };

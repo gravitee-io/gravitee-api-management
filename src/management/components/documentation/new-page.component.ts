@@ -152,11 +152,12 @@ const NewPageComponent: ng.IComponentOptions = {
     };
 
     this.checkIfFolder = () => {
-      if (this.page.configuration.resourceRef) {
-        if (this.page.configuration.resourceRef === "root") {
+      if (this.page.content) {
+        if (this.page.content === "root") {
           this.page.configuration.isFolder = true;
+          this.page.configuration.inherit = "false";
         } else {
-          const folder = this.getFolder(this.page.configuration.resourceRef);
+          const folder = this.getFolder(this.page.content);
           if (folder) {
             this.page.configuration.isFolder = true;
           } else {
@@ -167,8 +168,11 @@ const NewPageComponent: ng.IComponentOptions = {
     };
 
     this.onChangeLinkType = () => {
-      delete this.page.configuration.resourceRef;
+      delete this.page.content;
       delete this.page.configuration.isFolder;
+      if (this.page.configuration.resourceType !== "external" && !this.page.configuration.inherit) {
+        this.page.configuration.inherit = "true";
+      }
     };
 
     this.save = () => {
@@ -215,7 +219,7 @@ const NewPageComponent: ng.IComponentOptions = {
     };
 
     this.updateLinkName = (resourceName: string) => {
-      if (!this.page.name || this.page.name === "") {
+      if (!this.page.name || this.page.name === "" || this.page.configuration.inherit === "true" || resourceName === "") {
         this.page.name = resourceName;
       }
     };
