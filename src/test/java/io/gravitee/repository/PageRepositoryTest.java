@@ -19,12 +19,10 @@ import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 
 import java.util.*;
 
-import static io.gravitee.repository.management.model.PageType.SWAGGER;
 import static org.junit.Assert.*;
 
 /**
@@ -53,7 +51,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("content", "Content of the page", page.getContent());
         assertEquals("reference id", "my-api", page.getReferenceId());
         assertEquals("reference type", PageReferenceType.API, page.getReferenceType());
-        assertEquals("type", PageType.MARKDOWN, page.getType());
+        assertEquals("type", "MARKDOWN", page.getType());
         assertEquals("last contributor", "john_doe", page.getLastContributor());
         assertEquals("order", 2, page.getOrder());
         assertTrue("published", page.isPublished());
@@ -89,7 +87,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setReferenceId("my-api");
         page.setReferenceType(PageReferenceType.API);
         page.setHomepage(true);
-        page.setType(PageType.MARKDOWN);
+        page.setType("MARKDOWN");
         page.setParentId("2");
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
@@ -139,7 +137,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setReferenceType(PageReferenceType.API);
         page.setHomepage(false);
         page.setParentId("");
-        page.setType(PageType.FOLDER);
+        page.setType("FOLDER");
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
 
@@ -167,7 +165,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setName("Page name");
         page.setContent("Page content");
         page.setOrder(3);
-        page.setType(PageType.MARKDOWN);
+        page.setType("MARKDOWN");
         page.setParentId("2");
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
@@ -215,7 +213,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setReferenceType(PageReferenceType.ENVIRONMENT);
         page.setName("Folder name");
         page.setOrder(3);
-        page.setType(PageType.FOLDER);
+        page.setType("FOLDER");
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
         page.setParentId("");
@@ -247,7 +245,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setContent("New content");
         page.setReferenceId("my-api-2");
         page.setReferenceType(PageReferenceType.API);
-        page.setType(SWAGGER);
+        page.setType("SWAGGER");
         page.setOrder(1);
         page.setUpdatedAt(new Date(1486771200000L));
         page.setCreatedAt(new Date(1486772200000L));
@@ -282,7 +280,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid page content.", "New content", updatedPage.getContent());
         assertEquals("Invalid reference id.", "my-api-2", updatedPage.getReferenceId());
         assertEquals("Invalid reference type.", PageReferenceType.API, updatedPage.getReferenceType());
-        assertEquals("Invalid type.", SWAGGER, updatedPage.getType());
+        assertEquals("Invalid type.", "SWAGGER", updatedPage.getType());
         assertEquals("Invalid order.", 1, updatedPage.getOrder());
         assertEquals("Invalid updatedAt.", new Date(1486771200000L), updatedPage.getUpdatedAt());
         assertEquals("Invalid createdAt.", new Date(1486772200000L), updatedPage.getCreatedAt());

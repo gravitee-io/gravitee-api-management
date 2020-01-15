@@ -19,7 +19,6 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
-import io.gravitee.repository.management.model.PageType;
 
 import java.util.Collections;
 import java.util.Date;
@@ -52,7 +51,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(findApiPage.getContent()).thenReturn("Content of the page");
         when(findApiPage.getReferenceId()).thenReturn("my-api");
         when(findApiPage.getReferenceType()).thenReturn(PageReferenceType.API);
-        when(findApiPage.getType()).thenReturn(PageType.MARKDOWN);
+        when(findApiPage.getType()).thenReturn("MARKDOWN");
         when(findApiPage.getLastContributor()).thenReturn("john_doe");
         when(findApiPage.getOrder()).thenReturn(2);
         when(findApiPage.isPublished()).thenReturn(true);
@@ -94,7 +93,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(createPage.getName()).thenReturn("Page name");
         when(createPage.getContent()).thenReturn("Page content");
         when(createPage.getOrder()).thenReturn(3);
-        when(createPage.getType()).thenReturn(PageType.MARKDOWN);
+        when(createPage.getType()).thenReturn("MARKDOWN");
         when(createPage.isHomepage()).thenReturn(true);
         when(createPage.getParentId()).thenReturn("2");
         metadata = new HashMap<>();
@@ -109,7 +108,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(createPageFolder.getName()).thenReturn("Folder name");
         when(createPageFolder.getContent()).thenReturn(null);
         when(createPageFolder.getOrder()).thenReturn(3);
-        when(createPageFolder.getType()).thenReturn(PageType.FOLDER);
+        when(createPageFolder.getType()).thenReturn("FOLDER");
         when(createPageFolder.isHomepage()).thenReturn(false);
         when(createPageFolder.getParentId()).thenReturn("");
         when(pageRepository.findById("new-page-folder")).thenReturn(empty(), of(createPageFolder));
@@ -119,7 +118,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(createPortalPage.getName()).thenReturn("Page name");
         when(createPortalPage.getContent()).thenReturn("Page content");
         when(createPortalPage.getOrder()).thenReturn(3);
-        when(createPortalPage.getType()).thenReturn(PageType.MARKDOWN);
+        when(createPortalPage.getType()).thenReturn("MARKDOWN");
         when(createPortalPage.isHomepage()).thenReturn(false);
         when(createPortalPage.getParentId()).thenReturn("2");
         metadata = new HashMap<>();
@@ -134,7 +133,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(createPortalPageFolder.getName()).thenReturn("Folder name");
         when(createPortalPageFolder.getContent()).thenReturn(null);
         when(createPortalPageFolder.getOrder()).thenReturn(3);
-        when(createPortalPageFolder.getType()).thenReturn(PageType.FOLDER);
+        when(createPortalPageFolder.getType()).thenReturn("FOLDER");
         when(createPortalPageFolder.isHomepage()).thenReturn(false);
         when(createPortalPageFolder.getParentId()).thenReturn("");
         when(pageRepository.findById("new-portal-page-folder")).thenReturn(empty(), of(createPortalPageFolder));
@@ -155,7 +154,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(updatePageAfter.getContent()).thenReturn("New content");
         when(updatePageAfter.getReferenceId()).thenReturn("my-api-2");
         when(updatePageAfter.getReferenceType()).thenReturn(PageReferenceType.API);
-        when(updatePageAfter.getType()).thenReturn(PageType.SWAGGER);
+        when(updatePageAfter.getType()).thenReturn("SWAGGER");
         when(updatePageAfter.getOrder()).thenReturn(1);
         when(updatePageAfter.getUpdatedAt()).thenReturn(new Date(1486771200000L));
         when(updatePageAfter.getCreatedAt()).thenReturn(new Date(1486772200000L));

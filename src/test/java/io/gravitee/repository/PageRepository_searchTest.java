@@ -19,7 +19,6 @@ import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 
 import java.util.*;
@@ -52,7 +51,7 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
         assertEquals("content", "Content of the page", page.getContent());
         assertEquals("reference id", "my-api", page.getReferenceId());
         assertEquals("reference type", PageReferenceType.API, page.getReferenceType());
-        assertEquals("type", PageType.MARKDOWN, page.getType());
+        assertEquals("type", "MARKDOWN", page.getType());
         assertEquals("last contributor", "john_doe", page.getLastContributor());
         assertEquals("order", 2, page.getOrder());
         assertTrue("published", page.isPublished());
