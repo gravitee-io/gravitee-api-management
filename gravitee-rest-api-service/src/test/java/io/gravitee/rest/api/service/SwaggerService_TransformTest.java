@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
@@ -60,8 +61,8 @@ public class SwaggerService_TransformTest {
         pageEntity.setContent(descriptor);
         pageEntity.setContentType(contentType);
         Map<String, String> pageConfigurationEntity = new HashMap<>();
-        pageConfigurationEntity.put("tryIt", "true");
-        pageConfigurationEntity.put("tryItURL", "https://my.domain.com/v1");
+        pageConfigurationEntity.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT, "true");
+        pageConfigurationEntity.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_URL, "https://my.domain.com/v1");
         pageEntity.setConfiguration(pageConfigurationEntity);
         return pageEntity;
     }

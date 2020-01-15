@@ -31,7 +31,13 @@ public interface PageService {
 
 	PageEntity findById(String pageId);
 
+	PageEntity findById(String pageId, String acceptedLocale);
+
 	List<PageEntity> search(PageQuery query);
+
+    List<PageEntity> search(PageQuery query, boolean withTranslations);
+
+	List<PageEntity> search(PageQuery query, String acceptedLocale);
 
 	void transformSwagger(PageEntity pageEntity);
 

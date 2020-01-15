@@ -63,13 +63,13 @@ public class PageResourceTest extends AbstractResourceTest {
         publishedPage.setPublished(true);
         publishedPage.setExcludedGroups(new ArrayList<String>());
         publishedPage.setContent(PAGE_CONTENT);
-        doReturn(publishedPage).when(pageService).findById(PUBLISHED_PAGE);
+        doReturn(publishedPage).when(pageService).findById(PUBLISHED_PAGE, null);
 
         PageEntity unPublishedPage = new PageEntity();
         unPublishedPage.setPublished(false);
         unPublishedPage.setExcludedGroups(new ArrayList<String>());
         unPublishedPage.setContent(PAGE_CONTENT);
-        doReturn(unPublishedPage).when(pageService).findById(UNPUBLISHED_PAGE);
+        doReturn(unPublishedPage).when(pageService).findById(UNPUBLISHED_PAGE, null);
 
         mockAnotherPage = new PageEntity();
         mockAnotherPage.setPublished(true);
@@ -77,9 +77,9 @@ public class PageResourceTest extends AbstractResourceTest {
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
-        doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE);
+        doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE, null);
 
-        doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE);
+        doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE, null);
 
     }
 

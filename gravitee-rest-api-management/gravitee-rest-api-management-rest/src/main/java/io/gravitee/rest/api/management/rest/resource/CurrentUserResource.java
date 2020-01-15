@@ -170,6 +170,10 @@ public class CurrentUserResource extends AbstractResource {
 
         InlinePictureEntity image = (InlinePictureEntity) picture;
 
+        if (image.getContent() == null) {
+            throw new NotFoundException();
+        }
+        
         EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
         Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
 

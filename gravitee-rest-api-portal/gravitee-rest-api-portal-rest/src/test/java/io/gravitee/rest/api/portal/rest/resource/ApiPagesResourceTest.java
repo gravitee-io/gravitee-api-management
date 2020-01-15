@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.Response;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -38,6 +39,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 
 /**
@@ -63,7 +65,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
 
-        doReturn(Arrays.asList(new PageEntity())).when(pageService).search(any());
+        doReturn(Arrays.asList(new PageEntity())).when(pageService).search(any(), isNull());
         
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());

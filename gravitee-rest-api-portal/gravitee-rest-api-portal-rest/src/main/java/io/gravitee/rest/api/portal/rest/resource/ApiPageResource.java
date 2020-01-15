@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
@@ -52,14 +53,17 @@ public class ApiPageResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPageByApiIdAndPageId(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId,
+    public Response getPageByApiIdAndPageId(
+            @HeaderParam("Accept-Language") String acceptLang,
+            @PathParam("apiId") String apiId,
+            @PathParam("pageId") String pageId,
             @QueryParam("include") List<String> include) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-
+            final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
             final ApiEntity apiEntity = apiService.findById(apiId);
 
-            PageEntity pageEntity = pageService.findById(pageId);
+            PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
             pageService.transformSwagger(pageEntity, apiId);
 
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
@@ -94,7 +98,7 @@ public class ApiPageResource extends AbstractResource {
 
             final ApiEntity apiEntity = apiService.findById(apiId);
 
-            PageEntity pageEntity = pageService.findById(pageId);
+            PageEntity pageEntity = pageService.findById(pageId, null);
             pageService.transformSwagger(pageEntity, apiId);
 
             if (isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups())) {

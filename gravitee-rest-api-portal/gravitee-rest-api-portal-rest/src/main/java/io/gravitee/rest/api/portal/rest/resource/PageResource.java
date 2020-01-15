@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
@@ -49,9 +50,12 @@ public class PageResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPageByPageId(@PathParam("pageId") String pageId, @QueryParam("include") List<String> include) {
-
-        PageEntity pageEntity = pageService.findById(pageId);
+    public Response getPageByPageId(
+            @HeaderParam("Accept-Language") String acceptLang,
+            @PathParam("pageId") String pageId,
+            @QueryParam("include") List<String> include) {
+        final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
+        PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
 
         if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
@@ -80,7 +84,7 @@ public class PageResource extends AbstractResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response getPageContentByPageId(@PathParam("pageId") String pageId) {
 
-        PageEntity pageEntity = pageService.findById(pageId);
+        PageEntity pageEntity = pageService.findById(pageId, null);
 
         if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
             pageService.transformWithTemplate(pageEntity, null);

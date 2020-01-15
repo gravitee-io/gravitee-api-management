@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.PortalConfigEntity;
@@ -38,6 +39,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -81,10 +83,10 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         linkSysFolder.setParentId("SYS_FOLDER");
         linkSysFolder.setType("LINK");
         linkSysFolder.setName("LINK");
+        linkSysFolder.setContent("LINK_RES_REF");
         linkSysFolder.setPublished(true);
         Map<String, String> linkConf = new HashMap<>();
-        linkConf.put("resourceRef", "LINK_RES_REF");
-        linkConf.put("resourceType", "external");
+        linkConf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, "external");
         linkSysFolder.setConfiguration(linkConf);
         
         PageEntity swaggerSysFolder = new PageEntity();
@@ -108,7 +110,7 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         markdownFolderSysFolder.setName("MARKDOWN");
         markdownFolderSysFolder.setPublished(true);
         
-        when(pageService.search(any(PageQuery.class))).thenAnswer(new Answer<List<PageEntity>>() {
+        when(pageService.search(any(PageQuery.class), isNull())).thenAnswer(new Answer<List<PageEntity>>() {
 
             @Override
             public List<PageEntity> answer(InvocationOnMock invocation) throws Throwable {

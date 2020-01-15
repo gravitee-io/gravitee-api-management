@@ -164,7 +164,7 @@ public class ApiService_ExportAsJsonTest {
         page.setOrder(1);
         page.setType(PageType.MARKDOWN.toString());
         page.setContent("Read the doc");
-        when(pageService.search(any())).thenReturn(Collections.singletonList(page));
+        when(pageService.search(any(), eq(true))).thenReturn(Collections.singletonList(page));
         Membership membership = new Membership();
         membership.setUserId("johndoe");
         membership.setReferenceId(API_ID);

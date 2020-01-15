@@ -92,7 +92,7 @@ public class PageResourceNotAuthenticatedTest extends AbstractResourceTest {
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
-        doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE);
+        doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE, null);
 
         doReturn(new Page()).when(pageMapper).convert(any());
     }

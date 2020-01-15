@@ -24,6 +24,7 @@ import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
+import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
@@ -122,15 +123,16 @@ public class ApiResource extends AbstractResource {
     @GET
     @Path("links")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getApiLinks(@PathParam("apiId") String apiId) {
+    public Response getApiLinks(@HeaderParam("Accept-Language") String acceptLang, @PathParam("apiId") String apiId) {
+        final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Map<String, List<CategorizedLinks>> apiLinks = new HashMap<>();
-        pageService.search(new PageQuery.Builder().api(apiId).type(PageType.SYSTEM_FOLDER).build()).stream()
+        pageService.search(new PageQuery.Builder().api(apiId).type(PageType.SYSTEM_FOLDER).build(), acceptedLocale).stream()
                 .filter(PageEntity::isPublished)
                 .forEach(sysPage -> {
                     List<CategorizedLinks> catLinksList = new ArrayList<>();
 
                     // for pages under sysFolder                    
-                    List<Link> links = getLinksFromFolder(sysPage, apiId);
+                    List<Link> links = getLinksFromFolder(sysPage, apiId, acceptedLocale);
                     if(!links.isEmpty()) {
                         CategorizedLinks catLinks = new CategorizedLinks();
                         catLinks.setCategory(sysPage.getName());
@@ -140,11 +142,11 @@ public class ApiResource extends AbstractResource {
                     }
                     
                     // for pages into folders
-                    pageService.search(new PageQuery.Builder().api(apiId).parent(sysPage.getId()).build()).stream()
+                    pageService.search(new PageQuery.Builder().api(apiId).parent(sysPage.getId()).build(), acceptedLocale).stream()
                         .filter(PageEntity::isPublished)
                         .filter(p -> p.getType().equals("FOLDER"))
                         .forEach(folder -> {
-                            List<Link> folderLinks = getLinksFromFolder(folder, apiId);
+                            List<Link> folderLinks = getLinksFromFolder(folder, apiId, acceptedLocale);
                             if(folderLinks != null && !folderLinks.isEmpty()) {
                                 CategorizedLinks catLinks = new CategorizedLinks();
                                 catLinks.setCategory(folder.getName());
@@ -164,18 +166,18 @@ public class ApiResource extends AbstractResource {
                 .build();
     }
 
-    private List<Link> getLinksFromFolder(PageEntity folder, String apiId) {
-        return pageService.search(new PageQuery.Builder().api(apiId).parent(folder.getId()).build()).stream()
+    private List<Link> getLinksFromFolder(PageEntity folder, String apiId, String acceptedLocale) {
+        return pageService.search(new PageQuery.Builder().api(apiId).parent(folder.getId()).build(), acceptedLocale).stream()
                 .filter(PageEntity::isPublished)
                 .filter(p -> !p.getType().equals("FOLDER"))
                 .map(p -> {
                     if("LINK".equals(p.getType())) {
                         Link link = new Link()
                                 .name(p.getName())
-                                .resourceRef(p.getConfiguration().get("resourceRef"))
-                                .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get("resourceType")))
+                                .resourceRef(p.getContent())
+                                .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)))
                                 ;
-                        String isFolderConfig = p.getConfiguration().get("isFolder");
+                        String isFolderConfig = p.getConfiguration().get(PageConfigurationKeys.LINK_IS_FOLDER);
                         if(isFolderConfig != null && !isFolderConfig.isEmpty()) {
                             link.setFolder(Boolean.valueOf(isFolderConfig));
                         }

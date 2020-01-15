@@ -31,6 +31,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 
 /**
@@ -50,7 +51,7 @@ public class PagesResourceTest extends AbstractResourceTest {
         PageEntity publishedPage = new PageEntity();
         publishedPage.setPublished(true);
         
-        doReturn(singletonList(publishedPage)).when(pageService).search(any());
+        doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull());
         
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.model.Metadata;
 import io.gravitee.rest.api.portal.rest.model.Page;
@@ -37,18 +38,6 @@ import java.util.stream.Collectors;
  */
 @Component
 public class PageMapper {
-
-    public static final String VIEWER = "viewer";
-    public static final String TRY_IT_URL = "tryItURL";
-    public static final String TRY_IT_ANONYMOUS = "tryItAnonymous";
-    public static final String TRY_IT = "tryIt";
-    public static final String SHOW_URL = "showURL";
-    public static final String SHOW_EXTENSIONS = "showExtensions";
-    public static final String SHOW_COMMON_EXTENSIONS = "showCommonExtensions";
-    public static final String MAX_DISPLAYED_TAGS = "maxDisplayedTags";
-    public static final String ENABLE_FILTERING = "enableFiltering";
-    public static final String DOC_EXPANSION = "docExpansion";
-    public static final String DISPLAY_OPERATION_ID = "displayOperationId";
 
     public Page convert(PageEntity page) {
         final Page pageItem = new Page();
@@ -84,17 +73,17 @@ public class PageMapper {
 
     private PageConfiguration convertPageConfiguration(Map<String, String> configuration) {
         PageConfiguration pageConfiguration = new PageConfiguration();
-        String displayOperationId = configuration.get(DISPLAY_OPERATION_ID);
-        String docExpansion = configuration.get(DOC_EXPANSION);
-        String enableFiltering = configuration.get(ENABLE_FILTERING);
-        String maxDisplayedTags = configuration.get(MAX_DISPLAYED_TAGS);
-        String showCommonExtensions = configuration.get(SHOW_COMMON_EXTENSIONS);
-        String showExtensions = configuration.get(SHOW_EXTENSIONS);
-        String showUrl = configuration.get(SHOW_URL);
-        String tryIt = configuration.get(TRY_IT);
-        String tryItAnonymous = configuration.get(TRY_IT_ANONYMOUS);
-        String tryItURL = configuration.get(TRY_IT_URL);
-        String viewer = configuration.get(VIEWER);
+        String displayOperationId = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_DISPLAY_OPERATION_ID);
+        String docExpansion = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_DOC_EXPANSION);
+        String enableFiltering = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_ENABLE_FILTERING);
+        String maxDisplayedTags = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_MAX_DISPLAYED_TAGS);
+        String showCommonExtensions = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_COMMON_EXTENSIONS);
+        String showExtensions = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_EXTENSIONS);
+        String showUrl = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_URL);
+        String tryIt = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT);
+        String tryItAnonymous = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS);
+        String tryItURL = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_URL);
+        String viewer = configuration.get(PageConfigurationKeys.SWAGGER_VIEWER);
         
         if (displayOperationId != null) {
             pageConfiguration.setDisplayOperationId(Boolean.parseBoolean(displayOperationId));

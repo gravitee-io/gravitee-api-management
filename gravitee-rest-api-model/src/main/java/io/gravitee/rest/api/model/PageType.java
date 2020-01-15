@@ -35,7 +35,8 @@ public enum PageType {
 	FOLDER(emptyList()),
     LINK(emptyList()),
     ROOT(emptyList()),
-    SYSTEM_FOLDER(emptyList());
+    SYSTEM_FOLDER(emptyList()),
+    TRANSLATION(emptyList());
 
 	List<String> extensions;
 	PageType(List<String> extensions) {

@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
@@ -70,12 +71,16 @@ public class ApiPagesResource extends AbstractResource {
             @ApiResponse(code = 200, message = "List of pages", response = PageEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<PageEntity> listPages(
+            @HeaderParam("Accept-Language") String acceptLang,
             @PathParam("api") String api,
             @QueryParam("homepage") Boolean homepage,
             @QueryParam("type") PageType type,
             @QueryParam("parent") String parent,
             @QueryParam("name") String name,
-            @QueryParam("root") Boolean rootParent) {
+            @QueryParam("root") Boolean rootParent,
+            @QueryParam("translated") boolean translated) {
+        final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
+
         final ApiEntity apiEntity = apiService.findById(api);
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
@@ -88,7 +93,8 @@ public class ApiPagesResource extends AbstractResource {
                             .parent(parent)
                             .name(name)
                             .rootParent(rootParent)
-                            .build())
+                            .build()
+                            , translated?acceptedLocale:null)
                     .stream()
                     .filter(page -> isDisplayable(apiEntity, page.isPublished(), page.getExcludedGroups()))
                     .collect(Collectors.toList());

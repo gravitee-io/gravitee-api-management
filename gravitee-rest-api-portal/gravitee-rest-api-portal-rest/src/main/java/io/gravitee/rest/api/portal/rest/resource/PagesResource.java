@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
@@ -56,12 +57,17 @@ public class PagesResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPages(@BeanParam PaginationParam paginationParam, @QueryParam("homepage") Boolean homepage,
+    public Response getPages(
+            @HeaderParam("Accept-Language") String acceptLang,
+            @BeanParam PaginationParam paginationParam,
+            @QueryParam("homepage") Boolean homepage,
             @QueryParam("parent") String parent) {
-
-        Stream<Page> pageStream = pageService.search(new PageQuery.Builder().homepage(homepage).published(true).build()).stream()
+        final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
+        Stream<Page> pageStream = pageService.search(new PageQuery.Builder().homepage(homepage).published(true).build(), acceptedLocale)
+                .stream()
                 .filter(pageEntity -> isDisplayable(pageEntity.getExcludedGroups(), pageEntity.getType()))
-                .map(pageMapper::convert).map(this::addPageLink);
+                .map(pageMapper::convert)
+                .map(this::addPageLink);
 
         final List<Page> pages;
         if (parent != null) {

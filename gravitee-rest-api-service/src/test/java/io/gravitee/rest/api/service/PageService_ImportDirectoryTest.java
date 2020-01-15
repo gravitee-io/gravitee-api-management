@@ -21,16 +21,12 @@ import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageType;
 import io.gravitee.rest.api.management.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageSourceEntity;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.GraviteeDescriptorService;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -112,48 +108,48 @@ public class PageService_ImportDirectoryTest {
         // //////////////////////
         // check Folder creation
         // //////////////////////
-        verify(pageRepository, times(3)).create(argThat(pageToCreate -> PageType.FOLDER.equals(pageToCreate.getType())));
+        verify(pageRepository, times(3)).create(argThat(pageToCreate -> "FOLDER".equals(pageToCreate.getType())));
 
         // /src
         verify(pageRepository).create(argThat(pageToCreate -> "src".equals(pageToCreate.getName())
-                && PageType.FOLDER.equals(pageToCreate.getType())
+                && "FOLDER".equals(pageToCreate.getType())
                 && null == pageToCreate.getParentId()));
         // /src/doc
         verify(pageRepository).create(argThat(pageToCreate -> "doc".equals(pageToCreate.getName())
-                && PageType.FOLDER.equals(pageToCreate.getType())
+                && "FOLDER".equals(pageToCreate.getType())
                 && null != pageToCreate.getParentId()));
         // /src/folder.with.dot/
         verify(pageRepository).create(argThat(pageToCreate -> "folder.with.dot".equals(pageToCreate.getName())
-                && PageType.FOLDER.equals(pageToCreate.getType())
+                && "FOLDER".equals(pageToCreate.getType())
                 && null != pageToCreate.getParentId()));
 
         // //////////////////////
         // verify files creation
         // //////////////////////
-        verify(pageRepository, times(5)).create(argThat(pageToCreate -> pageToCreate.getType() != null && !PageType.FOLDER.equals(pageToCreate.getType())));
+        verify(pageRepository, times(5)).create(argThat(pageToCreate -> pageToCreate.getType() != null && !"FOLDER".equals(pageToCreate.getType())));
 
         // /src/doc/m1.md
         verify(pageRepository).create(argThat(pageToCreate -> "m1".equals(pageToCreate.getName())
-                && PageType.MARKDOWN.equals(pageToCreate.getType())
+                && "MARKDOWN".equals(pageToCreate.getType())
                 && null != pageToCreate.getParentId()));
 
         // /swagger.json
         verify(pageRepository).create(argThat(pageToCreate -> "swagger".equals(pageToCreate.getName())
-                && PageType.SWAGGER.equals(pageToCreate.getType())
+                && "SWAGGER".equals(pageToCreate.getType())
                 && null == pageToCreate.getParentId()));
 
         // /src/doc/sub.m11.md
         verify(pageRepository).create(argThat(pageToCreate -> "sub.m11".equals(pageToCreate.getName())
-                && PageType.MARKDOWN.equals(pageToCreate.getType())
+                && "MARKDOWN".equals(pageToCreate.getType())
                 && null != pageToCreate.getParentId()));
 
         // /src/doc/m2.yaml
         verify(pageRepository).create(argThat(pageToCreate -> "m2".equals(pageToCreate.getName())
-                && PageType.SWAGGER.equals(pageToCreate.getType())
+                && "SWAGGER".equals(pageToCreate.getType())
                 && null != pageToCreate.getParentId()));
         // /src/folder.with.dot/m2.MD
         verify(pageRepository).create(argThat(pageToCreate -> "m2".equals(pageToCreate.getName())
-                && PageType.MARKDOWN.equals(pageToCreate.getType())
+                && "MARKDOWN".equals(pageToCreate.getType())
                 && null != pageToCreate.getParentId()));
 
     }

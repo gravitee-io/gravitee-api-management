@@ -1636,7 +1636,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains("pages")) {
-            final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build());
+            final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build(), true);
             pages.forEach(page -> pageService.create(duplicatedApi.getId(), page));
         }
 

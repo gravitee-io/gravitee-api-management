@@ -22,11 +22,13 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.*;
+import org.glassfish.jersey.message.internal.AcceptableLanguageTag;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -36,6 +38,7 @@ import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -60,9 +63,12 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 200, message = "Page"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public PageEntity getPage(
+                @HeaderParam("Accept-Language") String acceptLang,
                 @PathParam("page") String page,
-                @QueryParam("portal") boolean portal) {
-        PageEntity pageEntity = pageService.findById(page);
+                @QueryParam("portal") boolean portal,
+                @QueryParam("translated") boolean translated) {
+        final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
+        PageEntity pageEntity = pageService.findById(page, translated?acceptedLocale:null);
         if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
@@ -102,11 +108,14 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 200, message = "List of pages", response = PageEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<PageEntity> listPages(
+            @HeaderParam("Accept-Language") String acceptLang,
             @QueryParam("homepage") Boolean homepage,
             @QueryParam("type") PageType type,
             @QueryParam("parent") String parent,
             @QueryParam("name") String name,
-            @QueryParam("root") Boolean rootParent) {
+            @QueryParam("root") Boolean rootParent,
+            @QueryParam("translated") boolean translated) {
+        final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         return pageService
                 .search(new PageQuery.Builder()
                         .homepage(homepage)
@@ -114,7 +123,8 @@ public class PortalPagesResource extends AbstractResource {
                         .parent(parent)
                         .name(name)
                         .rootParent(rootParent)
-                        .build())
+                        .build()
+                        , translated?acceptedLocale:null)
                 .stream()
                 .filter(page -> isDisplayable(page.isPublished(), page.getExcludedGroups()))
                 .collect(Collectors.toList());

@@ -19,16 +19,15 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.repository.management.model.PageType;
 import io.gravitee.rest.api.model.NewPageEntity;
+import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.service.exceptions.PageActionException;
 import io.gravitee.rest.api.service.exceptions.PageFolderActionException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -39,7 +38,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -82,7 +82,7 @@ public class PageService_CreateTest {
         when(page1.getId()).thenReturn(PAGE_ID);
         when(page1.getName()).thenReturn(name);
         when(page1.getReferenceId()).thenReturn(API_ID);
-        when(page1.getType()).thenReturn(PageType.valueOf(type));
+        when(page1.getType()).thenReturn(type);
         when(page1.getLastContributor()).thenReturn(contrib);
         when(page1.getOrder()).thenReturn(1);
         when(page1.getContent()).thenReturn(content);
@@ -93,7 +93,7 @@ public class PageService_CreateTest {
         when(newPage.getOrder()).thenReturn(1);
         when(newPage.getContent()).thenReturn(content);
         when(newPage.getLastContributor()).thenReturn(contrib);
-        when(newPage.getType()).thenReturn(io.gravitee.rest.api.model.PageType.SWAGGER);
+        when(newPage.getType()).thenReturn(PageType.SWAGGER);
 
         final PageEntity createdPage = pageService.createPage(API_ID, newPage);
 
@@ -103,7 +103,7 @@ public class PageService_CreateTest {
             name.equals(pageToCreate.getName()) &&
             contrib.equals(pageToCreate.getLastContributor()) &&
             content.equals(pageToCreate.getContent()) &&
-            io.gravitee.rest.api.model.PageType.SWAGGER.name().equals(pageToCreate.getType().name()) &&
+            PageType.SWAGGER.name().equals(pageToCreate.getType()) &&
             pageToCreate.getCreatedAt() != null &&
             pageToCreate.getUpdatedAt() != null &&
             pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt())));
@@ -131,17 +131,17 @@ public class PageService_CreateTest {
     public void shouldNotCreateFolderinFolderOfSystemFolderPage() throws TechnicalException {
         Page systemFolder = new Page();
         systemFolder.setId("SYS");
-        systemFolder.setType(PageType.SYSTEM_FOLDER);
+        systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
         
         Page folderInSystemFolder = new Page();
         folderInSystemFolder.setId("FOLD_IN_SYS");
-        folderInSystemFolder.setType(PageType.FOLDER);
+        folderInSystemFolder.setType("FOLDER");
         folderInSystemFolder.setParentId("SYS");
         doReturn(Optional.of(folderInSystemFolder)).when(pageRepository).findById("FOLD_IN_SYS");
         
         NewPageEntity newFolder = new NewPageEntity();
-        newFolder.setType(io.gravitee.rest.api.model.PageType.FOLDER);
+        newFolder.setType(PageType.FOLDER);
         newFolder.setParentId("FOLD_IN_SYS");
         
         pageService.createPage(newFolder);
@@ -151,12 +151,12 @@ public class PageService_CreateTest {
     public void shouldCreateFolderInSystemFolderPage() throws TechnicalException {
         Page systemFolder = new Page();
         systemFolder.setId("SYS");
-        systemFolder.setType(PageType.SYSTEM_FOLDER);
+        systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
         
         
         NewPageEntity newFolder = new NewPageEntity();
-        newFolder.setType(io.gravitee.rest.api.model.PageType.FOLDER);
+        newFolder.setType(PageType.FOLDER);
         newFolder.setParentId("SYS");
         
         Page createdPage = new Page();
@@ -173,12 +173,12 @@ public class PageService_CreateTest {
     public void shouldNotCreateSwaggerInSystemFolderPage() throws TechnicalException {
         Page systemFolder = new Page();
         systemFolder.setId("SYS");
-        systemFolder.setType(PageType.SYSTEM_FOLDER);
+        systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
         
         
         NewPageEntity newFolder = new NewPageEntity();
-        newFolder.setType(io.gravitee.rest.api.model.PageType.SWAGGER);
+        newFolder.setType(PageType.SWAGGER);
         newFolder.setParentId("SYS");
         
         pageService.createPage(newFolder);
@@ -188,12 +188,12 @@ public class PageService_CreateTest {
     public void shouldNotCreateMarkdownInSystemFolderPage() throws TechnicalException {
         Page systemFolder = new Page();
         systemFolder.setId("SYS");
-        systemFolder.setType(PageType.SYSTEM_FOLDER);
+        systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
         
         
         NewPageEntity newFolder = new NewPageEntity();
-        newFolder.setType(io.gravitee.rest.api.model.PageType.MARKDOWN);
+        newFolder.setType(PageType.MARKDOWN);
         newFolder.setParentId("SYS");
         
         pageService.createPage(newFolder);
@@ -203,16 +203,17 @@ public class PageService_CreateTest {
     public void shouldNotCreateLinkOfSystemFolder() throws TechnicalException {
         Page systemFolder = new Page();
         systemFolder.setId("SYS");
-        systemFolder.setType(PageType.SYSTEM_FOLDER);
+        systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
         
         Map<String, String> conf = new HashMap<>();
-        conf.put("resourceRef", "SYS");
-        
+        conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_PAGE);
+
         NewPageEntity newLink = new NewPageEntity();
-        newLink.setType(io.gravitee.rest.api.model.PageType.LINK);
+        newLink.setType(PageType.LINK);
         newLink.setParentId("SYS");
         newLink.setConfiguration(conf);
+        newLink.setContent("SYS");
         
         pageService.createPage(newLink);
     }
@@ -221,22 +222,23 @@ public class PageService_CreateTest {
     public void shouldNotCreateLinkOfFolderInSystemFolder() throws TechnicalException {
         Page systemFolder = new Page();
         systemFolder.setId("SYS");
-        systemFolder.setType(PageType.SYSTEM_FOLDER);
+        systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
         
         Page folderInSystemFolder = new Page();
         folderInSystemFolder.setId("FOLD_IN_SYS");
-        folderInSystemFolder.setType(PageType.FOLDER);
+        folderInSystemFolder.setType("FOLDER");
         folderInSystemFolder.setParentId("SYS");
         doReturn(Optional.of(folderInSystemFolder)).when(pageRepository).findById("FOLD_IN_SYS");
         
         Map<String, String> conf = new HashMap<>();
-        conf.put("resourceRef", "FOLD_IN_SYS");
+        conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_PAGE);
         
         NewPageEntity newLink = new NewPageEntity();
-        newLink.setType(io.gravitee.rest.api.model.PageType.LINK);
+        newLink.setType(PageType.LINK);
         newLink.setParentId("SYS");
         newLink.setConfiguration(conf);
+        newLink.setContent("FOLD_IN_SYS");
         
         pageService.createPage(newLink);
     }
@@ -244,12 +246,13 @@ public class PageService_CreateTest {
     @Test
     public void shouldCreatePublishedLinkForRoot() throws TechnicalException {
         Map<String, String> conf = new HashMap<>();
-        conf.put("resourceRef", "root");
+        conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL);
         
         NewPageEntity newFolder = new NewPageEntity();
-        newFolder.setType(io.gravitee.rest.api.model.PageType.LINK);
+        newFolder.setType(PageType.LINK);
         newFolder.setParentId("SYS");
         newFolder.setConfiguration(conf);
+        newFolder.setContent("root");
         
         Page createdPage = new Page();
         createdPage.setId("NEW_LINK");
@@ -266,17 +269,18 @@ public class PageService_CreateTest {
     public void shouldCopyPublishedStateWhenCreateLink() throws TechnicalException {
         Page page = new Page();
         page.setId("PAGE");
-        page.setType(PageType.MARKDOWN);
+        page.setType("MARKDOWN");
         page.setPublished(true);
         doReturn(Optional.of(page)).when(pageRepository).findById(PAGE_ID);
         
         Map<String, String> conf = new HashMap<>();
-        conf.put("resourceRef", PAGE_ID);
+        conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_PAGE);
         
         NewPageEntity newLink = new NewPageEntity();
-        newLink.setType(io.gravitee.rest.api.model.PageType.LINK);
+        newLink.setType(PageType.LINK);
         newLink.setParentId("SYS");
         newLink.setConfiguration(conf);
+        newLink.setContent(PAGE_ID);
         
         Page createdPage = new Page();
         createdPage.setId("NEW_LINK");
@@ -285,6 +289,112 @@ public class PageService_CreateTest {
         doReturn(createdPage).when(pageRepository).create(any());
         
         pageService.createPage(newLink);
+        verify(pageRepository).create(argThat(p -> p.isPublished() == true));
+
+    }
+    
+    @Test(expected = PageActionException.class)
+    public void shouldNotCreateTranslationPageIfNoParent() throws TechnicalException {
+        NewPageEntity newTranslation = new NewPageEntity();
+        newTranslation.setType(PageType.TRANSLATION);
+        
+        pageService.createPage(newTranslation);
+    }
+    
+    @Test(expected = PageActionException.class)
+    public void shouldNotCreateTranslationPageWithoutConfiguration() throws TechnicalException {
+        NewPageEntity newTranslation = new NewPageEntity();
+        newTranslation.setType(PageType.TRANSLATION);
+        newTranslation.setParentId("FOLDER");
+        
+        pageService.createPage(newTranslation);
+    }
+    
+    @Test(expected = PageActionException.class)
+    public void shouldNotCreateTranslationPageWithoutLang() throws TechnicalException {
+        NewPageEntity newTranslation = new NewPageEntity();
+        newTranslation.setType(PageType.TRANSLATION);
+        newTranslation.setParentId("FOLDER");
+        
+        Map<String, String> conf = new HashMap<>();
+        newTranslation.setConfiguration(conf);
+
+        pageService.createPage(newTranslation);
+    }
+    
+    @Test(expected = PageActionException.class)
+    public void shouldNotCreateTranslationPageIfParentIsSystemFolder() throws TechnicalException {
+        Page parentPage = new Page();
+        parentPage.setType("SYSTEM_FOLDER");
+        doReturn(Optional.of(parentPage)).when(pageRepository).findById("SYS_FOLDER");
+        
+        NewPageEntity newTranslation = new NewPageEntity();
+        newTranslation.setType(PageType.TRANSLATION);
+        newTranslation.setParentId("SYS_FOLDER");
+        Map<String, String> conf = new HashMap<>();
+        conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+        newTranslation.setConfiguration(conf);
+        
+        pageService.createPage(newTranslation);
+    }
+    
+    @Test(expected = PageActionException.class)
+    public void shouldNotCreateTranslationPageIfParentIsRoot() throws TechnicalException {
+        Page parentPage = new Page();
+        parentPage.setType("ROOT");
+        doReturn(Optional.of(parentPage)).when(pageRepository).findById("ROOT");
+        
+        NewPageEntity newTranslation = new NewPageEntity();
+        newTranslation.setType(PageType.TRANSLATION);
+        newTranslation.setParentId("ROOT");
+        Map<String, String> conf = new HashMap<>();
+        conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+        newTranslation.setConfiguration(conf);
+        
+        pageService.createPage(newTranslation);
+    }
+    
+    @Test(expected = PageActionException.class)
+    public void shouldNotCreateTranslationPageIfParentIsTranslation() throws TechnicalException {
+        Page parentPage = new Page();
+        parentPage.setType("TRANSLATION");
+        doReturn(Optional.of(parentPage)).when(pageRepository).findById("TRANSLATION");
+        
+        NewPageEntity newTranslation = new NewPageEntity();
+        newTranslation.setType(PageType.TRANSLATION);
+        newTranslation.setParentId("TRANSLATION");
+
+        Map<String, String> conf = new HashMap<>();
+        conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+        newTranslation.setConfiguration(conf);
+
+        pageService.createPage(newTranslation);
+    }
+    
+    @Test
+    public void shouldCopyPublishedStateWhenCreateTranslation() throws TechnicalException {
+        Page page = new Page();
+        page.setId(PAGE_ID);
+        page.setType("MARKDOWN");
+        page.setPublished(true);
+        doReturn(Optional.of(page)).when(pageRepository).findById(PAGE_ID);
+        
+        
+        NewPageEntity newTranslation = new NewPageEntity();
+        newTranslation.setType(PageType.TRANSLATION);
+        newTranslation.setParentId(PAGE_ID);
+        Map<String, String> conf = new HashMap<>();
+        conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+        newTranslation.setConfiguration(conf);
+        newTranslation.setPublished(false);
+        
+        Page createdPage = new Page();
+        createdPage.setId("NEW_TRANSLATION");
+        createdPage.setReferenceId("DEFAULT");
+        createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+        doReturn(createdPage).when(pageRepository).create(any());
+        
+        pageService.createPage(newTranslation);
         verify(pageRepository).create(argThat(p -> p.isPublished() == true));
 
     }

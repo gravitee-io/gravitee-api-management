@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
@@ -59,14 +60,19 @@ public class ApiPagesResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPagesByApiId(@PathParam("apiId") String apiId, @BeanParam PaginationParam paginationParam,
-            @QueryParam("homepage") Boolean homepage, @QueryParam("parent") String parent) {
+    public Response getPagesByApiId(
+            @HeaderParam("Accept-Language") String acceptLang,
+            @PathParam("apiId") String apiId,
+            @BeanParam PaginationParam paginationParam,
+            @QueryParam("homepage") Boolean homepage,
+            @QueryParam("parent") String parent) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-
+            final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
             final ApiEntity apiEntity = apiService.findById(apiId);
             
-            Stream<Page> pageStream = pageService.search(new PageQuery.Builder().api(apiId).homepage(homepage).build()).stream()
+            Stream<Page> pageStream = pageService.search(new PageQuery.Builder().api(apiId).homepage(homepage).build(), acceptedLocale)
+                    .stream()
                     .filter(pageEntity -> isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups(), pageEntity.getType()))
                     .map(pageMapper::convert)
                     .map(page -> this.addPageLink(apiId, page));

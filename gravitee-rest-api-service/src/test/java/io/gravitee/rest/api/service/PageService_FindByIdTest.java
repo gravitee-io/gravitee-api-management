@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -29,11 +30,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.argThat;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -44,6 +46,7 @@ import static org.mockito.Mockito.when;
 public class PageService_FindByIdTest {
 
     private static final String PAGE_ID = "ba01aef0-e3da-4499-81ae-f0e3daa4995a";
+    private static final String TRANSLATION_ID = "a5994aad-3e0f-ea18-9944-ad3e0fea10ab";
 
     @InjectMocks
     private PageServiceImpl pageService = new PageServiceImpl();
@@ -54,17 +57,34 @@ public class PageService_FindByIdTest {
     @Mock
     private Page page1;
 
+    @Mock
+    private Page translationPage;
+    
     @Test
     public void shouldFindById() throws TechnicalException {
+        when(translationPage.getId()).thenReturn(TRANSLATION_ID);
+        when(translationPage.getOrder()).thenReturn(1);
+        when(translationPage.getParentId()).thenReturn(PAGE_ID);
+        Map<String, String> conf = new HashMap<>();
+        conf.put(PageConfigurationKeys.TRANSLATION_LANG, "FR");
+        when(translationPage.getConfiguration()).thenReturn(conf);
+
         when(page1.getId()).thenReturn(PAGE_ID);
         when(page1.getOrder()).thenReturn(1);
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
-
+        when(pageRepository.search(argThat(p->"TRANSLATION".equals(p.getType()) && PAGE_ID.equals(p.getParent())))).thenReturn(Arrays.asList(translationPage));
+        
         final PageEntity pageEntity = pageService.findById(PAGE_ID);
 
         assertNotNull(pageEntity);
         assertEquals(1, pageEntity.getOrder());
         assertEquals(PAGE_ID, pageEntity.getId());
+        List<PageEntity> translations = pageEntity.getTranslations();
+        assertNotNull(translations);
+        assertEquals(1, translations.size());
+        PageEntity oneTranslation = translations.get(0);
+        assertNotNull(oneTranslation);
+        assertEquals(TRANSLATION_ID, oneTranslation.getId());
     }
 
     @Test(expected = PageNotFoundException.class)

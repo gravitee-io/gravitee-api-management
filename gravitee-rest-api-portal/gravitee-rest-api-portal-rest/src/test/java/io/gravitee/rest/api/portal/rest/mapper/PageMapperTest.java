@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.model.Metadata;
 import io.gravitee.rest.api.portal.rest.model.Page;
@@ -73,17 +74,17 @@ public class PageMapperTest {
         pageEntity.setLastContributor(PAGE_CONTRIBUTOR);
         
         Map<String, String> configuration = new HashMap<>();
-        configuration.put(PageMapper.DISPLAY_OPERATION_ID, PAGE_CONFIGURATION_DISPLAY_OPERATION_ID);
-        configuration.put(PageMapper.DOC_EXPANSION, PAGE_CONFIGURATION_DOC_EXPANSION);
-        configuration.put(PageMapper.ENABLE_FILTERING, PAGE_CONFIGURATION_ENABLE_FILTERING);
-        configuration.put(PageMapper.MAX_DISPLAYED_TAGS, PAGE_CONFIGURATION_MAX_DISPLAYED_TAGS);
-        configuration.put(PageMapper.SHOW_COMMON_EXTENSIONS, PAGE_CONFIGURATION_SHOW_COMMON_EXTENSIONS);
-        configuration.put(PageMapper.SHOW_EXTENSIONS, PAGE_CONFIGURATION_SHOW_EXTENSIONS);
-        configuration.put(PageMapper.SHOW_URL, PAGE_CONFIGURATION_SHOW_URL);
-        configuration.put(PageMapper.TRY_IT, PAGE_CONFIGURATION_TRY_IT);
-        configuration.put(PageMapper.TRY_IT_ANONYMOUS, PAGE_CONFIGURATION_TRY_IT_ANONYMOUS);
-        configuration.put(PageMapper.TRY_IT_URL, PAGE_CONFIGURATION_TRY_IT_URL);
-        configuration.put(PageMapper.VIEWER, PAGE_CONFIGURATION_VIEWER);
+        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_DISPLAY_OPERATION_ID, PAGE_CONFIGURATION_DISPLAY_OPERATION_ID);
+        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_DOC_EXPANSION, PAGE_CONFIGURATION_DOC_EXPANSION);
+        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_ENABLE_FILTERING, PAGE_CONFIGURATION_ENABLE_FILTERING);
+        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_MAX_DISPLAYED_TAGS, PAGE_CONFIGURATION_MAX_DISPLAYED_TAGS);
+        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_COMMON_EXTENSIONS, PAGE_CONFIGURATION_SHOW_COMMON_EXTENSIONS);
+        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_EXTENSIONS, PAGE_CONFIGURATION_SHOW_EXTENSIONS);
+        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_SHOW_URL, PAGE_CONFIGURATION_SHOW_URL);
+        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT, PAGE_CONFIGURATION_TRY_IT);
+        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS, PAGE_CONFIGURATION_TRY_IT_ANONYMOUS);
+        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_URL, PAGE_CONFIGURATION_TRY_IT_URL);
+        configuration.put(PageConfigurationKeys.SWAGGER_VIEWER, PAGE_CONFIGURATION_VIEWER);
         pageEntity.setConfiguration(configuration);
         pageEntity.setId(PAGE_ID);
         

@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -61,14 +62,18 @@ public class ApiPageResource extends AbstractResource {
             @ApiResponse(code = 200, message = "Page"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public PageEntity getPage(
+                @HeaderParam("Accept-Language") String acceptLang,
                 @PathParam("api") String api,
                 @PathParam("page") String page,
-                @QueryParam("portal") boolean portal) {
+                @QueryParam("portal") boolean portal,
+                @QueryParam("translated") boolean translated) {
+        final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
+
         final ApiEntity apiEntity = apiService.findById(api);
 
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
-            PageEntity pageEntity = pageService.findById(page);
+            PageEntity pageEntity = pageService.findById(page, translated?acceptedLocale:null);
             if (portal) {
                 pageService.transformSwagger(pageEntity, api);
                 if (!isAuthenticated() && pageEntity.getMetadata() != null) {
@@ -94,7 +99,7 @@ public class ApiPageResource extends AbstractResource {
     public Response getPageContent(
             @PathParam("api") String api,
             @PathParam("page") String page) {
-        final PageEntity pageEntity = getPage(api, page, true);
+        final PageEntity pageEntity = getPage(null, api, page, true, false);
         return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
     }
 

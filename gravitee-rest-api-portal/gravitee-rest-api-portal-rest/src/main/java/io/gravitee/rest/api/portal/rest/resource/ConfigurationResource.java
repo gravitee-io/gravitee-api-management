@@ -16,14 +16,19 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.ConfigurationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.IdentityProviderMapper;
-import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.CategorizedLinks;
+import io.gravitee.rest.api.portal.rest.model.IdentityProvider;
+import io.gravitee.rest.api.portal.rest.model.Link;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
+import io.gravitee.rest.api.portal.rest.model.LinksResponse;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
@@ -32,7 +37,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -83,15 +91,16 @@ public class ConfigurationResource extends AbstractResource {
 	@GET
     @Path("links")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPortalLinks() {
+    public Response getPortalLinks(@HeaderParam("Accept-Language") String acceptLang) {
+        final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Map<String, List<CategorizedLinks>> portalLinks = new HashMap<>();
-        pageService.search(new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build()).stream()
+        pageService.search(new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build(), acceptedLocale).stream()
                 .filter(PageEntity::isPublished)
                 .forEach(sysPage -> {
                     List<CategorizedLinks> catLinksList = new ArrayList<>();
 
                     // for pages under sysFolder                    
-                    List<Link> links = getLinksFromFolder(sysPage);
+                    List<Link> links = getLinksFromFolder(sysPage, acceptedLocale);
                     if(!links.isEmpty()) {
                         CategorizedLinks catLinks = new CategorizedLinks();
                         catLinks.setCategory(sysPage.getName());
@@ -101,11 +110,11 @@ public class ConfigurationResource extends AbstractResource {
                     }
                     
                     // for pages into folders
-                    pageService.search(new PageQuery.Builder().parent(sysPage.getId()).build()).stream()
+                    pageService.search(new PageQuery.Builder().parent(sysPage.getId()).build(), acceptedLocale).stream()
                         .filter(PageEntity::isPublished)
                         .filter(p -> p.getType().equals("FOLDER"))
                         .forEach(folder -> {
-                            List<Link> folderLinks = getLinksFromFolder(folder);
+                            List<Link> folderLinks = getLinksFromFolder(folder, acceptedLocale);
                             if(folderLinks != null && !folderLinks.isEmpty()) {
                                 CategorizedLinks catLinks = new CategorizedLinks();
                                 catLinks.setCategory(folder.getName());
@@ -125,18 +134,19 @@ public class ConfigurationResource extends AbstractResource {
                 .build();
     }
 
-    private List<Link> getLinksFromFolder(PageEntity folder) {
-        return pageService.search(new PageQuery.Builder().parent(folder.getId()).build()).stream()
+    private List<Link> getLinksFromFolder(PageEntity folder, String acceptedLocale) {
+        return pageService.search(new PageQuery.Builder().parent(folder.getId()).build(), acceptedLocale).stream()
                 .filter(PageEntity::isPublished)
                 .filter(p -> !p.getType().equals("FOLDER"))
                 .map(p -> {
                     if("LINK".equals(p.getType())) {
+                        String relatedPageId = p.getContent();
                         Link link = new Link()
                                 .name(p.getName())
-                                .resourceRef(p.getConfiguration().get("resourceRef"))
-                                .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get("resourceType")))
+                                .resourceRef(relatedPageId)
+                                .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)))
                                 ;
-                        String isFolderConfig = p.getConfiguration().get("isFolder");
+                        String isFolderConfig = p.getConfiguration().get(PageConfigurationKeys.LINK_IS_FOLDER);
                         if(isFolderConfig != null && !isFolderConfig.isEmpty()) {
                             link.setFolder(Boolean.valueOf(isFolderConfig));
                         }

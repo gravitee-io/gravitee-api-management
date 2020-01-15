@@ -67,7 +67,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         page1.setPublished(true);
         page1.setExcludedGroups(new ArrayList<String>());
         page1.setContent(PAGE_CONTENT);
-        doReturn(page1).when(pageService).findById(PAGE);
+        doReturn(page1).when(pageService).findById(PAGE, null);
     }
 
     @Test
@@ -95,7 +95,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotFoundPageWhileGettingApiPage() {
-        doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE);
+        doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE, null);
 
         final Response response = target(API).path("pages").path(UNKNOWN_PAGE).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -175,7 +175,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
-        doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE);
+        doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE, null);
 
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
@@ -215,7 +215,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotFoundPageWhileGettingApiPageContent() {
-        doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE);
+        doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE, null);
 
         final Response response = target(API).path("pages").path(UNKNOWN_PAGE).path("content").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());

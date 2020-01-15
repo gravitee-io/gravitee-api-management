@@ -26,10 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import io.gravitee.rest.api.model.NewPageEntity;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.SystemFolderType;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
@@ -72,11 +69,11 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
             
             if(!pagesToLink.isEmpty()) {
                 PageEntity docFolder = createFolder(footerSysTemFolder.getId(), "Documentation");
-                pagesToLink.forEach(page -> createLink(docFolder.getId(), page.getName(), page.getId(), "page", Boolean.FALSE));                
+                pagesToLink.forEach(page -> createLink(docFolder.getId(), page.getName(), page.getId(), "page", Boolean.FALSE, Boolean.TRUE));                
             }
 
             // Create link to root documentation folder in header
-            createLink(headerSysTemFolder.getId(), "Documentation", "root", "page", Boolean.TRUE);
+            createLink(headerSysTemFolder.getId(), "Documentation", "root", "page", Boolean.TRUE, Boolean.FALSE);
             
             // Apis documentation
             apiService.findAllLight().forEach(api -> createSystemFolder(api.getId(), SystemFolderType.ASIDE, 0));
@@ -107,17 +104,22 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
         return pageService.createPage(newFolder);
     }
     
-    private void createLink(String parentId, String name, String resourceRef, String resourceType, Boolean isFolder) {
+    private void createLink(String parentId, String name, String resourceRef, String resourceType, Boolean isFolder, Boolean inherit) {
         NewPageEntity newLink = new NewPageEntity();
+        newLink.setContent(resourceRef);
         newLink.setName(name);
         newLink.setPublished(true);
         newLink.setType(PageType.LINK);
         newLink.setParentId(parentId);
         
         Map<String, String> configuration = new HashMap<>();
-        configuration.put("resourceRef", resourceRef);
-        configuration.put("resourceType", resourceType);
-        configuration.put("isFolder", isFolder.toString());
+        configuration.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, resourceType);
+        if(isFolder != null) {
+            configuration.put(PageConfigurationKeys.LINK_IS_FOLDER, String.valueOf(isFolder));
+        }
+        if(inherit != null) {
+            configuration.put(PageConfigurationKeys.LINK_INHERIT, String.valueOf(inherit));
+        }
 
         newLink.setConfiguration(configuration);
         
