@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.logging;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
@@ -29,8 +30,8 @@ public class LimitedLoggableClientRequest extends LoggableClientRequest {
 
     private final int maxSizeLogMessage;
 
-    public LimitedLoggableClientRequest(Request request, int maxSizeLogMessage) {
-        super(request);
+    public LimitedLoggableClientRequest(Request request, ExecutionContext context, int maxSizeLogMessage) {
+        super(request, context);
         this.maxSizeLogMessage = maxSizeLogMessage;
     }
 

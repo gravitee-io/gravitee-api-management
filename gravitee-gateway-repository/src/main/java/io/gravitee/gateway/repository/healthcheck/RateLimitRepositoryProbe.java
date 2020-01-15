@@ -19,6 +19,8 @@ import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
+import io.reactivex.SingleObserver;
+import io.reactivex.disposables.Disposable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.CompletableFuture;
@@ -33,7 +35,7 @@ public class RateLimitRepositoryProbe implements Probe {
     private static final String RATE_LIMIT_UNKNOWN_IDENTIFIER = "unknown-healthcheck";
 
     @Autowired
-    private RateLimitRepository rateLimitRepository;
+    private RateLimitRepository<RateLimit> rateLimitRepository;
 
     @Override
     public String id() {
@@ -42,10 +44,13 @@ public class RateLimitRepositoryProbe implements Probe {
 
     @Override
     public CompletableFuture<Result> check() {
-        try {
-            // Search for a rate-limit value to check repository connection
-            return CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(new Supplier<Result>() {
+            @Override
+            public Result get() {
+                CompletableFuture<Result> future = new CompletableFuture<>();
+
                 try {
+                    // Search for a rate-limit value to check repository connection
                     rateLimitRepository.incrementAndGet(RATE_LIMIT_UNKNOWN_IDENTIFIER, 1L, new Supplier<RateLimit>() {
                         @Override
                         public RateLimit get() {
@@ -53,14 +58,32 @@ public class RateLimitRepositoryProbe implements Probe {
                             rateLimit.setSubscription(RATE_LIMIT_UNKNOWN_IDENTIFIER);
                             return rateLimit;
                         }
+                    }).subscribe(new SingleObserver<RateLimit>() {
+                        @Override
+                        public void onSubscribe(Disposable d) {
+
+                        }
+
+                        @Override
+                        public void onSuccess(RateLimit rateLimit) {
+                            future.complete(Result.healthy());
+                        }
+
+                        @Override
+                        public void onError(Throwable t) {
+                            future.complete(Result.unhealthy(t));
+                        }
                     });
-                    return Result.healthy();
-                } catch (Exception ex) {
-                    return Result.unhealthy(ex);
+
+                    try {
+                        return future.get();
+                    } catch (Exception ex) {
+                        return Result.unhealthy(ex);
+                    }
+                } catch (Throwable t) {
+                    return Result.unhealthy(t);
                 }
-            });
-        } catch (Exception ex) {
-            return CompletableFuture.completedFuture(Result.unhealthy(ex));
-        }
+            }
+        });
     }
 }
