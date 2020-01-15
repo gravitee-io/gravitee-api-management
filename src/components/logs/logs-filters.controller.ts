@@ -237,15 +237,25 @@ class LogsFiltersController {
     let that = this;
     _.forEach( keys, key => {
       let val = filters[key];
-      if (key === 'uri') {
-        if (!val.startsWith('/')) {
+
+      // 1. add the first / for uri
+      if (key === 'uri' && !val.startsWith('/')) {
           val = '/' + val;
-        }
-        val = val.replace(/\//g, '\\\\/') + '*';
       }
-      if (key === 'endpoint') {
-        val = val.replace(/:/g, '\\\\:').replace(/\//g, '\\\\/');
+
+      // 2. escape reserved characters
+      // + - = && || > < ! ( ) { } [ ] ^ " ~ * ? : \ /
+      if (typeof val === 'string' || val instanceof String) {
+        val = val.replace(
+          /(\+|\-|\=|\&{2}|\|{2}|\>|\<|\!|\(|\)|\{|\}|\[|\]|\^|\"|\~|\*|\?|\:|\\|\/)/g,
+          '\\\\$1');
       }
+
+      // 3. add the last * for uri
+      if (key === 'uri' && !val.endsWith('*')) {
+          val += '*';
+      }
+
       if (key === 'body') {
         val = '*' + val + '*';
       }
