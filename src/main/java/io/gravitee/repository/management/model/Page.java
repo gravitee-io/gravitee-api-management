@@ -34,7 +34,7 @@ public class Page {
 	private String referenceId;
 	private PageReferenceType referenceType;
 	private String name;
-	private PageType type;
+	private String type;
 	private String content;
 	private String lastContributor;
 	private int order;
@@ -72,7 +72,7 @@ public class Page {
 		this.referenceType = referenceType;
 	}
 
-	public PageType getType() {
+	public String getType() {
 		return type;
 	}
 	
@@ -84,7 +84,7 @@ public class Page {
 		this.name = name;
 	}
 	
-	public void setType(PageType type) {
+	public void setType(String type) {
 		this.type = type;
 	}
 
