@@ -54,7 +54,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, PageReferenceType.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, PageType.class)
+            .addColumn("type", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("content", Types.NVARCHAR, String.class)
             .addColumn("last_contributor", Types.NVARCHAR, String.class)
