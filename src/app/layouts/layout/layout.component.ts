@@ -91,7 +91,7 @@ export class LayoutComponent implements OnInit {
       switch (element.resourceType) {
         case Link.ResourceTypeEnum.External:
           path = element.resourceRef;
-          if (path.toLowerCase().startsWith('http')) {
+          if (path && path.toLowerCase().startsWith('http')) {
             target = '_blank';
           } else {
             target = '_self';

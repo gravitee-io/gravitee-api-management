@@ -65,8 +65,8 @@ export class GvDocumentationComponent implements OnInit {
   ngOnInit() {
   }
 
-  private initTree(pages, selectedPage?: string) {
-    let pagesMap: any = pages;
+  private initTree(pages: Page[], selectedPage?: string) {
+    let pagesMap: any[] = pages;
     pagesMap.forEach(page => {
       if (page.parent) {
         const parentPage = pagesMap.find(element => element.id === page.parent);
@@ -81,7 +81,7 @@ export class GvDocumentationComponent implements OnInit {
     });
     pagesMap = pagesMap
       .filter(page => (!page.parent && page.type.toUpperCase() !== Page.TypeEnum.ROOT) || ( page.parent && page.parent === this.rootDir) )
-      .sort(page => page.order);
+      .sort((p1, p2) => p1.order - p2.order);
     return this.buildMenu(pagesMap, selectedPage);
   }
 
