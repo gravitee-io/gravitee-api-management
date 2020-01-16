@@ -58,6 +58,7 @@
         <lucene.version>7.5.0</lucene.version>
         <powermock.version>2.0.0</powermock.version>
         <commons-lang3.version>3.9</commons-lang3.version>
+        <swagger.version>1.5.23</swagger.version>
     </properties>
 
     <modules>

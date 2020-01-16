@@ -111,7 +111,9 @@ public class ApiMetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.UPDATE)
     })
-    public Response update(@PathParam("api") String api, @Valid @NotNull final UpdateApiMetadataEntity metadata) {
+    public Response update(@PathParam("api") String api,
+                           @PathParam("metadata") String metadataPathParam,
+                           @Valid @NotNull final UpdateApiMetadataEntity metadata) {
         // prevent update of a metadata on an another API
         metadata.setApiId(api);
 

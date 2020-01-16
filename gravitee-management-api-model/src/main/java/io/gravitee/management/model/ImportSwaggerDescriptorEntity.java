@@ -16,6 +16,7 @@
 package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
 
@@ -28,14 +29,32 @@ public class ImportSwaggerDescriptorEntity {
     private Type type = Type.INLINE;
 
     @NotNull
+    @ApiModelProperty(
+            value = "The swagger/openapi content.")
     private String payload;
+
     @JsonProperty("with_documentation")
+    @ApiModelProperty(
+            value = "Do you want to create a swagger page in addition to the API ?",
+            example = "true")
     private boolean withDocumentation;
+
     @JsonProperty("with_path_mapping")
+    @ApiModelProperty(
+            value = "Do you want to create a path mapping for each declared swagger paths in addition to the API ?",
+            example = "true")
     private boolean withPathMapping;
+
     @JsonProperty("with_policy_paths")
+    @ApiModelProperty(
+            value = "Do you want to create a path (in order to add policies under) for each declared swagger paths in addition to the API ?",
+            example = "true")
     private boolean withPolicyPaths;
+
     @JsonProperty("with_policy_mocks")
+    @ApiModelProperty(
+            value = "Do you want to create a mock for each declared swagger paths/method in addition to the API ?",
+            example = "true")
     private boolean withPolicyMocks;
 
     public Type getType() {

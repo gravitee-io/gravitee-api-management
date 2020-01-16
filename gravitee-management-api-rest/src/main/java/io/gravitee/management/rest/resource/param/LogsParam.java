@@ -29,9 +29,11 @@ import javax.ws.rs.core.Response;
 public class LogsParam {
 
     @QueryParam("from")
+    @ApiParam(value = "Timestamp used to define the start date of the time window to query")
     private long from;
 
     @QueryParam("to")
+    @ApiParam(value = "Timestamp used to define the end date of the time window to query")
     private long to;
 
     @ApiParam(name="query",
@@ -42,6 +44,7 @@ public class LogsParam {
 
     @QueryParam("size")
     @DefaultValue("20")
+    @ApiParam(value = "The number of data to retrieve")
     private int size;
 
     @QueryParam("page")
@@ -49,9 +52,11 @@ public class LogsParam {
     private int page;
 
     @QueryParam("field")
+    @ApiParam(value = "The field to query when doing `group_by` queries")
     private String field;
 
     @QueryParam("order")
+    @ApiParam(value = "true means ASC order, false means DESC")
     private boolean order;
 
     public long getFrom() {

@@ -16,6 +16,7 @@
 package io.gravitee.management.model;
 
 import io.gravitee.management.model.application.ApplicationSettings;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -30,9 +31,15 @@ public class NewApplicationEntity {
 
     @NotNull(message = "Application's name must not be null")
     @NotEmpty(message = "Application's name must not be empty")
+    @ApiModelProperty(
+            value = "Application's name. Duplicate names can exists.",
+            example = "My App")
     private String name;
 
     @NotNull(message = "Application's description must not be null")
+    @ApiModelProperty(
+            value = "Application's description. A short description of your App.",
+            example = "I can use a hundred characters to describe this App.")
     private String description;
 
     private ApplicationSettings settings;
@@ -42,6 +49,9 @@ public class NewApplicationEntity {
      *             Will be remove in a future version.
      */
     @Deprecated
+    @ApiModelProperty(
+            value = "a string to describe the type of your app.",
+            example = "iOS")
     private String type;
 
     /**
@@ -51,6 +61,10 @@ public class NewApplicationEntity {
     @Deprecated
     private String clientId;
 
+    @ApiModelProperty(
+            value = "Application's groups. Used to add team in your App.",
+            dataType = "List",
+            example = "MY_GROUP1, MY_GROUP2")
     private Set<String> groups;
 
     public String getDescription() {

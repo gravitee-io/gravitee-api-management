@@ -79,8 +79,8 @@ public class ApiResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get the API definition",
-            notes = "User must have the READ permission to use this service")
+    @ApiOperation(value = "Get the API's definition",
+            notes = "User must have the READ permission on the API_DEFINITION to use this service on a private API.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})

@@ -142,6 +142,7 @@ public class ApplicationSubscriptionsResource {
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
     public Subscription getSubscription(
+            @PathParam("application") String application,
             @PathParam("subscription") String subscription) {
         return convert(subscriptionService.findById(subscription));
     }
@@ -183,6 +184,7 @@ public class ApplicationSubscriptionsResource {
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
     public Set<ApiKeyEntity> listApiKeysForSubscription(
+            @PathParam("application") String application,
             @PathParam("subscription") String subscription) {
         return apiKeyService.findBySubscription(subscription);
     }

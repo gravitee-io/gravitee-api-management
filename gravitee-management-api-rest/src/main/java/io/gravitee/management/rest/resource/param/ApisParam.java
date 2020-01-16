@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.rest.resource.param;
 
+import io.swagger.annotations.ApiParam;
+
 import javax.ws.rs.QueryParam;
 
 /**
@@ -23,26 +25,43 @@ import javax.ws.rs.QueryParam;
  */
 public class ApisParam {
 
+    @ApiParam(value = "filter by view id")
     @QueryParam("view")
     private String view;
+
+    @ApiParam(value = "filter by group id")
     @QueryParam("group")
     private String group;
+
+    @ApiParam(value = "true if you only want Top APIs. default: false")
     @QueryParam("top")
     private boolean top;
+
+    @ApiParam(value = "filter by context path")
     @QueryParam("context-path")
     private String contextPath;
-    @QueryParam("owner")
-    private String owner;
+
+    @ApiParam(value = "filter by label")
     @QueryParam("label")
     private String label;
+
+    @ApiParam(value = "filter by state: STARTED or STOPPED")
     @QueryParam("state")
     private String state;
+
+    @ApiParam(value = "filter by visibility: PUBLIC or PRIVATE")
     @QueryParam("visibility")
     private String visibility;
+
+    @ApiParam(value = "filter by version")
     @QueryParam("version")
     private String version;
+
+    @ApiParam(value = "filter by full API Name")
     @QueryParam("name")
     private String name;
+
+    @ApiParam(value = "filter by tag")
     @QueryParam("tag")
     private String tag;
 
@@ -76,14 +95,6 @@ public class ApisParam {
 
     public void setContextPath(String contextPath) {
         this.contextPath = contextPath;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
     }
 
     public String getLabel() {
