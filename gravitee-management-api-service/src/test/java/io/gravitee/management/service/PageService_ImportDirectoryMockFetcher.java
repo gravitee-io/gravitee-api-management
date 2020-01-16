@@ -15,8 +15,8 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
-import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
 import io.gravitee.fetcher.api.FilesFetcher;
 import io.gravitee.fetcher.api.Resource;
 
@@ -57,7 +57,7 @@ public class PageService_ImportDirectoryMockFetcher implements FilesFetcher {
     }
 
     @Override
-    public FilepathAwareFetcherConfiguration getConfiguration() {
+    public FetcherConfiguration getConfiguration() {
         return new PageService_MockFilesFetcherConfiguration();
     }
 }

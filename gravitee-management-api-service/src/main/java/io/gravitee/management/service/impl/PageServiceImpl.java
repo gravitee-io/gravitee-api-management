@@ -57,6 +57,7 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -78,6 +79,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	private static final Gson gson = new Gson();
 
 	private static final Logger logger = LoggerFactory.getLogger(PageServiceImpl.class);
+
+	private static final String SENSITIVE_DATA_REPLACEMENT = "********";
 
 	@Autowired
 	private PageRepository pageRepository;
@@ -285,6 +288,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
             if (page.getSource() != null) {
 				try {
+					if (pageToUpdate.getSource() != null && pageToUpdate.getSource().getConfiguration() != null) {
+						mergeSensitiveData(this.getFetcher(pageToUpdate.getSource()).getConfiguration(), page);
+					}
 					fetchPage(page);
 				} catch (FetcherException e) {
 					throw onUpdateFail(pageId, e);
@@ -485,7 +491,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 					.findFirst();
 			if (optDescriptor.isPresent()) {
 				try {
-				    fetcher.getConfiguration().setFilepath(optDescriptor.get());
+					((FilepathAwareFetcherConfiguration)fetcher.getConfiguration()).setFilepath(optDescriptor.get());
 					final Resource resource = fetcher.fetch();
 					final GraviteeDescriptorEntity descriptorEntity = graviteeDescriptorService.read(getResourceContentAsString(resource));
 					return importDescriptor(apiId, pageEntity, fetcher, descriptorEntity);
@@ -623,7 +629,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 						.build());
 		if (pages.isEmpty()) {
 			newPageEntity.setParentId(parentId);
-			FilepathAwareFetcherConfiguration configuration = fetcher.getConfiguration();
+			FilepathAwareFetcherConfiguration configuration = (FilepathAwareFetcherConfiguration)fetcher.getConfiguration();
 			configuration.setFilepath(src);
 			newPageEntity.getSource().setConfiguration(mapper.valueToTree(configuration));
 			createdPages.add(this.createPage(apiId, newPageEntity));
@@ -634,7 +640,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			updatePage.setPublished(newPageEntity.isPublished());
 			updatePage.setOrder(newPageEntity.getOrder());
 			updatePage.setHomepage(newPageEntity.isHomepage());
-			FilepathAwareFetcherConfiguration configuration = fetcher.getConfiguration();
+			FilepathAwareFetcherConfiguration configuration = (FilepathAwareFetcherConfiguration)fetcher.getConfiguration();
 			configuration.setFilepath(src);
 			updatePage.setSource(newPageEntity.getSource());
 			updatePage.getSource().setConfiguration(mapper.valueToTree(configuration));
@@ -995,7 +1001,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return page;
 	}
 
-	private static UpdatePageEntity convertToUpdateEntity(Page page) {
+	private UpdatePageEntity convertToUpdateEntity(Page page) {
 		UpdatePageEntity updatePageEntity = new UpdatePageEntity();
 
 		updatePageEntity.setName(page.getName());
@@ -1003,7 +1009,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		updatePageEntity.setLastContributor(page.getLastContributor());
 		updatePageEntity.setOrder(page.getOrder());
 		updatePageEntity.setPublished(page.isPublished());
-		updatePageEntity.setSource(convert(page.getSource()));
+		updatePageEntity.setSource(this.convert(page.getSource()));
 		updatePageEntity.setConfiguration(page.getConfiguration());
 		updatePageEntity.setHomepage(page.isHomepage());
 		updatePageEntity.setExcludedGroups(page.getExcludedGroups());
@@ -1021,18 +1027,62 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return source;
 	}
 
-	private static PageSourceEntity convert(PageSource pageSource) {
+	private PageSourceEntity convert(PageSource pageSource) {
 		PageSourceEntity entity = null;
 		if (pageSource != null) {
 			entity = new PageSourceEntity();
 			entity.setType(pageSource.getType());
 			try {
-				entity.setConfiguration((new ObjectMapper()).readTree(pageSource.getConfiguration()));
-			} catch (IOException e) {
+				FetcherConfiguration fetcherConfiguration = this.getFetcher(pageSource).getConfiguration();
+				removeSensitiveData(fetcherConfiguration);
+				entity.setConfiguration((new ObjectMapper()).valueToTree(fetcherConfiguration));
+			} catch (FetcherException e) {
 			    logger.error(e.getMessage(), e);
 			}
 		}
 		return entity;
+	}
+
+	private void removeSensitiveData(FetcherConfiguration fetcherConfiguration) {
+		Field[] fields = fetcherConfiguration.getClass().getDeclaredFields();
+		for (Field field : fields) {
+			if (field.isAnnotationPresent(Sensitive.class)) {
+				boolean accessible = field.isAccessible();
+				field.setAccessible(true);
+				try {
+					field.set(fetcherConfiguration, SENSITIVE_DATA_REPLACEMENT);
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+				field.setAccessible(accessible);
+			}
+		}
+	}
+
+	private void mergeSensitiveData(FetcherConfiguration originalFetcherConfiguration, Page page) throws FetcherException {
+		FetcherConfiguration updatedFetcherConfiguration = this.getFetcher(page.getSource()).getConfiguration();
+		boolean updated = false;
+
+		Field[] fields = originalFetcherConfiguration.getClass().getDeclaredFields();
+		for (Field field : fields) {
+			if (field.isAnnotationPresent(Sensitive.class)) {
+				boolean accessible = field.isAccessible();
+				field.setAccessible(true);
+				try {
+					Object updatedValue = field.get(updatedFetcherConfiguration);
+					if ( updatedValue.equals(SENSITIVE_DATA_REPLACEMENT) ) {
+						updated = true;
+						field.set(updatedFetcherConfiguration, field.get(originalFetcherConfiguration));
+					}
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+				field.setAccessible(accessible);
+			}
+		}
+		if(updated) {
+			page.getSource().setConfiguration((new ObjectMapper()).valueToTree(updatedFetcherConfiguration).toString());
+		}
 	}
 
 	@SuppressWarnings("squid:S1166")
