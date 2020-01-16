@@ -404,21 +404,23 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 membershipRepository.create(membership);
 
                 // create the default mail notification
+                final String emailMetadataValue = "${(api.primaryOwner.email)!''}";
+
                 GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
                 notificationConfigEntity.setName("Default Mail Notifications");
                 notificationConfigEntity.setReferenceType(HookScope.API.name());
                 notificationConfigEntity.setReferenceId(createdApi.getId());
                 notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
                 notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
-                notificationConfigEntity.setConfig("${api.primaryOwner.email}");
+                notificationConfigEntity.setConfig(emailMetadataValue);
                 genericNotificationConfigService.create(notificationConfigEntity);
 
                 // create the default mail support metadata
                 NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
                 newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
                 newApiMetadataEntity.setName(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
-                newApiMetadataEntity.setDefaultValue("${api.primaryOwner.email}");
-                newApiMetadataEntity.setValue("${api.primaryOwner.email}");
+                newApiMetadataEntity.setDefaultValue(emailMetadataValue);
+                newApiMetadataEntity.setValue(emailMetadataValue);
                 newApiMetadataEntity.setApiId(createdApi.getId());
                 apiMetadataService.create(newApiMetadataEntity);
 

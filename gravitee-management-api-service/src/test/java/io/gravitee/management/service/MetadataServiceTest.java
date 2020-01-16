@@ -62,4 +62,14 @@ public class MetadataServiceTest {
         ((MetadataServiceImpl) metadataService).setFreemarkerConfiguration(new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22));
         metadataService.checkMetadataFormat(MetadataFormat.MAIL, "${api.primaryOwner.email}", apiEntity);
     }
+
+    @Test
+    public void checkMetadataFormat_userWithoutEmail() {
+        UserEntity userEntity = new UserEntity();
+        PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setPrimaryOwner(primaryOwnerEntity);
+        ((MetadataServiceImpl) metadataService).setFreemarkerConfiguration(new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22));
+        metadataService.checkMetadataFormat(MetadataFormat.MAIL, "${(api.primaryOwner.email)!''}", apiEntity);
+    }
 }
