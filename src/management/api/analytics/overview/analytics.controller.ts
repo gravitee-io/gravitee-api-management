@@ -309,10 +309,10 @@ class ApiAnalyticsController {
         sizeY: 1,
         sizeX: 2,
         title: 'Top slow applications',
-        subhead: 'Applications ordered by the latency',
+        subhead: 'Ordered by Application\'s average response time',
         chart: {
           type: 'table',
-          columns: ['Application', 'Latency (in ms)'],
+          columns: ['Application', 'Response Time (in ms)'],
           paging: 5,
           request: {
             type: 'group_by',

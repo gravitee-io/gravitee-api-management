@@ -125,11 +125,11 @@ class ApplicationAnalyticsController {
       sizeY: 1,
       sizeX: 2,
       title: "Top slow API",
-      subhead: 'Order by API response time calls',
+      subhead: 'Order by API\'s average response time',
       chart: {
         type: 'table',
         selectable: true,
-        columns: ['API', 'Latency (in ms)'],
+        columns: ['API', 'Response Time (in ms)'],
         paging: 5,
         request: {
           type: 'group_by',

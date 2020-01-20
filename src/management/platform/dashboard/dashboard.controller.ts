@@ -105,11 +105,11 @@ class DashboardController {
       sizeY: 1,
       sizeX: 2,
       title: 'Top slow APIs',
-      subhead: 'Order by API response time calls',
+      subhead: 'Order by API\'s average response time',
       chart: {
         type: 'table',
         link: 'api',
-        columns: ['API', 'Latency (in ms)'],
+        columns: ['API', 'Response Time (in ms)'],
         paging: 5,
         request: {
           type: 'group_by',
@@ -124,7 +124,7 @@ class DashboardController {
       sizeY: 1,
       sizeX: 2,
       title: 'Top overhead APIs',
-      subhead: 'Order by gateway latency',
+      subhead: 'Order by Gateway\'s average latency',
       chart: {
         type: 'table',
         link: 'api',
