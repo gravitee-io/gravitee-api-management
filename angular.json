@@ -32,7 +32,6 @@
             "styles": [
               "node_modules/@ibm/plex/scss/ibm-plex.scss",
               "src/styles.scss",
-              "node_modules/tachyons/css/tachyons.css",
               "node_modules/swagger-ui-dist/swagger-ui.css"
             ],
             "scripts": [
@@ -109,7 +108,6 @@
             "styles": [
               "node_modules/@ibm/plex/scss/ibm-plex.scss",
               "src/styles.scss",
-              "node_modules/tachyons/css/tachyons.css"
             ],
             "scripts": [
               "node_modules/marked/lib/marked.js"

@@ -20,11 +20,31 @@
 }
 
 .layout__header {
-  padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pl);
   background-color: white;
+  display: table;
+  padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pr) var(--gv-theme-layout--pb) var(--gv-theme-layout--pl);
+  width: calc(100% - var(--gv-theme-layout--pr) - var(--gv-theme-layout--pl));
+}
+
+.layout__header__background {
+  background-size: cover;
+  background-image: var(--gv-theme-background-image, url(/assets/images/background_image.jpg));
+  background-repeat: no-repeat;
+  background-position: center center;
+  height: 600px;
+  color: white;
+}
+
+.layout__header__container {
+  display: flex;
 }
 
 .layout__header__logo {
+  display: table-cell;
+  width: 20%;
+}
+
+.layout__header__logo a {
   background-image: var(--gv-theme-logo);
   background-size: contain;
   background-repeat: no-repeat;
@@ -33,13 +53,8 @@
   display: inline-block;
 }
 
-.layout__header__homepage__logo {
+.layout__header__homepage__logo a {
   background-image: var(--gv-theme-logo-light);
-  background-size: contain;
-  background-repeat: no-repeat;
-  height: var(--gv-theme-layout-header--h);
-  width: 100%;
-  display: inline-block;
 }
 
 .layout__header__homepage__title {
@@ -56,13 +71,10 @@
   --gv-button--bdrs: 5px;
 }
 
-.layout__header__homepage__background {
-  background-size: cover;
-  background-image: var(--gv-theme-background-image, url(/assets/images/background_image.jpg));
-  background-repeat: no-repeat;
-  background-position: center center;
-  height: 600px;
-  color: white;
+.layout__nav__container {
+  display: table-cell;
+  text-align: right;
+  width: 20%;
 }
 
 .layout__nav {
@@ -72,7 +84,7 @@
 
 .layout__user-menu {
   --gv-user-menu--c: white;
-  --gv-icon--c: white;
+  --gv-user-menu-icon--c: white;
   --gv-user-menu--tsh: 1px 1px 1px #000;
 }
 
@@ -121,6 +133,11 @@
 }
 
 .layout__footer__top__logo {
+  float: left;
+  width: 20%;
+}
+
+.layout__footer__top__logo a {
   background-image: var(--gv-theme-logo-light);
   background-size: contain;
   background-repeat: no-repeat;
@@ -175,4 +192,10 @@
 
 gv-menu gv-input {
   width: 100%;
+}
+
+gv-nav {
+  display: table-cell;
+  text-align: right;
+  width: 60%;
 }

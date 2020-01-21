@@ -16,15 +16,15 @@
 
 -->
 <div class="layout">
-  <header class="w-100 dt layout__header" [ngClass]="{'layout__header__homepage__background': isHomepage()}">
-    <div class="flex">
-      <div class="w-20 dtc">
-        <a [routerLink]="'/'" class="layout__header__logo" [ngClass]="{'layout__header__homepage__logo': isHomepage()}" title="{{ 'site.title' | translate }}"></a>
+  <header class="layout__header" [ngClass]="{'layout__header__background': isHomepage()}">
+    <div class="layout__header__container">
+      <div class="layout__header__logo" [ngClass]="{'layout__header__homepage__logo': isHomepage()}">
+        <a [routerLink]="'/'" title="{{ 'site.title' | translate }}"></a>
       </div>
 
-      <gv-nav [routes]="mainRoutes" class="w-60 dtc tr" [ngClass]="{'layout__nav': isHomepage()}"></gv-nav>
+      <gv-nav [routes]="mainRoutes" [ngClass]="{'layout__nav': isHomepage()}"></gv-nav>
 
-      <div class="w-20 dtc tr" [ngClass]="{'layout__nav': displayShadowNav()}">
+      <div class="layout__nav__container" [ngClass]="{'layout__nav': displayShadowNav()}">
         <gv-user-menu [routes]="userRoutes" [ngClass]="{'layout__user-menu': isHomepage()}" [username]="this.getUserName()">
           <app-user-avatar *ngIf="currentUser" [user]="currentUser"></app-user-avatar>
         </gv-user-menu>
@@ -54,8 +54,8 @@
 
   <footer>
     <section class="layout__footer__top">
-      <div class="w-20 fl">
-        <a [routerLink]="'/'" class="layout__footer__top__logo" title="{{ 'site.title' | translate }}"></a>
+      <div class="layout__footer__top__logo">
+        <a [routerLink]="'/'" title="{{ 'site.title' | translate }}"></a>
       </div>
       <div class="layout__footer__top__category" *ngFor="let category of links.footer">
         <span class="layout__footer__top__category__title">{{category.title | translate}}</span>

@@ -43,7 +43,6 @@
     "resize-observer-polyfill": "^1.5.1",
     "rxjs": "6.4.0",
     "swagger-ui-dist": "^3.24.3",
-    "tachyons": "^4.11.1",
     "tslib": "^1.10.0",
     "zone.js": "^0.9.1"
   },

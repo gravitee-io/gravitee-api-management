@@ -105,56 +105,13 @@
     }
   },
   "footer": {
-    "categorized": {
-      "catalog": {
-        "links": {
-          "documentations": "Dokumentace",
-          "moreInfo": "Další informace",
-          "products": "Zobrazit produkty"
-        },
-        "title": "API Catalog"
-      },
-      "help": {
-        "links": {
-          "contact": "kontaktujte nás",
-          "faq": "FAQ",
-          "support": "Support"
-        },
-        "title": "Potřebujete pomoc"
-      },
-      "howItWorks": {
-        "links": {
-          "blog": "Blog",
-          "ebooks": "ebooks",
-          "events": "události",
-          "news": "News"
-        },
-        "title": "Jak to funguje"
-      },
-      "resources": {
-        "links": {
-          "blog": "Blog",
-          "ebooks": "ebooks",
-          "events": "události",
-          "news": "News"
-        },
-        "title": "Zdroje"
-      }
-    },
-    "links": {
-      "cgu": "CGU",
-      "cookies": "cookies",
-      "mentions": "Právní upozornění",
-      "rgpd": "RGPD",
-      "status": "Status"
-    },
-    "rights": "© Všechna práva vyhrazena 2019"
+    "rights": "© Všechna práva vyhrazena 2020"
   },
-  "gv-card": {
+  "gv-card-full": {
     "empty": "Žádné rozhraní API k zobrazení zde",
     "error": "Při načítání API došlo k chybě"
   },
-  "gv-card-full": {
+  "gv-card": {
     "empty": "Žádné rozhraní API k zobrazení zde",
     "error": "Při načítání API došlo k chybě"
   },
@@ -316,7 +273,6 @@
     "catalogTrending": "Nejmodernější",
     "contact": "Kontakt",
     "dashboard": "Dashboard",
-    "documentation": "Dokumentace",
     "homepage": "Domovská stránka",
     "login": "Přihlásit",
     "logout": "Odhlásit",

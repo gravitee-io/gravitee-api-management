@@ -105,56 +105,13 @@
     }
   },
   "footer": {
-    "categorized": {
-      "catalog": {
-        "links": {
-          "documentations": "Documentations",
-          "moreInfo": "Learn more",
-          "products": "See the products"
-        },
-        "title": "API Catalog"
-      },
-      "help": {
-        "links": {
-          "contact": "contact us",
-          "faq": "FAQ",
-          "support": "Support"
-        },
-        "title": "Need help"
-      },
-      "howItWorks": {
-        "links": {
-          "blog": "Blog",
-          "ebooks": "Ebooks",
-          "events": "Events",
-          "news": "News"
-        },
-        "title": "How it works"
-      },
-      "resources": {
-        "links": {
-          "blog": "Blog",
-          "ebooks": "Ebooks",
-          "events": "Events",
-          "news": "News"
-        },
-        "title": "Resources"
-      }
-    },
-    "links": {
-      "cgu": "CGU",
-      "cookies": "Cookies",
-      "mentions": "Legal notices",
-      "rgpd": "RGPD",
-      "status": "Status"
-    },
-    "rights": "© All rights reserved 2019"
+    "rights": "© All rights reserved 2020"
   },
-  "gv-card": {
+  "gv-card-full": {
     "empty": "No API to display here",
     "error": "An error occurred while loading the API"
   },
-  "gv-card-full": {
+  "gv-card": {
     "empty": "No API to display here",
     "error": "An error occurred while loading the API"
   },
@@ -316,7 +273,6 @@
     "catalogTrending": "Trending",
     "contact": "Contact",
     "dashboard": "Dashboard",
-    "documentation": "Documentation",
     "homepage": "Home page",
     "login": "Sign in",
     "logout": "Sign out",
