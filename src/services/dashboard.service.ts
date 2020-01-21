@@ -128,6 +128,9 @@ class DashboardService {
       label: 'Host',
       value: 'host'
     }, {
+      label: 'Consumer IP',
+      value: 'remote-address'
+    }, {
       label: 'Country',
       value: 'geoip.country_iso_code'
     }, {
