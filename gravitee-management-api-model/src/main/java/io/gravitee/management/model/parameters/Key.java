@@ -90,7 +90,9 @@ public enum Key {
 
     ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000"),
 
-    APPLICATION_REGISTRATION_ENABLED("application.registration.enabled", "false");
+    APPLICATION_REGISTRATION_ENABLED("application.registration.enabled", "false"),
+
+    MAINTENANCE_MODE_ENABLED("maintenance.enabled", "false");
 
     String key;
     String defaultValue;

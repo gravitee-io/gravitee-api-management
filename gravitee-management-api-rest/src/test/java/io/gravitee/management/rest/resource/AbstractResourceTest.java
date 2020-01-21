@@ -230,5 +230,10 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public MediaService mediaService() {
             return mock(MediaService.class);
         }
+
+        @Bean
+        public ParameterService parameterService() {
+            return mock(ParameterService.class);
+        }
     }
 }

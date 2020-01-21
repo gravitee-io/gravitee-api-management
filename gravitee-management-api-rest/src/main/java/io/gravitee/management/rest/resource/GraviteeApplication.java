@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import com.fasterxml.jackson.databind.JavaType;
 import io.gravitee.common.util.Version;
+import io.gravitee.management.rest.filter.MaintenanceFilter;
 import io.gravitee.management.rest.filter.PermissionsFilter;
 import io.gravitee.management.rest.filter.SecurityContextFilter;
 import io.gravitee.management.rest.mapper.ObjectMapperResolver;
@@ -123,6 +124,7 @@ public class GraviteeApplication extends ResourceConfig {
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
         register(UriBuilderRequestFilter.class);
+        register(MaintenanceFilter.class);
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);
 
