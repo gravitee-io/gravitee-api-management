@@ -63,6 +63,9 @@ function interceptorConfig(
           if (error.status === 500) {
             errorMessage = error.data ? error.data.message : 'Unexpected error';
           } else if (error.status === 503) {
+            if (error.data && error.data.message) {
+              document.getElementsByTagName('body').item(0).innerText = error.data.message;
+            }
             errorMessage = error.data ? error.data.message : 'Server unavailable';
           }
         }
