@@ -36,7 +36,7 @@ export class ConfigurationService {
         this.http.get(configJson.baseUrl + '/configuration').subscribe( (configPortal) => {
           this.config = this._deepMerge(configJson, configPortal);
           resolve(true);
-        });
+        }, () => resolve(false));
       });
     });
   }
