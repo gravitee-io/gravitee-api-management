@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 import { Pipe, PipeTransform } from '@angular/core';
+import { Api } from '@gravitee/ng-portal-webclient';
 
 @Pipe({
   name: 'apiLabels'
 })
 export class ApiLabelsPipe implements PipeTransform {
 
-  transform(value: any, ...args: any[]): any {
-    return null;
+  transform(api: Api, ...args: any[]): any {
+    return api.labels;
   }
-
 }
