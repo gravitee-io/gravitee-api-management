@@ -395,6 +395,7 @@ import AlertTriggerMetricsAggregationComponent from "./components/alerts/alert/t
 import AlertTriggerMetricsRateComponent from "./components/alerts/alert/triggers/trigger-metrics-rate.component";
 import AlertTriggerApiHealthCheckEndpointStatusChangedComponent from "./components/alerts/alert/triggers/trigger-api-hc-endpoint-status-changed.component";
 import AlertTriggerNodeLifecycleChangedComponent from "./components/alerts/alert/triggers/trigger-node-lifecycle-changed.component";
+import AlertTriggerNodeHealthcheckComponent from "./components/alerts/alert/triggers/trigger-node-healthcheck.component";
 import AlertTriggerApplicationQuotaComponent from "./components/alerts/alert/triggers/trigger-application-quota.component";
 
 import CircularPercentageComponent from "./components/circularPercentage/circularPercentage.component";
@@ -922,6 +923,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvAlertTriggerMetricsRate', AlertTriggerMetricsRateComponent)
   .component('gvAlertTriggerApiHealthCheckStatusChanged', AlertTriggerApiHealthCheckEndpointStatusChangedComponent)
   .component('gvAlertTriggerNodeLifecycleChanged', AlertTriggerNodeLifecycleChangedComponent)
+  .component('gvAlertTriggerNodeHealthcheck', AlertTriggerNodeHealthcheckComponent)
   .component('gvAlertTriggerApplicationQuota', AlertTriggerApplicationQuotaComponent)
 
   // CircularPercentageComponent

@@ -111,3 +111,33 @@ export class NodeLifecycleMetrics extends Metrics {
     NodeLifecycleMetrics.NODE_EVENT
   ];
 }
+
+export class NodeHealthcheckMetrics extends Metrics {
+  static NODE_HOSTNAME: NodeHealthcheckMetrics = new NodeHealthcheckMetrics('node.hostname', 'Hostname',
+    [StringCondition.TYPE]);
+
+  static NODE_APPLICATION: NodeHealthcheckMetrics = new NodeHealthcheckMetrics('node.application', 'Type',
+    [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+      let applications: Tuple[] = [];
+
+      NodeType.TYPES.forEach(app => {
+        applications.push(new Tuple(app.application, app.name));
+      });
+
+      return applications;
+    });
+
+  static NODE_STATUS: NodeHealthcheckMetrics = new NodeHealthcheckMetrics('node.healthy', 'Status',
+    [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+      let events: Tuple[] = [];
+      events.push(new Tuple("true", "Healthy"));
+      events.push(new Tuple("false", "Unhealthy"));
+      return events;
+    });
+
+  static METRICS: NodeHealthcheckMetrics[] = [
+    NodeHealthcheckMetrics.NODE_HOSTNAME,
+    NodeHealthcheckMetrics.NODE_APPLICATION,
+    NodeHealthcheckMetrics.NODE_STATUS
+  ];
+}

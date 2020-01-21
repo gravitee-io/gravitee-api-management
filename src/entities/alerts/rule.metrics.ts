@@ -17,7 +17,7 @@
 
 import {Metrics, Scope} from "../alert";
 import {ApiMetrics} from "./api.metrics";
-import {NodeLifecycleMetrics, NodeMetrics} from "./node.metrics";
+import {NodeHealthcheckMetrics, NodeLifecycleMetrics, NodeMetrics} from "./node.metrics";
 
 export class Rule {
   public source: string;
@@ -96,6 +96,14 @@ export class Rule {
     'Node',
     NodeMetrics.METRICS);
 
+  static NODE_HEALTHCHECK: Rule = new Rule(
+    'NODE_HEALTHCHECK',
+    'NODE_HEALTHCHECK',
+    'Alert on the health status of the node',
+    [Scope.PLATFORM],
+    'Node',
+    NodeHealthcheckMetrics.METRICS);
+
   static RULES: Rule[] = [
     Rule.API_METRICS_THRESHOLD,
     Rule.API_METRICS_AGGREGATION,
@@ -105,7 +113,8 @@ export class Rule {
     Rule.NODE_LIFECYCLE_CHANGED,
     Rule.NODE_METRICS_THRESHOLD,
     Rule.NODE_METRICS_AGGREGATION,
-    Rule.NODE_METRICS_RATE
+    Rule.NODE_METRICS_RATE,
+    Rule.NODE_HEALTHCHECK
   ];
 
   constructor(source: string, type: string, description: string, scopes: Scope[], category: string, metrics?: Metrics[]) {

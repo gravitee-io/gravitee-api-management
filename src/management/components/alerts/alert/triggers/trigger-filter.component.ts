@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {ApiMetrics} from "../../../../../entities/alerts/api.metrics";
-import {NodeLifecycleMetrics, NodeMetrics} from "../../../../../entities/alerts/node.metrics";
+import {NodeHealthcheckMetrics, NodeLifecycleMetrics, NodeMetrics} from "../../../../../entities/alerts/node.metrics";
 import {HealthcheckMetrics} from "../../../../../entities/alerts/healthcheck.metrics";
 import {Metrics} from "../../../../../entities/alert";
 
@@ -39,6 +39,8 @@ const AlertTriggerFilterComponent: ng.IComponentOptions = {
         this.metrics = Metrics.filterByScope(HealthcheckMetrics.METRICS, this.alert.reference_type);
       } else if(this.alert.source === 'NODE_LIFECYCLE') {
         this.metrics = Metrics.filterByScope(NodeLifecycleMetrics.METRICS, this.alert.reference_type);
+      } else if(this.alert.source === 'NODE_HEALTHCHECK') {
+        this.metrics = Metrics.filterByScope(NodeHealthcheckMetrics.METRICS, this.alert.reference_type);
       }
     };
 
