@@ -309,8 +309,8 @@ class ApiProxyController {
         template: require('../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Are you sure you want to allow all origin ?',
-          confirmButton: 'Yes, I want to allow all origin.'
+          title: 'Are you sure you want to remove all cross-origin restrictions?',
+          confirmButton: 'Yes, I want to allow all origins.'
         }
       }).then(function (response) {
         if (!response) {
