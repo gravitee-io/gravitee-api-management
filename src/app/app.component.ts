@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { AfterViewInit, Component } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -26,7 +26,7 @@ import { NavRouteService } from './services/nav-route.service';
   selector: 'app-root',
   templateUrl: './app.component.html'
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
 
   constructor(
     private titleService: Title,
@@ -45,6 +45,10 @@ export class AppComponent {
         this._setBrowserTitle(currentRoute);
       }
     });
+  }
+
+  ngAfterViewInit() {
+    document.querySelector('#loader').remove();
   }
 
   private _setBrowserTitle(currentRoute: ActivatedRoute) {

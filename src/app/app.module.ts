@@ -67,6 +67,7 @@ import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth.service';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { TranslationService } from './services/translation.service';
+import '@gravitee/ui-components/wc/gv-spinner';
 
 @NgModule({
   declarations: [
