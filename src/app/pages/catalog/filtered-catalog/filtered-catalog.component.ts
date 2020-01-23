@@ -76,7 +76,8 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.currentDisplay = this.activatedRoute.snapshot.queryParamMap.get('display') || FilteredCatalogComponent.DEFAULT_DISPLAY;
+    this.currentDisplay = this.activatedRoute.snapshot.queryParamMap.get('display') ||
+      localStorage.getItem('user-display-mode') || FilteredCatalogComponent.DEFAULT_DISPLAY;
     this._initDisplayOptions();
 
     this.categoryApiQuery = this.activatedRoute.snapshot.data.categoryApiQuery;
@@ -266,6 +267,7 @@ export class FilteredCatalogComponent implements OnInit {
       queryParamsHandling: 'merge'
     }).then(() => {
       this.currentDisplay = id;
+      localStorage.setItem('user-display-mode', id);
     });
   }
 
@@ -304,5 +306,4 @@ export class FilteredCatalogComponent implements OnInit {
   getRouteTitle() {
     return this.activatedRoute.snapshot.data.title;
   }
-
 }
