@@ -40,10 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalDouble;
+import java.util.*;
 
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
@@ -112,7 +109,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            final Rating rating = findById(answerEntity.getRatingId());
+            final Rating rating = findModelById(answerEntity.getRatingId());
 
             final RatingAnswer ratingAnswer = new RatingAnswer();
             ratingAnswer.setId(UUID.toString(UUID.random()));
@@ -138,6 +135,11 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     }
 
     @Override
+    public RatingEntity findById(String id) {
+        return convert(findModelById(id));
+    }
+
+    @Override
     public Page<RatingEntity> findByApi(final String api, final Pageable pageable) {
         if (!isEnabled()) {
             throw new ApiRatingUnavailableException();
@@ -149,6 +151,21 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                     pageRating.getContent().stream().map(this::convert).collect(toList());
             return new Page<>(ratingEntities, pageRating.getPageNumber(),
                     (int) pageRating.getPageElements(), pageRating.getTotalElements());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurred while trying to find ratings for api {}", api, ex);
+            throw new TechnicalManagementException("An error occurred while trying to find ratings for api " + api, ex);
+        }
+    }
+
+    @Override
+    public List<RatingEntity> findByApi(String api) {
+        if (!isEnabled()) {
+            throw new ApiRatingUnavailableException();
+        }
+        try {
+            final List<Rating> ratings = ratingRepository.findByReferenceIdAndReferenceType(api, RatingReferenceType.API);
+            final List<RatingEntity> ratingEntities = ratings.stream().map(this::convert).collect(toList());
+            return ratingEntities;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to find ratings for api {}", api, ex);
             throw new TechnicalManagementException("An error occurred while trying to find ratings for api " + api, ex);
@@ -201,7 +218,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            final Rating rating = findById(ratingEntity.getId());
+            final Rating rating = findModelById(ratingEntity.getId());
             final Rating oldRating = new Rating(rating);
             if (!rating.getReferenceId().equals(ratingEntity.getApi())) {
                 throw new RatingNotFoundException(ratingEntity.getId(), ratingEntity.getApi());
@@ -232,7 +249,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            Rating rating = findById(id);
+            Rating rating = findModelById(id);
             ratingRepository.delete(id);
             auditService.createApiAuditLog(rating.getReferenceId(), null, Rating.RatingEvent.RATING_DELETED, new Date(), rating, null);
         } catch (TechnicalException ex) {
@@ -247,7 +264,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            Rating rating = findById(ratingId);
+            Rating rating = findModelById(ratingId);
             ratingAnswerRepository.delete(answerId);
             auditService.createApiAuditLog(rating.getReferenceId(), null, RatingAnswer.RatingAnswerEvent.RATING_ANSWER_DELETED, new Date(), rating, null);
         } catch (TechnicalException ex) {
@@ -261,7 +278,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         return parameterService.findAsBoolean(Key.PORTAL_RATING_ENABLED);
     }
 
-    private Rating findById(String id) {
+    private Rating findModelById(String id) {
         if (!isEnabled()) {
             throw new ApiRatingUnavailableException();
         }

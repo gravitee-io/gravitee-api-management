@@ -17,26 +17,20 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static java.util.stream.Collectors.toList;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.rest.api.model.NewRatingEntity;
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -56,31 +50,42 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
  * @author GraviteeSource Team
  */
 public class ApiRatingsResource extends AbstractResource {
-    
+
     @Autowired
     private RatingService ratingService;
-    
+
     @Inject
     private RatingMapper ratingMapper;
-    
+
+    @Context
+    private ResourceContext resourceContext;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getApiRatingsByApiId(@PathParam("apiId") String apiId, @BeanParam PaginationParam paginationParam) {
+    public Response getApiRatingsByApiId(@PathParam("apiId") String apiId,
+                                         @BeanParam PaginationParam paginationParam,
+                                         @QueryParam("mine") Boolean mine,
+                                         @QueryParam("order") String order) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-        if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
-            final Page<RatingEntity> ratingEntityPage = ratingService.findByApi(apiId, 
-                    new PageableBuilder()
-                        .pageNumber(paginationParam.getPage())
-                        .pageSize(paginationParam.getSize())
-                        .build()
-                    );
-            
-            List<Rating> ratings = ratingEntityPage.getContent().stream()
-                    .map(ratingMapper::convert)
-                    .collect(toList());
+        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+            List<Rating> ratings;
+            if (mine != null && mine == true) {
+                RatingEntity ratingEntity = ratingService.findByApiForConnectedUser(apiId);
+                if (ratingEntity != null) {
+                    ratings = Arrays.asList(ratingMapper.convert(ratingEntity));
+                } else {
+                    ratings = Collections.emptyList();
+                }
+            } else {
+                final List<RatingEntity> ratingEntities = ratingService.findByApi(apiId);
+                Stream<Rating> ratingStream = ratingEntities.stream().map(ratingMapper::convert);
+                if (order != null) {
+                    ratingStream = ratingStream.sorted(new RatingComparator(order));
+                }
 
-            //No pagination, because ratingService did it already
-            return createListResponse(ratings, paginationParam, false);
+                ratings = ratingStream.collect(toList());
+            }
+            return createListResponse(ratings, paginationParam, true);
         }
         throw new ApiNotFoundException(apiId);
     }
@@ -89,27 +94,77 @@ public class ApiRatingsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-        @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE)
     })
-    public Response createApiRatingForApi(@PathParam("apiId") String apiId, @Valid RatingInput ratingInput) {
-        if(ratingInput == null) {
+    public Response createApiRating(@PathParam("apiId") String apiId, @Valid RatingInput ratingInput) {
+        if (ratingInput == null) {
             throw new BadRequestException("Input must not be null.");
         }
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-        if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
+        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             NewRatingEntity rating = new NewRatingEntity();
             rating.setApi(apiId);
             rating.setComment(ratingInput.getComment());
             rating.setTitle(ratingInput.getTitle());
             rating.setRate(ratingInput.getValue().byteValue());
-            
             RatingEntity createdRating = ratingService.create(rating);
-            
+
             return Response
                     .status(Status.CREATED)
                     .entity(ratingMapper.convert(createdRating))
                     .build();
         }
         throw new ApiNotFoundException(apiId);
+    }
+
+    @Path("{ratingId}")
+    public ApiRatingResource getApiRatingResource() {
+        return resourceContext.getResource(ApiRatingResource.class);
+    }
+
+    public class RatingComparator implements Comparator<Rating> {
+
+        private List<String> orders;
+
+        public RatingComparator(String order) {
+            this.orders = new ArrayList<>();
+            if (order != null) {
+                this.orders.addAll(Arrays.asList(order.split(",")));
+            }
+        }
+
+        @Override
+        public int compare(Rating r1, Rating r2) {
+            int compare = 0;
+            for (String order : this.orders) {
+                compare = compare(r1, r2, order);
+                if (compare != 0) {
+                    break;
+                }
+            }
+            return compare;
+        }
+
+
+        private int compare(Rating r1, Rating r2, String order) {
+            int compare = 0;
+            if (order.contains("value")) {
+                compare = r1.getValue().compareTo(r2.getValue());
+            }
+            if (order.contains("date")) {
+                compare = r1.getDate().compareTo(r2.getDate());
+            }
+
+            if (order.contains("answers")) {
+                compare = Integer.compare(r1.getAnswers().size(), r2.getAnswers().size());
+            }
+
+            if (!order.startsWith("-")) {
+                compare = compare * -1;
+            }
+            return compare;
+        }
+
+
     }
 }

@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import java.time.ZoneOffset;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.gravitee.rest.api.model.RatingAnswerEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,13 +36,13 @@ import io.gravitee.rest.api.service.UserService;
  */
 @Component
 public class RatingMapper {
-    
+
     @Autowired
     UserService userService;
-    
+
     @Autowired
     UserMapper userMapper;
-    
+
     public Rating convert(RatingEntity ratingEntity) {
         final Rating rating = new Rating();
 
@@ -48,27 +50,29 @@ public class RatingMapper {
         rating.setAuthor(userMapper.convert(author));
         rating.setTitle(ratingEntity.getTitle());
         rating.setComment(ratingEntity.getComment());
-        if(ratingEntity.getCreatedAt() != null) {
-            rating.setDate(ratingEntity.getCreatedAt().toInstant().atOffset( ZoneOffset.UTC ));
+        if (ratingEntity.getCreatedAt() != null) {
+            rating.setDate(ratingEntity.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
         }
         rating.setId(ratingEntity.getId());
         rating.setValue(Integer.valueOf(ratingEntity.getRate()));
-        
-        if(ratingEntity.getAnswers() != null) {
-            List<RatingAnswer> ratingsAnswer = 
+
+        if (ratingEntity.getAnswers() != null) {
+            List<RatingAnswer> ratingsAnswer =
                     ratingEntity.getAnswers().stream()
-                        .map(rae -> {
-                            UserEntity responseAuthor = userService.findById(rae.getUser());
-                            return new RatingAnswer()
-                                    .author(userMapper.convert(responseAuthor))
-                                    .comment(rae.getComment())
-                                    .date(rae.getCreatedAt().toInstant().atOffset( ZoneOffset.UTC ));
-                        }
-                        )
-                        .collect(Collectors.toList());
+                            .sorted(Comparator.comparing(RatingAnswerEntity::getCreatedAt))
+                            .map(rae -> {
+                                        UserEntity responseAuthor = userService.findById(rae.getUser());
+                                        return new RatingAnswer()
+                                                .id(rae.getId())
+                                                .author(userMapper.convert(responseAuthor))
+                                                .comment(rae.getComment())
+                                                .date(rae.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
+                                    }
+                            )
+                            .collect(Collectors.toList());
             rating.setAnswers(ratingsAnswer);
         }
-        
+
         return rating;
     }
 

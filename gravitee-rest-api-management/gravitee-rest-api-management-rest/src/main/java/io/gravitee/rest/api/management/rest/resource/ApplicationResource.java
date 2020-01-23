@@ -72,7 +72,7 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationEntity getApplication(@PathParam("application") String application) {
         return applicationService.findById(application);
     }
-    
+
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

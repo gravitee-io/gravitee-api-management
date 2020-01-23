@@ -305,6 +305,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/mineQueryParam'
+        - $ref: '#/components/parameters/ratingOrderQueryParam'
       summary: List ratings for an API
       description: |
         List ratings for an API.
@@ -314,7 +316,7 @@ paths:
       security: []
       responses:
         200:
-          description: List of subscriptions
+          description: List of ratings
           content:
             application/json:
               schema:
@@ -333,7 +335,7 @@ paths:
         This API has to be accessible by the current user, otherwise a 404 will be returned.
 
         The current must have API_RATING[CREATE] permission to create a rating.
-      operationId: createApiRatingForApi
+      operationId: createApiRating
       requestBody:
         description: Use to add a rating to an api
         content:
@@ -361,6 +363,151 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         404:
           $ref: '#/components/responses/APINotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /apis/{apiId}/ratings/{ratingId}:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+      - $ref: '#/components/parameters/ratingIdParam'
+    put:
+      tags:
+        - Api
+      summary: Update a rating for an API
+      description: |
+        Update a rating for an API.
+
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
+
+        The current must have API_RATING[CREATE] permission to update a rating.
+      operationId: updateApiRating
+      requestBody:
+        description: Use to update a rating to an api
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingInput'
+      responses:
+        200:
+          description: Updated Rating
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+        403:
+          description: Rating service is not activated or user does not have sufficient rights to access this resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: API or Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Api
+      summary: Delete a rating for an API
+      description: |
+        Delete a rating for an API.
+
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
+
+        The current must have API_RATING[DELETE] permission to delete a rating.
+      operationId: deleteApiRating
+      responses:
+        204:
+          description: Deleted Rating
+        403:
+          description: Rating service is not activated or user does not have sufficient rights to access this resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: API or Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /apis/{apiId}/ratings/{ratingId}/answers:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+      - $ref: '#/components/parameters/ratingIdParam'
+    post:
+      tags:
+        - Api
+      summary: Create an answer to rating
+      description: |
+        Create an answer to rating of API.
+
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
+
+        The current must have API_RATING_ANSWER[CREATE] permission to create an answer.
+      operationId: createApiRatingAnswer
+      requestBody:
+        description: Use to create an answer
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingAnswerInput'
+      responses:
+        200:
+          description: Updated Rating with answer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+        403:
+          description: Rating service is not activated or user does not have sufficient rights to access this resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: API or Rating not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /apis/{apiId}/ratings/{ratingId}/answers/{answerId}:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+      - $ref: '#/components/parameters/ratingIdParam'
+      - $ref: '#/components/parameters/answerIdParam'
+    delete:
+      tags:
+        - Api
+      summary: Delete an answer rating for an API
+      description: |
+        Delete an answer rating for an API.
+
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
+
+        The current must have API_RATING_ANSWER[DELETE] permission to delete a rating.
+      operationId: deleteApiRatingAnswer
+      responses:
+        204:
+          description: Deleted Rating Answer
+        403:
+          description: Rating service is not activated or user does not have sufficient rights to access this resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: API, Rating or Answer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}/subscribers:
@@ -1121,8 +1268,8 @@ paths:
       tags:
         - Subscription
       parameters:
-        - $ref: '#/components/parameters/subscriptionApiQueryParam'
-        - $ref: '#/components/parameters/subscriptionApplicationQueryParam'
+        - $ref: '#/components/parameters/apiIdQueryParam'
+        - $ref: '#/components/parameters/applicationIdQueryParam'
         - $ref: '#/components/parameters/subscriptionStatusesQueryParam'
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
@@ -1502,6 +1649,29 @@ paths:
         500:
           $ref: '#/components/responses/InternalServerError'
 
+  /permissions:
+    get:
+      tags:
+        - Permissions
+      parameters:
+        - $ref: '#/components/parameters/apiIdQueryParam'
+        - $ref: '#/components/parameters/applicationIdQueryParam'
+      summary: Retrieve user's permissions
+      description: |
+        Retrieve user's permissions.
+      operationId: getCurrentUserPermissions
+      responses:
+        200:
+          description: List of user's permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionsResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+
   /tickets:
     post:
       tags:
@@ -1785,6 +1955,8 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
+
+
 components:
   requestBodies:
     pictureUpdateInputBody:
@@ -1867,9 +2039,46 @@ components:
       description: Id of an identity provider.
       schema:
         type: string
+    ratingIdParam:
+      name: ratingId
+      in: path
+      required: true
+      description: Id of an rating
+      schema:
+        type: string
+    answerIdParam:
+      name: answerId
+      in: path
+      required: true
+      description: Id of an rating answer
+      schema:
+        type: string
     ###############
     # Query Param #
     ###############
+
+    #Common
+    apiIdQueryParam:
+      name: apiId
+      in: query
+      required: false
+      description: Id of an api.
+      schema:
+        type: string
+    applicationIdQueryParam:
+      name: applicationId
+      in: query
+      required: false
+      description: Id of an application.
+      schema:
+        type: string
+    mineQueryParam:
+      name: mine
+      in: query
+      required: false
+      description: If true, returns only connected user data.
+      schema:
+        type: boolean
 
     #Pagination
     pageNumberParam:
@@ -1971,6 +2180,17 @@ components:
           enum:
             - pages
             - plans
+    ratingOrderQueryParam:
+      name: order
+      in: query
+      required: false
+      description: |
+        A  list of "field" elements.
+        By default, sort is ASC. If *field* starts with '-', the order sort is DESC.\
+        Currently, only **value**, **date** and **answers** are supported.
+      example: "order=-avg:response-time"
+      schema:
+        type: string
 
     #Applications filtering
     forSubscriptionParam:
@@ -2141,20 +2361,6 @@ components:
         format: int64
 
     #Subscriptions filtering
-    subscriptionApiQueryParam:
-      name: apiId
-      in: query
-      required: false
-      description: Id of an api.
-      schema:
-        type: string
-    subscriptionApplicationQueryParam:
-      name: applicationId
-      in: query
-      required: false
-      description: Id of an application.
-      schema:
-        type: string
     subscriptionStatusesQueryParam:
       name: statuses
       in: query
@@ -2345,6 +2551,90 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/CategorizedLinks'
+    PermissionsResponse:
+      description: Map of Permissions.
+      properties:
+        METADATA:
+          type: array
+          items:
+            type: string
+        DOCUMENTATION:
+          type: array
+          items:
+            type: string
+        DEFINITION:
+          type: array
+          items:
+            type: string
+        PLAN:
+          type: array
+          items:
+            type: string
+        SUBSCRIPTION:
+          type: array
+          items:
+            type: string
+        MEMBER:
+          type: array
+          items:
+            type: string
+        ANALYTICS:
+          type: array
+          items:
+            type: string
+        EVENT:
+          type: array
+          items:
+            type: string
+        HEALTH:
+          type: array
+          items:
+            type: string
+        LOG:
+          type: array
+          items:
+            type: string
+        GATEWAY_DEFINITION:
+          type: array
+          items:
+            type: string
+        AUDIT:
+          type: array
+          items:
+            type: string
+        RATING:
+          type: array
+          items:
+            type: string
+        RATING_ANSWER:
+          type: array
+          items:
+            type: string
+        NOTIFICATION:
+          type: array
+          items:
+            type: string
+        MESSAGE:
+          type: array
+          items:
+            type: string
+        ALERT:
+          type: array
+          items:
+            type: string
+        RESPONSE_TEMPLATES:
+          type: array
+          items:
+            type: string
+        REVIEWS:
+          type: array
+          items:
+            type: string
+        QUALITY_RULE:
+          type: array
+          items:
+            type: string
+
     #####################
     # Resources Objects #
     #####################
@@ -3203,6 +3493,12 @@ components:
           maximum: 5
         comment:
           type: string
+    RatingAnswerInput:
+      required:
+        - comment
+      properties:
+        comment:
+          type: string
     ApplicationInput:
       properties:
         name:
@@ -3441,7 +3737,14 @@ components:
             - Swagger
             - Redoc
     RatingAnswer:
+      required:
+        - id
+        - author
+        - date
+        - comment
       properties:
+        id:
+          type: string
         author:
           $ref: '#/components/schemas/User'
         date:

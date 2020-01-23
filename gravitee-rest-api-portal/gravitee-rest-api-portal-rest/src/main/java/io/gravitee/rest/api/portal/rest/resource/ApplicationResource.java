@@ -55,10 +55,10 @@ public class ApplicationResource extends AbstractResource {
 
     @Inject
     private ApplicationService applicationService;
-    
+
     @Inject
     private ApplicationMapper applicationMapper;
-    
+
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
@@ -70,7 +70,7 @@ public class ApplicationResource extends AbstractResource {
                 .noContent()
                 .build();
     }
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
@@ -78,7 +78,7 @@ public class ApplicationResource extends AbstractResource {
     })
     public Response getApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
         Application application = applicationMapper.convert(applicationService.findById(applicationId));
-        
+
         return Response
                 .ok(addApplicationLinks(application))
                 .build()
@@ -92,23 +92,23 @@ public class ApplicationResource extends AbstractResource {
         @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
     public Response updateApplicationByApplicationId(@PathParam("applicationId") String applicationId, @Valid @NotNull(message="Input must not be null.") Application application) {
-        
+
         if(!application.getId().equalsIgnoreCase(applicationId)) {
             throw new BadRequestException("'applicationId' is not the same that the application in payload");
         }
-        
+
         ApplicationEntity appEntity = applicationService.findById(applicationId);
 
         if(!getAuthenticatedUser().equals(appEntity.getPrimaryOwner().getId())) {
             throw new ForbiddenAccessException();
         }
-        
+
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
         updateApplicationEntity.setDescription(application.getDescription());
         updateApplicationEntity.setGroups(new HashSet<String>(application.getGroups()));
         updateApplicationEntity.setName(application.getName());
         updateApplicationEntity.setPicture(checkAndScaleImage(application.getPicture()));
-        
+
         if(application.getSettings() != null) {
             ApplicationSettings settings = new ApplicationSettings();
             if(application.getSettings().getApp() != null) {
@@ -131,7 +131,7 @@ public class ApplicationResource extends AbstractResource {
             }
             updateApplicationEntity.setSettings(settings);
         }
-        
+
         Application updatedApp = applicationMapper.convert(applicationService.update(applicationId, updateApplicationEntity));
         return Response
                 .ok(addApplicationLinks(updatedApp))
@@ -139,7 +139,7 @@ public class ApplicationResource extends AbstractResource {
                 .lastModified(Date.from(updatedApp.getUpdatedAt().toInstant()))
                 .build();
     }
-   
+
     @GET
     @Path("picture")
     @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
@@ -150,8 +150,8 @@ public class ApplicationResource extends AbstractResource {
         applicationService.findById(applicationId);
 
         InlinePictureEntity image = applicationService.getPicture(applicationId);
-        
-        return createPictureReponse(request, image);
+
+        return createPictureResponse(request, image);
     }
 
     @POST
@@ -162,25 +162,25 @@ public class ApplicationResource extends AbstractResource {
         @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
     public Response renewApplicationSecret(@PathParam("applicationId") String applicationId) {
-        
+
         Application renwedApplication = applicationMapper.convert(applicationService.renewClientSecret(applicationId));
-        
+
         return Response
                 .ok(addApplicationLinks(renwedApplication))
                 .build()
                 ;
     }
-    
+
     private Application addApplicationLinks(Application application) {
         return application.links(applicationMapper.computeApplicationLinks(PortalApiLinkHelper.applicationsURL(uriInfo.getBaseUriBuilder(), application.getId())));
     }
-    
-    
+
+
     @Path("members")
     public ApplicationMembersResource getApplicationMembersResource() {
         return resourceContext.getResource(ApplicationMembersResource.class);
     }
- 
+
     @Path("notifications")
     public ApplicationNotificationSettingsResource getApplicationNotificationSettingsResource() {
         return resourceContext.getResource(ApplicationNotificationSettingsResource.class);
@@ -194,6 +194,6 @@ public class ApplicationResource extends AbstractResource {
     @Path("analytics")
     public ApplicationAnalyticsResource getApplicationAnalyticsResource() {
         return resourceContext.getResource(ApplicationAnalyticsResource.class);
-    }    
+    }
 
 }

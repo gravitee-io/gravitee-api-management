@@ -48,21 +48,21 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
  */
 public class PictureManagementTest {
 
-    
+
     AbstractResource pictureResourceForTest = new AbstractResource() {};
 
     @Test
     public void testPictureResponse() throws IOException, URISyntaxException {
         Request request = Mockito.mock(Request.class);
         doReturn(null).when(request).evaluatePreconditions(any(EntityTag.class));
-        
+
         InlinePictureEntity mockImage = new InlinePictureEntity();
         byte[] imageContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(imageContent);
         mockImage.setType("image/svg");
 
-        Response response = pictureResourceForTest.createPictureReponse(request, mockImage);
-        
+        Response response = pictureResourceForTest.createPictureResponse(request, mockImage);
+
         assertEquals(OK_200, response.getStatus());
 
         MultivaluedMap<String, Object> headers = response.getHeaders();
@@ -74,16 +74,16 @@ public class PictureManagementTest {
         ByteArrayOutputStream baos = (ByteArrayOutputStream)response.getEntity();
         byte[] fileContent = baos.toByteArray();
         assertTrue(Arrays.equals(fileContent, imageContent));
-        
+
         String expectedTag = Integer.toString(new String(fileContent).hashCode());
         assertEquals(expectedTag, etag);
-        
-        
+
+
         // test Cache
         ResponseBuilder responseBuilder = Response.notModified();
         doReturn(responseBuilder).when(request).evaluatePreconditions(any(EntityTag.class));
-        
-        final Response cachedResponse = pictureResourceForTest.createPictureReponse(request, mockImage);
+
+        final Response cachedResponse = pictureResourceForTest.createPictureResponse(request, mockImage);
         assertEquals(NOT_MODIFIED_304, cachedResponse.getStatus());
     }
 

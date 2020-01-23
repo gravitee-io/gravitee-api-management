@@ -58,85 +58,83 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         return "apis/";
     }
 
-
     @Before
     public void init() throws IOException {
         resetAllMocks();
-        
+
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
+
         RatingEntity rating1 = new RatingEntity();
         RatingEntity rating2 = new RatingEntity();
 
-        Page<RatingEntity> ratingEntityPage = new Page<RatingEntity>(Arrays.asList(rating1, rating2), 1, 2, 2);
-        doReturn(ratingEntityPage).when(ratingService).findByApi(eq(API), any());
-        
+        List<RatingEntity> ratingEntityPage = Arrays.asList(rating1, rating2);
+        doReturn(ratingEntityPage).when(ratingService).findByApi(eq(API));
+
         Rating rating = new Rating();
         rating.setId(RATING);
         rating.setComment(RATING);
         rating.setValue(1);
-        
+
         doReturn(rating).when(ratingMapper).convert(any());
-        
+
         RatingEntity createdRating = new RatingEntity();
         createdRating.setId(RATING);
         createdRating.setComment(RATING);
-        createdRating.setRate((byte)1);
+        createdRating.setRate((byte) 1);
         doReturn(createdRating).when(ratingService).create(any());
     }
 
-    
+
     @Test
     public void shouldNotFoundWhileGettingApiRatings() {
-      //init
+        //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
+
         //test
         final Response response = target(API).path("ratings").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
+        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
     }
-    
+
     @Test
     public void shouldGetServiceUnavailable() {
         doThrow(ApiRatingUnavailableException.class).when(ratingService).create(any());
-        
+
         RatingInput ratingInput = new RatingInput()
                 .comment(RATING)
-                .value(1)
-                ;
-        
+                .value(1);
+
         final Response response = target(API).path("ratings").request().post(Entity.json(ratingInput));
         assertEquals(SERVICE_UNAVAILABLE_503, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("errors.rating.disabled", error.getCode());
         assertEquals("503", error.getStatus());
         assertEquals("API rating service is unavailable.", error.getMessage());
     }
-    
+
     @Test
     public void shouldGetApiRatings() {
         final Response response = target(API).path("ratings").request().get();
@@ -147,16 +145,26 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         List<Rating> ratings = ratingsResponse.getData();
         assertNotNull(ratings);
         assertEquals(2, ratings.size());
-        
     }
-    
+
+    @Test
+    public void shouldGetMineApiRatings() {
+        final Response response = target(API).path("ratings").queryParam("mine", true).request().get();
+
+        assertEquals(OK_200, response.getStatus());
+
+        final RatingsResponse ratingsResponse = response.readEntity(RatingsResponse.class);
+        List<Rating> ratings = ratingsResponse.getData();
+        assertNotNull(ratings);
+        assertEquals(0, ratings.size());
+    }
+
     @Test
     public void shouldCreateApiRating() {
         RatingInput ratingInput = new RatingInput()
                 .comment(RATING)
-                .value(1)
-                ;
-        
+                .value(1);
+
         final Response response = target(API).path("ratings").request().post(Entity.json(ratingInput));
         assertEquals(CREATED_201, response.getStatus());
 
@@ -165,56 +173,54 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         assertEquals(RATING, ratingResponse.getComment());
         assertEquals(Integer.valueOf(1), ratingResponse.getValue());
         assertEquals(RATING, ratingResponse.getId());
-        
     }
-    
+
     @Test
     public void shouldNotFoundWhileCreatingApiRatings() {
-      //init
+        //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
+
         //test
         RatingInput ratingInput = new RatingInput()
                 .comment(RATING)
-                .value(1)
-                ;
-        
+                .value(1);
+
         final Response response = target(API).path("ratings").request().post(Entity.json(ratingInput));
         assertEquals(NOT_FOUND_404, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
+        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
     }
-    
+
     @Test
     public void shouldBadRequestWhileCreatingApiRatings() {
-      //init
+        //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
+
         //test
-        
+
         final Response response = target(API).path("ratings").request().post(Entity.json(null));
         assertEquals(BAD_REQUEST_400, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("errors.unexpected", error.getCode());

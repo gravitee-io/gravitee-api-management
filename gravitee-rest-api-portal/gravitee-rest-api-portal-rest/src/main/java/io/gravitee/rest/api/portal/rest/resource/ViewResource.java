@@ -57,9 +57,9 @@ public class ViewResource extends AbstractResource {
         ViewEntity view = viewService.findNotHiddenById(viewId);
 
         Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-        
+
         view = viewEnhancer.enhance(apis).apply(view);
-        
+
         return Response
                 .ok(viewMapper.convert(view, uriInfo.getBaseUriBuilder()))
                 .build();
@@ -73,7 +73,7 @@ public class ViewResource extends AbstractResource {
 
         InlinePictureEntity image = viewService.getPicture(viewId);
 
-        return createPictureReponse(request, image);
+        return createPictureResponse(request, image);
     }
 
 }

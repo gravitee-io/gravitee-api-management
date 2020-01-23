@@ -25,40 +25,45 @@ import javax.ws.rs.core.Context;
  */
 @Path("/{envId}")
 public class EnvironmentResource extends AbstractResource {
-    
+
     @Context
     private ResourceContext resourceContext;
-    
+
     @Path("apis")
     public ApisResource getApisResource() {
         return resourceContext.getResource(ApisResource.class);
     }
-    
+
     @Path("auth")
     public AuthResource getAuthResource() {
         return resourceContext.getResource(AuthResource.class);
     }
-    
+
     @Path("applications")
     public ApplicationsResource getApplicationsResource() {
         return resourceContext.getResource(ApplicationsResource.class);
     }
-    
+
     @Path("configuration")
     public ConfigurationResource getConfigurationResource() {
         return resourceContext.getResource(ConfigurationResource.class);
     }
-    
+
     @Path("info")
     public InfoResource getInfoResource() {
         return resourceContext.getResource(InfoResource.class);
     }
 
     @Path("pages")
-    public PagesResource getPagessResource() {
+    public PagesResource getPagesResource() {
         return resourceContext.getResource(PagesResource.class);
     }
-    
+
+    @Path("permissions")
+    public PermissionsResource getPermissionsResource() {
+        return resourceContext.getResource(PermissionsResource.class);
+    }
+
     @Path("subscriptions")
     public SubscriptionsResource getSubscriptionsResource() {
         return resourceContext.getResource(SubscriptionsResource.class);
@@ -68,13 +73,13 @@ public class EnvironmentResource extends AbstractResource {
     public TicketsResource getTicketsResource() {
         return resourceContext.getResource(TicketsResource.class);
     }
-    
-    
+
+
     @Path("users")
     public UsersResource getUsersResource() {
         return resourceContext.getResource(UsersResource.class);
     }
-    
+
     @Path("user")
     public UserResource getUserResource() {
         return resourceContext.getResource(UserResource.class);

@@ -115,7 +115,7 @@ public class ApiResource extends AbstractResource {
 
             InlinePictureEntity image = apiService.getPicture(apiId);
 
-            return createPictureReponse(request, image);
+            return createPictureResponse(request, image);
         }
         throw new ApiNotFoundException(apiId);
     }
@@ -131,7 +131,7 @@ public class ApiResource extends AbstractResource {
                 .forEach(sysPage -> {
                     List<CategorizedLinks> catLinksList = new ArrayList<>();
 
-                    // for pages under sysFolder                    
+                    // for pages under sysFolder
                     List<Link> links = getLinksFromFolder(sysPage, apiId, acceptedLocale);
                     if(!links.isEmpty()) {
                         CategorizedLinks catLinks = new CategorizedLinks();
@@ -140,7 +140,7 @@ public class ApiResource extends AbstractResource {
                         catLinks.setRoot(true);
                         catLinksList.add(catLinks);
                     }
-                    
+
                     // for pages into folders
                     pageService.search(new PageQuery.Builder().api(apiId).parent(sysPage.getId()).build(), acceptedLocale).stream()
                         .filter(PageEntity::isPublished)
@@ -193,7 +193,7 @@ public class ApiResource extends AbstractResource {
                 })
                 .collect(Collectors.toList());
     }
-    
+
     @Path("metrics")
     public ApiMetricsResource getApiMetricsResource() {
         return resourceContext.getResource(ApiMetricsResource.class);

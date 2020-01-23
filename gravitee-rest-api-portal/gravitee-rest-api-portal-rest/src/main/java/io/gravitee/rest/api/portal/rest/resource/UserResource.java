@@ -93,7 +93,7 @@ public class UserResource extends AbstractResource {
                 .ok(userMapper.convert(updatedUser))
                 .build();
     }
-    
+
     @GET
     @Path("avatar")
     public Response getCurrentUserAvatar(@Context Request request) {
@@ -108,9 +108,9 @@ public class UserResource extends AbstractResource {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
         }
 
-        return createPictureReponse(request, (InlinePictureEntity) picture);
+        return createPictureResponse(request, (InlinePictureEntity) picture);
     }
-    
+
     @Path("notifications")
     public UserNotificationsResource getUserNotificationsResource() {
         return resourceContext.getResource(UserNotificationsResource.class);

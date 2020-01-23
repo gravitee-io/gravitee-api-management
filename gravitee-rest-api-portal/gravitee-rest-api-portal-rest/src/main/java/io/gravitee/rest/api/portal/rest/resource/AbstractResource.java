@@ -340,7 +340,7 @@ public abstract class AbstractResource {
         return Response.ok(createDataResponse(dataList, paginationParam, metadata, withPagination)).build();
     }
 
-    protected Response createPictureReponse(Request request, InlinePictureEntity image) {
+    protected Response createPictureResponse(Request request, InlinePictureEntity image) {
         if (image == null || image.getContent() == null) {
             return Response.status(Status.NOT_FOUND).build();
         }

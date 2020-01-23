@@ -19,6 +19,8 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.rest.api.model.*;
 
+import java.util.List;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
@@ -29,7 +31,11 @@ public interface RatingService {
 
     RatingEntity createAnswer(NewRatingAnswerEntity answer);
 
+    RatingEntity findById(String id);
+
     Page<RatingEntity> findByApi(String api, Pageable pageable);
+
+    List<RatingEntity> findByApi(String api);
 
     RatingSummaryEntity findSummaryByApi(String api);
 
