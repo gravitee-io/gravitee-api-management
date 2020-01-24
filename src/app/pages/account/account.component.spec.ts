@@ -20,7 +20,6 @@ import { provideMock } from '../../test/mock.helper.spec';
 import { CurrentUserService } from '../../services/current-user.service';
 import { UserService } from '@gravitee/ng-portal-webclient';
 import { TranslateTestingModule } from '../../test/helper.spec';
-import { UserAvatarComponent } from '../../components/user-avatar/user-avatar.component';
 import { SafePipe } from '../../pipes/safe.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
@@ -32,7 +31,7 @@ describe('AccountComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [AccountComponent, UserAvatarComponent, SafePipe],
+      declarations: [AccountComponent, SafePipe],
       imports: [TranslateTestingModule],
       providers: [provideMock(UserService), provideMock(CurrentUserService)],
       schemas: [

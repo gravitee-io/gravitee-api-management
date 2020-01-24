@@ -9,6 +9,25 @@
       "version": "Version: "
     }
   },
+  "apiGeneral": {
+    "description": "Description",
+    "giveRating": "Share your opinion",
+    "rate": "Note",
+    "ratingAnswerCreated": "Your answer has been created.",
+    "ratingAnswerDeleted": "Your answer has been deleted.",
+    "ratingCreated": "Your review has been created.",
+    "ratingDeleted": "Your review has been deleted.",
+    "ratingUpdated": "Thank you for updating your review.",
+    "ratingsSortOptions": {
+      "answers": "Most commented",
+      "best": "Best rated",
+      "newest": "Most Recent",
+      "oldest": "The oldest",
+      "worst": "The lowest rated"
+    },
+    "showMore": "Show more",
+    "userRatings": "User ratings"
+  },
   "apiSubscribe": {
     "apps": {
       "chooseApp": "Choose an application",
@@ -92,6 +111,9 @@
       "notSubscribable": "A client_id is required to subscribe to an OAuth2 or JWT plan.",
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."
     },
+    "rating": {
+      "exists": "Rating already exists for api [{api}] and user [{user}]."
+    },
     "server": {
       "unavailable": "Server unavailable"
     },
@@ -117,6 +139,10 @@
   },
   "gv-code": {
     "copy": "Copy to clipboard"
+  },
+  "gv-confirm": {
+    "cancel": "Cancel",
+    "ok": "Ok"
   },
   "gv-contact": {
     "apis": {
@@ -150,6 +176,7 @@
   },
   "gv-info": {
     "about": "About",
+    "beFirstToRate": "Be the first to rate",
     "categories": "Categories",
     "error": "An error occurred while loading the API",
     "labels": "Labels",
@@ -198,7 +225,23 @@
     "error": "An error occurred while loading the API",
     "view": "View API"
   },
+  "gv-rating-list": {
+    "answerLabel": "Add an answer",
+    "cancel": "Cancel",
+    "confirmAnswerDelete": "Are you sure you delete the answer ?",
+    "confirmRatingDelete": "Are you sure you delete the rating ?",
+    "deleteAnswer": "Delete answer",
+    "deleteRating": "Delete rating",
+    "reply": "Reply",
+    "send": "Send"
+  },
   "gv-rating": {
+    "description-1": "I hate",
+    "description-2": "I don't like",
+    "description-3": "I like",
+    "description-4": "I love",
+    "description-5": "It's perfect",
+    "note": "Note",
     "notes": "Ratings"
   },
   "gv-row": {

@@ -49,4 +49,13 @@ export class CurrentUserService {
         .finally(() => resolve(true));
     });
   }
+
+  getUser() {
+    return this.currentUserSource.getValue();
+  }
+
+  exist() {
+    return this.getUser() != null;
+  }
+
 }

@@ -17,11 +17,69 @@
 -->
 <div class="page__content api" *ngIf="currentApi">
   <section class="api__section">
-    <div *ngIf="description" class="api__section__description">
-      <h4 class="title">Description</h4>
+
+    <div *ngIf="description" class="api__section__block">
+      <h4 class="title">{{ "apiGeneral.description" | translate}}</h4>
       <p>{{ description }}</p>
     </div>
+
     <app-gv-page *ngIf="homepage" [page]="homepage"></app-gv-page>
+
+    <div class="api__section__block" *ngIf="canRate">
+      <h4 class="title">{{ "apiGeneral.giveRating" | translate}}</h4>
+
+      <form class="rating-form" *ngIf="hasRatingForm()" [formGroup]="ratingForm" (ngSubmit)="rate();">
+
+        <div class="rating-form-content">
+
+        <gv-input formControlName="title"
+                  name="title"
+                  label="Recommanderiez-vous cette API ?"
+                  placeholder="En un mot"
+                  ngDefaultControl
+                  [value]="userRating?.title"></gv-input>
+
+        <gv-text formControlName="comment"
+                 name="comment"
+                 ngDefaultControl
+                 rows="5"
+                 placeholder="Expliquez-nous pourquoi"
+                 [value]="userRating?.comment"></gv-text>
+        </div>
+
+        <div class="rating-form-actions">
+        <gv-rating required
+                   formControlName="value"
+                   name="value"
+                   ngDefaultControl
+                   with-description
+                   [value]="userRating?.value"></gv-rating>
+
+        <gv-button primary [disabled]="!hasValidRatingForm()">{{ "apiGeneral.rate" | translate}}</gv-button>
+
+        </div>
+      </form>
+
+    </div>
+
+    <div class="api__section__block" *ngIf="hasRatings()">
+      <div class="api__section__ratings__title">
+        <h4 class="title">{{ "apiGeneral.userRatings" | translate}} <span>({{getRatingsLength()}})</span></h4>
+        <gv-select
+          small
+          (input)="onSortRatings($event)"
+          [value]="currentOrder"
+                   [options]="ratingsSortOptions"></gv-select>
+      </div>
+
+
+      <gv-rating-list [ratings]="ratings" [user]="currentUser" [permissions]="permissions"></gv-rating-list>
+      <div class="rating-list-actions">
+        <gv-button *ngIf="hasMoreRatings()" (click)="onShowMoreRatings()" primary outlined>{{"apiGeneral.showMore" | translate}} ({{getShowMoreLength()}})</gv-button>
+      </div>
+
+    </div>
+
   </section>
 
   <aside class="api__aside">

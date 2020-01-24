@@ -284,7 +284,8 @@ export class FilteredCatalogComponent implements OnInit {
   onSelectView({ target }) {
     const queryParams = { view: target.value };
     queryParams[SearchQueryParam.PAGE] = 1;
-    this.router.navigate([], { relativeTo: this.activatedRoute, queryParams, queryParamsHandling: 'merge', fragment: this.fragments.filter });
+    this.router.navigate([],
+      { relativeTo: this.activatedRoute, queryParams, queryParamsHandling: 'merge', fragment: this.fragments.filter });
   }
 
   inDefaultDisplay() {

@@ -22,6 +22,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TranslateTestingModule } from 'src/app/test/helper.spec';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('ApiGeneralComponent', () => {
   let component: ApiGeneralComponent;
@@ -29,13 +30,13 @@ describe('ApiGeneralComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ApiGeneralComponent, GvPageComponent ],
-      imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule, TranslateTestingModule ],
+      declarations: [ApiGeneralComponent, GvPageComponent],
+      imports: [MarkdownModule, HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

@@ -23,6 +23,9 @@ import { CurrentUserService } from '../services/current-user.service';
 import { NotificationService } from '../services/notification.service';
 import { LoaderService } from '../services/loader.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { ConfigurationService } from '../services/configuration.service';
+
+export const SILENT_CODES = ['errors.rating.disabled'];
 
 @Injectable()
 export class ApiRequestInterceptor implements HttpInterceptor {
@@ -31,7 +34,9 @@ export class ApiRequestInterceptor implements HttpInterceptor {
     private currentUserService: CurrentUserService,
     private notificationService: NotificationService,
     private loaderService: LoaderService,
-  ) {}
+    private configService: ConfigurationService,
+  ) {
+  }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     this.loaderService.show();
@@ -43,7 +48,8 @@ export class ApiRequestInterceptor implements HttpInterceptor {
     });
 
     return next.handle(request).pipe(tap(
-      () => {},
+      () => {
+      },
       (err: any) => {
         if (err instanceof HttpErrorResponse) {
           if (err.status === 0) {
@@ -54,7 +60,12 @@ export class ApiRequestInterceptor implements HttpInterceptor {
         }
         if (err.error && err.error.errors) {
           const error = err.error.errors[0];
-          this.notificationService.error(error.code, error.parameters, error.message);
+          if (!SILENT_CODES.includes(error.code)) {
+            this.notificationService.error(error.code, error.parameters, error.message);
+          } else if (error.status === '503') {
+            // configuration has been updated, we have to reload the configuration
+            this.configService.load();
+          }
         }
       }
     ), finalize(() => this.loaderService.hide()));

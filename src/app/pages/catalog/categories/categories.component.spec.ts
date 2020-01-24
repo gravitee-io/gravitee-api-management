@@ -20,7 +20,6 @@ import { CategoriesComponent } from './categories.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TranslateTestingModule } from 'src/app/test/helper.spec';
 import { SafePipe } from '../../../pipes/safe.pipe';
-import { UserAvatarComponent } from '../../../components/user-avatar/user-avatar.component';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('CategoriesComponent', () => {
@@ -36,7 +35,6 @@ describe('CategoriesComponent', () => {
       ],
       declarations: [
         CategoriesComponent,
-        UserAvatarComponent,
         SafePipe
       ],
       schemas: [

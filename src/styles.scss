@@ -129,6 +129,11 @@ h4.title {
   text-align: center;
 }
 
+h4.title span {
+  color: #BFBFBF;
+}
+
+// TODO: remove .skeleton a when remove tachyons
 .skeleton, .skeleton a {
   animation-direction: alternate;
   animation-duration: 500ms;

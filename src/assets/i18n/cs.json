@@ -9,6 +9,25 @@
       "version": "Verze: "
     }
   },
+  "apiGeneral": {
+    "description": "Popis",
+    "giveRating": "Vyjádřete svůj názor",
+    "rate": "Poznámka",
+    "ratingAnswerCreated": "Vaše odpověď byla vytvořena.",
+    "ratingAnswerDeleted": "Vaše odpověď byla smazána.",
+    "ratingCreated": "Vaše recenze byla vytvořena.",
+    "ratingDeleted": "Vaše recenze byla smazána.",
+    "ratingUpdated": "Děkujeme za aktualizaci vaší recenze.",
+    "ratingsSortOptions": {
+      "answers": "Nejvíce komentované",
+      "best": "Nejlépe hodnocené",
+      "newest": "Nejnovější",
+      "oldest": "Nejstarší",
+      "worst": "Nejnižší hodnocení"
+    },
+    "showMore": "Zobrazit více",
+    "userRatings": "Zpětná vazba uživatele"
+  },
   "apiSubscribe": {
     "apps": {
       "chooseApp": "Vyberte aplikaci",
@@ -92,6 +111,9 @@
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
     },
+    "rating": {
+      "exists": "errors.rating.exists"
+    },
     "server": {
       "unavailable": "Server není k dispozici"
     },
@@ -117,6 +139,10 @@
   },
   "gv-code": {
     "copy": "Kopírovat do schránky"
+  },
+  "gv-confirm": {
+    "cancel": "Zrušit",
+    "ok": "Ok"
   },
   "gv-contact": {
     "apis": {
@@ -150,6 +176,7 @@
   },
   "gv-info": {
     "about": "Asi",
+    "beFirstToRate": "Buďte první hodnotící",
     "categories": "Kategorie",
     "error": "Při načítání informací API došlo k chybě",
     "labels": "Tagy",
@@ -198,7 +225,23 @@
     "error": "Při načítání API došlo k chybě\"",
     "view": "Podívejte se na API"
   },
+  "gv-rating-list": {
+    "answerLabel": "Přidejte odpověď",
+    "cancel": "Zrušit",
+    "confirmAnswerDelete": "Opravdu chcete odpověď odstranit ?",
+    "confirmRatingDelete": "Opravdu chcete vyhodnocení smazat ?",
+    "deleteAnswer": "Smazat odpověď",
+    "deleteRating": "Vymazat hodnocení",
+    "reply": "Odpověď",
+    "send": "Odeslat"
+  },
   "gv-rating": {
+    "description-1": "Nesnáším",
+    "description-2": "Nemám rád",
+    "description-3": "Jako",
+    "description-4": "I love",
+    "description-5": "Je to perfektní",
+    "note": "Poznámka",
     "notes": "Poznámky"
   },
   "gv-row": {

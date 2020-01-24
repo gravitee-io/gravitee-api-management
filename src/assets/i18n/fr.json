@@ -4,10 +4,29 @@
       "connectedApp": "Applications liées"
     },
     "miscellaneous": {
-      "lastUpdate": "Mise à jour : ",
-      "publisher": "Propriétaire : ",
+      "lastUpdate": "Mise à jour: ",
+      "publisher": "Propriétaire: ",
       "version": "Version : "
     }
+  },
+  "apiGeneral": {
+    "description": "Description",
+    "giveRating": "Donnez-nous votre avis",
+    "rate": "Noter",
+    "ratingAnswerCreated": "Votre réponse a bien été créée.",
+    "ratingAnswerDeleted": "Votre réponse a bien été supprimée.",
+    "ratingCreated": "Votre avis a bien été créée.",
+    "ratingDeleted": "Votre avis a bien été supprimé.",
+    "ratingUpdated": "Merci pour la mise à jour de votre avis.",
+    "ratingsSortOptions": {
+      "answers": "Le plus commenté",
+      "best": "Le mieux noté",
+      "newest": "Le plus récent",
+      "oldest": "Le plus ancien",
+      "worst": "Le moins bien noté"
+    },
+    "showMore": "Voir plus",
+    "userRatings": "Retours utilisateurs"
   },
   "apiSubscribe": {
     "apps": {
@@ -92,6 +111,9 @@
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
     },
+    "rating": {
+      "exists": "Un avis existe déjà pour l'api [{api}] et l'utilisateur [{user}]."
+    },
     "server": {
       "unavailable": "Serveur indisponible"
     },
@@ -117,6 +139,10 @@
   },
   "gv-code": {
     "copy": "Copier dans le presse papier"
+  },
+  "gv-confirm": {
+    "cancel": "Annuler",
+    "ok": "Ok"
   },
   "gv-contact": {
     "apis": {
@@ -150,6 +176,7 @@
   },
   "gv-info": {
     "about": "À propos",
+    "beFirstToRate": "Soyez le premier à noter",
     "categories": "Catégories",
     "error": "Une erreur est survenue pendant le chargement des informations de l'API",
     "labels": "Tags",
@@ -198,7 +225,23 @@
     "error": "Une erreur est survenue pendant de le chargement de l'API",
     "view": "Voir l'API"
   },
+  "gv-rating-list": {
+    "answerLabel": "Ajouter une réponse",
+    "cancel": "Annuler",
+    "confirmAnswerDelete": "Êtes-vous certains de vouloir supprimer la réponse ?",
+    "confirmRatingDelete": "Êtes-vous certains de vouloir supprimer l'évaluation ?",
+    "deleteAnswer": "Supprimer la réponse",
+    "deleteRating": "Supprimer l'évaluation",
+    "reply": "Répondre",
+    "send": "Envoyer"
+  },
   "gv-rating": {
+    "description-1": "Je déteste",
+    "description-2": "Je n'aime pas",
+    "description-3": "J'aime",
+    "description-4": "J'adore",
+    "description-5": "C'est parfait",
+    "note": "Note",
     "notes": "Notes"
   },
   "gv-row": {

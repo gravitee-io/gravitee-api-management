@@ -26,9 +26,8 @@
   margin: 0 32px;
 }
 
-.api__section__description {
+.api__section__block {
  background-color: white;
- width: 100%;
  border-radius: 4px;
  padding: 24px 50px;
 }
@@ -40,4 +39,51 @@
 
 .api__section > *, .api__aside > * {
  margin-bottom: 32px;
+}
+
+.rating-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.rating-form gv-button {
+  text-align: right;
+  align-self: flex-end;
+}
+
+.rating-form-content {
+  display: flex;
+  flex-direction: column;
+  background-color: #E5E5E5;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.rating-form-content gv-rating {
+  align-self: center;
+  margin: 1rem 0;
+
+}
+
+.rating-form-actions {
+  display: flex;
+  height: 30px;
+  --gv-rating--s: 26px;
+}
+
+.rating-form-actions gv-rating {
+  flex: 1;
+  text-align: right;
+}
+
+.rating-list-actions {
+  text-align: center;
+}
+
+.api__section__ratings__title {
+  display: flex;
+}
+
+.api__section__ratings__title .title {
+  flex: 1;
 }

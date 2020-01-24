@@ -23,9 +23,9 @@ import { ApiRequestInterceptor } from './interceptors/api-request.interceptor';
 import { ApiStatesPipe } from './pipes/api-states.pipe';
 import { ApiSubscribeComponent } from './pages/api-subscribe/api-subscribe.component';
 import { AppComponent } from './app.component';
-import { AppRoutingModule } from './app-routing.module';
 import { ApplicationsComponent } from './pages/applications/applications.component';
-import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
+import { AppRoutingModule } from './app-routing.module';
+import { AuthService } from './services/auth.service';
 import { BrowserModule } from '@angular/platform-browser';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
@@ -55,17 +55,16 @@ import { LogoutComponent } from './pages/logout/logout.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { MESSAGE_FORMAT_CONFIG } from 'ngx-translate-messageformat-compiler';
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA, APP_INITIALIZER } from '@angular/core';
+import { OAuthModule } from 'angular-oauth2-oidc';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
 import { SafePipe } from './pipes/safe.pipe';
+import { SinglePageComponent } from './pages/single-page/single-page.component';
+import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateLoader, TranslateModule, TranslateCompiler } from '@ngx-translate/core';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
-import { UserAvatarComponent } from './components/user-avatar/user-avatar.component';
-import { OAuthModule } from 'angular-oauth2-oidc';
-import { AuthService } from './services/auth.service';
-import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { TranslationService } from './services/translation.service';
 import '@gravitee/ui-components/wc/gv-spinner';
 import { Router, Scroll } from '@angular/router';
@@ -83,7 +82,6 @@ import { filter } from 'rxjs/operators';
     ApiSubscribeComponent,
     AppComponent,
     ApplicationsComponent,
-    SubscriptionsComponent,
     CatalogSearchComponent,
     CatalogSearchComponent,
     CategoriesComponent,
@@ -97,12 +95,12 @@ import { filter } from 'rxjs/operators';
     GvHeaderApiComponent,
     GvMenuRightSlotDirective,
     GvMenuTopSlotDirective,
-    GvPageContentSlotDirective,
     GvPageComponent,
-    GvSearchComponent,
+    GvPageContentSlotDirective,
     GvPageMarkdownComponent,
     GvPageRedocComponent,
     GvPageSwaggerUIComponent,
+    GvSearchComponent,
     HomepageComponent,
     LayoutComponent,
     LoginComponent,
@@ -111,7 +109,7 @@ import { filter } from 'rxjs/operators';
     RegistrationConfirmationComponent,
     SafePipe,
     SinglePageComponent,
-    UserAvatarComponent,
+    SubscriptionsComponent,
   ],
   entryComponents: [GvSearchComponent, GvHeaderApiComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
   imports: [

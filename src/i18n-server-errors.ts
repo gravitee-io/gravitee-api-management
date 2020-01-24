@@ -18,6 +18,7 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 i18n([
   'errors.email.required',
   'errors.forbidden',
+  'errors.rating.exists',
   'errors.support.disabled',
   'errors.unexpected',
   'errors.user.exists',
