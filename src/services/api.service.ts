@@ -322,6 +322,15 @@ class ApiService {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/status?status=PAUSED');
   }
 
+  updateSubscription(apiId, subscription) {
+    return this.$http.put(this.apisURL + apiId + '/subscriptions/' + subscription.id,
+      {
+        id: subscription.id,
+        starting_at: subscription.starting_at,
+        ending_at: subscription.ending_at
+      });
+  }
+
   resumeSubscription(apiId, subscriptionId) {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/status?status=RESUMED');
   }
