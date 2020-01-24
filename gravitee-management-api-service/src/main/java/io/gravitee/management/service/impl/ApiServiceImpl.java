@@ -1248,23 +1248,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             //Pages
             final JsonNode pagesDefinition = jsonNode.path("pages");
             if (pagesDefinition != null && pagesDefinition.isArray()) {
-                for (final JsonNode pageNode : pagesDefinition) {
-                    PageQuery query = new PageQuery.Builder().
-                            api(createdOrUpdatedApiEntity.getId()).
-                            name(pageNode.get("name").asText()).
-                            type(PageType.valueOf(pageNode.get("type").asText())).
-                            build();
-                    List<PageEntity> pageEntities = pageService.search(query);
-                    if (pageEntities == null || pageEntities.isEmpty()) {
-                        pageService.createPage(createdOrUpdatedApiEntity.getId(), objectMapper.readValue(pageNode.toString(), NewPageEntity.class));
-                    } else if (pageEntities.size() == 1) {
-                        UpdatePageEntity updatePageEntity = objectMapper.readValue(pageNode.toString(), UpdatePageEntity.class);
-                        pageService.update(pageEntities.get(0).getId(), updatePageEntity);
-                    } else {
-                        LOGGER.error("Not able to identify the page to update: {}. Too much page with the same name", pageNode.get("name").asText());
-                        throw new TechnicalManagementException("Not able to identify the page to update: " + pageNode.get("name").asText() + ". Too much page with the same name");
-                    }
-                }
+                List<PageEntity> pagesList = objectMapper.readValue(pagesDefinition.toString(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class));
+                PageEntityTreeNode documentationTree = new PageEntityTreeNode(new PageEntity());
+                documentationTree.appendListToTree(pagesList);
+                createOrUpdateChildrenPages(createdOrUpdatedApiEntity.getId(), null, documentationTree.children);
             }
 
             //Plans
@@ -1296,6 +1284,110 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
         }
         return null;
+    }
+
+    class PageEntityTreeNode {
+
+        PageEntity data;
+        PageEntityTreeNode parent;
+        List<PageEntityTreeNode> children;
+
+        public PageEntityTreeNode(PageEntity data) {
+            this.data = data;
+            this.children = new LinkedList<>();
+        }
+
+        public PageEntityTreeNode addChild(PageEntity child) {
+            PageEntityTreeNode childNode = new PageEntityTreeNode(child);
+            childNode.parent = this;
+            this.children.add(childNode);
+            return childNode;
+        }
+
+        private PageEntityTreeNode findById(String id) {
+            if (id.equals(data.getId())) {
+                return this;
+            }
+            for (PageEntityTreeNode child : children) {
+                PageEntityTreeNode result = child.findById(id);
+                if (result != null) {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        public void appendListToTree(List<PageEntity> pagesList) {
+            List<PageEntity> orphans = new ArrayList<>();
+            for (PageEntity newPage : pagesList) {
+                if (newPage.getParentId() == null || newPage.getParentId().isEmpty()) {
+                    this.addChild(newPage);
+                } else {
+                    PageEntityTreeNode parentNode = this.findById(newPage.getParentId());
+                    if (parentNode != null) {
+                        parentNode.addChild(newPage);
+                    } else {
+                        orphans.add(newPage);
+                    }
+                }
+            }
+            if (!orphans.isEmpty() && orphans.size() < pagesList.size()) {
+                appendListToTree(orphans);
+            }
+        }
+    }
+
+    private void createOrUpdateChildrenPages(String apiId, String parentId, List<PageEntityTreeNode> children) {
+        for (final PageEntityTreeNode child : children) {
+            PageEntity pageEntityToImport = child.data;
+            pageEntityToImport.setParentId(parentId);
+            
+            PageQuery query = new PageQuery.Builder().
+                    api(apiId).
+                    name(pageEntityToImport.getName()).
+                    type(PageType.valueOf(pageEntityToImport.getType())).
+                    build();
+            List<PageEntity> pageEntities = pageService.search(query);
+
+            PageEntity createdOrUpdatedPage = null;
+            if (pageEntities == null || pageEntities.isEmpty()) {
+                NewPageEntity newPage = new NewPageEntity();
+                newPage.setConfiguration(pageEntityToImport.getConfiguration());
+                newPage.setContent(pageEntityToImport.getContent());
+                newPage.setExcludedGroups(pageEntityToImport.getExcludedGroups());
+                newPage.setHomepage(pageEntityToImport.isHomepage());
+                newPage.setLastContributor(pageEntityToImport.getLastContributor());
+                newPage.setName(pageEntityToImport.getName());
+                newPage.setOrder(pageEntityToImport.getOrder());
+                newPage.setParentId(pageEntityToImport.getParentId());
+                newPage.setPublished(pageEntityToImport.isPublished());
+                newPage.setSource(pageEntityToImport.getSource());
+                newPage.setType(PageType.valueOf(pageEntityToImport.getType()));
+
+                createdOrUpdatedPage = pageService.createPage(apiId, newPage);
+            } else if(pageEntities.size() == 1) {
+                UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+                updatePageEntity.setConfiguration(pageEntityToImport.getConfiguration());
+                updatePageEntity.setContent(pageEntityToImport.getContent());
+                updatePageEntity.setExcludedGroups(pageEntityToImport.getExcludedGroups());
+                updatePageEntity.setHomepage(pageEntityToImport.isHomepage());
+                updatePageEntity.setLastContributor(pageEntityToImport.getLastContributor());
+                updatePageEntity.setName(pageEntityToImport.getName());
+                updatePageEntity.setOrder(pageEntityToImport.getOrder());
+                updatePageEntity.setParentId(pageEntityToImport.getParentId());
+                updatePageEntity.setPublished(pageEntityToImport.isPublished());
+                updatePageEntity.setSource(pageEntityToImport.getSource());
+
+                createdOrUpdatedPage = pageService.update(pageEntities.get(0).getId(), updatePageEntity);
+            } else {
+                LOGGER.error("Not able to identify the page to update: {}. Too much page with the same name", pageEntityToImport.getName());
+                throw new TechnicalManagementException("Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much page with the same name");
+            }
+            
+            if(child.children != null && !child.children.isEmpty()) {
+                this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children);
+            }
+        }
     }
 
     @Override
