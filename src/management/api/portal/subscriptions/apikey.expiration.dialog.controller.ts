@@ -15,42 +15,21 @@
  */
 import * as moment from 'moment';
 
-function DialogApiKeyExpirationController($scope, $mdDialog) {
+function DialogApiKeyExpirationController($scope, $mdDialog, maxEndDate) {
   'ngInject';
 
-  $scope.minutes = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15',
-    '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34',
-    '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53',
-    '54', '55', '56', '57', '58', '59'];
+  var now = new Date();
+  $scope.minDate = now;
+  $scope.maxDate = maxEndDate ? new Date(maxEndDate) : new Date(2099, 11,31);
 
-  $scope.hours = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15',
-    '16', '17', '18', '19', '20', '21', '22', '23'];
-
-  $scope.now = new Date();
-  $scope.minDate = new Date(
-    $scope.now.getFullYear(),
-    $scope.now.getMonth(),
-    $scope.now.getDate());
-
-  $scope.expiration = {
-    date: $scope.now,
-    time: {
-      hours: moment($scope.now).hours().toString(),
-      minutes: moment($scope.now).minutes().toString()
-    }
-  };
+  $scope.expiration = moment(now);
 
   this.hide = function () {
     $mdDialog.cancel();
   };
 
   this.save = function () {
-    var m = moment($scope.expiration.date);
-    m.hours($scope.expiration.time.hours);
-    m.minutes($scope.expiration.time.minutes);
-    m.seconds(0);
-
-    $mdDialog.hide(m.valueOf());
+    $mdDialog.hide($scope.expiration ? $scope.expiration.toDate() : null);
   };
 }
 
