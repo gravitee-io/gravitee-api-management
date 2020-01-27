@@ -24,6 +24,7 @@
       <gv-input
         required
         autofocus
+        autocomplete="on"
         name="username"
         label="{{ 'login.username' | translate}}"
         formControlName="username"
@@ -34,6 +35,7 @@
       <gv-input
         type="password"
         required
+        autocomplete="on"
         name="password"
         label="{{ 'login.password' | translate }}"
         formControlName="password"
@@ -45,7 +47,7 @@
                  class="login__form__input">{{ 'login.button' | translate }}</gv-button>
     </form>
 
-    <p class="tc" *ngIf="providers && providers.length && loginForm">{{ 'login.withProviders' | translate }}</p>
+    <p class="text-center" *ngIf="providers && providers.length && loginForm">{{ 'login.withProviders' | translate }}</p>
 
     <gv-button *ngFor="let provider of providers"
                outlined
@@ -55,7 +57,7 @@
       {{ provider.name }}
     </gv-button>
 
-    <p *ngIf="loginForm && registrationEnabled" class="tc">
+    <p *ngIf="loginForm && registrationEnabled" class="text-center">
       {{ 'login.signup.text' | translate }} <a routerLink="/user/registration">{{ 'login.signup.link' | translate }}</a>
     </p>
   </div>
