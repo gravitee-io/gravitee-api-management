@@ -61,6 +61,10 @@ export class FilteredCatalogComponent implements OnInit {
   category: View;
   title: any;
   total: any;
+  fragments: any = {
+    pagination: 'pagination',
+    filter: 'filter'
+  };
 
   constructor(private apiService: ApiService,
               private portalService: PortalService,
@@ -176,7 +180,7 @@ export class FilteredCatalogComponent implements OnInit {
         }
         // @ts-ignore
         this.promotedApi = promoted || {};
-        return this.promotedApi ;
+        return this.promotedApi;
       })
       .catch((err) => Promise.reject(err));
   }
@@ -255,7 +259,12 @@ export class FilteredCatalogComponent implements OnInit {
     if (this.paginationData.current_page !== page) {
       const queryParams = {};
       queryParams[SearchQueryParam.PAGE] = page;
-      this.router.navigate([], { relativeTo: this.activatedRoute, queryParams, queryParamsHandling: 'merge' });
+      this.router.navigate([], {
+        relativeTo: this.activatedRoute,
+        queryParams,
+        queryParamsHandling: 'merge',
+        fragment: this.fragments.pagination
+      });
     }
   }
 
@@ -264,7 +273,8 @@ export class FilteredCatalogComponent implements OnInit {
     this.router.navigate([], {
       relativeTo: this.activatedRoute,
       queryParams: { display: id },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
+      fragment: this.fragments.filter
     }).then(() => {
       this.currentDisplay = id;
       localStorage.setItem('user-display-mode', id);
@@ -274,7 +284,7 @@ export class FilteredCatalogComponent implements OnInit {
   onSelectView({ target }) {
     const queryParams = { view: target.value };
     queryParams[SearchQueryParam.PAGE] = 1;
-    this.router.navigate([], { relativeTo: this.activatedRoute, queryParams, queryParamsHandling: 'merge' });
+    this.router.navigate([], { relativeTo: this.activatedRoute, queryParams, queryParamsHandling: 'merge', fragment: this.fragments.filter });
   }
 
   inDefaultDisplay() {

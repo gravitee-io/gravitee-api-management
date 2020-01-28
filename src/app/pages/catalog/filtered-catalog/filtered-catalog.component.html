@@ -34,7 +34,7 @@
   </section>
 
   <section class="catalog__section__content">
-    <div class="catalog__section__content__title">
+    <div class="catalog__section__content__title" [id]="fragments.filter">
       <h2 class="title"></h2>
       <gv-select *ngIf="canFilter()"
                  [value]="this.currentView"
@@ -54,7 +54,7 @@
     <div *ngIf="!inDefaultDisplay()" class="catalog__list catalog__list__all">
       <gv-row *ngFor="let api of allApis" [item]="api" (click)="goToApi(api)"></gv-row>
     </div>
-    <div class="catalog__section__content__pagination">
+    <div class="catalog__section__content__pagination" [id]="fragments.pagination">
       <gv-pagination [data]="paginationData" hideEmpty="true"></gv-pagination>
     </div>
   </section>

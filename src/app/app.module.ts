@@ -68,6 +68,9 @@ import { AuthService } from './services/auth.service';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { TranslationService } from './services/translation.service';
 import '@gravitee/ui-components/wc/gv-spinner';
+import { Router, Scroll } from '@angular/router';
+import { ViewportScroller } from '@angular/common';
+import { filter } from 'rxjs/operators';
 
 @NgModule({
   declarations: [
@@ -152,6 +155,20 @@ import '@gravitee/ui-components/wc/gv-spinner';
   ]
 })
 export class AppModule {
+
+  constructor(router: Router, viewportScroller: ViewportScroller) {
+    router.events.pipe(
+      filter((e): e is Scroll => e instanceof Scroll)
+    ).subscribe(e => {
+      if (e.position) {
+        // backward navigation
+        viewportScroller.scrollToPosition(e.position);
+      } else if (!e.anchor) {
+        // forward navigation
+        viewportScroller.scrollToPosition([0, 0]);
+      }
+    });
+  }
 }
 
 export function initApp(configurationService: ConfigurationService, authService: AuthService, currentUserService: CurrentUserService,
