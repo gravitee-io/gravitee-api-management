@@ -17,7 +17,7 @@ import '@gravitee/ui-components/wc/gv-header';
 import '@gravitee/ui-components/wc/gv-menu';
 import '@gravitee/ui-components/wc/gv-nav';
 import '@gravitee/ui-components/wc/gv-user-menu';
-import { ActivatedRoute, NavigationEnd, Router, PRIMARY_OUTLET } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Link, User, PortalService } from '@gravitee/ng-portal-webclient';
 import { Component, ComponentFactoryResolver, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CurrentUserService } from '../../services/current-user.service';
@@ -54,7 +54,7 @@ export class LayoutComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private componentFactoryResolver: ComponentFactoryResolver,
     private configurationService: ConfigurationService,
-    private portalService: PortalService
+    private portalService: PortalService,
   ) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -76,7 +76,7 @@ export class LayoutComponent implements OnInit {
           if (notification.code !== translatedMessage || !notification.message) {
             notification.message = translatedMessage;
           }
-          this.notification = notification;
+          setTimeout(() => this.notification = notification);
         });
       } else {
         delete this.notification;

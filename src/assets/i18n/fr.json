@@ -351,8 +351,22 @@
     "title": "Mes souscriptions"
   },
   "user": {
-    "displayName": "Nom",
-    "email": "Email",
-    "title": "Mon compte"
+    "account": {
+      "errors": {
+        "avatar_format_forbidden": "Le format SVG n'est pas autorisé",
+        "avatar_too_big": "La taille de votre avatar doit être inférieur à 500Ko"
+      },
+      "success": "Votre compte a été mis à jour avec succès",
+      "title": "Informations personnelles"
+    },
+    "change_picture": "Changer la photo",
+    "display_name": "Nom :",
+    "email": "Email :",
+    "notifications": {
+      "header": "À quels événements souhaitez-vous vous abonner ?",
+      "title": "Notifications"
+    },
+    "title": "Mon compte",
+    "update": "Mettre à jour"
   }
 }

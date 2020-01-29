@@ -16,22 +16,30 @@
 
 -->
 <div class="page__content">
-  <div *ngIf="currentUser" class="account">
-    <h2>{{'user.title' | translate}}</h2>
-    <div class="content">
-      <div class="user-info">
+  <h1 class="title">{{'user.title' | translate}}</h1>
+  <div class="account__container">
+    <section class="account">
+      <h2>{{'user.account.title' | translate}}</h2>
+      <div class="account__user-info">
+        <div class="account__user-info__avatar">
+          <gv-user-avatar [user]="currentUser" [avatar]="avatar" [size]="50"></gv-user-avatar>
+          <gv-button primary outlined (click)="avatarInput.click()">{{ "user.change_picture" | translate}}</gv-button>
+          <input style="display: none" #avatarInput type="file" accept="image/*" (change)="onFileSelected($event)">
+          <gv-button primary (click)="update()" [disabled]="!avatar">{{ "user.update" | translate}}</gv-button>
+        </div>
         <p>
-          <span class="b">{{'user.displayName' | translate}} : </span>
+          <b>{{'user.display_name' | translate}} </b>
           <span>{{ currentUser.first_name ? (currentUser.first_name + ' ' + currentUser.last_name) : currentUser.display_name }}</span>
         </p>
         <p>
-          <span class="b">{{'user.email' | translate}} : </span>
+          <b>{{'user.email' | translate}} </b>
           <span>{{ currentUser.email }}</span>
         </p>
       </div>
-      <div>
-        <gv-user-avatar [user]="currentUser" [size]="100"></gv-user-avatar>
-      </div>
-    </div>
+    </section>
+<!--    <section class="notifications">-->
+<!--      <h2>{{'user.notifications.title' | translate}}</h2>-->
+<!--      <div class="notifications__header">{{'user.notifications.header' | translate}}</div>-->
+<!--    </section>-->
   </div>
 </div>

@@ -351,8 +351,22 @@
     "title": "My subscriptions"
   },
   "user": {
-    "displayName": "Name",
-    "email": "Email",
-    "title": "My account"
+    "account": {
+      "errors": {
+        "avatar_format_forbidden": "SVG format is not allowed",
+        "avatar_too_big": "The size of your avatar must be less than 500Ko"
+      },
+      "success": "Your account has been successfully updated",
+      "title": "Personal informations"
+    },
+    "change_picture": "Change photo",
+    "display_name": "Name:",
+    "email": "Email:",
+    "notifications": {
+      "header": "What events do you want to subscribe to?",
+      "title": "Notifications"
+    },
+    "title": "My account",
+    "update": "Update"
   }
 }

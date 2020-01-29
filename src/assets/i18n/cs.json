@@ -351,8 +351,22 @@
     "title": "Mé odběry"
   },
   "user": {
-    "displayName": "Jméno",
-    "email": "Email",
-    "title": "Můj účet"
+    "account": {
+      "errors": {
+        "avatar_format_forbidden": "Formát SVG není povolen",
+        "avatar_too_big": "Velikost vašeho avataru musí být menší než 500 kB"
+      },
+      "success": "Váš účet byl úspěšně aktualizován",
+      "title": "Osobní údaje"
+    },
+    "change_picture": "Změnit fotografii",
+    "display_name": "Jméno:",
+    "email": "Email:",
+    "notifications": {
+      "header": "Na které události se chcete přihlásit?",
+      "title": "Oznámení"
+    },
+    "title": "Můj účet",
+    "update": "Aktualizace"
   }
 }

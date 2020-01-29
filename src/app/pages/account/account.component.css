@@ -13,23 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.account {
+.account__container {
+  display: flex;
+}
+
+.account, .notifications {
   background-color: white;
   padding: 1.5rem 4rem;
-  display: flex;
-  flex-direction: column;
   min-height: 50vh;
+}
+
+.account {
+  width: 100%;
+}
+
+.notifications {
+  margin-left: 20px;
+  width: 30%;
 }
 
 .title {
   margin-bottom: 1.5rem;
 }
 
-.content {
+.account__user-info {
+  flex: 1;
+}
+
+.account__user-info__avatar {
+  align-items: center;
   display: flex;
   flex-direction: row;
 }
 
-.user-info {
-  flex: 1;
+.account__user-info__avatar gv-button {
+  --gv-button--fz: 12px;
+  --gv-button--p: 5px 10px;
+  padding-left: 10px;
+}
+
+.notifications__header {
+  background-color: #FAFAFA;
+  padding: 1rem;
+  margin: 1rem 0;
 }
