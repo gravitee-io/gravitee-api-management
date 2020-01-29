@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.UserInput;
 import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
@@ -63,7 +64,7 @@ public class UserResource extends AbstractResource {
         try {
             UserEntity userEntity = userService.findById(authenticatedUser);
             User currentUser = userMapper.convert(userEntity);
-            currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), currentUser.getId()));
+            currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), userEntity.getPicture()));
             return Response
                     .ok(currentUser)
                     .build();
@@ -76,22 +77,20 @@ public class UserResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateCurrentUser(@Valid @NotNull(message = "Input must not be null.") User user) {
+    public Response updateCurrentUser(@Valid @NotNull(message = "Input must not be null.") UserInput user) {
         if(!getAuthenticatedUser().equals(user.getId())) {
             throw new UnauthorizedAccessException();
         }
+        userService.findById(getAuthenticatedUser());
 
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
-        updateUserEntity.setEmail(user.getEmail());
-        updateUserEntity.setFirstname(user.getFirstName());
-        updateUserEntity.setLastname(user.getLastName());
         updateUserEntity.setPicture(checkAndScaleImage(user.getAvatar()));
 
         UserEntity updatedUser = userService.update(user.getId(), updateUserEntity);
 
-        return Response
-                .ok(userMapper.convert(updatedUser))
-                .build();
+        final User currentUser = userMapper.convert(updatedUser);
+        currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), updatedUser.getPicture()));
+        return Response.ok(currentUser).build();
     }
 
     @GET

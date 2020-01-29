@@ -1554,7 +1554,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserInput'
       summary: Modify current user information.
       description: |
         Modify current user information.
@@ -1955,7 +1955,24 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
-
+  /configuration/hooks:
+    get:
+      tags:
+        - Portal
+      summary: Get the hook list.
+      operationId: getPortalHooks
+      description: |
+        Get all the hooks that can be used in the portal.
+      security: []
+      responses:
+        200:
+          description: List of hooks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationHooksResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   requestBodies:
@@ -2538,6 +2555,13 @@ components:
             $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
+    ConfigurationHooksResponse:
+      properties:
+        data:
+          description: List of hooks
+          type: array
+          items:
+            $ref: '#/components/schemas/PortalHook'
     LinksResponse:
       properties:
         slots:
@@ -3159,10 +3183,6 @@ components:
           type: string
         email:
           type: string
-        avatar:
-          description: Avatar of the user. Used only for update.
-          type: string
-          writeOnly: true
         _links:
           $ref: '#/components/schemas/UserLinks'
     Token:
@@ -3250,6 +3270,20 @@ components:
             type: string
         icon:
           description: Icon name to display for this provider.
+          type: string
+    PortalHook:
+      properties:
+        id:
+          description: Unique identifier of an identity provider.
+          type: string
+        label:
+          description: Label of the hook.
+          type: string
+        description:
+          description: Description of the hook.
+          type: string
+        category:
+          description: Category of the hook.
           type: string
     ConfigurationResponse:
       properties:
@@ -3577,7 +3611,6 @@ components:
         copy_to_sender:
           description: True if the author of the ticket wants to receive a copy of the ticket.
           type: boolean
-
     RegisterUserInput:
       required:
         - email
@@ -3613,6 +3646,18 @@ components:
         lastname:
           description: Last name of the registered user.
           type: string
+    UserInput:
+      required:
+        - id
+        - avatar
+      properties:
+        id:
+          description: Unique identifier of a user.
+          type: string
+        avatar:
+          description: Avatar of the user.
+          type: string
+          writeOnly: true
     #######################
     # Composition Objects #
     #######################

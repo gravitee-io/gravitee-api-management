@@ -22,7 +22,6 @@ import io.gravitee.rest.api.portal.rest.model.FinalizeRegistrationInput;
 import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserLinks;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +35,6 @@ public class UserMapper {
     public User convert(UserEntity user) {
         final User userItem = new User();
 
-        userItem.setAvatar(user.getPicture());
         userItem.setEmail(user.getEmail());
         userItem.setFirstName(user.getFirstname());
         userItem.setLastName(user.getLastname());
@@ -73,9 +71,9 @@ public class UserMapper {
         return registerUserEntity;
     }
 
-    public UserLinks computeUserLinks(String basePath, String uniqueId) {
+    public UserLinks computeUserLinks(String basePath, String picture) {
         UserLinks userLinks = new UserLinks();
-        userLinks.setAvatar(basePath + "/avatar?" + uniqueId);
+        userLinks.setAvatar(basePath + "/avatar?" + picture.hashCode());
         userLinks.setNotifications(basePath + "/notifications");
         userLinks.setSelf(basePath);
 

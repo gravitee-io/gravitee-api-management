@@ -21,8 +21,8 @@ import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.UserInput;
 import io.gravitee.rest.api.portal.rest.model.UserLinks;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -30,7 +30,6 @@ import org.mockito.Mockito;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -38,10 +37,10 @@ import java.nio.file.Paths;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -70,9 +69,11 @@ public class UserResourceTest extends AbstractResourceTest {
     
     @Test
     public void shouldGetCurrentUser() {
+        when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
+
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
         Mockito.verify(userService).findById(userId.capture());
         
@@ -86,46 +87,42 @@ public class UserResourceTest extends AbstractResourceTest {
     
     @Test
     public void shouldHaveUnauthorizedAccessWhileUpdatingWithWrongId() {
-        User newUser = new User();
-        newUser.setId("anotherId");
+        UserInput user = new UserInput();
+        user.setId("anotherId");
+        user.setAvatar("");
         
-        final Response response = target().request().put(Entity.json(newUser));
+        final Response response = target().request().put(Entity.json(user));
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
     }
     
     @Test
     public void shouldUpdateCurrentUser() {
-        User newUser = new User();
-        newUser.setEmail("new email");
-        newUser.setFirstName("new firstname");
-        newUser.setLastName("new lastname");
+        UserInput userInput = new UserInput();
         final String newAvatar = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-        
+
         final String expectedAvatar = "data:image/gif;base64,R0lGODlhyADIAPAAAAAAAP///ywAAAAAyADIAEAC/4SPqcvtD6OctNqL"
                 + "s968+w+G4kiW5omm6sq27gvH8kzX9o3n+s73/g8MCofEovGITCqXzKbzCY1Kp9Sq9YrNarfcrvcLDovH5LL5jE6r1+y2+w2Py+"
                 + "f0uv2Oz+v3/L7/DxgoOEhYaHiImKi4yNjo+AgZKTlJWWl5iZmpucnZ6fkJGio6SlpqeoqaqrrK2ur6ChsrO0tba3uLm6u7y9vr"
                 + "+wscLDxMXGx8jJysvMzc7PwMHS09TV1tfY2drb3N3e39DR4uPk5ebn6Onq6+zt7u/g4fLz9PX29/j5+vv8/f7/8PMKDAgQQLGj"
                 + "yIMKHChQwbOnwIMaLEiRQrWryIMaPGjQYcO3osUwAAOw==";
+
+        userInput.setAvatar(newAvatar);
+        userInput.setId(USER_NAME);
+        when(userService.update(eq(USER_NAME), any())).thenReturn(new UserEntity());
         
-        newUser.setAvatar(newAvatar);
-        newUser.setId(USER_NAME);
-        
-        final Response response = target().request().put(Entity.json(newUser));
+        final Response response = target().request().put(Entity.json(userInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        ArgumentCaptor<UpdateUserEntity> updateUser = ArgumentCaptor.forClass(UpdateUserEntity.class);
-        Mockito.verify(userService).update(eq(USER_NAME), updateUser.capture());
+        ArgumentCaptor<UpdateUserEntity> user = ArgumentCaptor.forClass(UpdateUserEntity.class);
+        Mockito.verify(userService).update(eq(USER_NAME), user.capture());
         
-        final UpdateUserEntity updateUserEntity = updateUser.getValue();
+        final UpdateUserEntity updateUserEntity = user.getValue();
         assertNotNull(updateUserEntity);
-        assertEquals("new email", updateUserEntity.getEmail());
-        assertEquals("new firstname", updateUserEntity.getFirstname());
-        assertEquals("new lastname", updateUserEntity.getLastname());
         assertEquals(expectedAvatar, updateUserEntity.getPicture());
         assertNull(updateUserEntity.getStatus());
         
-        User user = response.readEntity(User.class);
-        assertNotNull(user);
+        User updateUser = response.readEntity(User.class);
+        assertNotNull(updateUser);
     }
     
     @Test

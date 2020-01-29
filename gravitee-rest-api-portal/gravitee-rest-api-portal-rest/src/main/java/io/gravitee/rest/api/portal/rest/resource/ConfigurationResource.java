@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,16 +50,12 @@ public class ConfigurationResource extends AbstractResource {
 
     @Autowired
     private ConfigService configService;
-
     @Autowired
     private PageService pageService;
-
     @Autowired
     private SocialIdentityProviderService socialIdentityProviderService;
-
     @Autowired
     private ConfigurationMapper configMapper;
-
     @Autowired
     private IdentityProviderMapper identityProviderMapper;
 
@@ -88,7 +83,7 @@ public class ConfigurationResource extends AbstractResource {
         return Response.ok(identityProviderMapper.convert(socialIdentityProviderService.findById(identityProviderId))).build();
     }
 
-	@GET
+    @GET
     @Path("links")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalLinks(@HeaderParam("Accept-Language") String acceptLang) {
@@ -101,30 +96,30 @@ public class ConfigurationResource extends AbstractResource {
 
                     // for pages under sysFolder                    
                     List<Link> links = getLinksFromFolder(sysPage, acceptedLocale);
-                    if(!links.isEmpty()) {
+                    if (!links.isEmpty()) {
                         CategorizedLinks catLinks = new CategorizedLinks();
                         catLinks.setCategory(sysPage.getName());
                         catLinks.setLinks(links);
                         catLinks.setRoot(true);
                         catLinksList.add(catLinks);
                     }
-                    
+
                     // for pages into folders
                     pageService.search(new PageQuery.Builder().parent(sysPage.getId()).build(), acceptedLocale).stream()
-                        .filter(PageEntity::isPublished)
-                        .filter(p -> p.getType().equals("FOLDER"))
-                        .forEach(folder -> {
-                            List<Link> folderLinks = getLinksFromFolder(folder, acceptedLocale);
-                            if(folderLinks != null && !folderLinks.isEmpty()) {
-                                CategorizedLinks catLinks = new CategorizedLinks();
-                                catLinks.setCategory(folder.getName());
-                                catLinks.setLinks(folderLinks);
-                                catLinks.setRoot(false);
-                                catLinksList.add(catLinks);
-                            }
+                            .filter(PageEntity::isPublished)
+                            .filter(p -> p.getType().equals("FOLDER"))
+                            .forEach(folder -> {
+                                List<Link> folderLinks = getLinksFromFolder(folder, acceptedLocale);
+                                if (folderLinks != null && !folderLinks.isEmpty()) {
+                                    CategorizedLinks catLinks = new CategorizedLinks();
+                                    catLinks.setCategory(folder.getName());
+                                    catLinks.setLinks(folderLinks);
+                                    catLinks.setRoot(false);
+                                    catLinksList.add(catLinks);
+                                }
 
-                        });
-                    if(!catLinksList.isEmpty()) {
+                            });
+                    if (!catLinksList.isEmpty()) {
                         portalLinks.put(sysPage.getName().toLowerCase(), catLinksList);
                     }
                 });
@@ -139,15 +134,14 @@ public class ConfigurationResource extends AbstractResource {
                 .filter(PageEntity::isPublished)
                 .filter(p -> !p.getType().equals("FOLDER"))
                 .map(p -> {
-                    if("LINK".equals(p.getType())) {
+                    if ("LINK".equals(p.getType())) {
                         String relatedPageId = p.getContent();
                         Link link = new Link()
                                 .name(p.getName())
                                 .resourceRef(relatedPageId)
-                                .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)))
-                                ;
+                                .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)));
                         String isFolderConfig = p.getConfiguration().get(PageConfigurationKeys.LINK_IS_FOLDER);
-                        if(isFolderConfig != null && !isFolderConfig.isEmpty()) {
+                        if (isFolderConfig != null && !isFolderConfig.isEmpty()) {
                             link.setFolder(Boolean.valueOf(isFolderConfig));
                         }
 
@@ -162,5 +156,4 @@ public class ConfigurationResource extends AbstractResource {
                 })
                 .collect(Collectors.toList());
     }
-    
 }

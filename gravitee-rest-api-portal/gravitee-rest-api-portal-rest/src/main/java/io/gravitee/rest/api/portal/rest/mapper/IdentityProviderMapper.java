@@ -18,20 +18,15 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.portal.rest.model.IdentityProvider;
 import io.gravitee.rest.api.portal.rest.model.IdentityProviderType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 @Component
 public class IdentityProviderMapper {
     
-    protected static final Logger LOGGER = LoggerFactory.getLogger(IdentityProviderMapper.class);
-
     public IdentityProvider convert(SocialIdentityProviderEntity socialIdentityProviderEntity) {
         IdentityProvider idpItem = new IdentityProvider();
         idpItem.setAuthorizationEndpoint(socialIdentityProviderEntity.getAuthorizationEndpoint());
@@ -52,5 +47,4 @@ public class IdentityProviderMapper {
         
         return idpItem;
     }
-
 }

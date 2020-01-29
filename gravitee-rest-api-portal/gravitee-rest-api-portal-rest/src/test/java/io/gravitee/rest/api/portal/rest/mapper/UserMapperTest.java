@@ -82,7 +82,6 @@ public class UserMapperTest {
         User responseUser = userMapper.convert(userEntity);
         assertNotNull(responseUser);
         assertEquals(USER_ID, responseUser.getId());
-        assertEquals(USER_PICTURE, responseUser.getAvatar());
         assertEquals(USER_EMAIL, responseUser.getEmail());
         assertEquals(USER_FIRSTNAME, responseUser.getFirstName());
         assertEquals(USER_LASTNAME, responseUser.getLastName());
@@ -134,7 +133,7 @@ public class UserMapperTest {
         assertNotNull(links);
 
         assertEquals(basePath, links.getSelf());
-        assertEquals(basePath + "/avatar?123", links.getAvatar());
+        assertEquals(basePath + "/avatar?48690", links.getAvatar());
         assertEquals(basePath + "/notifications", links.getNotifications());
         assertEquals(basePath, links.getSelf());
     }
