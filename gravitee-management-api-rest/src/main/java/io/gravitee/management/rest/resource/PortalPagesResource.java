@@ -295,7 +295,7 @@ public class PortalPagesResource extends AbstractResource {
     }
 
     private boolean isDisplayable(boolean isPagePublished, List<String> excludedGroups) {
-        return (isAuthenticated() && isAdmin()) ||
+        return (isAuthenticated() && hasPermission(RolePermission.PORTAL_DOCUMENTATION, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE)) ||
                 (isPagePublished && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull()));
     }
 }
