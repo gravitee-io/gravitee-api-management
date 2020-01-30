@@ -151,9 +151,6 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         if (!filteredFieldsList.contains("pages")) {
             List<PageEntity> pages = applicationContext.getBean(PageService.class).search(new PageQuery.Builder().api(apiEntity.getId()).build());
-            if (pages != null) {
-                pages.forEach(f -> f.setId(null));
-            }
             jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
         }
 

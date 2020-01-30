@@ -13,33 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.service.exceptions;
 
-import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PageSourceEntity {
-    private String type;
-    @JsonRawValue
-    public String configuration;
+public class MaintenanceModeException extends AbstractManagementException {
 
-    public String getType() {
-        return type;
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.SERVICE_UNAVAILABLE_503;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(JsonNode jsonNode) {
-        this.configuration = jsonNode.toString();
+    @Override
+    public String getMessage() {
+        return "The server is currently in maintenance mode. Please retry later or contact your administrator.";
     }
 }

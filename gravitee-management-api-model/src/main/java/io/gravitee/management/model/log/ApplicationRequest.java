@@ -30,6 +30,7 @@ public class ApplicationRequest {
     private String id;
     private long timestamp;
     private String transactionId;
+    private String uri;
     private String path;
     private HttpMethod method;
     private int status;
@@ -68,6 +69,14 @@ public class ApplicationRequest {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 
     public String getPath() {

@@ -43,6 +43,7 @@ public class PortalConfigEntity {
     private Analytics analytics;
     private Application application;
     private Alert alert;
+    private Maintenance maintenance;
 
     public PortalConfigEntity() {
         company = new Company();
@@ -59,6 +60,7 @@ public class PortalConfigEntity {
         analytics = new Analytics();
         application = new Application();
         alert = new Alert();
+        maintenance = new Maintenance();
     }
 
     public Company getCompany() {
@@ -161,6 +163,14 @@ public class PortalConfigEntity {
 
     public void setAlert(Alert alert) {
         this.alert = alert;
+    }
+
+    public Maintenance getMaintenance() {
+        return maintenance;
+    }
+
+    public void setMaintenance(Maintenance maintenance) {
+        this.maintenance = maintenance;
     }
 
     public class Company {
@@ -1047,6 +1057,19 @@ public class PortalConfigEntity {
             public void setEnabled(Boolean enabled) {
                 this.enabled = enabled;
             }
+        }
+    }
+
+    public class Maintenance {
+        @ParameterKey(Key.MAINTENANCE_MODE_ENABLED)
+        private Boolean enabled;
+
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
         }
     }
 }

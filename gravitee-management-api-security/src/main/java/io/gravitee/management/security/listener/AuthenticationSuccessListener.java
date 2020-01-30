@@ -135,9 +135,9 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
 
     private void updateRegisteredUser(UserEntity registeredUser, UserDetails details) {
 
-        if ((registeredUser.getFirstname() != null && !registeredUser.getFirstname().equals(details.getFirstname()))
-                || (registeredUser.getLastname() != null && !registeredUser.getLastname().equals(details.getLastname()))
-                || (registeredUser.getEmail() != null && !registeredUser.getEmail().equals(details.getEmail()))) {
+        if ((details.getFirstname() != null && !details.getFirstname().equals(registeredUser.getFirstname()))
+                || (details.getLastname() != null && !details.getLastname().equals(registeredUser.getLastname()))
+                || (details.getEmail() != null && !details.getEmail().equals(registeredUser.getEmail()))) {
             UpdateUserEntity updateUserEntity = new UpdateUserEntity(registeredUser);
             updateUserEntity.setFirstname(details.getFirstname());
             updateUserEntity.setLastname(details.getLastname());

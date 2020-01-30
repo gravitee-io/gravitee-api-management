@@ -355,10 +355,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 Date endingAt = subscription.getEndingAt();
                 if (plan.getSecurity() == PlanSecurityType.API_KEY && endingAt != null) {
                     Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
-                    Date now = new Date();
                     for (ApiKeyEntity apiKey : apiKeys) {
                         Date expireAt = apiKey.getExpireAt();
-                        if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
+                        if (!apiKey.isRevoked() && (expireAt == null || expireAt.compareTo(endingAt) > 0)) {
                             apiKey.setExpireAt(endingAt);
                             apiKeyService.update(apiKey);
                         }
