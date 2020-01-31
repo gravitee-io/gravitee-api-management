@@ -34,7 +34,6 @@ public class UserMapper {
 
     public User convert(UserEntity user) {
         final User userItem = new User();
-
         userItem.setEmail(user.getEmail());
         userItem.setFirstName(user.getFirstname());
         userItem.setLastName(user.getLastname());
@@ -48,9 +47,7 @@ public class UserMapper {
             sb.append(".");
             userItem.setDisplayName(sb.toString());
         }
-        
         userItem.setId(user.getId());
-
         return userItem;
     }
 
@@ -73,10 +70,9 @@ public class UserMapper {
 
     public UserLinks computeUserLinks(String basePath, String picture) {
         UserLinks userLinks = new UserLinks();
-        userLinks.setAvatar(basePath + "/avatar?" + picture.hashCode());
+        userLinks.setAvatar(basePath + "/avatar" + (picture == null? "" : "?" + picture.hashCode()));
         userLinks.setNotifications(basePath + "/notifications");
         userLinks.setSelf(basePath);
-
         return userLinks;
     }
 }
