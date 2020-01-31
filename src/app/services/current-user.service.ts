@@ -38,6 +38,10 @@ export class CurrentUserService {
     return this.currentUserSource;
   }
 
+  set(user: User) {
+    this.currentUserSource.next(user);
+  }
+
   load() {
     const baseUrl = this.configurationService.get('baseUrl');
     return new Promise((resolve) => {
@@ -57,5 +61,4 @@ export class CurrentUserService {
   exist() {
     return this.getUser() != null;
   }
-
 }

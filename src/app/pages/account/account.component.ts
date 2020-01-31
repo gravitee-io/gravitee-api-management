@@ -65,8 +65,7 @@ export class AccountComponent implements OnInit {
   update() {
     if (this.avatar) {
       this.userService.updateCurrentUser({ UserInput: { id: this.currentUser.id, avatar: this.avatar } }).toPromise().then((user) => {
-        delete this.avatar;
-        this.currentUser = user;
+        this.currentUserService.set(user);
         this.notificationService.success(i18n('user.account.success'));
         // @ts-ignore
         document.querySelector('gv-user-avatar').user = user;
