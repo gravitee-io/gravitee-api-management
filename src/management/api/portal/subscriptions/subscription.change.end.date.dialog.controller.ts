@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as moment from 'moment';
-
-function DialogApiKeyExpirationController($scope, $mdDialog, maxEndDate) {
+function DialogSubscriptionChangeEndDateController($scope, $mdDialog, subscription) {
   'ngInject';
-
-  var now = new Date();
-  $scope.minDate = now;
-  $scope.maxDate = maxEndDate ? new Date(maxEndDate) : new Date(2099, 11,31);
-
-  $scope.expiration = moment(now);
+  this.subscription = subscription;
+  this.endDate = subscription.endingAt;
+  this.now = new Date();
 
   this.hide = function () {
     $mdDialog.cancel();
   };
 
   this.save = function () {
-    $mdDialog.hide($scope.expiration ? $scope.expiration.toDate() : null);
+    $mdDialog.hide(this.endDate ? this.endDate.toDate() : null);
   };
 }
 
-export default DialogApiKeyExpirationController;
+export default DialogSubscriptionChangeEndDateController;

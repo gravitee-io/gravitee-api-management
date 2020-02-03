@@ -120,6 +120,12 @@
         Resume
       </md-button>
 
+      <md-button class="md-raised md-primary" ng-click="$ctrl.changeEndDate()"
+                 permission permission-only="'api-subscription-u'">
+        <ng-md-icon icon="play_arrow" style="fill: white"></ng-md-icon>
+        Change End Date
+      </md-button>
+
       <md-button class="md-raised md-warn" ng-click="$ctrl.close()" permission permission-only="'api-subscription-u'">
         <ng-md-icon icon="not_interested" style="fill: white"></ng-md-icon>
         Close
