@@ -26,16 +26,16 @@ const AlertTriggerApiHealthCheckEndpointStatusChangedComponent: ng.IComponentOpt
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {
         this.alert.conditions = [{
-          "type": "STRING_COMPARE",
-          "operator": "NOT_EQUALS",
-          "property": "status.old",
-          "property2": "status.new"
+          'type': 'STRING_COMPARE',
+          'operator': 'NOT_EQUALS',
+          'property': 'status.old',
+          'property2': 'status.new'
         }];
 
         this.alert.dampening = {
-          "mode": "strict_count",
-          "trueEvaluations": 1,
-          "totalEvaluations": 1
+          'mode': 'strict_count',
+          'trueEvaluations': 1,
+          'totalEvaluations': 1
         };
       }
     };

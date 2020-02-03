@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from "lodash";
-import UserService from "../../services/user.service";
+import * as _ from 'lodash';
+import UserService from '../../services/user.service';
 
 class ApplicationsController {
   private applications: any;
@@ -52,10 +52,10 @@ class ApplicationsController {
       if (_.startsWith(order, '-')) {
         applications.reverse();
       }
-      let applicationsLength = this.applicationsToDisplay? this.applicationsToDisplay.length:0;
+      let applicationsLength = this.applicationsToDisplay ? this.applicationsToDisplay.length : 0;
       this.applicationsToDisplay = _.take(applications, 20 + applicationsLength);
     }
-  }
+  };
 }
 
 export default ApplicationsController;

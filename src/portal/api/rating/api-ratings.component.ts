@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiPortalRatingController from "./apiRating.controller";
+import ApiPortalRatingController from './apiRating.controller';
 
 const ApiRatingsComponent: ng.IComponentOptions = {
   bindings: {

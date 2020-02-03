@@ -15,10 +15,6 @@
  */
 
 export class GrantType {
-  public code: string;
-  public type: string;
-  public name: string;
-  public response_types: string[];
 
   static AUTHORIZATION_CODE = new GrantType('authorization_code', 'authorization_code', 'Authorization Code', ['code']);
   static IMPLICIT = new GrantType('implicit', 'implicit', 'Implicit', ['token', 'id_token']);
@@ -28,6 +24,10 @@ export class GrantType {
   static CLIENT_CREDENTIALS = new GrantType('client_credentials', 'client_credentials', 'Client Credentials', []);
 
   static TYPES: GrantType[] = [GrantType.AUTHORIZATION_CODE, GrantType.IMPLICIT, GrantType.IMPLICIT_HYBRID, GrantType.REFRESH_TOKEN, GrantType.PASSWORD, GrantType.CLIENT_CREDENTIALS];
+  public code: string;
+  public type: string;
+  public name: string;
+  public response_types: string[];
 
   constructor(code: string, type: string, name: string, response_types: string[]) {
     this.code = code;

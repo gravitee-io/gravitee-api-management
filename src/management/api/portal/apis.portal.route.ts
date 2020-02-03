@@ -16,13 +16,13 @@
 import ApiService from '../../../services/api.service';
 import MetadataService from '../../../services/metadata.service';
 import GroupService from '../../../services/group.service';
-import DocumentationService, {DocumentationQuery} from "../../../services/documentation.service";
+import DocumentationService, {DocumentationQuery} from '../../../services/documentation.service';
 import {StateParams} from '@uirouter/core';
-import FetcherService from "../../../services/fetcher.service";
-import PolicyService from "../../../services/policy.service";
-import TagService from "../../../services/tag.service";
-import UserService from "../../../services/user.service";
-import QualityRuleService from "../../../services/qualityRule.service";
+import FetcherService from '../../../services/fetcher.service';
+import PolicyService from '../../../services/policy.service';
+import TagService from '../../../services/tag.service';
+import UserService from '../../../services/user.service';
+import QualityRuleService from '../../../services/qualityRule.service';
 
 export default apisPortalRouterConfig;
 
@@ -30,7 +30,7 @@ function apisPortalRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.portal', {
-      template:require('./apis.portal.route.html'),
+      template: require('./apis.portal.route.html'),
       resolve: {
         qualityRules: (QualityRuleService: QualityRuleService) =>
           QualityRuleService.list().then(response => response.data)
@@ -137,23 +137,23 @@ function apisPortalRouterConfig($stateProvider) {
       component: 'apiSubscriptions',
       resolve: {
         subscriptions: ($stateParams, ApiService: ApiService) => {
-          let query = "?page=" + $stateParams["page"]
-            + "&size=" + $stateParams["size"];
+          let query = '?page=' + $stateParams.page
+            + '&size=' + $stateParams.size;
 
-          if ($stateParams["status"]) {
-            query += "&status=" + $stateParams["status"];
+          if ($stateParams.status) {
+            query += '&status=' + $stateParams.status;
           }
 
-          if ($stateParams["application"]) {
-            query += "&application=" + $stateParams["application"];
+          if ($stateParams.application) {
+            query += '&application=' + $stateParams.application;
           }
 
-          if ($stateParams["plan"]) {
-            query += "&plan=" + $stateParams["plan"];
+          if ($stateParams.plan) {
+            query += '&plan=' + $stateParams.plan;
           }
 
-          if ($stateParams["api_key"]) {
-            query += "&api_key=" + $stateParams["api_key"];
+          if ($stateParams.api_key) {
+            query += '&api_key=' + $stateParams.api_key;
           }
 
           return ApiService.getSubscriptions($stateParams.apiId, query).then(response => response.data);
@@ -175,15 +175,15 @@ function apisPortalRouterConfig($stateProvider) {
       },
       params: {
         status: {
-          type: "string",
+          type: 'string',
           dynamic: true
         },
         application: {
-          type: "string",
+          type: 'string',
           dynamic: true
         },
         plan: {
-          type: "string",
+          type: 'string',
           dynamic: true
         },
         page: {
@@ -197,7 +197,7 @@ function apisPortalRouterConfig($stateProvider) {
           dynamic: true
         },
         api_key: {
-          type: "string",
+          type: 'string',
           dynamic: true
         }
       }
@@ -219,15 +219,15 @@ function apisPortalRouterConfig($stateProvider) {
       },
       params: {
         status: {
-          type: "string",
+          type: 'string',
           dynamic: true
         },
         application: {
-          type: "string",
+          type: 'string',
           dynamic: true
         },
         plan: {
-          type: "string",
+          type: 'string',
           dynamic: true
         },
         page: {
@@ -241,7 +241,7 @@ function apisPortalRouterConfig($stateProvider) {
           dynamic: true
         },
         api_key: {
-          type: "string",
+          type: 'string',
           dynamic: true
         }
       }
@@ -326,23 +326,23 @@ function apisPortalRouterConfig($stateProvider) {
       resolve: {
         pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
-          if ($stateParams.parent && ""!==$stateParams.parent) {
+          if ($stateParams.parent && '' !== $stateParams.parent) {
             q.parent = $stateParams.parent;
           } else {
             q.root = true;
           }
           return DocumentationService.search(q, $stateParams.apiId)
-            .then(response => response.data)
+            .then(response => response.data);
         },
         folders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
-          q.type = "FOLDER";
+          q.type = 'FOLDER';
           return DocumentationService.search(q, $stateParams.apiId)
             .then(response => response.data);
         },
         systemFolders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
-          q.type = "SYSTEM_FOLDER";
+          q.type = 'SYSTEM_FOLDER';
           return DocumentationService.search(q, $stateParams.apiId)
             .then(response => response.data);
         }
@@ -375,24 +375,24 @@ function apisPortalRouterConfig($stateProvider) {
         },
         folders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
-          q.type = "FOLDER";
+          q.type = 'FOLDER';
           return DocumentationService.search(q, $stateParams.apiId)
             .then(response => response.data);
         },
         systemFolders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
-          q.type = "SYSTEM_FOLDER";
+          q.type = 'SYSTEM_FOLDER';
           return DocumentationService.search(q, $stateParams.apiId)
             .then(response => response.data);
         },
         pageResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
-          if ($stateParams.type === "LINK") {
+          if ($stateParams.type === 'LINK') {
             const q = new DocumentationQuery();
             return DocumentationService.search(q, $stateParams.apiId).then(response => response. data);
           }
         },
         viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
-          if ($stateParams.type === "LINK") {
+          if ($stateParams.type === 'LINK') {
             return ViewService.list(true).then(response => response.data);
           }
         }
@@ -426,11 +426,11 @@ function apisPortalRouterConfig($stateProvider) {
         resolvedFetchers: (FetcherService: FetcherService) => {
           return FetcherService.list(true).then(response => {
             return response.data;
-          })
+          });
         },
         resolvedRootPage: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
-          q.type = "ROOT";
+          q.type = 'ROOT';
           return DocumentationService.search(q, $stateParams.apiId)
             .then(response => response.data && response.data.length > 0 ? response.data[0] : null);
         }
@@ -445,9 +445,9 @@ function apisPortalRouterConfig($stateProvider) {
         }
       }
     })
-    .state("management.apis.detail.portal.editdocumentation", {
-      url: "/documentation/:pageId?:tab&type",
-      component: "editPage",
+    .state('management.apis.detail.portal.editdocumentation', {
+      url: '/documentation/:pageId?:tab&type',
+      component: 'editPage',
       resolve: {
         resolvedPage: (DocumentationService: DocumentationService, $stateParams: StateParams) =>
           DocumentationService.get($stateParams.apiId, $stateParams.pageId).then(response => response.data),
@@ -463,24 +463,24 @@ function apisPortalRouterConfig($stateProvider) {
         },
         folders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
-          q.type = "FOLDER";
+          q.type = 'FOLDER';
           return DocumentationService.search(q, $stateParams.apiId)
             .then(response => response.data);
         },
         systemFolders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
-          q.type = "SYSTEM_FOLDER";
+          q.type = 'SYSTEM_FOLDER';
           return DocumentationService.search(q, $stateParams.apiId)
             .then(response => response.data);
         },
         pageResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
-          if ($stateParams.type === "LINK") {
+          if ($stateParams.type === 'LINK') {
             const q = new DocumentationQuery();
             return DocumentationService.search(q, $stateParams.apiId).then(response => response. data);
           }
         },
         viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
-          if ($stateParams.type === "LINK") {
+          if ($stateParams.type === 'LINK') {
             return ViewService.list(true).then(response => response.data);
           }
         }

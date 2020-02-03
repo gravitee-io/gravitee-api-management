@@ -25,7 +25,7 @@ function DialogAddPropertyController($scope, $mdDialog) {
       key: $scope.property.name,
       value: $scope.property.value
     };
-    
+
     $mdDialog.hide(property);
   };
 }

@@ -20,7 +20,7 @@
 
 'use strict';
 
-var MainPage = function() {
+const MainPage = function () {
   this.h3El = element(by.css('h3'));
 };
 

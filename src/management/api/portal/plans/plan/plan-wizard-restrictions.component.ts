@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import PolicyService from "../../../../../services/policy.service";
-import ApiEditPlanController from "./edit-plan.controller";
+import PolicyService from '../../../../../services/policy.service';
+import ApiEditPlanController from './edit-plan.controller';
 
 class Policy {
   id: string;
@@ -31,7 +31,7 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
   require: {
     parent: '^editPlan'
   },
-  template: require("./plan-wizard-restrictions.html"),
+  template: require('./plan-wizard-restrictions.html'),
   controller: class {
     private policies: Policy[];
     private methods: string[] = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS', 'TRACE', 'CONNECT'];
@@ -61,7 +61,7 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
         this.PolicyService.getSchema(policy.id).then(schema => {
           policy.schema = schema.data;
 
-          let idx = this.parent.planPolicies.findIndex(pathPolicy => pathPolicy[policy.id] != undefined);
+          let idx = this.parent.planPolicies.findIndex(pathPolicy => pathPolicy[policy.id] != null);
           if (idx !== -1) {
             let restrictionPolicy = this.parent.planPolicies.splice(idx, 1)[0];
             policy.enabled = true;
@@ -97,7 +97,7 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
 
       this.parent.vm.stepData[2].data = this.parent.plan;
       this.parent.moveToNextStep(this.parent.vm.stepData[2]);
-    };
+    }
   }
 };
 

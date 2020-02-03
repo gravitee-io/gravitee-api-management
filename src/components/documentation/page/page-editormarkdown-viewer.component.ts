@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Viewer from "tui-editor/dist/tui-editor-Viewer";
+import * as Viewer from 'tui-editor/dist/tui-editor-Viewer';
 import * as _ from 'lodash';
-import * as remark from "remark";
+import * as remark from 'remark';
 
 class ComponentCtrl implements ng.IComponentController {
   private page: any;
@@ -26,13 +26,13 @@ class ComponentCtrl implements ng.IComponentController {
   }
 
   $onChanges() {
-    const initialValue = this.page && this.page.content ? this.page.content : "";
+    const initialValue = this.page && this.page.content ? this.page.content : '';
     let ast = remark.parse(initialValue);
 
-    let content = "";
+    let content = '';
     let sectionOpen = false;
 
-    var sectionValue = "";
+    var sectionValue = '';
     for (let c = 0; c < ast.children.length; c++) {
       const child = ast.children[c];
 
@@ -41,15 +41,15 @@ class ComponentCtrl implements ng.IComponentController {
       }
 
       if (sectionOpen) {
-        sectionValue += "</section>";
+        sectionValue += '</section>';
       }
 
       let value = this.findChildrenValue(child.children);
       if (value) {
         let id = value.replace(new RegExp(' ', 'g'), '').toLowerCase();
-        sectionValue += "<section id='" + id + "'>";
+        sectionValue += '<section id=\'' + id + '\'>';
       } else {
-        sectionValue += "<section>";
+        sectionValue += '<section>';
       }
       sectionOpen = true;
 
@@ -58,7 +58,7 @@ class ComponentCtrl implements ng.IComponentController {
         value: sectionValue
       });
       c++;
-      sectionValue = "";
+      sectionValue = '';
     }
 
     if (sectionOpen) {
@@ -70,14 +70,15 @@ class ComponentCtrl implements ng.IComponentController {
 
     content = remark.stringify(ast);
 
+    // tslint:disable-next-line:no-unused-expression
     new Viewer(Object.assign({
-      el: document.querySelector("#viewerSection"),
+      el: document.querySelector('#viewerSection'),
       viewer: true,
-      height: "auto",
+      height: 'auto',
       initialValue: _.replace(
                       _.replace(content,
                         '(#', '(' + this.$location.absUrl() + '#'),
-                      'href="#', 'href="'+ this.$location.absUrl() + '#'
+                      'href="#', 'href="' + this.$location.absUrl() + '#'
       ),
       useDefaultHTMLSanitizer: false
     }, this.options));
@@ -93,14 +94,14 @@ class ComponentCtrl implements ng.IComponentController {
       return (children[0].type === 'text') ? children[0].value : this.findChildrenValue(children[0].children, count);
     }
     return;
-  };
+  }
 }
 
 const PageEditorMarkdownViewerComponent: ng.IComponentOptions = {
-  template: require("./page-editormarkdown-viewer.html"),
+  template: require('./page-editormarkdown-viewer.html'),
   bindings: {
-    page: "<",
-    options: "<"
+    page: '<',
+    options: '<'
   },
   controller: ComponentCtrl
 };

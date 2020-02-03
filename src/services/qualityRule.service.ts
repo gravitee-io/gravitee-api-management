@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {QualityRule} from "../entities/QualityRule";
-import {IHttpPromise} from "angular";
-import {ApiQualityRule} from "../entities/apiQualityRule";
+import {QualityRule} from '../entities/QualityRule';
+import {IHttpPromise} from 'angular';
+import {ApiQualityRule} from '../entities/apiQualityRule';
 
 class QualityRuleService {
   private URL: string;

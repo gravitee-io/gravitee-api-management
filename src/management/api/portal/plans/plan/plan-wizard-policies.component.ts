@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import PolicyService from "../../../../../services/policy.service";
-import ApiEditPlanController from "./edit-plan.controller";
+import PolicyService from '../../../../../services/policy.service';
+import ApiEditPlanController from './edit-plan.controller';
 
 const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
   require: {
     parent: '^editPlan'
   },
-  template: require("./plan-wizard-policies.html"),
+  template: require('./plan-wizard-policies.html'),
   controller: class {
     private parent: ApiEditPlanController;
     private selectedPolicy: any;
@@ -52,27 +52,27 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
 
       // Restore selected policy to empty
       this.selectedPolicy = null;
-      this.editPolicy(idx-1);
+      this.editPolicy(idx - 1);
     }
 
     getPolicyClass(policy) {
       const classes = [];
       const selected = this.editablePolicy && this.editablePolicy.$$hashKey === policy.$$hashKey;
       if (selected) {
-        classes.push("gravitee-policy-card-selected");
+        classes.push('gravitee-policy-card-selected');
       }
 
       if (!selected && ! policy.enabled) {
-        classes.push("gravitee-policy-card-disabled");
+        classes.push('gravitee-policy-card-disabled');
       }
 
       if (!policy.name) {
-        classes.push("gravitee-policy-card-missed");
+        classes.push('gravitee-policy-card-missed');
       }
       return classes.join(' ');
     }
 
-    editPolicy(index, ev?:any) {
+    editPolicy(index, ev?: any) {
       if (ev) {
         ev.stopPropagation();
       }
@@ -93,9 +93,9 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
 
           if (!this.policySchema || Object.keys(this.policySchema).length === 0) {
             this.policySchema = {
-              "type": "object",
-              "id": "empty",
-              "properties": {"": {}}
+              'type': 'object',
+              'id': 'empty',
+              'properties': {'': {}}
             };
           }
         });
@@ -116,7 +116,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
         locals: {
           description: policy.description
         }
-      }).then(description => policy.description = description, () => {});
+      }).then(description => policy.description = description);
     }
 
     removePolicy(index, path, ev) {
@@ -158,7 +158,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
 
       this.parent.plan.paths['/'] = this.parent.restrictionsPolicies.concat(policies);
       this.parent.saveOrUpdate();
-    };
+    }
   }
 };
 

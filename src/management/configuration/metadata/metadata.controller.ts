@@ -16,7 +16,7 @@
 import * as _ from 'lodash';
 import MetadataService from '../../../services/metadata.service';
 import NotificationService from '../../../services/notification.service';
-import UserService from "../../../services/user.service";
+import UserService from '../../../services/user.service';
 import {IScope} from 'angular';
 
 class MetadataController {
@@ -49,7 +49,7 @@ class MetadataController {
   }
 
   updateMetadata(metadata) {
-    if (this.UserService.isUserHasPermissions(["portal-metadata-u"])) {
+    if (this.UserService.isUserHasPermissions(['portal-metadata-u'])) {
       const that = this;
       this.$mdDialog.show({
         controller: 'UpdateMetadataDialogController',
@@ -80,7 +80,7 @@ class MetadataController {
     }).then(function (deleteMetadata) {
       if (deleteMetadata) {
         that.MetadataService.delete(metadata).then(function () {
-          that.NotificationService.show("Metadata '" + metadata.name + "' deleted with success");
+          that.NotificationService.show('Metadata \'' + metadata.name + '\' deleted with success');
           _.remove(that.metadata, metadata);
         });
       }

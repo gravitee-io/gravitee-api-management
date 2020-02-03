@@ -17,7 +17,7 @@ import * as _ from 'lodash';
 import ViewService from '../../../services/view.service';
 import NotificationService from '../../../services/notification.service';
 import { StateService } from '@uirouter/core';
-import PortalConfigService from "../../../services/portalConfig.service";
+import PortalConfigService from '../../../services/portalConfig.service';
 import {IScope} from 'angular';
 
 class ViewsController {
@@ -65,7 +65,7 @@ class ViewsController {
     view.hidden = !view.hidden;
     this.ViewService.update(view).then(() => {
       that.NotificationService.show('View ' + view.name + ' has been saved.');
-    })
+    });
   }
 
   upward(index) {
@@ -83,7 +83,25 @@ class ViewsController {
   toggleDisplayMode() {
     this.PortalConfigService.save(this.settings).then( (response) => {
       _.merge(this.Constants, response.data);
-      this.NotificationService.show("Display mode saved!");
+      this.NotificationService.show('Display mode saved!');
+    });
+  }
+
+  deleteView(view) {
+    let that = this;
+    this.$mdDialog.show({
+      controller: 'DeleteViewDialogController',
+      template: require('./delete.view.dialog.html'),
+      locals: {
+        view: view
+      }
+    }).then(function (deleteView) {
+      if (deleteView) {
+        that.ViewService.delete(view).then(function () {
+          that.NotificationService.show('View \'' + view.name + '\' deleted with success');
+          _.remove(that.views, view);
+        });
+      }
     });
   }
 
@@ -100,26 +118,8 @@ class ViewsController {
   private save() {
     let that = this;
     this.ViewService.updateViews(that.viewsToUpdate).then(() => {
-      that.NotificationService.show("Views saved with success");
+      that.NotificationService.show('Views saved with success');
       that.viewsToUpdate = [];
-    });
-  }
-
-  deleteView(view) {
-    let that = this;
-    this.$mdDialog.show({
-      controller: 'DeleteViewDialogController',
-      template: require('./delete.view.dialog.html'),
-      locals: {
-        view: view
-      }
-    }).then(function (deleteView) {
-      if (deleteView) {
-        that.ViewService.delete(view).then(function () {
-          that.NotificationService.show("View '" + view.name + "' deleted with success");
-          _.remove(that.views, view);
-        });
-      }
     });
   }
 }

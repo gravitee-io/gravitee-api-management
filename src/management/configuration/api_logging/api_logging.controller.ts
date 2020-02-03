@@ -28,7 +28,7 @@ class ApiLoggingController {
 
   save() {
     this.PortalConfigService.save().then( () => {
-      this.NotificationService.show("API logging saved");
+      this.NotificationService.show('API logging saved');
       this.formApiLogging.$setPristine();
     });
   }

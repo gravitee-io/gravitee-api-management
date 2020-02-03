@@ -120,6 +120,7 @@
     "gulp-sass": "^4.0.1",
     "gulp-size": "^3.0.0",
     "gulp-sourcemaps": "^2.6.4",
+    "gulp-tslint": "^8.1.4",
     "gulp-uglify": "^3.0.0",
     "gulp-useref": "^3.1.5",
     "gulp-util": "^3.0.8",
@@ -144,7 +145,7 @@
     "main-bower-files": "^2.13.1",
     "merge-stream": "^1.0.1",
     "ng-annotate-loader": "^0.6.1",
-    "node-sass": "^4.9.2",
+    "node-sass": "^4.12.0",
     "phantomjs-prebuilt": "^2.1.16",
     "postcss-loader": "^2.1.6",
     "protractor": "^5.3.2",
@@ -183,6 +184,8 @@
     "serve:nightly": "gulp serve:nightly",
     "serve:dist": "gulp serve:dist",
     "test:auto": "gulp test:auto",
-    "buildNoReg": "gulp buildNoReg"
+    "buildNoReg": "gulp buildNoReg",
+    "lint": "gulp lint",
+    "lint:fix": "gulp lint:fix"
   }
 }

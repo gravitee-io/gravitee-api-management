@@ -16,7 +16,7 @@
 import ApiService from '../../../services/api.service';
 import NotificationService from '../../../services/notification.service';
 import _ = require('lodash');
-import UserService from "../../../services/user.service";
+import UserService from '../../../services/user.service';
 
 class ApiPortalRatingController {
   private api: any;
@@ -48,7 +48,7 @@ class ApiPortalRatingController {
 
   $onInit() {
     if (!this.rating) {
-      this.rating = {rate: 0}
+      this.rating = {rate: 0};
     }
 
     let pageNumbers = _.range(1, _.ceil(this.ratings.totalElements / 10) + 1);
@@ -80,7 +80,7 @@ class ApiPortalRatingController {
         this.$state.reload();
       }, () => delete this.rating);
     }
-    //this.formRating.$setPristine();
+    // this.formRating.$setPristine();
   }
 
   saveRate() {
@@ -96,7 +96,7 @@ class ApiPortalRatingController {
       this.rating = response.data;
       this.$onInit();
     });
-    this.ApiService.getApiRatings(this.api.id, this.$state.params['pageNumber']).then((response) => {
+    this.ApiService.getApiRatings(this.api.id, this.$state.params.pageNumber).then((response) => {
       this.ratings = response.data;
       this.$onInit();
     });
@@ -157,7 +157,7 @@ class ApiPortalRatingController {
           this.onModification();
           this.NotificationService.show('api.rating.successDeletion');
           this.justCreated = false;
-          //this.formRating.$setPristine();
+          // this.formRating.$setPristine();
           this.$state.reload();
         });
       }

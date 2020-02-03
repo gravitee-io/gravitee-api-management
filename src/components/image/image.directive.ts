@@ -53,7 +53,7 @@ class ImageController {
           if (this.$scope.imageForm) {
             this.$scope.imageForm.$setDirty();
           }
-          this.$rootScope.$broadcast("apiPictureChangeSuccess", {image: image});
+          this.$rootScope.$broadcast('apiPictureChangeSuccess', {image: image});
         }
       });
     }

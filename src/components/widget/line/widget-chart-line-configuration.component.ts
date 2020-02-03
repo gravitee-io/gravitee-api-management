@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import DashboardService from "../../../services/dashboard.service";
-import * as _ from "lodash";
+import DashboardService from '../../../services/dashboard.service';
+import * as _ from 'lodash';
 const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-chart-line-configuration.html'),
   bindings: {

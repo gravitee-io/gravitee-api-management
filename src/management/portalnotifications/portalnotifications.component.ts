@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {UserNotification} from "../../entities/userNotification";
-import UserNotificationService from "../../services/userNotification.service";
-import {PagedResult} from "../../entities/pagedResult";
-import {IIntervalService, IScope} from "angular";
+import {UserNotification} from '../../entities/userNotification';
+import UserNotificationService from '../../services/userNotification.service';
+import {PagedResult} from '../../entities/pagedResult';
+import {IIntervalService, IScope} from 'angular';
 
 const PortalNotificationsComponent: ng.IComponentOptions = {
   bindings: {
@@ -57,7 +57,7 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
       });
     };
 
-    $scope.$on("graviteeUserCancelScheduledServices", function () {
+    $scope.$on('graviteeUserCancelScheduledServices', function () {
       vm.cancelRefreshUserNotifications();
     });
 
@@ -99,9 +99,10 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
 
     vm.windowNotification = (title: string, message: string) => {
 
-      if(("Notification" in window)) {
+      if (('Notification' in window)) {
         Notification.requestPermission().then(() => {
-          new Notification(title,{body: message, icon: "/favicon.ico"});
+          // tslint:disable-next-line:no-unused-expression
+          new Notification(title, {body: message, icon: '/favicon.ico'});
         });
       }
     };

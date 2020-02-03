@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApplicationService from "../../../../services/application.service";
-import NotificationService from "../../../../services/notification.service";
+import ApplicationService from '../../../../services/application.service';
+import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 
 const ApplicationSubscriptionComponent: ng.IComponentOptions = {
@@ -25,8 +25,8 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
   template: require('./application-subscription.html'),
   controller: class {
 
-    private subscription:any;
-    private keys:any[];
+    private subscription: any;
+    private keys: any[];
     private application: any;
     private backStateParams: any;
 
@@ -39,11 +39,11 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
       'ngInject';
 
       this.backStateParams = {
-        api: $state.params['api'],
-        status: $state.params['status'],
-        page: $state.params['page'],
-        size: $state.params['size'],
-        api_key: $state.params['api_key']
+        api: $state.params.api,
+        status: $state.params.status,
+        page: $state.params.page,
+        size: $state.params.size,
+        api_key: $state.params.api_key
       };
     }
 
@@ -109,7 +109,7 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
     close() {
       let msg = 'The application will not be able to consume this API anymore.';
       if (this.subscription.plan.security === 'api_key') {
-        msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.'
+        msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
       }
 
       this.$mdDialog.show({

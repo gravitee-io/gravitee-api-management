@@ -19,7 +19,7 @@ import * as angular from 'angular';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
-import { PagedResult } from "../../../../entities/pagedResult";
+import { PagedResult } from '../../../../entities/pagedResult';
 import { StateService } from '@uirouter/core';
 
 let defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
@@ -59,22 +59,22 @@ class ApplicationSubscriptionsController {
     'ngInject';
 
     this.onPaginate = this.onPaginate.bind(this);
-    if (this.$state.params["status"]) {
-      if (Array.isArray(this.$state.params["status"])) {
-        this.query.status = this.$state.params["status"];
+    if (this.$state.params.status) {
+      if (Array.isArray(this.$state.params.status)) {
+        this.query.status = this.$state.params.status;
       } else {
-        this.query.status = this.$state.params["status"].split(',');
+        this.query.status = this.$state.params.status.split(',');
       }
     }
-    if (this.$state.params["api"]) {
-      if (Array.isArray(this.$state.params["api"])) {
-        this.query.apis = this.$state.params["api"];
+    if (this.$state.params.api) {
+      if (Array.isArray(this.$state.params.api)) {
+        this.query.apis = this.$state.params.api;
       } else {
-        this.query.apis = this.$state.params["api"].split(',');
+        this.query.apis = this.$state.params.api.split(',');
       }
     }
-    if (this.$state.params["api_key"]) {
-      this.query.api_key = this.$state.params["api_key"];
+    if (this.$state.params.api_key) {
+      this.query.api_key = this.$state.params.api_key;
     }
   }
 
@@ -100,15 +100,15 @@ class ApplicationSubscriptionsController {
     let parameters = {};
 
     if (this.query.status !== undefined) {
-      parameters['status'] = this.query.status.join(',');
+      parameters.status = this.query.status.join(',');
     }
 
     if (this.query.apis !== undefined) {
-      parameters['api'] = this.query.apis.join(',');
+      parameters.api = this.query.apis.join(',');
     }
 
     if (this.query.api_key !== undefined) {
-      parameters['api_key'] = this.query.api_key;
+      parameters.api_key = this.query.api_key;
     }
 
     _.mapKeys(parameters, (value, key ) => {
@@ -123,8 +123,8 @@ class ApplicationSubscriptionsController {
     this.$state.transitionTo(
       this.$state.current,
       _.merge(this.$state.params, {
-        status: this.query.status ? this.query.status.join(",") : "",
-        api: this.query.apis ? this.query.apis.join(",") : "",
+        status: this.query.status ? this.query.status.join(',') : '',
+        api: this.query.apis ? this.query.apis.join(',') : '',
         page: this.query.page,
         size: this.query.size,
         api_key: this.query.api_key
@@ -228,7 +228,7 @@ class ApplicationSubscriptionsController {
       controllerAs: 'dialogApiKeyExpirationController',
       template: require('../../../api/portal/subscriptions/apikey.expiration.dialog.html'),
       clickOutsideToClose: true
-    }).then(expirationDate =>{
+    }).then(expirationDate => {
       apiKey.expire_at = expirationDate;
 
       this.ApiService.updateApiKey(apiId, apiKey).then(() => {

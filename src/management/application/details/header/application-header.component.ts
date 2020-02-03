@@ -23,10 +23,10 @@ const ApplicationHeaderComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.$onInit = function() {
-      this.hideSubscribeLink = this.application.status === "ARCHIVED";
+      this.hideSubscribeLink = this.application.status === 'ARCHIVED';
     };
   },
-  template: require("./application-header.html")
+  template: require('./application-header.html')
 };
 
 export default ApplicationHeaderComponent;

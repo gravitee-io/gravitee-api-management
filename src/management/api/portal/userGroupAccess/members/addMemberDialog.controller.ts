@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import RoleService from "../../../../../services/role.service";
-import ApiService from "../../../../../services/api.service";
+import RoleService from '../../../../../services/role.service';
+import ApiService from '../../../../../services/api.service';
 
 function DialogAddMemberApiController($scope, $mdDialog, api, members, ApiService: ApiService, NotificationService,
       RoleService: RoleService, UserService) {
@@ -28,7 +28,7 @@ function DialogAddMemberApiController($scope, $mdDialog, api, members, ApiServic
 	$scope.api = api;
 	$scope.members = members;
 	$scope.usersSelected = [];
-	$scope.searchText = "";
+	$scope.searchText = '';
 
   $scope.hide = function () {
      $mdDialog.cancel();
@@ -37,7 +37,7 @@ function DialogAddMemberApiController($scope, $mdDialog, api, members, ApiServic
 	$scope.searchUser = function (query) {
 		if (query) {
 			return UserService.search(query).then(function(response) {
-        return _.filter(response.data, (user: any) => { return _.findIndex($scope.members, {id: user.id}) === -1;});
+        return _.filter(response.data, (user: any) => { return _.findIndex($scope.members, {id: user.id}) === -1; });
 			});
 		}
 	};
@@ -52,7 +52,7 @@ function DialogAddMemberApiController($scope, $mdDialog, api, members, ApiServic
       if (!selected) {
         $scope.usersSelected.push(user);
       }
-      $scope.searchText = "";
+      $scope.searchText = '';
 		}
   };
 

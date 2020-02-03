@@ -16,7 +16,7 @@
 import * as _ from 'lodash';
 import NotificationService from '../../../../../services/notification.service';
 import ApiService from '../../../../../services/api.service';
-import UserService from "../../../../../services/user.service";
+import UserService from '../../../../../services/user.service';
 
 class ApiMetadataController {
   private api: any;
@@ -46,11 +46,11 @@ class ApiMetadataController {
     }).then((savedMetadata) => {
       this.NotificationService.show(`Metadata '${savedMetadata.name}' created with success`);
       this.$state.reload();
-    }).catch(function () {});
+    });
   }
 
   updateMetadata(metadata) {
-    if (this.UserService.isUserHasPermissions(["api-metadata-u"])) {
+    if (this.UserService.isUserHasPermissions(['api-metadata-u'])) {
       this.$mdDialog.show({
         controller: 'UpdateApiMetadataDialogController',
         controllerAs: '$ctrl',
@@ -63,7 +63,7 @@ class ApiMetadataController {
       }).then((metadata) => {
         this.NotificationService.show(`API's Metadata '${metadata.name}' updated with success`);
         this.$state.reload();
-      }).catch(() => {});
+      });
     }
   }
 
@@ -78,7 +78,7 @@ class ApiMetadataController {
     }).then((deleteMetadata) => {
       if (deleteMetadata) {
         this.ApiService.deleteMetadata(this.api.id, metadata.key).then(() => {
-          this.NotificationService.show("Metadata '" + metadata.name + "' deleted with success");
+          this.NotificationService.show('Metadata \'' + metadata.name + '\' deleted with success');
           this.$state.reload();
         });
       }

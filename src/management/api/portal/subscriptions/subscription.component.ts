@@ -18,7 +18,7 @@ import _ = require('lodash');
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
-import moment = require("moment");
+import moment = require('moment');
 
 const ApiSubscriptionComponent: ng.IComponentOptions = {
   bindings: {
@@ -28,8 +28,8 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
   template: require('./subscription.html'),
   controller: class {
 
-    private subscription:any;
-    private keys:any[];
+    private subscription: any;
+    private keys: any[];
     private api: any;
     private plans: any[];
     private backStateParams: any;
@@ -44,24 +44,18 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
       'ngInject';
 
       this.backStateParams = {
-        application: $state.params['application'],
-        plan: $state.params['plan'],
-        status: $state.params['status'],
-        page: $state.params['page'],
-        size: $state.params['size'],
-        api_key: $state.params['api_key']
+        application: $state.params.application,
+        plan: $state.params.plan,
+        status: $state.params.status,
+        page: $state.params.page,
+        size: $state.params.size,
+        api_key: $state.params.api_key
       };
     }
 
     $onInit() {
       this.listApiKeys();
       this.getApiPlans();
-    }
-
-    private getApiPlans() {
-      this.ApiService.getApiPlans(this.api.id, 'published', this.subscription.plan.security).then(response => {
-        this.plans = _.filter(response.data, plan => plan.id !== this.subscription.plan.id);
-      });
     }
 
     listApiKeys() {
@@ -80,7 +74,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
         + this.api.name
         + '</code> anymore.';
       if (this.subscription.plan.security === 'api_key') {
-        msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.'
+        msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
       }
 
       this.$mdDialog.show({
@@ -89,7 +83,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
         template: require('../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Are you sure you want to close this subscription to '+ this.subscription.plan.name +'?',
+          title: 'Are you sure you want to close this subscription to ' + this.subscription.plan.name + '?',
           msg: msg,
           confirmButton: 'Close the subscription'
         }
@@ -107,7 +101,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     pause() {
       let msg = 'The application will not be able to consume this API anymore.';
       if (this.subscription.plan.security === 'api_key') {
-        msg += '<br/>All Api-keys associated to this subscription will be paused and could not be used.'
+        msg += '<br/>All Api-keys associated to this subscription will be paused and could not be used.';
       }
 
       this.$mdDialog.show({
@@ -183,7 +177,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
         .then( (response) => {
           this.NotificationService.show('The subscription has been ' + (processSubscription.accepted ? 'accepted' : 'rejected'));
           this.subscription = response.data;
-          this.$rootScope.$broadcast("graviteeUserTaskRefresh");
+          this.$rootScope.$broadcast('graviteeUserTaskRefresh');
           if (processSubscription.accepted) {
             this.listApiKeys();
           }
@@ -278,6 +272,12 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
 
     isValid(key) {
       return !key.revoked && !key.expired ;
+    }
+
+    private getApiPlans() {
+      this.ApiService.getApiPlans(this.api.id, 'published', this.subscription.plan.security).then(response => {
+        this.plans = _.filter(response.data, plan => plan.id !== this.subscription.plan.id);
+      });
     }
   }
 };

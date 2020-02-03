@@ -49,7 +49,7 @@ class ApiPoliciesController {
     this.policiesToCopy = [];
     this.policiesMap = {};
     this.selectedApiPolicy = {};
-    this.httpMethods = ['GET','POST','PUT','DELETE','HEAD','PATCH','OPTIONS','TRACE','CONNECT'];
+    this.httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS', 'TRACE', 'CONNECT'];
     this.httpMethodsFilter = _.clone(this.httpMethods);
     this.httpMethodsUpdated = false;
     this.schemaByPolicyId = {};
@@ -94,7 +94,7 @@ class ApiPoliciesController {
       _.forEach(policies, (policy) => {
 
         _.forEach(policy, (value, property) => {
-          if (property !== "methods" && property !== "enabled" && property !== "description" && property !== "$$hashKey") {
+          if (property !== 'methods' && property !== 'enabled' && property !== 'description' && property !== '$$hashKey') {
             policy.policyId = property;
             let currentPolicy = this.policiesMap[policy.policyId];
             if (currentPolicy) {
@@ -180,7 +180,7 @@ class ApiPoliciesController {
   }
 
   editPolicy(index, path) {
-    this.$scope.policyJsonSchemaForm = ["*"];
+    this.$scope.policyJsonSchemaForm = ['*'];
     this.selectedApiPolicy = this.apiPoliciesByPath[path][index];
     if (this.schemaByPolicyId[this.selectedApiPolicy.policyId] === undefined) {
       return this.PolicyService.getSchema(this.selectedApiPolicy.policyId).then((response) => {
@@ -199,43 +199,32 @@ class ApiPoliciesController {
     }
   }
 
-  private checkEmptySchema() {
-    if (!this.$scope.policyJsonSchema || Object.keys(this.$scope.policyJsonSchema).length === 0) {
-      this.$scope.policyJsonSchema = {
-        "type": "object",
-        "id": "empty",
-        "properties": {"": {}}
-      };
-    }
-    this.httpMethodsUpdated = false;
-  }
-
   getHttpMethodClass(method, methods) {
-    return "gravitee-policy-method-badge-" + method +
-      (methods.indexOf(method) > -1 ? "-selected" : "-unselected");
+    return 'gravitee-policy-method-badge-' + method +
+      (methods.indexOf(method) > -1 ? '-selected' : '-unselected');
   }
 
   getApiPolicyClass(policy) {
     const classes = [];
     const selected = this.selectedApiPolicy && this.selectedApiPolicy.$$hashKey === policy.$$hashKey;
     if (selected) {
-      classes.push("gravitee-policy-card-selected");
+      classes.push('gravitee-policy-card-selected');
     }
 
     if (!selected && ! policy.enabled) {
-      classes.push("gravitee-policy-card-disabled");
+      classes.push('gravitee-policy-card-disabled');
     }
 
     if (!policy.name) {
-      classes.push("gravitee-policy-card-missed");
+      classes.push('gravitee-policy-card-missed');
     }
     return classes.join(' ');
   }
 
   getDropzoneClass(path) {
-    return "gravitee-policy-dropzone " +
+    return 'gravitee-policy-dropzone ' +
       'gravitee-policy-dropzone-filled' +
-      " dropzone-" + this.StringService.hashCode(path);
+      ' dropzone-' + this.StringService.hashCode(path);
   }
 
   toggleHttpMethod(method, methods) {
@@ -389,11 +378,11 @@ class ApiPoliciesController {
   }
 
   pathNotExists(path, index) {
-    if (!path || path.trim() === "") {
+    if (!path || path.trim() === '') {
       return true;
     }
 
-    if(index && this.clearPathParam(path) === this.clearPathParam(this.sortedPaths()[index])) {
+    if (index && this.clearPathParam(path) === this.clearPathParam(this.sortedPaths()[index])) {
       return true;
     }
 
@@ -401,17 +390,17 @@ class ApiPoliciesController {
   }
 
   pathStartWithSlash(path) {
-    if (!path || path.trim() === "") {
+    if (!path || path.trim() === '') {
       return true;
     }
-    return path[0] === "/";
+    return path[0] === '/';
   }
 
   clearPathParam(path) {
-    if ( path === "/" ) {
-      return "/";
+    if ( path === '/' ) {
+      return '/';
     } else {
-      return path.trim().replace(/(:.*?\/)|(:.*$)/g, ":x\/").replace(/\/+$/, "");
+      return path.trim().replace(/(:.*?\/)|(:.*$)/g, ':x\/').replace(/\/+$/, '');
     }
   }
 
@@ -424,7 +413,7 @@ class ApiPoliciesController {
 
   pathKeyPress(ev, el, newPath, index) {
     switch (ev.keyCode) {
-      case 13: //enter
+      case 13: // enter
         if (!el.$invalid) {
           const oldPath: any = this.sortedPaths()[index];
           this.apiPoliciesByPath[newPath] = this.apiPoliciesByPath[oldPath];
@@ -432,7 +421,7 @@ class ApiPoliciesController {
           this.savePaths();
         }
         break;
-      case 27: //escape
+      case 27: // escape
         this.restoreOldPath(index, el);
         break;
       default:
@@ -444,7 +433,18 @@ class ApiPoliciesController {
     el.$setViewValue(this.sortedPaths()[index]);
     el.$commitViewValue();
     // TODO: check editPathForm on form
-    (document.forms as any).editPathForm['path'+index].value = this.sortedPaths()[index];
+    (document.forms as any).editPathForm['path' + index].value = this.sortedPaths()[index];
+  }
+
+  private checkEmptySchema() {
+    if (!this.$scope.policyJsonSchema || Object.keys(this.$scope.policyJsonSchema).length === 0) {
+      this.$scope.policyJsonSchema = {
+        'type': 'object',
+        'id': 'empty',
+        'properties': {'': {}}
+      };
+    }
+    this.httpMethodsUpdated = false;
   }
 }
 

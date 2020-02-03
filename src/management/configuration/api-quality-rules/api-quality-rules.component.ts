@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import QualityRuleService from "../../../services/qualityRule.service";
-import {IScope} from "angular";
-import NotificationService from "../../../services/notification.service";
-import PortalConfigService from "../../../services/portalConfig.service";
+import QualityRuleService from '../../../services/qualityRule.service';
+import {IScope} from 'angular';
+import NotificationService from '../../../services/notification.service';
+import PortalConfigService from '../../../services/portalConfig.service';
 const ApiQualityRulesComponent: ng.IComponentOptions = {
   bindings: {
     qualityRules: '<'
@@ -36,7 +36,7 @@ const ApiQualityRulesComponent: ng.IComponentOptions = {
     this.save = () => {
       PortalConfigService.save(this.settings).then( (response) => {
         _.merge(Constants, response.data);
-        NotificationService.show("API Quality settings saved!");
+        NotificationService.show('API Quality settings saved!');
         this.formQuality.$setPristine();
       });
     };
@@ -56,7 +56,7 @@ const ApiQualityRulesComponent: ng.IComponentOptions = {
         }
       }).then((deletedQualityRule) => {
         if (deletedQualityRule) {
-          NotificationService.show("Quality rule '" + qualityRule.name + "' deleted with success");
+          NotificationService.show('Quality rule \'' + qualityRule.name + '\' deleted with success');
           _.remove(this.qualityRules, qualityRule);
         }
       });

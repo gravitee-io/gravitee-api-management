@@ -15,7 +15,7 @@
  */
 import * as _ from 'lodash';
 import TopApiService from '../../../services/top-api.service';
-import NotificationService from "../../../services/notification.service";
+import NotificationService from '../../../services/notification.service';
 import {IScope} from 'angular';
 
 class TopApisController {
@@ -83,7 +83,7 @@ class TopApisController {
     this.TopApiService.update(this.topApis)
       .then((response) => {
         this.topApis = response.data;
-        this.NotificationService.show("Top APIs saved with success");
+        this.NotificationService.show('Top APIs saved with success');
       }).catch(() => {
       this.refreshTopApis();
     });

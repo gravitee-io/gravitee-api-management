@@ -25,7 +25,7 @@ const pkg = require('../package.json');
 const autoprefixer = require('autoprefixer');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
-let packages = Object.keys(pkg.dependencies);
+const packages = Object.keys(pkg.dependencies);
 packages.splice(packages.indexOf('swagger-ui-dist'), 1);
 
 module.exports = {
@@ -98,22 +98,23 @@ module.exports = {
     }),
     new ExtractTextPlugin('index-[hash].css'),
     new webpack.LoaderOptionsPlugin({
-        options: {
-          postcss: () => [autoprefixer],
-          resolve: {},
-          ts: {
-            configFileName: 'tsconfig.json'
-          },
-          tslint: {
-            configuration: require('../tslint.json')
-          }
+      options: {
+        postcss: () => [autoprefixer],
+        resolve: {},
+        ts: {
+          configFileName: 'tsconfig.json'
+        },
+        tslint: {
+          configuration: require('../tslint.json')
         }
-      }),
+      }
+    }),
     new CopyWebpackPlugin([
       {
         from: './constants.json',
         to: ''
-      }, {
+      },
+      {
         from: './build.json',
         to: ''
       },
@@ -125,9 +126,9 @@ module.exports = {
         from: './docs',
         to: './docs'
       },
-      { from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html' }
+      {from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html'}
     ], {
-      copyUnmodified: true,
+      copyUnmodified: true
     })
   ],
   output: {
@@ -154,7 +155,7 @@ module.exports = {
     fs: 'empty',
     module: 'empty'
   },
-  externals: [{'api-console': {}, 'unicode': {}}],
+  externals: [{'api-console': {}, unicode: {}}],
   optimization: {
     minimize: true,
     splitChunks: {

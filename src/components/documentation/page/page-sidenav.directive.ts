@@ -46,9 +46,9 @@ const PageSidenavDirective: ng.IDirective = ({
       let sidenav = angular.element(document.getElementById('sidenav'));
       let page = document.getElementById('page-content');
 
-      let content:Element = undefined;
+      let content: Element = undefined;
       if (scope.page.type === 'SWAGGER') {
-        content = page.getElementsByClassName("api-description")[0];
+        content = page.getElementsByClassName('api-description')[0];
       } else if (scope.page.type === 'MARKDOWN') {
         content = page;
       }

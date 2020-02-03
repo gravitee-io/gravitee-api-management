@@ -15,11 +15,11 @@
  */
 import * as _ from 'lodash';
 
-import ViewService from "../../services/view.service";
-import {IScope} from "angular";
-import ApiService from "../../services/api.service";
+import ViewService from '../../services/view.service';
+import {IScope} from 'angular';
+import ApiService from '../../services/api.service';
 import {StateParams, StateService, TransitionService} from '@uirouter/core';
-import PortalService from "../../services/portal.service";
+import PortalService from '../../services/portal.service';
 
 export class PortalApiListController {
 
@@ -65,7 +65,7 @@ export class PortalApiListController {
     this.views = resolvedViews;
     this.ratingEnabled = this.ApiService.isRatingEnabled();
     let that = this;
-    if($stateParams.view) {
+    if ($stateParams.view) {
       this.selectedView = $stateParams.view;
       this.view = _.find(this.views, function (view) {
         return that.selectedView === view.id;
@@ -76,7 +76,7 @@ export class PortalApiListController {
         that.selectedView = response.id;
         that.view = response;
         that.sortByHighlightApi(that.view);
-      })
+      });
     }
 
     $scope.$watch('apisCtrl.query', (query: string, previousQuery: string) => {
@@ -106,7 +106,7 @@ export class PortalApiListController {
         this.$state.current,
         {q: this.query, view: 'all'},
         {notify: false});
-      promise = this.ApiService.list('all', true, promOpts)
+      promise = this.ApiService.list('all', true, promOpts);
     } else {
       this.$state.transitionTo(
         this.$state.current,
@@ -151,10 +151,10 @@ export class PortalApiListController {
 
   getViewClass(api) {
     if (!api.views || api.views.length === 0) {
-      return "";
+      return '';
     }
 
-    return _.map(api.views, (view) => "api-card-view-" + view).join(' ');
+    return _.map(api.views, (view) => 'api-card-view-' + view).join(' ');
   }
 }
 

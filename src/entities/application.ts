@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-import {GrantType} from "./oauth";
-import * as _ from "lodash";
+import {GrantType} from './oauth';
+import * as _ from 'lodash';
 
 export class ApplicationType {
-  public name: string;
-  public value: string;
-  public description: string;
-  public icon: string;
-  public oauth?: any;
-  public configuration: any;
 
   static SIMPLE: ApplicationType = new ApplicationType(
     'Simple', 'SIMPLE', 'A hands-free application. Using this type, you will be able to define the client_id by your own.',
@@ -103,6 +97,12 @@ export class ApplicationType {
     ApplicationType.NATIVE,
     ApplicationType.BACKEND_TO_BACKEND
   ];
+  public name: string;
+  public value: string;
+  public description: string;
+  public icon: string;
+  public oauth?: any;
+  public configuration: any;
 
   constructor(name: string, value: string, description: string, icon: string, oauth: any, configuration: any) {
     this.name = name;
@@ -116,6 +116,6 @@ export class ApplicationType {
   public isGrantTypeMandatory(grantType: GrantType): boolean {
     return this.oauth &&
       this.oauth.mandatory_grant_types &&
-      _.indexOf(this.oauth.mandatory_grant_types, grantType.type) != -1;
+      _.indexOf(this.oauth.mandatory_grant_types, grantType.type) !== -1;
   }
 }

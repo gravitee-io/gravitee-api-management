@@ -31,10 +31,10 @@ class NotificationService {
       let preconditionFailed = errorStatus === 412;
       vm.$mdToast.show(
         vm.$mdToast.simple()
-          .action(preconditionFailed?'Refresh':'')
-          .textContent(preconditionFailed?'The API version is outdated and must be refreshed (current modifications will be lost)':msg)
+          .action(preconditionFailed ? 'Refresh' : '')
+          .textContent(preconditionFailed ? 'The API version is outdated and must be refreshed (current modifications will be lost)' : msg)
           .position('bottom right')
-          .hideDelay(preconditionFailed?10000:3000)
+          .hideDelay(preconditionFailed ? 10000 : 3000)
           .theme(errorStatus ? 'toast-error' : 'toast-success')
       ).then(function(response) {
         if (response === 'ok') {
@@ -49,7 +49,7 @@ class NotificationService {
         error.data ?
           Array.isArray(error.data) ?
             error.data[0].message
-            : (error.data.message || (typeof error.data === 'string'?error.data:error.statusText))
+            : (error.data.message || (typeof error.data === 'string' ? error.data : error.statusText))
           : error
       ), error.status || true);
   }

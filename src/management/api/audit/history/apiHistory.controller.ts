@@ -52,7 +52,7 @@ class ApiHistoryController {
     this.eventSelected = {};
     this.diffMode = false;
     this.eventToCompareRequired = false;
-    this.eventTypes = "PUBLISH_API";
+    this.eventTypes = 'PUBLISH_API';
 
     this.cleanAPI(this.api);
     this.init();
@@ -62,7 +62,7 @@ class ApiHistoryController {
   init() {
     var self = this;
     this.$scope.$parent.apiCtrl.checkAPISynchronization(self.api);
-    this.$scope.$on("apiChangeSuccess", function(event, args) {
+    this.$scope.$on('apiChangeSuccess', function(event, args) {
       if (self.$state.current.name.endsWith('history')) {
         // reload API
         self.api = JSON.parse(angular.toJson(_.cloneDeep(_.cloneDeep(args.api))));
@@ -74,7 +74,7 @@ class ApiHistoryController {
         });
       }
     });
-    this.$scope.$on("checkAPISynchronizationSucceed", function() {
+    this.$scope.$on('checkAPISynchronizationSucceed', function() {
       self.reloadEventsTimeline(self.events);
     });
   }
@@ -107,8 +107,7 @@ class ApiHistoryController {
       var idx = this.eventsSelected.indexOf(_eventTimeline);
       if (idx > -1) {
         this.eventsSelected.splice(idx, 1);
-      }
-      else {
+      } else {
         this.eventsSelected.push(_eventTimeline);
       }
 
@@ -212,7 +211,7 @@ class ApiHistoryController {
       that.NotificationService.show('Api rollback !');
 
       that.ApiService.get(that.api.id).then(function (response) {
-        that.$rootScope.$broadcast("apiChangeSuccess", {api: response.data});
+        that.$rootScope.$broadcast('apiChangeSuccess', {api: response.data});
       });
     });
   }
@@ -255,18 +254,18 @@ class ApiHistoryController {
   reorganizeEvent(_event) {
     var eventPayloadDefinition = JSON.parse(_event.definition);
     var reorganizedEvent = {
-      "id": eventPayloadDefinition.id,
-      "name": eventPayloadDefinition.name,
-      "version": eventPayloadDefinition.version,
-      "description": _event.description,
-      "tags": eventPayloadDefinition.tags,
-      "proxy": eventPayloadDefinition.proxy,
-      "paths": eventPayloadDefinition.paths,
-      "properties": eventPayloadDefinition.properties,
-      "services": eventPayloadDefinition.services,
-      "resources": eventPayloadDefinition.resources,
-      "path_mappings": eventPayloadDefinition.path_mappings,
-      "response_templates": eventPayloadDefinition.response_templates
+      'id': eventPayloadDefinition.id,
+      'name': eventPayloadDefinition.name,
+      'version': eventPayloadDefinition.version,
+      'description': _event.description,
+      'tags': eventPayloadDefinition.tags,
+      'proxy': eventPayloadDefinition.proxy,
+      'paths': eventPayloadDefinition.paths,
+      'properties': eventPayloadDefinition.properties,
+      'services': eventPayloadDefinition.services,
+      'resources': eventPayloadDefinition.resources,
+      'path_mappings': eventPayloadDefinition.path_mappings,
+      'response_templates': eventPayloadDefinition.response_templates
     };
     return reorganizedEvent;
   }

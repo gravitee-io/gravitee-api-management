@@ -15,17 +15,11 @@
  */
 
 
-import {Metrics, Scope} from "../alert";
-import {ApiMetrics} from "./api.metrics";
-import {NodeLifecycleMetrics, NodeMetrics} from "./node.metrics";
+import {Metrics, Scope} from '../alert';
+import {ApiMetrics} from './api.metrics';
+import {NodeLifecycleMetrics, NodeMetrics} from './node.metrics';
 
 export class Rule {
-  public source: string;
-  public type: string;
-  public description: string;
-  public category: string;
-  public scopes: Scope[];
-  public metrics: Metrics[];
 
   static API_METRICS_THRESHOLD: Rule = new Rule(
     'REQUEST',
@@ -107,6 +101,20 @@ export class Rule {
     Rule.NODE_METRICS_AGGREGATION,
     Rule.NODE_METRICS_RATE
   ];
+  public source: string;
+  public type: string;
+  public description: string;
+  public category: string;
+  public scopes: Scope[];
+  public metrics: Metrics[];
+
+  static findByScope(scope: Scope): Rule[] {
+    return Rule.RULES.filter(rule => rule.scopes.indexOf(scope) > -1);
+  }
+
+  static findByScopeAndType(scope: Scope, type: string): Rule {
+    return Rule.RULES.find(rule => rule.type === type && rule.scopes.indexOf(scope) !== -1);
+  }
 
   constructor(source: string, type: string, description: string, scopes: Scope[], category: string, metrics?: Metrics[]) {
     this.source = source;
@@ -115,13 +123,5 @@ export class Rule {
     this.scopes = scopes;
     this.category = category;
     this.metrics = metrics;
-  }
-
-  static findByScope(scope: Scope): Rule[] {
-    return Rule.RULES.filter(rule => rule.scopes.indexOf(scope) > -1);
-  }
-
-  static findByScopeAndType(scope: Scope, type: string): Rule {
-    return Rule.RULES.find(rule => rule.type === type && rule.scopes.indexOf(scope) != -1);
   }
 }

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import {StateService} from '@uirouter/core';
-import {Alert, Scope} from "../../../entities/alert";
-import AlertService from "../../../services/alert.service";
-import NotificationService from "../../../services/notification.service";
+import {Alert, Scope} from '../../../entities/alert';
+import AlertService from '../../../services/alert.service';
+import NotificationService from '../../../services/notification.service';
 
 const AlertsComponent: ng.IComponentOptions = {
   bindings: {
@@ -52,7 +52,7 @@ const AlertsComponent: ng.IComponentOptions = {
       }).then(function (response) {
         if (response) {
           AlertService.delete(alert).then(response => {
-            NotificationService.show("Alert '" + alert.name + "' has been deleted");
+            NotificationService.show('Alert \'' + alert.name + '\' has been deleted');
             $state.go($state.current, {}, {reload: true});
           });
         }
@@ -62,7 +62,7 @@ const AlertsComponent: ng.IComponentOptions = {
     this.update = (alert: Alert) => {
       this.enhanceAlert(alert);
       AlertService.update(alert).then(() => {
-        NotificationService.show("Alert saved with success");
+        NotificationService.show('Alert saved with success');
       }).finally(() => {
         $state.go($state.current, {}, {reload: true});
       });
@@ -92,7 +92,7 @@ const AlertsComponent: ng.IComponentOptions = {
         case 'critical':
           return '#d73a49';
       }
-    }
+    };
   }
 };
 

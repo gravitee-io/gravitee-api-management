@@ -17,9 +17,9 @@ import UserService from './services/user.service';
 import { User } from './entities/user';
 import {IScope} from 'angular';
 import { StateService } from '@uirouter/core';
-import {StateProvider, UrlService} from "@uirouter/angularjs";
-import PortalService from "./services/portal.service";
-import InstancesService from "./services/instances.service";
+import {StateProvider, UrlService} from '@uirouter/angularjs';
+import PortalService from './services/portal.service';
+import InstancesService from './services/instances.service';
 
 function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
   'ngInject';
@@ -28,10 +28,10 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       'root',
       {
         abstract: true,
-        template: "<div layout='row'>" +
-        "<div ui-view='sidenav' class='gravitee-sidenav'></div>" +
-        "<md-content ui-view layout='column' flex style='height: 100vh' class='md-content'></md-content>" +
-        "</div>",
+        template: '<div layout=\'row\'>' +
+        '<div ui-view=\'sidenav\' class=\'gravitee-sidenav\'></div>' +
+        '<md-content ui-view layout=\'column\' flex style=\'height: 100vh\' class=\'md-content\'></md-content>' +
+        '</div>',
         resolve: {
           graviteeUser: (UserService: UserService) => UserService.current()
         }
@@ -145,11 +145,11 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
             $state.go('portal.home');
             $rootScope.$broadcast('graviteeUserRefresh', {});
             $rootScope.$broadcast('graviteeUserCancelScheduledServices');
-            let userLogoutEndpoint = $window.localStorage.getItem("user-logout-url");
-            $window.localStorage.removeItem("user-logout-url");
-            if (userLogoutEndpoint != undefined) {
-              var redirectUri = encodeURIComponent(window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname));
-              $window.location.href= userLogoutEndpoint + redirectUri;
+            let userLogoutEndpoint = $window.localStorage.getItem('user-logout-url');
+            $window.localStorage.removeItem('user-logout-url');
+            if (userLogoutEndpoint != null) {
+              const redirectUri = encodeURIComponent(window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname));
+              $window.location.href = userLogoutEndpoint + redirectUri;
             }
           }
         );

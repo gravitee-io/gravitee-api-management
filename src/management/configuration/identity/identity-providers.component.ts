@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import { IdentityProvider } from "../../../entities/identityProvider";
-import IdentityProviderService from "../../../services/identityProvider.service";
-import NotificationService from "../../../services/notification.service";
-import PortalConfigService from "../../../services/portalConfig.service";
+import { IdentityProvider } from '../../../entities/identityProvider';
+import IdentityProviderService from '../../../services/identityProvider.service';
+import NotificationService from '../../../services/notification.service';
+import PortalConfigService from '../../../services/portalConfig.service';
 import _ = require('lodash');
 import {IScope} from 'angular';
 
@@ -65,7 +65,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
       }).then(function (response) {
         if (response) {
           IdentityProviderService.delete(provider).then(response => {
-            NotificationService.show("Identity provider '" + provider.name + "' has been deleted");
+            NotificationService.show('Identity provider \'' + provider.name + '\' has been deleted');
             $state.go('management.settings.identityproviders.list', {}, {reload: true});
           });
         }
@@ -80,7 +80,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
           }
         }
       }).then( response => {
-        NotificationService.show("Authentication is now " + (this.settings.authentication.forceLogin.enabled?"mandatory":"optional") );
+        NotificationService.show('Authentication is now ' + (this.settings.authentication.forceLogin.enabled ? 'mandatory' : 'optional') );
       });
     };
 
@@ -92,7 +92,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
           }
         }
       }).then( response => {
-        NotificationService.show("Login form is now " + (this.settings.authentication.localLogin.enabled?"enabled":"disabled"));
+        NotificationService.show('Login form is now ' + (this.settings.authentication.localLogin.enabled ? 'enabled' : 'disabled'));
       });
     };
   }

@@ -26,16 +26,16 @@ const AlertTriggerNodeLifecycleChangedComponent: ng.IComponentOptions = {
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {
         this.alert.conditions = [{
-          "type": "STRING",
-          "operator": "MATCHES",
-          "property": "node.event",
-          "pattern": "NODE_START|NODE_STOP"
+          'type': 'STRING',
+          'operator': 'MATCHES',
+          'property': 'node.event',
+          'pattern': 'NODE_START|NODE_STOP'
         }];
 
         this.alert.dampening = {
-          "mode": "strict_count",
-          "trueEvaluations": 1,
-          "totalEvaluations": 1
+          'mode': 'strict_count',
+          'trueEvaluations': 1,
+          'totalEvaluations': 1
         };
       }
     };

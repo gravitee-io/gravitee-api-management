@@ -15,11 +15,11 @@
  */
 const InstanceMonitoringComponent: ng.IComponentOptions = {
   bindings: {
-    monitoringData: "<",
-    instance: "<"
+    monitoringData: '<',
+    instance: '<'
   },
-  controller: "InstanceMonitoringController",
-  template: require("./instance-monitoring.html")
+  controller: 'InstanceMonitoringController',
+  template: require('./instance-monitoring.html')
 };
 
 export default InstanceMonitoringComponent;

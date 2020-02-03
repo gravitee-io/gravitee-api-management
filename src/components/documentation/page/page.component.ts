@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from "lodash";
+import * as _ from 'lodash';
 const PageComponent: ng.IComponentOptions = {
 
   controller: class {
     public pageType: string;
     public page: any;
 
-    private fetchersWithSvg: string[] = ["github", "gitlab", "bitbucket"];
+    private fetchersWithSvg: string[] = ['github', 'gitlab', 'bitbucket'];
 
     type(): string  {
       if (this.pageType) {
@@ -34,13 +34,13 @@ const PageComponent: ng.IComponentOptions = {
       return _.includes(this.fetchersWithSvg, fetcherName);
     }
   },
-  template: require("./page.html"),
+  template: require('./page.html'),
   bindings: {
-    page: "<",
-    pageType: "<",
-    edit: "<",
-    sidenav: "<",
-    sidenavoffset: "<"
+    page: '<',
+    pageType: '<',
+    edit: '<',
+    sidenav: '<',
+    sidenavoffset: '<'
   }
 };
 

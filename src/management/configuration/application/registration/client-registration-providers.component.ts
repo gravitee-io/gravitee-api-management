@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import NotificationService from "../../../../services/notification.service";
-import PortalConfigService from "../../../../services/portalConfig.service";
-import { ClientRegistrationProvider } from "../../../../entities/clientRegistrationProvider";
-import ClientRegistrationProviderService from "../../../../services/clientRegistrationProvider.service";
+import NotificationService from '../../../../services/notification.service';
+import PortalConfigService from '../../../../services/portalConfig.service';
+import { ClientRegistrationProvider } from '../../../../entities/clientRegistrationProvider';
+import ClientRegistrationProviderService from '../../../../services/clientRegistrationProvider.service';
 
 const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
   bindings: {
@@ -58,7 +58,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
       }).then(function (response) {
         if (response) {
           ClientRegistrationProviderService.delete(provider).then(response => {
-            NotificationService.show("Client registration provider '" + provider.name + "' has been deleted");
+            NotificationService.show('Client registration provider \'' + provider.name + '\' has been deleted');
             $state.go('management.settings.clientregistrationproviders.list', {}, {reload: true});
           });
         }
@@ -73,7 +73,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
           }
         }
       }).then( response => {
-        NotificationService.show("Client registration is now " + (this.settings.application.registration.enabled?"mandatory":"optional") );
+        NotificationService.show('Client registration is now ' + (this.settings.application.registration.enabled ? 'mandatory' : 'optional') );
         _.merge(Constants, response.data);
       });
     };
@@ -89,12 +89,12 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
         }
       };
 
-      appType['application']['types'][type] = {
+      appType.application.types[type] = {
         enabled: this.settings.application.types[type].enabled
       };
 
       PortalConfigService.save(appType).then( response => {
-        NotificationService.show("Application type '" + type  + "' is now " + (this.settings.application.types[type].enabled?"allowed":"disallowed") );
+        NotificationService.show('Application type \'' + type  + '\' is now ' + (this.settings.application.types[type].enabled ? 'allowed' : 'disallowed') );
         _.merge(Constants, response.data);
       });
     };

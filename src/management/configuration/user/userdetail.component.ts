@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import GroupService from "../../../services/group.service";
-import NotificationService from "../../../services/notification.service";
-import UserService from "../../../services/user.service";
-import RoleService from "../../../services/role.service";
+import GroupService from '../../../services/group.service';
+import NotificationService from '../../../services/notification.service';
+import UserService from '../../../services/user.service';
+import RoleService from '../../../services/role.service';
 import _ = require('lodash');
-import {IScope} from "angular";
+import {IScope} from 'angular';
 
 interface IUserDetailComponentScope extends ng.IScope {
-  selectedMgmtRole: string,
-  selectedPortalRole: string,
-  userApis: any[],
+  selectedMgmtRole: string;
+  selectedPortalRole: string;
+  userApis: any[];
   userApplications: any[];
 }
 const UserDetailComponent: ng.IComponentOptions = {
@@ -35,7 +35,7 @@ const UserDetailComponent: ng.IComponentOptions = {
     apiRoles: '<',
     applicationRoles: '<'
   },
-  template: require("./user.html"),
+  template: require('./user.html'),
   controller: function (
     $mdDialog: angular.material.IDialogService,
     NotificationService: NotificationService,
@@ -48,8 +48,8 @@ const UserDetailComponent: ng.IComponentOptions = {
     'ngInject';
     this.$rootScope = $rootScope;
     this.$onInit = () => {
-      let idxPortalRole = this.selectedUser.roles[0].scope === 'portal' ? 0:1;
-      let idxMgmtRole =   this.selectedUser.roles[0].scope === 'portal' ? 1:0;
+      let idxPortalRole = this.selectedUser.roles[0].scope === 'portal' ? 0 : 1;
+      let idxMgmtRole =   this.selectedUser.roles[0].scope === 'portal' ? 1 : 0;
       $scope.selectedMgmtRole = this.selectedUser.roles[idxMgmtRole].name;
       $scope.selectedPortalRole = this.selectedUser.roles[idxPortalRole].name;
       $scope.userApis = [];
@@ -103,7 +103,7 @@ const UserDetailComponent: ng.IComponentOptions = {
 
     this.updateGlobalRole = (rolescope, rolename) => {
       RoleService.addRole(rolescope, rolename, {id: this.selectedUser.id}).then( (response) =>
-        NotificationService.show("Role updated")
+        NotificationService.show('Role updated')
       );
     };
 
@@ -147,7 +147,7 @@ const UserDetailComponent: ng.IComponentOptions = {
     };
 
     this.loadUserApis = () => {
-      UserService.getMemberships(this.selectedUser.id, "api").then( (response) => {
+      UserService.getMemberships(this.selectedUser.id, 'api').then( (response) => {
           let newApiList = [];
           _.forEach(response.data.metadata, (apiMetadata: any, apiId: string) => {
             newApiList.push( {
@@ -157,16 +157,16 @@ const UserDetailComponent: ng.IComponentOptions = {
               visibility: apiMetadata.visibility
             });
           });
-          $scope.userApis = _.sortBy(newApiList, "name");
+          $scope.userApis = _.sortBy(newApiList, 'name');
         }
       );
     };
 
     this.loadUserApplications = () => {
-      UserService.getMemberships(this.selectedUser.id, "application").then( (response) => {
+      UserService.getMemberships(this.selectedUser.id, 'application').then( (response) => {
           let newAppList = [];
           _.forEach(response.data.metadata, (appMetadata: any, appId: string) => {
-            if (!appMetadata.status || appMetadata.status !== "archived") {
+            if (!appMetadata.status || appMetadata.status !== 'archived') {
               newAppList.push({
                 id: appId,
                 name: appMetadata.name,
@@ -174,7 +174,7 @@ const UserDetailComponent: ng.IComponentOptions = {
               });
             }
           });
-          $scope.userApplications = _.sortBy(newAppList, "name");
+          $scope.userApplications = _.sortBy(newAppList, 'name');
         }
       );
     };

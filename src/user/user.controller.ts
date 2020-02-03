@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import NotificationService from '../services/notification.service';
-import { User } from "../entities/user";
+import { User } from '../entities/user';
 import {IScope} from 'angular';
-import UserService from "../services/user.service";
+import UserService from '../services/user.service';
 import { StateService } from '@uirouter/core';
-import StringService from "../services/string.service";
+import StringService from '../services/string.service';
 
 interface IUserScope extends ng.IScope {
   formUser: any;
@@ -50,7 +50,7 @@ class UserController {
       this.user = response.data;
       this.$rootScope.$broadcast('graviteeUserRefresh');
       this.$scope.formUser.$setPristine();
-      this.NotificationService.show("User has been updated successfully");
+      this.NotificationService.show('User has been updated successfully');
     });
   }
 

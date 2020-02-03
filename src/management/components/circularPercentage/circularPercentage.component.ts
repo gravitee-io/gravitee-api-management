@@ -15,10 +15,10 @@
  */
 const CircularPercentageComponent: ng.IComponentOptions = {
     bindings: {
-      score: "<"
+      score: '<'
     },
-    controller: "CircularPercentageController",
-    template: require("./circularPercentage.html")
+    controller: 'CircularPercentageController',
+    template: require('./circularPercentage.html')
   };
 
   export default CircularPercentageComponent;

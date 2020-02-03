@@ -89,7 +89,7 @@ class ApiEditPlanController {
     if (this.planPolicies) {
       this.planPolicies.forEach(policy => {
         _.forEach(policy, (value, property) => {
-          if (property !== "methods" && property !== "enabled" && property !== "description" && property !== "$$hashKey") {
+          if (property !== 'methods' && property !== 'enabled' && property !== 'description' && property !== '$$hashKey') {
             policy.id = property;
             let policyDef = this.policies.find(policyDef => policyDef.id === policy.id);
             if (policyDef) {
@@ -104,15 +104,15 @@ class ApiEditPlanController {
       if (this.api.groups) {
         const apiGroupIds = this.api.groups;
         this.groups = _.filter(this.groups, (group) => {
-          return apiGroupIds.indexOf(group['id']) > -1;
+          return apiGroupIds.indexOf(group.id) > -1;
         });
       } else {
         this.groups = [];
       }
     }
 
-    if (this.plan['excluded_groups']) {
-      this.plan.authorizedGroups = _.difference(_.map(this.groups, 'id'), this.plan['excluded_groups']);
+    if (this.plan.excluded_groups) {
+      this.plan.authorizedGroups = _.difference(_.map(this.groups, 'id'), this.plan.excluded_groups);
     } else {
       this.plan.authorizedGroups = _.map(this.groups, 'id');
     }
@@ -137,7 +137,7 @@ class ApiEditPlanController {
     if (!stepData.completed) {
       if (this.vm.selectedStep !== 4) {
         this.vm.showBusyText = false;
-        //move to next step when success
+        // move to next step when success
         stepData.completed = true;
         this.enableNextStep();
       }
@@ -148,11 +148,11 @@ class ApiEditPlanController {
   }
 
   enableNextStep() {
-    //do not exceed into max step
+    // do not exceed into max step
     if (this.vm.selectedStep >= this.vm.maxStep) {
       return;
     }
-    //do not increment vm.stepProgress when submitting from previously completed step
+    // do not increment vm.stepProgress when submitting from previously completed step
     if (this.vm.selectedStep === this.vm.stepProgress - 1) {
       this.vm.stepProgress = this.vm.stepProgress + 1;
     }

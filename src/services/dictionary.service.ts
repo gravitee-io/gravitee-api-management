@@ -29,7 +29,7 @@ class DictionaryService {
   }
 
   get(id: string): ng.IPromise<any> {
-    return this.$http.get([this.dictionariesURL, id].join("/"));
+    return this.$http.get([this.dictionariesURL, id].join('/'));
   }
 
   create(dictionary) {
@@ -37,7 +37,7 @@ class DictionaryService {
   }
 
   update(dictionary) {
-    return this.$http.put([this.dictionariesURL, dictionary.id].join("/"), {
+    return this.$http.put([this.dictionariesURL, dictionary.id].join('/'), {
         name: dictionary.name,
         description: dictionary.description,
         type: dictionary.type,
@@ -47,24 +47,24 @@ class DictionaryService {
       });
   }
 
-  delete(dictionary:any) {
-    return this.$http.delete([this.dictionariesURL, dictionary.id].join("/"));
+  delete(dictionary: any) {
+    return this.$http.delete([this.dictionariesURL, dictionary.id].join('/'));
   }
 
-  deploy(dictionary:any) {
-    return this.$http.post([this.dictionariesURL, dictionary.id, '_deploy'].join("/"), {});
+  deploy(dictionary: any) {
+    return this.$http.post([this.dictionariesURL, dictionary.id, '_deploy'].join('/'), {});
   }
 
-  undeploy(dictionary:any) {
-    return this.$http.post([this.dictionariesURL, dictionary.id, '_undeploy'].join("/"), {});
+  undeploy(dictionary: any) {
+    return this.$http.post([this.dictionariesURL, dictionary.id, '_undeploy'].join('/'), {});
   }
 
-  start(dictionary:any) {
-    return this.$http.post([this.dictionariesURL, dictionary.id].join("/") + '?action=START', {});
+  start(dictionary: any) {
+    return this.$http.post([this.dictionariesURL, dictionary.id].join('/') + '?action=START', {});
   }
 
-  stop(dictionary:any) {
-    return this.$http.post([this.dictionariesURL, dictionary.id].join("/") + '?action=STOP', {} );
+  stop(dictionary: any) {
+    return this.$http.post([this.dictionariesURL, dictionary.id].join('/') + '?action=STOP', {} );
   }
 }
 

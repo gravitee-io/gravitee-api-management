@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiService from "../../../services/api.service";
-import NotificationService from "../../../services/notification.service";
-import * as _ from "lodash";
-import ApplicationService from "../../../services/application.service";
+import ApiService from '../../../services/api.service';
+import NotificationService from '../../../services/notification.service';
+import * as _ from 'lodash';
+import ApplicationService from '../../../services/application.service';
 
 const ApiSubscribeComponent: ng.IComponentOptions = {
   bindings: {
@@ -92,7 +92,7 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
 
     canApplicationSubscribe() {
       return this.isPlanSubscribable()
-        && (!this.selectedPlan['comment_required'] || (this.selectedPlan['comment_required'] === true && this.requestMessage))
+        && (!this.selectedPlan.comment_required || (this.selectedPlan.comment_required === true && this.requestMessage))
         && this.selectedApp
         && !this.subscription
         && (

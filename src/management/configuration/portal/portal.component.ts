@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NotificationService from "../../../services/notification.service";
-import PortalConfigService from "../../../services/portalConfig.service";
+import NotificationService from '../../../services/notification.service';
+import PortalConfigService from '../../../services/portalConfig.service';
 import { StateService } from '@uirouter/core';
 import _ = require('lodash');
 
@@ -39,7 +39,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     this.save = () => {
       PortalConfigService.save(this.settings).then( (response) => {
         _.merge(Constants, response.data);
-        NotificationService.show("Configuration saved");
+        NotificationService.show('Configuration saved');
         this.formSettings.$setPristine();
         $state.reload();
       });

@@ -74,7 +74,7 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
         }];
 
       this.initModel();
-    };
+    }
 
     toggleInherit(inherit) {
       if (inherit) {

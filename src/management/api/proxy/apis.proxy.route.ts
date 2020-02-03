@@ -15,7 +15,7 @@
  */
 import TenantService from '../../../services/tenant.service';
 import ApiService from '../../../services/api.service';
-import ServiceDiscoveryService from "../../../services/serviceDiscovery.service";
+import ServiceDiscoveryService from '../../../services/serviceDiscovery.service';
 
 export default apisProxyRouterConfig;
 
@@ -23,7 +23,7 @@ function apisProxyRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.proxy', {
-      template: require("./apis.proxy.route.html")
+      template: require('./apis.proxy.route.html')
     })
     .state('management.apis.detail.proxy.entrypoints', {
       url: '/proxy',
@@ -205,7 +205,7 @@ function apisProxyRouterConfig($stateProvider) {
       controllerAs: 'healthCheckLogCtrl',
       resolve: {
         resolvedLog: ($stateParams, ApiService: ApiService) =>
-          ApiService.getHealthLog($stateParams['apiId'], $stateParams['log'])
+          ApiService.getHealthLog($stateParams.apiId, $stateParams.log)
       },
       data: {
         perms: {
@@ -268,5 +268,5 @@ function apisProxyRouterConfig($stateProvider) {
           page: 'management-api-proxy-response-template'
         }
       }
-    })
+    });
 }

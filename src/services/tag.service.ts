@@ -25,7 +25,7 @@ class TagService {
     return this.$http.get(this.tagsURL);
   }
 
-  get(tagId:string) {
+  get(tagId: string) {
     return this.$http.get(this.tagsURL + tagId);
   }
 

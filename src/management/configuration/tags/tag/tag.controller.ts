@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import NotificationService from '../../../../services/notification.service';
-import GroupService from "../../../../services/group.service";
-import {Alert} from "../../../../entities/alert";
-import TagService from "../../../../services/tag.service";
+import GroupService from '../../../../services/group.service';
+import {Alert} from '../../../../entities/alert';
+import TagService from '../../../../services/tag.service';
 class TagController {
   private tag: any;
 
@@ -34,17 +34,17 @@ class TagController {
         this.tag = response.data;
       });
     }
-  };
+  }
 
   save(tag) {
     if (tag.id) {
       this.TagService.update(tag).then(() => {
-        this.NotificationService.show("Tag updated with success");
+        this.NotificationService.show('Tag updated with success');
         this.$state.go('management.settings.tags');
       });
     } else {
       this.TagService.create(tag).then(() => {
-        this.NotificationService.show("Tag created with success");
+        this.NotificationService.show('Tag created with success');
         this.$state.go('management.settings.tags');
       });
     }

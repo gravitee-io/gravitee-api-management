@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import {StateService} from '@uirouter/core';
-import MessageService from "../../../services/message.service";
-import NotificationService from "../../../services/notification.service";
+import MessageService from '../../../services/message.service';
+import NotificationService from '../../../services/notification.service';
 import _ = require('lodash');
-import ApiService from "../../../services/api.service";
+import ApiService from '../../../services/api.service';
 
 const MessagesComponent: ng.IComponentOptions = {
   bindings: {
@@ -35,13 +35,13 @@ const MessagesComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.$onInit = () => {
-      this.roles = _.sortBy(this.resolvedRoles, ["name"]);
+      this.roles = _.sortBy(this.resolvedRoles, ['name']);
       this.channels = [
-        {id: "PORTAL", name: "Portal Notifications"},
-        {id: "MAIL", name: "Email"},
-        {id: "HTTP", name: "POST HTTP message"}
+        {id: 'PORTAL', name: 'Portal Notifications'},
+        {id: 'MAIL', name: 'Email'},
+        {id: 'HTTP', name: 'POST HTTP message'}
       ];
-      this.channel = "PORTAL";
+      this.channel = 'PORTAL';
       this.defaultHttpHeaders = ApiService.defaultHttpHeaders();
       this.httpHeaders = [];
       this.roleValues = [];
@@ -67,9 +67,9 @@ const MessagesComponent: ng.IComponentOptions = {
     };
 
     this.resetForm = () => {
-      this.title = "";
-      this.url = "";
-      this.text = "";
+      this.title = '';
+      this.url = '';
+      this.text = '';
       this.roleValues = [];
       this.httpHeaders = [];
       this.newHttpHeader();
@@ -79,14 +79,14 @@ const MessagesComponent: ng.IComponentOptions = {
 
     this.newHttpHeader = () => {
       this.httpHeaders.push({
-        key: "",
-        value: ""
-      })
+        key: '',
+        value: ''
+      });
     };
 
     this.deleteHttpHeader = (idx) => {
       this.httpHeaders.splice(idx, 1);
-    }
+    };
   }
 };
 

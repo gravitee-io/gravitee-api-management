@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApplicationService from "../../../../services/application.service";
-import NotificationService from "../../../../services/notification.service";
+import ApplicationService from '../../../../services/application.service';
+import NotificationService from '../../../../services/notification.service';
 
 class ApplicationCreationController {
   private application: any;
@@ -37,7 +37,7 @@ class ApplicationCreationController {
       badgeClass: 'disable',
       badgeIconClass: 'glyphicon-refresh',
       title: 'Security',
-      content: this.clientRegistrationEnabled()?'OIDC configuration':'Type and client id',
+      content: this.clientRegistrationEnabled() ? 'OIDC configuration' : 'Type and client id',
       completed: false
     }, {
       badgeClass: 'disable',
@@ -76,7 +76,7 @@ class ApplicationCreationController {
   create() {
     let alert = this.$mdDialog.confirm({
       title: 'Create application?',
-      content: 'The application ' + this.application.name + ((this.applicationType) ? ' of type ' + this.applicationType:'') + ' will be created.',
+      content: 'The application ' + this.application.name + ((this.applicationType) ? ' of type ' + this.applicationType : '') + ' will be created.',
       ok: 'CREATE',
       cancel: 'CANCEL'
     });
@@ -107,7 +107,7 @@ class ApplicationCreationController {
     if (plan.comment_required) {
       let confirm = this.$mdDialog.prompt()
         .title('Subscription message')
-        .placeholder(plan.comment_message?plan.comment_message:'Fill a message to the API owner')
+        .placeholder(plan.comment_message ? plan.comment_message : 'Fill a message to the API owner')
         .ariaLabel('Subscription message')
         .required(true)
         .ok('Confirm')
@@ -140,8 +140,8 @@ class ApplicationCreationController {
   getReadableApiSubscriptions(): string {
     let plansByApi = _.groupBy(this.selectedPlans, 'apis');
     let multipleApis = _.keys(plansByApi).length > 1;
-    return `Subscribed to API${multipleApis?"s:":""} ` + _.map(plansByApi, (plans, api) => {
-      return `${multipleApis?"</br>- <code>":"<code>"} ` + _.find(this.selectedAPIs, {id: api}).name + '</code> with plan <code>' + _.join(_.map(plans, 'name'), '</code>, ') + '</code>';
+    return `Subscribed to API${multipleApis ? 's:' : ''} ` + _.map(plansByApi, (plans, api) => {
+      return `${multipleApis ? '</br>- <code>' : '<code>'} ` + _.find(this.selectedAPIs, {id: api}).name + '</code> with plan <code>' + _.join(_.map(plans, 'name'), '</code>, ') + '</code>';
     }) + '.';
   }
 }

@@ -19,10 +19,10 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64,
   'ngInject';
 
   $scope.filteredFields = [
-    { id: "groups", description: "Groups", checked: true },
-    { id: "members", description: "Members", checked: true },
-    { id: "pages", description: "Pages", checked: true },
-    { id: "plans", description: "Plans", checked: true }
+    { id: 'groups', description: 'Groups', checked: true },
+    { id: 'members', description: 'Members', checked: true },
+    { id: 'pages', description: 'Pages', checked: true },
+    { id: 'plans', description: 'Plans', checked: true }
   ];
 
   $scope.data = {
@@ -36,7 +36,7 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64,
   $scope.graviteeVersion = Build.version;
 
   $scope.export = function() {
-    var excludes = _.map(_.filter($scope.filteredFields, (fl: any) => { return !fl.checked; }), "id");
+    var excludes = _.map(_.filter($scope.filteredFields, (fl: any) => { return !fl.checked; }), 'id');
     ApiService.export(apiId, excludes, $scope.data.exportVersion)
       .then( (response) => {
         let link = document.createElement('a');
@@ -46,7 +46,7 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64,
         fileName = fileName.replace(/[\s]/gi, '-');
         fileName = fileName.replace(/[^\w]/gi, '-');
         link.download = fileName + '.json';
-        link.target = "_self";
+        link.target = '_self';
         link.click();
         document.body.removeChild(link);
       })

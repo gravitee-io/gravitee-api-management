@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import ApiService from "../../../../../services/api.service";
+import ApiService from '../../../../../services/api.service';
 
 function DialogApiDuplicateController($mdDialog, ApiService: ApiService, api) {
   'ngInject';
   this.contextPathPlaceholder = api.proxy.virtual_hosts[0].path;
   this.versionPlaceholder = api.version;
   this.filteredFields = [
-    {id: "groups", description: "Groups", checked: true},
-    {id: "members", description: "Members", checked: true},
-    {id: "pages", description: "Pages", checked: true},
-    {id: "plans", description: "Plans", checked: true}
+    {id: 'groups', description: 'Groups', checked: true},
+    {id: 'members', description: 'Members', checked: true},
+    {id: 'pages', description: 'Pages', checked: true},
+    {id: 'plans', description: 'Plans', checked: true}
   ];
 
   this.hide = () => {
@@ -35,7 +35,7 @@ function DialogApiDuplicateController($mdDialog, ApiService: ApiService, api) {
     const config = {
       context_path: this.contextPath,
       version: this.version,
-      filtered_fields: _.map(_.filter(this.filteredFields, (fl: any) => { return !fl.checked; }), "id")
+      filtered_fields: _.map(_.filter(this.filteredFields, (fl: any) => { return !fl.checked; }), 'id')
     };
     ApiService.duplicate(api.id, config).then( (response) => {
       $mdDialog.hide(response.data);

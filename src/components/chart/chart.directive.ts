@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import * as Highcharts from "highcharts";
+import * as Highcharts from 'highcharts';
 import angular = require('angular');
 
 class ChartDirective {
@@ -169,8 +169,8 @@ class ChartDirective {
             if (scope.type && scope.type.startsWith('area')) {
               newOptions.tooltip = {
                 formatter: function () {
-                  //TODO: check this
-                  //let s = '<b>' + Highcharts.dateFormat('%A, %b %d, %H:%M', new Date(this.x)) + '</b>';
+                  // TODO: check this
+                  // let s = '<b>' + Highcharts.dateFormat('%A, %b %d, %H:%M', new Date(this.x)) + '</b>';
                   let dateFormat = newOptions.dateFormat || '%A, %b %d, %H:%M';
                   let s = '<b>' + Highcharts.dateFormat(dateFormat, this.x) + '</b>';
                   if (_.filter(this.points, (point: any) => {
@@ -179,8 +179,8 @@ class ChartDirective {
                     _.forEach(this.points, function (point) {
                       if (point.y) {
                         let name = ' ' + (point.series.options.labelPrefix ? point.series.options.labelPrefix + ' ' + point.series.name : point.series.name);
-                        s += '<br /><span style="color:' + point.color + '">\u25CF</span>' + name + ': <b>' + (point.series.options.decimalFormat?Highcharts.numberFormat(point.y, 2):point.y) +
-                          (point.series.options.labelSuffix?point.series.options.labelSuffix:'') + '</b>';
+                        s += '<br /><span style="color:' + point.color + '">\u25CF</span>' + name + ': <b>' + (point.series.options.decimalFormat ? Highcharts.numberFormat(point.y, 2) : point.y) +
+                          (point.series.options.labelSuffix ? point.series.options.labelSuffix : '') + '</b>';
                       }
                     });
                   }

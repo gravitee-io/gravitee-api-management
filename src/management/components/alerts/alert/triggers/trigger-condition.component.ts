@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import {Conditions, Metrics} from "../../../../../entities/alert";
+import {Conditions, Metrics} from '../../../../../entities/alert';
 
 const AlertTriggerConditionComponent: ng.IComponentOptions = {
   bindings: {

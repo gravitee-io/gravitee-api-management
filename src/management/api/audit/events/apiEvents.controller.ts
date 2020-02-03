@@ -27,7 +27,7 @@ class ApiEventsController {
   }
 
   initTimeline(events) {
-    _.forEach(events, event =>{
+    _.forEach(events, event => {
       var eventTimelineType = this.getEventTypeTimeline(event.type);
       var eventTimeline = {
         event: event,
@@ -48,18 +48,18 @@ class ApiEventsController {
 
   getEventTypeTimeline(eventType): any {
     var eventTypeTimeline: any = {};
-    switch(eventType) {
+    switch (eventType) {
       case 'start_api':
-        eventTypeTimeline.icon = "glyphicon-play";
-        eventTypeTimeline.badgeClass = "info";
+        eventTypeTimeline.icon = 'glyphicon-play';
+        eventTypeTimeline.badgeClass = 'info';
         break;
       case 'stop_api':
-        eventTypeTimeline.icon = "glyphicon-stop";
-        eventTypeTimeline.badgeClass = "danger";
+        eventTypeTimeline.icon = 'glyphicon-stop';
+        eventTypeTimeline.badgeClass = 'danger';
         break;
       default:
-        eventTypeTimeline.icon = "glyphicon-check";
-        eventTypeTimeline.badgeClass = "info";
+        eventTypeTimeline.icon = 'glyphicon-check';
+        eventTypeTimeline.badgeClass = 'info';
     }
     return eventTypeTimeline;
   }

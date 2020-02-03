@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Notifier} from "../../../../entities/notifier";
+import {Notifier} from '../../../../entities/notifier';
 
 function DialogAddNotificationSettingsController(
   $scope,
@@ -23,7 +23,7 @@ function DialogAddNotificationSettingsController(
   'ngInject';
   this.notifiers = notifiers;
   this.selectedNotifier = notifiers[0];
-  this.name = "";
+  this.name = '';
 
   this.hide = function () {
     $mdDialog.hide();

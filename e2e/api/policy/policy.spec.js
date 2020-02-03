@@ -15,17 +15,17 @@
  */
 'use strict';
 
-describe('The policy view', function () {
-  var page;
+describe('The policy view', () => {
+  let page;
 
   browser.addMockModule('httpBackendMockModule', require('../../mocked-backend').httpBackendMock);
 
-  beforeEach(function () {
+  beforeEach(() => {
     browser.get('#!/apis/swapi/settings/policies');
     page = require('./policy.po');
   });
 
-  it('should add a policy configuration item on click on add button', function () {
+  it('should add a policy configuration item on click on add button', () => {
     expect(page.rateLimitPolicyConfigurationBlocks.count()).toEqual(0);
     page.rateLimitPolicy.click();
     expect(page.rateLimitPolicyConfigurationBlocks.count()).toEqual(1);

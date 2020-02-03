@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import UserService from "../../../../services/user.service";
-import NotificationService from "../../../../services/notification.service";
-import RoleService from "../../../../services/role.service";
+import UserService from '../../../../services/user.service';
+import NotificationService from '../../../../services/notification.service';
+import RoleService from '../../../../services/role.service';
 
 
 function DialogAddUserRoleController($mdDialog: angular.material.IDialogService, role, roleScope, $q: ng.IQService,
@@ -28,7 +28,7 @@ function DialogAddUserRoleController($mdDialog: angular.material.IDialogService,
   this.roleUsers = [];
 
   this.usersSelected = [];
-  this.searchText = "";
+  this.searchText = '';
 
   const that = this;
   RoleService.listUsers(roleScope, role).then(function (users) {
@@ -57,7 +57,7 @@ function DialogAddUserRoleController($mdDialog: angular.material.IDialogService,
       if (!selected) {
         this.usersSelected.push(user);
       }
-      this.searchText = "";
+      this.searchText = '';
     }
   };
 

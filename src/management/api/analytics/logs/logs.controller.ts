@@ -62,11 +62,11 @@ class ApiLogsController {
     this.onPaginate = this.onPaginate.bind(this);
 
     this.query = new LogsQuery();
-    this.query.page = this.$state.params['page'] || 1;
-    this.query.size = this.$state.params['size'] || 15;
-    this.query.from = this.$state.params['from'];
-    this.query.to = this.$state.params['to'];
-    this.query.query = this.$state.params['q'];
+    this.query.page = this.$state.params.page || 1;
+    this.query.size = this.$state.params.size || 15;
+    this.query.from = this.$state.params.from;
+    this.query.to = this.$state.params.to;
+    this.query.query = this.$state.params.q;
     this.query.field = '-@timestamp';
 
     this.$scope.$watch('logsCtrl.query.field', (field) => {
@@ -80,7 +80,7 @@ class ApiLogsController {
     this.init = true;
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
-    this.query.page = this.$state.params['page'] || 1;
+    this.query.page = this.$state.params.page || 1;
     this.refresh();
   }
 
@@ -111,7 +111,7 @@ class ApiLogsController {
   }
 
   filtersChange(filters) {
-    this.query.page = this.$state.params['page'] || 1;
+    this.query.page = this.$state.params.page || 1;
     this.query.query = filters;
     this.refresh();
   }

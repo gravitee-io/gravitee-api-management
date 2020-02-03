@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiService from "../../../../services/api.service";
+import ApiService from '../../../../services/api.service';
 import _ = require('lodash');
 
 const ApplicationCreationStep3Component: ng.IComponentOptions = {
   require: {
     parent: '^createApplication'
   },
-  template: require("./application-creation-step3.html"),
+  template: require('./application-creation-step3.html'),
   controller: function(ApiService: ApiService, $scope) {
     'ngInject';
 

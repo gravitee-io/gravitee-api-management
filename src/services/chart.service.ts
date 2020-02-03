@@ -20,8 +20,8 @@ class ChartService {
   constructor() {
     'ngInject';
 
-    //from https://material.google.com/style/color.html#color-color-palette
-    //shade 500 & 900
+    // from https://material.google.com/style/color.html#color-color-palette
+    // shade 500 & 900
     //
     // deep purple, lime, deep orange, pink, purple,
     // light green, amber, Blue Grey, orange, teal,
@@ -37,8 +37,8 @@ class ChartService {
     ];
 
 
-    //from https://material.google.com/style/color.html#color-color-palette
-    //shade 200 & 300
+    // from https://material.google.com/style/color.html#color-color-palette
+    // shade 200 & 300
     this.bgColorByBucket = [
       '#b39ddb', '#e6ee9c', '#ffab91', '#f48fb1', '#ce93d8',
       '#c5e1a5', '#ffe082', '#b0bec5', '#ffcc80', '#80cbc4',

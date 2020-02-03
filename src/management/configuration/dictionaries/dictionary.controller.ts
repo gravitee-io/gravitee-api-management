@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { StateService } from "@uirouter/core";
-import angular = require("angular");
+import { StateService } from '@uirouter/core';
+import angular = require('angular');
 
-import DictionaryService from "../../../services/dictionary.service";
-import NotificationService from "../../../services/notification.service";
+import DictionaryService from '../../../services/dictionary.service';
+import NotificationService from '../../../services/notification.service';
 import _ = require('lodash');
 
 interface IDictionaryScope extends ng.IScope {
@@ -83,12 +83,12 @@ class DictionaryController {
     ];
 
     this.joltSpecificationOptions = {
-      placeholder: "Edit your JOLT specification here.",
+      placeholder: 'Edit your JOLT specification here.',
       lineWrapping: true,
       lineNumbers: true,
       allowDropFileTypes: true,
       autoCloseTags: true,
-      mode: "javascript",
+      mode: 'javascript',
       controller: this
     };
   }
@@ -105,7 +105,7 @@ class DictionaryController {
 
   update() {
     if (!this.updateMode) {
-      this.DictionaryService.create(this.dictionary).then((response:any) => {
+      this.DictionaryService.create(this.dictionary).then((response: any) => {
         this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been created');
         this.$state.go('management.settings.dictionaries.dictionary', {dictionaryId: response.data.id}, {reload: true});
       });

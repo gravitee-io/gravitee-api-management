@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import {AuditQuery, default as AuditService} from "../../services/audit.service";
+import {AuditQuery, default as AuditService} from '../../services/audit.service';
 
 const AuditComponent: ng.IComponentOptions = {
   template: require('./audit.html'),
   bindings: {
-    api: "<",
-    apis: "<",
-    applications: "<",
-    events: "<"
+    api: '<',
+    apis: '<',
+    applications: '<',
+    events: '<'
   },
-  controller: function(AuditService: AuditService){
+  controller: function(AuditService: AuditService) {
     'ngInject';
     const vm = this;
 
-    vm.$onInit = ()=> {
-      vm.events = _.map(vm.events, (ev: string)=> {return ev.toUpperCase()});
+    vm.$onInit = () => {
+      vm.events = _.map(vm.events, (ev: string) => {return ev.toUpperCase(); });
       vm.query = new AuditQuery();
       vm.onPaginate = vm.onPaginate.bind(this);
       AuditService.list(null, vm.api).then(response =>
@@ -37,7 +37,7 @@ const AuditComponent: ng.IComponentOptions = {
       );
     };
 
-    vm.handleAuditResponseData = (responseData)=> {
+    vm.handleAuditResponseData = (responseData) => {
       vm.auditLogs = responseData.content;
       vm.metadata = responseData.metadata;
       vm.enhanceAuditLogs(vm.auditLogs);
@@ -45,11 +45,11 @@ const AuditComponent: ng.IComponentOptions = {
       vm.result = {
         size: responseData.pageElements,
         total: responseData.totalElements
-      }
+      };
     };
 
-    vm.enhanceAuditLogs = (auditLogs)=> {
-      _.forEach(auditLogs, (log)=> {
+    vm.enhanceAuditLogs = (auditLogs) => {
+      _.forEach(auditLogs, (log) => {
           log.prettyPatch = JSON.stringify(JSON.parse(log.patch), null, '  ');
           log.displayPatch = false;
           log.displayProperties = false;
@@ -57,31 +57,31 @@ const AuditComponent: ng.IComponentOptions = {
       );
     };
 
-    vm.onPaginate = ()=> {
-      AuditService.list(vm.query, vm.api).then((response)=> {
+    vm.onPaginate = () => {
+      AuditService.list(vm.query, vm.api).then((response) => {
         vm.handleAuditResponseData(response.data);
       });
     };
 
-    vm.getNameByReference = ( ref: {type: string, id:string} )=> {
-      if (vm.metadata[ref.type+':'+ref.id+':name']) {
+    vm.getNameByReference = ( ref: {type: string, id: string} ) => {
+      if (vm.metadata[ref.type + ':' + ref.id + ':name']) {
         return vm.metadata[ref.type + ':' + ref.id + ':name'];
       }
       return ref.id;
     };
 
-    vm.getDisplayableProperties = (properties)=> {
-      return _.map(properties, (v, k)=> vm.metadata[k+":"+v+":name"]);
+    vm.getDisplayableProperties = (properties) => {
+      return _.map(properties, (v, k) => vm.metadata[k + ':' + v + ':name']);
     };
 
-    vm.search = ()=> {
+    vm.search = () => {
       vm.query.page = 1;
       if (vm.query.mgmt) {
         vm.query.api = null;
         vm.query.application = null;
       }
 
-      AuditService.list(vm.query, vm.api).then((response)=> {
+      AuditService.list(vm.query, vm.api).then((response) => {
         vm.handleAuditResponseData(response.data);
       });
     };

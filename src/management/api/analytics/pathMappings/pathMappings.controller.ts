@@ -17,9 +17,9 @@ import _ = require('lodash');
 
 import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
-import DialogAddPathMappingController from "./modal/add-pathMapping.dialog.controller";
-import DialogImportPathMappingController from "./modal/import-pathMapping.dialog.controller";
-import DocumentationService, {DocumentationQuery} from "../../../../services/documentation.service";
+import DialogAddPathMappingController from './modal/add-pathMapping.dialog.controller';
+import DialogImportPathMappingController from './modal/import-pathMapping.dialog.controller';
+import DocumentationService, {DocumentationQuery} from '../../../../services/documentation.service';
 
 class ApiPathMappingsController {
   private api: any;
@@ -41,7 +41,7 @@ class ApiPathMappingsController {
     this.api = this.$scope.$parent.apiCtrl.api;
     this.api.path_mappings = _.sortBy(this.api.path_mappings);
     const q = new DocumentationQuery();
-    q.type = "SWAGGER";
+    q.type = 'SWAGGER';
     DocumentationService.search(q, this.api.id).then((response) => {
       this.swaggerDocs = response.data;
     });
@@ -92,19 +92,11 @@ class ApiPathMappingsController {
       if (selectedDoc) {
         this.ApiService.importPathMappings(this.api.id, selectedDoc).then((updatedApi) => {
           this.onSave(updatedApi);
-        })
+        });
       }
     }, function () {
       // Cancel of the dialog
     });
-  }
-
-  private onSave(updatedApi) {
-    this.api = updatedApi.data;
-    this.api.path_mappings = _.sortBy(this.api.path_mappings);
-    this.api.etag = updatedApi.headers('etag');
-    this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
-    this.NotificationService.show('API \'' + this.$scope.$parent.apiCtrl.api.name + '\' saved');
   }
 
   delete(index) {
@@ -124,6 +116,14 @@ class ApiPathMappingsController {
         this.update();
       }
     });
+  }
+
+  private onSave(updatedApi) {
+    this.api = updatedApi.data;
+    this.api.path_mappings = _.sortBy(this.api.path_mappings);
+    this.api.etag = updatedApi.headers('etag');
+    this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
+    this.NotificationService.show('API \'' + this.$scope.$parent.apiCtrl.api.name + '\' saved');
   }
 }
 

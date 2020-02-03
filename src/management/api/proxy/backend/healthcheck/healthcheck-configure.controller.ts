@@ -49,7 +49,7 @@ class ApiHealthCheckConfigureController {
         this.api.services &&
         this.api.services['health-check'] &&
         this.api.services['health-check'].enabled;
-      
+
       if (!this.endpoint.healthcheck && this.rootHealthcheckEnabled) {
         this.healthcheck = {enabled: true, inherit: true};
       } else {
@@ -58,7 +58,7 @@ class ApiHealthCheckConfigureController {
       this.endpointToDisplay = this.endpoint;
     } else {
       // Health-check for all endpoint
-      if(this.api.proxy.groups.length == 1 && this.api.proxy.groups[0].endpoints.length == 1) {
+      if (this.api.proxy.groups.length === 1 && this.api.proxy.groups[0].endpoints.length === 1) {
         this.endpointToDisplay = this.api.proxy.groups[0].endpoints[0];
       }
 
@@ -134,18 +134,18 @@ class ApiHealthCheckConfigureController {
   }
 
   buildTrigger() {
-    let trigger = "Health-check is running each ";
+    let trigger = 'Health-check is running each ';
 
-    trigger += (this.healthcheck.trigger && this.healthcheck.trigger.rate) || "{rate}";
-    trigger += " " + ((this.healthcheck.trigger && this.healthcheck.trigger.unit) || "{unit}");
+    trigger += (this.healthcheck.trigger && this.healthcheck.trigger.rate) || '{rate}';
+    trigger += ' ' + ((this.healthcheck.trigger && this.healthcheck.trigger.unit) || '{unit}');
 
     return trigger;
   }
 
   buildRequest() {
-    let request = "";
+    let request = '';
 
-    request += (((this.healthcheck.steps && this.healthcheck.steps[0].request.method)) || "{method}") + " ";
+    request += (((this.healthcheck.steps && this.healthcheck.steps[0].request.method)) || '{method}') + ' ';
 
     if ( this.healthcheck.steps && this.healthcheck.steps[0].request.fromRoot ) {
       if ( this.endpointToDisplay ) {
@@ -155,12 +155,12 @@ class ApiHealthCheckConfigureController {
           request += this.endpointToDisplay.target;
         }
       } else {
-        request += "{endpoint}";
+        request += '{endpoint}';
       }
-      request += (this.healthcheck.steps && this.healthcheck.steps[0].request.path) || "/{path}";
+      request += (this.healthcheck.steps && this.healthcheck.steps[0].request.path) || '/{path}';
     } else {
-      request += ((this.endpointToDisplay) ? this.endpointToDisplay.target : "{endpoint}");
-      request += (this.healthcheck.steps && this.healthcheck.steps[0].request.path) || "/{path}";
+      request += ((this.endpointToDisplay) ? this.endpointToDisplay.target : '{endpoint}');
+      request += (this.healthcheck.steps && this.healthcheck.steps[0].request.path) || '/{path}';
     }
 
     return request;
@@ -172,7 +172,7 @@ class ApiHealthCheckConfigureController {
         controllerAs: 'ctrl',
         template: require('./assertion.dialog.html'),
         parent: angular.element(document.body),
-        clickOutsideToClose:true
+        clickOutsideToClose: true
       });
   }
 
@@ -187,7 +187,7 @@ class ApiHealthCheckConfigureController {
 
   update() {
     if (this.endpoint !== undefined) {
-      this.endpoint['healthcheck'] = this.healthcheck;
+      this.endpoint.healthcheck = this.healthcheck;
     } else {
       // health-check is disabled, set dummy values
       if (this.healthcheck.enabled === false) {
@@ -206,7 +206,7 @@ class ApiHealthCheckConfigureController {
       this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
 
       if (this.endpoint !== undefined) {
-        this.NotificationService.show('Health-check configuration for endpoint [' + this.endpoint.name+ '] has been updated');
+        this.NotificationService.show('Health-check configuration for endpoint [' + this.endpoint.name + '] has been updated');
       } else {
         this.NotificationService.show('Global health-check configuration  has been updated');
       }

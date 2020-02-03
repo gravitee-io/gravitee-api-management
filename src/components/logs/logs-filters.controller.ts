@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import {IScope, ITimeoutService} from "angular";
+import {IScope, ITimeoutService} from 'angular';
 import { StateService } from '@uirouter/core';
 
 interface ILogsFiltersScope extends IScope {
@@ -117,6 +117,10 @@ class LogsFiltersController {
       label: 'Without hits to the backend endpoint'
     }];
 
+  private static convert(params) {
+    return '(' + params.join(' OR ') + ')';
+  }
+
   constructor(private $scope: ILogsFiltersScope,
               private $state: StateService,
               private $timeout: ITimeoutService) {
@@ -125,8 +129,8 @@ class LogsFiltersController {
   }
 
   $onInit() {
-    //init filters based on stateParams
-    let q = this.$state.params["q"];
+    // init filters based on stateParams
+    let q = this.$state.params.q;
     if (q) {
       this.decodeQueryFilters(q);
       _.forEach(this.displayModes, (displayMode) => {
@@ -139,14 +143,48 @@ class LogsFiltersController {
       }
     }
   }
+  search() {
+    let query = this.buildQuery(this.filters);
+    // Update the query parameter
+    this.$state.transitionTo(
+      this.$state.current,
+      _.merge(this.$state.params, {
+        q: query
+      }),
+      {notify: false});
+
+    this.$timeout(() => {
+      this.onFiltersChange({filters : query});
+    });
+  }
+
+  clearFilters() {
+    this.$scope.logsFiltersForm.$setPristine();
+    this.filters = {};
+    this.search();
+  }
+
+  hasFilters() {
+    return !_.isEmpty(this.filters) && !this.isEmpty(this.filters);
+  }
+
+  updateDisplayMode() {
+    _.forEach(this.displayModes, (displayMode) => {
+      delete this.filters[displayMode.field];
+    });
+    delete this.filters[this.displayMode.field];
+    if (this.displayMode.field) {
+      this.filters[this.displayMode.field] =  this.displayMode.key;
+    }
+  }
 
   private decodeQueryFilters(query) {
-    let filters = query.split("AND");
+    let filters = query.split('AND');
     for (let i = 0; i < filters.length; i++) {
-      let filter = filters[i].replace(/[()]/g, "");
+      let filter = filters[i].replace(/[()]/g, '');
       let k = filter.split(':')[0].trim();
       let v = filter.substring(filter.indexOf(':') + 1).split('OR').map(x => x.trim());
-      switch(k) {
+      switch (k) {
         case 'api':
           this.filters.api = v;
           break;
@@ -178,7 +216,7 @@ class LogsFiltersController {
           this.filters.tenant = v;
           break;
         case '_exists_':
-          this.filters['_exists_'] = v;
+          this.filters._exists_ = v;
           break;
         case '!_exists_':
           this.filters['!_exists_'] = v;
@@ -195,33 +233,10 @@ class LogsFiltersController {
       }
     }
   }
-  search() {
-    let query = this.buildQuery(this.filters);
-    // Update the query parameter
-    this.$state.transitionTo(
-      this.$state.current,
-      _.merge(this.$state.params, {
-        q: query
-      }),
-      {notify: false});
-
-    this.$timeout(() => {
-      this.onFiltersChange({filters : query});
-    });
-  }
-
-  clearFilters() {
-    this.$scope.logsFiltersForm.$setPristine();
-    this.filters = {};
-    this.search();
-  }
-
-  hasFilters() {
-    return !_.isEmpty(this.filters) && !this.isEmpty(this.filters);
-  }
 
   private isEmpty(map) {
-    for(let key in map) {
+    // tslint:disable-next-line:forin
+    for (let key in map) {
       let val = map[key];
       if (val !== undefined && val.length > 0) {
         return false;
@@ -259,10 +274,6 @@ class LogsFiltersController {
     return query;
   }
 
-  private static convert(params) {
-    return '(' + params.join(' OR ') + ')';
-  }
-
   private map(_val, list, strict) {
     let val = null;
     if (strict) {
@@ -271,16 +282,6 @@ class LogsFiltersController {
       val = list[_.filter(Object.keys(list), elt => elt.toLowerCase().includes(_val.toLowerCase())).pop()];
     }
     return (val) ? val : _val;
-  }
-
-  updateDisplayMode() {
-    _.forEach(this.displayModes, (displayMode) => {
-      delete this.filters[displayMode.field];
-    });
-    delete this.filters[this.displayMode.field];
-    if (this.displayMode.field) {
-      this.filters[this.displayMode.field] =  this.displayMode.key
-    }
   }
 }
 

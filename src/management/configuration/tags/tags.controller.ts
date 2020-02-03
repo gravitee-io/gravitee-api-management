@@ -16,8 +16,8 @@
 import * as _ from 'lodash';
 import TagService from '../../../services/tag.service';
 import NotificationService from '../../../services/notification.service';
-import EntrypointService from "../../../services/entrypoint.service";
-import PortalConfigService from "../../../services/portalConfig.service";
+import EntrypointService from '../../../services/entrypoint.service';
+import PortalConfigService from '../../../services/portalConfig.service';
 import {IScope} from 'angular';
 
 class TagsController {
@@ -50,7 +50,7 @@ class TagsController {
         if (tag.id) {
           that.TagService.delete(tag).then(() => {
             this.deleteEntrypointsByTag(tag).then(() => {
-              that.NotificationService.show("Tag '" + tag.name + "' deleted with success");
+              that.NotificationService.show('Tag \'' + tag.name + '\' deleted with success');
                 _.remove(that.tags, tag);
               });
             });
@@ -77,7 +77,7 @@ class TagsController {
       if (entrypointToDelete) {
         if (entrypointToDelete.id) {
           this.EntrypointService.delete(entrypointToDelete).then(() => {
-            this.NotificationService.show("Entrypoint '" + entrypointToDelete.value + "' deleted with success");
+            this.NotificationService.show('Entrypoint \'' + entrypointToDelete.value + '\' deleted with success');
             _.remove(this.entrypoints, entrypointToDelete);
           });
         }
@@ -99,17 +99,17 @@ class TagsController {
 
   saveSettings = () => {
     PortalConfigService.save().then( () => {
-      NotificationService.show("Configuration saved!");
+      NotificationService.show('Configuration saved!');
       this.formSettings.$setPristine();
     });
-  };
+  }
 
   resetSettings = () => {
     PortalConfigService.get().then((response) => {
       this.Constants = response.data;
       this.formSettings.$setPristine();
     });
-  };
+  }
 
   groupNames = (groups) => {
     // _.join(array, [separator=','])

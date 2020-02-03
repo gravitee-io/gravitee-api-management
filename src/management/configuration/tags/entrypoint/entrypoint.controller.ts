@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import NotificationService from '../../../../services/notification.service';
-import EntrypointService from "../../../../services/entrypoint.service";
+import EntrypointService from '../../../../services/entrypoint.service';
 
 class EntrypointController {
   private entrypoint: any;
@@ -35,12 +35,12 @@ class EntrypointController {
   save(entrypoint) {
     if (entrypoint.id) {
       this.EntrypointService.update(entrypoint).then(() => {
-        this.NotificationService.show("Entrypoint updated with success");
+        this.NotificationService.show('Entrypoint updated with success');
         this.$state.go('management.settings.tags');
       });
     } else {
       this.EntrypointService.create(entrypoint).then(() => {
-        this.NotificationService.show("Entrypoint created with success");
+        this.NotificationService.show('Entrypoint created with success');
         this.$state.go('management.settings.tags');
       });
     }

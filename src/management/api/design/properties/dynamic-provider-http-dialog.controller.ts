@@ -37,14 +37,14 @@ function DialogDynamicProviderHttpController($mdDialog: angular.material.IDialog
   };
 
   this.specificationExample = JSON.stringify([{
-    "key" : 1,
-    "value" : "https://north-europe.company.com/"
+    'key' : 1,
+    'value' : 'https://north-europe.company.com/'
   }, {
-    "key" : 2,
-    "value" : "https://north-europe.company.com/"
+    'key' : 2,
+    'value' : 'https://north-europe.company.com/'
   }, {
-    "key" : 3,
-    "value" : "https://south-asia.company.com/"
+    'key' : 3,
+    'value' : 'https://south-asia.company.com/'
   }], null, 2);
 }
 

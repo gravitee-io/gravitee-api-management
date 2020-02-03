@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiService from "../../../../services/api.service";
-import ApplicationService from "../../../../services/application.service";
-import NotificationService from "../../../../services/notification.service";
+import ApiService from '../../../../services/api.service';
+import ApplicationService from '../../../../services/application.service';
+import NotificationService from '../../../../services/notification.service';
 class ApplicationSubscribeController {
-  private subscriptions: any[];
+  private subscriptions: any;
   private subscribedAPIs: any[] = [];
   private subscribedPlans: any[] = [];
   private application: any;
@@ -33,12 +33,13 @@ class ApplicationSubscribeController {
   $onInit = () => {
     let subscriptionsByAPI = _.groupBy(this.subscriptions.data, 'api');
     _.forEach(subscriptionsByAPI, (subscriptions, api) => {
+      // @ts-ignore
       this.subscribedAPIs.push(_.merge(_.find(this.apis, {id: api}),
         {plans: _.join(_.map(subscriptions, (sub) => this.subscriptions.metadata[sub.plan].name), ', ')}));
     });
 
     this.subscribedPlans = _.map(this.subscriptions.data, 'plan');
-  };
+  }
 
   onSelectAPI = (api) => {
     if (api) {
@@ -47,6 +48,7 @@ class ApplicationSubscribeController {
         this.plans = _.filter(response.data, (plan) => {
           plan.alreadySubscribed = _.includes(this.subscribedPlans, plan.id);
           let subscription = _.find(this.subscriptions.data, {plan: plan.id});
+          // @ts-ignore
           plan.pending = subscription && 'pending' === subscription.status;
           return _.includes(authorizedSecurity, plan.security);
         });
@@ -56,7 +58,7 @@ class ApplicationSubscribeController {
       delete this.plans;
       delete this.selectedAPI;
     }
-  };
+  }
 
   getAuthorizedSecurity = (): string[] => {
     let authorizedSecurity = ['api_key'];
@@ -67,13 +69,13 @@ class ApplicationSubscribeController {
       }
     }
     return authorizedSecurity;
-  };
+  }
 
   onSubscribe(api, plan) {
     if (plan.comment_required) {
       let confirm = this.$mdDialog.prompt()
         .title('Subscription message')
-        .placeholder(plan.comment_message?plan.comment_message:'Fill a message to the API owner')
+        .placeholder(plan.comment_message ? plan.comment_message : 'Fill a message to the API owner')
         .ariaLabel('Subscription message')
         .required(true)
         .ok('Confirm')
@@ -84,6 +86,7 @@ class ApplicationSubscribeController {
           this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
           this.$state.reload();
         });
+        // tslint:disable-next-line:no-empty
       }, () => {});
     } else {
       this.ApplicationService.subscribe(this.application.id, plan.id).then(() => {
@@ -91,7 +94,7 @@ class ApplicationSubscribeController {
         this.$state.reload();
       });
     }
-  };
+  }
 
   onUnsubscribe(api, plan) {
     let alert = this.$mdDialog.confirm({
@@ -102,12 +105,14 @@ class ApplicationSubscribeController {
     });
 
     this.$mdDialog.show(alert).then(() => {
+      // @ts-ignore
       this.ApplicationService.closeSubscription(this.application.id, _.find(this.subscriptions.data, {plan: plan.id}).id).then(() => {
         this.NotificationService.show('Subscription has been successfully closed');
         this.$state.reload();
       });
+      // tslint:disable-next-line:no-empty
     }, () => {});
-  };
+  }
 }
 
 export default ApplicationSubscribeController;

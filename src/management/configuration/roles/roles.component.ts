@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import RoleService from "../../../services/role.service";
-import NotificationService from "../../../services/notification.service";
+import RoleService from '../../../services/role.service';
+import NotificationService from '../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 
 const RolesComponent: ng.IComponentOptions = {
@@ -37,10 +37,10 @@ const RolesComponent: ng.IComponentOptions = {
     this.rolesByScope = {};
 
     this.$onInit = () => {
-      this.rolesByScope['MANAGEMENT'] = this.managementRoles;
-      this.rolesByScope['PORTAL'] = this.portalRoles;
-      this.rolesByScope['API'] = this.apiRoles;
-      this.rolesByScope['APPLICATION'] = this.applicationRoles;
+      this.rolesByScope.MANAGEMENT = this.managementRoles;
+      this.rolesByScope.PORTAL = this.portalRoles;
+      this.rolesByScope.API = this.apiRoles;
+      this.rolesByScope.APPLICATION = this.applicationRoles;
     };
 
     this.newRole = (roleScope) => {
@@ -61,7 +61,7 @@ const RolesComponent: ng.IComponentOptions = {
       }).then( (response) => {
         if (response) {
           RoleService.delete(role).then(function () {
-            NotificationService.show("Role '" + role.name + "' deleted with success");
+            NotificationService.show('Role \'' + role.name + '\' deleted with success');
             _.remove(that.rolesByScope[role.scope], role);
           });
         }

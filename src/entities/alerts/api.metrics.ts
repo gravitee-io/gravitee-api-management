@@ -23,10 +23,10 @@ import {
   ThresholdCondition,
   ThresholdRangeCondition,
   Tuple
-} from "../alert";
-import ApiService from "../../services/api.service";
-import ApplicationService from "../../services/application.service";
-import TenantService from "../../services/tenant.service";
+} from '../alert';
+import ApiService from '../../services/api.service';
+import ApplicationService from '../../services/application.service';
+import TenantService from '../../services/tenant.service';
 
 export class ApiMetrics extends Metrics {
 
@@ -91,7 +91,7 @@ export class ApiMetrics extends Metrics {
   static RESPONSE_CONTENT_LENGTH: ApiMetrics = new ApiMetrics('response.content_length', 'Response Content-Length',
     [ThresholdCondition.TYPE, ThresholdRangeCondition.TYPE, CompareCondition.TYPE]);
 
-  static TENANT: ApiMetrics = new ApiMetrics('tenant', 'Tenant', [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+  static TENANT: ApiMetrics = new ApiMetrics('tenant', 'Tenant', [StringCondition.TYPE], undefined, (type: number, id: string, $injector: any) => {
     let tenants: Tuple[] = [];
 
     // PLATFORM: Search for all registered tenants

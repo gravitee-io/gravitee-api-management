@@ -39,17 +39,6 @@ class RoleService {
     });
   }
 
-  private fetchScopes() {
-    if (this.permissionsByScope) {
-      return this.$q.resolve<any>(this.permissionsByScope);
-    } else {
-      return this.$http.get(this.roleURL).then(response => {
-        this.permissionsByScope = response.data;
-        return this.permissionsByScope;
-      });
-    }
-  }
-
   isUserRoleManagement(scope: string) {
     return _.includes(['MANAGEMENT', 'PORTAL'], scope);
   }
@@ -101,6 +90,17 @@ class RoleService {
 
   addRole(roleScope, roleName, user) {
     return this.$http.post(`${this.roleURL}${roleScope}/roles/${roleName}/users`, user);
+  }
+
+  private fetchScopes() {
+    if (this.permissionsByScope) {
+      return this.$q.resolve<any>(this.permissionsByScope);
+    } else {
+      return this.$http.get(this.roleURL).then(response => {
+        this.permissionsByScope = response.data;
+        return this.permissionsByScope;
+      });
+    }
   }
 }
 

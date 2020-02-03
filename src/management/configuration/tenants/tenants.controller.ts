@@ -124,7 +124,7 @@ class TenantsController {
       this.TenantService.create(that.tenantsToCreate),
       this.TenantService.update(that.tenantsToUpdate)
     ]).then(function (resultArray) {
-      that.NotificationService.show("Tenants saved with success");
+      that.NotificationService.show('Tenants saved with success');
 //      that.loadTenants();
       that.tenantsToCreate = [];
       that.tenantsToUpdate = [];
@@ -147,7 +147,7 @@ class TenantsController {
       if (deleteTenant) {
         if (tenant.id) {
           that.TenantService.delete(tenant).then(function () {
-            that.NotificationService.show("Tenant '" + tenant.name + "' deleted with success");
+            that.NotificationService.show('Tenant \'' + tenant.name + '\' deleted with success');
             _.remove(that.tenants, tenant);
           });
         } else {

@@ -47,8 +47,8 @@ class ApiTransferOwnershipController {
     this.api = resolvedApi.data;
     this.members = resolvedMembers.data;
     this.newPrimaryOwner = null;
-    this.$scope.searchText = "";
-    this.groupById = _.keyBy(resolvedGroups, "id");
+    this.$scope.searchText = '';
+    this.groupById = _.keyBy(resolvedGroups, 'id');
     this.displayGroups = {};
     _.forEach(resolvedGroups, (grp) => {
       this.displayGroups[grp.id] = false;
@@ -60,12 +60,12 @@ class ApiTransferOwnershipController {
       _.forEach(this.api.groups, (grp) => {
         GroupService.getMembers(grp).then((members) => {
           let filteredMembers = _.filter(members.data, (m: any) => {
-            return m.roles["API"];
+            return m.roles.API;
           });
 
           if (filteredMembers.length > 0) {
             self.groupMembers[grp] = filteredMembers;
-            self.groupIdsWithMembers.push(grp)
+            self.groupIdsWithMembers.push(grp);
           }
         });
       });
@@ -74,8 +74,8 @@ class ApiTransferOwnershipController {
     const that = this;
     RoleService.list('API').then(function (roles) {
       that.roles = roles;
-      that.newPORoles = _.filter(roles, (role: any)=>{
-        return role.name !== "PRIMARY_OWNER";});
+      that.newPORoles = _.filter(roles, (role: any) => {
+        return role.name !== 'PRIMARY_OWNER'; });
       that.newPORole = _.find(roles, (role: any) => {
         return role.default;
       });
@@ -93,7 +93,7 @@ class ApiTransferOwnershipController {
       template: require('./transferAPI.dialog.html'),
       parent: angular.element(document.body),
       targetEvent: ev,
-      clickOutsideToClose:true,
+      clickOutsideToClose: true,
       locals: {
         newRole: this.newPORole
       }
@@ -106,19 +106,6 @@ class ApiTransferOwnershipController {
     });
   }
 
-  private transferOwnership(newRole: string) {
-    let ownership = {
-      id: this.newPrimaryOwner.id,
-      reference: this.newPrimaryOwner.reference,
-      role: newRole
-    };
-
-    this.ApiService.transferOwnership(this.api.id, ownership).then(() => {
-      this.NotificationService.show("API ownership changed !");
-      this.$state.go('management.apis.list');
-    });
-  }
-
   isAllowedToTransferOwnership() {
     return this.UserService.currentUser.isAdmin() || this.isPrimaryOwner();
   }
@@ -127,7 +114,7 @@ class ApiTransferOwnershipController {
     if (query) {
       return this.UserService.search(query).then((response) => {
         var usersFound = response.data;
-        return _.filter(usersFound, (user:any) => {
+        return _.filter(usersFound, (user: any) => {
           return user.id === undefined || _.findIndex(this.members,
             function(apiMember: any) {
               return apiMember.id === user.id && apiMember.role === 'PRIMARY_OWNER';
@@ -147,6 +134,19 @@ class ApiTransferOwnershipController {
         this.newPrimaryOwner = null;
       }
     }
+  }
+
+  private transferOwnership(newRole: string) {
+    let ownership = {
+      id: this.newPrimaryOwner.id,
+      reference: this.newPrimaryOwner.reference,
+      role: newRole
+    };
+
+    this.ApiService.transferOwnership(this.api.id, ownership).then(() => {
+      this.NotificationService.show('API ownership changed !');
+      this.$state.go('management.apis.list');
+    });
   }
 }
 

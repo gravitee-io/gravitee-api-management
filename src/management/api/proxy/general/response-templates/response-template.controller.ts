@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import {StateParams, StateService} from '@uirouter/core';
-import ApiService from "../../../../../services/api.service";
-import NotificationService from "../../../../../services/notification.service";
+import ApiService from '../../../../../services/api.service';
+import NotificationService from '../../../../../services/notification.service';
 import _ = require('lodash');
 
 class ApiResponseTemplateController {
@@ -99,7 +99,7 @@ class ApiResponseTemplateController {
     ];
 
     // In case of a new response template, initialize with default media type
-    if(this.creation) {
+    if (this.creation) {
       this.addTemplate('*/*');
     }
   }
@@ -136,7 +136,7 @@ class ApiResponseTemplateController {
   }
 
   update() {
-    let apiResponseTemplates = this.api['response_templates'] ||  {};
+    let apiResponseTemplates = this.api.response_templates ||  {};
 
     if (this.templates.length > 0) {
       apiResponseTemplates[this.templateKey] =
@@ -149,9 +149,9 @@ class ApiResponseTemplateController {
               body: template.body
             };
           });
-      this.api['response_templates'] = apiResponseTemplates;
+      this.api.response_templates = apiResponseTemplates;
     } else {
-      delete this.api['response_templates'][this.templateKey];
+      delete this.api.response_templates[this.templateKey];
     }
 
     this.ApiService.update(this.api).then((updatedApi) => {

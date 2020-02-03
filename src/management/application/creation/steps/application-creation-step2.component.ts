@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ApplicationType} from "../../../../entities/application";
-import {GrantType} from "../../../../entities/oauth";
+import {ApplicationType} from '../../../../entities/application';
+import {GrantType} from '../../../../entities/oauth';
 import _ = require('lodash');
 
 const ApplicationCreationStep2Component: ng.IComponentOptions = {
   require: {
     parent: '^createApplication'
   },
-  template: require("./application-creation-step2.html"),
+  template: require('./application-creation-step2.html'),
   controller: function(Constants) {
     'ngInject';
     this.allowedTypes = _.filter([...ApplicationType.TYPES], (type: ApplicationType) => {
@@ -45,7 +45,7 @@ const ApplicationCreationStep2Component: ng.IComponentOptions = {
       } else {
         this.parent.application.settings = {
           app: {}
-        }
+        };
       }
     };
 
@@ -60,7 +60,7 @@ const ApplicationCreationStep2Component: ng.IComponentOptions = {
         return true;
       }
       return !this.parent.clientRegistrationEnabled() || this.selectedType.value === 'SIMPLE';
-    }
+    };
   }
 };
 

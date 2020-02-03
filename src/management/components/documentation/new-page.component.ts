@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import NotificationService from "../../../services/notification.service";
-import DocumentationService, { DocumentationQuery, FolderSituation } from "../../../services/documentation.service";
-import {StateService} from "@uirouter/core";
-import _ = require("lodash");
-import {IScope} from "angular";
-import ViewService from "../../../services/view.service";
+import NotificationService from '../../../services/notification.service';
+import DocumentationService, { DocumentationQuery, FolderSituation } from '../../../services/documentation.service';
+import {StateService} from '@uirouter/core';
+import _ = require('lodash');
+import {IScope} from 'angular';
+import ViewService from '../../../services/view.service';
 
 interface IPageScope extends IScope {
   getContentMode: string;
@@ -27,62 +27,62 @@ interface IPageScope extends IScope {
 }
 const NewPageComponent: ng.IComponentOptions = {
   bindings: {
-    resolvedFetchers: "<",
-    folders: "<",
-    systemFolders: "<",
-    pageResources: "<",
-    viewResources: "<"
+    resolvedFetchers: '<',
+    folders: '<',
+    systemFolders: '<',
+    pageResources: '<',
+    viewResources: '<'
   },
-  template: require("./new-page.html"),
+  template: require('./new-page.html'),
   controller: function (
     NotificationService: NotificationService,
     DocumentationService: DocumentationService,
     $state: StateService,
     $scope: IPageScope
   ) {
-    "ngInject";
+    'ngInject';
     this.apiId = $state.params.apiId;
 
     this.page = {
-      name: "",
+      name: '',
       type: $state.params.type,
       parentId: $state.params.parent
     };
 
-    $scope.getContentMode = "inline";
+    $scope.getContentMode = 'inline';
 
     this.codeMirrorOptions = {
       lineWrapping: true,
       lineNumbers: true,
       allowDropFileTypes: true,
       autoCloseTags: true,
-      mode: "javascript"
+      mode: 'javascript'
     };
 
 
     this.$onInit = () => {
-      this.foldersById = _.keyBy(this.folders, "id");
-      this.systemFoldersById = _.keyBy(this.systemFolders, "id");
+      this.foldersById = _.keyBy(this.folders, 'id');
+      this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
       this.pageList = this.buildPageList(this.pageResources);
-      this.viewResources = _.filter(this.viewResources, (v) => v.id !== "all");
+      this.viewResources = _.filter(this.viewResources, (v) => v.id !== 'all');
 
       this.fetchers = this.resolvedFetchers;
       if (DocumentationService.supportedTypes(this.getFolderSituation(this.page.parentId)).indexOf(this.page.type) < 0) {
-        $state.go("management.settings.documentation", {parent: $state.params.parent});
+        $state.go('management.settings.documentation', {parent: $state.params.parent});
       }
 
       this.emptyFetcher = {
-        "type": "object",
-        "id": "empty",
-        "properties": {"" : {}}
+        'type': 'object',
+        'id': 'empty',
+        'properties': {'' : {}}
       };
       $scope.fetcherJsonSchema = this.emptyFetcher;
-      this.fetcherJsonSchemaForm = ["*"];
+      this.fetcherJsonSchemaForm = ['*'];
     };
 
     this.buildPageList = (pagesToFilter: any[]) => {
       let pageList = _
-        .filter(pagesToFilter, (p) => p.type === "MARKDOWN" || p.type === "SWAGGER" || (p.type === "FOLDER" && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
+        .filter(pagesToFilter, (p) => p.type === 'MARKDOWN' || p.type === 'SWAGGER' || (p.type === 'FOLDER' && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
         .map((page) => { return {
           id: page.id,
           name: page.name,
@@ -99,7 +99,7 @@ const NewPageComponent: ng.IComponentOptions = {
         return comparison;
       });
 
-      pageList.unshift( {id: "root", name: "", type: "FOLDER", fullPath: ""});
+      pageList.unshift( {id: 'root', name: '', type: 'FOLDER', fullPath: ''});
       return pageList;
     };
 
@@ -117,7 +117,8 @@ const NewPageComponent: ng.IComponentOptions = {
         }
         return FolderSituation.FOLDER_IN_FOLDER;
       }
-      console.debug("impossible to determine folder situation : " + folderId);
+      // tslint:disable-next-line:no-console
+      console.debug('impossible to determine folder situation : ' + folderId);
     };
 
     this.getFolder = (id: string) => {
@@ -133,9 +134,9 @@ const NewPageComponent: ng.IComponentOptions = {
     this.getFolderPath = (parentFolderId: string) => {
       const parent = this.getFolder(parentFolderId);
       if (parent) {
-        return this.getFolderPath(parent.parentId) + "/" + parent.name;
+        return this.getFolderPath(parent.parentId) + '/' + parent.name;
       } else {
-        return "";
+        return '';
       }
     };
 
@@ -153,9 +154,9 @@ const NewPageComponent: ng.IComponentOptions = {
 
     this.checkIfFolder = () => {
       if (this.page.content) {
-        if (this.page.content === "root") {
+        if (this.page.content === 'root') {
           this.page.configuration.isFolder = true;
-          this.page.configuration.inherit = "false";
+          this.page.configuration.inherit = 'false';
         } else {
           const folder = this.getFolder(this.page.content);
           if (folder) {
@@ -170,8 +171,8 @@ const NewPageComponent: ng.IComponentOptions = {
     this.onChangeLinkType = () => {
       delete this.page.content;
       delete this.page.configuration.isFolder;
-      if (this.page.configuration.resourceType !== "external" && !this.page.configuration.inherit) {
-        this.page.configuration.inherit = "true";
+      if (this.page.configuration.resourceType !== 'external' && !this.page.configuration.inherit) {
+        this.page.configuration.inherit = 'true';
       }
     };
 
@@ -179,8 +180,8 @@ const NewPageComponent: ng.IComponentOptions = {
       DocumentationService.create(this.page, this.apiId)
         .then( (response: any) => {
           const page = response.data;
-          NotificationService.show("'" + page.name + "' has been created");
-          if (page.type === "FOLDER") {
+          NotificationService.show('\'' + page.name + '\' has been created');
+          if (page.type === 'FOLDER') {
             this.gotoParent();
           } else {
             this.gotoEdit(page);
@@ -189,7 +190,7 @@ const NewPageComponent: ng.IComponentOptions = {
     };
 
     this.changeContentMode = (newMode) => {
-      if ("fetcher" === newMode) {
+      if ('fetcher' === newMode) {
         this.page.source = {
           configuration: {}
         };
@@ -204,22 +205,22 @@ const NewPageComponent: ng.IComponentOptions = {
 
     this.gotoParent = () => {
       if (this.apiId) {
-        $state.go("management.apis.detail.portal.documentation", {apiId: this.apiId, parent: $state.params.parent});
+        $state.go('management.apis.detail.portal.documentation', {apiId: this.apiId, parent: $state.params.parent});
       } else {
-        $state.go("management.settings.documentation", {parent: $state.params.parent});
+        $state.go('management.settings.documentation', {parent: $state.params.parent});
       }
     };
 
     this.gotoEdit = (page) => {
       if (this.apiId) {
-        $state.go("management.apis.detail.portal.editdocumentation", {apiId: this.apiId, pageId: page.id, type: page.type});
+        $state.go('management.apis.detail.portal.editdocumentation', {apiId: this.apiId, pageId: page.id, type: page.type});
       } else {
-        $state.go("management.settings.editdocumentation", {pageId: page.id, type: page.type});
+        $state.go('management.settings.editdocumentation', {pageId: page.id, type: page.type});
       }
     };
 
     this.updateLinkName = (resourceName: string) => {
-      if (!this.page.name || this.page.name === "" || this.page.configuration.inherit === "true" || resourceName === "") {
+      if (!this.page.name || this.page.name === '' || this.page.configuration.inherit === 'true' || resourceName === '') {
         this.page.name = resourceName;
       }
     };

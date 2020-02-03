@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import UserService from "../../../services/user.service";
-import TaskService from "../../../services/task.service";
-import {IIntervalService, IScope} from "angular";
-import {PagedResult} from "../../../entities/pagedResult";
-import UserNotificationService from "../../../services/userNotification.service";
+import UserService from '../../../services/user.service';
+import TaskService from '../../../services/task.service';
+import {IIntervalService, IScope} from 'angular';
+import {PagedResult} from '../../../entities/pagedResult';
+import UserNotificationService from '../../../services/userNotification.service';
 import { StateService } from '@uirouter/core';
-import PortalService from "../../../services/portal.service";
-import AuthenticationService from "../../../services/authentication.service";
+import PortalService from '../../../services/portal.service';
+import AuthenticationService from '../../../services/authentication.service';
 
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),
@@ -72,11 +72,11 @@ export const NavbarComponent: ng.IComponentOptions = {
       }
     };
 
-    $scope.$on("graviteeUserTaskRefresh", function () {
+    $scope.$on('graviteeUserTaskRefresh', function () {
       vm.refreshUserTasks();
     });
 
-    $scope.$on("graviteeUserCancelScheduledServices", function () {
+    $scope.$on('graviteeUserCancelScheduledServices', function () {
       vm.cancelRefreshUserTasks();
     });
 
@@ -132,7 +132,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     };
 
     vm.refreshUserTasks = function() {
-      if(vm.$rootScope.isWindowFocused) {
+      if (vm.$rootScope.isWindowFocused) {
         TaskService.getTasks().then((response) => {
           const result = new PagedResult();
           result.populate(response.data);
@@ -151,12 +151,12 @@ export const NavbarComponent: ng.IComponentOptions = {
     vm.authenticate = function() {
       PortalService.listSocialIdentityProviders().then((response) => {
         let providers = response.data;
-        if (vm.localLoginDisabled && providers.length == 1) {
+        if (vm.localLoginDisabled && providers.length === 1) {
           AuthenticationService.authenticate(providers[0]);
         } else {
           this.$state.go('login');
         }
       });
-    }
+    };
   }
 };

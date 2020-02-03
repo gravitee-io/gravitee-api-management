@@ -19,8 +19,8 @@ import _ = require('lodash');
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
-import GroupService from "../../../../services/group.service";
-import UserService from "../../../../services/user.service";
+import GroupService from '../../../../services/group.service';
+import UserService from '../../../../services/user.service';
 import { StateService } from '@uirouter/core';
 
 class ApplicationMembersController {
@@ -51,8 +51,8 @@ class ApplicationMembersController {
     this.newPrimaryOwner = null;
     RoleService.list('APPLICATION').then(function (roles) {
       that.roles = roles;
-      that.newPORoles = _.filter(roles, (role: any)=>{
-        return role.name !== "PRIMARY_OWNER";});
+      that.newPORoles = _.filter(roles, (role: any) => {
+        return role.name !== 'PRIMARY_OWNER'; });
       that.newPORole = _.find(roles, (role: any) => {
         return role.default;
       });
@@ -60,7 +60,7 @@ class ApplicationMembersController {
   }
 
   $onInit() {
-    this.groupById = _.keyBy(this.resolvedGroups, "id");
+    this.groupById = _.keyBy(this.resolvedGroups, 'id');
     this.displayGroups = {};
     _.forEach(this.resolvedGroups, (grp) => {
       this.displayGroups[grp.id] = false;
@@ -72,11 +72,11 @@ class ApplicationMembersController {
       _.forEach(this.application.groups, (grp) => {
         this.GroupService.getMembers(grp).then((members) => {
           let filteredMembers = _.filter(members.data, (m: any) => {
-            return m.roles["APPLICATION"]
+            return m.roles.APPLICATION;
           });
           if (filteredMembers.length > 0) {
             self.groupMembers[grp] = filteredMembers;
-            self.groupIdsWithMembers.push(grp)
+            self.groupIdsWithMembers.push(grp);
           }
         });
       });
@@ -143,7 +143,7 @@ class ApplicationMembersController {
   searchUser(query) {
     if (query) {
       return this.UserService.search(query).then((response) => {
-        return _.filter(response.data, (user:any) => {
+        return _.filter(response.data, (user: any) => {
           return  user.id === undefined || _.findIndex(this.members,
               function(member: any) {
                 return member.id === user.id && member.role === 'PRIMARY_OWNER';
@@ -186,7 +186,7 @@ class ApplicationMembersController {
       template: require('./transferApplication.dialog.html'),
       parent: angular.element(document.body),
       targetEvent: ev,
-      clickOutsideToClose:true,
+      clickOutsideToClose: true,
       locals: {
         newRole: this.newPORole
       }
@@ -199,6 +199,14 @@ class ApplicationMembersController {
     });
   }
 
+  isAllowedToTransferOwnership() {
+    return this.UserService.currentUser.isAdmin() || this.isPrimaryOwner();
+  }
+
+  isPrimaryOwner() {
+    return this.UserService.currentUser.id === this.application.owner.id;
+  }
+
   private transferOwnership(newRole: string) {
     let ownership = {
       id: this.newPrimaryOwner.id,
@@ -207,17 +215,9 @@ class ApplicationMembersController {
     };
 
     this.ApplicationService.transferOwnership(this.application.id, ownership).then(() => {
-      this.NotificationService.show("API ownership changed !");
+      this.NotificationService.show('API ownership changed !');
       this.$state.go('management.applications.list');
     });
-  }
-
-  isAllowedToTransferOwnership() {
-    return this.UserService.currentUser.isAdmin() || this.isPrimaryOwner();
-  }
-
-  isPrimaryOwner() {
-    return this.UserService.currentUser.id === this.application.owner.id;
   }
 }
 

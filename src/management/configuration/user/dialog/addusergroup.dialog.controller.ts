@@ -34,11 +34,11 @@ function DialogAddUserGroupController(
 
   this.save = () => {
     let roles = {};
-    if($scope.selectedApplicationRole) {
-      roles["APPLICATION"] = $scope.selectedApplicationRole;
+    if ($scope.selectedApplicationRole) {
+      roles.APPLICATION = $scope.selectedApplicationRole;
     }
-    if($scope.selectedApiRole) {
-      roles["API"] = $scope.selectedApiRole;
+    if ($scope.selectedApiRole) {
+      roles.API = $scope.selectedApiRole;
     }
 
     $mdDialog.hide({

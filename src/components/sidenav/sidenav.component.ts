@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {IScope, IWindowService} from "angular";
+import {IScope, IWindowService} from 'angular';
 import { StateService } from '@uirouter/core';
 
 export const SidenavComponent: ng.IComponentOptions = {

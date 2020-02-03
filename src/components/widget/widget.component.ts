@@ -95,7 +95,7 @@ const WidgetComponent: ng.IComponentOptions = {
       let args = [this.widget.root, chartRequest];
 
       if (! this.widget.root) {
-        args.splice(0,1);
+        args.splice(0, 1);
       }
 
       this.widget.chart.service.function

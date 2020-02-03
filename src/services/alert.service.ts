@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {IHttpPromise} from "angular";
-import {Alert, Scope} from "../entities/alert";
+import {IHttpPromise} from 'angular';
+import {Alert, Scope} from '../entities/alert';
 
 class AlertService {
   private apisURL: string;

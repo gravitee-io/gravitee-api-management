@@ -39,30 +39,30 @@ class MessageService {
   private getPayload(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: string[]) {
     if (url) {
       let params = {};
-      for (let idx=0; idx < httpHeaders.length; idx ++) {
-        if (httpHeaders[idx]["key"] !== "") {
-          params[httpHeaders[idx]["key"]] = httpHeaders[idx]["value"];
+      for (let idx = 0; idx < httpHeaders.length; idx ++) {
+        if (httpHeaders[idx].key !== '') {
+          params[httpHeaders[idx].key] = httpHeaders[idx].value;
         }
       }
       return {
-        "text": text,
-        "recipient": {
-          "url": url
+        'text': text,
+        'recipient': {
+          'url': url
         },
-        "channel": channel,
-        "params": params,
-        "useSystemProxy": useSystemProxy
-      }
+        'channel': channel,
+        'params': params,
+        'useSystemProxy': useSystemProxy
+      };
     } else {
       return {
-        "title": title,
-        "text": text,
-        "recipient": {
-          "role_scope": roleScope,
-          "role_value": roleValues
+        'title': title,
+        'text': text,
+        'recipient': {
+          'role_scope': roleScope,
+          'role_value': roleValues
         },
-        "channel": channel
-      }
+        'channel': channel
+      };
     }
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DampeningMode, DurationTimeUnit} from "../../../../../entities/alert";
+import {DampeningMode, DurationTimeUnit} from '../../../../../entities/alert';
 
 const AlertTriggerDampeningComponent: ng.IComponentOptions = {
   bindings: {
@@ -36,7 +36,7 @@ const AlertTriggerDampeningComponent: ng.IComponentOptions = {
       delete this.dampening.timeUnit;
       delete this.dampening.trueEvaluations;
       delete this.dampening.totalEvaluations;
-    }
+    };
   }
 };
 

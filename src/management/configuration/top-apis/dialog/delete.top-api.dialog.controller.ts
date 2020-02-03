@@ -24,7 +24,7 @@ function DeleteTopApiDialogController($scope, $mdDialog, topApi, TopApiService, 
 
   $scope.ok = function() {
     TopApiService.delete(topApi).then(() => {
-      NotificationService.show("Api '" + topApi.name + "' deleted with success from the list of top APIs");
+      NotificationService.show('Api \'' + topApi.name + '\' deleted with success from the list of top APIs');
       $mdDialog.hide(topApi);
     });
   };

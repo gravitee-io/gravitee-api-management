@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import DashboardService from "../../../services/dashboard.service";
-import * as _ from "lodash";
+import DashboardService from '../../../services/dashboard.service';
+import * as _ from 'lodash';
 const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-chart-pie-configuration.html'),
   bindings: {
@@ -33,8 +33,8 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
           _.forEach(ranges, (range) => {
             if (range) {
               this.data.push({
-                min: parseInt(range.split(':')[0]),
-                max: parseInt(range.split(':')[1]),
+                min: parseInt(range.split(':')[0], 10),
+                max: parseInt(range.split(':')[1], 10),
                 label: this.chart.labels[i],
                 color: this.chart.colors[i++]
               });

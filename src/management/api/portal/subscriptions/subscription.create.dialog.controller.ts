@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import ApiService from "../../../../services/api.service";
-import ApplicationService from "../../../../services/application.service";
+import ApiService from '../../../../services/api.service';
+import ApplicationService from '../../../../services/application.service';
 
 function DialogSubscriptionCreateController(
   $mdDialog: angular.material.IDialogService, plans, api,

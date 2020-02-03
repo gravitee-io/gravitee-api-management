@@ -51,7 +51,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
             events: {
               selection: (event) => {
                 if (!event.resetSelection) {
-                  $rootScope.$broadcast("timeframeZoom", {
+                  $rootScope.$broadcast('timeframeZoom', {
                     from: Math.floor(event.xAxis[0].min),
                     to: Math.round(event.xAxis[0].max)
                   });

@@ -34,7 +34,7 @@ class TopApiService {
 
   update(topApis) {
     if (topApis && topApis.length) {
-      return this.$http.put(this.topApisURL, _.map(topApis, function (topApi:any) {
+      return this.$http.put(this.topApisURL, _.map(topApis, function (topApi: any) {
         return {api: topApi.api};
       }));
     }

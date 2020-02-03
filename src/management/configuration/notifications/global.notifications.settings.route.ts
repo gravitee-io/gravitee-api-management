@@ -16,7 +16,7 @@
 import NotificationSettingsService from '../../../services/notificationSettings.service';
 import AlertService from '../../../services/alert.service';
 import {Scope} from '../../../entities/scope';
-import NotifierService from "../../../services/notifier.service";
+import NotifierService from '../../../services/notifier.service';
 
 export default applicationsNotificationsRouterConfig;
 

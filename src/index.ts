@@ -32,8 +32,8 @@ let configNoCache = {headers: {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'
 let ConstantsJSON: any;
 
 fetchData()
-  .then((constants:any) => initLoader(constants))
-  .then((constants:any) => initTheme(constants))
+  .then((constants: any) => initLoader(constants))
+  .then((constants: any) => initTheme(constants))
   .then(bootstrapApplication);
 
 function fetchData() {
@@ -54,9 +54,9 @@ function fetchData() {
       angular.module('gravitee-portal').constant('Constants', constants);
 
       if (constants.theme.css) {
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.type = "text/css";
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
         link.href = constants.theme.css;
         document.head.appendChild(link);
       }
@@ -68,7 +68,7 @@ function fetchData() {
     });
 }
 
-function initLoader(constants:any) {
+function initLoader(constants: any) {
   const img = document.createElement('img');
   img.classList.add('gravitee-splash-screen');
   img.setAttribute('src', constants.theme.loader);
@@ -78,7 +78,7 @@ function initLoader(constants:any) {
   return $q.resolve(constants);
 }
 
-function initTheme(constants:any) {
+function initTheme(constants: any) {
   return $http.get(`./themes/${constants.theme.name}-theme.json`, configNoCache)
     .then((response: any) => {
       angular.module('gravitee-portal').constant('Theme', response.data);

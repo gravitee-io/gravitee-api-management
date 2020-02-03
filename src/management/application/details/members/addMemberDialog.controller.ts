@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import ApplicationService from "../../../../services/applications.service";
-import UserService from "../../../../services/user.service";
-import NotificationService from "../../../../services/notification.service";
-import RoleService from "../../../../services/role.service";
+import ApplicationService from '../../../../services/applications.service';
+import UserService from '../../../../services/user.service';
+import NotificationService from '../../../../services/notification.service';
+import RoleService from '../../../../services/role.service';
 
 function DialogAddMemberController(
   $scope,
@@ -38,7 +38,7 @@ function DialogAddMemberController(
 	$scope.application = application;
 	$scope.members = members;
 	$scope.usersSelected = [];
-	$scope.searchText = "";
+	$scope.searchText = '';
 
   $scope.hide = function () {
      $mdDialog.cancel();
@@ -47,7 +47,7 @@ function DialogAddMemberController(
 	$scope.searchUser = function (query) {
 		if (query) {
       return UserService.search(query).then(function(response) {
-        return _.filter(response.data, (user: any) => { return _.findIndex($scope.members, {id: user.id}) === -1;});
+        return _.filter(response.data, (user: any) => { return _.findIndex($scope.members, {id: user.id}) === -1; });
       });
 		}
 	};
@@ -62,7 +62,7 @@ function DialogAddMemberController(
       if (!selected) {
         $scope.usersSelected.push(user);
       }
-      $scope.searchText = "";
+      $scope.searchText = '';
     }
   };
 

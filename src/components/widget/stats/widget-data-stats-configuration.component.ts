@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import DashboardService from "../../../services/dashboard.service";
-import * as _ from "lodash";
+import DashboardService from '../../../services/dashboard.service';
+import * as _ from 'lodash';
 const WidgetDataStatsConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-data-stats-configuration.html'),
   bindings: {
@@ -24,35 +24,35 @@ const WidgetDataStatsConfigurationComponent: ng.IComponentOptions = {
     'ngInject';
     this.fields = DashboardService.getAverageableFields();
     this.stats = [{
-      "key": "min",
-      "label": "min",
-      "unit": "ms",
-      "color": "#66bb6a"
+      'key': 'min',
+      'label': 'min',
+      'unit': 'ms',
+      'color': '#66bb6a'
     }, {
-      "key": "max",
-      "label": "max",
-      "unit": "ms",
-      "color": "#ef5350"
+      'key': 'max',
+      'label': 'max',
+      'unit': 'ms',
+      'color': '#ef5350'
     }, {
-      "key": "avg",
-      "label": "avg",
-      "unit": "ms",
-      "color": "#42a5f5"
+      'key': 'avg',
+      'label': 'avg',
+      'unit': 'ms',
+      'color': '#42a5f5'
     }, {
-      "key": "rps",
-      "label": "requests per second",
-      "color": "#ff8f2d",
-      "fallback": [{
-        "key": "rpm",
-        "label": "requests per minute"
+      'key': 'rps',
+      'label': 'requests per second',
+      'color': '#ff8f2d',
+      'fallback': [{
+        'key': 'rpm',
+        'label': 'requests per minute'
       }, {
-        "key": "rph",
-        "label": "requests per hour"
+        'key': 'rph',
+        'label': 'requests per hour'
       }]
     }, {
-      "key": "count",
-      "label": "total",
-      "color": "black"
+      'key': 'count',
+      'label': 'total',
+      'color': 'black'
     }];
     this.statKeys = _.map(this.stats, 'key');
 

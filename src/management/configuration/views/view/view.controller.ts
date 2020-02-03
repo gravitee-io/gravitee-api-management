@@ -15,20 +15,20 @@
  */
 import ViewService from '../../../../services/view.service';
 import NotificationService from '../../../../services/notification.service';
-import ApiService from "../../../../services/api.service";
+import ApiService from '../../../../services/api.service';
 import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
-import {IScope} from "angular";
+import {IScope} from 'angular';
 
 class ViewController {
+  public searchText: string = '';
+  public viewForm: any;
   private createMode: boolean = false;
   private allApis: any[];
   private view: any;
   private viewApis: any[];
   private selectedAPIs: any[];
   private addedAPIs: any[];
-  public searchText: string = "";
-  public viewForm: any;
   private formChanged: boolean = false;
 
   constructor(
@@ -49,7 +49,7 @@ class ViewController {
     this.addedAPIs = [];
     this.selectedAPIs = (this.viewApis) ? this.viewApis.slice(0) : [];
     let self = this;
-    this.$scope.$on("apiPictureChangeSuccess", function(event, args) {
+    this.$scope.$on('apiPictureChangeSuccess', function(event, args) {
       self.view.picture = args.image;
       self.formChanged = true;
     });
@@ -70,15 +70,15 @@ class ViewController {
         });
         that.$q.all(apiFunctions).then(() => {
           that.NotificationService.show('View ' + view.name + ' has been saved.');
-          that.$state.go('management.settings.view', {viewId: view.id}, {reload:true})
+          that.$state.go('management.settings.view', {viewId: view.id}, {reload: true});
         });
-      })
+      });
   }
 
   searchAPI(searchText) {
     let that = this;
     if (that.allApis) {
-      let apisFound = _.filter(that.allApis, api => !that.selectedAPIs.some(a => a.id === api['id']));
+      let apisFound = _.filter(that.allApis, api => !that.selectedAPIs.some(a => a.id === api.id));
       return that.$filter('filter')(apisFound, searchText);
     } else {
       return this.ApiService.list()
@@ -86,7 +86,7 @@ class ViewController {
           // Map the response object to the data object.
           let apis = response.data;
           that.allApis = apis;
-          let apisFound = _.filter(apis, api => !that.selectedAPIs.some(a => a.id === api['id']));
+          let apisFound = _.filter(apis, api => !that.selectedAPIs.some(a => a.id === api.id));
           return that.$filter('filter')(apisFound, searchText);
         });
     }
@@ -99,11 +99,11 @@ class ViewController {
         this.selectedAPIs.push(response.data);
       });
     }
-    this.searchText = "";
+    this.searchText = '';
     this.formChanged = true;
     setTimeout(function () {
       document.getElementById('new-view-apis-autocomplete-id').blur();
-    },0);
+    }, 0);
   }
 
   removeApi(api) {
@@ -121,7 +121,7 @@ class ViewController {
             let apiFound = response.data;
             _.remove(apiFound.views, (v) => v === this.view.id);
             this.ApiService.update(apiFound).then(() => {
-              this.NotificationService.show("API '" + api.name + "' detached with success");
+              this.NotificationService.show('API \'' + api.name + '\' detached with success');
               _.remove(this.selectedAPIs, api);
               _.remove(this.viewApis, api);
             });

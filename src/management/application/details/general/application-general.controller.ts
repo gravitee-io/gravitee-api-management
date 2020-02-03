@@ -19,8 +19,8 @@ import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import SidenavService from '../../../../components/sidenav/sidenav.service';
 import {StateService} from '@uirouter/core';
-import {ApplicationType} from "../../../../entities/application";
-import {GrantType} from "../../../../entities/oauth";
+import {ApplicationType} from '../../../../entities/application';
+import {GrantType} from '../../../../entities/oauth';
 
 interface IApplicationScope extends ng.IScope {
   formApplication: any;
@@ -91,7 +91,7 @@ class ApplicationGeneralController {
         title: 'Would you like to delete your application?',
         warning: 'This operation is irreversible.',
         msg: 'You will no longer be able to access this application.',
-        validationMessage: 'Please, type in the name of the application <code>'+ this.application.name +'</code> to confirm.',
+        validationMessage: 'Please, type in the name of the application <code>' + this.application.name + '</code> to confirm.',
         validationValue: this.application.name,
         confirmButton: 'Yes, delete this application.'
       }

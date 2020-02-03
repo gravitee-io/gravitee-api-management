@@ -50,7 +50,7 @@ import ThemeElementDirective from './components/theme/theme-element.directive';
 
 import uiRouter from '@uirouter/angularjs';
 import {permission, uiPermission} from 'angular-permission';
-import StarRatingDirective from "./components/starRating/star.rating.directive";
+import StarRatingDirective from './components/starRating/star.rating.directive';
 
 import ApiSupport from './api/support/api-support.component';
 
@@ -60,13 +60,15 @@ import PortalViewController from './views/view/view.controller';
 
 import RouterService from '../services/router.service';
 
+// tslint:disable-next-line:no-var-requires
 require('angulartics');
 
 import {AuthProvider} from 'satellizer';
-import NotificationService from "../services/notification.service";
-import DocumentationService from "../services/documentation.service";
+import NotificationService from '../services/notification.service';
+import DocumentationService from '../services/documentation.service';
 
 angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMaterial', 'pascalprecht.translate',
+  // tslint:disable-next-line:no-var-requires
   'duScroll', 'satellizer', 'angulartics', require('angulartics-google-analytics')])
   .value('duScrollOffset', 54)
   .config(portalRouterConfig)

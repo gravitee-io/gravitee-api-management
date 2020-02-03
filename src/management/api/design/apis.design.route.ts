@@ -22,7 +22,7 @@ function apisDesignRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.design', {
-      template: require("./apis.design.route.html")
+      template: require('./apis.design.route.html')
     })
     .state('management.apis.detail.design.policies', {
       url: '/policies',

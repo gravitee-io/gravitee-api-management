@@ -15,17 +15,17 @@
  */
 'use strict';
 
-var paths = require('../.yo-rc.json')['generator-gulp-angular'].props.paths;
+const paths = require('../.yo-rc.json')['generator-gulp-angular'].props.paths;
 
 // An example configuration file.
 exports.config = {
   // The address of a running selenium server.
-  //seleniumAddress: 'http://localhost:4444/wd/hub',
-  //seleniumServerJar: deprecated, this should be set on node_modules/protractor/config.json
+  // seleniumAddress: 'http://localhost:4444/wd/hub',
+  // seleniumServerJar: deprecated, this should be set on node_modules/protractor/config.json
 
   // Capabilities to be passed to the webdriver instance.
   capabilities: {
-    'browserName': 'phantomjs',
+    browserName: 'phantomjs',
     'phantomjs.binary.path': require('phantomjs-prebuilt').path
   },
 

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import AlertService from "../../../../services/alert.service";
-import NotificationService from "../../../../services/notification.service";
-import {Alert, Scope} from "../../../../entities/alert";
-import {Rule} from "../../../../entities/alerts/rule.metrics";
+import AlertService from '../../../../services/alert.service';
+import NotificationService from '../../../../services/notification.service';
+import {Alert, Scope} from '../../../../entities/alert';
+import {Rule} from '../../../../entities/alerts/rule.metrics';
 
 const AlertComponent: ng.IComponentOptions = {
   bindings: {
@@ -30,7 +30,7 @@ const AlertComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.$onInit = () => {
-      this.tabs = ["general", "notifications"];
+      this.tabs = ['general', 'notifications'];
       this.severities = ['info', 'warning', 'critical'];
       const indexOfTab = this.tabs.indexOf($state.params.tab);
       this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
@@ -70,7 +70,7 @@ const AlertComponent: ng.IComponentOptions = {
     this.selectTab = (idx: number) => {
       this.selectedTab = idx;
       this.currentTab = this.tabs[this.selectedTab];
-      //$state.transitionTo("^.alert", {alertId: this.alert.id, tab: this.currentTab}, {notify: false});
+      // $state.transitionTo("^.alert", {alertId: this.alert.id, tab: this.currentTab}, {notify: false});
     };
 
     this.$onDestroy = () => {

@@ -7,8 +7,7 @@
     ],
     "class-name": true,
     "comment-format": [true,
-      "check-space",
-      "check-lowercase"
+      "check-space"
     ],
     "curly": true,
     "eofline": true,
@@ -36,7 +35,7 @@
     "no-constructor-vars": false,
     "no-debugger": true,
     "no-duplicate-variable": true,
-    "no-empty": true,
+    "no-empty": false,
     "no-eval": true,
     "no-string-literal": true,
     "no-switch-case-fall-through": true,
@@ -50,11 +49,11 @@
       "check-else",
       "check-whitespace"
     ],
-    "quotemark": [true, "simple"],
+    "quotemark": [true, "single"],
     "radix": true,
     "semicolon": true,
     "triple-equals": [true, "allow-null-check"],
-    "typedef": [true,
+    "typedef": [false,
       "callSignature",
       "indexSignature",
       "parameter",

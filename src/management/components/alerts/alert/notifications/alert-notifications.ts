@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DurationTimeUnit} from "../../../../../entities/alert";
+import {DurationTimeUnit} from '../../../../../entities/alert';
 
 const AlertNotificationsComponent: ng.IComponentOptions = {
   bindings: {

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {User} from "../entities/user";
-import {PagedResult} from "../entities/pagedResult";
-import {IHttpPromise} from "angular";
-import UserService from "./user.service";
+import {User} from '../entities/user';
+import {PagedResult} from '../entities/pagedResult';
+import {IHttpPromise} from 'angular';
+import UserService from './user.service';
 
 class TaskService {
   private URL: string;
@@ -27,7 +27,7 @@ class TaskService {
   constructor(private $http: ng.IHttpService, Constants, UserService: UserService) {
     'ngInject';
     this.Constants = Constants;
-    this.URL = this.Constants.baseURL+"user/tasks";
+    this.URL = this.Constants.baseURL + 'user/tasks';
     this.UserService = UserService;
   }
 

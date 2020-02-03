@@ -15,7 +15,7 @@
  */
 
 import _ = require('lodash');
-import {Metrics} from "../../../../../../entities/alert";
+import {Metrics} from '../../../../../../entities/alert';
 
 const AlertTriggerConditionCompareComponent: ng.IComponentOptions = {
   bindings: {

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import InstancesService from "../../services/instances.service";
+import InstancesService from '../../services/instances.service';
 
 interface IInstancesScope extends ng.IScope {
 
-  switchDisplayInstances(): void;
-
   displayAllInstances: boolean;
+
+  switchDisplayInstances(): void;
 }
 
 class InstancesController {

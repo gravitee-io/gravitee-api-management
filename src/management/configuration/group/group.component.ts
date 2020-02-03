@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import GroupService from "../../../services/group.service";
-import NotificationService from "../../../services/notification.service";
+import GroupService from '../../../services/group.service';
+import NotificationService from '../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 import _ = require('lodash');
-import UserService from "../../../services/user.service";
+import UserService from '../../../services/user.service';
 
 interface IGroupDetailComponentScope extends ng.IScope {
-  groupApis: any[],
-  groupApplications: any[],
-  selectedApiRole: string,
-  selectedApplicationRole: string,
+  groupApis: any[];
+  groupApplications: any[];
+  selectedApiRole: string;
+  selectedApplicationRole: string;
   currentTab: string;
 }
 const GroupComponent: ng.IComponentOptions = {
@@ -35,7 +35,7 @@ const GroupComponent: ng.IComponentOptions = {
     invitations: '<',
     tags: '<'
   },
-  template: require("./group.html"),
+  template: require('./group.html'),
   controller: function (
     GroupService: GroupService,
     NotificationService: NotificationService,
@@ -51,11 +51,11 @@ const GroupComponent: ng.IComponentOptions = {
     this.$onInit = () => {
       $scope.groupApis = [];
       $scope.groupApplications = [];
-      $scope.currentTab= 'users';
+      $scope.currentTab = 'users';
 
       if (this.group.roles) {
-        $scope.selectedApiRole = this.group.roles['API'];
-        $scope.selectedApplicationRole = this.group.roles['APPLICATION'];
+        $scope.selectedApiRole = this.group.roles.API;
+        $scope.selectedApplicationRole = this.group.roles.APPLICATION;
       }
     };
 
@@ -70,15 +70,15 @@ const GroupComponent: ng.IComponentOptions = {
       let roles = {};
 
       if ($scope.selectedApiRole) {
-        roles['API'] = $scope.selectedApiRole;
+        roles.API = $scope.selectedApiRole;
       } else {
-        delete roles['API'];
+        delete roles.API;
       }
 
       if ($scope.selectedApplicationRole) {
-        roles['APPLICATION'] = $scope.selectedApplicationRole;
+        roles.APPLICATION = $scope.selectedApplicationRole;
       } else {
-        delete roles['APPLICATION'];
+        delete roles.APPLICATION;
       }
 
       this.group.roles = roles;
@@ -142,15 +142,15 @@ const GroupComponent: ng.IComponentOptions = {
     };
 
     this.loadGroupApis = () => {
-      GroupService.getMemberships(this.group.id, "api").then( (response) => {
-          $scope.groupApis = _.sortBy(response.data, "name");
+      GroupService.getMemberships(this.group.id, 'api').then( (response) => {
+          $scope.groupApis = _.sortBy(response.data, 'name');
         }
       );
     };
 
     this.loadGroupApplications = () => {
-      GroupService.getMemberships(this.group.id, "application").then( (response) => {
-          $scope.groupApplications = _.sortBy(response.data, "name");
+      GroupService.getMemberships(this.group.id, 'application').then( (response) => {
+          $scope.groupApplications = _.sortBy(response.data, 'name');
         }
       );
     };
@@ -164,7 +164,7 @@ const GroupComponent: ng.IComponentOptions = {
     };
 
     this.canChangeDefaultApplicationRole = () => {
-      return this.isSuperAdmin()|| !this.group.lock_application_role;
+      return this.isSuperAdmin() || !this.group.lock_application_role;
     };
 
     this.canAddMembers = () => {
@@ -207,8 +207,8 @@ const GroupComponent: ng.IComponentOptions = {
           this.applicationRoles = applicationRoles;
           this.canChangeDefaultApiRole = canChangeDefaultApiRole;
           this.canChangeDefaultApplicationRole = canChangeDefaultApplicationRole;
-          this.hide = function () {$mdDialog.hide();};
-          this.save = function () {$mdDialog.hide(this.email);};
+          this.hide = function () {$mdDialog.hide(); };
+          this.save = function () {$mdDialog.hide(this.email); };
         },
         controllerAs: '$ctrl',
         template: require('./inviteMember.dialog.html'),
@@ -265,7 +265,7 @@ const GroupComponent: ng.IComponentOptions = {
     this.hasGroupAdmin = () => {
       let hasGroupAdmin = false;
       _.forEach(this.members, (member) => {
-        if (member.roles["GROUP"] && member.roles["GROUP"]==="ADMIN") {
+        if (member.roles.GROUP && member.roles.GROUP === 'ADMIN') {
           hasGroupAdmin = true;
         }
       });

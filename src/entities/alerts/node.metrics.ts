@@ -15,13 +15,10 @@
  */
 
 
-import {CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple} from "../alert";
-import ApiService from "../../services/api.service";
+import {CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple} from '../alert';
+import ApiService from '../../services/api.service';
 
 export class NodeType {
-
-  application: string;
-  name: string;
 
   static API_GATEWAY: NodeType = new NodeType('gio-apim-gateway', 'API Gateway');
   static MANAGEMENT_API: NodeType = new NodeType('gio-apim-management', 'Management API');
@@ -30,6 +27,9 @@ export class NodeType {
     NodeType.API_GATEWAY,
     NodeType.MANAGEMENT_API
   ];
+
+  application: string;
+  name: string;
 
   constructor(application: string, name: string) {
     this.application = application;
@@ -42,7 +42,7 @@ export class NodeMetrics extends Metrics {
     [StringCondition.TYPE]);
 
   static NODE_APPLICATION: NodeMetrics = new NodeMetrics('node.application', 'Type',
-    [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], undefined, (type: number, id: string, $injector: any) => {
       let applications: Tuple[] = [];
 
       NodeType.TYPES.forEach(app => {
@@ -87,7 +87,7 @@ export class NodeLifecycleMetrics extends Metrics {
     [StringCondition.TYPE]);
 
   static NODE_APPLICATION: NodeLifecycleMetrics = new NodeLifecycleMetrics('node.application', 'Type',
-    [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], undefined, (type: number, id: string, $injector: any) => {
       let applications: Tuple[] = [];
 
       NodeType.TYPES.forEach(app => {
@@ -98,10 +98,10 @@ export class NodeLifecycleMetrics extends Metrics {
     });
 
   static NODE_EVENT: NodeLifecycleMetrics = new NodeLifecycleMetrics('node.event', 'Event',
-    [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], undefined, (type: number, id: string, $injector: any) => {
       let events: Tuple[] = [];
-      events.push(new Tuple("NODE_START", "Start"));
-      events.push(new Tuple("NODE_STOP", "Stop"));
+      events.push(new Tuple('NODE_START', 'Start'));
+      events.push(new Tuple('NODE_STOP', 'Stop'));
       return events;
     });
 

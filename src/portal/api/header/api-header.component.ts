@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import ApiService from "../../../services/api.service";
-import TicketService from "../../../services/ticket.service";
+import ApiService from '../../../services/api.service';
+import TicketService from '../../../services/ticket.service';
 
 const ApiHeaderComponent: ng.IComponentOptions = {
   bindings: {
@@ -47,7 +47,7 @@ const ApiHeaderComponent: ng.IComponentOptions = {
     this.$onInit = () => {
       // override api entrypoint
       if (Constants.portal.entrypoint && this.api.entrypoints.length <= 1) {
-        let ctxtpath = "";
+        let ctxtpath = '';
         if (this.api.proxy.virtual_hosts.length > 0) {
           ctxtpath = this.api.proxy.virtual_hosts[0].path;
         }
@@ -57,22 +57,22 @@ const ApiHeaderComponent: ng.IComponentOptions = {
       }
       $timeout(function () {
 
-        const apiNavbar = document.getElementById("api-navbar");
-        const headerDetail = document.getElementById("header-detail");
-        const headerMetadata = document.getElementById("header-metadata");
-        const header = document.getElementById("header");
-        const headerTitle = document.getElementById("header-title");
-        const content = document.getElementById("main-content-content");
+        const apiNavbar = document.getElementById('api-navbar');
+        const headerDetail = document.getElementById('header-detail');
+        const headerMetadata = document.getElementById('header-metadata');
+        const header = document.getElementById('header');
+        const headerTitle = document.getElementById('header-title');
+        const content = document.getElementById('main-content-content');
 
-        const pageHeader = document.getElementById("pageHeader");
+        const pageHeader = document.getElementById('pageHeader');
 
         $window.onscroll = () => {
           if ($window.pageYOffset > 0) {
-            content.classList.add("header-fixed");
-            pageHeader.classList.add("sticky");
+            content.classList.add('header-fixed');
+            pageHeader.classList.add('sticky');
           } else {
-            content.classList.remove("header-fixed");
-            pageHeader.classList.remove("sticky");
+            content.classList.remove('header-fixed');
+            pageHeader.classList.remove('sticky');
           }
         };
       }, 0);

@@ -91,13 +91,13 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
       cfg.config = vm.selectedNotificationSetting.config;
       cfg.useSystemProxy = vm.selectedNotificationSetting.useSystemProxy;
       cfg.hooks = [];
-      _.forEach(vm.hookStatus, (k,v)  => {
+      _.forEach(vm.hookStatus, (k, v)  => {
         if (k) {
           cfg.hooks.push(v);
         }
       });
       NotificationSettingsService.update(cfg).then( (response) => {
-        const idx = _.findIndex(vm.notificationSettings, {'id':response.data.id});
+        const idx = _.findIndex(vm.notificationSettings, {'id': response.data.id});
         // portal notification has no id
         if (idx < 0) {
           vm.notificationSettings[0] = response.data;

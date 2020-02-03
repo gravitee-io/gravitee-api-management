@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { AuthProvider, SatellizerConfig } from "satellizer";
-import { IdentityProvider } from "../entities/identityProvider";
-import * as _ from "lodash";
-import UserService from "./user.service";
-import RouterService from "./router.service";
-import { IScope } from "angular";
+import { AuthProvider, SatellizerConfig } from 'satellizer';
+import { IdentityProvider } from '../entities/identityProvider';
+import * as _ from 'lodash';
+import UserService from './user.service';
+import RouterService from './router.service';
+import { IScope } from 'angular';
 import { StateService } from '@uirouter/core';
 
 class AuthenticationService {
@@ -54,14 +54,14 @@ class AuthenticationService {
 
     this.SatellizerConfig.providers[provider.id] = _.merge(satellizerProvider, {
       url: this.Constants.baseURL + 'auth/oauth2/' + provider.id,
-      redirectUri: window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname),
+      redirectUri: window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname),
     });
 
     this.$auth.authenticate(provider.id)
       .then( () => {
         this.UserService.current().then( (user) => {
           if (provider.userLogoutEndpoint) {
-            this.$window.localStorage.setItem("user-logout-url", provider.userLogoutEndpoint);
+            this.$window.localStorage.setItem('user-logout-url', provider.userLogoutEndpoint);
           }
           this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : user});
 

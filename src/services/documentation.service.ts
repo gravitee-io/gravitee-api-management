@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {IHttpPromise} from "angular";
-import {IPromise} from "angular";
-import _ = require("lodash");
+import {IHttpPromise} from 'angular';
+import {IPromise} from 'angular';
+import _ = require('lodash');
 
 export class DocumentationQuery {
   api: string;
@@ -51,26 +51,26 @@ class DocumentationService {
     private $http: ng.IHttpService,
     private $q: ng.IQService,
     private Constants: any) {
-    "ngInject";
+    'ngInject';
   }
 
   url = (apiId: string, pageId?: string, importFiles?: boolean): string => {
     if (apiId) {
-      return `${this.Constants.baseURL}apis/${apiId}/pages/` + (importFiles ? "_import" : "") + (pageId ? pageId : "");
+      return `${this.Constants.baseURL}apis/${apiId}/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
     }
-    return `${this.Constants.baseURL}portal/pages/` + (importFiles ? "_import" : "") + (pageId ? pageId : "");
+    return `${this.Constants.baseURL}portal/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
   }
 
   supportedTypes = (folderSituation: FolderSituation): string[] => {
     switch (folderSituation) {
       case FolderSituation.ROOT:
-        return ["SWAGGER", "MARKDOWN", "FOLDER"];
+        return ['SWAGGER', 'MARKDOWN', 'FOLDER'];
       case FolderSituation.SYSTEM_FOLDER:
-        return ["FOLDER", "LINK"];
+        return ['FOLDER', 'LINK'];
       case FolderSituation.FOLDER_IN_FOLDER:
-        return ["SWAGGER", "MARKDOWN", "FOLDER"];
+        return ['SWAGGER', 'MARKDOWN', 'FOLDER'];
       case FolderSituation.FOLDER_IN_SYSTEM_FOLDER:
-        return ["LINK"];
+        return ['LINK'];
     }
   }
 
@@ -89,15 +89,15 @@ class DocumentationService {
         const keys = Object.keys(q);
         _.forEach(keys, key => {
           let val = q[key];
-          if (val !== undefined && val !== "") {
-            queryParams.push(key + "=" + val);
+          if (val !== undefined && val !== '') {
+            queryParams.push(key + '=' + val);
           }
         });
       }
       if (translated) {
-        queryParams.push("translated=" + translated);
+        queryParams.push('translated=' + translated);
       }
-      url += "?" + queryParams.join("&");
+      url += '?' + queryParams.join('&');
     }
     return this.$http.get(url);
   }
@@ -116,7 +116,7 @@ class DocumentationService {
         name: page.name,
         description: page.description,
         order: page.order,
-        content: page.content || "",
+        content: page.content || '',
         source: page.source,
         published: page.published,
         homepage: page.homepage,
@@ -145,7 +145,7 @@ class DocumentationService {
     let deferred = this.$q.defer();
     let that = this;
     this.$http
-      .get(this.url(apiId), {params: {"homepage": true}})
+      .get(this.url(apiId), {params: {'homepage': true}})
       .then(function(response) {
         if ((<any[]>response.data).length > 0) {
           that
@@ -172,11 +172,11 @@ class DocumentationService {
   }
 
   fetch = (pageId: string, apiId?: string): IHttpPromise<any> => {
-    return this.$http.post(this.url(apiId, pageId) + "/_fetch", null, {timeout: 30000});
+    return this.$http.post(this.url(apiId, pageId) + '/_fetch', null, {timeout: 30000});
   }
 
   fetchAll = (apiId: string): IHttpPromise<any> => {
-    return this.$http.post(this.url(apiId) + "_fetch", null, {timeout: 30000});
+    return this.$http.post(this.url(apiId) + '_fetch', null, {timeout: 30000});
   }
 }
 

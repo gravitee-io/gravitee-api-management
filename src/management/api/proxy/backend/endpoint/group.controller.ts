@@ -15,8 +15,8 @@
  */
 
 import _ = require('lodash');
-import ApiService from "../../../../../services/api.service";
-import NotificationService from "../../../../../services/notification.service";
+import ApiService from '../../../../../services/api.service';
+import NotificationService from '../../../../../services/notification.service';
 import {StateService, StateParams} from '@uirouter/core';
 
 class ApiEndpointGroupController {
@@ -59,7 +59,7 @@ class ApiEndpointGroupController {
 
     this.types = this.resolvedServicesDiscovery.data;
 
-    this.discovery = this.group.services && this.group.services['discovery'];
+    this.discovery = this.group.services && this.group.services.discovery;
     this.discovery = this.discovery || {enabled: false, configuration: {}};
     this.initialGroups = _.cloneDeep(this.api.proxy.groups);
 
@@ -81,7 +81,7 @@ class ApiEndpointGroupController {
     if (!this.group.load_balancing) {
       this.group.load_balancing = {
         type: this.$scope.lbs[0].value
-      }
+      };
     }
 
     this.retrievePluginSchema();
@@ -105,7 +105,7 @@ class ApiEndpointGroupController {
               schema: {}
             };
           } else {
-            //todo manage errors
+            // todo manage errors
             this.NotificationService.showError('Unexpected error while loading service discovery schema for ' + this.discovery.provider);
           }
         });

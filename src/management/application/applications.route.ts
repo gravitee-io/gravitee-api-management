@@ -16,12 +16,12 @@
 import ApplicationService from '../../services/application.service';
 import GroupService from '../../services/group.service';
 import * as _ from 'lodash';
-import UserService from "../../services/user.service";
+import UserService from '../../services/user.service';
 import {StateParams} from '@uirouter/core';
-import ApiService from "../../services/api.service";
-import TenantService from "../../services/tenant.service";
-import TagService from "../../services/tag.service";
-import DashboardService from "../../services/dashboard.service";
+import ApiService from '../../services/api.service';
+import TenantService from '../../services/tenant.service';
+import TagService from '../../services/tag.service';
+import DashboardService from '../../services/dashboard.service';
 
 export default applicationsConfig;
 
@@ -109,7 +109,7 @@ function applicationsConfig($stateProvider) {
       resolve: {
         groups: (UserService: UserService, GroupService: GroupService) => {
           return GroupService.list().then((groups) => {
-            return  _.filter(groups.data, "manageable");
+            return  _.filter(groups.data, 'manageable');
           });
         }
       }
@@ -124,22 +124,22 @@ function applicationsConfig($stateProvider) {
       component: 'applicationSubscriptions',
       resolve: {
         subscriptions: ($stateParams, ApplicationService: ApplicationService) => {
-          let query = "?page=" + $stateParams["page"]
-            + "&size=" + $stateParams["size"];
+          let query = '?page=' + $stateParams.page
+            + '&size=' + $stateParams.size;
 
-          if ($stateParams["status"]) {
-            query += "&status=" + $stateParams["status"];
+          if ($stateParams.status) {
+            query += '&status=' + $stateParams.status;
           }
 
-          if ($stateParams["api"]) {
-            query += "&api=" + $stateParams["api"]
+          if ($stateParams.api) {
+            query += '&api=' + $stateParams.api;
           }
 
-          if ($stateParams["api_key"]) {
-            query += "&api_key=" + $stateParams["api_key"];
+          if ($stateParams.api_key) {
+            query += '&api_key=' + $stateParams.api_key;
           }
 
-          return ApplicationService.listSubscriptions($stateParams.applicationId, query).then(response => response.data)
+          return ApplicationService.listSubscriptions($stateParams.applicationId, query).then(response => response.data);
         },
 
         subscribers: ($stateParams, ApplicationService: ApplicationService) =>
@@ -160,11 +160,11 @@ function applicationsConfig($stateProvider) {
       },
       params: {
         status: {
-          type: "string",
+          type: 'string',
           dynamic: true
         },
         api: {
-          type: "string",
+          type: 'string',
           dynamic: true
         },
         page: {
@@ -200,11 +200,11 @@ function applicationsConfig($stateProvider) {
       },
       params: {
         status: {
-          type: "string",
+          type: 'string',
           dynamic: true
         },
         api: {
-          type: "string",
+          type: 'string',
           dynamic: true
         },
         page: {
@@ -285,11 +285,11 @@ function applicationsConfig($stateProvider) {
       },
       params: {
         from: {
-          type: "int",
+          type: 'int',
           dynamic: true
         },
         to: {
-          type: "int",
+          type: 'int',
           dynamic: true
         },
         q: {

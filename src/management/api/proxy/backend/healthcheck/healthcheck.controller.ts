@@ -39,8 +39,8 @@ class ApiHealthCheckController {
   ) {
     'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
-    this.gateway = {availabilities:{},responsetimes:{}};
-    this.endpoint = {availabilities:{},responsetimes:{}};
+    this.gateway = {availabilities: {}, responsetimes: {}};
+    this.endpoint = {availabilities: {}, responsetimes: {}};
 
     this.onPaginate = this.onPaginate.bind(this);
 
@@ -48,8 +48,8 @@ class ApiHealthCheckController {
     this.query.size = 10;
     this.query.page = 1;
 
-    this.query.from = this.$state.params['from'];
-    this.query.to = this.$state.params['to'];
+    this.query.from = this.$state.params.from;
+    this.query.to = this.$state.params.to;
     this.updateChart();
   }
 
@@ -61,17 +61,17 @@ class ApiHealthCheckController {
 
   updateChart() {
     this.ApiService.apiHealth(this.api.id, 'availability')
-      .then(response => {this.endpoint.availabilities.data = response.data;});
+      .then(response => {this.endpoint.availabilities.data = response.data; });
 
     this.ApiService.apiHealth(this.api.id, 'response_time')
-      .then(response => {this.endpoint.responsetimes.data = response.data;});
+      .then(response => {this.endpoint.responsetimes.data = response.data; });
 
     if (this.displayGatewayHC()) {
       this.ApiService.apiHealth(this.api.id, 'availability', 'gateway')
-        .then(response => {this.gateway.availabilities.data = response.data;});
+        .then(response => {this.gateway.availabilities.data = response.data; });
 
       this.ApiService.apiHealth(this.api.id, 'response_time', 'gateway')
-        .then(response => {this.gateway.responsetimes.data = response.data;});
+        .then(response => {this.gateway.responsetimes.data = response.data; });
     }
 
     this.refresh();
@@ -105,7 +105,7 @@ class ApiHealthCheckController {
     let to: any;
     from = this.query.from || moment().subtract(1, 'days');
     to = this.query.to || moment();
-    let interval = Math.floor((to - from)/24);
+    let interval = Math.floor((to - from) / 24);
     let promises = [
       this.ApiService.apiHealthAverage(this.api.id, {from: from, to: to,
         interval: interval, type: 'RESPONSE_TIME'}),
@@ -121,14 +121,15 @@ class ApiHealthCheckController {
           _.forEach(values, value => {
             _.forEach(value.buckets, bucket => {
               if (bucket) {
+                // tslint:disable-next-line:triple-equals
                 let responseTimeLine = i == 0;
                 series.push({
-                  name: 'Average of ' + (responseTimeLine?'response time':'availability'), data: bucket.data, color: responseTimeLine?'#337AB7':'#5CB85C',
-                  type: responseTimeLine?'area':'column',
-                  labelSuffix: responseTimeLine?'ms':'%',
+                  name: 'Average of ' + (responseTimeLine ? 'response time' : 'availability'), data: bucket.data, color: responseTimeLine ? '#337AB7' : '#5CB85C',
+                  type: responseTimeLine ? 'area' : 'column',
+                  labelSuffix: responseTimeLine ? 'ms' : '%',
                   decimalFormat: !responseTimeLine,
                   yAxis: i,
-                  zones: responseTimeLine?[]:[{
+                  zones: responseTimeLine ? [] : [{
                     value: 80,
                     color: '#D9534F'
                   }, {
@@ -167,7 +168,7 @@ class ApiHealthCheckController {
           title: {
             text: 'Response time'
           }
-        },{
+        }, {
           title: {
             text: 'Availability'
           },
@@ -183,7 +184,7 @@ class ApiHealthCheckController {
               if (!event.resetSelection) {
                 this.query.from = Math.floor(event.xAxis[0].min);
                 this.query.to = Math.floor(event.xAxis[0].max);
-                this.$rootScope.$broadcast("timeframeZoom", {
+                this.$rootScope.$broadcast('timeframeZoom', {
                   from: this.query.from,
                   to: this.query.to
                 });
@@ -192,12 +193,12 @@ class ApiHealthCheckController {
             }
           }
         }
-      }
+      };
     });
   }
 
   getEndpointStatus(state) {
-    switch(state) {
+    switch (state) {
       case 3: return 'UP';
       case 2: return 'TRANSITIONALLY_UP';
       case 1: return 'TRANSITIONALLY_DOWN';

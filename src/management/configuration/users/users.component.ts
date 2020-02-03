@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import UserService from "../../../services/user.service";
-import NotificationService from "../../../services/notification.service";
-import {User} from "../../../entities/user";
+import UserService from '../../../services/user.service';
+import NotificationService from '../../../services/notification.service';
+import {User} from '../../../entities/user';
 import { StateService } from '@uirouter/core';
-import {IScope} from "angular";
+import {IScope} from 'angular';
 
 const UsersComponent: ng.IComponentOptions = {
   bindings: {
     usersPage: '<'
   },
-  template: require("./users.html"),
+  template: require('./users.html'),
   controller: function (
     UserService: UserService,
     NotificationService: NotificationService,
@@ -61,7 +61,7 @@ const UsersComponent: ng.IComponentOptions = {
     };
 
     this.onPaginate = (page: number) => {
-      UserService.list(this.query, page).then((response)=> {
+      UserService.list(this.query, page).then((response) => {
         this.usersPage = response.data;
       });
     };

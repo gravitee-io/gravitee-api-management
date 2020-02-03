@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {Scope} from "../entities/scope";
-import {IHttpPromise} from "angular";
-import {NotificationConfig} from "../entities/notificationConfig";
+import {Scope} from '../entities/scope';
+import {IHttpPromise} from 'angular';
+import {NotificationConfig} from '../entities/notificationConfig';
 
 class NotificationSettingsService {
   private Constants: any;
@@ -35,11 +35,11 @@ class NotificationSettingsService {
   getHooks(scope: Scope): IHttpPromise<any> {
     switch (scope) {
       case Scope.APPLICATION:
-        return this.$http.get(this.applicationsURL + "hooks");
+        return this.$http.get(this.applicationsURL + 'hooks');
       case Scope.API:
-        return this.$http.get(this.apisURL + "hooks");
+        return this.$http.get(this.apisURL + 'hooks');
       case Scope.PORTAL:
-        return this.$http.get(this.portalgCfgURL + "hooks");
+        return this.$http.get(this.portalgCfgURL + 'hooks');
       default:
         break;
     }
@@ -48,11 +48,11 @@ class NotificationSettingsService {
   getNotifiers(scope: Scope, id: string): IHttpPromise<any> {
     switch (scope) {
       case Scope.APPLICATION:
-        return this.$http.get(this.applicationsURL + id + "/notifiers");
+        return this.$http.get(this.applicationsURL + id + '/notifiers');
       case Scope.API:
-        return this.$http.get(this.apisURL + id + "/notifiers");
+        return this.$http.get(this.apisURL + id + '/notifiers');
       case Scope.PORTAL:
-        return this.$http.get(this.portalgCfgURL + "notifiers");
+        return this.$http.get(this.portalgCfgURL + 'notifiers');
       default:
         break;
     }
@@ -86,11 +86,11 @@ class NotificationSettingsService {
 
   update(cfg: NotificationConfig): IHttpPromise<any> {
     const urlId = (cfg.id ? cfg.id : '');
-    if (cfg.referenceType === "API") {
+    if (cfg.referenceType === 'API') {
       return this.$http.put(this.apisURL + cfg.referenceId + '/notificationsettings/' + urlId, cfg);
-    } else if (cfg.referenceType === "APPLICATION") {
+    } else if (cfg.referenceType === 'APPLICATION') {
       return this.$http.put(this.applicationsURL + cfg.referenceId + '/notificationsettings/' + urlId, cfg);
-    } else if (cfg.referenceType === "PORTAL") {
+    } else if (cfg.referenceType === 'PORTAL') {
       return this.$http.put(this.portalgCfgURL + 'notificationsettings/' + urlId, cfg);
     } else {
       return;
@@ -98,11 +98,11 @@ class NotificationSettingsService {
   }
 
   create(cfg: NotificationConfig): IHttpPromise<any> {
-    if (cfg.referenceType === "API") {
+    if (cfg.referenceType === 'API') {
       return this.$http.post(this.apisURL + cfg.referenceId + '/notificationsettings', cfg);
-    } else if (cfg.referenceType === "APPLICATION") {
+    } else if (cfg.referenceType === 'APPLICATION') {
       return this.$http.post(this.applicationsURL + cfg.referenceId + '/notificationsettings', cfg);
-    } else if (cfg.referenceType === "PORTAL") {
+    } else if (cfg.referenceType === 'PORTAL') {
       return this.$http.post(this.portalgCfgURL + 'notificationsettings', cfg);
     } else {
       return;

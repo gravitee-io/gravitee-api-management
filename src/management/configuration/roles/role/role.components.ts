@@ -71,7 +71,7 @@ const RoleComponent: ng.IComponentOptions = {
       let roleCopy = _.clone(this.role);
       roleCopy.permissions = _(roleCopy.permissions)
         .mapValues(value => {
-          return _(value).pickBy((value) => value).keys()
+          return _(value).pickBy((value) => value).keys();
         })
         .value();
       return roleCopy;
@@ -81,7 +81,7 @@ const RoleComponent: ng.IComponentOptions = {
       this.role.permissions = _(this.role.permissions)
         .mapValues(value => {
           let values = _.values(value);
-          return _.zipObject(values, _.map(values, () => true))
+          return _.zipObject(values, _.map(values, () => true));
         })
         .value();
     };

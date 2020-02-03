@@ -15,14 +15,14 @@
  */
 
 import _ = require('lodash');
-import PolicyService from "../../../../../services/policy.service";
-import ApiEditPlanController from "./edit-plan.controller";
+import PolicyService from '../../../../../services/policy.service';
+import ApiEditPlanController from './edit-plan.controller';
 
 const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
   require: {
     parent: '^editPlan'
   },
-  template: require("./plan-wizard-security.html"),
+  template: require('./plan-wizard-security.html'),
   controller: class {
     private securityTypes: any[];
     private securityDefinition: any;
@@ -79,12 +79,12 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
       if (this.parent.plan.id === undefined) {
         this.parent.plan.securityDefinition = {};
       }
-    };
+    }
 
     gotoNextStep() {
       this.parent.vm.stepData[1].data = this.parent.plan;
       this.parent.moveToNextStep(this.parent.vm.stepData[1]);
-    };
+    }
   }
 };
 

@@ -21,14 +21,14 @@ export enum Scope {
 }
 
 export enum ConditionType {
-  STRING = "string",
-  THRESHOLD = "threshold",
-  THRESHOLD_RANGE = "threshold_range",
-  RATE = "rate",
-  FREQUENCY = "frequency",
-  THRESHOLD_ACCUMULATE = "threshold_accumulate",
-  COMPARE = "compare",
-  STRING_COMPARE = "string_compare"
+  STRING = 'string',
+  THRESHOLD = 'threshold',
+  THRESHOLD_RANGE = 'threshold_range',
+  RATE = 'rate',
+  FREQUENCY = 'frequency',
+  THRESHOLD_ACCUMULATE = 'threshold_accumulate',
+  COMPARE = 'compare',
+  STRING_COMPARE = 'string_compare'
 }
 
 class Operator {
@@ -58,16 +58,16 @@ export abstract class Metrics {
   loader: (type: number, id: string, $injector: any) => Tuple[];
   scopes: Scope[];
 
+  static filterByScope(metrics: Metrics[], scope: Scope): Metrics[] {
+    return metrics.filter((metric) => (metric.scopes === undefined || metric.scopes.indexOf(scope) !== -1));
+  }
+
   constructor(key: string, name: string, conditions: string[], scopes?: Scope[], loader?: (type: number, id: string, $injector: any) => Tuple[]) {
     this.key = key;
     this.name = name;
     this.conditions = conditions;
     this.scopes = scopes;
     this.loader = loader;
-  }
-
-  static filterByScope(metrics: Metrics[], scope: Scope): Metrics[] {
-    return metrics.filter((metric) => (metric.scopes === undefined || metric.scopes.indexOf(scope) !== -1));
   }
 }
 
@@ -105,8 +105,6 @@ export class Dampening {
 }
 
 export class DampeningMode {
-  public type: string;
-  public description: string;
 
   static STRICT_COUNT = new DampeningMode('strict_count', 'N consecutive true evaluations');
   static RELAXED_COUNT = new DampeningMode('relaxed_count', 'N true evaluations out of M total evaluations');
@@ -114,6 +112,8 @@ export class DampeningMode {
   static STRICT_TIME = new DampeningMode('strict_time', 'Only true evaluations for at least T time');
 
   static MODES: DampeningMode[] = [DampeningMode.STRICT_COUNT, DampeningMode.RELAXED_COUNT, DampeningMode.RELAXED_TIME, DampeningMode.STRICT_TIME];
+  public type: string;
+  public description: string;
 
   constructor(type: string, description: string) {
     this.type = type;
@@ -135,7 +135,7 @@ export abstract class Condition {
 
 export class ThresholdCondition extends Condition {
 
-  static TYPE: string = "threshold";
+  static TYPE: string = 'threshold';
 
   static LT: Operator = new Operator('lt', 'less than');
   static LTE: Operator = new Operator('lte', 'less than or equals to');
@@ -150,7 +150,7 @@ export class ThresholdCondition extends Condition {
   ];
 
   constructor() {
-    super(ThresholdCondition.TYPE, "Threshold");
+    super(ThresholdCondition.TYPE, 'Threshold');
   }
 
   getOperators(): Operator[] {
@@ -160,7 +160,7 @@ export class ThresholdCondition extends Condition {
 
 export class RateCondition extends Condition {
 
-  static TYPE: string = "rate";
+  static TYPE: string = 'rate';
 
   static LT: Operator = new Operator('lt', 'less than');
   static LTE: Operator = new Operator('lte', 'less than or equals to');
@@ -175,7 +175,7 @@ export class RateCondition extends Condition {
   ];
 
   constructor() {
-    super(RateCondition.TYPE, "Rate");
+    super(RateCondition.TYPE, 'Rate');
   }
 
   getOperators(): Operator[] {
@@ -185,7 +185,7 @@ export class RateCondition extends Condition {
 
 export class FrequencyCondition extends Condition {
 
-  static TYPE: string = "frequency";
+  static TYPE: string = 'frequency';
 
   static LT: Operator = new Operator('lt', 'less than');
   static LTE: Operator = new Operator('lte', 'less than or equals to');
@@ -200,7 +200,7 @@ export class FrequencyCondition extends Condition {
   ];
 
   constructor() {
-    super(FrequencyCondition.TYPE, "Frequency");
+    super(FrequencyCondition.TYPE, 'Frequency');
   }
 
   getOperators(): Operator[] {
@@ -220,7 +220,7 @@ class Function {
 
 export class AggregationCondition extends Condition {
 
-  static TYPE: string = "aggregation";
+  static TYPE: string = 'aggregation';
 
   static LT: Operator = new Operator('lt', 'less than');
   static LTE: Operator = new Operator('lte', 'less than or equals to');
@@ -235,18 +235,18 @@ export class AggregationCondition extends Condition {
   ];
 
   static FUNCTIONS: Function[] = [
-    new Function("count", "count"),
-    new Function("avg", "average"),
-    new Function("min", "min"),
-    new Function("max", "max"),
-    new Function("p50", "50th percentile"),
-    new Function("p90", "90th percentile"),
-    new Function("p95", "95th percentile"),
-    new Function("p99", "99th percentile")
+    new Function('count', 'count'),
+    new Function('avg', 'average'),
+    new Function('min', 'min'),
+    new Function('max', 'max'),
+    new Function('p50', '50th percentile'),
+    new Function('p90', '90th percentile'),
+    new Function('p95', '95th percentile'),
+    new Function('p99', '99th percentile')
   ];
 
   constructor() {
-    super(AggregationCondition.TYPE, "Aggregation");
+    super(AggregationCondition.TYPE, 'Aggregation');
   }
 
   getOperators(): Operator[] {
@@ -256,7 +256,7 @@ export class AggregationCondition extends Condition {
 
 export class ThresholdRangeCondition extends Condition {
 
-  static TYPE: string = "threshold_range";
+  static TYPE: string = 'threshold_range';
 
   static BETWEEN: Operator = new Operator('between', 'between');
 
@@ -265,7 +265,7 @@ export class ThresholdRangeCondition extends Condition {
   ];
 
   constructor() {
-    super(ThresholdRangeCondition.TYPE, "Threshold Range");
+    super(ThresholdRangeCondition.TYPE, 'Threshold Range');
   }
 
   getOperators(): Operator[] {
@@ -275,7 +275,7 @@ export class ThresholdRangeCondition extends Condition {
 
 export class CompareCondition extends Condition {
 
-  static TYPE: string = "compare";
+  static TYPE: string = 'compare';
 
   static LT: Operator = new Operator('lt', 'less than');
   static LTE: Operator = new Operator('lte', 'less than or equals to');
@@ -290,7 +290,7 @@ export class CompareCondition extends Condition {
   ];
 
   constructor() {
-    super(CompareCondition.TYPE, "Compare");
+    super(CompareCondition.TYPE, 'Compare');
   }
 
   getOperators(): Operator[] {
@@ -300,7 +300,7 @@ export class CompareCondition extends Condition {
 
 export class StringCondition extends Condition {
 
-  static TYPE: string = "string";
+  static TYPE: string = 'string';
 
   static EQUALS: Operator = new Operator('equals', 'equals to');
   static NOT_EQUALS: Operator = new Operator('not_equals', 'not equals to');
@@ -319,7 +319,7 @@ export class StringCondition extends Condition {
   ];
 
   constructor() {
-    super(StringCondition.TYPE, "String");
+    super(StringCondition.TYPE, 'String');
   }
 
   getOperators(): Operator[] {
@@ -329,7 +329,7 @@ export class StringCondition extends Condition {
 
 export class StringCompareCondition extends Condition {
 
-  static TYPE: string = "string_compare";
+  static TYPE: string = 'string_compare';
 
   static EQUALS: Operator = new Operator('equals', 'equals to');
   static NOT_EQUALS: Operator = new Operator('not_equals', 'not equals to');
@@ -348,7 +348,7 @@ export class StringCompareCondition extends Condition {
   ];
 
   constructor() {
-    super(StringCompareCondition.TYPE, "String Compare");
+    super(StringCompareCondition.TYPE, 'String Compare');
   }
 
   getOperators(): Operator[] {
@@ -357,8 +357,6 @@ export class StringCompareCondition extends Condition {
 }
 
 export class DurationTimeUnit {
-  key: string;
-  name: string;
 
   static SECONDS: DurationTimeUnit = new DurationTimeUnit('seconds', 'Seconds');
   static MINUTES: DurationTimeUnit = new DurationTimeUnit('minutes', 'Minutes');
@@ -369,6 +367,8 @@ export class DurationTimeUnit {
     DurationTimeUnit.MINUTES,
     DurationTimeUnit.HOURS
   ];
+  key: string;
+  name: string;
 
   constructor(key: string, name: string) {
     this.key = key;

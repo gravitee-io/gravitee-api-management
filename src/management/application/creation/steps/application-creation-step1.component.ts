@@ -17,7 +17,7 @@ const ApplicationCreationStep1Component: ng.IComponentOptions = {
   require: {
     parent: '^createApplication'
   },
-  template: require("./application-creation-step1.html")
+  template: require('./application-creation-step1.html')
 };
 
 export default ApplicationCreationStep1Component;

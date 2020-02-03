@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 import {User} from '../entities/user';
-import RoleService from "./role.service";
+import RoleService from './role.service';
 import ApplicationService from './application.service';
 import ApiService from './api.service';
 import _ = require('lodash');
 import StringService from './string.service';
-import {UrlService} from "@uirouter/angularjs";
-import {PagedResult} from "../entities/pagedResult";
-import Base64Service from "./base64.service";
+import {UrlService} from '@uirouter/angularjs';
+import {PagedResult} from '../entities/pagedResult';
+import Base64Service from './base64.service';
 
 class UserService {
+
+  /**
+   * Current authenticated user or empty user if not authenticated.
+   */
+  public currentUser: User;
   private baseURL: string;
   private usersURL: string;
   private userURL: string;
   private searchUsersURL: string;
   private routerInitialized: boolean = false;
   private isLogout: boolean = false;
-
-  /**
-   * Current authenticated user or empty user if not authenticated.
-   */
-  public currentUser: User;
 
   constructor(private $http: ng.IHttpService,
               private $q: ng.IQService,
@@ -237,7 +237,7 @@ class UserService {
   }
 
   getMemberships(id: string, type: string): ng.IPromise<any> {
-    return this.$http.get(`${this.usersURL}${id}/memberships?type=${type}`)
+    return this.$http.get(`${this.usersURL}${id}/memberships?type=${type}`);
   }
 
   setTasks(tasks: PagedResult) {

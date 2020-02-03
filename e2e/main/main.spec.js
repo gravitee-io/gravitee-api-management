@@ -15,17 +15,17 @@
  */
 'use strict';
 
-describe('The main view', function () {
-  var page;
+describe('The main view', () => {
+  let page;
 
   browser.addMockModule('httpBackendMockModule', require('../mocked-backend').httpBackendMock);
 
-  beforeEach(function () {
+  beforeEach(() => {
     browser.get('#!/apis/');
     page = require('./main.po');
   });
 
-  it('should include home page title', function () {
+  it('should include home page title', () => {
     expect(page.h3El.getText()).toContain('Gravitee.io Portal');
   });
 });

@@ -35,7 +35,7 @@ class ApiResourcesController {
   ) {
     'ngInject';
     this.creation = true;
-    this.resourceJsonSchemaForm = ["*"];
+    this.resourceJsonSchemaForm = ['*'];
 
     this.types = resolvedResources.data;
   }
@@ -115,7 +115,7 @@ class ApiResourcesController {
             schema: {}
           };
         } else {
-          //todo manage errors
+          // todo manage errors
           this.NotificationService.showError('Unexpected error while loading resource schema for ' + this.resource.type);
         }
       });

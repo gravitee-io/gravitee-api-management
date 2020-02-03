@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import UserService from "../../../services/user.service";
+import UserService from '../../../services/user.service';
 
 export class Role {
   default: boolean;
@@ -37,11 +37,11 @@ function DialogAddGroupMemberController(
   this.group = group;
   this.apiRoles = apiRoles;
   this.applicationRoles = applicationRoles;
-  
+
   this.defaultApiRole = defaultApiRole;
   this.defaultApplicationRole = defaultApplicationRole;
   this.usersSelected = [];
-  this.searchText = "";
+  this.searchText = '';
   this.defaultApiRole = (defaultApiRole) ? defaultApiRole : _.find(apiRoles, {default: true}).name;
   this.defaultApplicationRole = (defaultApplicationRole) ? defaultApplicationRole : _.find(applicationRoles, {default: true}).name;
 

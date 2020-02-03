@@ -16,12 +16,12 @@
 import UserService from '../../services/user.service';
 import {IScope} from 'angular';
 import { StateService } from '@uirouter/core';
-import { User } from "../../entities/user";
-import RouterService from "../../services/router.service";
+import { User } from '../../entities/user';
+import RouterService from '../../services/router.service';
 import * as _ from 'lodash';
-import { IdentityProvider } from "../../entities/identityProvider";
-import AuthenticationService from "../../services/authentication.service";
-import {log} from "util";
+import { IdentityProvider } from '../../entities/identityProvider';
+import AuthenticationService from '../../services/authentication.service';
+import {log} from 'util';
 
 class LoginController {
   user: any = {};
@@ -48,7 +48,7 @@ class LoginController {
   authenticate(identityProvider: string) {
     let provider = _.find(this.identityProviders, {'id': identityProvider}) as IdentityProvider;
     this.AuthenticationService.authenticate(provider);
-  };
+  }
 
   login() {
     this.UserService.login(this.user).then(() => {

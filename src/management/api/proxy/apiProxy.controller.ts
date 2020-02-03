@@ -17,9 +17,9 @@ import _ = require('lodash');
 import angular = require('angular');
 import SidenavService from '../../../components/sidenav/sidenav.service';
 import UserService from '../../../services/user.service';
-import ApiService from "../../../services/api.service";
-import NotificationService from "../../../services/notification.service";
-import GroupService from "../../../services/group.service";
+import ApiService from '../../../services/api.service';
+import NotificationService from '../../../services/notification.service';
+import GroupService from '../../../services/group.service';
 
 class ApiProxyController {
   private initialApi: any;
@@ -67,7 +67,7 @@ class ApiProxyController {
     this.$mdDialog = $mdDialog;
     this.initialApi = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
-    this.discovery = this.api.services && this.api.services['discovery'];
+    this.discovery = this.api.services && this.api.services.discovery;
     this.discovery = this.discovery || {enabled: false, configuration: {}};
     this.initialDiscovery = _.cloneDeep(this.discovery);
     this.tenants = resolvedTenants.data;
@@ -94,13 +94,13 @@ class ApiProxyController {
         value: 'WEIGHTED_RANDOM'
       }];
 
-    this.$scope.methods = ['GET','DELETE','PATCH','POST','PUT','OPTIONS','TRACE','HEAD'];
+    this.$scope.methods = ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'];
 
     this.initState();
 
     this.views = resolvedViews;
     _.remove( this.views, (item) => {
-      return item['id'] === 'all';
+      return item.id === 'all';
     });
 
     this.tags = resolvedTags;
@@ -130,7 +130,7 @@ class ApiProxyController {
     this.failoverEnabled = (this.api.proxy.failover !== undefined);
 
     // Context-path editable
-    this.contextPathEditable =this.UserService.currentUser.id === this.api.owner.id;
+    this.contextPathEditable = this.UserService.currentUser.id === this.api.owner.id;
 
     this.api.proxy.cors = this.api.proxy.cors || {allowOrigin: ['*'], allowHeaders: [], allowMethods: [], exposeHeaders: [], maxAge: -1, allowCredentials: false};
   }
@@ -230,7 +230,7 @@ class ApiProxyController {
     return '';
   }
 
-  hasTenants():boolean {
+  hasTenants(): boolean {
     return this.tenants && this.tenants.length;
   }
 

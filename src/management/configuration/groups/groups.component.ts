@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import GroupService from "../../../services/group.service";
-import NotificationService from "../../../services/notification.service";
-import UserService from "../../../services/user.service";
+import GroupService from '../../../services/group.service';
+import NotificationService from '../../../services/notification.service';
+import UserService from '../../../services/user.service';
 import { StateService } from '@uirouter/core';
 import {IScope} from 'angular';
 
@@ -24,7 +24,7 @@ const GroupsComponent: ng.IComponentOptions = {
   bindings: {
     groups: '<'
   },
-  template: require("./groups.html"),
+  template: require('./groups.html'),
   controller: function (
     GroupService: GroupService,
     UserService: UserService,
@@ -46,8 +46,8 @@ const GroupsComponent: ng.IComponentOptions = {
         this.apiByDefault[group.id] = false;
         this.applicationByDefault[group.id] = false;
         if (group.event_rules) {
-          this.apiByDefault[group.id] = _.indexOf(_.map(group.event_rules, "event"), "API_CREATE") >= 0;
-          this.applicationByDefault[group.id] = _.indexOf(_.map(group.event_rules, "event"), "APPLICATION_CREATE") >= 0;
+          this.apiByDefault[group.id] = _.indexOf(_.map(group.event_rules, 'event'), 'API_CREATE') >= 0;
+          this.applicationByDefault[group.id] = _.indexOf(_.map(group.event_rules, 'event'), 'APPLICATION_CREATE') >= 0;
         }
       });
     };

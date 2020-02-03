@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple} from "../alert";
-import TenantService from "../../services/tenant.service";
+import {CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple} from '../alert';
+import TenantService from '../../services/tenant.service';
 
 export class HealthcheckMetrics extends Metrics {
   static ENDPOINT_NAME: HealthcheckMetrics = new HealthcheckMetrics('endpoint.name', 'Endpoint name',
@@ -24,7 +24,7 @@ export class HealthcheckMetrics extends Metrics {
   static RESPONSE_TIME: HealthcheckMetrics = new HealthcheckMetrics('response_time', 'Response Time (ms)',
     [ThresholdCondition.TYPE, ThresholdRangeCondition.TYPE, CompareCondition.TYPE]);
 
-  static TENANT: HealthcheckMetrics = new HealthcheckMetrics('tenant', 'Tenant', [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+  static TENANT: HealthcheckMetrics = new HealthcheckMetrics('tenant', 'Tenant', [StringCondition.TYPE], undefined, (type: number, id: string, $injector: any) => {
     let tenants: Tuple[] = [];
 
     // PLATFORM: Search for all registered tenants

@@ -28,7 +28,7 @@ class AddPoliciesPathController {
     'ngInject';
     this.paths = locals.paths;
     this.rootCtrl = locals.rootCtrl;
-    this.canCopyFromRootPath = this.paths["/"] !== undefined;
+    this.canCopyFromRootPath = this.paths['/'] !== undefined;
     this.newPath = {
       path: '',
       copyFromRootPath: this.canCopyFromRootPath
@@ -41,7 +41,7 @@ class AddPoliciesPathController {
 
   add() {
     if (this.newPath.copyFromRootPath) {
-      this.paths[this.newPath.path] = _.cloneDeep(this.paths["/"]);
+      this.paths[this.newPath.path] = _.cloneDeep(this.paths['/']);
       _.forEach(this.paths[this.newPath.path], (policy) => {
         delete policy.$$hashKey;
       });

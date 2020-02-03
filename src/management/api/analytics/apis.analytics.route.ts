@@ -15,8 +15,8 @@
  */
 import ApiService from '../../../services/api.service';
 import {StateParams} from '@uirouter/core';
-import TenantService from "../../../services/tenant.service";
-import DashboardService from "../../../services/dashboard.service";
+import TenantService from '../../../services/tenant.service';
+import DashboardService from '../../../services/dashboard.service';
 
 export default apisAnalyticsRouterConfig;
 
@@ -24,7 +24,7 @@ function apisAnalyticsRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.analytics', {
-      template: require("./apis.analytics.route.html")
+      template: require('./apis.analytics.route.html')
     })
     .state('management.apis.detail.analytics.overview', {
       url: '/analytics?from&to&q&dashboard',
@@ -102,9 +102,9 @@ function apisAnalyticsRouterConfig($stateProvider) {
       },
       resolve: {
         plans: ($stateParams: StateParams, ApiService: ApiService) =>
-          ApiService.getApiPlans($stateParams['apiId']),
+          ApiService.getApiPlans($stateParams.apiId),
         applications: ($stateParams: StateParams, ApiService: ApiService) =>
-          ApiService.getSubscribers($stateParams['apiId']),
+          ApiService.getSubscribers($stateParams.apiId),
         tenants: (TenantService: TenantService) => TenantService.list()
       }
     })
@@ -128,7 +128,7 @@ function apisAnalyticsRouterConfig($stateProvider) {
       component: 'log',
       resolve: {
         log: ($stateParams: StateParams, ApiService: ApiService) =>
-          ApiService.getLog($stateParams['apiId'], $stateParams['logId'], $stateParams['timestamp']).then(response => response.data)
+          ApiService.getLog($stateParams.apiId, $stateParams.logId, $stateParams.timestamp).then(response => response.data)
       },
       data: {
         perms: {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import angular = require("angular");
+import angular = require('angular');
 
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
@@ -61,12 +61,12 @@ class ApiPropertiesController {
     this.editor = undefined;
 
     this.joltSpecificationOptions = {
-      placeholder: "Edit your JOLT specification here.",
+      placeholder: 'Edit your JOLT specification here.',
       lineWrapping: true,
       lineNumbers: true,
       allowDropFileTypes: true,
       autoCloseTags: true,
-      mode: "javascript",
+      mode: 'javascript',
       controller: this
     };
 
@@ -172,7 +172,7 @@ class ApiPropertiesController {
       .open()
       .then(function() {
         if (that.editor) {
-          that.editor.setSize("100%", "100%");
+          that.editor.setSize('100%', '100%');
         }
       });
   }

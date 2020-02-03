@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import NotificationService from "../../../services/notification.service";
-import DocumentationService, { FolderSituation } from "../../../services/documentation.service";
-import {StateService} from "@uirouter/core";
-import {IScope} from "angular";
-import _ = require("lodash");
-import UserService from "../../../services/user.service";
+import NotificationService from '../../../services/notification.service';
+import DocumentationService, { FolderSituation } from '../../../services/documentation.service';
+import {StateService} from '@uirouter/core';
+import {IScope} from 'angular';
+import _ = require('lodash');
+import UserService from '../../../services/user.service';
 
 interface IPageScope extends IScope {
   fetcherJsonSchema: string;
@@ -30,15 +30,15 @@ interface IPageScope extends IScope {
 }
 const EditPageComponent: ng.IComponentOptions = {
   bindings: {
-    resolvedPage: "<",
-    resolvedGroups: "<",
-    resolvedFetchers: "<",
-    folders: "<",
-    systemFolders: "<",
-    pageResources: "<",
-    viewResources: "<"
+    resolvedPage: '<',
+    resolvedGroups: '<',
+    resolvedFetchers: '<',
+    folders: '<',
+    systemFolders: '<',
+    pageResources: '<',
+    viewResources: '<'
   },
-  template: require("./edit-page.html"),
+  template: require('./edit-page.html'),
   controller: function (
     NotificationService: NotificationService,
     DocumentationService: DocumentationService,
@@ -47,9 +47,9 @@ const EditPageComponent: ng.IComponentOptions = {
     $state: StateService,
     $scope: IPageScope
   ) {
-    "ngInject";
+    'ngInject';
     this.apiId = $state.params.apiId;
-    this.tabs = ["content", "translations", "config", "fetchers", "access-control"];
+    this.tabs = ['content', 'translations', 'config', 'fetchers', 'access-control'];
     const indexOfTab = this.tabs.indexOf($state.params.tab);
     this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
     this.currentTab = this.tabs[this.selectedTab];
@@ -61,22 +61,22 @@ const EditPageComponent: ng.IComponentOptions = {
       this.groups = this.resolvedGroups;
       this.fetchers = this.resolvedFetchers;
 
-      this.foldersById = _.keyBy(this.folders, "id");
-      this.systemFoldersById = _.keyBy(this.systemFolders, "id");
+      this.foldersById = _.keyBy(this.folders, 'id');
+      this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
       this.pageList = this.buildPageList(this.pageResources);
-      this.viewResources = _.filter(this.viewResources, (v) => v.id !== "all");
+      this.viewResources = _.filter(this.viewResources, (v) => v.id !== 'all');
 
       if ( DocumentationService.supportedTypes(this.getFolderSituation(this.page.parentId)).indexOf(this.page.type) < 0) {
-        $state.go("management.settings.documentation");
+        $state.go('management.settings.documentation');
       }
 
       this.emptyFetcher = {
-        "type": "object",
-        "id": "empty",
-        "properties": {"" : {}}
+        'type': 'object',
+        'id': 'empty',
+        'properties': {'' : {}}
       };
       $scope.fetcherJsonSchema = this.emptyFetcher;
-      this.fetcherJsonSchemaForm = ["*"];
+      this.fetcherJsonSchemaForm = ['*'];
       this.initEditor();
 
 
@@ -86,26 +86,26 @@ const EditPageComponent: ng.IComponentOptions = {
         allowDropFileTypes: true,
         autoCloseTags: true,
         readOnly: $scope.editorReadonly,
-        mode: "javascript",
+        mode: 'javascript',
       };
 
       if (this.page.excluded_groups) {
-        this.page.authorizedGroups = _.difference(_.map(this.groups, "id"), this.page.excluded_groups);
+        this.page.authorizedGroups = _.difference(_.map(this.groups, 'id'), this.page.excluded_groups);
       } else {
-        this.page.authorizedGroups = _.map(this.groups, "id");
+        this.page.authorizedGroups = _.map(this.groups, 'id');
       }
       if (this.apiId) {
-        this.canUpdate = UserService.isUserHasPermissions(["api-documentation-u"]);
+        this.canUpdate = UserService.isUserHasPermissions(['api-documentation-u']);
       } else {
-        this.canUpdate = UserService.isUserHasPermissions(["portal-documentation-u"]);
+        this.canUpdate = UserService.isUserHasPermissions(['portal-documentation-u']);
       }
 
-      if (this.page.type === "SWAGGER") {
+      if (this.page.type === 'SWAGGER') {
         if (!this.page.configuration) {
           this.page.configuration = {};
         }
         if (!this.page.configuration.viewer) {
-          this.page.configuration.viewer = "Swagger";
+          this.page.configuration.viewer = 'Swagger';
         }
       }
     };
@@ -113,23 +113,23 @@ const EditPageComponent: ng.IComponentOptions = {
     this.selectTranslation = (translation: any) => {
       this.currentTranslation = translation;
       if (!this.currentTranslation.configuration.inheritContent) {
-        this.currentTranslation.configuration.inheritContent = "true";
+        this.currentTranslation.configuration.inheritContent = 'true';
       }
     };
 
     this.addTranslation = () => {
       this.currentTranslation = {
-        type: "TRANSLATION",
+        type: 'TRANSLATION',
         parentId: this.page.id,
         configuration: {}
       };
-      if (this.page.type === "MARKDOWN" || this.page.type === "SWAGGER") {
-        this.currentTranslation.configuration.inheritContent = "true";
+      if (this.page.type === 'MARKDOWN' || this.page.type === 'SWAGGER') {
+        this.currentTranslation.configuration.inheritContent = 'true';
       }
     };
 
     this.saveTranslation = () => {
-      if (this.page.configuration && ("page" === this.page.configuration.resourceType || "view" === this.page.configuration.resourceType)) {
+      if (this.page.configuration && ('page' === this.page.configuration.resourceType || 'view' === this.page.configuration.resourceType)) {
         this.currentTranslation.content = this.page.content;
       }
       // save translation
@@ -137,13 +137,13 @@ const EditPageComponent: ng.IComponentOptions = {
         DocumentationService.create(this.currentTranslation, this.apiId)
         .then((response: any) => {
           const page = response.data;
-          NotificationService.show("'" + page.name + "' has been created");
+          NotificationService.show('\'' + page.name + '\' has been created');
           this.refreshTranslations();
         });
       } else {
         DocumentationService.update(this.currentTranslation, this.apiId)
           .then( (response: any) => {
-            NotificationService.show("'" + this.currentTranslation.name + "' has been updated");
+            NotificationService.show('\'' + this.currentTranslation.name + '\' has been updated');
             this.refreshTranslations();
           });
         }
@@ -152,18 +152,18 @@ const EditPageComponent: ng.IComponentOptions = {
     this.remove = (page: any) => {
       let that = this;
       $mdDialog.show({
-        controller: "DialogConfirmController",
-        controllerAs: "ctrl",
-        template: require("../../../components/dialog/confirmWarning.dialog.html"),
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: "Would you like to remove \"" + page.name + "\" ?",
-          confirmButton: "Remove"
+          title: 'Would you like to remove "' + page.name + '" ?',
+          confirmButton: 'Remove'
         }
       }).then(function (response: any) {
         if (response) {
           DocumentationService.remove(page.id, that.apiId).then( () => {
-            NotificationService.show("Translation " + page.name + " has been removed");
+            NotificationService.show('Translation ' + page.name + ' has been removed');
             that.refreshTranslations();
           });
         }
@@ -189,12 +189,13 @@ const EditPageComponent: ng.IComponentOptions = {
         }
         return FolderSituation.FOLDER_IN_FOLDER;
       }
-      console.debug("impossible to determine folder situation : " + folderId);
+      // tslint:disable-next-line:no-console
+      console.debug('impossible to determine folder situation : ' + folderId);
     };
 
     this.buildPageList = (pagesToFilter: any[]) => {
       let pageList = _
-        .filter(pagesToFilter, (p) => p.type === "MARKDOWN" || p.type === "SWAGGER" || (p.type === "FOLDER" && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
+        .filter(pagesToFilter, (p) => p.type === 'MARKDOWN' || p.type === 'SWAGGER' || (p.type === 'FOLDER' && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
         .map((page) => { return {
           id: page.id,
           name: page.name,
@@ -211,7 +212,7 @@ const EditPageComponent: ng.IComponentOptions = {
         return comparison;
       });
 
-      pageList.unshift( {id: "root", name: "", type: "FOLDER", fullPath: ""});
+      pageList.unshift( {id: 'root', name: '', type: 'FOLDER', fullPath: ''});
       return pageList;
     };
 
@@ -228,9 +229,9 @@ const EditPageComponent: ng.IComponentOptions = {
     this.getFolderPath = (parentFolderId: string) => {
       const parent = this.getFolder(parentFolderId);
       if (parent) {
-        return this.getFolderPath(parent.parentId) + "/" + parent.name;
+        return this.getFolderPath(parent.parentId) + '/' + parent.name;
       } else {
-        return "";
+        return '';
       }
     };
 
@@ -265,9 +266,9 @@ const EditPageComponent: ng.IComponentOptions = {
 
     this.checkIfFolder = () => {
       if (this.page.content) {
-        if (this.page.content === "root") {
+        if (this.page.content === 'root') {
           this.page.configuration.isFolder = true;
-          this.page.configuration.inherit = "false";
+          this.page.configuration.inherit = 'false';
         } else {
           const folder = this.getFolder(this.page.content);
           if (folder) {
@@ -282,13 +283,13 @@ const EditPageComponent: ng.IComponentOptions = {
     this.onChangeLinkType = () => {
       delete this.page.content;
       delete this.page.configuration.isFolder;
-      if (this.page.configuration.resourceType === "external") {
+      if (this.page.configuration.resourceType === 'external') {
         delete this.page.configuration.inherit;
         if (this.page.translations) {
           _.forEach(this.page.translations, t => delete t.content);
         }
       } else if (!this.page.configuration.inherit) {
-        this.page.configuration.inherit = "true";
+        this.page.configuration.inherit = 'true';
       }
     };
 
@@ -296,22 +297,22 @@ const EditPageComponent: ng.IComponentOptions = {
       // convert authorized groups to excludedGroups
       this.page.excluded_groups = [];
       if (this.groups) {
-        this.page.excluded_groups = _.difference(_.map(this.groups, "id"), this.page.authorizedGroups);
+        this.page.excluded_groups = _.difference(_.map(this.groups, 'id'), this.page.authorizedGroups);
       }
 
       DocumentationService.update(this.page, this.apiId)
         .then( (response) => {
-          NotificationService.show("'" + this.page.name + "' has been updated");
+          NotificationService.show('\'' + this.page.name + '\' has been updated');
           if (this.apiId) {
-            $state.go("management.apis.detail.portal.editdocumentation", {pageId: this.page.id, tab: this.currentTab}, {reload: true});
+            $state.go('management.apis.detail.portal.editdocumentation', {pageId: this.page.id, tab: this.currentTab}, {reload: true});
           } else {
-            $state.go("management.settings.editdocumentation", {pageId: this.page.id, type: this.page.type, tab: this.currentTab}, {reload: true});
+            $state.go('management.settings.editdocumentation', {pageId: this.page.id, type: this.page.type, tab: this.currentTab}, {reload: true});
           }
       });
     };
 
     this.changeContentMode = (newMode) => {
-      if ("fetcher" === newMode) {
+      if ('fetcher' === newMode) {
         this.page.source = {
           configuration: {}
         };
@@ -322,17 +323,17 @@ const EditPageComponent: ng.IComponentOptions = {
 
     this.cancel = () => {
       if (this.apiId) {
-        $state.go("management.apis.detail.portal.documentation", {apiId: this.apiId, parent: this.page.parentId});
+        $state.go('management.apis.detail.portal.documentation', {apiId: this.apiId, parent: this.page.parentId});
       } else {
-        $state.go("management.settings.documentation", {parent: this.page.parentId});
+        $state.go('management.settings.documentation', {parent: this.page.parentId});
       }
     };
 
     this.reset = () => {
       if (this.apiId) {
-        $state.go("management.apis.detail.portal.editdocumentation", {pageId: this.page.id}, {reload: true});
+        $state.go('management.apis.detail.portal.editdocumentation', {pageId: this.page.id}, {reload: true});
       } else {
-        $state.go("management.settings.editdocumentation", {pageId: this.page.id, type: this.page.type}, {reload: true});
+        $state.go('management.settings.editdocumentation', {pageId: this.page.id, type: this.page.type}, {reload: true});
       }
     };
 
@@ -344,8 +345,8 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.rename = () => {
-      DocumentationService.partialUpdate("name", this.newName, this.page.id, this.apiId).then( () => {
-        NotificationService.show("'" + this.page.name + "' has been renamed to '" + this.newName + "'");
+      DocumentationService.partialUpdate('name', this.newName, this.page.id, this.apiId).then( () => {
+        NotificationService.show('\'' + this.page.name + '\' has been renamed to \'' + this.newName + '\'');
         this.page.name = this.newName;
         this.toggleRename();
       });
@@ -358,9 +359,9 @@ const EditPageComponent: ng.IComponentOptions = {
     this.selectTab = (idx: number) => {
       this.changeTab(idx);
       if (this.apiId) {
-        $state.transitionTo("management.apis.detail.portal.editdocumentation", {apiId: this.apiId, type: this.page.type, pageId: this.page.id, tab: this.currentTab}, {notify: false});
+        $state.transitionTo('management.apis.detail.portal.editdocumentation', {apiId: this.apiId, type: this.page.type, pageId: this.page.id, tab: this.currentTab}, {notify: false});
       } else {
-        $state.transitionTo("management.settings.editdocumentation", {pageId: this.page.id, type: this.page.type, tab: this.currentTab}, {notify: false});
+        $state.transitionTo('management.settings.editdocumentation', {pageId: this.page.id, type: this.page.type, tab: this.currentTab}, {notify: false});
       }
     };
 
@@ -371,13 +372,13 @@ const EditPageComponent: ng.IComponentOptions = {
 
     this.fetch = () => {
       DocumentationService.fetch(this.page.id, this.apiId).then( () => {
-        NotificationService.show("'" + this.page.name + "' has been successfully fetched");
+        NotificationService.show('\'' + this.page.name + '\' has been successfully fetched');
         this.reset();
       });
     };
 
     this.updateLinkName = (resourceName: string) => {
-      if (this.page.configuration.inherit === "true" && resourceName !== "") {
+      if (this.page.configuration.inherit === 'true' && resourceName !== '') {
         this.page.name = resourceName;
       }
     };
@@ -397,10 +398,10 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.updateTranslationContent = () => {
-      if ( this.currentTranslation.configuration.inheritContent === "false" && (!this.currentTranslation.content || this.currentTranslation.content === "")) {
+      if ( this.currentTranslation.configuration.inheritContent === 'false' && (!this.currentTranslation.content || this.currentTranslation.content === '')) {
         this.currentTranslation.content = this.page.content;
       }
-      if ( this.currentTranslation.configuration.inheritContent === "true") {
+      if ( this.currentTranslation.configuration.inheritContent === 'true') {
         delete this.currentTranslation.content;
       }
     };

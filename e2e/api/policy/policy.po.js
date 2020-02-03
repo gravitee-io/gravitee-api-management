@@ -15,7 +15,7 @@
  */
 'use strict';
 
-var PolicyPage = function() {
+const PolicyPage = function () {
   this.rateLimitPolicy = element(by.css('.gravitee-policy-dropzone md-card'));
   this.rateLimitPolicyAddButton = element(by.css('bootstrap-decorator:nth-child(2) div div button'));
   this.rateLimitPolicyConfigurationBlocks = element.all(by.css('ol li'));

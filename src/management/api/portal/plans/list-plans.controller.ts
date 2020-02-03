@@ -65,7 +65,7 @@ class ApiListPlansController {
 
     this.$scope.$on('dragulardrop', function(e, el, target, source, dragularList, index, targetModel, dropIndex) {
       let movedPlan = that.filteredPlans[index];
-      movedPlan.order = dropIndex+1;
+      movedPlan.order = dropIndex + 1;
 
       that.ApiService.savePlan(that.$stateParams.apiId, movedPlan).then(function () {
         // sync list from server because orders has been changed
@@ -123,7 +123,7 @@ class ApiListPlansController {
     this.filteredPlans = _.sortBy(
       _.filter(this.plans, function (plan: any) {
       return _.includes(that.selectedStatus, plan.status);
-    }), "order");
+    }), 'order');
   }
 
   addPlan() {
@@ -137,23 +137,23 @@ class ApiListPlansController {
   close(plan, ev) {
     this.ApiService.getAllPlanSubscriptions(this.$stateParams.apiId, plan.id).then( (response) => {
       const subscriptions = response.data.page.size;
-      let msg = "";
-      if (plan.security === "key_less") {
-        msg = "A keyless plan may have consumers. <br/>"
-          + "By closing this plan you will remove free access to this API.";
+      let msg = '';
+      if (plan.security === 'key_less') {
+        msg = 'A keyless plan may have consumers. <br/>'
+          + 'By closing this plan you will remove free access to this API.';
       } else {
         if (subscriptions === 0) {
-          msg = "No subscription is associated to this plan. You can delete it safely."
+          msg = 'No subscription is associated to this plan. You can delete it safely.';
         } else if (subscriptions > 0) {
-          msg = "There are <code>"
+          msg = 'There are <code>'
             + subscriptions
-            + "</code> subscription(s) associated to this plan.<br/>"
-            + "By closing this plan, all relative active subscriptions will also be closed."
+            + '</code> subscription(s) associated to this plan.<br/>'
+            + 'By closing this plan, all relative active subscriptions will also be closed.';
         }
       }
-      let confirmButton = "Yes, close this plan.";
-      if (subscriptions == 0 && plan.security === "api_key") {
-        confirmButton = "Yes, delete this plan."
+      let confirmButton = 'Yes, close this plan.';
+      if (subscriptions === 0 && plan.security === 'api_key') {
+        confirmButton = 'Yes, delete this plan.';
       }
       this.$mdDialog.show({
         controller: 'DialogConfirmAndValidateController',
@@ -164,7 +164,7 @@ class ApiListPlansController {
           title: 'Would you like to close plan "' + plan.name + '" ?',
           warning: 'This operation is irreversible.',
           msg: msg,
-          validationMessage: 'Please, type in the name of the plan <code>'+ plan.name +'</code> to confirm.',
+          validationMessage: 'Please, type in the name of the plan <code>' + plan.name + '</code> to confirm.',
           validationValue: plan.name,
           confirmButton: confirmButton
         }
@@ -173,7 +173,7 @@ class ApiListPlansController {
           let that = this;
           this.ApiService.closePlan(this.$stateParams.apiId, plan.id).then(function() {
             that.NotificationService.show('Plan ' + plan.name + ' has been closed');
-            that.$rootScope.$broadcast("planChangeSuccess", { state: "closed"});
+            that.$rootScope.$broadcast('planChangeSuccess', { state: 'closed'});
             that.$scope.$parent.apiCtrl.checkAPISynchronization({id: that.$stateParams.apiId});
             that.selectedStatus = ['closed'];
             that.list();
@@ -181,7 +181,7 @@ class ApiListPlansController {
             that.NotificationService.show('Error while closing plan ' + plan.name);
           });
         }
-      })
+      });
     });
   }
 
@@ -200,7 +200,7 @@ class ApiListPlansController {
       if (response) {
         this.ApiService.depreciatePlan(this.$stateParams.apiId, plan.id).then( () => {
           this.NotificationService.show('Plan ' + plan.name + ' has been deprecated');
-          this.$rootScope.$broadcast("planChangeSuccess", { state: "deprecated"});
+          this.$rootScope.$broadcast('planChangeSuccess', { state: 'deprecated'});
           this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
           this.selectedStatus = ['published'];
           this.list();
@@ -223,7 +223,7 @@ class ApiListPlansController {
         if (plan) {
           this.ApiService.publishPlan(this.$stateParams.apiId, plan.id).then( () => {
             this.NotificationService.show('Plan ' + plan.name + ' has been published');
-            this.$rootScope.$broadcast("planChangeSuccess", { state: "published"});
+            this.$rootScope.$broadcast('planChangeSuccess', { state: 'published'});
             this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
             this.selectedStatus = ['published'];
             this.list();

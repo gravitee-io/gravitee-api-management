@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { StateService } from "@uirouter/core";
+import { StateService } from '@uirouter/core';
 
-import NotificationService from "../../../../services/notification.service";
-import { ClientRegistrationProvider } from "../../../../entities/clientRegistrationProvider";
-import ClientRegistrationProviderService from "../../../../services/clientRegistrationProvider.service";
-import angular = require("angular");
+import NotificationService from '../../../../services/notification.service';
+import { ClientRegistrationProvider } from '../../../../entities/clientRegistrationProvider';
+import ClientRegistrationProviderService from '../../../../services/clientRegistrationProvider.service';
+import angular = require('angular');
 import _ = require('lodash');
 
 interface IClientRegistrationProviderScope extends ng.IScope {
@@ -76,7 +76,7 @@ class ClientRegistrationProviderController {
 
   update() {
     if (!this.updateMode) {
-      this.ClientRegistrationProviderService.create(this.clientRegistrationProvider).then((response:any) => {
+      this.ClientRegistrationProviderService.create(this.clientRegistrationProvider).then((response: any) => {
         this.NotificationService.show('Client registration provider ' + this.clientRegistrationProvider.name + ' has been created');
         this.$state.go('management.settings.clientregistrationproviders.clientregistrationprovider', {id: response.data.id}, {reload: true});
       });

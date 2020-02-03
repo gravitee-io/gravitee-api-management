@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import UserService from "../../services/user.service";
+import UserService from '../../services/user.service';
 import { StateService } from '@uirouter/core';
 
 const TasksComponent: ng.IComponentOptions = {
@@ -63,7 +63,7 @@ const TasksComponent: ng.IComponentOptions = {
           $state.go('management.apis.detail.portal.general', {apiId: task.data.referenceId});
           break;
       }
-    }
+    };
 
     this.icon = (task) => {
       switch (task.type) {
@@ -75,7 +75,7 @@ const TasksComponent: ng.IComponentOptions = {
         default:
           return '';
       }
-    }
+    };
   }
 };
 

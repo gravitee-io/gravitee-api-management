@@ -15,8 +15,8 @@
  */
 
 import _ = require('lodash');
-import {Rule} from "../../../../../entities/alerts/rule.metrics";
-import {AggregationCondition} from "../../../../../entities/alert";
+import {Rule} from '../../../../../entities/alerts/rule.metrics';
+import {AggregationCondition} from '../../../../../entities/alert';
 
 const AlertTriggerMetricsAggregationComponent: ng.IComponentOptions = {
   bindings: {
@@ -37,16 +37,16 @@ const AlertTriggerMetricsAggregationComponent: ng.IComponentOptions = {
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {
         this.alert.conditions = [{
-          "function": "avg",
-          "property": this.metrics[0].key,
-          "operator": "GT",
-          "type": "AGGREGATION"
+          'function': 'avg',
+          'property': this.metrics[0].key,
+          'operator': 'GT',
+          'type': 'AGGREGATION'
         }];
 
         this.alert.dampening = {
-          "mode": "strict_count",
-          "trueEvaluations": 1,
-          "totalEvaluations": 1
+          'mode': 'strict_count',
+          'trueEvaluations': 1,
+          'totalEvaluations': 1
         };
       }
     };

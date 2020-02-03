@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
-import {IScope} from 'angular';
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 
-import NotificationService from "../../../services/notification.service";
+import NotificationService from '../../../services/notification.service';
 import _ = require('lodash');
-import ApiService from "../../../services/api.service";
+import ApiService from '../../../services/api.service';
 
 
 const ImportComponent: ng.IComponentOptions = {
@@ -34,7 +34,7 @@ const ImportComponent: ng.IComponentOptions = {
     NotificationService: NotificationService,
     ApiService: ApiService
   ) {
-    
+
     'ngInject';
 
     this.$onInit = () => {
@@ -42,50 +42,50 @@ const ImportComponent: ng.IComponentOptions = {
       this.importFileMode = true;
       this.importURLMode = false;
       this.enableFileImport = false;
-      this.importFileMode= true;
-      this.importURLMode= false;
+      this.importFileMode = true;
+      this.importURLMode = false;
       this.importURLTypes = [
-        {id: "SWAGGER", name: "Swagger / OpenAPI"},
-        {id: "GRAVITEE", name: "API Definition"}
+        { id: 'SWAGGER', name: 'Swagger / OpenAPI' },
+        { id: 'GRAVITEE', name: 'API Definition' }
       ];
-      this.importURLType = "SWAGGER";
+      this.importURLType = 'SWAGGER';
       this.apiDescriptorURL = null;
       this.importAPIFile = null;
       this.importCreateDocumentation = true;
       this.importCreatePolicyPaths = false;
       this.importCreatePathMapping = true;
       this.importCreateMocks = false;
-      $scope.$watch('$ctrl.importAPIFile.content', function (data) {
+      $scope.$watch('$ctrl.importAPIFile.content', function(data) {
         if (data) {
           that.enableFileImport = true;
         }
       });
-    }
+    };
 
     this.placeholder = () => {
-      if(this.importURLType == 'SWAGGER') {
-        return "Enter Swagger descriptor URL";
-      } else if(this.importURLType == 'GRAVITEE') {
-        return "Enter API definition URL";
+      if (this.importURLType === 'SWAGGER') {
+        return 'Enter Swagger descriptor URL';
+      } else if (this.importURLType === 'GRAVITEE') {
+        return 'Enter API definition URL';
       }
-    }
+    };
 
     this.cancel = () => {
       this.cancelAction();
-    }
+    };
 
     this.isSwaggerImport = () => {
-      if (this.importURLMode && this.importURLType == 'SWAGGER') {
+      if (this.importURLMode && this.importURLType === 'SWAGGER') {
         return true;
       }
 
       if (this.importFileMode && this.importAPIFile) {
         var extension = this.importAPIFile.name.split('.').pop();
         switch (extension) {
-          case "yml" :
-          case "yaml" :
+          case 'yml' :
+          case 'yaml' :
             return true;
-          case "json" :
+          case 'json' :
             if (this.isSwaggerDescriptor()) {
               return true;
             }
@@ -96,10 +96,10 @@ const ImportComponent: ng.IComponentOptions = {
       }
       return false;
     };
-    
+
     this.isForUpdate = () => {
-      return this.apiId != undefined;
-    }
+      return this.apiId != null;
+    };
 
     this.isSwaggerDescriptor = () => {
       try {
@@ -110,7 +110,7 @@ const ImportComponent: ng.IComponentOptions = {
             || fileContent.hasOwnProperty('openapi');
         }
       } catch (e) {
-        NotificationService.showError("Invalid json file.");
+        NotificationService.showError('Invalid json file.');
         this.enableFileImport = false;
       }
     };
@@ -121,17 +121,17 @@ const ImportComponent: ng.IComponentOptions = {
       } else {
         return (this.apiDescriptorURL && this.apiDescriptorURL.length);
       }
-    }
+    };
 
     this.importAPI = () => {
       if (this.importFileMode) {
         var extension = this.importAPIFile.name.split('.').pop();
         switch (extension) {
-          case "yml" :
-          case "yaml" :
+          case 'yml' :
+          case 'yaml' :
             this.importSwagger();
             break;
-          case "json" :
+          case 'json' :
             let isSwagger = this.isSwaggerDescriptor();
             if (isSwagger !== null) {
               if (isSwagger) {
@@ -143,59 +143,63 @@ const ImportComponent: ng.IComponentOptions = {
             break;
           default:
             this.enableFileImport = false;
-            NotificationService.showError("Input file must be a valid API definition file.");
+            NotificationService.showError('Input file must be a valid API definition file.');
         }
-      } else if(this.importURLType == 'SWAGGER') {
+      } else if (this.importURLType === 'SWAGGER') {
         this.importSwagger();
-      } else if(this.importURLType == 'GRAVITEE') {
+      } else if (this.importURLType === 'GRAVITEE') {
         this.importGraviteeIODefinition();
       }
-      if(this.isForUpdate()) {
+      if (this.isForUpdate()) {
         this.cancel();
       }
-    }
-  
+    };
+
     this.importGraviteeIODefinition = () => {
       var id = (this.isForUpdate() ? this.apiId : null);
       var apiDefinition = (this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL);
       var isUpdate = this.isForUpdate();
-      ApiService.import(id, apiDefinition).then(function (api) {
+      ApiService.import(id, apiDefinition).then(function(api) {
         NotificationService.show('API updated');
-        if(isUpdate) {
+        if (isUpdate) {
           $state.reload();
         } else {
-          $state.go('management.apis.detail.portal.general', {apiId: api.data.id});
+          $state.go('management.apis.detail.portal.general', { apiId: api.data.id });
         }
       });
-    }
+    };
 
-    this.importSwagger = () => { 
+    this.importSwagger = () => {
+      let type = 'URL';
+      let payload = this.apiDescriptorURL;
+      if (this.importFileMode) {
+        type = 'INLINE';
+        payload = this.importAPIFile.content;
+      }
+
       let swagger = {
         with_documentation: this.importCreateDocumentation,
         with_path_mapping: this.importCreatePathMapping,
         with_policy_paths: this.importCreatePolicyPaths,
-        with_policy_mocks: this.importCreateMocks
+        with_policy_mocks: this.importCreateMocks,
+        type,
+        payload
       };
-  
-      if (this.importFileMode) {
-        swagger.type = 'INLINE';
-        swagger.payload = this.importAPIFile.content;
-      } else {
-        swagger.type = 'URL';
-        swagger.payload = this.apiDescriptorURL;
-      }
-      if(this.isForUpdate()) {
+
+      if (this.isForUpdate()) {
+        // @ts-ignore
         ApiService.importSwagger(this.apiId, swagger).then((api) => {
           NotificationService.show('API successfully imported');
           $state.reload();
         });
       } else {
+        // @ts-ignore
         ApiService.importSwagger(null, swagger).then((api) => {
           NotificationService.show('API successfully updated');
-          $state.go('management.apis.detail.portal.general', {apiId: api.data.id});
+          $state.go('management.apis.detail.portal.general', { apiId: api.data.id });
         });
       }
-    }
+    };
   }
 };
 

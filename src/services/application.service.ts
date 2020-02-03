@@ -15,7 +15,7 @@
  */
 
 import * as _ from 'lodash';
-import { PagedResult } from "../entities/pagedResult";
+import { PagedResult } from '../entities/pagedResult';
 
 export class LogsQuery {
   from: number;
@@ -45,11 +45,7 @@ class ApplicationService {
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
     this.applicationsURL = `${Constants.baseURL}applications/`;
-    this.analyticsHttpTimeout = Constants.analyticsHttpTimeout as number
-  }
-
-  private subscriptionsURL(applicationId: string): string {
-    return `${this.applicationsURL}${applicationId}/subscriptions/`;
+    this.analyticsHttpTimeout = Constants.analyticsHttpTimeout as number;
   }
 
 	get(applicationId: string): ng.IHttpPromise<any> {
@@ -64,7 +60,7 @@ class ApplicationService {
     return this.$http.post(`${this.applicationsURL}${applicationId}/members`, membership);
 	}
 
-	deleteMember(applicationId:string, userId: string): ng.IHttpPromise<any> {
+	deleteMember(applicationId: string, userId: string): ng.IHttpPromise<any> {
 		return this.$http.delete(this.applicationsURL + applicationId + '/members?user=' + userId);
 	}
 
@@ -77,7 +73,7 @@ class ApplicationService {
   }
 
   listByGroup(group) {
-    return this.$http.get(this.applicationsURL + "?group=" + group);
+    return this.$http.get(this.applicationsURL + '?group=' + group);
   }
 
 	create(application): ng.IHttpPromise<any> {
@@ -101,7 +97,7 @@ class ApplicationService {
   }
 
   search(query) {
-    return this.$http.get(this.applicationsURL + "?query=" + query);
+    return this.$http.get(this.applicationsURL + '?query=' + query);
   }
 
   /*
@@ -110,7 +106,7 @@ class ApplicationService {
   subscribe(applicationId: string, planId: string, request?: string): ng.IHttpPromise<any> {
     let data;
     if (request) {
-      data = {request: request}
+      data = {request: request};
     } else {
       data = '';
     }
@@ -167,31 +163,6 @@ class ApplicationService {
     return this.$http.get(url, {timeout: this.analyticsHttpTimeout});
   }
 
-  /*
-   * Logs
-   */
-  private buildURLWithQuery(query: LogsQuery, url) {
-    var keys = Object.keys(query);
-    _.forEach(keys, function (key) {
-      var val = query[key];
-      if (val !== undefined && val !== '') {
-        url += key + '=' + val + '&';
-      }
-    });
-    return url;
-  }
-
-  private cloneQuery(query: LogsQuery) {
-    let clonedQuery = _.clone(query);
-    if (_.startsWith(clonedQuery.field, '-')) {
-      clonedQuery.order = false;
-      clonedQuery.field = clonedQuery.field.substring(1);
-    } else {
-      clonedQuery.order = true;
-    }
-    return clonedQuery;
-  }
-
   findLogs(application: string, query: LogsQuery): ng.IPromise<any> {
     return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.applicationsURL + application + '/logs?'), {timeout: 30000});
   }
@@ -219,22 +190,51 @@ class ApplicationService {
         applicationType = application.settings.app.type;
       } else if (application.settings.oauth) {
         switch (application.settings.oauth.application_type) {
-          case "backend_to_backend":
+          case 'backend_to_backend':
             applicationType = 'Backend to backend';
             break;
-          case "browser":
+          case 'browser':
             applicationType = 'Browser';
             break;
-          case "native":
+          case 'native':
             applicationType = 'Native';
             break;
-          case "web":
+          case 'web':
             applicationType = 'Web';
             break;
         }
       }
     }
     return applicationType;
+  }
+
+  private subscriptionsURL(applicationId: string): string {
+    return `${this.applicationsURL}${applicationId}/subscriptions/`;
+  }
+
+  /*
+   * Logs
+   */
+  private buildURLWithQuery(query: LogsQuery, url) {
+    var keys = Object.keys(query);
+    _.forEach(keys, function (key) {
+      var val = query[key];
+      if (val !== undefined && val !== '') {
+        url += key + '=' + val + '&';
+      }
+    });
+    return url;
+  }
+
+  private cloneQuery(query: LogsQuery) {
+    let clonedQuery = _.clone(query);
+    if (_.startsWith(clonedQuery.field, '-')) {
+      clonedQuery.order = false;
+      clonedQuery.field = clonedQuery.field.substring(1);
+    } else {
+      clonedQuery.order = true;
+    }
+    return clonedQuery;
   }
 }
 

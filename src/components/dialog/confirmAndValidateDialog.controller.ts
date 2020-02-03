@@ -22,7 +22,7 @@ function DialogConfirmAndValidateController($scope, $mdDialog, locals) {
   $scope.validationMessage = locals.validationMessage;
   $scope.confirmButton = locals.confirmButton;
   $scope.validationValue = locals.validationValue;
-  $scope.confirmValue = "";
+  $scope.confirmValue = '';
 
   this.cancel = function() {
     $mdDialog.hide(false);

@@ -43,7 +43,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
           let percent;
           if (_.includes(value, '/')) {
             let splittedValue = value.split('/');
-            value = parseInt(splittedValue[0]);
+            value = parseInt(splittedValue[0], 10);
             percent = parseFloat(splittedValue[1]);
           }
           return {
@@ -77,9 +77,9 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
 
     this.goto = function(key) {
       if (this.widget.chart.request.field === 'api') {
-        this.$state.go('management.apis.detail.analytics.overview', {apiId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q:this.widget.chart.request.query});
+        this.$state.go('management.apis.detail.analytics.overview', {apiId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q: this.widget.chart.request.query});
       } else if (this.widget.chart.request.field === 'application') {
-        this.$state.go('management.applications.application.analytics', {applicationId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q:this.widget.chart.request.query});
+        this.$state.go('management.applications.application.analytics', {applicationId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q: this.widget.chart.request.query});
       }
     };
   }

@@ -43,7 +43,7 @@ const MetadataValidatorDirective: IDirective = ({
           delete scope.ngPattern;
           break;
       }
-    })
+    });
   }
 });
 

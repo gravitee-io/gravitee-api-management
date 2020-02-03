@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NotificationService from "../../../services/notification.service";
+import NotificationService from '../../../services/notification.service';
 import {StateService} from '@uirouter/core';
-import ApiHeaderService from "../../../services/apiHeader.service";
-import {ApiPortalHeader} from "../../../entities/apiPortalHeader";
-import PortalConfigService from "../../../services/portalConfig.service";
+import ApiHeaderService from '../../../services/apiHeader.service';
+import {ApiPortalHeader} from '../../../entities/apiPortalHeader';
+import PortalConfigService from '../../../services/portalConfig.service';
 import _ = require('lodash');
-import {IScope} from "angular";
+import {IScope} from 'angular';
 
 const ApiPortalHeaderComponent: ng.IComponentOptions = {
   bindings: {
@@ -39,13 +39,14 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     this.$mdDialog = $mdDialog;
     this.settings = _.cloneDeep(Constants);
 
+    // tslint:disable-next-line:no-empty
     this.$onInit = () => {
     };
 
     this.upward = (header: ApiPortalHeader) => {
       header.order = header.order - 1;
       ApiHeaderService.update(header).then( response => {
-        NotificationService.show("Header '" + header.name + "' saved");
+        NotificationService.show('Header \'' + header.name + '\' saved');
         ApiHeaderService.list().then(response =>
           this.apiPortalHeaders = response.data);
       });
@@ -54,7 +55,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     this.downward = (header: ApiPortalHeader) => {
       header.order = header.order + 1;
       ApiHeaderService.update(header).then( response => {
-        NotificationService.show("Header '" + header.name + "' saved");
+        NotificationService.show('Header \'' + header.name + '\' saved');
         ApiHeaderService.list().then(response =>
           this.apiPortalHeaders = response.data);
       });
@@ -68,10 +69,10 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
         template: require('./save.api-portal-header.dialog.html'),
         locals: {}
       }).then(function (newHeader) {
-        NotificationService.show("Header '" + newHeader.name + "' saved");
+        NotificationService.show('Header \'' + newHeader.name + '\' saved');
         ApiHeaderService.list().then(response =>
           that.apiPortalHeaders = response.data);
-      }).catch(function () {});
+      });
     };
 
     this.updateHeader = (header: ApiPortalHeader) => {
@@ -84,10 +85,10 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
           header: Object.assign({}, header)
         }
       }).then(function (updatedHeader) {
-        NotificationService.show("Header '" + updatedHeader.name + "' saved");
+        NotificationService.show('Header \'' + updatedHeader.name + '\' saved');
         ApiHeaderService.list().then(response =>
           that.apiPortalHeaders = response.data);
-      }).catch(function () {});
+      });
     };
 
     this.deleteHeader = (header: ApiPortalHeader) => {
@@ -105,7 +106,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
       }).then(function (response) {
         if (response) {
           ApiHeaderService.delete(header).then(response => {
-            NotificationService.show("Header '" + header.name + "' deleted");
+            NotificationService.show('Header \'' + header.name + '\' deleted');
             ApiHeaderService.list().then(response =>
               that.apiPortalHeaders = response.data);
           });
@@ -123,7 +124,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
           }
         }
       }).then( response => {
-        NotificationService.show("Views are now " + (this.settings.portal.apis.apiHeaderShowViews.enabled?"visible":"hidden"));
+        NotificationService.show('Views are now ' + (this.settings.portal.apis.apiHeaderShowViews.enabled ? 'visible' : 'hidden'));
       });
     };
 
@@ -137,7 +138,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
           }
         }
       }).then( response => {
-        NotificationService.show("Tags are now " + (this.settings.portal.apis.apiHeaderShowTags.enabled?"visible":"hidden"));
+        NotificationService.show('Tags are now ' + (this.settings.portal.apis.apiHeaderShowTags.enabled ? 'visible' : 'hidden'));
       });
     };
 

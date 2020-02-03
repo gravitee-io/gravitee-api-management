@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import NotificationService from "../../../../services/notification.service";
-import QualityRuleService from "../../../../services/qualityRule.service";
-import {QualityRule} from "../../../../entities/qualityRule";
+import NotificationService from '../../../../services/notification.service';
+import QualityRuleService from '../../../../services/qualityRule.service';
+import {QualityRule} from '../../../../entities/qualityRule';
 
 class ApiQualityRuleController {
   private createMode: boolean = false;
@@ -45,7 +45,7 @@ class ApiQualityRuleController {
     save.then(response => {
       let qualityRule = response.data;
       that.NotificationService.show('Quality rule ' + qualityRule.name + ' has been saved.');
-      that.$state.go('management.settings.qualityRule', {qualityRuleId: qualityRule.id}, {reload:true})
+      that.$state.go('management.settings.qualityRule', {qualityRuleId: qualityRule.id}, {reload: true});
     });
   }
 }

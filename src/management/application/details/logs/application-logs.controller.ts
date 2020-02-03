@@ -15,7 +15,7 @@
  */
 import {StateService} from '@uirouter/core';
 
-import ApplicationService, {LogsQuery} from "../../../../services/application.service";
+import ApplicationService, {LogsQuery} from '../../../../services/application.service';
 import {IScope} from 'angular';
 import _ = require('lodash');
 
@@ -41,14 +41,14 @@ class ApplicationLogsController {
     this.onPaginate = this.onPaginate.bind(this);
 
     this.query = new LogsQuery();
-    this.query.page = this.$state.params['page'] || 1;
-    this.query.size = this.$state.params['size'] || 15;
+    this.query.page = this.$state.params.page || 1;
+    this.query.size = this.$state.params.size || 15;
   }
 
   $onInit() {
-    this.query.from = this.$state.params['from'];
-    this.query.to = this.$state.params['to'];
-    this.query.query = this.$state.params['q'];
+    this.query.from = this.$state.params.from;
+    this.query.to = this.$state.params.to;
+    this.query.query = this.$state.params.q;
     this.query.field = '-@timestamp';
 
     this.$scope.$watch('$ctrl.query.field', (field) => {
@@ -60,13 +60,13 @@ class ApplicationLogsController {
     this.metadata = {
       apis: this.apis.data
     };
-  };
+  }
 
   timeframeChange(timeframe) {
     this.init = true;
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
-    this.query.page = this.$state.params['page'] || 1;
+    this.query.page = this.$state.params.page || 1;
     this.refresh();
   }
 
@@ -93,7 +93,7 @@ class ApplicationLogsController {
   }
 
   filtersChange(filters) {
-    this.query.page = this.$state.params['page'] || 1;
+    this.query.page = this.$state.params.page || 1;
     this.query.query = filters;
     this.refresh();
   }

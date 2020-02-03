@@ -16,9 +16,6 @@
 
 export class NodeType {
 
-  application: string;
-  name: string;
-
   static API_GATEWAY: NodeType = new NodeType('gio-apim-gateway', 'API Gateway');
   static MANAGEMENT_API: NodeType = new NodeType('gio-apim-management', 'Management API');
 
@@ -27,6 +24,9 @@ export class NodeType {
     NodeType.MANAGEMENT_API
   ];
 
+  application: string;
+  name: string;
+
   constructor(application: string, name: string) {
     this.application = application;
     this.name = name;
@@ -34,8 +34,6 @@ export class NodeType {
 }
 
 export class NodeMetrics {
-  key: string;
-  name: string;
 
   static CPU: NodeMetrics = new NodeMetrics('process.cpu.percent', 'CPU %');
   static MEM_HEAP: NodeMetrics = new NodeMetrics('jvm.mem.heap.percent', 'Heap size %');
@@ -48,6 +46,8 @@ export class NodeMetrics {
     NodeMetrics.THREADS_ACTIVE,
     NodeMetrics.FILE_DESCRIPTORS_OPEN
   ];
+  key: string;
+  name: string;
 
   constructor(key: string, name: string) {
     this.key = key;

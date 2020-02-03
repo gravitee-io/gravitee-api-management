@@ -44,8 +44,8 @@ class ApiMembersController {
     this.api = this.$scope.$parent.apiCtrl.api;
     this.members = resolvedMembers.data;
     this.newPrimaryOwner = null;
-    this.$scope.searchText = "";
-    this.groupById = _.keyBy(resolvedGroups, "id");
+    this.$scope.searchText = '';
+    this.groupById = _.keyBy(resolvedGroups, 'id');
     this.displayGroups = {};
     _.forEach(resolvedGroups, (grp) => {
       this.displayGroups[grp.id] = false;
@@ -57,12 +57,12 @@ class ApiMembersController {
       _.forEach(this.api.groups, (grp) => {
         GroupService.getMembers(grp).then((members) => {
           let filteredMembers = _.filter(members.data, (m: any) => {
-            return m.roles["API"];
+            return m.roles.API;
           });
 
           if (filteredMembers.length > 0) {
             self.groupMembers[grp] = filteredMembers;
-            self.groupIdsWithMembers.push(grp)
+            self.groupIdsWithMembers.push(grp);
           }
         });
       });
@@ -71,8 +71,8 @@ class ApiMembersController {
     const that = this;
     RoleService.list('API').then(function (roles) {
       that.roles = roles;
-      that.newPORoles = _.filter(roles, (role: any)=>{
-        return role.name !== "PRIMARY_OWNER";});
+      that.newPORoles = _.filter(roles, (role: any) => {
+        return role.name !== 'PRIMARY_OWNER'; });
       that.newPORole = _.find(roles, (role: any) => {
         return role.default;
       });
@@ -82,7 +82,7 @@ class ApiMembersController {
   updateMember(member) {
     if (member.role) {
       this.ApiService.addOrUpdateMember(this.api.id, _.pick(member, ['id', 'reference', 'role']) as any).then(() => {
-        this.NotificationService.show('Member ' + member.displayName + " has been updated with role " + member.role);
+        this.NotificationService.show('Member ' + member.displayName + ' has been updated with role ' + member.role);
       });
     }
   }
@@ -91,7 +91,7 @@ class ApiMembersController {
     let index = this.members.indexOf(member);
     this.ApiService.deleteMember(this.api.id, member.id).then(() => {
       this.members.splice(index, 1);
-      this.NotificationService.show("Member " + member.displayName + " has been removed");
+      this.NotificationService.show('Member ' + member.displayName + ' has been removed');
     });
   }
 

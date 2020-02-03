@@ -15,7 +15,7 @@
  */
 /* global setInterval:false, clearInterval:false, screen:false */
 import UserService from '../services/user.service';
-import {log} from "util";
+import {log} from 'util';
 
 function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
                   $timeout, UserService: UserService, Constants, PermissionStrategies) {

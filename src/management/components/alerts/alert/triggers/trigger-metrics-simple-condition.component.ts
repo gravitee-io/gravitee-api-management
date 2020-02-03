@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {Rule} from "../../../../../entities/alerts/rule.metrics";
-import {Metrics} from "../../../../../entities/alert";
+import {Rule} from '../../../../../entities/alerts/rule.metrics';
+import {Metrics} from '../../../../../entities/alert';
 
 const AlertTriggerMetricsSimpleConditionComponent: ng.IComponentOptions = {
   bindings: {
@@ -36,13 +36,13 @@ const AlertTriggerMetricsSimpleConditionComponent: ng.IComponentOptions = {
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {
         this.alert.conditions = [{
-          "property": this.metrics[0].key
+          'property': this.metrics[0].key
         }];
 
         this.alert.dampening = {
-          "mode": "strict_count",
-          "trueEvaluations": 1,
-          "totalEvaluations": 1
+          'mode': 'strict_count',
+          'trueEvaluations': 1,
+          'totalEvaluations': 1
         };
       }
     };

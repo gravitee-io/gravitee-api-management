@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from "lodash";
+import * as _ from 'lodash';
 
 class ViewService {
   private viewsURL: string;
@@ -24,7 +24,7 @@ class ViewService {
   }
 
   list(all?: boolean) {
-    const url = all ? this.viewsURL + "?all=true" : this.viewsURL;
+    const url = all ? this.viewsURL + '?all=true' : this.viewsURL;
     return this.$http.get(url);
   }
 
@@ -47,7 +47,7 @@ class ViewService {
   }
 
   getDefault() {
-    return this.$http.get(this.viewsURL + "default");
+    return this.$http.get(this.viewsURL + 'default');
   }
 
   getDefaultOrFirstOne() {
@@ -56,7 +56,7 @@ class ViewService {
         return response.data;
       } else {
         return this.list().then(response => {
-          let viewsWithApis = _.filter(response.data, (view: any) => { return view.totalApis > 0 });
+          let viewsWithApis = _.filter(response.data, (view: any) => { return view.totalApis > 0; });
           if (viewsWithApis && viewsWithApis.length > 0) {
             return viewsWithApis[0];
           } else {

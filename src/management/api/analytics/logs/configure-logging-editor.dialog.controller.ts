@@ -80,7 +80,7 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
   $scope.types.push(new ConditionType('End date', 'logging-end-date', '#request.timestamp'));
 
   this.addCondition = () => {
-    let type:ConditionType = _.find($scope.types, { 'id': $scope.selectedType});
+    let type: ConditionType = _.find($scope.types, { 'id': $scope.selectedType});
     if (type !== undefined) {
       $scope.conditions.push(new Condition(type, '==', ''));
     }

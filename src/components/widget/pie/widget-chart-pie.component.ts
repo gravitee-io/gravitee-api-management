@@ -30,13 +30,13 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
         let values = [];
         let extraTitle = '';
         // hack to display errors -> https://github.com/gravitee-io/issues/issues/1070
-        if (data.values["400.0-499.0"]){
+        if (data.values['400.0-499.0']) {
           let color = this.parent.widget.chart.colors[3];
-          extraTitle += '<br><span style="color:'+color+'">4xx errors: ' + data.values["400.0-499.0"] + '</span>';
+          extraTitle += '<br><span style="color:' + color + '">4xx errors: ' + data.values['400.0-499.0'] + '</span>';
         }
-        if (data.values["500.0-599.0"]){
+        if (data.values['500.0-599.0']) {
           let color = this.parent.widget.chart.colors[4];
-          extraTitle += '<br><span style="color:' + color + '">5xx errors: ' + data.values["500.0-599.0"] + '</span>';
+          extraTitle += '<br><span style="color:' + color + '">5xx errors: ' + data.values['500.0-599.0'] + '</span>';
         }
         // hack
 

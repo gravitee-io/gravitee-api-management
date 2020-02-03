@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import MetadataService from "../../../../services/metadata.service";
+import MetadataService from '../../../../services/metadata.service';
 function UpdateMetadataDialogController(MetadataService: MetadataService, $mdDialog: angular.material.IDialogService,
                                         metadata, metadataFormats) {
   'ngInject';

@@ -34,7 +34,7 @@ class ApiHealthCheckLogController {
     }
 
     return null;
-  };
+  }
 }
 
 export default ApiHealthCheckLogController;

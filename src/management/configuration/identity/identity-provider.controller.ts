@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { StateService } from "@uirouter/core";
+import { StateService } from '@uirouter/core';
 
-import NotificationService from "../../../services/notification.service";
-import IdentityProviderService from "../../../services/identityProvider.service";
-import { GroupMapping, IdentityProvider, RoleMapping } from "../../../entities/identityProvider";
-import angular = require("angular");
+import NotificationService from '../../../services/notification.service';
+import IdentityProviderService from '../../../services/identityProvider.service';
+import { GroupMapping, IdentityProvider, RoleMapping } from '../../../entities/identityProvider';
+import angular = require('angular');
 import _ = require('lodash');
 
 interface IIdentityProviderScope extends ng.IScope {
@@ -52,8 +52,8 @@ class IdentityProviderController {
       this.identityProvider = new IdentityProvider();
       this.identityProvider.enabled = true;
       this.identityProvider.type = (this.$state.params.type as string);
-      this.identityProvider.configuration = new Map<string ,any>();
-      this.identityProvider.configuration['scopes'] = [];
+      this.identityProvider.configuration = new Map<string , any>();
+      this.identityProvider.configuration.scopes = [];
       this.identityProvider.emailRequired = true;
 
       // Default user mapping configuration for OIDC or Gravitee.io AM providers
@@ -100,7 +100,7 @@ class IdentityProviderController {
 
   update() {
     if (!this.updateMode) {
-      this.IdentityProviderService.create(this.identityProvider).then((response:any) => {
+      this.IdentityProviderService.create(this.identityProvider).then((response: any) => {
         this.NotificationService.show('Identity provider ' + this.identityProvider.name + ' has been created');
         this.$state.go('management.settings.identityproviders.identityprovider', {id: response.data.id}, {reload: true});
       });

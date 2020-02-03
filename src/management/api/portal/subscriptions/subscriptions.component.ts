@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import ApiService from "../../../../services/api.service";
-import NotificationService from "../../../../services/notification.service";
-import { PagedResult } from "../../../../entities/pagedResult";
+import ApiService from '../../../../services/api.service';
+import NotificationService from '../../../../services/notification.service';
+import { PagedResult } from '../../../../entities/pagedResult';
 import { StateService } from '@uirouter/core';
 import * as moment from 'moment';
 
@@ -66,29 +66,29 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       'ngInject';
 
       this.onPaginate = this.onPaginate.bind(this);
-      if (this.$state.params["status"]) {
-        if (Array.isArray(this.$state.params["status"])) {
-          this.query.status = this.$state.params["status"];
+      if (this.$state.params.status) {
+        if (Array.isArray(this.$state.params.status)) {
+          this.query.status = this.$state.params.status;
         } else {
-          this.query.status = this.$state.params["status"].split(',');
+          this.query.status = this.$state.params.status.split(',');
         }
       }
-      if (this.$state.params["application"]) {
-        if (Array.isArray(this.$state.params["application"])) {
-          this.query.applications = this.$state.params["application"];
+      if (this.$state.params.application) {
+        if (Array.isArray(this.$state.params.application)) {
+          this.query.applications = this.$state.params.application;
         } else {
-          this.query.applications = this.$state.params["application"].split(',');
+          this.query.applications = this.$state.params.application.split(',');
         }
       }
-      if (this.$state.params["plan"]) {
-        if (Array.isArray(this.$state.params["plan"])) {
-          this.query.plans = this.$state.params["plan"];
+      if (this.$state.params.plan) {
+        if (Array.isArray(this.$state.params.plan)) {
+          this.query.plans = this.$state.params.plan;
         } else {
-          this.query.plans = this.$state.params["plan"].split(',');
+          this.query.plans = this.$state.params.plan.split(',');
         }
       }
-      if (this.$state.params["api_key"]) {
-        this.query.api_key = this.$state.params["api_key"];
+      if (this.$state.params.api_key) {
+        this.query.api_key = this.$state.params.api_key;
       }
     }
 
@@ -118,19 +118,19 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       let parameters = {};
 
       if (this.query.status !== undefined) {
-        parameters['status'] = this.query.status.join(',');
+        parameters.status = this.query.status.join(',');
       }
 
       if (this.query.applications !== undefined) {
-        parameters['application'] = this.query.applications.join(',');
+        parameters.application = this.query.applications.join(',');
       }
 
       if (this.query.plans !== undefined) {
-        parameters['plan'] = this.query.plans.join(',');
+        parameters.plan = this.query.plans.join(',');
       }
 
       if (this.query.api_key !== undefined) {
-        parameters['api_key'] = this.query.api_key;
+        parameters.api_key = this.query.api_key;
       }
 
       _.mapKeys(parameters, (value, key ) => {
@@ -145,9 +145,9 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       this.$state.transitionTo(
         this.$state.current,
         _.merge(this.$state.params, {
-          status: this.query.status ? this.query.status.join(",") : "",
-          application: this.query.applications ? this.query.applications.join(",") : "",
-          plan: this.query.plans ? this.query.plans.join(",") : "",
+          status: this.query.status ? this.query.status.join(',') : '',
+          application: this.query.applications ? this.query.applications.join(',') : '',
+          plan: this.query.plans ? this.query.plans.join(',') : '',
           page: this.query.page,
           size: this.query.size,
           api_key: this.query.api_key
@@ -163,12 +163,12 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     getSubscriptionAnalytics() {
       if (this.subscriptions.data && this.subscriptions.data.length) {
-        this.ApiService.analytics(this.api.id,{
+        this.ApiService.analytics(this.api.id, {
           type: 'date_histo',
           aggs: 'field:subscription',
           interval: 86400000,
-          from: moment().endOf("day").subtract(1, 'months'),
-          to: moment().endOf("day")
+          from: moment().endOf('day').subtract(1, 'months'),
+          to: moment().endOf('day')
         }).then((result) => {
           if (result.data.values && result.data.values.length) {
             _.forEach(this.subscriptions.data, (subscription) => {

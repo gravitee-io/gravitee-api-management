@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import InstancesService from '../services/instances.service';
-import AuditService from "../services/audit.service";
-import ApiService from "../services/api.service";
-import ApplicationService from "../services/application.service";
-import {User} from "../entities/user";
-import RoleService from "../services/role.service";
-import DashboardService from "../services/dashboard.service";
+import AuditService from '../services/audit.service';
+import ApiService from '../services/api.service';
+import ApplicationService from '../services/application.service';
+import {User} from '../entities/user';
+import RoleService from '../services/role.service';
+import DashboardService from '../services/dashboard.service';
 
 function managementRouterConfig($stateProvider) {
   'ngInject';
@@ -64,7 +64,7 @@ function managementRouterConfig($stateProvider) {
       component: 'instance',
       resolve: {
         instance: ($stateParams, InstancesService: InstancesService) =>
-          InstancesService.get($stateParams['instanceId']).then(response => response.data)
+          InstancesService.get($stateParams.instanceId).then(response => response.data)
       }
     })
     .state('management.instances.detail.environment', {
@@ -94,7 +94,7 @@ function managementRouterConfig($stateProvider) {
       },
       resolve: {
         monitoringData: ($stateParams, InstancesService: InstancesService, instance: any) =>
-          InstancesService.getMonitoringData($stateParams['instanceId'], instance.id).then(response => response.data)
+          InstancesService.getMonitoringData($stateParams.instanceId, instance.id).then(response => response.data)
       }
     })
     .state('management.platform', {
@@ -184,8 +184,8 @@ function managementRouterConfig($stateProvider) {
         }
       },
       resolve: {
-        resolvedScope: () => "MANAGEMENT",
-        resolvedRoles: (RoleService: RoleService) => RoleService.list("MANAGEMENT")
+        resolvedScope: () => 'MANAGEMENT',
+        resolvedRoles: (RoleService: RoleService) => RoleService.list('MANAGEMENT')
       }
     })
     .state('management.tasks', {

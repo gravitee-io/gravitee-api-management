@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import NotificationService from '../services/notification.service';
-import UserService from "../services/user.service";
+import UserService from '../services/user.service';
 
 function interceptorConfig(
   $httpProvider: angular.IHttpProvider
@@ -45,7 +45,7 @@ function interceptorConfig(
               $location.$$path !== ''
               && $location.$$path !== '/'
               && $location.$$path !== '/login'
-              && !$location.$$path.startsWith("/registration/confirm");
+              && !$location.$$path.startsWith('/registration/confirm');
             if (error.config.forceSessionExpired || (!sessionExpired && !error.config.silentCall)) {
               sessionExpired = true;
               // session expired
@@ -70,7 +70,7 @@ function interceptorConfig(
           notificationService.showError(error, errorMessage);
           if (error.status === 403) {
             // if the user try to access a forbidden resource (after redirection for example), do not stay on login form
-            $timeout(function () {$state.go('portal.home');});
+            $timeout(function () {$state.go('portal.home'); });
           }
         }
       }
@@ -90,7 +90,7 @@ function interceptorConfig(
         const notificationService = ($injector.get('NotificationService') as NotificationService);
         if (!error.config || !error.config.silentCall) {
           if (error.config && !error.config.tryItMode) {
-            if (error && error.status <= 0 && error.xhrStatus !== "abort") {
+            if (error && error.status <= 0 && error.xhrStatus !== 'abort') {
               notificationService.showError('Server unreachable');
             }
           } else {

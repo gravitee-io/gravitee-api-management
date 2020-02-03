@@ -27,7 +27,9 @@ const DashboardComponent: ng.IComponentOptions = {
   controller: function($scope) {
     'ngInject';
     this.initialEventCounter = 2;
+    // tslint:disable-next-line:no-unused-expression
     this.initialTimeFrame;
+    // tslint:disable-next-line:no-unused-expression
     this.initialQuery;
 
     this.dashboardOptions = {
@@ -48,16 +50,16 @@ const DashboardComponent: ng.IComponentOptions = {
     };
 
     this.timeframeChange = function(timeframe) {
-      if(this.initialEventCounter > 0) {
+      if (this.initialEventCounter > 0) {
           this.initialEventCounter--;
       }
-      if(this.initialEventCounter == 0) {
-        //TODO: remove event broadcast and call a widget function instead
+      if (this.initialEventCounter === 0) {
+        // TODO: remove event broadcast and call a widget function instead
         $scope.$broadcast('onTimeframeChange', timeframe);
         if (this.onTimeframeChange) {
             this.onTimeframeChange({timeframe: timeframe});
         }
-        if(this.initialQuery) {
+        if (this.initialQuery) {
             $scope.$broadcast('onQueryFilterChange', {query: this.initialQuery, source: undefined});
             if (this.onFilterChange) {
               this.onFilterChange({query: this.initialQuery});
@@ -65,22 +67,22 @@ const DashboardComponent: ng.IComponentOptions = {
             delete(this.initialQuery);
         }
       } else {
-        //waiting for queryFilterChange event ==> store timeframe for further broadcast
+        // waiting for queryFilterChange event ==> store timeframe for further broadcast
         this.initialTimeFrame = timeframe;
       }
     };
 
     this.queryFilterChange = function(query, widget) {
-      if(this.initialEventCounter > 0) {
+      if (this.initialEventCounter > 0) {
           this.initialEventCounter--;
         }
-        if(this.initialEventCounter == 0) {
-          //TODO: remove event broadcast and call a widget function instead
+        if (this.initialEventCounter === 0) {
+          // TODO: remove event broadcast and call a widget function instead
           $scope.$broadcast('onQueryFilterChange', {query: query, source: widget});
           if (this.onFilterChange) {
             this.onFilterChange({query: query});
           }
-          if(this.initialTimeFrame) {
+          if (this.initialTimeFrame) {
             $scope.$broadcast('onTimeframeChange', this.initialTimeFrame);
             if (this.onTimeframeChange) {
               this.onTimeframeChange({timeframe: this.initialTimeFrame});
@@ -88,7 +90,7 @@ const DashboardComponent: ng.IComponentOptions = {
             delete(this.initialTimeFrame);
           }
         } else {
-          //waiting for timeFrameChange event ==> store query for further broadcast
+          // waiting for timeFrameChange event ==> store query for further broadcast
           this.initialQuery = query;
         }
     };

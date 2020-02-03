@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DurationTimeUnit} from "../../../../../entities/alert";
+import {DurationTimeUnit} from '../../../../../entities/alert';
 
 const AlertTriggerWindowComponent: ng.IComponentOptions = {
   bindings: {
@@ -25,7 +25,7 @@ const AlertTriggerWindowComponent: ng.IComponentOptions = {
 
     this.$onInit = () => {
       this.timeUnits = DurationTimeUnit.TIME_UNITS;
-    }
+    };
   }
 };
 

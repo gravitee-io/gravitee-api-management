@@ -1,5 +1,5 @@
-import {StateService} from "@uirouter/core";
-import NotificationService from "../../../../services/notification.service";
+import {StateService} from '@uirouter/core';
+import NotificationService from '../../../../services/notification.service';
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -26,11 +26,11 @@ const LogComponent: ng.IComponentOptions = {
     this.NotificationService = NotificationService;
 
     this.backStateParams = {
-      from: $state.params['from'],
-      to: $state.params['to'],
-      q: $state.params['q'],
-      page: $state.params['page'],
-      size: $state.params['size']
+      from: $state.params.from,
+      to: $state.params.to,
+      q: $state.params.q,
+      page: $state.params.page,
+      size: $state.params.size
     };
 
     this.getMimeType = function(log) {

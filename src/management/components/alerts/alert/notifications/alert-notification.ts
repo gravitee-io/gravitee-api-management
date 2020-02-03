@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NotifierService from "../../../../../services/notifier.service";
-import NotificationService from "../../../../../services/notification.service";
+import NotifierService from '../../../../../services/notifier.service';
+import NotificationService from '../../../../../services/notification.service';
 
 const AlertNotificationComponent: ng.IComponentOptions = {
   bindings: {
@@ -28,7 +28,7 @@ const AlertNotificationComponent: ng.IComponentOptions = {
   controller: function(NotificationService: NotificationService, NotifierService: NotifierService) {
     'ngInject';
 
-    this.notifierJsonSchemaForm = ["*"];
+    this.notifierJsonSchemaForm = ['*'];
 
     this.$onInit = () => {
       if (this.notification.type) {
@@ -55,7 +55,7 @@ const AlertNotificationComponent: ng.IComponentOptions = {
               schema: {}
             };
           } else {
-            //todo manage errors
+            // todo manage errors
             NotificationService.showError('Unexpected error while loading notifier schema for ' + this.notifier.type);
           }
         });

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoleService from "../../../services/role.service";
+import RoleService from '../../../services/role.service';
 
 export default apisMessagesRouterConfig;
 
@@ -24,9 +24,9 @@ function apisMessagesRouterConfig($stateProvider) {
       url: '/messages',
       component: 'messages',
       resolve: {
-        resolvedScope: () => "APPLICATION",
+        resolvedScope: () => 'APPLICATION',
         resolvedApiId: ($stateParams) => $stateParams.apiId,
-        resolvedRoles: (RoleService: RoleService) => RoleService.list("APPLICATION")
+        resolvedRoles: (RoleService: RoleService) => RoleService.list('APPLICATION')
       },
       data: {
         menu: {
@@ -40,5 +40,5 @@ function apisMessagesRouterConfig($stateProvider) {
           page: 'management-messages'
         }
       }
-    })
+    });
 }

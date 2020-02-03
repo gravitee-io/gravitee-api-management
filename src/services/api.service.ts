@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from "lodash";
-import { PagedResult } from "../entities/pagedResult";
+import * as _ from 'lodash';
+import { PagedResult } from '../entities/pagedResult';
 
 export class LogsQuery {
   from: number;
@@ -45,16 +45,16 @@ class ApiService {
 
   defaultHttpHeaders(): string[] {
     return [
-      'Accept','Accept-Charset','Accept-Encoding','Accept-Language','Accept-Ranges','Access-Control-Allow-Credentials',
-      'Access-Control-Allow-Headers','Access-Control-Allow-Methods','Access-Control-Allow-Origin',
-      'Access-Control-Expose-Headers','Access-Control-Max-Age','Access-Control-Request-Headers',
-      'Access-Control-Request-Method','Age','Allow','Authorization','Cache-Control','Connection','Content-Disposition',
-      'Content-Encoding','Content-ID','Content-Language','Content-Length','Content-Location','Content-MD5','Content-Range',
-      'Content-Type','Cookie','Date','ETag','Expires','Expect','Forwarded','From','Host','If-Match','If-Modified-Since',
-      'If-None-Match','If-Unmodified-Since','Keep-Alive','Last-Modified','Location','Link','Max-Forwards','MIME-Version',
-      'Origin','Pragma','Proxy-Authenticate','Proxy-Authorization','Proxy-Connection','Range','Referer','Retry-After',
-      'Server','Set-Cookie','Set-Cookie2','TE','Trailer','Transfer-Encoding','Upgrade','User-Agent','Vary','Via',
-      'Warning','WWW-Authenticate','X-Forwarded-For','X-Forwarded-Proto','X-Forwarded-Server','X-Forwarded-Host'
+      'Accept', 'Accept-Charset', 'Accept-Encoding', 'Accept-Language', 'Accept-Ranges', 'Access-Control-Allow-Credentials',
+      'Access-Control-Allow-Headers', 'Access-Control-Allow-Methods', 'Access-Control-Allow-Origin',
+      'Access-Control-Expose-Headers', 'Access-Control-Max-Age', 'Access-Control-Request-Headers',
+      'Access-Control-Request-Method', 'Age', 'Allow', 'Authorization', 'Cache-Control', 'Connection', 'Content-Disposition',
+      'Content-Encoding', 'Content-ID', 'Content-Language', 'Content-Length', 'Content-Location', 'Content-MD5', 'Content-Range',
+      'Content-Type', 'Cookie', 'Date', 'ETag', 'Expires', 'Expect', 'Forwarded', 'From', 'Host', 'If-Match', 'If-Modified-Since',
+      'If-None-Match', 'If-Unmodified-Since', 'Keep-Alive', 'Last-Modified', 'Location', 'Link', 'Max-Forwards', 'MIME-Version',
+      'Origin', 'Pragma', 'Proxy-Authenticate', 'Proxy-Authorization', 'Proxy-Connection', 'Range', 'Referer', 'Retry-After',
+      'Server', 'Set-Cookie', 'Set-Cookie2', 'TE', 'Trailer', 'Transfer-Encoding', 'Upgrade', 'User-Agent', 'Vary', 'Via',
+      'Warning', 'WWW-Authenticate', 'X-Forwarded-For', 'X-Forwarded-Proto', 'X-Forwarded-Server', 'X-Forwarded-Host'
     ];
   }
 
@@ -103,7 +103,7 @@ class ApiService {
   }
 
   update(api): ng.IPromise<any> {
-    //clean endpoint http proxy
+    // clean endpoint http proxy
     if (api.proxy && api.proxy.endpoints) {
       _.forEach(api.proxy.endpoints, (endpoint) => {
         if (endpoint.proxy && (!endpoint.proxy.host || !endpoint.proxy.port)) {
@@ -149,7 +149,7 @@ class ApiService {
   }
 
   export(apiId, exclude, exportVersion): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + apiId + '/export?exclude=' + exclude.join(",") + (exportVersion ? '&version=' + exportVersion : ''));
+    return this.$http.get(this.apisURL + apiId + '/export?exclude=' + exclude.join(',') + (exportVersion ? '&version=' + exportVersion : ''));
   }
 
   verify(criteria, config?): ng.IPromise<any> {
@@ -179,31 +179,6 @@ class ApiService {
     });
 
     return this.$http.get(url, {timeout: this.analyticsHttpTimeout});
-  }
-
-  /*
-   * Logs
-   */
-  private buildURLWithQuery(query: LogsQuery, url) {
-    var keys = Object.keys(query);
-    _.forEach(keys, function (key) {
-      var val = query[key];
-      if (val !== undefined && val !== '') {
-        url += key + '=' + val + '&';
-      }
-    });
-    return url;
-  }
-
-  private cloneQuery(query: LogsQuery) {
-    let clonedQuery = _.clone(query);
-    if (_.startsWith(clonedQuery.field, '-')) {
-      clonedQuery.order = false;
-      clonedQuery.field = clonedQuery.field.substring(1);
-    } else {
-      clonedQuery.order = true;
-    }
-    return clonedQuery;
   }
 
   findLogs(api: string, query: LogsQuery): ng.IPromise<any> {
@@ -257,7 +232,7 @@ class ApiService {
    * API plans
    */
   getApiPlans(apiId, status?, security?): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + apiId + '/plans?status=' + (status?status:'staging,published,closed,deprecated') + (security?'&security='+security:''));
+    return this.$http.get(this.apisURL + apiId + '/plans?status=' + (status ? status : 'staging,published,closed,deprecated') + (security ? '&security=' + security : ''));
   }
 
   getApiPlan(apiId, planId): ng.IPromise<any> {
@@ -366,11 +341,11 @@ class ApiService {
   }
 
   getPlanSubscriptions(apiId, planId): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + apiId + '/subscriptions?plan='+planId);
+    return this.$http.get(this.apisURL + apiId + '/subscriptions?plan=' + planId);
   }
 
   getAllPlanSubscriptions(apiId, planId): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + apiId + '/subscriptions?plan='+planId+'&status=accepted,pending,rejected,closed');
+    return this.$http.get(this.apisURL + apiId + '/subscriptions?plan=' + planId + '&status=accepted,pending,rejected,closed');
   }
 
   subscribe(apiId: string, applicationId: string, planId: string): ng.IHttpPromise<any> {
@@ -517,7 +492,7 @@ class ApiService {
       if ( score < 50 ) {
         return 'gravitee-qm-score-bad';
       } else if (score >= 50 && score < 80) {
-        return 'gravitee-qm-score-medium'
+        return 'gravitee-qm-score-medium';
       } else {
         return  'gravitee-qm-score-good';
       }
@@ -537,7 +512,7 @@ class ApiService {
         endpointsName.push(endpoint.name);
       });
     });
-    //in update mode, the api endpoint is updated when the form is filled.
+    // in update mode, the api endpoint is updated when the form is filled.
     // that's why we have to count it twice to detect non uniqueness
     return _.filter(endpointsName, (endpointName) => name === endpointName).length > (onCreate ? 0 : 1);
   }
@@ -552,6 +527,31 @@ class ApiService {
 
   rejectReview(api, message): ng.IPromise<any> {
     return this.$http.post(this.apisURL + api.id + '/reviews?action=REJECT', {message: message}, {headers: {'If-Match': api.etag}});
+  }
+
+  /*
+   * Logs
+   */
+  private buildURLWithQuery(query: LogsQuery, url) {
+    var keys = Object.keys(query);
+    _.forEach(keys, function (key) {
+      var val = query[key];
+      if (val !== undefined && val !== '') {
+        url += key + '=' + val + '&';
+      }
+    });
+    return url;
+  }
+
+  private cloneQuery(query: LogsQuery) {
+    let clonedQuery = _.clone(query);
+    if (_.startsWith(clonedQuery.field, '-')) {
+      clonedQuery.order = false;
+      clonedQuery.field = clonedQuery.field.substring(1);
+    } else {
+      clonedQuery.order = true;
+    }
+    return clonedQuery;
   }
 }
 

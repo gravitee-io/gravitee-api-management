@@ -16,13 +16,14 @@
 import * as _ from 'lodash';
 import moment = require('moment');
 import { StateService } from '@uirouter/core';
-import {Moment} from "moment";
+import {Moment} from 'moment';
 
+// tslint:disable-next-line:interface-name
 interface Timeframe {
-  id: string,
-  title: string,
-  range: number,
-  interval: number
+  id: string;
+  title: string;
+  range: number;
+  interval: number;
 }
 
 class LogsTimeframeController {
@@ -127,15 +128,15 @@ class LogsTimeframeController {
   }
 
   $onInit() {
-    if (this.$state.params['from'] && this.$state.params['to']) {
+    if (this.$state.params.from && this.$state.params.to) {
       this.update({
-        from: this.$state.params['from'],
-        to: this.$state.params['to']
+        from: this.$state.params.from,
+        to: this.$state.params.to
       });
     } else {
-      this.setTimeframe(this.$state.params['timeframe'] || '1d', true);
+      this.setTimeframe(this.$state.params.timeframe || '1d', true);
     }
-  };
+  }
 
   updateTimeframe(timeframeId) {
     if (timeframeId) {
@@ -183,9 +184,9 @@ class LogsTimeframeController {
     let that = this;
 
     let timeframe = {
-      interval: parseInt(timeframeParam.interval),
-      from: parseInt(timeframeParam.from),
-      to: parseInt(timeframeParam.to)
+      interval: parseInt(timeframeParam.interval, 10),
+      from: parseInt(timeframeParam.from, 10),
+      to: parseInt(timeframeParam.to, 10)
     };
 
     // Select the best timeframe
@@ -225,8 +226,8 @@ class LogsTimeframeController {
   }
 
   updateRangeDate() {
-    let from =  this.pickerStartDate.startOf("minute").unix() * 1000;
-    let to = this.pickerEndDate.endOf("minute").unix() * 1000;
+    let from =  this.pickerStartDate.startOf('minute').unix() * 1000;
+    let to = this.pickerEndDate.endOf('minute').unix() * 1000;
 
     let diff = to - from;
 

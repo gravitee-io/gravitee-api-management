@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import ApiService from "../../../../services/api.service";
-import NotificationService from "../../../../services/notification.service";
+import ApiService from '../../../../services/api.service';
+import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 
 class ApiCreationController {
@@ -42,7 +42,7 @@ class ApiCreationController {
   private rateLimitTimeUnits: string[];
   private quotaTimeUnits: string[];
   private methods: string[];
-  private resourceFiltering:{
+  private resourceFiltering: {
     whitelist: any
   };
   private skippedStep: boolean;
@@ -93,7 +93,7 @@ class ApiCreationController {
     }
 
     this.rateLimitTimeUnits = ['SECONDS', 'MINUTES'];
-    this.quotaTimeUnits = ['HOURS', 'DAYS', "WEEKS", "MONTHS"];
+    this.quotaTimeUnits = ['HOURS', 'DAYS', 'WEEKS', 'MONTHS'];
 
     this.methods = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS', 'TRACE', 'CONNECT'];
 
@@ -124,28 +124,28 @@ class ApiCreationController {
       stepData: [
         {step: 1, completed: false, optional: false, data: {}},
         {step: 2, completed: false, optional: false, data: {}},
-        {step: 3, label: "Plan", completed: false, optional: true, data: {}},
-        {step: 4, label: "Documentation", completed: false, optional: true, data: {}},
-        {step: 5, label: "Confirmation", completed: false, optional: false, data: {}}
+        {step: 3, label: 'Plan', completed: false, optional: true, data: {}},
+        {step: 4, label: 'Documentation', completed: false, optional: true, data: {}},
+        {step: 5, label: 'Confirmation', completed: false, optional: false, data: {}}
       ]
     };
   }
 
   enableNextStep() {
-    //do not exceed into max step
+    // do not exceed into max step
     if (this.vm.selectedStep >= this.vm.maxStep) {
       return;
     }
-    //do not increment vm.stepProgress when submitting from previously completed step
+    // do not increment vm.stepProgress when submitting from previously completed step
     if (this.vm.selectedStep === this.vm.stepProgress - 1) {
       this.vm.stepProgress = this.vm.stepProgress + 1;
     }
 
-    //change api step state
+    // change api step state
     if (this.skippedStep) {
       this.apiSteps[this.vm.selectedStep].badgeClass = 'disable';
       this.apiSteps[this.vm.selectedStep].badgeIconClass = 'glyphicon-remove-circle';
-      this.apiSteps[this.vm.selectedStep].title = this.steps()[this.vm.selectedStep].title + " <em>skipped</em>";
+      this.apiSteps[this.vm.selectedStep].title = this.steps()[this.vm.selectedStep].title + ' <em>skipped</em>';
       this.skippedStep = false;
     } else {
       this.apiSteps[this.vm.selectedStep].badgeClass = 'info';
@@ -178,7 +178,7 @@ class ApiCreationController {
     if (!stepData.completed) {
       if (this.vm.selectedStep !== 4) {
         this.vm.showBusyText = false;
-        //move to next step when success
+        // move to next step when success
         stepData.completed = true;
         this.enableNextStep();
       }
@@ -195,7 +195,7 @@ class ApiCreationController {
     var alert = this.$mdDialog.confirm({
       title: 'Create API ?',
       content: 'The API ' + this.api.name + ' in version ' + this.api.version + ' will be created' + ((deployAndStart) ? ' and deployed.' : '.'),
-      ok: 'CREATE' + (readyForReview? ' AND ASK FOR REVIEW':''),
+      ok: 'CREATE' + (readyForReview ? ' AND ASK FOR REVIEW' : ''),
       cancel: 'CANCEL'
     });
 
@@ -235,7 +235,7 @@ class ApiCreationController {
           api.data.workflow_state = 'in_review';
           api.data.etag = response.headers('etag');
           _this.api = api.data;
-          _this.$rootScope.$broadcast("apiChangeSuccess", {api: api.data});
+          _this.$rootScope.$broadcast('apiChangeSuccess', {api: api.data});
         });
       }
       if (deployAndStart) {
@@ -259,7 +259,7 @@ class ApiCreationController {
    API context-path
    */
   validFirstStep(stepData) {
-    var stepMessage = this.api.name + " (" + this.api.version + ") <code>" + this.api.proxy.context_path + "</code>";
+    var stepMessage = this.api.name + ' (' + this.api.version + ') <code>' + this.api.proxy.context_path + '</code>';
     if (this.contextPathInvalid) {
       var _this = this;
       var criteria = { 'context_path' : this.api.proxy.context_path};
@@ -347,7 +347,7 @@ class ApiCreationController {
     }
     this.api.plans.push(this.plan);
     // set api step message
-    var stepMessage = this.plan.name + " <code>"+this.plan.security+ "</code> <code>"+this.plan.validation+"</code>";
+    var stepMessage = this.plan.name + ' <code>' + this.plan.security + '</code> <code>' + this.plan.validation + '</code>';
     this.apiSteps[this.vm.selectedStep].title = stepMessage;
   }
 
@@ -380,28 +380,28 @@ class ApiCreationController {
 
         var fileExtension = file.name.split('.').pop().toUpperCase();
         switch (fileExtension) {
-          case "MD" :
+          case 'MD' :
             file.type = 'MARKDOWN';
             break;
-          case "YAML" :
-          case "YML" :
-          case "JSON" :
+          case 'YAML' :
+          case 'YML' :
+          case 'JSON' :
             file.type = 'SWAGGER';
             break;
         }
         if (file.type) {
           that.selectFile(file);
         } else {
-          that.NotificationService.showError("Only Markdown and OpenAPI file are supported");
+          that.NotificationService.showError('Only Markdown and OpenAPI file are supported');
         }
       }
     });
   }
 
   selectDocumentation() {
-    var stepMessage = "";
+    var stepMessage = '';
     _.forEach(this.api.pages, function(page) {
-      stepMessage += page.name + " ";
+      stepMessage += page.name + ' ';
     });
     this.apiSteps[this.vm.selectedStep].title = stepMessage;
   }

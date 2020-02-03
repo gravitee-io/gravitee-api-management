@@ -11,12 +11,10 @@ angular.module('ui.codemirror', [])
  * @ngInject
  */
 function uiCodemirrorDirective($timeout, uiCodemirrorConfig) {
-
   return {
     restrict: 'EA',
     require: '?ngModel',
     compile: function compile() {
-
       // Require CodeMirror
       if (angular.isUndefined(window.CodeMirror)) {
         throw new Error('ui-codemirror needs CodeMirror to work... (o rly?)');
@@ -27,15 +25,14 @@ function uiCodemirrorDirective($timeout, uiCodemirrorConfig) {
   };
 
   function postLink(scope, iElement, iAttrs, ngModel) {
-
-    var codemirrorOptions = angular.extend(
-      { value: iElement.text() },
+    const codemirrorOptions = angular.extend(
+      {value: iElement.text()},
       uiCodemirrorConfig.codemirror || {},
       scope.$eval(iAttrs.uiCodemirror),
       scope.$eval(iAttrs.uiCodemirrorOpts)
     );
 
-    var codemirror = newCodemirrorEditor(iElement, codemirrorOptions);
+    const codemirror = newCodemirrorEditor(iElement, codemirrorOptions);
 
     configOptionsWatcher(
       codemirror,
@@ -49,7 +46,7 @@ function uiCodemirrorDirective($timeout, uiCodemirrorConfig) {
 
     // Allow access to the CodeMirror instance through a broadcasted event
     // eg: $broadcast('CodeMirror', function(cm){...});
-    scope.$on('CodeMirror', function(event, callback) {
+    scope.$on('CodeMirror', (event, callback) => {
       if (angular.isFunction(callback)) {
         callback(codemirror);
       } else {
@@ -57,38 +54,41 @@ function uiCodemirrorDirective($timeout, uiCodemirrorConfig) {
       }
     });
 
-    // onLoad callback
+    // OnLoad callback
     if (angular.isFunction(codemirrorOptions.onLoad)) {
       codemirrorOptions.onLoad(codemirror);
     }
   }
 
   function newCodemirrorEditor(iElement, codemirrorOptions) {
-    var codemirrot;
+    let codemirrot;
 
     if (iElement[0].tagName === 'TEXTAREA') {
       // Might bug but still ...
       codemirrot = window.CodeMirror.fromTextArea(iElement[0], codemirrorOptions);
     } else {
       iElement.html('');
-      codemirrot = new window.CodeMirror(function(cm_el) {
+      codemirrot = new window.CodeMirror((cm_el => {
         iElement.append(cm_el);
-      }, codemirrorOptions);
+      }), codemirrorOptions);
     }
 
     return codemirrot;
   }
 
   function configOptionsWatcher(codemirrot, uiCodemirrorAttr, scope) {
-    if (!uiCodemirrorAttr) { return; }
+    if (!uiCodemirrorAttr) {
+      return;
+    }
 
-    var codemirrorDefaultsKeys = Object.keys(window.CodeMirror.defaults);
+    const codemirrorDefaultsKeys = Object.keys(window.CodeMirror.defaults);
     scope.$watch(uiCodemirrorAttr, updateOptions, true);
     function updateOptions(newValues, oldValue) {
-      if (!angular.isObject(newValues)) { return; }
-      codemirrorDefaultsKeys.forEach(function(key) {
+      if (!angular.isObject(newValues)) {
+        return;
+      }
+      codemirrorDefaultsKeys.forEach(key => {
         if (newValues.hasOwnProperty(key)) {
-
           if (oldValue && newValues[key] === oldValue[key]) {
             return;
           }
@@ -100,34 +100,34 @@ function uiCodemirrorDirective($timeout, uiCodemirrorConfig) {
   }
 
   function configNgModelLink(codemirror, ngModel, scope) {
-    if (!ngModel) { return; }
+    if (!ngModel) {
+      return;
+    }
     // CodeMirror expects a string, so make sure it gets one.
     // This does not change the model.
-    ngModel.$formatters.push(function(value) {
+    ngModel.$formatters.push(value => {
       if (angular.isUndefined(value) || value === null) {
         return '';
-      } else if (angular.isObject(value) || angular.isArray(value)) {
+      } if (angular.isObject(value) || angular.isArray(value)) {
         throw new Error('ui-codemirror cannot use an object or an array as a model');
       }
       return value;
     });
 
-
     // Override the ngModelController $render method, which is what gets called when the model is updated.
     // This takes care of the synchronizing the codeMirror element with the underlying model, in the case that it is changed by something else.
-    ngModel.$render = function() {
-      //Code mirror expects a string so make sure it gets one
-      //Although the formatter have already done this, it can be possible that another formatter returns undefined (for example the required directive)
-      var safeViewValue = ngModel.$viewValue || '';
+    ngModel.$render = function () {
+      // Code mirror expects a string so make sure it gets one
+      // Although the formatter have already done this, it can be possible that another formatter returns undefined (for example the required directive)
+      const safeViewValue = ngModel.$viewValue || '';
       codemirror.setValue(safeViewValue);
     };
 
-
     // Keep the ngModel in sync with changes from CodeMirror
-    codemirror.on('change', function(instance) {
-      var newValue = instance.getValue();
+    codemirror.on('change', instance => {
+      const newValue = instance.getValue();
       if (newValue !== ngModel.$viewValue) {
-        scope.$evalAsync(function() {
+        scope.$evalAsync(() => {
           ngModel.$setViewValue(newValue);
         });
       }
@@ -135,18 +135,19 @@ function uiCodemirrorDirective($timeout, uiCodemirrorConfig) {
   }
 
   function configUiRefreshAttribute(codeMirror, uiRefreshAttr, scope) {
-    if (!uiRefreshAttr) { return; }
+    if (!uiRefreshAttr) {
+      return;
+    }
 
-    scope.$watch(uiRefreshAttr, function(newVal, oldVal) {
+    scope.$watch(uiRefreshAttr, (newVal, oldVal) => {
       // Skip the initial watch firing
       if (newVal !== oldVal) {
-        $timeout(function() {
+        $timeout(() => {
           codeMirror.refresh();
         });
       }
     });
   }
-
 }
 
-uiCodemirrorDirective.$inject = [ '$timeout', 'uiCodemirrorConfig' ];
+uiCodemirrorDirective.$inject = ['$timeout', 'uiCodemirrorConfig'];

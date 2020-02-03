@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import "tui-editor/dist/tui-editor-extScrollSync";
-import "tui-editor/dist/tui-editor-extTable";
-import angular = require("angular");
-import { StateService, any } from "@uirouter/core";
+import 'tui-editor/dist/tui-editor-extScrollSync';
+import 'tui-editor/dist/tui-editor-extTable';
+import angular = require('angular');
+import { StateService, any } from '@uirouter/core';
 
-import * as TuiEditor from "tui-editor";
+import * as TuiEditor from 'tui-editor';
 
 class ComponentCtrl implements ng.IComponentController {
 
@@ -28,39 +28,39 @@ class ComponentCtrl implements ng.IComponentController {
   private maxSize: number;
   private tuiEditor: TuiEditor;
   constructor(private $http, private Constants, private $state: StateService) {
-      "ngInject";
+      'ngInject';
       var lastElement = Constants.portal.uploadMedia.maxSizeInOctet;
   }
 
   $onChanges() {
-    const initialValue = this.page && this.page.content ? this.page.content : "";
+    const initialValue = this.page && this.page.content ? this.page.content : '';
     let mediaURL;
     if (this.$state.params.apiId) {
-      mediaURL = this.Constants.baseURL + "apis/" + this.$state.params.apiId + "/media/";
+      mediaURL = this.Constants.baseURL + 'apis/' + this.$state.params.apiId + '/media/';
     } else {
-      mediaURL = this.Constants.baseURL + "portal/media/";
+      mediaURL = this.Constants.baseURL + 'portal/media/';
     }
 
     var toolbarItems = [
-      "heading",
-      "bold",
-      "italic",
-      "strike",
-      "divider",
-      "hr",
-      "quote",
-      "divider",
-      "ul",
-      "ol",
-      "task",
-      "indent",
-      "outdent",
-      "divider",
-      "table",
-      "link",
-      "divider",
-      "code",
-      "codeblock"
+      'heading',
+      'bold',
+      'italic',
+      'strike',
+      'divider',
+      'hr',
+      'quote',
+      'divider',
+      'ul',
+      'ol',
+      'task',
+      'indent',
+      'outdent',
+      'divider',
+      'table',
+      'link',
+      'divider',
+      'code',
+      'codeblock'
     ];
 
 
@@ -70,21 +70,21 @@ class ComponentCtrl implements ng.IComponentController {
 
     if (Constants.portal.uploadMedia.enabled) {
       // toolbarItems
-      toolbarItems.splice(15, 0, "image");
+      toolbarItems.splice(15, 0, 'image');
     }
 
     if (this.tuiEditor) {
       this.tuiEditor.remove();
     }
     this.tuiEditor = new TuiEditor(Object.assign({
-      el: document.querySelector("#editSection"),
-      initialEditType: "markdown",
-      previewStyle: "vertical",
+      el: document.querySelector('#editSection'),
+      initialEditType: 'markdown',
+      previewStyle: 'vertical',
       initialValue: initialValue,
       useDefaultHTMLSanitizer: false,
-      height: "500px",
+      height: '500px',
       usageStatistics: false,
-      exts: ["table", "scrollSync"],
+      exts: ['table', 'scrollSync'],
       toolbarItems: toolbarItems,
       events: {
         change: (change) => {
@@ -95,14 +95,14 @@ class ComponentCtrl implements ng.IComponentController {
         addImageBlobHook: function (blob, callback) {
 
           let fd = new FormData();
-          fd.append("file", blob);
+          fd.append('file', blob);
 
           if (blob.size > Constants.portal.uploadMedia.maxSizeInOctet) {
-            callback("file uploaded to big, you're limited at " + Constants.portal.uploadMedia.maxSizeInOctet, " bytes");
+            callback('file uploaded to big, you\'re limited at ' + Constants.portal.uploadMedia.maxSizeInOctet, ' bytes');
             return false;
           }
 
-          $http.post(mediaURL + "upload", fd, {headers: {"Content-Type": undefined}})
+          $http.post(mediaURL + 'upload', fd, {headers: {'Content-Type': undefined}})
           .then((response) => {
             callback(mediaURL + response.data, blob.name);
           });
@@ -115,10 +115,10 @@ class ComponentCtrl implements ng.IComponentController {
 }
 
 const PageEditorMarkdownComponent: ng.IComponentOptions = {
-  template: require("./page-editormarkdown.html"),
+  template: require('./page-editormarkdown.html'),
   bindings: {
-    page: "<",
-    options: "<"
+    page: '<',
+    options: '<'
   },
   controller: ComponentCtrl
 };

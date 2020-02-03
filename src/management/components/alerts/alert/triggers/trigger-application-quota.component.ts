@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ApiMetrics} from "../../../../../entities/alerts/api.metrics";
+import {ApiMetrics} from '../../../../../entities/alerts/api.metrics';
 
 const AlertTriggerApplicationQuotaComponent: ng.IComponentOptions = {
   bindings: {
@@ -33,16 +33,16 @@ const AlertTriggerApplicationQuotaComponent: ng.IComponentOptions = {
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {
         this.alert.conditions = [{
-          "type": "COMPARE",
-          "operator": "GTE",
-          "property": "quota.counter",
-          "property2": "quota.limit",
+          'type': 'COMPARE',
+          'operator': 'GTE',
+          'property': 'quota.counter',
+          'property2': 'quota.limit',
         }];
 
         this.alert.dampening = {
-          "mode": "strict_count",
-          "trueEvaluations": 1,
-          "totalEvaluations": 1
+          'mode': 'strict_count',
+          'trueEvaluations': 1,
+          'totalEvaluations': 1
         };
       }
 

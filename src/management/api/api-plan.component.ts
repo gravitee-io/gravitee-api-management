@@ -24,7 +24,7 @@ const ApiPlanComponent: ng.IComponentOptions = {
     onSubscribe: '&',
     onUnsubscribe: '&'
   },
-  template: require("./api-plan.html"),
+  template: require('./api-plan.html'),
   controller: function (UserService: UserService) {
     'ngInject';
 
@@ -32,11 +32,11 @@ const ApiPlanComponent: ng.IComponentOptions = {
 
     this.subscribe = function() {
       this.onSubscribe(this.plan);
-    }
+    };
 
     this.unsubscribe = function() {
       this.onUnsubscribe(this.plan);
-    }
+    };
   }
 };
 

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NotificationService from "../../../services/notification.service";
-import PortalConfigService from "../../../services/portalConfig.service";
+import NotificationService from '../../../services/notification.service';
+import PortalConfigService from '../../../services/portalConfig.service';
 import { StateService } from '@uirouter/core';
 import _ = require('lodash');
-import DashboardService from "../../../services/dashboard.service";
-import {Dashboard} from "../../../entities/dashboard";
+import DashboardService from '../../../services/dashboard.service';
+import {Dashboard} from '../../../entities/dashboard';
 
 const AnalyticsSettingsComponent: ng.IComponentOptions = {
   bindings: {
@@ -55,7 +55,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     this.save = () => {
       PortalConfigService.save(this.settings).then( (response) => {
         _.merge(Constants, response.data);
-        NotificationService.show("Configuration saved");
+        NotificationService.show('Configuration saved');
         this.formSettings.$setPristine();
       });
     };
@@ -79,7 +79,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
       }).then(function (response) {
         if (response) {
           DashboardService.delete(dashboard).then(response => {
-            NotificationService.show("Dashboard '" + dashboard.name + "' has been deleted");
+            NotificationService.show('Dashboard \'' + dashboard.name + '\' has been deleted');
             $state.go($state.current, {}, {reload: true});
           });
         }
@@ -88,7 +88,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
 
     this.update = (dashboard: Dashboard) => {
       DashboardService.update(dashboard).then(() => {
-          NotificationService.show("Dashboard saved with success");
+          NotificationService.show('Dashboard saved with success');
         }).finally(() => {
         $state.go($state.current, {}, {reload: true});
       });

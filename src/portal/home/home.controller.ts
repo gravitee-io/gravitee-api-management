@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { StateService } from "@uirouter/core";
+import { StateService } from '@uirouter/core';
 import angular = require('angular');
-import ApiService from "../../services/api.service";
+import ApiService from '../../services/api.service';
 
 export class HomeController {
   private query: string = '';

@@ -17,8 +17,8 @@ import _ = require('lodash');
 import angular = require('angular');
 import SidenavService from '../../../../components/sidenav/sidenav.service';
 import UserService from '../../../../services/user.service';
-import {QualityMetrics} from "../../../../entities/qualityMetrics";
-import ApiService from "../../../../services/api.service";
+import {QualityMetrics} from '../../../../entities/qualityMetrics';
+import ApiService from '../../../../services/api.service';
 
 class ApiPortalController {
   private initialApi: any;
@@ -103,29 +103,29 @@ class ApiPortalController {
         value: 'CLIENT_PROXY'
       }];
 
-    this.$scope.methods = ['GET','DELETE','PATCH','POST','PUT','TRACE','HEAD'];
+    this.$scope.methods = ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'TRACE', 'HEAD'];
 
     this.initState();
 
     this.views = resolvedViews;
     _.remove( this.views, (item) => {
-      return item['id'] === 'all';
+      return item.id === 'all';
     });
 
     this.tags = resolvedTags;
     this.groups = resolvedGroups;
 
     this.headers = [
-      'Accept','Accept-Charset','Accept-Encoding','Accept-Language','Accept-Ranges','Access-Control-Allow-Credentials',
-      'Access-Control-Allow-Headers','Access-Control-Allow-Methods','Access-Control-Allow-Origin',
-      'Access-Control-Expose-Headers','Access-Control-Max-Age','Access-Control-Request-Headers',
-      'Access-Control-Request-Method','Age','Allow','Authorization','Cache-Control','Connection','Content-Disposition',
-      'Content-Encoding','Content-ID','Content-Language','Content-Length','Content-Location','Content-MD5','Content-Range',
-      'Content-Type','Cookie','Date','ETag','Expires','Expect','Forwarded','From','Host','If-Match','If-Modified-Since',
-      'If-None-Match','If-Unmodified-Since','Keep-Alive','Last-Modified','Location','Link','Max-Forwards','MIME-Version',
-      'Origin','Pragma','Proxy-Authenticate','Proxy-Authorization','Proxy-Connection','Range','Referer','Retry-After',
-      'Server','Set-Cookie','Set-Cookie2','TE','Trailer','Transfer-Encoding','Upgrade','User-Agent','Vary','Via',
-      'Warning','WWW-Authenticate','X-Forwarded-For','X-Forwarded-Proto','X-Forwarded-Server','X-Forwarded-Host'
+      'Accept', 'Accept-Charset', 'Accept-Encoding', 'Accept-Language', 'Accept-Ranges', 'Access-Control-Allow-Credentials',
+      'Access-Control-Allow-Headers', 'Access-Control-Allow-Methods', 'Access-Control-Allow-Origin',
+      'Access-Control-Expose-Headers', 'Access-Control-Max-Age', 'Access-Control-Request-Headers',
+      'Access-Control-Request-Method', 'Age', 'Allow', 'Authorization', 'Cache-Control', 'Connection', 'Content-Disposition',
+      'Content-Encoding', 'Content-ID', 'Content-Language', 'Content-Length', 'Content-Location', 'Content-MD5', 'Content-Range',
+      'Content-Type', 'Cookie', 'Date', 'ETag', 'Expires', 'Expect', 'Forwarded', 'From', 'Host', 'If-Match', 'If-Modified-Since',
+      'If-None-Match', 'If-Unmodified-Since', 'Keep-Alive', 'Last-Modified', 'Location', 'Link', 'Max-Forwards', 'MIME-Version',
+      'Origin', 'Pragma', 'Proxy-Authenticate', 'Proxy-Authorization', 'Proxy-Connection', 'Range', 'Referer', 'Retry-After',
+      'Server', 'Set-Cookie', 'Set-Cookie2', 'TE', 'Trailer', 'Transfer-Encoding', 'Upgrade', 'User-Agent', 'Vary', 'Via',
+      'Warning', 'WWW-Authenticate', 'X-Forwarded-For', 'X-Forwarded-Proto', 'X-Forwarded-Server', 'X-Forwarded-Host'
     ];
 
     this.$scope.$on('apiChangeSuccess', (event, args) => {
@@ -135,13 +135,13 @@ class ApiPortalController {
 
     this.isQualityEnabled = Constants.apiQualityMetrics && Constants.apiQualityMetrics.enabled;
     this.qualityMetricsDescription = new Map<string, string>();
-    this.qualityMetricsDescription.set("api.quality.metrics.functional.documentation.weight", "A functional page must be published");
-    this.qualityMetricsDescription.set("api.quality.metrics.technical.documentation.weight", "A swagger page must be published");
-    this.qualityMetricsDescription.set("api.quality.metrics.healthcheck.weight", "An healthcheck must be configured");
-    this.qualityMetricsDescription.set("api.quality.metrics.description.weight", "The API description must be filled");
-    this.qualityMetricsDescription.set("api.quality.metrics.logo.weight", "Put your own logo");
-    this.qualityMetricsDescription.set("api.quality.metrics.views.weight", "Link your API to views");
-    this.qualityMetricsDescription.set("api.quality.metrics.labels.weight", "Add labels to your API");
+    this.qualityMetricsDescription.set('api.quality.metrics.functional.documentation.weight', 'A functional page must be published');
+    this.qualityMetricsDescription.set('api.quality.metrics.technical.documentation.weight', 'A swagger page must be published');
+    this.qualityMetricsDescription.set('api.quality.metrics.healthcheck.weight', 'An healthcheck must be configured');
+    this.qualityMetricsDescription.set('api.quality.metrics.description.weight', 'The API description must be filled');
+    this.qualityMetricsDescription.set('api.quality.metrics.logo.weight', 'Put your own logo');
+    this.qualityMetricsDescription.set('api.quality.metrics.views.weight', 'Link your API to views');
+    this.qualityMetricsDescription.set('api.quality.metrics.labels.weight', 'Add labels to your API');
     _.forEach(this.qualityRules, (qualityRule) => {
       this.qualityMetricsDescription.set(qualityRule.id, qualityRule.description);
     });
@@ -152,7 +152,7 @@ class ApiPortalController {
   }
 
   computeQualityMetrics() {
-    //quality metrics
+    // quality metrics
     if (this.isQualityEnabled) {
       this.ApiService.getQualityMetrics(this.api.id).then(response => {
         this.qualityMetrics = response.data;
@@ -177,7 +177,7 @@ class ApiPortalController {
     this.failoverEnabled = (this.api.proxy.failover !== undefined);
 
     // Context-path editable
-    this.contextPathEditable =this.UserService.currentUser.id === this.api.owner.id;
+    this.contextPathEditable = this.UserService.currentUser.id === this.api.owner.id;
 
     this.api.proxy.cors = this.api.proxy.cors || {allowOrigin: ['*'], allowHeaders: [], allowMethods: [], exposeHeaders: [], maxAge: -1, allowCredentials: false};
   }
@@ -260,7 +260,7 @@ class ApiPortalController {
         title: 'Are you sure you want to delete \'' + this.api.name + '\'?',
         warning: 'This operation is irreversible.',
         msg: 'The API must be stopped and without any active plans and subscriptions.',
-        validationMessage: 'Please, type in the name of the api <code>'+ this.api.name +'</code> to confirm.',
+        validationMessage: 'Please, type in the name of the api <code>' + this.api.name + '</code> to confirm.',
         validationValue: this.api.name,
         confirmButton: 'Yes, delete this API.'
       }
@@ -380,7 +380,7 @@ class ApiPortalController {
           this.ApiService.stop(this.api).then((response) => {
             this.api.state = 'stopped';
             this.api.etag = response.headers('etag');
-            this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
+            this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
             this.NotificationService.show(`API ${this.api.name} has been stopped with success`);
           });
         } else {
@@ -388,7 +388,7 @@ class ApiPortalController {
             this.api.state = 'started';
             this.api.etag = response.headers('etag');
             this.NotificationService.show(`API ${this.api.name} has been started with success`);
-            this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
+            this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
           });
         }
       }
@@ -416,7 +416,7 @@ class ApiPortalController {
         this.ApiService.update(clonedApi).then((response) => {
           this.api = response.data;
           this.api.etag = response.headers('etag');
-          this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
+          this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
           this.NotificationService.show(`API ${this.api.name} has been ${lifecycleState} with success`);
         });
       }
@@ -436,12 +436,12 @@ class ApiPortalController {
     if (this.Constants.apiReview.enabled) {
       return !this.api.workflow_state || this.api.workflow_state === 'review_ok';
     } else {
-      return this.api.lifecycle_state==='created' || this.api.lifecycle_state==='published' || this.api.lifecycle_state==='unpublished';
+      return this.api.lifecycle_state === 'created' || this.api.lifecycle_state === 'published' || this.api.lifecycle_state === 'unpublished';
     }
   }
 
   canPublish(): boolean {
-    return (!this.api.lifecycle_state || this.api.lifecycle_state==='created' || this.api.lifecycle_state==='unpublished');
+    return (!this.api.lifecycle_state || this.api.lifecycle_state === 'created' || this.api.lifecycle_state === 'unpublished');
   }
 
   isDeprecated(): boolean {
@@ -464,7 +464,7 @@ class ApiPortalController {
         this.ApiService.askForReview(this.api).then((response) => {
           this.api.workflow_state = 'in_review';
           this.api.etag = response.headers('etag');
-          this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
+          this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
           this.NotificationService.show(`Review has been asked for API ${this.api.name}`);
         });
       }

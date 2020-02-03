@@ -76,6 +76,7 @@ function $translateCustomStaticFilesLoader($q, $http) {
           mergedData = {};
 
         for (var i = 0; i < length; i++) {
+          // tslint:disable-next-line:forin
           for (var key in data[i]) {
             mergedData[key] = data[i][key];
           }

@@ -21,7 +21,7 @@ function apisAuditRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.audit', {
-      template: require("./apis.audit.route.html")
+      template: require('./apis.audit.route.html')
     })
     .state('management.apis.detail.audit.general', {
       url: '/audit',
@@ -84,5 +84,5 @@ function apisAuditRouterConfig($stateProvider) {
           page: 'management-api-events'
         }
       }
-    })
+    });
 }

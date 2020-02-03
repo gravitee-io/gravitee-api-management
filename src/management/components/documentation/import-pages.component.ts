@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import NotificationService from "../../../services/notification.service";
-import DocumentationService from "../../../services/documentation.service";
-import {StateService} from "@uirouter/core";
-import {IScope} from "angular";
+import NotificationService from '../../../services/notification.service';
+import DocumentationService from '../../../services/documentation.service';
+import {StateService} from '@uirouter/core';
+import {IScope} from 'angular';
 import _ = require('lodash');
 
 interface IPageScope extends IScope {
@@ -43,27 +43,27 @@ const ImportPagesComponent: ng.IComponentOptions = {
       lineNumbers: true,
       allowDropFileTypes: true,
       autoCloseTags: true,
-      mode: "javascript"
+      mode: 'javascript'
     };
 
     this.$onInit = () => {
 
       this.page = this.resolvedRootPage || {
-        name: "root",
-        type: "ROOT"
+        name: 'root',
+        type: 'ROOT'
       };
 
       this.fetchers = this.resolvedFetchers;
 
       this.emptyFetcher = {
-        "type": "object",
-        "id": "empty",
-        "properties": {"" : {}}
+        'type': 'object',
+        'id': 'empty',
+        'properties': {'' : {}}
       };
       $scope.fetcherJsonSchema = this.emptyFetcher;
-      this.fetcherJsonSchemaForm = ["*"];
+      this.fetcherJsonSchemaForm = ['*'];
 
-      if(!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
+      if (!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
         _.forEach(this.fetchers, fetcher => {
           if (fetcher.id === this.page.source.type) {
             $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
@@ -86,18 +86,18 @@ const ImportPagesComponent: ng.IComponentOptions = {
 
     this.import = () => {
       this.importInProgress = true;
-      this.page.name="import";
+      this.page.name = 'import';
       DocumentationService.import(this.page, this.apiId)
         .then( (response: any) => {
           if (this.page.id) {
-            NotificationService.show("'" + response.data.length + "' elements has been updated.");
+            NotificationService.show('\'' + response.data.length + '\' elements has been updated.');
           } else {
-            NotificationService.show("'" + response.data.length + "' elements has been created.");
+            NotificationService.show('\'' + response.data.length + '\' elements has been created.');
           }
           if (this.apiId) {
-            $state.go("management.apis.detail.portal.documentation", {apiId: this.apiId});
+            $state.go('management.apis.detail.portal.documentation', {apiId: this.apiId});
           } else {
-            $state.go("management.settings.documentation");
+            $state.go('management.settings.documentation');
           }
       }).finally( () => {
         this.importInProgress = false;
@@ -105,7 +105,7 @@ const ImportPagesComponent: ng.IComponentOptions = {
     };
 
     this.changeContentMode = (newMode) => {
-      if ("fetcher" === newMode) {
+      if ('fetcher' === newMode) {
         this.page.source = {
           configuration: {}
         };
@@ -116,9 +116,9 @@ const ImportPagesComponent: ng.IComponentOptions = {
 
     this.cancel = () => {
       if (this.apiId) {
-        $state.go("management.apis.detail.portal.documentation", {apiId: this.apiId});
+        $state.go('management.apis.detail.portal.documentation', {apiId: this.apiId});
       } else {
-        $state.go("management.settings.documentation");
+        $state.go('management.settings.documentation');
       }
     };
   }

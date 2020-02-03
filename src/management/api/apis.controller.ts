@@ -17,7 +17,7 @@ import * as _ from 'lodash';
 
 import UserService from '../../services/user.service';
 import {StateParams, StateService, TransitionService} from '@uirouter/core';
-import ApiService from "../../services/api.service";
+import ApiService from '../../services/api.service';
 
 interface IApisScope extends ng.IScope {
   apisLoading: boolean;
@@ -114,7 +114,7 @@ export class ApisController {
 
     promise.then( (response) => {
       this.apisProvider = _.filter(response.data, 'manageable');
-      this.loadMore(this.query['order'], false);
+      this.loadMore(this.query.order, false);
       this.$scope.apisLoading = false;
     });
   }
@@ -185,7 +185,7 @@ export class ApisController {
       if (_.startsWith(order, '-')) {
         apisProvider.reverse();
       }
-      let apisLength = this.apis? this.apis.length:0;
+      let apisLength = this.apis ? this.apis.length : 0;
       this.apis = _.take(apisProvider, 20 + apisLength);
       _.forEach(this.apis, (api: any) => {
         if (_.isUndefined(this.syncStatus[api.id])) {
