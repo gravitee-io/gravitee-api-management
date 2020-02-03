@@ -108,6 +108,16 @@
             <phase>generate-resources</phase>
           </execution>
           <execution>
+            <id>yarn lint</id>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <arguments>run lint</arguments>
+            </configuration>
+          </execution>
+          <execution>
             <id>build with yarn</id>
             <goals>
               <goal>yarn</goal>

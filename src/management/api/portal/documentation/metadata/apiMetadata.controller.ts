@@ -46,6 +46,8 @@ class ApiMetadataController {
     }).then((savedMetadata) => {
       this.NotificationService.show(`Metadata '${savedMetadata.name}' created with success`);
       this.$state.reload();
+    }).catch(function () {
+      // don't display error in console
     });
   }
 
@@ -63,6 +65,8 @@ class ApiMetadataController {
       }).then((metadata) => {
         this.NotificationService.show(`API's Metadata '${metadata.name}' updated with success`);
         this.$state.reload();
+      }).catch(function () {
+        // don't display error in console
       });
     }
   }
