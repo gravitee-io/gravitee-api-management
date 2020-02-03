@@ -85,21 +85,19 @@ public class GroupByQueryCommand extends AbstractElasticsearchQueryCommand<Group
 		} else if (aggregationName.startsWith("by_")) {
 
 			for (final JsonNode bucket : aggregation.getBuckets()) {
-				final JsonNode subAggragation = this.getFirstSubAggregation(bucket);
-
-				if (subAggragation != null) {
-					final JsonNode aggValue = subAggragation.get("value");
+				final JsonNode subAggregation = this.getFirstSubAggregation(bucket);
+				if (subAggregation == null) {
+					final String keyAsString = bucket.get("key").asText();
+					final long docCount = bucket.get("doc_count").asLong();
+					final GroupByResponse.Bucket value = new GroupByResponse.Bucket(keyAsString, docCount);
+					groupByresponse.values().add(value);
+				} else {
+					final JsonNode aggValue = subAggregation.get("value");
 					if (aggValue.isNumber()) {
 						final String keyAsString = bucket.get("key").asText();
 						GroupByResponse.Bucket value = new GroupByResponse.Bucket(keyAsString, aggValue.asLong());
 						groupByresponse.values().add(value);
 					}
-
-				} else {
-					final String keyAsString = bucket.get("key").asText();
-					final long docCount = bucket.get("doc_count").asLong();
-					final GroupByResponse.Bucket value = new GroupByResponse.Bucket(keyAsString, docCount);
-					groupByresponse.values().add(value);
 				}
 			}
 		}
@@ -108,12 +106,11 @@ public class GroupByQueryCommand extends AbstractElasticsearchQueryCommand<Group
 	}
 
 	private JsonNode getFirstSubAggregation(JsonNode bucket) {
-
-		for (final Iterator<String> it = bucket.fieldNames(); it.hasNext();) {
+		for (final Iterator<String> it = bucket.fieldNames(); it.hasNext(); ) {
 			final String fieldName = it.next();
-			if (fieldName.startsWith("by_") || fieldName.startsWith("avg_") || fieldName.startsWith("min_")
-					|| fieldName.startsWith("max_"))
-				return bucket.get(fieldName);
+			final JsonNode subAggregation = bucket.get(fieldName);
+			if (subAggregation != null && subAggregation.get("value") != null && !subAggregation.get("value").asText().equals("null"))
+				return subAggregation;
 		}
 		return null;
 	}
