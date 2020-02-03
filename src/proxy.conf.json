@@ -1,5 +1,5 @@
 {
-  "/portal/DEFAULT": {
+  "/portal/environments/DEFAULT": {
     "target": "http://localhost:8084",
     "secure": false
   },

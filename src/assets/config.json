@@ -1,5 +1,5 @@
 {
-  "baseUrl": "/portal/DEFAULT",
+  "baseUrl": "/portal/environments/DEFAULT",
   "pagination": {
     "size": {
       "default": 10,
