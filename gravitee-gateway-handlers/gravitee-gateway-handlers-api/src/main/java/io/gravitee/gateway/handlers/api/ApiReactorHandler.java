@@ -113,10 +113,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         // Call an invoker to get a proxy connection (connection to an underlying backend, mainly HTTP)
         Invoker upstreamInvoker = (Invoker) context.getAttribute(ExecutionContext.ATTR_INVOKER);
 
-        // set the username provided by the jwt policy
-        if (context.getAttribute(ExecutionContext.ATTR_USER) != null && context.request().metrics().getUser() == null) {
-            context.request().metrics().setUser((String) context.getAttribute(ExecutionContext.ATTR_USER));
-        }
         context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis());
 
         upstreamInvoker.invoke(context, chain, connection -> {
