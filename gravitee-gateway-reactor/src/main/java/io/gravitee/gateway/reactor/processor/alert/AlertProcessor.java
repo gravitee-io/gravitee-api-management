@@ -33,6 +33,9 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
 
     private static final String REQUEST_TYPE = "REQUEST";
 
+    private static final String PROCESSOR_GEOIP = "geoip";
+    private static final String PROCESSOR_USERAGENT = "useragent";
+
     private static final String CONTEXT_NODE_ID = "node.id";
     private static final String CONTEXT_NODE_HOSTNAME = "node.hostname";
     private static final String CONTEXT_NODE_APPLICATION = "node.application";
@@ -84,6 +87,8 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
                     .context(CONTEXT_NODE_HOSTNAME, node.hostname())
                     .context(CONTEXT_NODE_APPLICATION, node.application())
                     .context(CONTEXT_GATEWAY_PORT, port)
+                    .context(PROCESSOR_GEOIP, PROP_REQUEST_IP)
+                    .context(PROCESSOR_USERAGENT, PROP_REQUEST_USER_AGENT)
                     .property(PROP_TENANT, () -> node.metadata().get("tenant"))
                     .property(PROP_REQUEST_ID, context.request().id())
                     .property(PROP_REQUEST_USER_AGENT, context.request().metrics().getUserAgent())
