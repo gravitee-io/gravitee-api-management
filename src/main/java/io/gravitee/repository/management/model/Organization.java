@@ -22,14 +22,13 @@ import java.util.Objects;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Environment {
+public class Organization {
 
     private String id;
     private String name;
     private String description;
-    private String organization;
     private List<String> domainRestrictions;
-    
+
     public String getId() {
         return id;
     }
@@ -45,21 +44,13 @@ public class Environment {
     public void setName(String name) {
         this.name = name;
     }
-
+    
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getOrganization() {
-        return organization;
-    }
-
-    public void setOrganization(String organization) {
-        this.organization = organization;
     }
 
     public List<String> getDomainRestrictions() {
@@ -73,8 +64,8 @@ public class Environment {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Environment)) return false;
-        Environment env = (Environment) o;
+        if (!(o instanceof Organization)) return false;
+        Organization env = (Organization) o;
         return Objects.equals(id, env.id);
     }
 
@@ -89,7 +80,6 @@ public class Environment {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", organization='" + organization + '\'' +
                 ", domain restrictions='" + domainRestrictions + '\'' +
                 '}';
     }

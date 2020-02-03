@@ -20,6 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.UserReferenceType;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +41,7 @@ public interface UserRepository extends CrudRepository<User, String> {
 	 * @param environment The environment of the user
 	 * @return Option user found
 	 */
-	Optional<User> findBySource(String source, String sourceId, String environment) throws TechnicalException;
+	Optional<User> findBySource(String source, String sourceId, String referenceId, UserReferenceType referenceType) throws TechnicalException;
 
 	/**
 	 * Find a list of {@link User} by IDs

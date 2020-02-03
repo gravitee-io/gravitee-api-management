@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import io.gravitee.repository.management.model.UserReferenceType;
 import io.gravitee.repository.management.model.UserStatus;
 
 /**
@@ -25,12 +26,14 @@ public class UserCriteria {
 
     private UserStatus[] statuses;
     private boolean noStatus;
-    private String environment;
+    private String referenceId;
+    private UserReferenceType referenceType;
 
     UserCriteria(UserCriteria.Builder builder) {
         this.statuses = builder.statuses;
         this.noStatus = builder.noStatus;
-        this.environment = builder.environment;
+        this.referenceId = builder.referenceId;
+        this.referenceType = builder.referenceType;
     }
 
     public UserStatus[] getStatuses() {
@@ -41,20 +44,30 @@ public class UserCriteria {
         return noStatus;
     }
 
-    
-    public String getEnvironment() {
-        return environment;
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public UserReferenceType getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(UserReferenceType referenceType) {
+        this.referenceType = referenceType;
     }
 
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
+
 
     public static class Builder {
         private UserStatus[] statuses;
         private boolean noStatus;
-        private String environment;
+        private String referenceId;
+        private UserReferenceType referenceType;
 
         public Builder statuses(UserStatus... statuses) {
             this.statuses = statuses;
@@ -66,11 +79,16 @@ public class UserCriteria {
             return this;
         }
 
-        public Builder environment(String environment) {
-            this.environment = environment;
+        public Builder referenceId(String referenceId) {
+            this.referenceId = referenceId;
             return this;
         }
-        
+
+        public Builder referenceType(UserReferenceType referenceType) {
+            this.referenceType = referenceType;
+            return this;
+        }
+
         public UserCriteria build() {
             return new UserCriteria(this);
         }

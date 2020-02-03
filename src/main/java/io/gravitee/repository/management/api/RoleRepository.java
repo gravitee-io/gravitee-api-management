@@ -29,13 +29,13 @@ import io.gravitee.repository.management.model.RoleScope;
  */
 public interface RoleRepository {
 
-    Optional<Role> findById(RoleScope scope, String name) throws TechnicalException;
+    Optional<Role> findById(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException;
 
     Role create(Role role) throws TechnicalException;
 
     Role update(Role role) throws TechnicalException;
 
-    void delete(RoleScope scope, String name) throws TechnicalException;
+    void delete(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException;
     /**
      * find all roles by scope id
      * @param scope the scope id (Application, API, Portal or Management)
