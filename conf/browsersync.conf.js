@@ -26,7 +26,7 @@ module.exports = function (env) {
     },
     open: false,
     middleware: proxyMiddleware(
-      env ? `https://${env}.gravitee.io/management/DEFAULT` : 'http://localhost:8083/management/DEFAULT',
+      env ? `https://${env}.gravitee.io/management/organizations/DEFAULT/environments/DEFAULT` : 'http://localhost:8083/management/organizations/DEFAULT/environments/DEFAULT',
       {changeOrigin: Boolean(env), secure: false}
     )
   };
