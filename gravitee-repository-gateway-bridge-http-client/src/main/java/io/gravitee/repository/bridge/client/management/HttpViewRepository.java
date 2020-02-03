@@ -31,7 +31,7 @@ import java.util.Set;
 public class HttpViewRepository extends AbstractRepository implements ViewRepository {
 
     @Override
-    public Optional<View> findById(String s) throws TechnicalException {
+    public Optional<View> findById(String s, String environment) throws TechnicalException {
         throw new IllegalStateException();
     }
 
@@ -46,7 +46,7 @@ public class HttpViewRepository extends AbstractRepository implements ViewReposi
     }
 
     @Override
-    public void delete(String s) throws TechnicalException {
+    public void delete(String s, String environment) throws TechnicalException {
         throw new IllegalStateException();
     }
 
