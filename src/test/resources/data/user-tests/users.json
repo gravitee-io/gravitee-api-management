@@ -1,7 +1,8 @@
 [
    {
       "id": "user0",
-      "environment": "DEFAULT",
+      "referenceId": "DEFAULT",
+      "referenceType": "ENVIRONMENT",
       "firstname":"David",
       "lastname":"Brassely",
       "email":"user0@gravitee.io",
@@ -11,7 +12,8 @@
    },
    {
       "id": "user1",
-      "environment": "DEV",
+      "referenceId": "DEV",
+      "referenceType": "ENVIRONMENT",
       "firstname":"Titouan",
       "lastname":"Compiègne",
       "email":"user1@gravitee.io",
@@ -23,7 +25,8 @@
    },
    {
       "id": "user2",
-      "environment": "TEST",
+      "referenceId": "TEST",
+      "referenceType": "ENVIRONMENT",
       "firstname":"Nicolas",
       "lastname":"Géraud",
       "email":"user2@gravitee.io",
@@ -33,7 +36,8 @@
    },
    {
       "id": "user3",
-      "environment": "PROD",
+      "referenceId": "PROD",
+      "referenceType": "ENVIRONMENT",
       "firstname":"Azize",
       "lastname":"Elamrani",
       "email":"user3@gravitee.io",
@@ -43,7 +47,8 @@
    },
    {
       "id": "user4",
-      "environment": "DEV",
+      "referenceId": "DEV",
+      "referenceType": "ENVIRONMENT",
       "firstname":"Nimo",
       "lastname":"Géraud",
       "email":"user4@gravitee.io",
@@ -53,7 +58,8 @@
    },
    {
       "id": "user5",
-      "environment": "TEST",
+      "referenceId": "TEST",
+      "referenceType": "ENVIRONMENT",
       "firstname":"Nibo",
       "lastname":"Géraud",
       "email":"user5@gravitee.io",
@@ -62,7 +68,8 @@
    },
    {
       "id": "user2delete",
-      "environment": "PROD",
+      "referenceId": "PROD",
+      "referenceType": "ENVIRONMENT",
       "firstname":"Deleted",
       "lastname":"User",
       "email":"user2delete@gravitee.io",
@@ -72,7 +79,8 @@
    },
    {
       "id": "id2update",
-      "environment": "DEV",
+      "referenceId": "DEV",
+      "referenceType": "ENVIRONMENT",
       "source":"source2update",
       "sourceId":"sourceId2update",
       "password":"password2update",
@@ -87,7 +95,8 @@
    },
    {
       "id": "idSpecialChar",
-      "environment": "DEV",
+      "referenceId": "DEV",
+      "referenceType": "ENVIRONMENT",
       "source":"sourceSpecialChar",
       "sourceId":"sourceIdSpecialChar+test@me",
       "password":"passwordSpecialChar",

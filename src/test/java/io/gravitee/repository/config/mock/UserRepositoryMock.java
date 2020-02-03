@@ -18,6 +18,7 @@ package io.gravitee.repository.config.mock;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.UserReferenceType;
 import io.gravitee.repository.management.model.UserStatus;
 
 import java.util.Date;
@@ -44,13 +45,15 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
     void prepare(UserRepository userRepository) throws Exception {
         final User user = mock(User.class);
         when(user.getId()).thenReturn("createuser1");
-        when(user.getEnvironment()).thenReturn("DEFAULT");
+        when(user.getReferenceId()).thenReturn("DEFAULT");
+        when(user.getReferenceType()).thenReturn(UserReferenceType.ENVIRONMENT);
         when(user.getPassword()).thenReturn("New pwd");
         when(user.getEmail()).thenReturn("createuser1@gravitee.io");
 
         final User userUpdated = mock(User.class);
         when(userUpdated.getId()).thenReturn("id2update");
-        when(userUpdated.getEnvironment()).thenReturn("new_DEFAULT");
+        when(userUpdated.getReferenceId()).thenReturn("new_DEFAULT");
+        when(userUpdated.getReferenceType()).thenReturn(UserReferenceType.ENVIRONMENT);
         when(userUpdated.getSource()).thenReturn("sourceUpdated");
         when(userUpdated.getSourceId()).thenReturn("sourceIdUpdated");
         when(userUpdated.getPassword()).thenReturn("passwordUpdated");
@@ -115,7 +118,7 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
                         asList(mock(User.class)),0, 0, 1));
         when(userRepository.search(
                 argThat(o -> o != null
-                        && "DEFAULT".equals(o.getEnvironment())
+                        && "DEFAULT".equals(o.getReferenceId())
                 ), any()))
                 .thenReturn(new io.gravitee.common.data.domain.Page<>(
                         asList(user0),0, 0, 1));
@@ -128,15 +131,15 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
         when(user.getEmail()).thenReturn("createuser1@gravitee.io");
         when(user.getStatus()).thenReturn(UserStatus.ACTIVE);
 
-        when(userRepository.findBySource("gravitee", "createuser1", "DEFAULT")).thenReturn(of(user));
+        when(userRepository.findBySource("gravitee", "createuser1", "DEFAULT", UserReferenceType.ENVIRONMENT)).thenReturn(of(user));
 
         when(userRepository.update(argThat(o -> o != null && "id2update".equals(o.getId())))).thenReturn(userUpdated);
         when(userRepository.update(argThat(o -> o == null || "unknown".equals(o.getId())))).thenThrow(new IllegalStateException());
 
-        when(userRepository.findBySource("gravitee", "user1", "DEV")).thenReturn(of(user1));
-        when(userRepository.findBySource("gravitee", "USER1", "DEV")).thenReturn(of(user1));
-        when(userRepository.findBySource("gravitee", "user", "DEV")).thenReturn(empty());
-        when(userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me", "DEV")).thenReturn(of(userSpecialChar));
+        when(userRepository.findBySource("gravitee", "user1", "DEV", UserReferenceType.ENVIRONMENT)).thenReturn(of(user1));
+        when(userRepository.findBySource("gravitee", "USER1", "DEV", UserReferenceType.ENVIRONMENT)).thenReturn(of(user1));
+        when(userRepository.findBySource("gravitee", "user", "DEV", UserReferenceType.ENVIRONMENT)).thenReturn(empty());
+        when(userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me", "DEV", UserReferenceType.ENVIRONMENT)).thenReturn(of(userSpecialChar));
         when(userRepository.findById("user1")).thenReturn(of(user1));
         when(userRepository.findByIds(asList("user1", "user5"))).thenReturn(new HashSet<>(asList(user1, user5)));
 

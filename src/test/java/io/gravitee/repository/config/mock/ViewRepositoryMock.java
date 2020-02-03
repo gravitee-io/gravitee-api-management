@@ -63,7 +63,7 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
 
         final View viewProductsUpdated = mock(View.class);
         when(viewProductsUpdated.getName()).thenReturn("New product");
-        when(viewProductsUpdated.getEnvironment()).thenReturn("new_DEFAULT");
+        when(viewProductsUpdated.getEnvironment()).thenReturn("DEFAULT");
         when(viewProductsUpdated.getDescription()).thenReturn("New description");
         when(viewProductsUpdated.getCreatedAt()).thenReturn(new Date(1486771200000L));
         when(viewProductsUpdated.getUpdatedAt()).thenReturn(new Date(1486771200000L));
@@ -82,9 +82,9 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
 
         when(viewRepository.create(any(View.class))).thenReturn(newView);
 
-        when(viewRepository.findById("new-view")).thenReturn(of(newView));
-        when(viewRepository.findById("unknown")).thenReturn(empty());
-        when(viewRepository.findById("products")).thenReturn(of(viewProducts), of(viewProductsUpdated));
+        when(viewRepository.findById("new-view", "DEFAULT")).thenReturn(of(newView));
+        when(viewRepository.findById("unknown", "DEFAULT")).thenReturn(empty());
+        when(viewRepository.findById("products", "DEFAULT")).thenReturn(of(viewProducts), of(viewProductsUpdated));
 
         when(viewRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }

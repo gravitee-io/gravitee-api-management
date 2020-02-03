@@ -36,6 +36,9 @@ import io.gravitee.repository.management.model.RoleScope;
 
 public class RoleRepositoryTest extends AbstractRepositoryTest {
 
+    private static final RoleReferenceType REFERENCE_TYPE = RoleReferenceType.ORGANIZATION;
+    private static final String REFERENCE_ID = "DEFAULT";
+
     @Override
     protected String getTestCasesPath() {
         return "/data/role-tests/";
@@ -51,7 +54,7 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindAllByReferenceIdAndReferenceType() throws Exception {
-        final Set<Role> roles = roleRepository.findAllByReferenceIdAndReferenceType("DEFAULT", RoleReferenceType.ENVIRONMENT);
+        final Set<Role> roles = roleRepository.findAllByReferenceIdAndReferenceType(REFERENCE_ID, REFERENCE_TYPE);
 
         assertNotNull(roles);
         assertEquals(3, roles.size());
@@ -62,13 +65,13 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
         final Role role = new Role();
         role.setName("to create");
         role.setScope(RoleScope.API);
-        role.setReferenceId("DEFAULT");
-        role.setReferenceType(RoleReferenceType.ENVIRONMENT);
+        role.setReferenceId(REFERENCE_ID);
+        role.setReferenceType(REFERENCE_TYPE);
         role.setPermissions(new int[]{3});
 
-        boolean presentBefore = roleRepository.findById(role.getScope(), role.getName()).isPresent();
+        boolean presentBefore = roleRepository.findById(role.getScope(), role.getName(), REFERENCE_ID, REFERENCE_TYPE).isPresent();
         Role newRole = roleRepository.create(role);
-        boolean presentAfter = roleRepository.findById(role.getScope(), role.getName()).isPresent();
+        boolean presentAfter = roleRepository.findById(role.getScope(), role.getName(), REFERENCE_ID, REFERENCE_TYPE).isPresent();
 
         assertFalse("must not exists before creation", presentBefore);
         assertTrue("must exists after creation", presentAfter);
@@ -84,8 +87,8 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
         final Role role = new Role();
         role.setScope(RoleScope.MANAGEMENT);
         role.setName("to update");
-        role.setReferenceId("DEFAULT");
-        role.setReferenceType(RoleReferenceType.ENVIRONMENT);
+        role.setReferenceId(REFERENCE_ID);
+        role.setReferenceType(REFERENCE_TYPE);
         role.setDescription("new description");
         role.setPermissions(new int[]{4, 5});
         role.setDefaultRole(true);
@@ -107,9 +110,9 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        boolean presentBefore = roleRepository.findById(RoleScope.MANAGEMENT, "to delete").isPresent();
-        roleRepository.delete(RoleScope.MANAGEMENT, "to delete");
-        boolean presentAfter = roleRepository.findById(RoleScope.MANAGEMENT, "to delete").isPresent();
+        boolean presentBefore = roleRepository.findById(RoleScope.MANAGEMENT, "to delete", REFERENCE_ID, REFERENCE_TYPE).isPresent();
+        roleRepository.delete(RoleScope.MANAGEMENT, "to delete", REFERENCE_ID, REFERENCE_TYPE);
+        boolean presentAfter = roleRepository.findById(RoleScope.MANAGEMENT, "to delete", REFERENCE_ID, REFERENCE_TYPE).isPresent();
 
         assertTrue("must exists before creation", presentBefore);
         assertFalse("must not exists after creation", presentAfter);
@@ -128,7 +131,7 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByScopeAndRef() throws Exception {
-        Set<Role> roles = roleRepository.findByScopeAndReferenceIdAndReferenceType(RoleScope.PORTAL, "DEFAULT", RoleReferenceType.ENVIRONMENT);
+        Set<Role> roles = roleRepository.findByScopeAndReferenceIdAndReferenceType(RoleScope.PORTAL, REFERENCE_ID, REFERENCE_TYPE);
         assertNotNull(roles);
         assertFalse("No roles found", roles.isEmpty());
         assertEquals("invalid roles count", 1, roles.size());
@@ -138,7 +141,7 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
     
     @Test
     public void shouldFindById() throws Exception {
-        Optional<Role> role = roleRepository.findById(RoleScope.PORTAL, "find by scope 1");
+        Optional<Role> role = roleRepository.findById(RoleScope.PORTAL, "find by scope 1", REFERENCE_ID, REFERENCE_TYPE);
         assertTrue("role not found", role.isPresent());
         assertEquals("invalid name", "find by scope 1", role.get().getName());
         assertEquals("invalid description", "role description", role.get().getDescription());
@@ -154,7 +157,7 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
         Role unknownRole = new Role();
         unknownRole.setName("unknown");
         unknownRole.setReferenceId("unknown");
-        unknownRole.setReferenceType(RoleReferenceType.ENVIRONMENT);
+        unknownRole.setReferenceType(REFERENCE_TYPE);
         roleRepository.update(unknownRole);
         fail("An unknown role should not be updated");
     }

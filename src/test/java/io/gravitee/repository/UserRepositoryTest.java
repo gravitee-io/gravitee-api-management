@@ -35,6 +35,7 @@ import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.UserReferenceType;
 import io.gravitee.repository.management.model.UserStatus;
 
 public class UserRepositoryTest extends AbstractRepositoryTest {
@@ -50,7 +51,8 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
         User user = new User();
         user.setId("createuser1");
-        user.setEnvironment("DEFAULT");
+        user.setReferenceId("DEFAULT");
+        user.setReferenceType(UserReferenceType.ENVIRONMENT);
         user.setCreatedAt(new Date());
         user.setUpdatedAt(user.getCreatedAt());
         user.setEmail(String.format("%s@gravitee.io", username));
@@ -61,12 +63,13 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull("User created is null", userCreated);
 
-        Optional<User> optional = userRepository.findBySource("gravitee", "createuser1", "DEFAULT");
+        Optional<User> optional = userRepository.findBySource("gravitee", "createuser1", "DEFAULT", UserReferenceType.ENVIRONMENT);
 
         assertTrue("Unable to find saved user", optional.isPresent());
         User userFound = optional.get();
 
-        assertEquals("Invalid saved environment id.", user.getEnvironment(), userFound.getEnvironment());
+        assertEquals("Invalid saved reference id.", user.getReferenceId(), userFound.getReferenceId());
+        assertEquals("Invalid saved reference type.", user.getReferenceType(), userFound.getReferenceType());
         assertEquals("Invalid saved user name.", user.getId(), userFound.getId());
         assertEquals("Invalid saved user mail.", user.getEmail(), userFound.getEmail());
         assertEquals("Invalid saved user status.", user.getStatus(), userFound.getStatus());
@@ -79,7 +82,8 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
         final User user = optional.get();
         user.setSource("sourceUpdated");
-        user.setEnvironment("new_DEFAULT");
+        user.setReferenceId("new_DEFAULT");
+        user.setReferenceType(UserReferenceType.ENVIRONMENT);
         user.setSourceId("sourceIdUpdated");
         user.setPassword("passwordUpdated");
         user.setEmail("emailUpdated");
@@ -105,7 +109,8 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertTrue("User to update not found", optionalUpdated.isPresent());
 
         final User userUpdated = optionalUpdated.get();
-        assertEquals("Invalid saved environment id.", "new_DEFAULT", userUpdated.getEnvironment());
+        assertEquals("Invalid saved reference id.", "new_DEFAULT", userUpdated.getReferenceId());
+        assertEquals("Invalid saved reference type.", UserReferenceType.ENVIRONMENT, userUpdated.getReferenceType());
         assertEquals("Invalid saved source", "sourceUpdated", userUpdated.getSource());
         assertEquals("Invalid saved sourceId", "sourceIdUpdated", userUpdated.getSourceId());
         assertEquals("Invalid saved password", "passwordUpdated", userUpdated.getPassword());
@@ -121,7 +126,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchAllWithEnvironment() throws Exception {
-        List<User> users = userRepository.search(new UserCriteria.Builder().environment("DEFAULT").build(),
+        List<User> users = userRepository.search(new UserCriteria.Builder().referenceId("DEFAULT").referenceType(UserReferenceType.ENVIRONMENT).build(),
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
         ).getContent();
 
@@ -169,8 +174,8 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void findUserBySourceCaseInsensitive() throws Exception {
-        Optional<User> user1 = userRepository.findBySource("gravitee", "user1", "DEV");
-        Optional<User> user1Upper = userRepository.findBySource("gravitee", "USER1", "DEV");
+        Optional<User> user1 = userRepository.findBySource("gravitee", "user1", "DEV", UserReferenceType.ENVIRONMENT);
+        Optional<User> user1Upper = userRepository.findBySource("gravitee", "USER1", "DEV", UserReferenceType.ENVIRONMENT);
         assertTrue(user1.isPresent());
         assertTrue(user1Upper.isPresent());
         assertEquals(user1.get().getId(), user1Upper.get().getId());
@@ -178,7 +183,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void findUserBySourceSpecialCharacters() throws Exception {
-        Optional<User> user = userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me", "DEV");
+        Optional<User> user = userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me", "DEV", UserReferenceType.ENVIRONMENT);
         assertTrue(user.isPresent());
     }
 
@@ -204,7 +209,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void findUserBySourceTest() throws Exception {
-        Optional<User> user = userRepository.findBySource("gravitee", "user1", "DEV");
+        Optional<User> user = userRepository.findBySource("gravitee", "user1", "DEV", UserReferenceType.ENVIRONMENT);
         Assert.assertTrue(user.isPresent());
     }
 

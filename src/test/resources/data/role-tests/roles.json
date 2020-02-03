@@ -2,14 +2,14 @@
   {
     "name": "to delete",
     "referenceId": "DEFAULT",
-    "referenceType": "ENVIRONMENT",
+    "referenceType": "ORGANIZATION",
     "scope": "MANAGEMENT",
     "permissions": [1,2,3]
   },
   {
     "name": "to update",
     "referenceId": "DEFAULT",
-    "referenceType": "ENVIRONMENT",
+    "referenceType": "ORGANIZATION",
     "defaultRole": false,
     "scope": "MANAGEMENT",
     "permissions": [1,2,3]
@@ -17,7 +17,7 @@
   {
     "name": "find by scope 1",
     "referenceId": "DEFAULT",
-    "referenceType": "ENVIRONMENT",
+    "referenceType": "ORGANIZATION",
     "description": "role description",
     "scope": "PORTAL",
     "defaultRole": true,
@@ -27,7 +27,7 @@
   {
     "name": "find by scope 2",
     "referenceId": "DEV",
-    "referenceType": "ENVIRONMENT",
+    "referenceType": "ORGANIZATION",
     "defaultRole": false,
     "scope": "PORTAL",
     "permissions": [1]

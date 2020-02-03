@@ -17,22 +17,18 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
-import io.gravitee.repository.management.model.Tenant;
 
-import java.util.Date;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EnvironmentRepositoryMock extends AbstractRepositoryMock<EnvironmentRepository> {
@@ -47,7 +43,10 @@ public class EnvironmentRepositoryMock extends AbstractRepositoryMock<Environmen
         final Environment envCreate = new Environment();
         envCreate.setId("DEFAULT-create");
         envCreate.setName("Default env for create");
-        
+        envCreate.setDescription("Default env description for create");
+        envCreate.setOrganization("DEFAULT-ORG");
+        envCreate.setDomainRestrictions(Arrays.asList("domain", "restriction"));
+
         final Environment env2Update = new Environment();
         env2Update.setId("DEFAULT-update");
         env2Update.setName("Default env for update");
@@ -63,7 +62,7 @@ public class EnvironmentRepositoryMock extends AbstractRepositoryMock<Environmen
         final Environment envFindById = new Environment();
         envFindById.setId("DEFAULT-findById");
         envFindById.setName("Default env for findById");
-
+        envCreate.setOrganization("DEFAULT-ORG");
 
 
         when(EnvironmentRepository.create(any(Environment.class))).thenReturn(envCreate);
@@ -76,9 +75,10 @@ public class EnvironmentRepositoryMock extends AbstractRepositoryMock<Environmen
         when(EnvironmentRepository.findById("DEFAULT-findById")).thenReturn(of(envFindById));
         
         final Set<Environment> allEnvironments = newSet(envCreate, env2Update, envUpdated, envDelete, envFindById);
-        
+        final Set<Environment> orgEnvironments = newSet(envFindById);
         
         when(EnvironmentRepository.findAll()).thenReturn(allEnvironments);
+        when(EnvironmentRepository.findByOrganization("DEFAULT-ORG")).thenReturn(orgEnvironments);
 
     }
 }

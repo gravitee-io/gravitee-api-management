@@ -207,4 +207,9 @@ public class MockTestRepositoryConfiguration {
     public EnvironmentRepositoryMock environmentRepository() throws Exception {
         return new EnvironmentRepositoryMock();
     }
+
+    @Bean
+    public OrganizationRepositoryMock organizationRepository() throws Exception {
+        return new OrganizationRepositoryMock();
+    }
 }

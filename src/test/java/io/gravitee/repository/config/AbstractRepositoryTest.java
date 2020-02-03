@@ -131,6 +131,8 @@ public abstract class AbstractRepositoryTest {
     protected DashboardRepository dashboardRepository;
     @Inject
     protected EnvironmentRepository environmentRepository;
+    @Inject
+    protected OrganizationRepository organizationRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -264,6 +266,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Environment) {
             environmentRepository.create((Environment) object);
+        }
+        else if (object instanceof Organization) {
+            organizationRepository.create((Organization) object);
         }
     }
 

@@ -71,7 +71,7 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
 
         Assert.assertEquals(nbViewsBeforeCreation + 1, nbViewsAfterCreation);
 
-        Optional<View> optional = viewRepository.findById("new-view");
+        Optional<View> optional = viewRepository.findById("new-view", "DEFAULT");
         Assert.assertTrue("View saved not found", optional.isPresent());
 
         final View viewSaved = optional.get();
@@ -88,13 +88,12 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldUpdate() throws Exception {
-        Optional<View> optional = viewRepository.findById("products");
+        Optional<View> optional = viewRepository.findById("products", "DEFAULT");
         Assert.assertTrue("View to update not found", optional.isPresent());
         Assert.assertEquals("Invalid saved view name.", "Products", optional.get().getName());
 
         final View view = optional.get();
         view.setName("New product");
-        view.setEnvironment("new_DEFAULT");
         view.setDescription("New description");
         view.setOrder(10);
         view.setDefaultView(true);
@@ -110,7 +109,7 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
 
         Assert.assertEquals(nbViewsBeforeUpdate, nbViewsAfterUpdate);
 
-        Optional<View> optionalUpdated = viewRepository.findById("products");
+        Optional<View> optionalUpdated = viewRepository.findById("products", "DEFAULT");
         Assert.assertTrue("View to update not found", optionalUpdated.isPresent());
 
         final View viewUpdated = optionalUpdated.get();
@@ -129,7 +128,7 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldDelete() throws Exception {
         int nbViewsBeforeDeletion = viewRepository.findAll().size();
-        viewRepository.delete("international");
+        viewRepository.delete("international", "DEFAULT");
         int nbViewsAfterDeletion = viewRepository.findAll().size();
 
         Assert.assertEquals(nbViewsBeforeDeletion - 1, nbViewsAfterDeletion);
