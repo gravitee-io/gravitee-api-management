@@ -16,11 +16,15 @@
 package io.gravitee.repository.jdbc.management;
 
 import java.sql.Types;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
-
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
@@ -37,6 +41,8 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Environment.class, "environments", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("organization", Types.NVARCHAR, String.class)
             .build();
 
     @Override
@@ -47,6 +53,73 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     @Override
     protected String getId(Environment item) {
         return item.getId();
+    }
+
+    
+    @Override
+    public Optional<Environment> findById(String id) throws TechnicalException {
+        Optional<Environment> findById = super.findById(id);
+        if(findById.isPresent()) {
+            addDomainRestrictions(findById.get());
+        }
+        return findById;
+    }
+
+    @Override
+    public Set<Environment> findAll() throws TechnicalException {
+        Set<Environment> findAll = super.findAll();
+        findAll.forEach(this::addDomainRestrictions);
+        return findAll;
+    }
+
+    @Override
+    public Environment create(Environment item) throws TechnicalException {
+        super.create(item);
+        storeDomainRestrictions(item, false);
+        return findById(item.getId()).orElse(null);
+    }
+
+    @Override
+    public Environment update(Environment item) throws TechnicalException {
+        super.update(item);
+        storeDomainRestrictions(item, true);
+        return findById(item.getId()).orElse(null);
+    }
+
+    @Override
+    public void delete(String id) throws TechnicalException {
+        jdbcTemplate.update("delete from environment_domain_restrictions where environment_id = ?", id);
+        super.delete(id);
+    }
+
+    private void addDomainRestrictions(Environment parent) {
+        List<String> domainRestrictions = jdbcTemplate.queryForList("select domain_restriction from environment_domain_restrictions where environment_id = ?", String.class, parent.getId());
+        parent.setDomainRestrictions(domainRestrictions);
+    }
+    
+    private void storeDomainRestrictions(Environment environment, boolean deleteFirst) {
+        if (deleteFirst) {
+            jdbcTemplate.update("delete from environment_domain_restrictions where environment_id = ?", environment.getId());
+        }
+        List<String> filteredDomainRestrictions = ORM.filterStrings(environment.getDomainRestrictions());
+        if (!filteredDomainRestrictions.isEmpty()) {
+            jdbcTemplate.batchUpdate("insert into environment_domain_restrictions (environment_id, domain_restriction) values ( ?, ? )"
+                    , ORM.getBatchStringSetter(environment.getId(), filteredDomainRestrictions));
+        }
+    }
+    @Override
+    public Set<Environment> findByOrganization(String organization) throws TechnicalException {
+        LOGGER.debug("JdbcEnvironmentRepository.findByOrganization({})", organization);
+        try {
+            List<Environment> environments = jdbcTemplate.query("select * from environments where organization = ?"
+                    , ORM.getRowMapper()
+                    , organization
+            );
+            return new HashSet<>(environments);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find environments by organization:", ex);
+            throw new TechnicalException("Failed to find environments by organization", ex);
+        }
     }    
 
 }

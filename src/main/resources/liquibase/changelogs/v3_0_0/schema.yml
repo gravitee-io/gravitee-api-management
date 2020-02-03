@@ -114,7 +114,37 @@ databaseChangeLog:
                     constraints:
                       nullable: false
           - sql:
-              sql: update roles set reference_type='ENVIRONMENT', reference_id='DEFAULT'
+              sql: update roles set reference_type='ORGANIZATION', reference_id='DEFAULT'
+          - dropPrimaryKey:
+              constraintName: pk_roles
+              tableName: roles
+          - addPrimaryKey:
+              constraintName: pk_roles
+              columnNames: scope, name, reference_id, reference_type
+              tableName: roles
+
+          - addColumn:
+              tableName: role_permissions
+              columns:
+                - column:
+                    name: reference_id
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: reference_type
+                    type: nvarchar(32)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update role_permissions set reference_type='ORGANIZATION', reference_id='DEFAULT'
+          - dropPrimaryKey:
+              constraintName: pk_role_permissions
+              tableName: role_permissions
+          - addPrimaryKey:
+              constraintName: pk_role_permissions
+              columnNames: role_scope, role_name, reference_id, reference_type, permission
+              tableName: role_permissions
 
           - addColumn:
               tableName: apis
@@ -213,12 +243,17 @@ databaseChangeLog:
               tableName: users
               columns:
                 - column:
-                    name: environment
+                    name: reference_id
                     type: nvarchar(64)
                     constraints:
                       nullable: false
+                - column:
+                    name: reference_type
+                    type: nvarchar(32)
+                    constraints:
+                      nullable: false
           - sql:
-              sql: update users set environment='DEFAULT'
+              sql: update users set reference_type='ENVIRONMENT', reference_id='DEFAULT'
 
           - addColumn:
               tableName: views
@@ -237,9 +272,46 @@ databaseChangeLog:
               columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: description, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: organization, type: nvarchar(64), constraints: { nullable: false } }
           - addPrimaryKey:
               constraintName: pk_environments
               columnNames: id
               tableName: environments
           - sql:
-              sql: insert into environments (id, name) values ('DEFAULT', 'Default environment')
+              sql: insert into environments (id, name, description, organization) values ('DEFAULT', 'Default environment', 'Default environment', 'DEFAULT')
+
+          - createTable:
+              tableName: environment_domain_restrictions
+              columns:
+                - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: domain_restriction, type: nvarchar(64), constraints: { nullable: false } }
+
+          - addPrimaryKey:
+              constraintName: pk_environment_domain_restrictions
+              columnNames: environment_id, domain_restriction
+              tableName: environment_domain_restrictions
+
+          - createTable:
+              tableName: organizations
+              columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: description, type: nvarchar(64), constraints: { nullable: true } }
+          - addPrimaryKey:
+              constraintName: pk_organizations
+              columnNames: id
+              tableName: organizations
+          - sql:
+              sql: insert into organizations (id, name, description) values ('DEFAULT', 'Default organization', 'Default organization')
+
+          - createTable:
+              tableName: organization_domain_restrictions
+              columns:
+                - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: domain_restriction, type: nvarchar(64), constraints: { nullable: false } }
+
+          - addPrimaryKey:
+              constraintName: pk_organization_domain_restrictions
+              columnNames: organization_id, domain_restriction
+              tableName: organization_domain_restrictions

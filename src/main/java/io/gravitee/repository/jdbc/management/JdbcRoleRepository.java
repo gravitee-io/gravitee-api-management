@@ -88,7 +88,7 @@ public class JdbcRoleRepository implements RoleRepository {
         try {
             jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
             storePermissions(item, false);
-            return findById(item.getScope(), item.getName()).orElse(null);
+            return findById(item.getScope(), item.getName(), item.getReferenceId(), item.getReferenceType()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create role", ex);
             throw new TechnicalException("Failed to create role", ex);
@@ -115,6 +115,9 @@ public class JdbcRoleRepository implements RoleRepository {
                             + " where "
                             + " scope = ? "
                             + " and name = ? "
+                            + " and reference_id = ?"
+                            + " and reference_type = ?"
+
                     , role.getScope() == null ? null : role.getScope().name()
                     , role.getName()
                     , role.getReferenceId()
@@ -126,9 +129,11 @@ public class JdbcRoleRepository implements RoleRepository {
                     , role.getUpdatedAt()
                     , role.getScope() == null ? null : role.getScope().name()
                     , role.getName()
+                    , role.getReferenceId()
+                    , role.getReferenceType().name()
             );
             storePermissions(role, true);
-            return findById(role.getScope(), role.getName()).orElseThrow(() ->
+            return findById(role.getScope(), role.getName(), role.getReferenceId(), role.getReferenceType()).orElseThrow(() ->
                     new IllegalStateException(format("No role found with id [%s, %s]", role.getScope(), role.getName())));
         } catch (final IllegalStateException ex) {
             throw ex;
@@ -140,11 +145,11 @@ public class JdbcRoleRepository implements RoleRepository {
 
 
     @Override
-    public void delete(RoleScope scope, String name) throws TechnicalException {
+    public void delete(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.delete({}, {})", scope, name);
         try {
-            jdbcTemplate.update("delete from role_permissions where role_scope = ? and role_name = ?", scope.name(), name);
-            jdbcTemplate.update("delete from roles where scope = ? and name = ?", scope.name(), name);
+            jdbcTemplate.update("delete from role_permissions where role_scope = ? and role_name = ? and reference_id = ? and reference_type = ?", scope.name(), name, referenceId, referenceType.name());
+            jdbcTemplate.update("delete from roles where scope = ? and name = ? and reference_id = ? and reference_type = ?", scope.name(), name, referenceId, referenceType.name());
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete role:", ex);
             throw new TechnicalException("Failed to delete role", ex);
@@ -174,20 +179,23 @@ public class JdbcRoleRepository implements RoleRepository {
         LOGGER.debug("JdbcRoleRepository.storePermissions({}, {})", role, deleteFirst);
         try {
             if (deleteFirst) {
-                jdbcTemplate.update("delete from role_permissions where role_scope = ? and role_name = ?"
+                jdbcTemplate.update("delete from role_permissions where role_scope = ? and role_name = ? and reference_id = ? and reference_type = ?"
                         , role.getScope() == null ? null : role.getScope().name()
                         , role.getName()
-                );
+                        , role.getReferenceId()
+                        , role.getReferenceType().name()                );
             }
             int[] permissions = dedupePermissions(role.getPermissions());
             if ((permissions != null) && permissions.length > 0) {
-                jdbcTemplate.batchUpdate("insert into role_permissions ( role_scope, role_name, permission ) values ( ?, ?, ? )"
+                jdbcTemplate.batchUpdate("insert into role_permissions ( role_scope, role_name, reference_id, reference_type, permission ) values ( ?, ?, ?, ?, ? )"
                         , new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         ps.setString(1, role.getScope().name());
                         ps.setString(2, role.getName());
-                        ps.setInt(3, permissions[i]);
+                        ps.setString(3, role.getReferenceId());
+                        ps.setString(4, role.getReferenceType().name());
+                        ps.setInt(5, permissions[i]);
                     }
 
                     @Override
@@ -203,17 +211,19 @@ public class JdbcRoleRepository implements RoleRepository {
     }
 
     @Override
-    public Optional<Role> findById(RoleScope scope, String name) throws TechnicalException {
+    public Optional<Role> findById(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.findById({}, {})", scope, name);
         try {
             JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
             jdbcTemplate.query("select * from roles r"
-                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name"
-                    + " where r.scope = ? and r.name = ?"
-                    + " order by r.scope,r.name"
+                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name and rp.reference_id = r.reference_id and rp.reference_type = r.reference_type"
+                    + " where r.scope = ? and r.name = ? and r.reference_id = ? and r.reference_type = ?"
+                    + " order by r.reference_type, r.reference_id, r.scope,r.name"
                     , rowMapper
                     , scope == null ? null : scope.name()
                     , name
+                    , referenceId
+                    , referenceType.name()
             );
             Optional<Role> result = rowMapper.getRows().stream().findFirst();
             return result;
@@ -229,9 +239,9 @@ public class JdbcRoleRepository implements RoleRepository {
         try {
             JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
             jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name "
+                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name and rp.reference_id = r.reference_id and rp.reference_type = r.reference_type"
                     + " where r.scope = ? "
-                    + " order by r.scope, r.name"
+                    + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper
                     , scope.name()
             );
@@ -248,8 +258,8 @@ public class JdbcRoleRepository implements RoleRepository {
         try {
             JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
             jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name "
-                    + " order by r.scope, r.name"
+                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name and rp.reference_id = r.reference_id and rp.reference_type = r.reference_type"
+                    + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper
             );
             return new HashSet<>(rowMapper.getRows());
@@ -267,9 +277,9 @@ public class JdbcRoleRepository implements RoleRepository {
         try {
             JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
             jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name "
+                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name and rp.reference_id = r.reference_id and rp.reference_type = r.reference_type"
                     + " where r.reference_id = ? and r.reference_type = ?"
-                    + " order by r.scope, r.name"
+                    + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper
                     , referenceId
                     , referenceType.name()
@@ -289,9 +299,9 @@ public class JdbcRoleRepository implements RoleRepository {
         try {
             JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
             jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name "
-                    + " where r.scope = ? and reference_id = ? and reference_type = ?"
-                    + " order by r.scope, r.name"
+                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name and rp.reference_id = r.reference_id and rp.reference_type = r.reference_type"
+                    + " where r.scope = ? and r.reference_id = ? and r.reference_type = ?"
+                    + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper
                     , scope.name()
                     , referenceId

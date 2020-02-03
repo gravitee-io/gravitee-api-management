@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.UserReferenceType;
 import io.gravitee.repository.management.model.UserStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,8 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(User.class, "users", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment", Types.NVARCHAR, String.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, UserReferenceType.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("email", Types.NVARCHAR, String.class)
             .addColumn("firstname", Types.NVARCHAR, String.class)
@@ -72,13 +74,13 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     }
 
     @Override
-    public Optional<User> findBySource(String source, String sourceId, String environment) throws TechnicalException {
+    public Optional<User> findBySource(String source, String sourceId, String referenceId, UserReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcUserRepository.findBySource({}, {})", source, sourceId);
         try {
-            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and environment = ?"
+            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and reference_id = ? and reference_type = ?"
                     , ORM.getRowMapper()
                     , source, sourceId
-                    , environment
+                    , referenceId, referenceType.name()
             );
             return users.stream().findFirst();
         } catch (final Exception ex) {
@@ -135,8 +137,11 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                         query.append(" and ").append(escapeReservedWord(STATUS_FIELD)).append(" is null ");
                     }
 
-                    if (criteria.getEnvironment() != null ) {
-                        query.append(" and environment = ? ");
+                    if (criteria.getReferenceId() != null ) {
+                        query.append(" and reference_id = ? ");
+                    }
+                    if (criteria.getReferenceType() != null ) {
+                        query.append(" and reference_type = ? ");
                     }
                     
                     query.append(" order by lastname, firstname ");
@@ -148,8 +153,11 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                                     List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
                                     idx = ORM.setArguments(ps, statuses, idx);
                                 }
-                                if (criteria.getEnvironment() != null ) {
-                                    ORM.setArguments(ps, Arrays.asList(criteria.getEnvironment()), idx);
+                                if (criteria.getReferenceId() != null ) {
+                                    idx = ORM.setArguments(ps, Arrays.asList(criteria.getReferenceId()), idx);
+                                }
+                                if (criteria.getReferenceType() != null ) {
+                                    idx = ORM.setArguments(ps, Arrays.asList(criteria.getReferenceType().name()), idx);
                                 }
                             }
                             , ORM.getRowMapper()
