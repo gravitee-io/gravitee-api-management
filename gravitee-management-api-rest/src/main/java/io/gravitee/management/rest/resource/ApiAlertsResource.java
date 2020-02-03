@@ -15,13 +15,13 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.alert.AlertStatusEntity;
-import io.gravitee.management.model.alert.AlertTriggerEntity;
-import io.gravitee.management.model.alert.NewAlertTriggerEntity;
-import io.gravitee.management.model.alert.UpdateAlertTriggerEntity;
+import io.gravitee.management.model.AlertEventQuery;
+import io.gravitee.management.model.alert.*;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.resource.param.AlertEventSearchParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.AlertService;
@@ -103,5 +103,23 @@ public class ApiAlertsResource extends AbstractResource {
     })
     public void delete(@PathParam("api") String api, @PathParam("alert") String alert) {
         alertService.delete(alert, api);
+    }
+
+    @GET
+    @Path("{alert}/events")
+    @ApiOperation(value = "Get the list of events for an alert")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = READ)
+    })
+    public Page<AlertEventEntity> listEvents(@PathParam("alert") String alert, @BeanParam AlertEventSearchParam param) {
+        return alertService.findEvents(
+                alert,
+                new AlertEventQuery.Builder()
+                        .from(param.getFrom())
+                        .to(param.getTo())
+                        .pageNumber(param.getPage())
+                        .pageSize(param.getSize())
+                        .build());
     }
 }

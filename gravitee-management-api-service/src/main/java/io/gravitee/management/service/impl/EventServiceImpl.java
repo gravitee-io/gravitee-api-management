@@ -150,7 +150,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
         List<EventEntity> content = pageEvent.getContent().stream().map(this::convert).collect(Collectors.toList());
 
-        return new Page<>(content, page, size, pageEvent.getTotalElements());
+        return new Page<>(content, pageEvent.getPageNumber(), (int) pageEvent.getPageElements(), pageEvent.getTotalElements());
     }
 
     @Override

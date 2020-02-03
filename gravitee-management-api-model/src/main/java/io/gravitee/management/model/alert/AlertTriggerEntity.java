@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.alert.api.trigger.Trigger;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -41,6 +42,15 @@ public class AlertTriggerEntity extends Trigger {
     private Date updatedAt;
 
     private String type;
+
+    @JsonProperty("last_alert_at")
+    private Date lastAlertAt;
+
+    @JsonProperty("last_alert_message")
+    private String lastAlertMessage;
+
+    @JsonProperty("counters")
+    private Map<String, Integer> counters;
 
     protected AlertTriggerEntity(String id, String name, String source, Severity severity, boolean enabled) {
         super(id, name, severity, source, enabled);
@@ -92,6 +102,30 @@ public class AlertTriggerEntity extends Trigger {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Date getLastAlertAt() {
+        return lastAlertAt;
+    }
+
+    public void setLastAlertAt(Date lastAlertAt) {
+        this.lastAlertAt = lastAlertAt;
+    }
+
+    public String getLastAlertMessage() {
+        return lastAlertMessage;
+    }
+
+    public void setLastAlertMessage(String lastAlertMessage) {
+        this.lastAlertMessage = lastAlertMessage;
+    }
+
+    public Map<String, Integer> getCounters() {
+        return counters;
+    }
+
+    public void setCounters(Map<String, Integer> counters) {
+        this.counters = counters;
     }
 
     @Override
