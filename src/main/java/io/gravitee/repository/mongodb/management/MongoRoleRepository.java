@@ -47,10 +47,10 @@ public class MongoRoleRepository implements RoleRepository {
     private RoleMongoRepository internalRoleRepo;
 
     @Override
-    public Optional<Role> findById(RoleScope scope, String name) throws TechnicalException {
+    public Optional<Role> findById(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("Find role by ID [{}, {}]", scope, name);
 
-        final RoleMongo role = internalRoleRepo.findById(new RolePkMongo(scope.getId(), name)).orElse(null);
+        final RoleMongo role = internalRoleRepo.findById(new RolePkMongo(scope.getId(), name, referenceId, referenceType.name())).orElse(null);
 
         LOGGER.debug("Find role by ID [{}, {}] - Done", scope, name);
         return Optional.ofNullable(map(role));
@@ -95,9 +95,9 @@ public class MongoRoleRepository implements RoleRepository {
     }
 
     @Override
-    public void delete(RoleScope scope, String name) throws TechnicalException {
+    public void delete(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
         try {
-            internalRoleRepo.deleteById(new RolePkMongo(scope.getId(), name));
+            internalRoleRepo.deleteById(new RolePkMongo(scope.getId(), name, referenceId, referenceType.name()));
         } catch (Exception e) {
             LOGGER.error("An error occured when deleting role [{}, {}]", scope, name, e);
             throw new TechnicalException("An error occured when deleting role");
@@ -126,7 +126,7 @@ public class MongoRoleRepository implements RoleRepository {
         if (role == null || role.getScope() == null || role.getName() == null) {
             throw new IllegalStateException("Role to update must not be null");
         }
-        return new RolePkMongo(role.getScope().getId(), role.getName());
+        return new RolePkMongo(role.getScope().getId(), role.getName(), role.getReferenceId(), role.getReferenceType().name());
     }
 
     private Role map(RoleMongo roleMongo) {
@@ -137,8 +137,8 @@ public class MongoRoleRepository implements RoleRepository {
         Role role = new Role();
         role.setScope(RoleScope.valueOf(roleMongo.getId().getScope()));
         role.setName(roleMongo.getId().getName());
-        role.setReferenceId(roleMongo.getReferenceId());
-        role.setReferenceType(RoleReferenceType.valueOf(roleMongo.getReferenceType()));
+        role.setReferenceId(roleMongo.getId().getReferenceId());
+        role.setReferenceType(RoleReferenceType.valueOf(roleMongo.getId().getReferenceType()));
         role.setDescription(roleMongo.getDescription());
         role.setDefaultRole(roleMongo.isDefaultRole());
         role.setSystem(roleMongo.isSystem());
@@ -155,8 +155,6 @@ public class MongoRoleRepository implements RoleRepository {
 
         RoleMongo roleMongo = new RoleMongo();
         roleMongo.setId(convert(role));
-        roleMongo.setReferenceId(role.getReferenceId());
-        roleMongo.setReferenceType(role.getReferenceType().name());
         roleMongo.setDescription(role.getDescription());
         roleMongo.setDefaultRole(role.isDefaultRole());
         roleMongo.setSystem(role.isSystem());

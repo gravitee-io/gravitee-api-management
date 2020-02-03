@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.UserReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -52,11 +53,11 @@ public class MongoUserRepository implements UserRepository {
 	private GraviteeMapper mapper;
 
 	@Override
-	public Optional<User> findBySource(String source, String sourceId, String envrironment) throws TechnicalException {
+	public Optional<User> findBySource(String source, String sourceId, String referenceId, UserReferenceType referenceType) throws TechnicalException {
 		logger.debug("Find user by name source[{}] user[{}]", source, sourceId);
 
 		String escapedSourceId = escaper.matcher(sourceId).replaceAll("\\\\$1");
-		UserMongo user = internalUserRepo.findBySourceAndSourceId(source, escapedSourceId, envrironment);
+		UserMongo user = internalUserRepo.findBySourceAndSourceId(source, escapedSourceId, referenceId, referenceType.name());
 		User res = mapper.map(user, User.class);
 
 		return Optional.ofNullable(res);
@@ -122,7 +123,8 @@ public class MongoUserRepository implements UserRepository {
 		}
 
 		userMongo.setSource(user.getSource());
-		userMongo.setEnvironment(user.getEnvironment());
+		userMongo.setReferenceId(user.getReferenceId());
+		userMongo.setReferenceType(user.getReferenceType().name());
 		userMongo.setSourceId(user.getSourceId());
 		userMongo.setFirstname(user.getFirstname());
 		userMongo.setLastname(user.getLastname());

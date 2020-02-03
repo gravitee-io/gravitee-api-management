@@ -35,10 +35,10 @@ public interface RoleMongoRepository extends MongoRepository<RoleMongo, RolePkMo
     @Query("{ 'id.scope' : ?0 }")
     Set<RoleMongo> findByScope(int scopeId);
     
-    @Query("{ 'id.scope' : ?0, referenceId: ?1, referenceType: ?2 }")
+    @Query("{ 'id.scope' : ?0, 'id.referenceId': ?1, 'id.referenceType': ?2 }")
     Set<RoleMongo> findByScopeAndReferenceIdAndReferenceType(int scopeId, String referenceId, String referenceType);
     
-    @Query("{ referenceId: ?0, referenceType: ?1 }")
+    @Query("{ 'id.referenceId': ?0, 'id.referenceType': ?1 }")
     List<RoleMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }
 

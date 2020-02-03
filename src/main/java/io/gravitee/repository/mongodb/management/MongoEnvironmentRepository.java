@@ -117,6 +117,26 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
                     final Environment environment = new Environment();
                     environment.setId(environmentMongo.getId());
                     environment.setName(environmentMongo.getName());
+                    environment.setDescription(environmentMongo.getDescription());
+                    environment.setOrganization(environmentMongo.getOrganization());
+                    environment.setDomainRestrictions(environmentMongo.getDomainRestrictions());
+                    return environment;
+                })
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Environment> findByOrganization(String organization) throws TechnicalException {
+        final List<EnvironmentMongo> environments = internalEnvironmentRepo.findAll();
+        return environments.stream()
+                .filter(env -> organization.equals(env.getOrganization()))
+                .map(environmentMongo -> {
+                    final Environment environment = new Environment();
+                    environment.setId(environmentMongo.getId());
+                    environment.setName(environmentMongo.getName());
+                    environment.setDescription(environmentMongo.getDescription());
+                    environment.setOrganization(environmentMongo.getOrganization());
+                    environment.setDomainRestrictions(environmentMongo.getDomainRestrictions());
                     return environment;
                 })
                 .collect(Collectors.toSet());

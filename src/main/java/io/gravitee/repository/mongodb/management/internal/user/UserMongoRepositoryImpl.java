@@ -54,8 +54,11 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
                 query.addCriteria(where("status").exists(false));
             }
             
-            if (criteria.getEnvironment() != null) {
-                query.addCriteria(where("environment").is(criteria.getEnvironment()));
+            if (criteria.getReferenceId() != null) {
+                query.addCriteria(where("referenceId").is(criteria.getReferenceId()));
+            }
+            if (criteria.getReferenceType() != null) {
+                query.addCriteria(where("referenceType").is(criteria.getReferenceType().name()));
             }
         }
         query.with(new Sort(Sort.Direction.ASC, "lastname", "firstname"));

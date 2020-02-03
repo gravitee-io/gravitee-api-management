@@ -25,8 +25,8 @@ import java.util.Objects;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "environments")
-public class EnvironmentMongo {
+@Document(collection = "organizations")
+public class OrganizationMongo {
 
 	@Id
 	private String id;
@@ -34,8 +34,6 @@ public class EnvironmentMongo {
 	private String name;
 
 	private String description;
-
-	private String organization;
 
 	private List<String> domainRestrictions;
 
@@ -63,14 +61,6 @@ public class EnvironmentMongo {
         this.description = description;
     }
 
-    public String getOrganization() {
-        return organization;
-    }
-
-    public void setOrganization(String organization) {
-        this.organization = organization;
-    }
-
     public List<String> getDomainRestrictions() {
         return domainRestrictions;
     }
@@ -82,8 +72,8 @@ public class EnvironmentMongo {
     @Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (!(o instanceof EnvironmentMongo)) return false;
-		EnvironmentMongo envMongo = (EnvironmentMongo) o;
+		if (!(o instanceof OrganizationMongo)) return false;
+		OrganizationMongo envMongo = (OrganizationMongo) o;
 		return Objects.equals(id, envMongo.id);
 	}
 
@@ -98,7 +88,6 @@ public class EnvironmentMongo {
 				"id='" + id + '\'' +
 				", name='" + name + '\'' +
 				", description='" + description + '\'' +
-				", organization='" + organization + '\'' +
 				", domain restrictions='" + domainRestrictions + '\'' +
 				'}';
 	}

@@ -33,4 +33,16 @@
         </field>
     </mapping>
 
+    <mapping>
+        <class-a>io.gravitee.repository.management.model.View</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.ViewMongo</class-b>
+        <field>
+            <a>id</a>
+            <b>id.id</b>
+        </field>
+        <field>
+            <a>environment</a>
+            <b>id.environment</b>
+        </field>
+    </mapping>
 </mappings>

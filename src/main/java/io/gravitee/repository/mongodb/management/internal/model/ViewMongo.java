@@ -29,8 +29,7 @@ import java.util.Objects;
 public class ViewMongo extends Auditable{
 
 	@Id
-	private String id;
-	private String environment;
+	private ViewPkMongo id;
 	private String name;
 	private String description;
 	private boolean defaultView;
@@ -39,19 +38,13 @@ public class ViewMongo extends Auditable{
 	private String highlightApi;
 	private String picture;
 
-	public String getId() {
+	public ViewPkMongo getId() {
 		return id;
 	}
-	public void setId(String id) {
+	public void setId(ViewPkMongo id) {
 		this.id = id;
 	}
 
-	public String getEnvironment() {
-        return environment;
-    }
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
     public String getName() {
 		return name;
 	}
@@ -120,7 +113,6 @@ public class ViewMongo extends Auditable{
 	public String toString() {
 		return "ViewMongo{" +
 				"id='" + id + '\'' +
-                ", environment='" + environment + '\'' +
 				", name='" + name + '\'' +
 				", description='" + description + '\'' +
 				", defaultView='" + defaultView + '\'' +

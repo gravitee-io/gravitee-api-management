@@ -25,15 +25,18 @@ import java.util.Objects;
 public class RolePkMongo implements Serializable {
     private int scope;
     private String name;
+    private String referenceId;
+    private String referenceType;
 
     public RolePkMongo() {
     }
 
-    public RolePkMongo(int scope, String name) {
+    public RolePkMongo(int scope, String name, String referenceId, String referenceType) {
         this.scope = scope;
         this.name = name;
+        this.referenceId = referenceId;
+        this.referenceType = referenceType;
     }
-
 
     public String getName() {
         return name;
@@ -49,14 +52,28 @@ public class RolePkMongo implements Serializable {
         this.scope = scope;
     }
 
-
+    public String getReferenceId() {
+        return referenceId;
+    }
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+    public String getReferenceType() {
+        return referenceType;
+    }
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof RolePkMongo)) return false;
         RolePkMongo roleMongo = (RolePkMongo) o;
         return Objects.equals(name, roleMongo.name) && 
-                Objects.equals(scope, roleMongo.scope);
+                Objects.equals(scope, roleMongo.scope) && 
+                Objects.equals(referenceId, roleMongo.referenceId) && 
+                Objects.equals(referenceType, roleMongo.referenceType);
     }
 
     @Override
@@ -69,6 +86,8 @@ public class RolePkMongo implements Serializable {
         return "RolePkMongo{" +
                 "name='" + name + '\'' +
                 ", scope='" + scope + '\'' +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType='" + referenceType + '\'' +
                 '}';
     }
 }

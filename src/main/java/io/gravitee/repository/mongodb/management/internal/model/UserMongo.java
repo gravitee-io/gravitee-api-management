@@ -33,7 +33,8 @@ public class UserMongo extends Auditable {
     @Id
     private String id;
 
-    private String environment;
+    private String referenceId;
+    private String referenceType;
     private String email;
     private String password;
     private String firstname;
@@ -52,12 +53,20 @@ public class UserMongo extends Auditable {
         this.id = id;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public String getReferenceId() {
+        return referenceId;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public String getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
     }
 
     public String getEmail() {
@@ -150,7 +159,8 @@ public class UserMongo extends Auditable {
     public String toString() {
         final StringBuilder sb = new StringBuilder("User{");
         sb.append(" id='").append(id).append(",\'");
-        sb.append(" environment='").append(environment).append(",\'");
+        sb.append(" referenceId='").append(referenceId).append(",\'");
+        sb.append(" referenceType='").append(referenceType).append(",\'");
         sb.append(" source='").append(source).append(",\'");
         sb.append(" source_id='").append(sourceId).append(",\'");
         sb.append(" email='").append(email).append("\'");

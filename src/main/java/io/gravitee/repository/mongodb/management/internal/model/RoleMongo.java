@@ -28,8 +28,6 @@ import java.util.Objects;
 public class RoleMongo extends Auditable {
     @Id
     private RolePkMongo id;
-    private String referenceId;
-    private String referenceType;
     private String description;
     private boolean defaultRole;
     private boolean system;
@@ -42,18 +40,6 @@ public class RoleMongo extends Auditable {
         this.id = id;
     }
 
-    public String getReferenceId() {
-        return referenceId;
-    }
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-    public String getReferenceType() {
-        return referenceType;
-    }
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
     public String getDescription() {
         return description;
     }
@@ -99,8 +85,6 @@ public class RoleMongo extends Auditable {
     public String toString() {
         return "RoleMongo{" +
                 "id='" + id + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
                 ", defaultRole='" + defaultRole + '\'' +
                 ", system='" + system + '\'' +
                 '}';

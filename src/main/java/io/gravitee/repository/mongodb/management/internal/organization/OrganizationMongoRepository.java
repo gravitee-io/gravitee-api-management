@@ -13,26 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.api;
-
-import java.util.List;
+package io.gravitee.repository.mongodb.management.internal.organization;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import io.gravitee.repository.mongodb.management.internal.model.ViewMongo;
-import io.gravitee.repository.mongodb.management.internal.model.ViewPkMongo;
+import io.gravitee.repository.mongodb.management.internal.model.OrganizationMongo;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface ViewMongoRepository extends MongoRepository<ViewMongo, ViewPkMongo> {
+public interface OrganizationMongoRepository extends MongoRepository<OrganizationMongo, String> {
 
-    @Query("{ 'id.environment': ?0 }")
-    List<ViewMongo> findByEnvironment(String environment);
 }
 
 
