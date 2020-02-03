@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.impl.RoleServiceImpl;
@@ -42,6 +43,9 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class RoleService_CreateOrUpdateSystemRolesTest {
 
+    private static final String REFERENCE_ID = "DEFAULT";
+    private static final RoleReferenceType REFERENCE_TYPE = RoleReferenceType.ORGANIZATION;
+    
     @InjectMocks
     private RoleServiceImpl roleService = new RoleServiceImpl();
 
@@ -73,11 +77,11 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
     @Test
     public void shouldCreateSystemRole() throws TechnicalException {
-        when(mockRoleRepository.findById(any(), any())).thenReturn(empty());
+        when(mockRoleRepository.findById(any(), any(), any(), any())).thenReturn(empty());
 
-        roleService.createOrUpdateSystemRoles();
+        roleService.createOrUpdateSystemRoles(REFERENCE_ID);
 
-        verify(mockRoleRepository, times(5)).findById(any(), anyString());
+        verify(mockRoleRepository, times(5)).findById(any(), anyString(), anyString(), any());
         verify(mockRoleRepository, never()).update(any());
         verify(mockRoleRepository, times(5)).create(any());
     }
@@ -86,15 +90,15 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
     public void shouldUpdateSystemRole() throws TechnicalException {
         Role mgmtAdminRole = mock(Role.class);
         when(mgmtAdminRole.getPermissions()).thenReturn(new int[]{20,21});
-        when(mockRoleRepository.findById(RoleScope.MANAGEMENT, "ADMIN")).thenReturn(of(mgmtAdminRole));
-        when(mockRoleRepository.findById(RoleScope.PORTAL, "ADMIN")).thenReturn(empty());
-        when(mockRoleRepository.findById(RoleScope.API, "PRIMARY_OWNER")).thenReturn(empty());
-        when(mockRoleRepository.findById(RoleScope.APPLICATION, "PRIMARY_OWNER")).thenReturn(empty());
-        when(mockRoleRepository.findById(RoleScope.GROUP, "ADMIN")).thenReturn(empty());
+        when(mockRoleRepository.findById(RoleScope.MANAGEMENT, "ADMIN", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(of(mgmtAdminRole));
+        when(mockRoleRepository.findById(RoleScope.PORTAL, "ADMIN", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(empty());
+        when(mockRoleRepository.findById(RoleScope.API, "PRIMARY_OWNER", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(empty());
+        when(mockRoleRepository.findById(RoleScope.APPLICATION, "PRIMARY_OWNER", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(empty());
+        when(mockRoleRepository.findById(RoleScope.GROUP, "ADMIN", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(empty());
 
-        roleService.createOrUpdateSystemRoles();
+        roleService.createOrUpdateSystemRoles(REFERENCE_ID);
 
-        verify(mockRoleRepository, times(5)).findById(any(), anyString());
+        verify(mockRoleRepository, times(5)).findById(any(), anyString(), anyString(), any());
         verify(mockRoleRepository, times(1)).update(argThat(o -> o.getScope().equals(RoleScope.MANAGEMENT) &&
                 Arrays.stream(o.getPermissions()).reduce(Math::addExact).orElse(0)
                         == Arrays.stream(mgmtAdminPermissions).reduce(Math::addExact).orElse(0)));
@@ -109,15 +113,15 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         Role mgmtAdminRole = mock(Role.class);
         when(mgmtAdminRole.getPermissions()).thenReturn(mgmtAdminPermissions);
-        when(mockRoleRepository.findById(RoleScope.MANAGEMENT, "ADMIN")).thenReturn(of(mgmtAdminRole));
-        when(mockRoleRepository.findById(RoleScope.PORTAL, "ADMIN")).thenReturn(empty());
-        when(mockRoleRepository.findById(RoleScope.API, "PRIMARY_OWNER")).thenReturn(empty());
-        when(mockRoleRepository.findById(RoleScope.APPLICATION, "PRIMARY_OWNER")).thenReturn(empty());
-        when(mockRoleRepository.findById(RoleScope.GROUP, "ADMIN")).thenReturn(empty());
+        when(mockRoleRepository.findById(RoleScope.MANAGEMENT, "ADMIN", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(of(mgmtAdminRole));
+        when(mockRoleRepository.findById(RoleScope.PORTAL, "ADMIN", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(empty());
+        when(mockRoleRepository.findById(RoleScope.API, "PRIMARY_OWNER", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(empty());
+        when(mockRoleRepository.findById(RoleScope.APPLICATION, "PRIMARY_OWNER", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(empty());
+        when(mockRoleRepository.findById(RoleScope.GROUP, "ADMIN", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(empty());
 
-        roleService.createOrUpdateSystemRoles();
+        roleService.createOrUpdateSystemRoles(REFERENCE_ID);
 
-        verify(mockRoleRepository, times(5)).findById(any(), anyString());
+        verify(mockRoleRepository, times(5)).findById(any(), anyString(), anyString(), any());
         verify(mockRoleRepository, never()).update(any());
         verify(mockRoleRepository, times(4)).create(argThat(o -> o.getScope().equals(RoleScope.API)
                 || o.getScope().equals(RoleScope.APPLICATION)

@@ -64,13 +64,16 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
     @Override
     public ApiHeaderEntity create(NewApiHeaderEntity newEntity) {
+        return this.create(newEntity, GraviteeContext.getCurrentEnvironment());
+    }
 
+    private ApiHeaderEntity create(NewApiHeaderEntity newEntity, String environmentId) {
         try {
-            int order = apiHeaderRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment()).size() + 1;
+            int order = apiHeaderRepository.findAllByEnvironment(environmentId).size() + 1;
 
             ApiHeader apiHeader = new ApiHeader();
             apiHeader.setId(UUID.toString(UUID.random()));
-            apiHeader.setEnvironment(GraviteeContext.getCurrentEnvironment());
+            apiHeader.setEnvironment(environmentId);
             apiHeader.setName(newEntity.getName());
             apiHeader.setValue(newEntity.getValue());
             apiHeader.setOrder(order);
@@ -200,24 +203,24 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     }
 
     @Override
-    public void createDefault() {
+    public void initialize(String environmentId) {
         NewApiHeaderEntity h = new NewApiHeaderEntity();
 
         h.setName("api.version");
         h.setValue("${api.version}");
-        this.create(h);
+        this.create(h, environmentId);
 
         h.setName("api.endpoint");
         h.setValue("${api.proxy.contextPath}");
-        this.create(h);
+        this.create(h, environmentId);
 
         h.setName("api.owner");
         h.setValue("${api.primaryOwner.displayName}");
-        this.create(h);
+        this.create(h, environmentId);
 
         h.setName("api.publishedAt");
         h.setValue("${(api.deployedAt?date)!}");
-        this.create(h);
+        this.create(h, environmentId);
     }
 
     private ApiHeaderEntity convert(ApiHeader apiHeader) {

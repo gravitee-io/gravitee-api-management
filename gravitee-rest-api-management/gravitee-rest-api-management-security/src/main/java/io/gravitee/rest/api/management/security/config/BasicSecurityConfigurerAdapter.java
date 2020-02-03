@@ -192,7 +192,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
-        String uriPrefix = "/management/**";
+        String uriPrefix = "/management/organizations/**/environments/**";
 
         return security.authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "**").permitAll()

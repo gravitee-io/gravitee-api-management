@@ -16,27 +16,21 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.repository.management.model.UserReferenceType;
 
-import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Collections.singletonMap;
+
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UserAlreadyExistsException extends AbstractManagementException {
+public class EnvironmentAlreadyExistsException extends AbstractManagementException {
 
-    private final String source;
-    private final String userId;
-    private final String referenceId;
-    private final UserReferenceType referenceType;
+    private final String envName;
 
-    public UserAlreadyExistsException(String source, String userId, String referenceId, UserReferenceType referenceType) {
-        this.source = source;
-        this.userId = userId;
-        this.referenceId = referenceId;
-        this.referenceType = referenceType;
+    public EnvironmentAlreadyExistsException(String envName) {
+        this.envName = envName;
     }
 
     @Override
@@ -46,23 +40,16 @@ public class UserAlreadyExistsException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "A user [" + userId + "] already exists for " + referenceType.name() + " " + referenceId + ".";
+        return "An environment [" + envName + "] already exists.";
     }
 
     @Override
     public String getTechnicalCode() {
-        return "user.exists";
+        return "env.exists";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return new HashMap<String, String>() {
-            {
-                put("user", userId);
-                put("referenceId", referenceId);
-                put("referenceType", referenceType.name());
-                put("source", source);
-            }
-        };
+        return singletonMap("env", envName);
     }
 }

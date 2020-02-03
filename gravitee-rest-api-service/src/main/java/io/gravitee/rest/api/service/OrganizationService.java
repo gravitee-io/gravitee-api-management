@@ -15,25 +15,27 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.rest.api.model.NewOrganizationEntity;
+import io.gravitee.rest.api.model.OrganizationEntity;
+import io.gravitee.rest.api.model.UpdateOrganizationEntity;
+
 import java.util.List;
 
-import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
-import io.gravitee.rest.api.model.api.header.NewApiHeaderEntity;
-import io.gravitee.rest.api.model.api.header.UpdateApiHeaderEntity;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiHeaderService {
+public interface OrganizationService {
 
-    ApiHeaderEntity create(NewApiHeaderEntity newEntity);
+    List<OrganizationEntity> findAll();
 
-    void delete(String apiHeaderId);
+    OrganizationEntity findById(String organizationId);
 
-    ApiHeaderEntity update(UpdateApiHeaderEntity updateEntity);
+    OrganizationEntity create(NewOrganizationEntity organizationEntity);
+    
+    OrganizationEntity update(UpdateOrganizationEntity organizationEntity);
 
-    List<ApiHeaderEntity> findAll();
-
-    void initialize(String environmentId);
+    void delete(String organizationId);
+    
+    void initialize();
 }

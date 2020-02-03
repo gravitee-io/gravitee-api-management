@@ -25,7 +25,7 @@ import java.util.Objects;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UpdateEnvironmentEntity {
+public class OrganizationEntity {
 
     private String id;
     @NotNull
@@ -34,11 +34,8 @@ public class UpdateEnvironmentEntity {
 
     private String description;
 
-    @NotNull
-    private String organizationId;
-
     private List<String> domainRestrictions;
-    
+
     public String getId() {
         return id;
     }
@@ -63,14 +60,6 @@ public class UpdateEnvironmentEntity {
         this.description = description;
     }
 
-    public String getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(String organizationId) {
-        this.organizationId = organizationId;
-    }
-
     public List<String> getDomainRestrictions() {
         return domainRestrictions;
     }
@@ -82,8 +71,8 @@ public class UpdateEnvironmentEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof UpdateEnvironmentEntity)) return false;
-        UpdateEnvironmentEntity that = (UpdateEnvironmentEntity) o;
+        if (!(o instanceof OrganizationEntity)) return false;
+        OrganizationEntity that = (OrganizationEntity) o;
         return Objects.equals(id, that.id) &&
                 Objects.equals(name, that.name);
     }
@@ -95,11 +84,10 @@ public class UpdateEnvironmentEntity {
 
     @Override
     public String toString() {
-        return "UpdateEnvironmentEntity{" +
+        return "OrganizationEntity{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", organizationId='" + organizationId + '\'' +
                 ", domain restrictions='" + domainRestrictions + '\'' +
                 '}';
     }

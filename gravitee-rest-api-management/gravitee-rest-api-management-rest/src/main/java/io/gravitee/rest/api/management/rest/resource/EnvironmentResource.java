@@ -15,25 +15,56 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-
+import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
-import io.swagger.annotations.Api;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.swagger.annotations.*;
+
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/{envId}")
 @Api
 public class EnvironmentResource extends AbstractResource {
     
     @Context
     private ResourceContext resourceContext;
-    
+
+    @Inject
+    private EnvironmentService environmentService;
+
+    /**
+     * Delete an existing Environment.
+     * @param environmentId
+     * @return
+     */
+    @DELETE
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Delete an Environment", tags = {"Environment"})
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Environment successfully deleted"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response deleteEnvironment(
+            @ApiParam(name = "environmentId", required = true)
+            @PathParam("envId") String environmentId) {
+        environmentService.delete(environmentId);
+        //TODO: should delete all items that refers to this environment
+        return Response
+                .status(Status.NO_CONTENT)
+                .build();
+    }
+
     @Path("alerts")
     public AlertsResource getAlertsResource() {
         return resourceContext.getResource(AlertsResource.class);

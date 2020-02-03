@@ -34,20 +34,20 @@ public class PortalApiLinkHelperTest {
 
     private static final String BASE_URL = "http://foo.bar";
 
-    private static final String BASE_URL_APIS = BASE_URL + "/DEFAULT" + "/apis";
+    private static final String BASE_URL_APIS = BASE_URL + "/environments/DEFAULT" + "/apis";
     private static final String BASE_URL_APIS_APIID = BASE_URL_APIS + "/" + API;
     private static final String BASE_URL_APIS_APIID_PAGES = BASE_URL_APIS_APIID + "/pages";
     private static final String BASE_URL_APIS_APIID_PAGES_PAGEID = BASE_URL_APIS_APIID_PAGES + "/" + PAGE;
 
-    private static final String BASE_URL_APPLICATIONS = BASE_URL + "/DEFAULT" + "/applications";
+    private static final String BASE_URL_APPLICATIONS = BASE_URL + "/environments/DEFAULT" + "/applications";
     private static final String BASE_URL_APPLICATIONS_APPLICATIONID = BASE_URL_APPLICATIONS + "/" + APPLICATION;
 
-    private static final String BASE_URL_PAGES = BASE_URL + "/DEFAULT" + "/pages";
+    private static final String BASE_URL_PAGES = BASE_URL + "/environments/DEFAULT" + "/pages";
     private static final String BASE_URL_PAGES_PAGEID = BASE_URL_PAGES + "/" + PAGE;
 
-    private static final String BASE_URL_USER = BASE_URL + "/DEFAULT" + "/user";
+    private static final String BASE_URL_USER = BASE_URL + "/environments/DEFAULT" + "/user";
 
-    private static final String BASE_URL_VIEWS = BASE_URL + "/DEFAULT" + "/views";
+    private static final String BASE_URL_VIEWS = BASE_URL + "/environments/DEFAULT" + "/views";
     private static final String BASE_URL_VIEWS_VIEWID = BASE_URL_VIEWS + "/" + VIEW;
 
     @Test

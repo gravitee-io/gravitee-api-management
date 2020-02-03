@@ -19,7 +19,7 @@ import io.gravitee.repository.management.model.View;
 import io.gravitee.rest.api.model.ViewEntity;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.ViewService;
-
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,7 @@ public class DefaultViewUpgrader implements Upgrader, Ordered {
                 findFirst();
         if(!optionalAllView.isPresent()) {
             logger.info("Create default View");
-            viewService.createDefaultView();
+            viewService.initialize(GraviteeContext.getDefaultEnvironment());
         }
 
         return true;

@@ -69,7 +69,8 @@ public class UserServiceTest {
     private static final String LAST_NAME = "User";
     private static final String PASSWORD = "gh2gyf8!zjfnz";
     private static final String JWT_SECRET = "VERYSECURE";;
-    private static final String ENVIRONMENT = "DEFAULT";
+    private static final String ORGANIZATION = "DEFAULT";
+    private static final UserReferenceType USER_REFERENCE_TYPE = UserReferenceType.ORGANIZATION;
     private static final Set<UserRoleEntity> ROLES = Collections.singleton(new UserRoleEntity());
     static {
         UserRoleEntity r = ROLES.iterator().next();
@@ -120,6 +121,8 @@ public class UserServiceTest {
     private GroupService groupService;
     @Mock
     private SocialIdentityProviderEntity identityProvider;
+    @Mock
+    private OrganizationService organizationService;
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
@@ -128,7 +131,7 @@ public class UserServiceTest {
         when(user.getFirstname()).thenReturn(FIRST_NAME);
         when(user.getLastname()).thenReturn(LAST_NAME);
         when(user.getPassword()).thenReturn(PASSWORD);
-        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ENVIRONMENT)).thenReturn(of(user));
+        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(of(user));
 
         final UserEntity userEntity = userService.findBySource(USER_SOURCE, USER_NAME, false);
 
@@ -142,14 +145,14 @@ public class UserServiceTest {
 
     @Test(expected = UserNotFoundException.class)
     public void shouldNotFindByUsernameBecauseNotExists() throws TechnicalException {
-        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ENVIRONMENT)).thenReturn(Optional.empty());
+        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(Optional.empty());
 
         userService.findBySource(USER_SOURCE, USER_NAME, false);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByUsernameBecauseTechnicalException() throws TechnicalException {
-        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ENVIRONMENT)).thenThrow(TechnicalException.class);
+        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION, USER_REFERENCE_TYPE)).thenThrow(TechnicalException.class);
 
         userService.findBySource(USER_SOURCE, USER_NAME, false);
     }
@@ -162,7 +165,7 @@ public class UserServiceTest {
         when(newUser.getSource()).thenReturn(USER_SOURCE);
         when(newUser.getSourceId()).thenReturn(USER_NAME);
 
-        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ENVIRONMENT)).thenReturn(Optional.empty());
+        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(Optional.empty());
 
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getEmail()).thenReturn(EMAIL);
@@ -180,6 +183,7 @@ public class UserServiceTest {
                 MembershipDefaultReferenceId.DEFAULT.name(),
                 user.getId(),
                 RoleScope.PORTAL)).thenReturn(role);
+        when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
 
         final UserEntity createdUserEntity = userService.create(newUser, false);
 
@@ -202,9 +206,18 @@ public class UserServiceTest {
         assertEquals(date, createdUserEntity.getUpdatedAt());
     }
 
+    @Test(expected = OrganizationNotFoundException.class)
+    public void shouldNotCreateBecauseOrganizationDoesNotExist() throws TechnicalException {
+        when(organizationService.findById(ORGANIZATION)).thenThrow(OrganizationNotFoundException.class);
+
+        userService.create(newUser, false);
+
+        verify(userRepository, never()).create(any());
+    }
+    
     @Test(expected = UserAlreadyExistsException.class)
     public void shouldNotCreateBecauseExists() throws TechnicalException {
-        when(userRepository.findBySource(nullable(String.class), nullable(String.class), nullable(String.class))).thenReturn(of(new User()));
+        when(userRepository.findBySource(nullable(String.class), nullable(String.class), nullable(String.class), eq(USER_REFERENCE_TYPE))).thenReturn(of(new User()));
 
         userService.create(newUser, false);
 
@@ -319,7 +332,7 @@ public class UserServiceTest {
         userEntity.setToken(createJWT(System.currentTimeMillis()/1000 - 100));
         userEntity.setPassword(PASSWORD);
 
-        verify(userRepository, never()).findBySource(USER_SOURCE, USER_NAME, ENVIRONMENT);
+        verify(userRepository, never()).findBySource(USER_SOURCE, USER_NAME, ORGANIZATION, USER_REFERENCE_TYPE);
 
         userService.finalizeRegistration(userEntity);
     }
@@ -526,7 +539,7 @@ public class UserServiceTest {
         when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(condition1, condition2, condition3));
 
         when(identityProvider.getId()).thenReturn("oauth2");
-        when(userRepository.findBySource("oauth2", "janedoe@example.com", "DEFAULT")).thenReturn(Optional.empty());
+        when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(Optional.empty());
 
         
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
@@ -541,7 +554,7 @@ public class UserServiceTest {
         
         User user = mockUser();
 
-        when(userRepository.findBySource(null,user.getSourceId(), "DEFAULT")).thenReturn(Optional.of(user));
+        when(userRepository.findBySource(null,user.getSourceId(), ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(Optional.of(user));
         when(userRepository.findById(user.getSourceId())).thenReturn(Optional.of(user));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
@@ -589,7 +602,7 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(createdUser);
         
         when(identityProvider.getId()).thenReturn("oauth2");
-        when(userRepository.findBySource("oauth2", "janedoe@example.com", "DEFAULT")).thenReturn(Optional.empty());
+        when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(Optional.empty());
 
         RoleEntity rolePortalUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL,"USER");
         RoleEntity roleManagementAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.MANAGEMENT,"ADMIN");
@@ -618,7 +631,7 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(createdUser);
         
         when(identityProvider.getId()).thenReturn("oauth2");
-        when(userRepository.findBySource("oauth2", "janedoe@example.com", "DEFAULT")).thenReturn(Optional.empty());
+        when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(Optional.empty());
 
         //mock group search and association
         when(groupService.findById("Example group")).thenReturn(mockGroupEntity("group_id_1","Example group"));
@@ -737,7 +750,7 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(createdUser);
         
         when(identityProvider.getId()).thenReturn("oauth2");
-        when(userRepository.findBySource("oauth2", "janedoe@example.com", "DEFAULT")).thenReturn(Optional.empty());
+        when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(Optional.empty());
 
         RoleEntity rolePortalUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL,"USER");
         RoleEntity roleManagementAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.MANAGEMENT,"ADMIN");

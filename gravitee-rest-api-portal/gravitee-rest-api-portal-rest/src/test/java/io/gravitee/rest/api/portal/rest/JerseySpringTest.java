@@ -72,7 +72,7 @@ public abstract class JerseySpringTest {
 
     public final WebTarget target(final String path)
     {
-        return _jerseyTest.target("/DEFAULT/" + contextPath() + path);
+        return _jerseyTest.target("/environments/DEFAULT/" + contextPath() + path);
     }
 
     @Before

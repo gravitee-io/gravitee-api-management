@@ -29,6 +29,8 @@ public interface EnvironmentService {
 
     List<EnvironmentEntity> findAll();
 
+    List<EnvironmentEntity> findByOrganization(String organizationId);
+
     EnvironmentEntity findById(String environmentId);
 
     EnvironmentEntity create(NewEnvironmentEntity environment);
@@ -37,5 +39,5 @@ public interface EnvironmentService {
 
     void delete(String environmentId);
     
-    void createDefaultEnvironment();
+    void initialize();
 }

@@ -37,7 +37,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 @Provider
 @PreMatching
-@Priority(0)
+@Priority(100)
 public class SecurityContextFilter implements ContainerRequestFilter {
 
     @Override

@@ -17,6 +17,8 @@ package io.gravitee.rest.api.model;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -29,6 +31,13 @@ public class EnvironmentEntity {
     @NotNull
     @Size(min = 1)
     private String name;
+
+    private String description;
+
+    @NotNull
+    private String organizationId;
+
+    private List<String> domainRestrictions;
 
     public String getId() {
         return id;
@@ -44,6 +53,30 @@ public class EnvironmentEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public List<String> getDomainRestrictions() {
+        return domainRestrictions;
+    }
+
+    public void setDomainRestrictions(List<String> domainRestrictions) {
+        this.domainRestrictions = domainRestrictions;
     }
 
     @Override
@@ -65,6 +98,9 @@ public class EnvironmentEntity {
         return "EnvironmentEntity{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", organizationId='" + organizationId + '\'' +
+                ", domain restrictions='" + domainRestrictions + '\'' +
                 '}';
     }
 }

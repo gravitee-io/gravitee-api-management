@@ -36,7 +36,7 @@ import java.util.function.Predicate;
  */
 @Provider
 @PreMatching
-@Priority(0)
+@Priority(100)
 public class SecurityContextFilter implements ContainerRequestFilter {
 
     @Override

@@ -71,7 +71,7 @@ public class RoleService_CreateTest {
         when(roleMock.getScope()).thenReturn(RoleScope.PORTAL);
         when(roleMock.getPermissions()).thenReturn(new int[]{1108});
         when(mockRoleRepository.create(any())).thenReturn(roleMock);
-        when(mockRoleRepository.findById(any(), any())).thenReturn(Optional.empty());
+        when(mockRoleRepository.findById(any(), any(), any(), any())).thenReturn(Optional.empty());
 
         RoleEntity entity = roleService.create(newRoleEntityMock);
 

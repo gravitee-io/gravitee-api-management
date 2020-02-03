@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -58,40 +59,28 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
             logger.info("No system folders found. Add system folders in documentation, for portal and each API.");
 
             // Portal documentation
-            PageEntity headerSysTemFolder = createSystemFolder(SystemFolderType.HEADER, 1);
-            PageEntity footerSysTemFolder = createSystemFolder(SystemFolderType.FOOTER, 2);
-            createSystemFolder(SystemFolderType.SUBFOOTER, 3);
-        
+            Map<SystemFolderType, String> systemFolderIds = pageService.initialize(GraviteeContext.getDefaultEnvironment());
+            
+            String headerSystemFolderId = systemFolderIds.get(SystemFolderType.HEADER);
+            String footerSystemFolderId = systemFolderIds.get(SystemFolderType.FOOTER);
+      
             // Create link to existing documentation in footer
             List<PageEntity> pagesToLink = pageService.search(new PageQuery.Builder().rootParent(true).build()).stream()
             .filter(p -> PageType.SWAGGER.name().equals(p.getType()) || PageType.MARKDOWN.name().equals(p.getType()))
             .collect(Collectors.toList());
             
             if(!pagesToLink.isEmpty()) {
-                PageEntity docFolder = createFolder(footerSysTemFolder.getId(), "Documentation");
+                PageEntity docFolder = createFolder(footerSystemFolderId, "Documentation");
                 pagesToLink.forEach(page -> createLink(docFolder.getId(), page.getName(), page.getId(), "page", Boolean.FALSE, Boolean.TRUE));                
             }
 
             // Create link to root documentation folder in header
-            createLink(headerSysTemFolder.getId(), "Documentation", "root", "page", Boolean.TRUE, Boolean.FALSE);
+            createLink(headerSystemFolderId, "Documentation", "root", "page", Boolean.TRUE, Boolean.FALSE);
             
             // Apis documentation
-            apiService.findAllLight().forEach(api -> createSystemFolder(api.getId(), SystemFolderType.ASIDE, 0));
+            apiService.findAllLight().forEach(api -> pageService.createSystemFolder(api.getId(), SystemFolderType.ASIDE, 0, GraviteeContext.getDefaultEnvironment()));
         }
         return true;
-    }
-
-    private PageEntity createSystemFolder(SystemFolderType systemFolderType, int order) {
-        return this.createSystemFolder(null, systemFolderType, order);
-    }
-
-    private PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order) {
-        NewPageEntity newSysFolder = new NewPageEntity();
-        newSysFolder.setName(systemFolderType.folderName());
-        newSysFolder.setOrder(order);
-        newSysFolder.setPublished(true);
-        newSysFolder.setType(PageType.SYSTEM_FOLDER);
-        return pageService.createPage(apiId, newSysFolder);
     }
 
     private PageEntity createFolder(String parentId, String name) {
@@ -103,7 +92,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
         
         return pageService.createPage(newFolder);
     }
-    
+
     private void createLink(String parentId, String name, String resourceRef, String resourceType, Boolean isFolder, Boolean inherit) {
         NewPageEntity newLink = new NewPageEntity();
         newLink.setContent(resourceRef);
@@ -125,7 +114,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
         
         pageService.createPage(newLink);
     }
-    
+
     @Override
     public int getOrder() {
         return 100;

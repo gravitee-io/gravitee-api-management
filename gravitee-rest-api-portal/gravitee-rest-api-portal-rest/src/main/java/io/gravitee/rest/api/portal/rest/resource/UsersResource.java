@@ -28,7 +28,6 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -57,7 +56,7 @@ public class UsersResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.MANAGEMENT_USERS, acls = READ) })
     public Response getUsers(@BeanParam PaginationParam paginationParam) {
-        UserCriteria criteria = new UserCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).build();
+        UserCriteria criteria = new UserCriteria.Builder().build();
         List<User> users = userService
                 .search(criteria, new PageableImpl(paginationParam.getPage(), paginationParam.getSize())).getContent()
                 .stream().map(userMapper::convert).collect(Collectors.toList());

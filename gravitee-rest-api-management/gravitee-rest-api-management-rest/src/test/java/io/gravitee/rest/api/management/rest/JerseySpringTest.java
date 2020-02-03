@@ -34,14 +34,10 @@ import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Priority;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.PATCH;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.Principal;
@@ -71,7 +67,7 @@ public abstract class JerseySpringTest {
 
     public final WebTarget target(final String path)
     {
-        return _jerseyTest.target("/DEFAULT/" + contextPath() + path);
+        return _jerseyTest.target("/organizations/DEFAULT/environments/DEFAULT/" + contextPath() + path);
     }
 
     @Before

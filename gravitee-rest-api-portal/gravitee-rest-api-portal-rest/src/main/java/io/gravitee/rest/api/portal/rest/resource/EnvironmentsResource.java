@@ -23,8 +23,8 @@ import javax.ws.rs.core.Context;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/{envId}")
-public class EnvironmentResource extends AbstractResource {
+@Path("environments/{envId}")
+public class EnvironmentsResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;

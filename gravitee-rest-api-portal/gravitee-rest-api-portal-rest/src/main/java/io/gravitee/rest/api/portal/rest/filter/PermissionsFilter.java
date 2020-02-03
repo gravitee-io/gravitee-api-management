@@ -55,7 +55,7 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
  * @author GraviteeSource Team
  */
 @Provider
-@Priority(100)
+@Priority(200)
 public class PermissionsFilter implements ContainerRequestFilter {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());

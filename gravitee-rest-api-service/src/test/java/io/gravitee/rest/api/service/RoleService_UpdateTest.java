@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
@@ -71,7 +72,7 @@ public class RoleService_UpdateTest {
         when(roleMock.getScope()).thenReturn(RoleScope.PORTAL);
         when(roleMock.getPermissions()).thenReturn(new int[]{1108});
         when(mockRoleRepository.update(any())).thenReturn(roleMock);
-        when(mockRoleRepository.findById(RoleScope.PORTAL, "update mock role")).thenReturn(Optional.of(roleMock));
+        when(mockRoleRepository.findById(RoleScope.PORTAL, "update mock role", "DEFAULT", RoleReferenceType.ORGANIZATION)).thenReturn(Optional.of(roleMock));
 
         RoleEntity entity = roleService.update(updateRoleEntityMock);
 
@@ -91,7 +92,7 @@ public class RoleService_UpdateTest {
         when(updateRoleEntityMock.getName()).thenReturn("update mock role");
         when(updateRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL);
 
-        when(mockRoleRepository.findById(RoleScope.PORTAL, "update mock role")).thenReturn(Optional.empty());
+        when(mockRoleRepository.findById(RoleScope.PORTAL, "update mock role", "DEFAULT", RoleReferenceType.ORGANIZATION)).thenReturn(Optional.empty());
 
         roleService.update(updateRoleEntityMock);
 

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -81,7 +82,7 @@ public class RoleService_FindByIdTest {
         when(roleMock.getScope()).thenReturn(RoleScope.PORTAL);
         when(roleMock.getName()).thenReturn("name");
         when(roleMock.getPermissions()).thenReturn(new int[]{perm});
-        when(mockRoleRepository.findById(RoleScope.PORTAL, "name")).thenReturn(Optional.of(roleMock));
+        when(mockRoleRepository.findById(RoleScope.PORTAL, "name", "DEFAULT", RoleReferenceType.ORGANIZATION)).thenReturn(Optional.of(roleMock));
 
         RoleEntity entity = roleService.findById(RoleScope.PORTAL, "name");
 

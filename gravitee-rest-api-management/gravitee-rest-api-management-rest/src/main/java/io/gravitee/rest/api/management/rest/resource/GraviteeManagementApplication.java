@@ -30,7 +30,8 @@ import org.glassfish.jersey.server.ServerProperties;
 import com.fasterxml.jackson.databind.JavaType;
 
 import io.gravitee.common.util.Version;
-import io.gravitee.rest.api.management.rest.filter.GraviteeContextFilter;
+import io.gravitee.rest.api.management.rest.filter.GraviteeContextRequestFilter;
+import io.gravitee.rest.api.management.rest.filter.GraviteeContextResponseFilter;
 import io.gravitee.rest.api.management.rest.filter.PermissionsFilter;
 import io.gravitee.rest.api.management.rest.filter.SecurityContextFilter;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
@@ -98,7 +99,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
             }
         });
         //Main resource
-        register(EnvironmentResource.class);
+        register(OrganizationsResource.class);
         
         register(MultiPartFeature.class);
         
@@ -113,7 +114,8 @@ public class GraviteeManagementApplication extends ResourceConfig {
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
-        register(GraviteeContextFilter.class);
+        register(GraviteeContextRequestFilter.class);
+        register(GraviteeContextResponseFilter.class);
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);

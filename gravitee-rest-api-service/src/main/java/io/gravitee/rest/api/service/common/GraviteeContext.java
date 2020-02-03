@@ -24,29 +24,43 @@ import java.util.Map;
  */
 public class GraviteeContext {
     private static final String DEFAULT_ENVIRONMENT = "DEFAULT";
-    
+    private static final String DEFAULT_ORGANIZATION = "DEFAULT";
+
     private static final String CURRENT_ENVIRONMENT_CONTEXT_KEY = "currentEnvironment";
-    
-            
-    private static final ThreadLocal<Map<String, Object>> contextThread = new ThreadLocal<Map<String, Object>>() {
-        @Override
-        protected Map<String, Object> initialValue() {
-            Map<String, Object> propertiesMap = new HashMap<>();
-            propertiesMap.put(CURRENT_ENVIRONMENT_CONTEXT_KEY, DEFAULT_ENVIRONMENT);
-            return propertiesMap;
-        }
-        
-    };
-    
+    private static final String CURRENT_ORGANIZATION_CONTEXT_KEY = "currentOrganization";
+
+    private static final ThreadLocal<Map<String, Object>> contextThread = ThreadLocal.withInitial(() -> {
+        Map<String, Object> propertiesMap = new HashMap<>();
+        propertiesMap.put(CURRENT_ENVIRONMENT_CONTEXT_KEY, DEFAULT_ENVIRONMENT);
+        propertiesMap.put(CURRENT_ORGANIZATION_CONTEXT_KEY, DEFAULT_ORGANIZATION);
+        return propertiesMap;
+    });
+
+    public static void cleanContext() {
+        contextThread.remove();
+    }
+
     public static String getCurrentEnvironment() {
         return (String) contextThread.get().get(CURRENT_ENVIRONMENT_CONTEXT_KEY);
     }
-    
+
     public static void setCurrentEnvironment(String currentEnvironment) {
         contextThread.get().put(CURRENT_ENVIRONMENT_CONTEXT_KEY, currentEnvironment);
     }
-    
+
     public static String getDefaultEnvironment() {
         return DEFAULT_ENVIRONMENT;
+    }
+
+    public static String getCurrentOrganization() {
+        return (String) contextThread.get().get(CURRENT_ORGANIZATION_CONTEXT_KEY);
+    }
+
+    public static void setCurrentOrganization(String currentOrganization) {
+        contextThread.get().put(CURRENT_ORGANIZATION_CONTEXT_KEY, currentOrganization);
+    }
+
+    public static String getDefaultOrganization() {
+        return DEFAULT_ORGANIZATION;
     }
 }

@@ -57,26 +57,24 @@ public class ViewService_DeleteTest {
 
     @Test
     public void shouldNotDeleteUnknownView() throws TechnicalException {
-        UpdateViewEntity mockView = mock(UpdateViewEntity.class);
-        when(mockViewRepository.findById("unknown")).thenReturn(Optional.empty());
+        when(mockViewRepository.findById("unknown", "DEFAULT")).thenReturn(Optional.empty());
 
         viewService.delete("unknown");
 
-        verify(mockViewRepository, times(1)).findById(any());
-        verify(mockViewRepository, never()).delete(any());
+        verify(mockViewRepository, times(1)).findById(any(), any());
+        verify(mockViewRepository, never()).delete(any(), any());
         verify(mockAuditService, never()).createPortalAuditLog(any(), eq(VIEW_UPDATED), any(), any(), any());
         verify(mockApiService, never()).deleteViewFromAPIs(eq("unknown"));
     }
 
     @Test
     public void shouldDeleteView() throws TechnicalException {
-        UpdateViewEntity mockView = mock(UpdateViewEntity.class);
-        when(mockViewRepository.findById("known")).thenReturn(Optional.of(new View()));
+        when(mockViewRepository.findById("known", "DEFAULT")).thenReturn(Optional.of(new View()));
 
         viewService.delete("known");
 
-        verify(mockViewRepository, times(1)).findById(eq("known"));
-        verify(mockViewRepository, times(1)).delete(eq("known"));
+        verify(mockViewRepository, times(1)).findById(eq("known"), eq("DEFAULT"));
+        verify(mockViewRepository, times(1)).delete(eq("known"), eq("DEFAULT"));
         verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(VIEW_DELETED), any(), any(), any());
         verify(mockApiService, times(1)).deleteViewFromAPIs(eq("known"));
     }

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import io.gravitee.rest.api.service.ApiHeaderService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -43,11 +44,9 @@ public class DefaultApiHeaderUpgrader implements Upgrader, Ordered {
     public boolean upgrade() {
         // Initialize default headers
         if (apiHeaderService.findAll().size() == 0) {
-            logger.info("Create default API Headers configuration");
-            apiHeaderService.createDefault();
+            logger.info("Create default API Headers configuration for default environment");
+            apiHeaderService.initialize(GraviteeContext.getDefaultEnvironment());
         }
-
-
         return true;
     }
 

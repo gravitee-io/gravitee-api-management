@@ -21,28 +21,28 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.model.Environment;
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.model.Organization;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class EnvironmentRepositoryProxy extends AbstractProxy<EnvironmentRepository> implements EnvironmentRepository {
+public class OrganizationRepositoryProxy extends AbstractProxy<OrganizationRepository> implements OrganizationRepository {
 
     @Override
-    public Optional<Environment> findById(String s) throws TechnicalException {
+    public Optional<Organization> findById(String s) throws TechnicalException {
         return target.findById(s);
     }
 
     @Override
-    public Environment create(Environment item) throws TechnicalException {
+    public Organization create(Organization item) throws TechnicalException {
         return target.create(item);
     }
 
     @Override
-    public Environment update(Environment item) throws TechnicalException {
+    public Organization update(Organization item) throws TechnicalException {
         return target.update(item);
     }
 
@@ -52,12 +52,7 @@ public class EnvironmentRepositoryProxy extends AbstractProxy<EnvironmentReposit
     }
 
     @Override
-    public Set<Environment> findAll() throws TechnicalException {
+    public Set<Organization> findAll() throws TechnicalException {
         return target.findAll();
-    }
-
-    @Override
-    public Set<Environment> findByOrganization(String organization) throws TechnicalException {
-        return target.findByOrganization(organization);
     }
 }

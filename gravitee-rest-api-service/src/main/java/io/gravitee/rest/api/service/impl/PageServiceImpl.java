@@ -369,6 +369,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Override
 	public PageEntity createPage(String apiId, NewPageEntity newPageEntity) {
+	    return this.createPage(apiId, newPageEntity, GraviteeContext.getCurrentEnvironment());
+	}
+	
+	private PageEntity createPage(String apiId, NewPageEntity newPageEntity, String environmentId) {
 		try {
 			logger.debug("Create page {} for API {}", newPageEntity, apiId);
 
@@ -420,7 +424,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			page.setId(id);
 			if(StringUtils.isEmpty(apiId)) {
-			    page.setReferenceId(GraviteeContext.getCurrentEnvironment());
+			    page.setReferenceId(environmentId);
                 page.setReferenceType(PageReferenceType.ENVIRONMENT);
 			} else {
 			    page.setReferenceId(apiId);
@@ -1600,4 +1604,28 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 		return builder.build();
 	}
+
+    @Override
+    public Map<SystemFolderType, String> initialize(String environmentId) {
+        Map<SystemFolderType, String> result = new HashMap<>();
+        
+        result.put(SystemFolderType.HEADER,
+                createSystemFolder(null, SystemFolderType.HEADER, 1, environmentId).getId());
+        result.put(SystemFolderType.FOOTER,
+                createSystemFolder(null, SystemFolderType.FOOTER, 2, environmentId).getId());
+        result.put(SystemFolderType.SUBFOOTER,
+                createSystemFolder(null, SystemFolderType.SUBFOOTER, 3, environmentId).getId());
+        
+        return result;
+    }
+	
+    @Override
+    public PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order, String environmentId) {
+        NewPageEntity newSysFolder = new NewPageEntity();
+        newSysFolder.setName(systemFolderType.folderName());
+        newSysFolder.setOrder(order);
+        newSysFolder.setPublished(true);
+        newSysFolder.setType(PageType.SYSTEM_FOLDER);
+        return this.createPage(apiId, newSysFolder, environmentId);
+    }
 }

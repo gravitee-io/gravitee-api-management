@@ -120,6 +120,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
     private GenericNotificationConfigService genericNotificationConfigService;
     @Autowired
     private GroupService groupService;
+    @Autowired
+    private OrganizationService organizationService;
 
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
@@ -233,7 +235,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         try {
             LOGGER.debug("Find user by source[{}] user[{}]", source, sourceId);
 
-            Optional<User> optionalUser = userRepository.findBySource(source, sourceId, GraviteeContext.getCurrentEnvironment());
+            Optional<User> optionalUser = userRepository.findBySource(source, sourceId, GraviteeContext.getCurrentOrganization(), UserReferenceType.ORGANIZATION);
 
             if (optionalUser.isPresent()) {
                 return convert(optionalUser.get(), loadRoles);
@@ -402,17 +404,24 @@ public class UserServiceImpl extends AbstractService implements UserService {
     @Override
     public UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole) {
         try {
+            String referenceId = GraviteeContext.getCurrentOrganization();
+            UserReferenceType referenceType = UserReferenceType.ORGANIZATION;
+            
+            // First we check that organization exist
+            this.organizationService.findById(referenceId);
+
             LOGGER.debug("Create an external user {}", newExternalUserEntity);
             Optional<User> checkUser = userRepository.findBySource(
-                    newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), GraviteeContext.getCurrentEnvironment());
+                    newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), referenceId, referenceType);
 
             if (checkUser.isPresent()) {
-                throw new UserAlreadyExistsException(newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), GraviteeContext.getCurrentEnvironment());
+                throw new UserAlreadyExistsException(newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), referenceId, referenceType);
             }
 
             User user = convert(newExternalUserEntity);
             user.setId(UUID.toString(UUID.random()));
-            user.setEnvironment(GraviteeContext.getCurrentEnvironment());
+            user.setReferenceId(referenceId);
+            user.setReferenceType(referenceType);
             user.setStatus(UserStatus.ACTIVE);
 
             // Set date fields
@@ -493,11 +502,14 @@ public class UserServiceImpl extends AbstractService implements UserService {
             throw new EmailFormatInvalidException(newExternalUserEntity.getEmail());
         }
 
+        String referenceId = GraviteeContext.getCurrentOrganization();
+        UserReferenceType referenceType = UserReferenceType.ORGANIZATION;
+
         final Optional<User> optionalUser;
         try {
-            optionalUser = userRepository.findBySource(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail(), GraviteeContext.getCurrentEnvironment());
+            optionalUser = userRepository.findBySource(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail(), referenceId, referenceType);
             if (optionalUser.isPresent()) {
-                throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail(), GraviteeContext.getCurrentEnvironment());
+                throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail(), referenceId, referenceType);
             }
         } catch (final TechnicalException e) {
             LOGGER.error("An error occurs while trying to create user {}", newExternalUserEntity.getEmail(), e);
@@ -654,7 +666,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
         try {
             LOGGER.debug("search users");
             UserCriteria.Builder builder = new UserCriteria.Builder()
-                    .environment(GraviteeContext.getCurrentEnvironment())
+                    .referenceId(GraviteeContext.getCurrentOrganization())
+                    .referenceType(UserReferenceType.ORGANIZATION)
                     .statuses(criteria.getStatuses());
             if(criteria.hasNoStatus()) {
                 builder.noStatus();

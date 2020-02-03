@@ -25,28 +25,17 @@ import java.util.Objects;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UpdateEnvironmentEntity {
+public class NewOrganizationEntity {
 
-    private String id;
     @NotNull
     @Size(min = 1)
     private String name;
 
     private String description;
 
-    @NotNull
-    private String organizationId;
-
     private List<String> domainRestrictions;
+
     
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
@@ -63,14 +52,6 @@ public class UpdateEnvironmentEntity {
         this.description = description;
     }
 
-    public String getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(String organizationId) {
-        this.organizationId = organizationId;
-    }
-
     public List<String> getDomainRestrictions() {
         return domainRestrictions;
     }
@@ -82,24 +63,21 @@ public class UpdateEnvironmentEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof UpdateEnvironmentEntity)) return false;
-        UpdateEnvironmentEntity that = (UpdateEnvironmentEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name);
+        if (!(o instanceof NewOrganizationEntity)) return false;
+        NewOrganizationEntity that = (NewOrganizationEntity) o;
+        return Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name);
+        return Objects.hash(name);
     }
 
     @Override
     public String toString() {
-        return "UpdateEnvironmentEntity{" +
-                "id='" + id + '\'' +
+        return "NewOrganizationEntity{" +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", organizationId='" + organizationId + '\'' +
                 ", domain restrictions='" + domainRestrictions + '\'' +
                 '}';
     }

@@ -43,7 +43,7 @@ public interface ViewService {
 
     void delete(String viewId);
 
-    void createDefaultView();
+    void initialize(String environmentId);
 
     InlinePictureEntity getPicture(String viewId);
 }

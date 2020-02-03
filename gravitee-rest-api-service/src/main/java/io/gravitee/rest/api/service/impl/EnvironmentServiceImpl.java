@@ -24,18 +24,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.NewEnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
-import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.DuplicateEnvironmentNameException;
-import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -48,6 +46,18 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
     @Autowired
     private EnvironmentRepository environmentRepository;
+
+    @Autowired
+    private OrganizationService organizationService;
+
+    @Autowired
+    private ApiHeaderService apiHeaderService;
+
+    @Autowired
+    private ViewService viewService;
+    
+    @Autowired
+    private PageService pageService;
 
     @Override
     public EnvironmentEntity findById(String environmentId) {
@@ -81,19 +91,26 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
     @Override
     public EnvironmentEntity create(final NewEnvironmentEntity environmentEntity) {
-        // First we prevent the duplicate environment name
-        final List<String> environmentNames = this.findAll().stream()
-                .map(EnvironmentEntity::getName)
-                .collect(Collectors.toList());
-
-        if (environmentNames.contains(environmentEntity.getName())) {
-            throw new DuplicateEnvironmentNameException(environmentEntity.getName());
-        }
-
+        String organizationId = GraviteeContext.getCurrentOrganization();
+        // First we check that organization exist
+        this.organizationService.findById(organizationId);
+        
         try {
-            Environment environment = convert(environmentEntity);
-            EnvironmentEntity savedEnvironmentEntity = convert(environmentRepository.create(environment));
-            return savedEnvironmentEntity;
+            String id = UUID.toString(UUID.random());
+            Optional<Environment> checkEnvironment = environmentRepository.findById(id);
+            if (checkEnvironment.isPresent()) {
+                throw new EnvironmentAlreadyExistsException(id);
+            }
+            
+            Environment environment = convert(id, organizationId, environmentEntity);
+            EnvironmentEntity createdEnvironment = convert(environmentRepository.create(environment));
+            
+            //create Default items for environment
+            apiHeaderService.initialize(createdEnvironment.getId());
+            viewService.initialize(createdEnvironment.getId());
+            pageService.initialize(createdEnvironment.getId());
+            
+            return createdEnvironment;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create environment {}", environmentEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to create environment " + environmentEntity.getName(), ex);
@@ -126,6 +143,8 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             Optional<Environment> environmentOptional = environmentRepository.findById(environmentId);
             if (environmentOptional.isPresent()) {
                 environmentRepository.delete(environmentId);
+            } else {
+                throw new EnvironmentNotFoundException(environmentId);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete environment {}", environmentId, ex);
@@ -133,10 +152,13 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         }
     }
 
-    private Environment convert(final NewEnvironmentEntity environmentEntity) {
+    private Environment convert(final String id, final String organizationId, final NewEnvironmentEntity environmentEntity) {
         final Environment environment = new Environment();
-        environment.setId(IdGenerator.generate(environmentEntity.getName()));
+        environment.setId(id);
         environment.setName(environmentEntity.getName());
+        environment.setDescription(environmentEntity.getDescription());
+        environment.setOrganization(organizationId);
+        environment.setDomainRestrictions(environmentEntity.getDomainRestrictions());
         return environment;
     }
 
@@ -144,6 +166,9 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         final Environment environment = new Environment();
         environment.setId(environmentEntity.getId());
         environment.setName(environmentEntity.getName());
+        environment.setDescription(environmentEntity.getDescription());
+        environment.setOrganization(environmentEntity.getOrganizationId());
+        environment.setDomainRestrictions(environmentEntity.getDomainRestrictions());
         return environment;
     }
 
@@ -151,19 +176,37 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         final EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(environment.getId());
         environmentEntity.setName(environment.getName());
+        environmentEntity.setDescription(environment.getDescription());
+        environmentEntity.setOrganizationId(environment.getOrganization());
+        environmentEntity.setDomainRestrictions(environment.getDomainRestrictions());
         return environmentEntity;
     }
 
     @Override
-    public void createDefaultEnvironment() {
+    public void initialize() {
         Environment defaultEnvironment = new Environment();
         defaultEnvironment.setId(GraviteeContext.getDefaultEnvironment());
         defaultEnvironment.setName("Default environment");
+        defaultEnvironment.setDescription("Default environment");
+        defaultEnvironment.setOrganization(GraviteeContext.getDefaultOrganization());
         try {
             environmentRepository.create(defaultEnvironment);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create default environment", ex);
             throw new TechnicalManagementException("An error occurs while trying to create default environment", ex);
+        }
+    }
+
+    @Override
+    public List<EnvironmentEntity> findByOrganization(String organizationId) {
+        try {
+            LOGGER.debug("Find all environments by organization");
+            return environmentRepository.findByOrganization(organizationId)
+                    .stream()
+                    .map(this::convert).collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find all environments by organization {}", organizationId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all environments by organization " + organizationId, ex);
         }
     }
 }

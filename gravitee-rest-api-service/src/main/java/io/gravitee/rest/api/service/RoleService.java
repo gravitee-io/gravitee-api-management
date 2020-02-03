@@ -32,7 +32,7 @@ import java.util.Map;
 public interface RoleService {
 
     RoleEntity create(NewRoleEntity role);
-    void createOrUpdateSystemRoles();
+    void createOrUpdateSystemRoles(String organizationId);
     RoleEntity update(UpdateRoleEntity role);
     void delete(RoleScope scope, String name);
     RoleEntity findById(RoleScope scope, String name);
@@ -40,4 +40,5 @@ public interface RoleService {
     List<RoleEntity> findByScope(RoleScope scope);
     List<RoleEntity> findDefaultRoleByScopes(RoleScope... scopes);
     boolean hasPermission(Map<String, char[]> userPermissions, Permission permission, RolePermissionAction[] acls);
+    void initialize(String organizationId);
 }

@@ -82,8 +82,8 @@ public class ViewMapperTest {
         assertEquals(42, view.getTotalApis().longValue());
         ViewLinks links = view.getLinks();
         assertNotNull(links);
-        assertEquals(VIEW_BASE_URL+"/DEFAULT/apis/"+VIEW_HIGHLIGHT_API, links.getHighlightedApi());
-        assertEquals(VIEW_BASE_URL+"/DEFAULT/views/"+VIEW_ID+"/picture", links.getPicture());
-        assertEquals(VIEW_BASE_URL+"/DEFAULT/views/"+VIEW_ID, links.getSelf());
+        assertEquals(VIEW_BASE_URL+"/environments/DEFAULT/apis/"+VIEW_HIGHLIGHT_API, links.getHighlightedApi());
+        assertEquals(VIEW_BASE_URL+"/environments/DEFAULT/views/"+VIEW_ID+"/picture", links.getPicture());
+        assertEquals(VIEW_BASE_URL+"/environments/DEFAULT/views/"+VIEW_ID, links.getSelf());
     }
 }

@@ -34,8 +34,8 @@ import io.gravitee.repository.management.model.RoleScope;
 public class RoleRepositoryProxy extends AbstractProxy<RoleRepository> implements RoleRepository {
 
     @Override
-    public Optional<Role> findById(RoleScope scope, String name) throws TechnicalException {
-        return target.findById(scope, name);
+    public Optional<Role> findById(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
+        return target.findById(scope, name, referenceId, referenceType);
     }
 
     @Override
@@ -54,8 +54,8 @@ public class RoleRepositoryProxy extends AbstractProxy<RoleRepository> implement
     }
 
     @Override
-    public void delete(RoleScope scope, String name) throws TechnicalException {
-        target.delete(scope, name);
+    public void delete(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
+        target.delete(scope, name, referenceId, referenceType);
     }
 
     @Override

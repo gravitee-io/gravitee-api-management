@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.Upgrader;
 
 /**
@@ -29,22 +29,22 @@ import io.gravitee.rest.api.service.Upgrader;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultEnvironmentUpgrader implements Upgrader, Ordered {
+public class DefaultOrganizationUpgrader implements Upgrader, Ordered {
 
     /**
      * Logger.
      */
-    private final Logger logger = LoggerFactory.getLogger(DefaultEnvironmentUpgrader.class);
+    private final Logger logger = LoggerFactory.getLogger(DefaultOrganizationUpgrader.class);
 
     @Autowired
-    private EnvironmentService environmentService;
+    private OrganizationService organizationService;
 
     @Override
     public boolean upgrade() {
         // initialize roles.
-        if (environmentService.findAll().isEmpty()) {
-            logger.info("    No environment found. Add default one.");
-            environmentService.initialize();
+        if (organizationService.findAll().isEmpty()) {
+            logger.info("    No organization found. Add default one.");
+            organizationService.initialize();
         }
         return true;
     }

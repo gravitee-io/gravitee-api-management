@@ -25,7 +25,6 @@ import javax.ws.rs.ext.Provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import io.gravitee.rest.api.service.common.GraviteeContext;
 
 /**
@@ -33,8 +32,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
  * @author GraviteeSource Team
  */
 @Provider
-@Priority(200)
-public class GraviteeContextFilter implements ContainerRequestFilter {
+@Priority(10)
+public class GraviteeContextRequestFilter implements ContainerRequestFilter {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -42,6 +41,7 @@ public class GraviteeContextFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) throws IOException {
         MultivaluedMap<String, String> pathsParams = requestContext.getUriInfo().getPathParameters();
         GraviteeContext.setCurrentEnvironment(pathsParams.getFirst("envId"));
+        GraviteeContext.setCurrentOrganization(pathsParams.getFirst("orgId"));
     }
 
 }

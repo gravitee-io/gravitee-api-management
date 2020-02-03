@@ -48,6 +48,7 @@ import io.gravitee.rest.api.model.UpdateViewEntity;
 import io.gravitee.rest.api.model.ViewEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.ViewService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateViewNameException;
@@ -76,6 +77,9 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     @Autowired
     private AuditService auditService;
 
+    @Autowired
+    private EnvironmentService environmentService;
+
     @Override
     public List<ViewEntity> findAll() {
         try {
@@ -93,7 +97,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     public ViewEntity findById(String id) {
         try {
             LOGGER.debug("Find view by id : {}", id);
-            Optional<View> view = viewRepository.findById(id);
+            Optional<View> view = viewRepository.findById(id, GraviteeContext.getCurrentEnvironment());
 
             if (view.isPresent()) {
                 return convert(view.get());
@@ -110,7 +114,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     public ViewEntity findNotHiddenById(String id) {
         try {
             LOGGER.debug("Find not hidden view by id : {}", id);
-            Optional<View> view = viewRepository.findById(id);
+            Optional<View> view = viewRepository.findById(id, GraviteeContext.getCurrentEnvironment());
 
             if (view.isPresent() && !view.get().isHidden()) {
                 return convert(view.get());
@@ -135,8 +139,12 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         }
 
         try {
+            // check if environment exists
+            String environment = GraviteeContext.getCurrentEnvironment();
+            this.environmentService.findById(environment);
+            
             View view = convert(viewEntity);
-            view.setEnvironment(GraviteeContext.getCurrentEnvironment());
+            view.setEnvironment(environment);
             ViewEntity createdView = convert(viewRepository.create(view));
             auditService.createPortalAuditLog(
                     Collections.singletonMap(VIEW, view.getId()),
@@ -157,12 +165,12 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         try {
             LOGGER.debug("Update View {}", viewId);
 
-            Optional<View> optViewToUpdate = viewRepository.findById(viewId);
+            Optional<View> optViewToUpdate = viewRepository.findById(viewId, GraviteeContext.getCurrentEnvironment());
             if (!optViewToUpdate.isPresent()) {
                 throw new ViewNotFoundException(viewId);
             }
 
-            View view = convert(viewEntity);
+            View view = convert(viewEntity, optViewToUpdate.get().getEnvironment());
 
             // check if picture has been set
             if (viewEntity.getPicture() == null) {
@@ -189,9 +197,10 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         final List<ViewEntity> savedViews = new ArrayList<>(viewEntities.size());
         viewEntities.forEach(viewEntity -> {
             try {
-                View view = convert(viewEntity);
-                Optional<View> viewOptional = viewRepository.findById(view.getId());
+                Optional<View> viewOptional = viewRepository.findById(viewEntity.getId(), GraviteeContext.getCurrentEnvironment());
                 if (viewOptional.isPresent()) {
+                    View view = convert(viewEntity, viewOptional.get().getEnvironment());
+
                     savedViews.add(convert(viewRepository.update(view)));
                     auditService.createPortalAuditLog(
                             Collections.singletonMap(VIEW, view.getId()),
@@ -215,9 +224,9 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
             throw new TechnicalManagementException("Delete the default view is forbidden");
         }
         try {
-            Optional<View> viewOptional = viewRepository.findById(viewId);
+            Optional<View> viewOptional = viewRepository.findById(viewId, GraviteeContext.getCurrentEnvironment());
             if (viewOptional.isPresent()) {
-                viewRepository.delete(viewId);
+                viewRepository.delete(viewId, GraviteeContext.getCurrentEnvironment());
                 auditService.createPortalAuditLog(
                         Collections.singletonMap(VIEW, viewId),
                         VIEW_DELETED,
@@ -235,10 +244,10 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     }
 
     @Override
-    public void createDefaultView() {
+    public void initialize(String environmentId) {
             View view = new View();
             view.setId(View.ALL_ID);
-            view.setEnvironment(GraviteeContext.getCurrentEnvironment());
+            view.setEnvironment(environmentId);
             view.setName("All");
             view.setDefaultView(true);
             view.setOrder(0);
@@ -290,10 +299,10 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         return view;
     }
 
-    private View convert(final UpdateViewEntity viewEntity) {
+    private View convert(final UpdateViewEntity viewEntity, final String environment) {
         final View view = new View();
         view.setId(viewEntity.getId());
-        view.setEnvironment(GraviteeContext.getCurrentEnvironment());
+        view.setEnvironment(environment);
         view.setName(viewEntity.getName());
         view.setDescription(viewEntity.getDescription());
         view.setDefaultView(viewEntity.isDefaultView());
