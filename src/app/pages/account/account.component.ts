@@ -68,7 +68,8 @@ export class AccountComponent implements OnInit {
         this.currentUserService.set(user);
         this.notificationService.success(i18n('user.account.success'));
         // @ts-ignore
-        document.querySelector('gv-user-avatar').user = user;
+        document.querySelector('gv-user-avatar').avatar = this.avatar;
+        delete this.avatar;
       });
     }
   }
