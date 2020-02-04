@@ -68,7 +68,7 @@ class LoginController {
       this.$window.location.href = '#!' + this.$state.params.redirectUri;
     } else {
       let route = this.RouterService.getLastRoute();
-      if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm') {
+      if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm' && route.from.name !== 'resetPassword') {
         this.$state.go(route.from.name, route.fromParams);
       } else {
         this.$state.go('portal.home');
