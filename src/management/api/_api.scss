@@ -401,14 +401,18 @@ md-switch.md-default-theme .md-bar, md-switch .md-bar {
   padding-left: 8px;
 }
 .gravitee-qm-metrics-list {
-  padding-top: 14px;
 }
-.gravitee-qm-metrics-passed {
-  font-style: italic ;
-  color: #cccccc;
-  text-decoration: line-through;
+
+.gravitee-qm-metrics-circular-box {
+  margin-top: 10px;
 }
-.gravitee-qm-metrics-failed {
+
+.gravitee-qm-metrics-green-icon {
+  fill: green;
+}
+
+.gravitee-qm-metrics-red-icon {
+  fill: red;
 }
 
 .gravitee-listening-host md-autocomplete-wrap{

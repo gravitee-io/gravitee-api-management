@@ -153,10 +153,11 @@
                 <circular-percentage score="portalCtrl.qualityMetrics.score"></circular-percentage>
               </div>
             </div>
-            <div layout="column" layout-align="start start" class="gravitee-qm-metrics-list" style="padding-left: 20px">
+            <div class="gravitee-qm-metrics-list" style="padding-left: 20px">
               <div ng-repeat="(k,v) in portalCtrl.qualityMetrics.metrics_passed"
-                   class="gravitee-qm-metrics"
-                   ng-class="{'gravitee-qm-metrics-passed': v, 'gravitee-qm-metrics-failed': !v }">
+                   class="gravitee-qm-metrics col-sm-12 col-md-6">
+                <ng-md-icon ng-if="v" class="gravitee-qm-metrics-green-icon" icon="check_circle"></ng-md-icon>
+                <ng-md-icon ng-if="!v" class="gravitee-qm-metrics-red-icon" icon="error"></ng-md-icon>
                 {{portalCtrl.qualityMetricsDescription.get(k)}}
               </div>
             </div>
