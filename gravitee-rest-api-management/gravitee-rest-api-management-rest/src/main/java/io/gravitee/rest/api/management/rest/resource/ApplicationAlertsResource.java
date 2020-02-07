@@ -66,7 +66,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @ApiOperation(value = "Get the status of alerting module")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = READ)
+            @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
     })
     public AlertStatusEntity status() {
         return alertService.getStatus();

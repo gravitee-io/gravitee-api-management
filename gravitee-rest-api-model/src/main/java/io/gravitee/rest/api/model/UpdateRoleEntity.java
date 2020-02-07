@@ -32,6 +32,8 @@ import java.util.Objects;
 @JsonIgnoreProperties("system")
 public class UpdateRoleEntity {
 
+    private String id;
+
     @NotNull
     @Size(min = 1)
     private String name;
@@ -45,6 +47,13 @@ public class UpdateRoleEntity {
     private boolean defaultRole;
 
     private Map<String, char[]> permissions;
+
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -89,11 +98,11 @@ public class UpdateRoleEntity {
 
         UpdateRoleEntity that = (UpdateRoleEntity) o;
 
-        return Objects.equals(scope, that.scope) && Objects.equals(name, that.name);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(scope, name);
+        return Objects.hash(id);
     }
 }

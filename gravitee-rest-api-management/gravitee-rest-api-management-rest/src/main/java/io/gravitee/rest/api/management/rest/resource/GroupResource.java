@@ -22,9 +22,9 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.*;
 
@@ -54,8 +54,6 @@ public class GroupResource extends AbstractResource {
     @Inject
     private GroupService groupService;
     @Inject
-    private ApiService apiService;
-    @Inject
     ApplicationService applicationService;
 
     @GET
@@ -66,7 +64,7 @@ public class GroupResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")
     })
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
     })
     public GroupEntity get(@PathParam("group") String group) {
         return groupService.findById(group);
@@ -78,7 +76,7 @@ public class GroupResource extends AbstractResource {
             @ApiResponse(code = 204, message = "Group successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE)
     })
     public Response delete(@PathParam("group") String group) {
         checkRights(group);
@@ -94,7 +92,7 @@ public class GroupResource extends AbstractResource {
             @ApiResponse(code = 200, message = "Group successfully updated", response = GroupEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE),
             @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE)
     })
     public GroupEntity update(
@@ -102,7 +100,7 @@ public class GroupResource extends AbstractResource {
             @ApiParam(name = "group", required = true) @Valid @NotNull final UpdateGroupEntity updateGroupEntity) {
         final GroupEntity groupEntity = checkRights(group);
         // check if user is a 'simple group admin' or a platform admin
-        if (!permissionService.hasPermission(RolePermission.MANAGEMENT_GROUP, null, CREATE, UPDATE, DELETE)) {
+        if (!permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, GraviteeContext.getCurrentEnvironment(), CREATE, UPDATE, DELETE)) {
             updateGroupEntity.setMaxInvitation(groupEntity.getMaxInvitation());
             updateGroupEntity.setLockApiRole(groupEntity.isLockApiRole());
             updateGroupEntity.setLockApplicationRole(groupEntity.isLockApplicationRole());
@@ -123,7 +121,7 @@ public class GroupResource extends AbstractResource {
     @Produces(APPLICATION_JSON)
     @ApiOperation(value = "get apis or applications linked to this group")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
     })
     public Response getMemberships(
             @PathParam("group")String group,

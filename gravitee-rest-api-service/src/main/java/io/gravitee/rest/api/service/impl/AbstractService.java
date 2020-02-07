@@ -27,8 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public abstract class AbstractService extends TransactionalService {
 
-    public final static String MANAGEMENT_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
-    public final static String PORTAL_ADMIN = RoleScope.PORTAL.name() + ':' + SystemRole.ADMIN.name();
+    public final static String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
 
     String getAuthenticatedUsername() {
         UserDetails authenticatedUser = getAuthenticatedUser();
@@ -48,7 +47,7 @@ public abstract class AbstractService extends TransactionalService {
     }
 
     protected boolean isAdmin() {
-        return isUserInRole(MANAGEMENT_ADMIN) || isUserInRole(PORTAL_ADMIN);
+        return isUserInRole(ENVIRONMENT_ADMIN);
     }
 
     private boolean isUserInRole(final String role) {

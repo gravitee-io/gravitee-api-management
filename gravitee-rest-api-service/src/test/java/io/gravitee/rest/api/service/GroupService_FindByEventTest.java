@@ -51,6 +51,9 @@ public class GroupService_FindByEventTest {
     @Mock
     private GroupRepository groupRepository;
 
+    @Mock
+    private MembershipService membershipService;
+
     @Test
     public void shouldGetGroupsByEvents() throws Exception {
 
@@ -67,6 +70,7 @@ public class GroupService_FindByEventTest {
         findAll.add(grp2);
         when(groupRepository.findAllByEnvironment(Mockito.any())).thenReturn(findAll);
 
+        when(membershipService.getRoles(any(),  any(),  any(),  any())).thenReturn(Collections.emptySet());
 
         Set<GroupEntity> groupEntities = groupService.findByEvent(API_CREATE);
 

@@ -21,13 +21,16 @@ import freemarker.template.TemplateException;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.MessageEmptyException;
 import io.gravitee.rest.api.service.exceptions.MessageRecipientFormatException;
@@ -35,7 +38,6 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.PortalHook;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,11 +46,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.StringUtils;
 
-import static io.gravitee.rest.api.service.impl.MessageServiceImpl.MessageEvent.MESSAGE_SENT;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.gravitee.rest.api.service.impl.MessageServiceImpl.MessageEvent.MESSAGE_SENT;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -63,7 +65,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     ApiRepository apiRepository;
 
     @Autowired
-    MembershipRepository membershipRepository;
+    MembershipService membershipService;
 
     @Autowired
     SubscriptionRepository subscriptionRepository;
@@ -82,6 +84,15 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
     @Autowired
     ApiService apiService;
+
+    @Autowired
+    ApplicationService applicationService;
+    
+    @Autowired
+    RoleService roleService;
+
+    @Autowired
+    GroupService groupService;
 
     @Autowired
     private Configuration freemarkerConfiguration;
@@ -187,20 +198,23 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         assertRecipientsNotEmpty(message);
         MessageRecipientEntity recipientEntity = message.getRecipient();
         // 2 cases are implemented :
-        // - global sending (no apiId provided) + scope MANAGEMENT
+        // - global sending (no apiId provided) + scope ENVIRONMENT
         // - api consumer (apiId provided) + scope APPLICATION
         // the first 2 cases are for admin communication, the last one for the api publisher communication.
 
         try {
             final Set<String> recipientIds = new HashSet<>();
             // CASE 1 : global sending
-            if (api == null && RoleScope.MANAGEMENT.name().equals(recipientEntity.getRoleScope())) {
+            if (api == null && RoleScope.ENVIRONMENT.name().equals(recipientEntity.getRoleScope())) {
                 for (String roleName: recipientEntity.getRoleValues()) {
-                    recipientIds.addAll(
-                            membershipRepository.findByRole(RoleScope.MANAGEMENT, roleName)
-                                    .stream()
-                                    .map(Membership::getUserId)
-                                    .collect(Collectors.toSet()));
+                    Optional<RoleEntity> optRole = roleService.findByScopeAndName(RoleScope.valueOf(recipientEntity.getRoleScope()), roleName);
+                    if(optRole.isPresent()) {
+                        recipientIds.addAll(
+                                membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), optRole.get().getId())
+                                        .stream()
+                                        .map(MembershipEntity::getMemberId)
+                                        .collect(Collectors.toSet()));
+                    }
                 }
             }
             // CASE 2 : specific api consumers
@@ -216,32 +230,24 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                         .map(Subscription::getApplication)
                         .collect(Collectors.toList());
 
-                // Get members of the applications (direct members)
+                // Get members of the applications (direct members and group members)
                 for (String roleName: recipientEntity.getRoleValues()) {
-                    recipientIds.addAll(
-                            membershipRepository.findByReferencesAndRole(
-                                    MembershipReferenceType.APPLICATION,
-                                    applicationIds,
-                                    RoleScope.APPLICATION,
-                                    roleName)
-                                    .stream()
-                                    .map(Membership::getUserId)
+                    Optional<RoleEntity> optRole = roleService.findByScopeAndName(RoleScope.APPLICATION, roleName);
+                    if(optRole.isPresent()) {
+                        // get all directs members
+                        recipientIds.addAll(membershipService.getMembershipsByReferencesAndRole(MembershipReferenceType.APPLICATION, applicationIds, optRole.get().getId()).stream()
+                                .map(MembershipEntity::getMemberId)
+                                .collect(Collectors.toSet()));
+                        
+                        // get all indirect members
+                        if (api.getGroups() != null && !api.getGroups().isEmpty()) {
+                            recipientIds.addAll(membershipService.getMembershipsByReferencesAndRole(MembershipReferenceType.GROUP,new ArrayList<>(api.getGroups()),optRole.get().getId()).stream()
+                                    .map(MembershipEntity::getMemberId)
                                     .collect(Collectors.toSet()));
-                }
-                // Get members of the applications (group members)
-                if (api.getGroups() != null && !api.getGroups().isEmpty()) {
-                    for (String roleName: recipientEntity.getRoleValues()) {
-                        recipientIds.addAll(
-                                membershipRepository.findByReferencesAndRole(
-                                        MembershipReferenceType.GROUP,
-                                        new ArrayList<>(api.getGroups()),
-                                        RoleScope.APPLICATION,
-                                        roleName)
-                                        .stream()
-                                        .map(Membership::getUserId)
-                                        .collect(Collectors.toSet()));
+                        }
                     }
                 }
+                
             }
             return recipientIds;
         } catch(TechnicalException ex) {

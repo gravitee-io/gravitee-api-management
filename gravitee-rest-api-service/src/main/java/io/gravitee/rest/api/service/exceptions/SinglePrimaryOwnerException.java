@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 
 import java.util.Map;
 

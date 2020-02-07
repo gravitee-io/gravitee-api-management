@@ -68,7 +68,7 @@ public class ConfigurationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("notifiers")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_NOTIFICATION, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_NOTIFICATION, acls = RolePermissionAction.READ)
     })
     public List<NotifierEntity> getNotifiers() {
         return notifierService.list(NotificationReferenceType.PORTAL, PortalNotificationDefaultReferenceId.DEFAULT.name());

@@ -15,30 +15,32 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
 import io.gravitee.rest.api.model.permissions.Permission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface RoleService {
-
-    RoleEntity create(NewRoleEntity role);
-    void createOrUpdateSystemRoles(String organizationId);
-    RoleEntity update(UpdateRoleEntity role);
-    void delete(RoleScope scope, String name);
-    RoleEntity findById(RoleScope scope, String name);
-    List<RoleEntity> findAll();
-    List<RoleEntity> findByScope(RoleScope scope);
-    List<RoleEntity> findDefaultRoleByScopes(RoleScope... scopes);
-    boolean hasPermission(Map<String, char[]> userPermissions, Permission permission, RolePermissionAction[] acls);
-    void initialize(String organizationId);
+    RoleEntity              create                      (NewRoleEntity role);
+    void                    createOrUpdateSystemRoles   (String organizationId);
+    void                    delete                      (String roleId);
+    List<RoleEntity>        findAll                     ();
+    RoleEntity              findById                    (String roleId);
+    List<RoleEntity>        findByScope                 (RoleScope scope);
+    Optional<RoleEntity>    findByScopeAndName          (RoleScope scope, String name);
+    List<RoleEntity>        findDefaultRoleByScopes     (RoleScope... scopes);
+    boolean                 hasPermission               (Map<String, char[]> userPermissions, Permission permission, RolePermissionAction[] acls);
+    void                    initialize                  (String organizationId);
+    RoleEntity              update                      (UpdateRoleEntity role);
 }

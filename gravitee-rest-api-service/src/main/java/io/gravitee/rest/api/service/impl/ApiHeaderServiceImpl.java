@@ -44,6 +44,7 @@ import io.gravitee.rest.api.model.api.header.UpdateApiHeaderEntity;
 import io.gravitee.rest.api.service.ApiHeaderService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.ApiHeaderNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 
@@ -72,8 +73,8 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
             int order = apiHeaderRepository.findAllByEnvironment(environmentId).size() + 1;
 
             ApiHeader apiHeader = new ApiHeader();
-            apiHeader.setId(UUID.toString(UUID.random()));
-            apiHeader.setEnvironment(environmentId);
+            apiHeader.setId(RandomString.generate());
+            apiHeader.setEnvironmentId(environmentId);
             apiHeader.setName(newEntity.getName());
             apiHeader.setValue(newEntity.getValue());
             apiHeader.setOrder(order);

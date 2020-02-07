@@ -67,7 +67,7 @@ public class ApiService_CreateTest {
     @Mock
     private ApiRepository apiRepository;
     @Mock
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
     @Mock
@@ -174,7 +174,7 @@ public class ApiService_CreateTest {
 
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
-        verify(membershipRepository, times(1)).create(any());
+        verify(membershipService, times(1)).addRoleToMemberOnReference(any(), any(), any());
         verify(auditService, times(1)).createApiAuditLog(any(), any(), eq(Api.AuditEvent.API_CREATED), any(), eq(null) , any());
         verify(searchEngineService, times(1)).index(any(), eq(false));
     }

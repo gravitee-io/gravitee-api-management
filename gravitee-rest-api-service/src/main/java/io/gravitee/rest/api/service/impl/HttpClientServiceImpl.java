@@ -30,8 +30,8 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.vertx.VertxCompletableFuture;
 import io.vertx.core.Vertx;
@@ -145,7 +145,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             request.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.getBytes().length));
             request.write(body);
         }
-        request.putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
+        request.putHeader("X-Gravitee-Request-Id", RandomString.generate());
 
         request.handler(response -> {
             if (response.statusCode() == HttpStatusCode.OK_200) {

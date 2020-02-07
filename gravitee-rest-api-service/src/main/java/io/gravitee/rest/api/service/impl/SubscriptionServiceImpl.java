@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -25,6 +24,7 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
@@ -256,7 +256,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             Subscription subscription = new Subscription();
             subscription.setPlan(plan);
-            subscription.setId(UUID.toString(UUID.random()));
+            subscription.setId(RandomString.generate());
             subscription.setApplication(application);
             subscription.setCreatedAt(new Date());
             subscription.setUpdatedAt(subscription.getCreatedAt());

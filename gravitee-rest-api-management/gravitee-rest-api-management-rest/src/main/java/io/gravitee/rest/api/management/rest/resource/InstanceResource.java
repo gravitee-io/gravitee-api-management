@@ -54,7 +54,7 @@ public class InstanceResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a gateway instance")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_INSTANCE, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ)
     })
     public InstanceEntity getInstance() {
         return instanceService.findById(this.instance);

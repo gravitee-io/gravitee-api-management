@@ -59,7 +59,7 @@ public class NotifiersResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List notifiers")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public Collection<NotifierListItem> listNotifiers(@QueryParam("expand") List<String> expand) {
         Stream<NotifierListItem> stream = notifierService.findAll().stream().map(this::convert);

@@ -16,21 +16,18 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
-import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.Invitation;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.MembershipService.MembershipReference;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
-import io.gravitee.rest.api.service.common.JWTHelper;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.InvitationEmailAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvitationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.MemberEmailAlreadyExistsException;
@@ -45,8 +42,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static io.gravitee.repository.management.model.RoleScope.*;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.GROUP_INVITATION;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
@@ -88,14 +85,16 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
                     invitation.getEmail(),
                     new PageableImpl(1, 2));
             if (pageUser.getTotalElements() == 1) {
-                final Set<MemberEntity> members = membershipService.getMembers(
-                        MembershipReferenceType.valueOf(invitation.getReferenceType().name()), invitation.getReferenceId(), API);
-                if (members.stream().map(MemberEntity::getEmail).anyMatch(invitation.getEmail()::equals)) {
+                final UserEntity user = pageUser.getContent().get(0);
+                
+                Set<String> groupUsers = membershipService.getMembershipsByReference(MembershipReferenceType.GROUP, invitation.getReferenceId()).stream().map(MembershipEntity::getMemberId).collect(Collectors.toSet());
+                final GroupEntity group = groupService.findById(invitation.getReferenceId());
+                if (groupUsers.contains(user.getId())) {
                     throw new MemberEmailAlreadyExistsException(invitation.getEmail());
                 }
+                
                 // override permission if not allowed
-                final boolean hasPermission = permissionService.hasPermission(RolePermission.MANAGEMENT_GROUP, null, CREATE, UPDATE, DELETE);
-                final GroupEntity group = groupService.findById(invitation.getReferenceId());
+                final boolean hasPermission = permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, GraviteeContext.getCurrentEnvironment(), CREATE, UPDATE, DELETE);
                 if (!hasPermission && group.isLockApiRole()) {
                     invitation.setApiRole(null);
                 }
@@ -103,7 +102,6 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
                     invitation.setApplicationRole(null);
                 }
 
-                final UserEntity user = pageUser.getContent().get(0);
                 addMember(invitation.getReferenceType().name(), invitation.getReferenceId(), user.getId(),
                         invitation.getApiRole(), invitation.getApplicationRole());
                 return null;
@@ -146,9 +144,9 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
     @Override
     public void addMember(final String referenceType, final String referenceId, final String userId,
                           final String apiRole, final String applicationRole) {
-        addOrUpdateMemberByScope(referenceType, referenceId, userId, API, apiRole);
-        addOrUpdateMemberByScope(referenceType, referenceId, userId, APPLICATION, applicationRole);
-        addOrUpdateMemberByScope(referenceType, referenceId, userId, GROUP, null);
+        addOrUpdateMemberByScope(referenceType, referenceId, userId, RoleScope.API, apiRole);
+        addOrUpdateMemberByScope(referenceType, referenceId, userId, RoleScope.APPLICATION, applicationRole);
+        addOrUpdateMemberByScope(referenceType, referenceId, userId, RoleScope.GROUP, null);
     }
 
     private void addOrUpdateMemberByScope(final String referenceType, final String referenceId, final String userId,
@@ -163,9 +161,9 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
             defaultRoleName = defaultRole;
         }
         if (defaultRoleName != null) {
-            membershipService.addOrUpdateMember(
+            membershipService.addRoleToMemberOnReference(
                     new MembershipReference(MembershipReferenceType.valueOf(referenceType), referenceId),
-                    new MembershipService.MembershipUser(userId, null),
+                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                     new MembershipService.MembershipRole(roleScope, defaultRoleName)
             );
         }
@@ -227,7 +225,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
 
     private Invitation convert(final NewInvitationEntity invitationEntity) {
         final Invitation invitation = new Invitation();
-        invitation.setId(UUID.toString(UUID.random()));
+        invitation.setId(RandomString.generate());
         invitation.setReferenceId(invitationEntity.getReferenceId());
         invitation.setReferenceType(invitationEntity.getReferenceType().name());
         invitation.setApiRole(invitationEntity.getApiRole());

@@ -66,7 +66,7 @@ public class TagsResource extends AbstractResource  {
             @ApiResponse(code = 200, message = "Tag", response = TagEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.READ)
     })
     public TagEntity getTag(@PathParam("tag") String tag) {
         return tagService.findById(tag);
@@ -81,7 +81,7 @@ public class TagsResource extends AbstractResource  {
             @ApiResponse(code = 201, message = "A new sharding tag", response = TagEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.CREATE)
     })
     public TagEntity create(@Valid @NotNull final NewTagEntity tag) {
         return tagService.create(tag);
@@ -97,7 +97,7 @@ public class TagsResource extends AbstractResource  {
             @ApiResponse(code = 201, message = "Sharding tag", response = TagEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.UPDATE)
     })
     public TagEntity update(@Valid @NotNull final UpdateTagEntity tag) {
         return tagService.update(tag);
@@ -107,7 +107,7 @@ public class TagsResource extends AbstractResource  {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("tag") String tag) {
         tagService.delete(tag);

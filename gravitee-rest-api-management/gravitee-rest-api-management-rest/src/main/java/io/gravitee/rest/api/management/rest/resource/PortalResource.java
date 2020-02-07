@@ -62,7 +62,7 @@ public class PortalResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Save the portal configuration")
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_SETTINGS, acls = {CREATE, UPDATE, DELETE})
+            @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = {CREATE, UPDATE, DELETE})
     })
     public Response savePortalConfig(
             @ApiParam(name = "config", required = true) @NotNull PortalConfigEntity portalConfigEntity) {

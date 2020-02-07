@@ -16,11 +16,11 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.RoleService;
@@ -51,7 +51,7 @@ public class RoleScopeResource extends AbstractResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ)
     })
     public List<RoleEntity> list(@PathParam("scope") RoleScope scope)  {
         return roleService.findByScope(scope);
@@ -61,7 +61,7 @@ public class RoleScopeResource extends AbstractResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE)
     })
     public RoleEntity create(@Valid @NotNull final NewRoleEntity role) {
         return roleService.create(role);

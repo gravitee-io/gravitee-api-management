@@ -51,7 +51,7 @@ public class QualityRulesResource extends AbstractResource {
     @GET
     @Produces(APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_QUALITY_RULE, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.READ)
     })
     public List<QualityRuleEntity> get() {
         return qualityRuleService.findAll();
@@ -61,7 +61,7 @@ public class QualityRulesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_QUALITY_RULE, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.CREATE)
     })
     public QualityRuleEntity create(@Valid @NotNull final NewQualityRuleEntity newQualityRuleEntity) {
         return qualityRuleService.create(newQualityRuleEntity);

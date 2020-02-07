@@ -34,8 +34,8 @@ import io.gravitee.repository.management.model.RoleScope;
 public class RoleRepositoryProxy extends AbstractProxy<RoleRepository> implements RoleRepository {
 
     @Override
-    public Optional<Role> findById(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
-        return target.findById(scope, name, referenceId, referenceType);
+    public Optional<Role> findById(String roleId) throws TechnicalException {
+        return target.findById(roleId);
     }
 
     @Override
@@ -54,13 +54,8 @@ public class RoleRepositoryProxy extends AbstractProxy<RoleRepository> implement
     }
 
     @Override
-    public void delete(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
-        target.delete(scope, name, referenceId, referenceType);
-    }
-
-    @Override
-    public Set<Role> findByScope(RoleScope scope) throws TechnicalException {
-        return target.findByScope(scope);
+    public void delete(String roleId) throws TechnicalException {
+        target.delete(roleId);
     }
 
     @Override
@@ -73,5 +68,11 @@ public class RoleRepositoryProxy extends AbstractProxy<RoleRepository> implement
     public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId,
             RoleReferenceType referenceType) throws TechnicalException {
         return target.findByScopeAndReferenceIdAndReferenceType(scope, referenceId, referenceType);
+    }
+
+    @Override
+    public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope scope, String name, String referenceId,
+            RoleReferenceType referenceType) throws TechnicalException {
+        return target.findByScopeAndNameAndReferenceIdAndReferenceType(scope, name, referenceId, referenceType);
     }
 }

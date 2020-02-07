@@ -50,7 +50,7 @@ public class ServiceDiscoveryResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a service discovery")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public PluginEntity getServiceDiscovery(
             @PathParam("plugin") String pluginId) {
@@ -62,7 +62,7 @@ public class ServiceDiscoveryResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a service discovery's schema")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public String getServiceDiscoverySchema(
             @PathParam("plugin") String pluginId) {

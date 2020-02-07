@@ -45,7 +45,7 @@ public class ApiHeaderResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_API_HEADER, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.UPDATE)
     })
     public ApiHeaderEntity update(@PathParam("id") String id, @Valid @NotNull final UpdateApiHeaderEntity updateApiHeaderEntity) {
         updateApiHeaderEntity.setId(id);
@@ -55,7 +55,7 @@ public class ApiHeaderResource extends AbstractResource {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_API_HEADER, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("id") String id) {
         apiHeaderService.delete(id);

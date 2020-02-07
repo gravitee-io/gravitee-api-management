@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
@@ -36,13 +35,11 @@ import io.gravitee.rest.api.service.configuration.application.ClientRegistration
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
@@ -74,7 +71,7 @@ public class ApplicationService_CreateTest {
     private ApplicationRepository applicationRepository;
 
     @Mock
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
 
     @Mock
     private UserService userService;

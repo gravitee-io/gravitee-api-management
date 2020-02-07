@@ -45,7 +45,7 @@ public class MonitoringResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get monitoring metrics for a gateway instance")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_PLATFORM, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)
     })
     public MonitoringData instanceMonitoring(
             @PathParam("gatewayId") String gatewayId) {

@@ -16,16 +16,12 @@
 package io.gravitee.rest.api.security.listener;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.model.NewExternalUserEntity;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -43,6 +39,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -123,8 +120,8 @@ public class AuthenticationSuccessListenerTest {
         when(userServiceMock.findBySource(USERSOURCE, userDetailsMock.getSourceId(), false)).thenThrow(UserNotFoundException.class);
         RoleEntity roleEntity = mock(RoleEntity.class);
         when(roleEntity.getName()).thenReturn("ROLE");
-        when(roleServiceMock.findById(RoleScope.MANAGEMENT, "ROLE")).thenReturn(roleEntity);
-        when(roleServiceMock.findById(RoleScope.PORTAL, "ROLE")).thenReturn(roleEntity);
+        when(roleServiceMock.findByScopeAndName(RoleScope.ENVIRONMENT, "ROLE")).thenReturn(Optional.of(roleEntity));
+        when(roleServiceMock.findByScopeAndName(RoleScope.ORGANIZATION, "ROLE")).thenReturn(Optional.of(roleEntity));
         when(userServiceMock.create(any(NewExternalUserEntity.class), eq(false))).thenReturn(userEntity);
 
         listener.onApplicationEvent(eventMock);
@@ -132,15 +129,10 @@ public class AuthenticationSuccessListenerTest {
         verify(userServiceMock, times(1)).findBySource(USERSOURCE, userDetailsMock.getSourceId(), false);
         verify(userServiceMock, times(1)).create(any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1)).
-                addOrUpdateMember(
-                        new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
-                        new MembershipService.MembershipUser(userDetailsMock.getUsername(), null),
-                        new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "ROLE"));
-        verify(membershipServiceMock, times(1)).
-                addOrUpdateMember(
-                        new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
-                        new MembershipService.MembershipUser(userDetailsMock.getUsername(), null),
-                        new MembershipService.MembershipRole(RoleScope.PORTAL, "ROLE"));
+                addRoleToMemberOnReference(
+                        new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
+                        new MembershipService.MembershipMember(userDetailsMock.getUsername(), null, MembershipMemberType.USER),
+                        new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "ROLE"));
         verify(userServiceMock, times(1)).connect(userDetailsMock.getUsername());
     }
 
@@ -148,9 +140,7 @@ public class AuthenticationSuccessListenerTest {
     public void shouldCreateUserWithCustomSpecificRole() {
         when(eventMock.getAuthentication()).thenReturn(authenticationMock);
         when(authenticationMock.getPrincipal()).thenReturn(userDetailsMock);
-        Collection authorities = Arrays.asList(
-                new SimpleGrantedAuthority("MANAGEMENT:ROLE1"),
-                new SimpleGrantedAuthority("PORTAL:ROLE2"));
+        Collection authorities = Arrays.asList(new SimpleGrantedAuthority("ENVIRONMENT:ROLE1"),new SimpleGrantedAuthority("ORGANIZATION:ROLE2"));
         when(authenticationMock.getAuthorities()).thenReturn(authorities);
         when(userDetailsMock.getSource()).thenReturn(USERSOURCE);
         when(userDetailsMock.getSourceId()).thenReturn(USERSOURCEID);
@@ -159,8 +149,8 @@ public class AuthenticationSuccessListenerTest {
         when(roleEntity1.getName()).thenReturn("ROLE1");
         RoleEntity roleEntity2 = mock(RoleEntity.class);
         when(roleEntity2.getName()).thenReturn("ROLE2");
-        when(roleServiceMock.findById(RoleScope.MANAGEMENT, "ROLE1")).thenReturn(roleEntity1);
-        when(roleServiceMock.findById(RoleScope.PORTAL, "ROLE2")).thenReturn(roleEntity2);
+        when(roleServiceMock.findByScopeAndName(RoleScope.ENVIRONMENT, "ROLE1")).thenReturn(Optional.of(roleEntity1));
+        when(roleServiceMock.findByScopeAndName(RoleScope.ORGANIZATION, "ROLE2")).thenReturn(Optional.of(roleEntity2));
         when(userServiceMock.create(any(NewExternalUserEntity.class), eq(false))).thenReturn(userEntity);
 
         listener.onApplicationEvent(eventMock);
@@ -168,15 +158,10 @@ public class AuthenticationSuccessListenerTest {
         verify(userServiceMock, times(1)).findBySource(USERSOURCE, userDetailsMock.getSourceId(), false);
         verify(userServiceMock, times(1)).create(any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1)).
-                addOrUpdateMember(
-                        new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
-                        new MembershipService.MembershipUser(userDetailsMock.getUsername(), null),
-                        new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "ROLE1"));
-        verify(membershipServiceMock, times(1)).
-                addOrUpdateMember(
-                        new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
-                        new MembershipService.MembershipUser(userDetailsMock.getUsername(), null),
-                        new MembershipService.MembershipRole(RoleScope.PORTAL, "ROLE2"));
+                addRoleToMemberOnReference(
+                        new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
+                        new MembershipService.MembershipMember(userDetailsMock.getUsername(), null, MembershipMemberType.USER),
+                        new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "ROLE1"));
         verify(userServiceMock, times(1)).connect(userDetailsMock.getUsername());
     }
 
@@ -186,7 +171,7 @@ public class AuthenticationSuccessListenerTest {
         when(authenticationMock.getPrincipal()).thenReturn(userDetailsMock);
         Collection authorities = Arrays.asList(
                 new SimpleGrantedAuthority("ROLE"),
-                new SimpleGrantedAuthority("PORTAL:ROLE2"));
+                new SimpleGrantedAuthority("ORGANIZATION:ROLE2"));
         when(authenticationMock.getAuthorities()).thenReturn(authorities);
         when(userDetailsMock.getSource()).thenReturn(USERSOURCE);
         when(userDetailsMock.getSourceId()).thenReturn(USERSOURCEID);
@@ -195,8 +180,8 @@ public class AuthenticationSuccessListenerTest {
         when(roleEntity1.getName()).thenReturn("ROLE");
         RoleEntity roleEntity2 = mock(RoleEntity.class);
         when(roleEntity2.getName()).thenReturn("ROLE2");
-        when(roleServiceMock.findById(RoleScope.MANAGEMENT, "ROLE")).thenReturn(roleEntity1);
-        when(roleServiceMock.findById(RoleScope.PORTAL, "ROLE2")).thenReturn(roleEntity2);
+        when(roleServiceMock.findByScopeAndName(RoleScope.ENVIRONMENT, "ROLE")).thenReturn(Optional.of(roleEntity1));
+        when(roleServiceMock.findByScopeAndName(RoleScope.ORGANIZATION, "ROLE2")).thenReturn(Optional.of(roleEntity2));
         when(userServiceMock.create(any(NewExternalUserEntity.class), eq(false))).thenReturn(userEntity);
 
         listener.onApplicationEvent(eventMock);
@@ -204,15 +189,10 @@ public class AuthenticationSuccessListenerTest {
         verify(userServiceMock, times(1)).findBySource(USERSOURCE, userDetailsMock.getSourceId(), false);
         verify(userServiceMock, times(1)).create(any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1)).
-                addOrUpdateMember(
-                        new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
-                        new MembershipService.MembershipUser(userDetailsMock.getUsername(), null),
-                        new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "ROLE"));
-        verify(membershipServiceMock, times(1)).
-                addOrUpdateMember(
-                        new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
-                        new MembershipService.MembershipUser(userDetailsMock.getUsername(), null),
-                        new MembershipService.MembershipRole(RoleScope.PORTAL, "ROLE2"));
+                addRoleToMemberOnReference(
+                        new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
+                        new MembershipService.MembershipMember(userDetailsMock.getUsername(), null, MembershipMemberType.USER),
+                        new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "ROLE"));
         verify(userServiceMock, times(1)).connect(userDetailsMock.getUsername());
     }
 
@@ -234,16 +214,10 @@ public class AuthenticationSuccessListenerTest {
         verify(userServiceMock, times(1)).findBySource(USERSOURCE, userDetailsMock.getSourceId(), false);
         verify(userServiceMock, times(1)).create(any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1)).
-                addOrUpdateMember(
-                        new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
-                        new MembershipService.MembershipUser(userDetailsMock.getUsername(), null),
-                        new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "ADMIN"));
-        verify(membershipServiceMock, times(1)).
-                addOrUpdateMember(
-                        new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
-                        new MembershipService.MembershipUser(userDetailsMock.getUsername(), null),
-                        new MembershipService.MembershipRole(RoleScope.PORTAL, "ADMIN"));
-        verify(userServiceMock, times(1)).connect(userDetailsMock.getUsername());
+                addRoleToMemberOnReference(
+                        new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
+                        new MembershipService.MembershipMember(userDetailsMock.getUsername(), null, MembershipMemberType.USER),
+                        new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "ADMIN"));
     }
 
     @Test

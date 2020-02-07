@@ -56,7 +56,7 @@ public class AuditResource extends AbstractResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_AUDIT, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ)
     })
     public MetadataPage<AuditEntity> list(@BeanParam AuditParam param){
 
@@ -87,7 +87,7 @@ public class AuditResource extends AbstractResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_AUDIT, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ)
     })
     public Response getEvents() {
         if (events.isEmpty()) {

@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.model.Workflow;
@@ -23,6 +22,7 @@ import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.WorkflowType;
 import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 
 import org.slf4j.Logger;
@@ -49,7 +49,7 @@ public class WorkflowServiceImpl extends TransactionalService implements Workflo
     public Workflow create(final WorkflowReferenceType referenceType, final String referenceId, final WorkflowType type,
                            final String user, final WorkflowState state, final String comment) {
         final Workflow workflow = new Workflow();
-        workflow.setId(UUID.toString(UUID.random()));
+        workflow.setId(RandomString.generate());
         workflow.setReferenceType(referenceType.name());
         workflow.setReferenceId(referenceId);
         workflow.setType(type.name());

@@ -49,7 +49,7 @@ public class EntrypointsResource extends AbstractResource  {
     @Path("{entrypointId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ)
     })
     public EntrypointEntity get(final @PathParam("entrypointId") String entrypointId)  {
         return entrypointService.findById(entrypointId);
@@ -58,7 +58,7 @@ public class EntrypointsResource extends AbstractResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ)
     })
     public List<EntrypointEntity> list()  {
         return entrypointService.findAll()
@@ -71,7 +71,7 @@ public class EntrypointsResource extends AbstractResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.CREATE)
     })
     public EntrypointEntity create(@Valid @NotNull final NewEntryPointEntity entrypoint) {
         return entrypointService.create(entrypoint);
@@ -81,7 +81,7 @@ public class EntrypointsResource extends AbstractResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.UPDATE)
     })
     public EntrypointEntity update(@Valid @NotNull final UpdateEntryPointEntity entrypoint) {
         return entrypointService.update(entrypoint);
@@ -91,7 +91,7 @@ public class EntrypointsResource extends AbstractResource  {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("entrypoint") String entrypoint) {
         entrypointService.delete(entrypoint);

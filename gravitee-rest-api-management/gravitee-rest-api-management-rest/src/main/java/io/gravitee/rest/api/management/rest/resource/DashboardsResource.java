@@ -57,7 +57,7 @@ public class DashboardsResource extends AbstractResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_DASHBOARD, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.CREATE)
     })
     public DashboardEntity create(@Valid @NotNull final NewDashboardEntity dashboard) {
         return dashboardService.create(dashboard);
@@ -67,7 +67,7 @@ public class DashboardsResource extends AbstractResource  {
     @Path("{dashboardId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_DASHBOARD, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.READ)
     })
     public DashboardEntity get(final @PathParam("dashboardId") String dashboardId)  {
         return dashboardService.findById(dashboardId);
@@ -78,7 +78,7 @@ public class DashboardsResource extends AbstractResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_DASHBOARD, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.UPDATE)
     })
     public DashboardEntity update(@PathParam("dashboardId") String dashboardId, @Valid @NotNull final UpdateDashboardEntity dashboard) {
         dashboard.setId(dashboardId);
@@ -89,7 +89,7 @@ public class DashboardsResource extends AbstractResource  {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_DASHBOARD, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("dashboardId") String dashboardId) {
         dashboardService.delete(dashboardId);

@@ -59,7 +59,7 @@ public class PoliciesResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List policies")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public Collection<PolicyListItem> listPolicies(@QueryParam("expand") List<String> expand) {
         Stream<PolicyListItem> stream = policyService.findAll().stream().map(this::convert);

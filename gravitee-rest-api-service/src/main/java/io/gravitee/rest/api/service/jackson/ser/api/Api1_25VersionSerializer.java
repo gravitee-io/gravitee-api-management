@@ -21,10 +21,12 @@ import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer.Member;
 
 import java.io.IOException;
 import java.util.*;
@@ -97,7 +99,7 @@ public class Api1_25VersionSerializer extends ApiSerializer {
 
             jsonGenerator.writeEndObject();
         }
-
+        
         // response templates
         if (apiEntity.getResponseTemplates() != null) {
             jsonGenerator.writeObjectFieldStart("response_templates");
@@ -114,6 +116,25 @@ public class Api1_25VersionSerializer extends ApiSerializer {
         // handle filtered fields list
         List<String> filteredFieldsList = (List<String>) apiEntity.getMetadata().get(METADATA_FILTERED_FIELDS_LIST);
 
+        // members
+        if (!filteredFieldsList.contains("members")) {
+            Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
+            List<Member> members = new ArrayList<>(memberEntities == null ? 0 : memberEntities.size());
+            if (memberEntities != null) {
+                memberEntities.forEach(m -> {
+                    UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
+                    if (userEntity != null) {
+                        Member member = new Member();
+                        member.setRole(m.getRoles().get(0).getName());
+                        member.setSource(userEntity.getSource());
+                        member.setSourceId(userEntity.getSourceId());
+                        members.add(member);
+                    }
+                });
+            }
+            jsonGenerator.writeObjectField("members", members);
+        }
+       
         //plans
         if (!filteredFieldsList.contains("plans")) {
             Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());

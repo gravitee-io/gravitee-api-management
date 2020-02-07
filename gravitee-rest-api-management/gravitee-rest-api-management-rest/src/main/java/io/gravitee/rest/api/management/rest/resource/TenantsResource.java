@@ -58,7 +58,7 @@ public class TenantsResource extends AbstractResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_TENANT, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.CREATE)
     })
     public List<TenantEntity> create(@Valid @NotNull final List<NewTenantEntity> tenant) {
         return tenantService.create(tenant);
@@ -68,7 +68,7 @@ public class TenantsResource extends AbstractResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_TENANT, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.UPDATE)
     })
     public List<TenantEntity> update(@Valid @NotNull final List<UpdateTenantEntity> tenant) {
         return tenantService.update(tenant);
@@ -78,7 +78,7 @@ public class TenantsResource extends AbstractResource  {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_TENANT, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("tenant") String tenant) {
         tenantService.delete(tenant);

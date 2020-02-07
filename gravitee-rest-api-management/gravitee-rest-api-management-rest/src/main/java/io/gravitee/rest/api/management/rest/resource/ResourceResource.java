@@ -51,7 +51,7 @@ public class ResourceResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a resource")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public PluginEntity getResource(
             @PathParam("resource") String resource) {
@@ -63,7 +63,7 @@ public class ResourceResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a resource's schema")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public String getResourceSchema(
             @PathParam("resource") String resource) {

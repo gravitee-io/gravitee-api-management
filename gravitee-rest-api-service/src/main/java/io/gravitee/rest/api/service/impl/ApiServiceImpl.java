@@ -24,21 +24,24 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.EventType;
+import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.*;
@@ -47,11 +50,13 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
@@ -76,6 +81,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
@@ -110,8 +116,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private ApiRepository apiRepository;
     @Autowired
     private ApiQualityRuleRepository apiQualityRuleRepository;
-    @Autowired
-    private MembershipRepository membershipRepository;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -394,7 +398,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Create {} for user {}", api, userId);
 
-            String id = UUID.toString(UUID.random());
+            String id = RandomString.generate();
             Optional<Api> checkApi = apiRepository.findById(id);
             if (checkApi.isPresent()) {
                 throw new ApiAlreadyExistsException(id);
@@ -418,7 +422,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (repoApi != null) {
                 repoApi.setId(id);
-                repoApi.setEnvironment(GraviteeContext.getCurrentEnvironment());
+                repoApi.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
                 // Set date fields
                 repoApi.setCreatedAt(new Date());
                 repoApi.setUpdatedAt(repoApi.getCreatedAt());
@@ -467,26 +471,30 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 // Add the primary owner of the newly created API
                 UserEntity primaryOwner = userService.findById(userId);
-                Membership membership = new Membership(primaryOwner.getId(), createdApi.getId(), MembershipReferenceType.API);
-                membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
-                membership.setCreatedAt(repoApi.getCreatedAt());
-                membership.setUpdatedAt(repoApi.getCreatedAt());
-                membershipRepository.create(membership);
-
-                // create the default mail notification
-                GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
-                notificationConfigEntity.setName("Default Mail Notifications");
-                notificationConfigEntity.setReferenceType(HookScope.API.name());
-                notificationConfigEntity.setReferenceId(createdApi.getId());
-                notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
-                notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
-                notificationConfigEntity.setConfig("${(api.primaryOwner.email)!''}");
-                genericNotificationConfigService.create(notificationConfigEntity);
-
-                //TODO add membership log
-                ApiEntity apiEntity = convert(createdApi, primaryOwner);
-                searchEngineService.index(apiEntity, false);
-                return apiEntity;
+                if (primaryOwner != null) {
+                    membershipService.addRoleToMemberOnReference(
+                            new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
+                            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
+                    
+                    // create the default mail notification
+                    GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
+                    notificationConfigEntity.setName("Default Mail Notifications");
+                    notificationConfigEntity.setReferenceType(HookScope.API.name());
+                    notificationConfigEntity.setReferenceId(createdApi.getId());
+                    notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
+                    notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
+                    notificationConfigEntity.setConfig("${(api.primaryOwner.email)!''}");
+                    genericNotificationConfigService.create(notificationConfigEntity);
+    
+                    //TODO add membership log
+                    ApiEntity apiEntity = convert(createdApi, primaryOwner);
+                    searchEngineService.index(apiEntity, false);
+                    return apiEntity;
+                } else {
+                    LOGGER.error("Unable to create API {} because primary owner role has not been found.", api.getName());
+                    throw new TechnicalManagementException("Unable to create API " + api.getName() + " because primary owner role has not been found");
+                }
             } else {
                 LOGGER.error("Unable to create API {} because of previous error.", api.getName());
                 throw new TechnicalManagementException("Unable to create API " + api.getName());
@@ -557,19 +565,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Optional<Api> api = apiRepository.findById(apiId);
 
             if (api.isPresent()) {
-                Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndRole(
-                        MembershipReferenceType.API,
-                        api.get().getId(),
-                        RoleScope.API,
-                        SystemRole.PRIMARY_OWNER.name())
-                        .stream()
-                        .findFirst();
-                if (!primaryOwnerMembership.isPresent()) {
+                MemberEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(io.gravitee.rest.api.model.MembershipReferenceType.API, api.get().getId());
+                if (primaryOwnerMemberEntity == null) {
                     LOGGER.error("The API {} doesn't have any primary owner.", apiId);
                     throw new TechnicalException("The API " + apiId + " doesn't have any primary owner.");
                 }
 
-                ApiEntity apiEntity = convert(api.get(), userService.findById(primaryOwnerMembership.get().getUserId()));
+                ApiEntity apiEntity = convert(api.get(), userService.findById(primaryOwnerMemberEntity.getId()));
 
                 // Compute entrypoints
                 calculateEntrypoints(apiEntity);
@@ -638,7 +640,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findByVisibility(io.gravitee.rest.api.model.Visibility visibility) {
         try {
             LOGGER.debug("Find APIs by visibility {}", visibility);
-            return convert(apiRepository.search(new ApiCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).visibility(Visibility.valueOf(visibility.name())).build()));
+            return convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).visibility(Visibility.valueOf(visibility.name())).build()));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -649,7 +651,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findAll() {
         try {
             LOGGER.debug("Find all APIs");
-            return convert(apiRepository.search(new ApiCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).build()));
+            return convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build()));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -660,7 +662,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findAllLight() {
         try {
             LOGGER.debug("Find all APIs without some fields (definition, picture...)");
-            return convert(apiRepository.search(new ApiCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).build(),
+            return convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
                     new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs light", ex);
@@ -678,9 +680,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // get user apis
             List<Api> userApis = emptyList();
-            final String[] userApiIds = membershipRepository
-                    .findByUserAndReferenceType(userId, MembershipReferenceType.API).stream()
-                    .map(Membership::getReferenceId)
+            final String[] userApiIds = membershipService
+                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API).stream()
+                    .map(MembershipEntity::getReferenceId)
                     .toArray(String[]::new);
             if (userApiIds.length > 0) {
                 userApis = apiRepository.search(queryToCriteria(apiQuery).ids(userApiIds).build());
@@ -688,10 +690,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // get user groups apis
             List<Api> groupApis = emptyList();
-            final String[] groupIds = membershipRepository
-                    .findByUserAndReferenceType(userId, MembershipReferenceType.GROUP).stream()
-                    .filter(m -> m.getRoles().keySet().contains(RoleScope.API.getId()))
-                    .map(Membership::getReferenceId)
+            final String[] groupIds = membershipService
+                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP).stream()
+                    .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.API))
+                    .map(MembershipEntity::getReferenceId)
                     .toArray(String[]::new);
             if (groupIds.length > 0 && groupIds[0] != null) {
                 groupApis = apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
@@ -819,7 +821,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 api.setUpdatedAt(new Date());
 
                 // Copy fields from existing values
-                api.setEnvironment(apiToUpdate.getEnvironment());
+                api.setEnvironmentId(apiToUpdate.getEnvironmentId());
                 api.setDeployedAt(apiToUpdate.getDeployedAt());
                 api.setCreatedAt(apiToUpdate.getCreatedAt());
                 api.setLifecycleState(apiToUpdate.getLifecycleState());
@@ -1001,6 +1003,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         new Date(),
                         optApi.get(),
                         null);
+                
+                // delete memberships
+                membershipService.deleteReference(MembershipReferenceType.API, apiId);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete API {}", apiId, ex);
@@ -1279,80 +1284,87 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (membersToImport != null && membersToImport.isArray()) {
                 // get current members of the api
                 Set<MemberToImport> membersAlreadyPresent = membershipService
-                        .getMembers(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId(), RoleScope.API)
+                        .getMembersByReference(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId())
                         .stream()
                         .map(member -> {
                             UserEntity userEntity = userService.findById(member.getId());
-                            return new MemberToImport(userEntity.getSource(), userEntity.getSourceId(), member.getRole());
+                            return new MemberToImport(userEntity.getSource(), userEntity.getSourceId(), member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
                         }).collect(toSet());
                 // get the current PO
-                MemberToImport currentPo = membersAlreadyPresent.stream()
-                        .filter(memberToImport -> SystemRole.PRIMARY_OWNER.name().equals(memberToImport.getRole()))
-                        .findFirst()
-                        .orElse(new MemberToImport());
-
-                String roleUsedInTransfert = null;
-                MemberToImport futurePO = null;
-
-                // upsert members
-                for (final JsonNode memberNode : membersToImport) {
-                    MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
-                    boolean presentWithSameRole = membersAlreadyPresent
-                            .stream()
-                            .anyMatch(m -> m.getRole().equals(memberToImport.getRole())
-                                    && (m.getSourceId().equals(memberToImport.getSourceId())
-                                    && m.getSource().equals(memberToImport.getSource())));
-
-                    // add/update members if :
-                    //  - not already present with the same role
-                    //  - not the new PO
-                    //  - not the current PO
-                    if (!presentWithSameRole
-                            && !SystemRole.PRIMARY_OWNER.name().equals(memberToImport.getRole())
-                            && !(memberToImport.getSourceId().equals(currentPo.getSourceId())
-                            && memberToImport.getSource().equals(currentPo.getSource()))) {
+                Optional<RoleEntity> optPoRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
+                if (optPoRole.isPresent()) {
+                    String poRoleId = optPoRole.get().getId();
+                    MemberToImport currentPo = membersAlreadyPresent.stream()
+                            .filter(memberToImport -> memberToImport.getRoles().contains(poRoleId))
+                            .findFirst()
+                            .orElse(new MemberToImport());
+    
+                    List<String> roleUsedInTransfert = null;
+                    MemberToImport futurePO = null;
+                        
+        
+                    // upsert members
+                    for (final JsonNode memberNode : membersToImport) {
+                        MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
+                        boolean presentWithSameRole = membersAlreadyPresent
+                                .stream()
+                                .anyMatch(m -> m.getRoles().equals(memberToImport.getRoles())
+                                        && (m.getSourceId().equals(memberToImport.getSourceId())
+                                            && m.getSource().equals(memberToImport.getSource())));
+    
+                        // add/update members if :
+                        //  - not already present with the same role
+                        //  - not the new PO
+                        //  - not the current PO
+                        if (!presentWithSameRole
+                                && !memberToImport.getRoles().contains(poRoleId)
+                                && !(memberToImport.getSourceId().equals(currentPo.getSourceId())
+                                    && memberToImport.getSource().equals(currentPo.getSource()))) {
+                            try {
+                                UserEntity userEntity = userService.findBySource(memberToImport.getSource(), memberToImport.getSourceId(), false);
+                                
+                                memberToImport.getRoles().forEach(role -> 
+                                    membershipService.addRoleToMemberOnReference(
+                                            MembershipReferenceType.API,
+                                            createdOrUpdatedApiEntity.getId(),
+                                            MembershipMemberType.USER,
+                                            userEntity.getId(),
+                                            role)
+                                    );
+                            } catch (UserNotFoundException unfe) {
+    
+                            }
+                        }
+    
+                        // get the future role of the current PO
+                        if (currentPo.getSourceId().equals(memberToImport.getSourceId())
+                                && currentPo.getSource().equals(memberToImport.getSource())
+                                && !memberToImport.getRoles().contains(poRoleId)) {
+                            roleUsedInTransfert = memberToImport.getRoles();
+                        }
+    
+                        if (memberToImport.getRoles().contains(poRoleId)) {
+                            futurePO = memberToImport;
+                        }
+                    }
+    
+                    // transfer the ownership
+                    if (futurePO != null
+                            && !(currentPo.getSource().equals(futurePO.getSource())
+                            && currentPo.getSourceId().equals(futurePO.getSourceId()))) {
                         try {
-                            UserEntity userEntity = userService.findBySource(memberToImport.getSource(), memberToImport.getSourceId(), false);
-                            membershipService.addOrUpdateMember(
-                                    new MembershipService.MembershipReference(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId()),
-                                    new MembershipService.MembershipUser(userEntity.getId(), null),
-                                    new MembershipService.MembershipRole(RoleScope.API, memberToImport.getRole()));
-
+                            UserEntity userEntity = userService.findBySource(futurePO.getSource(), futurePO.getSourceId(), false);
+                            List<RoleEntity> roleEntity = null;
+                            if (roleUsedInTransfert != null && !roleUsedInTransfert.isEmpty()) {
+                                roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(Collectors.toList());
+                            }
+                            membershipService.transferApiOwnership(
+                                    createdOrUpdatedApiEntity.getId(),
+                                    new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
+                                    roleEntity);
                         } catch (UserNotFoundException unfe) {
-
+    
                         }
-                    }
-
-                    // get the future role of the current PO
-                    if (currentPo.getSourceId().equals(memberToImport.getSourceId())
-                            && currentPo.getSource().equals(memberToImport.getSource())
-                            && !SystemRole.PRIMARY_OWNER.name().equals(memberToImport.getRole())) {
-                        roleUsedInTransfert = memberToImport.getRole();
-                    }
-
-                    if (SystemRole.PRIMARY_OWNER.name().equals(memberToImport.getRole())) {
-                        futurePO = memberToImport;
-                    }
-                }
-
-                // transfer the ownership
-                if (futurePO != null
-                        && !(currentPo.getSource().equals(futurePO.getSource())
-                        && currentPo.getSourceId().equals(futurePO.getSourceId()))) {
-                    try {
-                        UserEntity userEntity = userService.findBySource(futurePO.getSource(), futurePO.getSourceId(), false);
-                        RoleEntity roleEntity = null;
-                        if (roleUsedInTransfert != null) {
-                            roleEntity = new RoleEntity();
-                            roleEntity.setName(roleUsedInTransfert);
-                            roleEntity.setScope(io.gravitee.rest.api.model.permissions.RoleScope.API);
-                        }
-                        membershipService.transferApiOwnership(
-                                createdOrUpdatedApiEntity.getId(),
-                                new MembershipService.MembershipUser(userEntity.getId(), null),
-                                roleEntity);
-                    } catch (UserNotFoundException unfe) {
-
                     }
                 }
             }
@@ -1616,22 +1628,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ApiEntity duplicatedApi = create0(newApiEntity, getAuthenticatedUsername());
 
         if (!duplicateApiEntity.getFilteredFields().contains("members")) {
-            final Set<MemberEntity> membersToDuplicate =
-                    membershipService.getMembers(MembershipReferenceType.API, apiId, RoleScope.API);
-            final MemberEntity primaryOwner =
-                    membershipService.getMember(MembershipReferenceType.API, duplicatedApi.getId(), duplicatedApi.getPrimaryOwner().getId(), RoleScope.API);
-            membersToDuplicate.forEach(member -> {
-                if (!primaryOwner.equals(member)) {
-                    String role = member.getRole();
-                    if (SystemRole.PRIMARY_OWNER.name().equals(role)) {
-                        role = roleService.findDefaultRoleByScopes(RoleScope.API).iterator().next().getName();
+            final Set<MembershipEntity> membershipsToDuplicate =
+                    membershipService.getMembershipsByReference(io.gravitee.rest.api.model.MembershipReferenceType.API, apiId);
+            Optional<RoleEntity> optPrimaryOwnerRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
+            if (optPrimaryOwnerRole.isPresent()) {
+                String primaryOwnerRoleId = optPrimaryOwnerRole.get().getId();
+                membershipsToDuplicate.forEach(membership -> {
+                    String roleId = membership.getRoleId();
+                    if (!primaryOwnerRoleId.equals(roleId)) {   
+                        membershipService.addRoleToMemberOnReference(io.gravitee.rest.api.model.MembershipReferenceType.API, duplicatedApi.getId(), membership.getMemberType(), membership.getMemberId(), roleId);
                     }
-                    membershipService.addOrUpdateMember(
-                            new MembershipService.MembershipReference(MembershipReferenceType.API, duplicatedApi.getId()),
-                            new MembershipService.MembershipUser(member.getId(), null),
-                            new MembershipService.MembershipRole(RoleScope.API, role));
-                }
-            });
+                });
+            }
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains("pages")) {
@@ -1684,7 +1692,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiCriteria.Builder queryToCriteria(ApiQuery query) {
-        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment());
+        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment());
         if (query == null) {
             return builder;
         }
@@ -1806,19 +1814,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (apis == null || apis.isEmpty()) {
             return Collections.emptySet();
         }
+        Optional<RoleEntity> optPrimaryOwnerRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
+        if (!optPrimaryOwnerRole.isPresent()) {
+            throw new RoleNotFoundException("API_PRIMARY_OWNER");
+        }
         //find primary owners usernames of each apis
-        Set<Membership> memberships = membershipRepository.findByReferencesAndRole(
-                MembershipReferenceType.API,
-                apis.stream().map(Api::getId).collect(toList()),
-                RoleScope.API,
-                SystemRole.PRIMARY_OWNER.name()
-        );
+        final List<String> apiIds = apis.stream().map(Api::getId).collect(toList());
 
+        Set<MemberEntity> memberships = membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API , apiIds, optPrimaryOwnerRole.get().getId());
         int poMissing = apis.size() - memberships.size();
-        final Set<String> apiIds = apis.stream().map(Api::getId).collect(toSet());
         Stream<Api> streamApis = apis.stream();
         if (poMissing > 0) {
-            Set<String> apiMembershipsIds = memberships.stream().map(Membership::getReferenceId).collect(toSet());
+            Set<String> apiMembershipsIds = memberships.stream().map(MemberEntity::getReferenceId).collect(toSet());
 
             apiIds.removeAll(apiMembershipsIds);
             Optional<String> optionalApisAsString = apiIds.stream().reduce((a, b) -> a + " / " + b);
@@ -1831,10 +1838,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         Map<String, String> apiToUser = new HashMap<>(memberships.size());
-        memberships.forEach(membership -> apiToUser.put(membership.getReferenceId(), membership.getUserId()));
+        memberships.forEach(membership -> apiToUser.put(membership.getReferenceId(), membership.getId()));
 
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
-        userService.findByIds(memberships.stream().map(Membership::getUserId).collect(toList()))
+        userService.findByIds(memberships.stream().map(MemberEntity::getId).collect(toList()))
                 .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
         return streamApis
@@ -1977,15 +1984,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static class MemberToImport {
         private String source;
         private String sourceId;
-        private String role;
+        private List<String> roles;
 
         public MemberToImport() {
         }
 
-        public MemberToImport(String source, String sourceId, String role) {
+        public MemberToImport(String source, String sourceId, List<String> roles) {
             this.source = source;
             this.sourceId = sourceId;
-            this.role = role;
+            this.roles = roles;
         }
 
         public String getSource() {
@@ -2004,12 +2011,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             this.sourceId = sourceId;
         }
 
-        public String getRole() {
-            return role;
+        public List<String> getRoles() {
+            return roles;
         }
 
-        public void setRole(String role) {
-            this.role = role;
+        public void setRoles(List<String> roles) {
+            this.roles = roles;
         }
 
         @Override

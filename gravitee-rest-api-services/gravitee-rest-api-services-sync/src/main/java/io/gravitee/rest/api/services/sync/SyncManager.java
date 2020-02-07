@@ -18,24 +18,24 @@ package io.gravitee.rest.api.services.sync;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.*;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
-import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.event.DictionaryEvent;
-import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +76,7 @@ public class SyncManager {
     @Autowired
     private EventManager eventManager;
     @Autowired
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
     @Autowired
     private UserService userService;
 
@@ -85,7 +85,7 @@ public class SyncManager {
     private long lastRefreshAt = -1;
 
     public void refresh() {
-        logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
+        logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now());
         logger.debug("Refreshing state...");
 
         long nextLastRefreshAt = System.currentTimeMillis();
@@ -103,10 +103,10 @@ public class SyncManager {
         }
 
         lastRefreshAt = nextLastRefreshAt;
-        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
+        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now());
     }
 
-    private void synchronizeApis(long nextLastRefreshAt) throws Exception {
+    private void synchronizeApis(long nextLastRefreshAt) {
         Map<String, Event> apiEvents;
 
         // Initial synchronization
@@ -201,6 +201,8 @@ public class SyncManager {
                     stoppedDictionary.setId(id);
                     eventManager.publishEvent(DictionaryEvent.STOP, stoppedDictionary);
                     break;
+                default:
+                    break;
             }
         });
     }
@@ -238,6 +240,8 @@ public class SyncManager {
                     } catch (Exception e) {
                         logger.error("Error while determining deployed APIs store into events payload", e);
                     }
+                    break;
+                default:
                     break;
             }
         });
@@ -329,21 +333,10 @@ public class SyncManager {
             apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
         }
 
-        try {
-            final Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndRole(
-                    MembershipReferenceType.API,
-                    api.getId(),
-                    RoleScope.API,
-                    SystemRole.PRIMARY_OWNER.name())
-                    .stream()
-                    .findFirst();
-            if (primaryOwnerMembership.isPresent()) {
-                final UserEntity user = userService.findById(primaryOwnerMembership.get().getUserId());
-                apiEntity.setPrimaryOwner(new PrimaryOwnerEntity(user));
-            }
-        } catch (final TechnicalException e) {
-            logger.error("Error while trying to get primary owner of api " + api.getId(), e);
-        }
+        MemberEntity optPrimaryOwner = membershipService.getPrimaryOwner(MembershipReferenceType.API, api.getId());
+        final UserEntity user = userService.findById(optPrimaryOwner.getId());
+        apiEntity.setPrimaryOwner(new PrimaryOwnerEntity(user));
+            
         return apiEntity;
     }
 }

@@ -15,11 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.UserRoleEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.service.impl.PermissionServiceImpl;
 import org.junit.Test;
@@ -34,8 +30,6 @@ import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
@@ -64,7 +58,7 @@ public class PermissionServiceTest {
         UserEntity user = new UserEntity();
         user.setRoles(Collections.singleton(new UserRoleEntity()));
         doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
-        
+
         assertTrue(permissionService.hasManagementRights(USER_NAME));
     }
 
@@ -75,14 +69,18 @@ public class PermissionServiceTest {
         UserEntity user = new UserEntity();
         user.setRoles(Collections.emptySet());
         doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
-        
+
         Map<String, char[]> perms = new HashMap<>();
         perms.put(ApiPermission.ALERT.name(), new char[] {'R'});
         perms.put(ApiPermission.ANALYTICS.name(), new char[] {'C', 'D'});
 
+        UserMembership userMembership = new UserMembership();
+        userMembership.setReference("apiId");
+        doReturn(Collections.singletonList(userMembership)).when(membershipService).findUserMembership(MembershipReferenceType.API, USER_NAME);
+
         RoleEntity apiRole = new RoleEntity();
         apiRole.setPermissions(perms);
-        doReturn(Collections.singleton(apiRole)).when(membershipService).getRoles(eq(MembershipReferenceType.API),any(), eq(USER_NAME), eq(RoleScope.API));
+        doReturn(Collections.singleton(apiRole)).when(membershipService).getRoles(MembershipReferenceType.API, "apiId", MembershipMemberType.USER, USER_NAME);
 
         assertTrue(permissionService.hasManagementRights(USER_NAME));
     }
@@ -94,13 +92,17 @@ public class PermissionServiceTest {
         UserEntity user = new UserEntity();
         user.setRoles(Collections.emptySet());
         doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
-        
+
+        UserMembership userMembership = new UserMembership();
+        userMembership.setReference("apiId");
+        doReturn(Collections.singletonList(userMembership)).when(membershipService).findUserMembership(MembershipReferenceType.API, USER_NAME);
+
         Map<String, char[]> perms = new HashMap<>();
         perms.put(ApiPermission.RATING.name(), new char[] {'C', 'U'});
         RoleEntity apiRole = new RoleEntity();
         apiRole.setPermissions(perms);
-        doReturn(Collections.singleton(apiRole)).when(membershipService).getRoles(eq(MembershipReferenceType.API),any(), eq(USER_NAME), eq(RoleScope.API));
-        
+        doReturn(Collections.singleton(apiRole)).when(membershipService).getRoles(MembershipReferenceType.API, "apiId", MembershipMemberType.USER, USER_NAME);
+
         assertFalse(permissionService.hasManagementRights(USER_NAME));
     }
 
@@ -111,14 +113,17 @@ public class PermissionServiceTest {
         UserEntity user = new UserEntity();
         user.setRoles(Collections.emptySet());
         doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
-        
+
+        UserMembership userMembership = new UserMembership();
+        userMembership.setReference("apiId");
+        doReturn(Collections.singletonList(userMembership)).when(membershipService).findUserMembership(MembershipReferenceType.API, USER_NAME);
+
         Map<String, char[]> perms = new HashMap<>();
         perms.put(ApiPermission.ALERT.name(), new char[] {'R'});
         RoleEntity apiRole = new RoleEntity();
         apiRole.setPermissions(perms);
-        doReturn(Collections.singleton(apiRole)).when(membershipService).getRoles(eq(MembershipReferenceType.API),any(), eq(USER_NAME), eq(RoleScope.API));
-        
+        doReturn(Collections.singleton(apiRole)).when(membershipService).getRoles(MembershipReferenceType.API, "apiId", MembershipMemberType.USER, USER_NAME);
+
         assertFalse(permissionService.hasManagementRights(USER_NAME));
     }
-
 }

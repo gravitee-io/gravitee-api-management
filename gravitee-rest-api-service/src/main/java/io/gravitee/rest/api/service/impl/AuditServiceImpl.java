@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 
@@ -308,7 +309,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                           Object oldValue, Object newValue) {
 
         Audit audit = new Audit();
-        audit.setId(UUID.toString(UUID.random()));
+        audit.setId(RandomString.generate());
         audit.setUser(userId);
         audit.setCreatedAt(createdAt);
         if (properties != null) {

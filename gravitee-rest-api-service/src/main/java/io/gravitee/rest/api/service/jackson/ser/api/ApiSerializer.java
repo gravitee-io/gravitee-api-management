@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.plugins.resources.Resource;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
@@ -133,14 +131,14 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         // members
         if (!filteredFieldsList.contains("members")) {
-            Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API);
+            Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
             List<Member> members = new ArrayList<>(memberEntities == null ? 0 : memberEntities.size());
             if (memberEntities != null) {
                 memberEntities.forEach(m -> {
                     UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
                     if (userEntity != null) {
                         Member member = new Member();
-                        member.setRole(m.getRole());
+                        member.setRoles(m.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
                         member.setSource(userEntity.getSource());
                         member.setSourceId(userEntity.getSourceId());
                         members.add(member);
@@ -191,7 +189,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         private String source;
         private String sourceId;
         private String role;
-
+        private List<String> roles;
+        
         public String getSource() {
             return source;
         }
@@ -214,6 +213,14 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         public void setRole(String role) {
             this.role = role;
+        }
+
+        public List<String> getRoles() {
+            return roles;
+        }
+
+        public void setRoles(List<String> roles) {
+            this.roles = roles;
         }
 
         public String getUsername() {

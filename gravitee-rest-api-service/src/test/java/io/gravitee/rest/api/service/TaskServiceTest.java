@@ -17,12 +17,9 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.TaskEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PlanService;
@@ -44,16 +41,11 @@ import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
 public class TaskServiceTest {
-
-    private static final String SUBSCRIPTION_ID = "my-subscription";
-    private static final String APPLICATION_ID = "my-application";
-    private static final String PLAN_ID = "my-plan";
-    private static final String API_ID = "my-api";
-    private static final String SUBSCRIPTION_VALIDATOR = "validator";
 
     @InjectMocks
     private TaskService taskService = new TaskServiceImpl();
@@ -65,9 +57,9 @@ public class TaskServiceTest {
     @Mock
     private ApplicationService applicationService;
     @Mock
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
     @Mock
-    private ApiRepository apiRepository;
+    private GroupService groupService;
     @Mock
     private RoleService roleService;
     @Mock
@@ -75,16 +67,17 @@ public class TaskServiceTest {
 
     @Test
     public void shouldFindAll() throws TechnicalException {
-        Membership m1 = new Membership();
-
+        MembershipEntity m1 = new MembershipEntity();
+        m1.setId("1");
         m1.setReferenceId("api1");
         m1.setReferenceType(MembershipReferenceType.API);
-        m1.setRoles(Collections.singletonMap(RoleScope.API.getId(), "PO"));
+        m1.setRoleId("API_PO");
 
-        Membership m2 = new Membership();
+        MembershipEntity m2 = new MembershipEntity();
+        m2.setId("2");
         m2.setReferenceId("api2");
         m2.setReferenceType(MembershipReferenceType.API);
-        m2.setRoles(Collections.singletonMap(RoleScope.API.getId(), "USER"));
+        m2.setRoleId("API_USER");
 
         Map<String, char[]> withPerm = new HashMap<>();
         withPerm.put("SUBSCRIPTION", new char[]{'C', 'R', 'U', 'D'});
@@ -94,24 +87,25 @@ public class TaskServiceTest {
         RoleEntity roleEntityWithPerm = new RoleEntity();
         roleEntityWithPerm.setName("PO");
         roleEntityWithPerm.setPermissions(withPerm);
+        roleEntityWithPerm.setScope(io.gravitee.rest.api.model.permissions.RoleScope.API);
 
         RoleEntity roleEntityWithoutPerm = new RoleEntity();
         roleEntityWithoutPerm.setName("USER");
         roleEntityWithoutPerm.setPermissions(withoutPerm);
+        roleEntityWithoutPerm.setScope(io.gravitee.rest.api.model.permissions.RoleScope.API);
 
-        when(roleService.findById(RoleScope.API, "PO"))
+        when(roleService.findById("API_PO"))
                 .thenReturn(roleEntityWithPerm);
 
-        when(roleService.findById(RoleScope.API, "USER"))
+        when(roleService.findById("API_USER"))
                 .thenReturn(roleEntityWithoutPerm);
 
-        Set<Membership> memberships = new HashSet<>();
+        Set<MembershipEntity> memberships = new HashSet<>();
         memberships.add(m1);
         memberships.add(m2);
-        when(membershipRepository.findByUserAndReferenceType(any(), any()))
+        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
                 .thenReturn(memberships);
-
-        List<TaskEntity> tasks = taskService.findAll("user");
+        taskService.findAll("user");
 
         verify(subscriptionService, times(1)).search(any());
 

@@ -26,9 +26,17 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
  */
 public class UserRoleEntity {
 
+    private String id;
     private String name;
     private RoleScope scope;
     private Map<String, char[]> permissions;
+
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -58,11 +66,11 @@ public class UserRoleEntity {
 
         UserRoleEntity that = (UserRoleEntity) o;
 
-        return Objects.equals(scope, that.scope) && Objects.equals(name, that.name);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(scope, name);
+        return Objects.hash(id);
     }
 }

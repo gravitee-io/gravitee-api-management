@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -38,12 +41,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.portal.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.portal.rest.model.Member;
@@ -55,7 +59,6 @@ import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 
 /**
@@ -85,7 +88,7 @@ public class ApplicationMembersResource extends AbstractResource {
         //Does application exist ?
         applicationService.findById(applicationId);
         
-        List<Member> membersList = membershipService.getMembers(MembershipReferenceType.APPLICATION, applicationId, RoleScope.APPLICATION).stream()
+        List<Member> membersList = membershipService.getMembersByReference(MembershipReferenceType.APPLICATION, applicationId).stream()
                 .map(membership -> memberMapper.convert(membership, uriInfo))
                 .collect(Collectors.toList());
         
@@ -107,9 +110,9 @@ public class ApplicationMembersResource extends AbstractResource {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
         }
         
-        MemberEntity membership = membershipService.addOrUpdateMember(
+        MemberEntity membership = membershipService.addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
-                new MembershipService.MembershipUser(memberInput.getUser(), memberInput.getReference()),
+                new MembershipService.MembershipMember(memberInput.getUser(), memberInput.getReference(), MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole()));
 
         return Response
@@ -132,7 +135,7 @@ public class ApplicationMembersResource extends AbstractResource {
         userService.findById(memberId);
         
         
-        MemberEntity memberEntity = membershipService.getMember(MembershipReferenceType.APPLICATION, applicationId, memberId, RoleScope.APPLICATION);
+        MemberEntity memberEntity = membershipService.getUserMember(MembershipReferenceType.APPLICATION, applicationId, memberId);
         if(memberEntity != null) {
             return Response
                     .ok(memberMapper.convert(memberEntity, uriInfo))
@@ -154,7 +157,7 @@ public class ApplicationMembersResource extends AbstractResource {
         //Does user exist ?
         userService.findById(memberId);
         
-        membershipService.deleteMember(MembershipReferenceType.APPLICATION, applicationId, memberId);
+        membershipService.deleteReferenceMember(MembershipReferenceType.APPLICATION, applicationId, MembershipMemberType.USER, memberId);
         return Response.noContent().build();
     }
     
@@ -181,9 +184,9 @@ public class ApplicationMembersResource extends AbstractResource {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
         }
         
-        MemberEntity membership = membershipService.addOrUpdateMember(
+        MemberEntity membership = membershipService.addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
-                new MembershipService.MembershipUser(memberId, memberInput.getReference()),
+                new MembershipService.MembershipMember(memberId, memberInput.getReference(), MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole()));
 
         return Response
@@ -207,16 +210,16 @@ public class ApplicationMembersResource extends AbstractResource {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
         }
         
-        RoleEntity newPORole = null;
+        List<RoleEntity> newRoles = new ArrayList<>();
 
-        try {
-            newPORole = roleService.findById(RoleScope.APPLICATION, transferOwnershipInput.getPrimaryOwnerNewrole());
-        } catch (RoleNotFoundException re) {
-            // it doesn't matter because default role will be applied on former PrimaryOwner
+        Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(RoleScope.APPLICATION, transferOwnershipInput.getPrimaryOwnerNewrole());
+        if (optionalRole.isPresent()) {
+            newRoles.add(optionalRole.get());
         }
+        // else condition doesn't matter because default role will be applied on former PrimaryOwner
         
         membershipService.transferApplicationOwnership(applicationId, 
-                new MembershipService.MembershipUser( transferOwnershipInput.getNewPrimaryOwnerId(), transferOwnershipInput.getNewPrimaryOwnerReference()), newPORole);
+                new MembershipService.MembershipMember( transferOwnershipInput.getNewPrimaryOwnerId(), transferOwnershipInput.getNewPrimaryOwnerReference(), MembershipMemberType.USER), newRoles);
         return Response
                 .noContent()
                 .build();

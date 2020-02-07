@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import io.gravitee.rest.api.model.permissions.RoleScope;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,17 +26,29 @@ import java.util.Map;
  */
 public class RoleNotFoundException extends AbstractNotFoundException {
 
-    private final String scope;
-    private final String name;
+    private final String id;
+    private final RoleScope roleScope;
+    private final String roleName;
 
-    public RoleNotFoundException(io.gravitee.repository.management.model.RoleScope scope, String name) {
-        this.scope = scope.name();
-        this.name = name;
+    public RoleNotFoundException(String id) {
+        this.id = id;
+        this.roleScope = null;
+        this.roleName = null;
+    }
+    
+    public RoleNotFoundException(RoleScope roleScope, String roleName) {
+        this.id = null;
+        this.roleScope = roleScope;
+        this.roleName = roleName;
     }
 
     @Override
     public String getMessage() {
-        return "Role [" + scope + "," + name + "] can not be found.";
+        if (id != null) {
+            return "Role [" + id + "] can not be found.";
+        } else {
+            return "Role [" + roleScope.name() + "_" + roleName + "] can not be found.";
+        }
     }
 
     @Override
@@ -46,8 +60,7 @@ public class RoleNotFoundException extends AbstractNotFoundException {
     public Map<String, String> getParameters() {
         return new HashMap<String, String>() {
             {
-                put("scope", scope);
-                put("name", name);
+                put("id", id);
             }
         };
     }

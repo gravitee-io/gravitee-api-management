@@ -33,9 +33,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
-import java.util.Optional;
 
-import static io.gravitee.rest.api.model.permissions.PortalPermission.DOCUMENTATION;
+import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -62,22 +61,23 @@ public class RoleService_CreateTest {
     public void shouldCreate() throws TechnicalException {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
         when(newRoleEntityMock.getName()).thenReturn("new mock role");
-        when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL);
+        when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
         when(newRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(
                 DOCUMENTATION.getName(),
                 new char[]{RolePermissionAction.CREATE.getId()}));
         Role roleMock = mock(Role.class);
+        when(roleMock.getId()).thenReturn("new_mock_role");
         when(roleMock.getName()).thenReturn("new mock role");
-        when(roleMock.getScope()).thenReturn(RoleScope.PORTAL);
-        when(roleMock.getPermissions()).thenReturn(new int[]{1108});
+        when(roleMock.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleMock.getPermissions()).thenReturn(new int[]{3008});
         when(mockRoleRepository.create(any())).thenReturn(roleMock);
-        when(mockRoleRepository.findById(any(), any(), any(), any())).thenReturn(Optional.empty());
 
         RoleEntity entity = roleService.create(newRoleEntityMock);
 
         assertNotNull("no entoty created", entity);
+        assertEquals("invalid id","new_mock_role", entity.getId());
         assertEquals("invalid name","new mock role", entity.getName());
-        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.PORTAL , entity.getScope());
+        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT , entity.getScope());
         assertFalse("no permissions found", entity.getPermissions().isEmpty());
         assertTrue("invalid Permission name", entity.getPermissions().containsKey(DOCUMENTATION.getName()));
         char[] perms = entity.getPermissions().get(DOCUMENTATION.getName());
@@ -89,7 +89,7 @@ public class RoleService_CreateTest {
     public void shouldNotCreateBecauseOfInvalidPermissionAction() throws TechnicalException {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
         when(newRoleEntityMock.getName()).thenReturn("new mock role");
-        when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL);
+        when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
         when(newRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(
                 DOCUMENTATION.getName(),
                 new char[]{'X'}));

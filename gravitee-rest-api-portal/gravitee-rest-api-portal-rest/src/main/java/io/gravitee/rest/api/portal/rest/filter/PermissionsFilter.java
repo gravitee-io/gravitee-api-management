@@ -32,20 +32,17 @@ import javax.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.resource.AbstractResource;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 
@@ -78,13 +75,9 @@ public class PermissionsFilter implements ContainerRequestFilter {
     @Inject
     private RoleService roleService;
 
-    @Inject
-    private GroupService groupService;
-
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (    securityContext.isUserInRole(AbstractResource.MANAGEMENT_ADMIN) ||
-                securityContext.isUserInRole(AbstractResource.PORTAL_ADMIN)) {
+        if (    securityContext.isUserInRole(AbstractResource.ENVIRONMENT_ADMIN)) {
             logger.debug("User [{}] has full access because of its ADMIN role",
                     securityContext.getUserPrincipal().getName());
             return;
@@ -109,22 +102,18 @@ public class PermissionsFilter implements ContainerRequestFilter {
     }
 
     protected boolean hasPermission(ContainerRequestContext requestContext, String username, Permission permission) {
-        RoleEntity role;
         Map<String, char[]> memberPermissions;
         switch (permission.value().getScope()) {
-            case MANAGEMENT:
-                role = membershipService.getRole(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name(), username, RoleScope.MANAGEMENT);
-                return roleService.hasPermission(role.getPermissions(), permission.value().getPermission(), permission.acls());
-            case PORTAL:
-                role = membershipService.getRole(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name(), username, RoleScope.PORTAL);
-                return roleService.hasPermission(role.getPermissions(), permission.value().getPermission(), permission.acls());
+            case ENVIRONMENT:
+                memberPermissions = membershipService.getUserMemberPermissions(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), username);
+                return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
             case APPLICATION:
                 ApplicationEntity application = getApplication(requestContext);
-                memberPermissions = membershipService.getMemberPermissions(application, username);
+                memberPermissions = membershipService.getUserMemberPermissions(application, username);
                 return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
             case API:
                 ApiEntity api = getApi(requestContext);
-                memberPermissions = membershipService.getMemberPermissions(api, username);
+                memberPermissions = membershipService.getUserMemberPermissions(api, username);
                 return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
             default:
                 sendSecurityError();

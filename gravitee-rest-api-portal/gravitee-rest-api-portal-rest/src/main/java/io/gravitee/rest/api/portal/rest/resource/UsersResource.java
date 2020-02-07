@@ -102,7 +102,7 @@ public class UsersResource extends AbstractResource {
     @POST
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.MANAGEMENT_USERS, acls = READ) })
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ) })
     public Response getUsers(@QueryParam("q") String query, @BeanParam PaginationParam paginationParam) {
         List<User> users = identityService.search(query).stream()
                 .map(searchableUser -> userMapper.convert(searchableUser)

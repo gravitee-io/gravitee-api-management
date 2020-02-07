@@ -31,8 +31,8 @@ import java.util.Set;
 public class ViewRepositoryProxy extends AbstractProxy<ViewRepository> implements ViewRepository {
 
     @Override
-    public Optional<View> findById(String s, String environment) throws TechnicalException {
-        return target.findById(s, environment);
+    public Optional<View> findById(String s) throws TechnicalException {
+        return target.findById(s);
     }
 
     @Override
@@ -51,8 +51,8 @@ public class ViewRepositoryProxy extends AbstractProxy<ViewRepository> implement
     }
 
     @Override
-    public void delete(String s, String environment) throws TechnicalException {
-        target.delete(s, environment);
+    public void delete(String s) throws TechnicalException {
+        target.delete(s);
     }
 
     @Override

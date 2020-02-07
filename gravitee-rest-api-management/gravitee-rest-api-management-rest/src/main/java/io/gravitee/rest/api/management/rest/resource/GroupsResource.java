@@ -64,7 +64,7 @@ public class GroupsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")
     })
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
     })
     public Response findAll(){
         return Response
@@ -84,7 +84,7 @@ public class GroupsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal Server Error")
     })
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE)
     })
     public Response createGroup(
             @ApiParam(name = "group", required = true)

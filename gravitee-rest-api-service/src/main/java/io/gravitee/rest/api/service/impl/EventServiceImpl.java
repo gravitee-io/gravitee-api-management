@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
@@ -26,6 +25,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -84,8 +84,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             LOGGER.debug("Create {} for server {}", newEventEntity, hostAddress);
 
             Event event = convert(newEventEntity);
-            event.setId(UUID.toString(UUID.random()));
-            event.setEnvironment(GraviteeContext.getCurrentEnvironment());
+            event.setId(RandomString.generate());
+            event.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
             
             // Set origin
             event.getProperties().put(Event.EventProperties.ORIGIN.getValue(), hostAddress);
@@ -126,7 +126,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     private Set<EventEntity> findByProperty(String property, String value) {
-        return convert(eventRepository.search(new EventCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).property(property, value).build()));
+        return convert(eventRepository.search(new EventCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).property(property, value).build()));
     }
 
     @Override
@@ -146,7 +146,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             properties.forEach(builder::property);
         }
 
-        builder.environment(GraviteeContext.getCurrentEnvironment());
+        builder.environmentId(GraviteeContext.getCurrentEnvironment());
         
         Page<Event> pageEvent = eventRepository.search(
                 builder.build(),
@@ -164,7 +164,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     private EventCriteria.Builder queryToCriteria(EventQuery query) {
-        final EventCriteria.Builder builder = new EventCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment());
+        final EventCriteria.Builder builder = new EventCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment());
         if (query == null) {
             return builder;
         }

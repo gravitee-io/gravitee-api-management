@@ -54,7 +54,7 @@ public class InstancesResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List gateway instances")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_INSTANCE, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ)
     })
     public Collection<InstanceListItem> listInstances(@QueryParam("includeStopped") boolean includeStopped) {
         return new ArrayList<>(instanceService.findInstances(includeStopped));

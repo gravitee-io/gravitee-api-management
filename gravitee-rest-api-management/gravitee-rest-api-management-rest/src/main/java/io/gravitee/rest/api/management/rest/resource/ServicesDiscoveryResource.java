@@ -58,7 +58,7 @@ public class ServicesDiscoveryResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List service discovery plugins")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public Collection<ResourceListItem> listResources(@QueryParam("expand") List<String> expand) {
         Stream<ResourceListItem> stream = serviceDiscoveryService.findAll().stream().map(this::convert);

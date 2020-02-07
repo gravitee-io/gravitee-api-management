@@ -21,9 +21,6 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.*;
@@ -31,6 +28,7 @@ import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import org.apache.commons.io.IOUtils;
@@ -511,48 +509,42 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         when(groupService.findById("Api consumer")).thenReturn(mockGroupEntity("group_id_4","Api consumer"));
 
         // mock role search
-        when(roleService.findById(RoleScope.PORTAL, "USER")).thenReturn(mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL,"USER"));
-        when(roleService.findById(RoleScope.MANAGEMENT, "ADMIN")).thenReturn(mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.MANAGEMENT,"ADMIN"));
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER")).thenReturn(Optional.of(mockRoleEntity(RoleScope.ENVIRONMENT,"USER")));
 
         RoleEntity roleApiUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.API,"USER");
         RoleEntity roleApplicationAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION,"ADMIN");
 
         when(roleService.findDefaultRoleByScopes(RoleScope.API,RoleScope.APPLICATION)).thenReturn(Arrays.asList(roleApiUser,roleApplicationAdmin));
 
-        when(membershipService.addOrUpdateMember(
+        when(membershipService.addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
 
-        when(membershipService.addOrUpdateMember(
+        when(membershipService.addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
 
-        when(membershipService.addOrUpdateMember(
+        when(membershipService.addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))).thenReturn(mockMemberEntity());
 
-        when(membershipService.addOrUpdateMember(
+        when(membershipService.addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
 
-        when(membershipService.addOrUpdateMember(
+        when(membershipService.addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))).thenReturn(mockMemberEntity());
 
-        when(membershipService.addOrUpdateMember(
-                new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
-                new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "ADMIN"))).thenReturn(mockMemberEntity());
-
-        when(membershipService.addOrUpdateMember(
-                new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
-                new MembershipService.MembershipRole(RoleScope.PORTAL, "USER"))).thenReturn(mockMemberEntity());
+        when(membershipService.addRoleToMemberOnReference(
+                new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT"),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))).thenReturn(mockMemberEntity());
 
         //mock DB update user picture
         UpdateUserEntity updateUserEntity = mockUpdateUserPicture(createdUser);
@@ -575,55 +567,50 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verify(userService, times(1)).connect("janedoe@example.com");
 
         //verify group creations
-        verify(membershipService, times(1)).addOrUpdateMember(
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "USER"));
 
-        verify(membershipService, times(1)).addOrUpdateMember(
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
 
-        verify(membershipService, times(1)).addOrUpdateMember(
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "USER"));
 
-        verify(membershipService, times(1)).addOrUpdateMember(
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
 
-        verify(membershipService, times(0)).addOrUpdateMember(
+        verify(membershipService, times(0)).addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "USER"));
 
-        verify(membershipService, times(0)).addOrUpdateMember(
+        verify(membershipService, times(0)).addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
 
-        verify(membershipService, times(1)).addOrUpdateMember(
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "USER"));
 
-        verify(membershipService, times(1)).addOrUpdateMember(
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
 
-        verify(membershipService, times(1)).addOrUpdateMember(
-                new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
-                new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "ADMIN"));
-
-        verify(membershipService, times(1)).addOrUpdateMember(
-                new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
-                new MembershipService.MembershipUser("janedoe@example.com", null),
-                new MembershipService.MembershipRole(RoleScope.PORTAL, "USER"));
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "USER"));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -678,9 +665,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verify(userService, times(1)).connect("janedoe@example.com");
 
         //verify group creations
-        verify(membershipService, times(0)).addOrUpdateMember(
+        verify(membershipService, times(0)).addRoleToMemberOnReference(
                 any(MembershipService.MembershipReference.class),
-                any(MembershipService.MembershipUser.class),
+                any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -736,9 +723,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verify(userService, times(1)).connect(anyString());
 
         //verify group creations
-        verify(membershipService, times(0)).addOrUpdateMember(
+        verify(membershipService, times(0)).addRoleToMemberOnReference(
                 any(MembershipService.MembershipReference.class),
-                any(MembershipService.MembershipUser.class),
+                any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -783,9 +770,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verify(userService, times(0)).connect(anyString());
 
         //verify group creations
-        verify(membershipService, times(0)).addOrUpdateMember(
+        verify(membershipService, times(0)).addRoleToMemberOnReference(
                 any(MembershipService.MembershipReference.class),
-                any(MembershipService.MembershipUser.class),
+                any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class));
 
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
@@ -834,18 +821,17 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         RoleMappingEntity role1 = new RoleMappingEntity();
         role1.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
-        role1.setManagement("ADMIN");
-        role1.setPortal("USER");
+        role1.setOrganizations(Collections.singletonList("USER"));
         identityProvider.getRoleMappings().add(role1);
 
         RoleMappingEntity role2 = new RoleMappingEntity();
         role2.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_6'}");
-        role2.setPortal("USER");
+        role2.setOrganizations(Collections.singletonList("USER"));
         identityProvider.getRoleMappings().add(role2);
 
         RoleMappingEntity role3 = new RoleMappingEntity();
         role3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
-        role3.setPortal("USER");
+        role3.setOrganizations(Collections.singletonList("USER"));
         identityProvider.getRoleMappings().add(role3);
     }
 

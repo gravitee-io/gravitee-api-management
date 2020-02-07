@@ -15,15 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -47,13 +43,7 @@ public class GroupMemberResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private UserService userService;
-
-    @Inject
     private GroupService groupService;
-
-    @Inject
-    private MembershipService membershipService;
 
     @DELETE
     @ApiOperation(value = "Remove a group member")
@@ -62,19 +52,12 @@ public class GroupMemberResource extends AbstractResource {
             @ApiResponse(code = 400, message = "User does not exist"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.DELETE),
+            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE),
             @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.DELETE)
     })
     public Response deleteMember( @PathParam("group") String group, @PathParam("member") String userId) {
-        // check group exists
-        groupService.findById(group);
-        try {
-            userService.findById(userId);
-        } catch (UserNotFoundException unfe) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
-        }
-
-        membershipService.deleteMember(MembershipReferenceType.GROUP, group, userId);
+        groupService.deleteUserFromGroup(group, userId);
+        
         return Response.ok().build();
     }
 }

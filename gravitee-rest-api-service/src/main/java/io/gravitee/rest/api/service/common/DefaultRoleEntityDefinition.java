@@ -17,56 +17,54 @@ package io.gravitee.rest.api.service.common;
 
 import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.model.NewRoleEntity;
-import io.gravitee.rest.api.model.permissions.ApiPermission;
-import io.gravitee.rest.api.model.permissions.ApplicationPermission;
-import io.gravitee.rest.api.model.permissions.ManagementPermission;
-import io.gravitee.rest.api.model.permissions.PortalPermission;
+import io.gravitee.rest.api.model.permissions.*;
 
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 import static io.gravitee.rest.api.model.permissions.RoleScope.*;
 
 public interface DefaultRoleEntityDefinition {
 
-    public static final NewRoleEntity ROLE_MANAGEMENT_API_PUBLISHER = new NewRoleEntity(
+    public static final NewRoleEntity DEFAULT_ROLE_ORGANIZATION_USER = new NewRoleEntity(
+            "USER",
+            "Default Organization Role. Created by Gravitee.io.",
+            ORGANIZATION,
+            true,
+            Maps.<String, char[]>builder()
+                .put(OrganizationPermission.USER.getName(), new char[]{READ.getId()})
+                .put(OrganizationPermission.ENVIRONMENT.getName(), new char[]{READ.getId()})
+                .put(OrganizationPermission.ROLE.getName(), new char[]{READ.getId()})
+
+                .build()
+            );
+
+    public static final NewRoleEntity ROLE_ENVIRONMENT_API_PUBLISHER = new NewRoleEntity(
             "API_PUBLISHER",
-            "Management Role. Created by Gravitee.io.",
-            MANAGEMENT,
+            "Environment Role. Created by Gravitee.io.",
+            ENVIRONMENT,
             false,
             Maps.<String, char[]>builder()
-                .put(ManagementPermission.API.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
-                .put(ManagementPermission.APPLICATION.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
-                .put(ManagementPermission.TAG.getName(), new char[]{READ.getId()})
-                .put(ManagementPermission.GROUP.getName(), new char[]{READ.getId()})
-                .put(ManagementPermission.TENANT.getName(), new char[]{READ.getId()})
-                .put(ManagementPermission.ROLE.getName(), new char[]{READ.getId()})
-                .put(ManagementPermission.PLATFORM.getName(), new char[]{READ.getId()})
+                .put(EnvironmentPermission.API.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                .put(EnvironmentPermission.APPLICATION.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                .put(EnvironmentPermission.TAG.getName(), new char[]{READ.getId()})
+                .put(EnvironmentPermission.GROUP.getName(), new char[]{READ.getId()})
+                .put(EnvironmentPermission.TENANT.getName(), new char[]{READ.getId()})
+                .put(EnvironmentPermission.PLATFORM.getName(), new char[]{READ.getId()})
                 .build()
             );
     
-    public static final NewRoleEntity DEFAULT_ROLE_MANAGEMENT_USER = new NewRoleEntity(
+    public static final NewRoleEntity DEFAULT_ROLE_ENVIRONMENT_USER = new NewRoleEntity(
             "USER",
-            "Default Management Role. Created by Gravitee.io.",
-            MANAGEMENT,
+            "Default Environment Role. Created by Gravitee.io.",
+            ENVIRONMENT,
             true,
             Maps.<String, char[]>builder()
-                .put(ManagementPermission.API.getName(), new char[]{READ.getId()})
-                .put(ManagementPermission.APPLICATION.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
-                .put(ManagementPermission.ROLE.getName(), new char[]{READ.getId()})
-                .put(ManagementPermission.GROUP.getName(), new char[]{READ.getId()})
+                .put(EnvironmentPermission.API.getName(), new char[]{READ.getId()})
+                .put(EnvironmentPermission.APPLICATION.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                .put(EnvironmentPermission.GROUP.getName(), new char[]{READ.getId()})
+                .put(EnvironmentPermission.DOCUMENTATION.getName(), new char[]{READ.getId()})
                 .build()
             );
-    
-    public static final NewRoleEntity DEFAULT_ROLE_PORTAL_USER = new NewRoleEntity(
-            "USER",
-            "Default Portal Role. Created by Gravitee.io.",
-            PORTAL,
-            true,
-            Maps.<String, char[]>builder()
-                .put(PortalPermission.APPLICATION.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
-                .put(PortalPermission.DOCUMENTATION.getName(), new char[]{READ.getId()})
-                .build()
-            );
-    
+        
     public static final NewRoleEntity DEFAULT_ROLE_API_USER = new NewRoleEntity(
             "USER",
             "Default API Role. Created by Gravitee.io.",

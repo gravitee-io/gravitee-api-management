@@ -52,7 +52,7 @@ public class ClientRegistrationProviderResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "A client registration provider"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions(@Permission(value = RolePermission.PORTAL_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.READ))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.READ))
     public ClientRegistrationProviderEntity getClientRegistrationProvider(
             @PathParam("clientRegistrationProvider") String clientRegistrationProvider) {
         return clientRegistrationService.findById(clientRegistrationProvider);
@@ -66,7 +66,7 @@ public class ClientRegistrationProviderResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Updated client registration provider", response = ClientRegistrationProviderEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions(@Permission(value = RolePermission.PORTAL_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.UPDATE))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.UPDATE))
     public ClientRegistrationProviderEntity updateClientRegistrationProvider(
             @PathParam("clientRegistrationProvider") String clientRegistrationProvider,
             @ApiParam(name = "clientRegistrationProvider", required = true) @Valid @NotNull final UpdateClientRegistrationProviderEntity updatedClientRegistrationProvider) {
@@ -80,7 +80,7 @@ public class ClientRegistrationProviderResource extends AbstractResource {
             @ApiResponse(code = 204, message = "Client registration provider successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.DELETE)
     })
     public Response deleteClientRegistrationProvider(@PathParam("clientRegistrationProvider") String clientRegistrationProvider) {
         clientRegistrationService.delete(clientRegistrationProvider);

@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 
 import org.apache.commons.io.IOUtils;
@@ -65,7 +65,7 @@ public class MediaServiceImpl implements MediaService {
             byte[] hash = digest.digest(fileBites);
             String hashString = DatatypeConverter.printHexBinary(hash);
 
-            String id = UUID.toString(UUID.random());
+            String id = RandomString.generate();
 
             Optional<Media> checkMedia = null;
 

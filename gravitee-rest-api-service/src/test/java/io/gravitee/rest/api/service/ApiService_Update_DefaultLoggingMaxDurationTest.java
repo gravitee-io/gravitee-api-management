@@ -24,15 +24,18 @@ import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,7 +78,10 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     private ApiRepository apiRepository;
 
     @Mock
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
+
+    @Mock
+    private RoleService roleService;
 
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
@@ -102,7 +108,6 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
     @Before
     public void setUp()  throws TechnicalException {
-        existingApi = new UpdateApiEntity();
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
@@ -110,18 +115,27 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         when(api.getName()).thenReturn(API_NAME);
         when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.CREATED);
 
+        existingApi = new UpdateApiEntity();
         existingApi.setName(API_NAME);
         existingApi.setVersion("v1");
         existingApi.setDescription("Ma description");
-        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
-        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
-                .thenReturn(Collections.singleton(po));
+        existingApi.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
         final Proxy proxy = new Proxy();
         existingApi.setProxy(proxy);
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
-        existingApi.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
-
+        
+        RoleEntity poRoleEntity = new RoleEntity();
+        poRoleEntity.setName(SystemRole.PRIMARY_OWNER.name());
+        poRoleEntity.setScope(RoleScope.API);
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name())).thenReturn(Optional.of(poRoleEntity));
+        MemberEntity po = new MemberEntity();
+        po.setId(USER_NAME);
+        po.setReferenceId(API_ID);
+        po.setReferenceType(io.gravitee.rest.api.model.MembershipReferenceType.API);
+        po.setRoles(Collections.singletonList(poRoleEntity));
+        when(membershipService.getMembersByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        
+        
         mockStatic(System.class);
         when(System.currentTimeMillis()).thenReturn(0L);
 

@@ -17,9 +17,6 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import com.auth0.jwt.JWTSigner;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.idp.api.authentication.UserDetailRole;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
@@ -29,6 +26,7 @@ import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.TaskService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.swagger.annotations.Api;
@@ -203,22 +201,22 @@ public class CurrentUserResource extends AbstractResource {
             Set<GrantedAuthority> authorities = new HashSet<>(userDetails.getAuthorities());
 
             // We must also load permissions from repository for configured management or portal role
-            RoleEntity role = membershipService.getRole(
-                    MembershipReferenceType.MANAGEMENT,
-                    MembershipDefaultReferenceId.DEFAULT.toString(),
-                    userDetails.getUsername(),
-                    RoleScope.MANAGEMENT);
-            if (role != null) {
-                authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
+            Set<RoleEntity> roles = membershipService.getRoles(
+                    MembershipReferenceType.ENVIRONMENT,
+                    GraviteeContext.getCurrentEnvironment(),
+                    MembershipMemberType.USER,
+                    userDetails.getUsername());
+            if (!roles.isEmpty()) {
+                roles.forEach(role-> authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName())));
             }
 
-            role = membershipService.getRole(
-                    MembershipReferenceType.PORTAL,
-                    MembershipDefaultReferenceId.DEFAULT.toString(),
-                    userDetails.getUsername(),
-                    RoleScope.PORTAL);
-            if (role != null) {
-                authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
+            roles = membershipService.getRoles(
+                    MembershipReferenceType.ORGANIZATION,
+                    GraviteeContext.getCurrentOrganization(),
+                    MembershipMemberType.USER,
+                    userDetails.getUsername());
+            if (!roles.isEmpty()) {
+                roles.forEach(role-> authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName())));
             }
 
             claims.put(Claims.PERMISSIONS, authorities);

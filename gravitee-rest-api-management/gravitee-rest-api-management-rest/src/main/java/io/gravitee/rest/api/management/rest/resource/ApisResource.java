@@ -149,7 +149,7 @@ public class ApisResource extends AbstractResource {
             @ApiResponse(code = 201, message = "API successfully created"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
     })
     public Response createApi(
             @ApiParam(name = "api", required = true)
@@ -175,8 +175,8 @@ public class ApisResource extends AbstractResource {
             @ApiResponse(code = 200, message = "API successfully created"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE)
     })
     public Response importDefinition(
             @ApiParam(name = "definition", required = true) @Valid @NotNull String apiDefinition) {
@@ -192,7 +192,7 @@ public class ApisResource extends AbstractResource {
             @ApiResponse(code = 200, message = "API definition from Swagger descriptor", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
     })
     public Response importSwagger(
             @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
@@ -211,7 +211,7 @@ public class ApisResource extends AbstractResource {
             @ApiResponse(code = 200, message = "No API match the following criteria"),
             @ApiResponse(code = 400, message = "API already exist with the following criteria")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
     })
     public Response verify(@Valid VerifyApiParam verifyApiParam) {
         // TODO : create verify service to query repository with criteria

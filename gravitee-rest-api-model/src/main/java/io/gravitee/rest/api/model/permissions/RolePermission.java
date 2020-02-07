@@ -20,36 +20,6 @@ package io.gravitee.rest.api.model.permissions;
  * @author GraviteeSource Team
  */
 public enum RolePermission {
-    MANAGEMENT_INSTANCE     (RoleScope.MANAGEMENT, ManagementPermission.INSTANCE),
-    MANAGEMENT_GROUP        (RoleScope.MANAGEMENT, ManagementPermission.GROUP),
-    MANAGEMENT_TAG          (RoleScope.MANAGEMENT, ManagementPermission.TAG),
-    MANAGEMENT_TENANT       (RoleScope.MANAGEMENT, ManagementPermission.TENANT),
-    MANAGEMENT_API          (RoleScope.MANAGEMENT, ManagementPermission.API),
-    MANAGEMENT_ROLE         (RoleScope.MANAGEMENT, ManagementPermission.ROLE),
-    MANAGEMENT_APPLICATION  (RoleScope.MANAGEMENT, ManagementPermission.APPLICATION),
-    MANAGEMENT_PLATFORM     (RoleScope.MANAGEMENT, ManagementPermission.PLATFORM),
-    MANAGEMENT_AUDIT        (RoleScope.MANAGEMENT, ManagementPermission.AUDIT),
-    MANAGEMENT_NOTIFICATION (RoleScope.MANAGEMENT, ManagementPermission.NOTIFICATION),
-    MANAGEMENT_USERS        (RoleScope.MANAGEMENT, ManagementPermission.USER),
-    MANAGEMENT_MESSAGE      (RoleScope.MANAGEMENT, ManagementPermission.MESSAGE),
-    MANAGEMENT_DICTIONARY   (RoleScope.MANAGEMENT, ManagementPermission.DICTIONARY),
-    MANAGEMENT_ALERT        (RoleScope.MANAGEMENT, ManagementPermission.ALERT),
-    MANAGEMENT_ENTRYPOINT   (RoleScope.MANAGEMENT, ManagementPermission.ENTRYPOINT),
-    MANAGEMENT_SETTINGS     (RoleScope.MANAGEMENT, ManagementPermission.SETTINGS),
-    MANAGEMENT_QUALITY_RULE (RoleScope.MANAGEMENT, ManagementPermission.QUALITY_RULE),
-    MANAGEMENT_DASHBOARD    (RoleScope.MANAGEMENT, ManagementPermission.DASHBOARD),
-
-    PORTAL_METADATA         (RoleScope.PORTAL, PortalPermission.METADATA),
-    PORTAL_DOCUMENTATION    (RoleScope.PORTAL, PortalPermission.DOCUMENTATION),
-    PORTAL_APPLICATION      (RoleScope.PORTAL, PortalPermission.APPLICATION),
-    PORTAL_VIEW             (RoleScope.PORTAL, PortalPermission.VIEW),
-    PORTAL_TOP_APIS         (RoleScope.PORTAL, PortalPermission.TOP_APIS),
-    PORTAL_SETTINGS         (RoleScope.PORTAL, PortalPermission.SETTINGS),
-    PORTAL_API_HEADER       (RoleScope.PORTAL, PortalPermission.API_HEADER),
-    PORTAL_IDENTITY_PROVIDER(RoleScope.PORTAL, PortalPermission.IDENTITY_PROVIDER),
-    PORTAL_CLIENT_REGISTRATION_PROVIDER(RoleScope.PORTAL, PortalPermission.CLIENT_REGISTRATION_PROVIDER),
-    PORTAL_THEME (RoleScope.PORTAL, PortalPermission.THEME),
-
     API_DEFINITION          (RoleScope.API, ApiPermission.DEFINITION),
     API_PLAN                (RoleScope.API, ApiPermission.PLAN),
     API_SUBSCRIPTION        (RoleScope.API, ApiPermission.SUBSCRIPTION),
@@ -80,8 +50,37 @@ public enum RolePermission {
     APPLICATION_ALERT       (RoleScope.APPLICATION, ApiPermission.ALERT),
 
     GROUP_MEMBER            (RoleScope.GROUP, GroupPermission.MEMBER),
-    GROUP_INVITATION        (RoleScope.GROUP, GroupPermission.INVITATION);
+    GROUP_INVITATION        (RoleScope.GROUP, GroupPermission.INVITATION),
 
+    ENVIRONMENT_INSTANCE                    (RoleScope.ENVIRONMENT, EnvironmentPermission.INSTANCE),
+    ENVIRONMENT_GROUP                       (RoleScope.ENVIRONMENT, EnvironmentPermission.GROUP),
+    ENVIRONMENT_TAG                         (RoleScope.ENVIRONMENT, EnvironmentPermission.TAG),
+    ENVIRONMENT_TENANT                      (RoleScope.ENVIRONMENT, EnvironmentPermission.TENANT),
+    ENVIRONMENT_API                         (RoleScope.ENVIRONMENT, EnvironmentPermission.API),
+    ENVIRONMENT_APPLICATION                 (RoleScope.ENVIRONMENT, EnvironmentPermission.APPLICATION),
+    ENVIRONMENT_PLATFORM                    (RoleScope.ENVIRONMENT, EnvironmentPermission.PLATFORM),
+    ENVIRONMENT_AUDIT                       (RoleScope.ENVIRONMENT, EnvironmentPermission.AUDIT),
+    ENVIRONMENT_NOTIFICATION                (RoleScope.ENVIRONMENT, EnvironmentPermission.NOTIFICATION),
+    ENVIRONMENT_MESSAGE                     (RoleScope.ENVIRONMENT, EnvironmentPermission.MESSAGE),
+    ENVIRONMENT_DICTIONARY                  (RoleScope.ENVIRONMENT, EnvironmentPermission.DICTIONARY),
+    ENVIRONMENT_ALERT                       (RoleScope.ENVIRONMENT, EnvironmentPermission.ALERT),
+    ENVIRONMENT_ENTRYPOINT                  (RoleScope.ENVIRONMENT, EnvironmentPermission.ENTRYPOINT),
+    ENVIRONMENT_SETTINGS                    (RoleScope.ENVIRONMENT, EnvironmentPermission.SETTINGS),
+    ENVIRONMENT_QUALITY_RULE                (RoleScope.ENVIRONMENT, EnvironmentPermission.QUALITY_RULE),
+    ENVIRONMENT_DASHBOARD                   (RoleScope.ENVIRONMENT, EnvironmentPermission.DASHBOARD),
+    ENVIRONMENT_METADATA                    (RoleScope.ENVIRONMENT, EnvironmentPermission.METADATA),
+    ENVIRONMENT_DOCUMENTATION               (RoleScope.ENVIRONMENT, EnvironmentPermission.DOCUMENTATION),
+    ENVIRONMENT_VIEW                        (RoleScope.ENVIRONMENT, EnvironmentPermission.VIEW),
+    ENVIRONMENT_TOP_APIS                    (RoleScope.ENVIRONMENT, EnvironmentPermission.TOP_APIS),
+    ENVIRONMENT_API_HEADER                  (RoleScope.ENVIRONMENT, EnvironmentPermission.API_HEADER),
+    ENVIRONMENT_IDENTITY_PROVIDER           (RoleScope.ENVIRONMENT, EnvironmentPermission.IDENTITY_PROVIDER),
+    ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER(RoleScope.ENVIRONMENT, EnvironmentPermission.CLIENT_REGISTRATION_PROVIDER),
+    ENVIRONMENT_THEME                       (RoleScope.ENVIRONMENT, EnvironmentPermission.THEME),
+
+    ORGANIZATION_USERS                      (RoleScope.ORGANIZATION, OrganizationPermission.USER),
+    ORGANIZATION_ROLE                       (RoleScope.ORGANIZATION, OrganizationPermission.ROLE),
+    ORGANIZATION_ENVIRONMENT                (RoleScope.ORGANIZATION, OrganizationPermission.ENVIRONMENT),
+    ;
 
     RoleScope scope;
     Permission permission;

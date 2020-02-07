@@ -16,17 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.InvitationEntity;
-import io.gravitee.rest.api.model.NewInvitationEntity;
-import io.gravitee.rest.api.model.UpdateInvitationEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InvitationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException;
 import io.gravitee.rest.api.service.exceptions.GroupMembersLimitationExceededException;
 import io.swagger.annotations.Api;
@@ -40,7 +37,6 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.*;
 import java.util.List;
 
-import static io.gravitee.repository.management.model.RoleScope.API;
 import static io.gravitee.rest.api.model.InvitationReferenceType.GROUP;
 import static io.gravitee.rest.api.model.permissions.RolePermission.GROUP_INVITATION;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
@@ -78,10 +74,11 @@ public class GroupInvitationsResource extends AbstractResource {
         // Check that group exists
         final GroupEntity groupEntity = groupService.findById(group);
         // check if user is a 'simple group admin' or a platform admin
-        final boolean hasPermission = permissionService.hasPermission(RolePermission.MANAGEMENT_GROUP, null, CREATE, UPDATE, DELETE);
+        final boolean hasPermission = permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, GraviteeContext.getCurrentEnvironment(), CREATE, UPDATE, DELETE);
         if (!hasPermission) {
+            
             if (groupEntity.getMaxInvitation() != null &&
-                membershipService.getNumberOfMembers(MembershipReferenceType.GROUP, group, API) >= groupEntity.getMaxInvitation()) {
+                    groupService.getNumberOfMembers(group) >= groupEntity.getMaxInvitation()) {
                     throw new GroupMembersLimitationExceededException(groupEntity.getMaxInvitation());
             }
             if (!groupEntity.isEmailInvitation()) {

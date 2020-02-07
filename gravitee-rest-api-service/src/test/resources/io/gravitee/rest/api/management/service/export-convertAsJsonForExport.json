@@ -6,7 +6,9 @@
   "members" : [ {
     "source":"johndoe-source",
     "sourceId":"johndoe-sourceId",
-    "role" : "PRIMARY_OWNER"
+    "roles" : [
+      "API_PRIMARY_OWNER"
+    ]
   } ],
   "pages" : [ {
     "name" : "My Title",

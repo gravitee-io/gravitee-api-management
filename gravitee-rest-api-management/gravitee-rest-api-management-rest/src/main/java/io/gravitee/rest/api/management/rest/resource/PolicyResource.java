@@ -51,7 +51,7 @@ public class PolicyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a policy")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public PolicyEntity getPolicy(
             @PathParam("policy") String policy) {
@@ -63,7 +63,7 @@ public class PolicyResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a policy's schema")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public String getPolicySchema(
             @PathParam("policy") String policy) {

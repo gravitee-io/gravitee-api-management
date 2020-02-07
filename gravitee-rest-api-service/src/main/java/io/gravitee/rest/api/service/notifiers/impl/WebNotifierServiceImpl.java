@@ -24,6 +24,7 @@ import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notifiers.WebNotifierService;
@@ -141,7 +142,7 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         request.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         request.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
         headers.forEach(request::putHeader);
-        request.putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
+        request.putHeader("X-Gravitee-Request-Id", RandomString.generate());
         request.write(body);
 
         request.handler(response -> {

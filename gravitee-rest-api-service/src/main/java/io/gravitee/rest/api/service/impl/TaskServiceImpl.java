@@ -16,16 +16,15 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 
@@ -41,6 +40,7 @@ import static io.gravitee.rest.api.model.SubscriptionStatus.PENDING;
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.permissions.ApiPermission.*;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -59,9 +59,9 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     @Autowired
     private ApplicationService applicationService;
     @Autowired
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
     @Autowired
-    private ApiRepository apiRepository;
+    private GroupService groupService;
     @Autowired
     private RoleService roleService;
     @Autowired
@@ -132,28 +132,25 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
     private Set<String> getApisForAPermission(final String userId, final String permission) throws TechnicalException {
         // 1. find apis and group memberships
-        Set<Membership> memberships = membershipRepository.findByUserAndReferenceType(userId, MembershipReferenceType.GROUP);
-        memberships.addAll(membershipRepository.findByUserAndReferenceType(userId, MembershipReferenceType.API));
-
+        Set<MembershipEntity> memberships = membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, io.gravitee.rest.api.model.MembershipReferenceType.API);
+        memberships.addAll(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, io.gravitee.rest.api.model.MembershipReferenceType.GROUP));
+        
         Map<String, RoleEntity> roleNameToEntity = new HashMap<>();
         Set<String> apiIds = new HashSet<>();
         List<String> groupIds = new ArrayList<>();
-        for (Membership membership : memberships) {
-            // 2. get API roles in each memberships (in GROUP, it could be null)
-            String roleName = membership.getRoles().get(RoleScope.API.getId());
-            if (roleName != null) {
-                // 3. search for roleEntity only once
-                RoleEntity roleEntity = roleNameToEntity.get(roleName);
-                if (roleEntity == null) {
-                    try {
-                        roleEntity = roleService.findById(RoleScope.API, roleName);
-                        roleNameToEntity.put(roleName, roleEntity);
-                    } catch (final RoleNotFoundException rnfe) {
-                        LOGGER.debug("Role not found", rnfe);
-                        continue;
-                    }
+
+        for (MembershipEntity membership : memberships) {
+            // 2. get API roles in each memberships and search for roleEntity only once
+            RoleEntity roleEntity = roleNameToEntity.get(membership.getRoleId());
+            if (roleEntity == null && !roleNameToEntity.containsKey(membership.getRoleId())) {
+                RoleEntity role = roleService.findById(membership.getRoleId());
+                if (role.getScope() == RoleScope.API) {
+                    roleNameToEntity.put(role.getId(), role);
+                    roleEntity = role;
                 }
-                // 4. get apiId or groupId only if the role has a given permission
+            }
+            if (roleEntity != null) {
+                // 3. get apiId or groupId only if the role has a given permission
                 final char[] rights = roleEntity.getPermissions().get(permission);
                 if (rights != null) {
                     for (char c : rights) {
@@ -173,15 +170,17 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 }
             }
         }
-
-        // 5. add apiId that comes from group
+        // 54. add apiId that comes from group
         if (!groupIds.isEmpty()) {
-            apiIds.addAll(apiRepository
-                    .search(new ApiCriteria.Builder().groups(groupIds.toArray(new String[0])).build())
+            ApiQuery apiQuery = new ApiQuery();
+            apiQuery.setGroups(groupIds);
+            apiIds.addAll(apiService
+                    .search(apiQuery)
                     .stream()
-                    .map(Api::getId)
+                    .map(ApiEntity::getId)
                     .collect(Collectors.toSet()));
         }
+
         return apiIds;
     }
 
@@ -225,20 +224,6 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         } catch (Exception e) {
             LOGGER.error("Error converting subscription {} to a Task", subscription.getId());
             throw new TechnicalManagementException("Error converting subscription " + subscription.getId() + " to a Task", e);
-        }
-        return taskEntity;
-    }
-
-    private TaskEntity convert(ApiEntity api) {
-        TaskEntity taskEntity = new TaskEntity();
-        try {
-            taskEntity.setType(TaskType.valueOf(api.getWorkflowState().name()));
-            taskEntity.setCreatedAt(api.getCreatedAt());
-            taskEntity.setData(api);
-        } catch (Exception e) {
-            final String error = "Error converting api " + api.getId() + " to a Task";
-            LOGGER.error(error);
-            throw new TechnicalManagementException(error, e);
         }
         return taskEntity;
     }

@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
 import io.gravitee.repository.management.model.PortalNotification;
@@ -25,6 +24,7 @@ import io.gravitee.rest.api.model.notification.NewPortalNotificationEntity;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
 import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.exceptions.NotificationConfigNotFoundException;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.PortalNotificationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.Hook;
@@ -138,7 +138,7 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
                 map(this::convert).
                 collect(Collectors.toList());
         notifications.forEach( n -> {
-            n.setId(UUID.toString(UUID.random()));
+            n.setId(RandomString.generate());
             n.setCreatedAt(now);
         });
         try {

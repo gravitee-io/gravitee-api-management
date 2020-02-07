@@ -51,7 +51,7 @@ public class NotifierResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a notifier")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public NotifierEntity getNotifier(
             @PathParam("notifier") String notifier) {
@@ -63,7 +63,7 @@ public class NotifierResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a notifier's schema")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public String getNotifierSchema(
             @PathParam("notifier") String notifier) {

@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -383,7 +384,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     private AlertTrigger convert(final NewAlertTriggerEntity alertEntity) {
         final AlertTrigger alert = new AlertTrigger();
-        alert.setId(UUID.toString(UUID.random()));
+        alert.setId(RandomString.generate());
         alertEntity.setId(alert.getId());
         alert.setName(alertEntity.getName());
         alert.setDescription(alertEntity.getDescription());
@@ -405,7 +406,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     private AlertTrigger convert(final UpdateAlertTriggerEntity alertEntity) {
         final AlertTrigger alert = new AlertTrigger();
-        alert.setId(UUID.toString(UUID.random()));
+        alert.setId(RandomString.generate());
         alert.setName(alertEntity.getName());
         alert.setDescription(alertEntity.getDescription());
         alert.setEnabled(alertEntity.isEnabled());

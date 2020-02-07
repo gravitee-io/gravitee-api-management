@@ -61,7 +61,7 @@ public class DynamicPropertyUpdater implements Handler<Long> {
                 return new Authentication() {
                     @Override
                     public Collection<? extends GrantedAuthority> getAuthorities() {
-                        return AuthorityUtils.createAuthorityList(RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name());
+                        return AuthorityUtils.createAuthorityList(RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name());
                     }
 
                     @Override

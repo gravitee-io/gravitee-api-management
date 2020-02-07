@@ -36,8 +36,6 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -165,17 +163,20 @@ public class ApiService_ExportAsJsonTest {
         page.setType(PageType.MARKDOWN.toString());
         page.setContent("Read the doc");
         when(pageService.search(any(), eq(true))).thenReturn(Collections.singletonList(page));
-        Membership membership = new Membership();
-        membership.setUserId("johndoe");
-        membership.setReferenceId(API_ID);
-        membership.setReferenceType(MembershipReferenceType.API);
-        membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferenceAndRole(eq(MembershipReferenceType.API), eq(API_ID), any(), any()))
-                .thenReturn(Collections.singleton(membership));
+        
+        RoleEntity poRole = new RoleEntity();
+        poRole.setName("PRIMARY_OWNER");
+        poRole.setId("API_PRIMARY_OWNER");
+        MemberEntity membership = new MemberEntity();
+        membership.setId("johndoe");
+        membership.setRoles(Collections.singletonList(poRole));
+        when(membershipService.getPrimaryOwner(eq(MembershipReferenceType.API), eq(API_ID)))
+                .thenReturn(membership);
+        
         MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setId(membership.getUserId());
-        memberEntity.setRole(SystemRole.PRIMARY_OWNER.name());
-        when(membershipService.getMembers(eq(MembershipReferenceType.API), eq(API_ID), eq(RoleScope.API)))
+        memberEntity.setId(membership.getId());
+        memberEntity.setRoles(Collections.singletonList(poRole));
+        when(membershipService.getMembersByReference(eq(MembershipReferenceType.API), eq(API_ID)))
                 .thenReturn(Collections.singleton(memberEntity));
         UserEntity userEntity = new UserEntity();
         userEntity.setId(memberEntity.getId());

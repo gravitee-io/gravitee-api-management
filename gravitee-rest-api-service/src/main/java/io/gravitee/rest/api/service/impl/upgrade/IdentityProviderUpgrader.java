@@ -22,7 +22,7 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.impl.configuration.identity.IdentityProviderNotFoundException;
-
+import javassist.expr.NewArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -220,13 +220,18 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                 roleMappingEntity.setCondition(condition);
                 List<String> roles = getListOfString("security.providers[" + providerIndex + "].roleMapping[" + idx + "].roles");
                 if (!roles.isEmpty()) {
+                    List<String> organizationsRoles = new ArrayList<>();
+                    List<String> environmentsRoles = new ArrayList<>();
                     roles.forEach( role -> {
-                        if (role.startsWith(RoleScope.MANAGEMENT.name())) {
-                            roleMappingEntity.setManagement(role.replace(RoleScope.MANAGEMENT.name() + ":", ""));
-                        } else if (role.startsWith(RoleScope.PORTAL.name())) {
-                            roleMappingEntity.setPortal(role.replace(RoleScope.PORTAL.name() + ":", ""));
+                        if (role.startsWith(RoleScope.ENVIRONMENT.name())) {
+                            environmentsRoles.add(role.replace(RoleScope.ENVIRONMENT.name() + ":", ""));
+                        }
+                        if (role.startsWith(RoleScope.ORGANIZATION.name())) {
+                            organizationsRoles.add(role.replace(RoleScope.ORGANIZATION.name() + ":", ""));
                         }
                     });
+                    roleMappingEntity.setOrganizations(organizationsRoles);
+                    roleMappingEntity.setEnvironments(environmentsRoles);
                 }
                 mapping.add(roleMappingEntity);
             }

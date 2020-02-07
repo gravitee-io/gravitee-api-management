@@ -57,7 +57,7 @@ public class ResourcesResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List resources")
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public Collection<ResourceListItem> listResources(@QueryParam("expand") List<String> expand) {
         Stream<ResourceListItem> stream = resourceService.findAll().stream().map(this::convert);

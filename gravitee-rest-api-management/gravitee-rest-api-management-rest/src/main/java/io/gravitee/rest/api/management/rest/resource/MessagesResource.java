@@ -46,7 +46,7 @@ public class MessagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_MESSAGE, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_MESSAGE, acls = RolePermissionAction.CREATE)
     })
     public Response create(final MessageEntity message) {
         return Response.ok(messageService.create(message)).build();

@@ -18,11 +18,13 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class MemberEntity {
@@ -33,7 +35,11 @@ public class MemberEntity {
 
     private String email;
 
-    private String role;
+    private MembershipReferenceType referenceType;
+    
+    private String referenceId;
+    
+    private List<RoleEntity> roles;
 
     private Map<String, char[]> permissions;
 
@@ -51,12 +57,28 @@ public class MemberEntity {
         this.createdAt = createdAt;
     }
 
-    public String getRole() {
-        return role;
+    public MembershipReferenceType getReferenceType() {
+        return referenceType;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setReferenceType(MembershipReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public List<RoleEntity> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<RoleEntity> roles) {
+        this.roles = roles;
     }
 
     public Date getUpdatedAt() {
@@ -106,11 +128,16 @@ public class MemberEntity {
 
         MemberEntity that = (MemberEntity) o;
 
-        return id.equals(that.id);
+        return id.equals(that.id) && referenceType.equals(that.referenceType) && referenceId.equals(that.referenceId);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((referenceId == null) ? 0 : referenceId.hashCode());
+        result = prime * result + ((referenceType == null) ? 0 : referenceType.hashCode());
+        return result;
     }
 }

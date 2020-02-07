@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
@@ -24,6 +23,7 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.BadNotificationConfigException;
 import io.gravitee.rest.api.service.exceptions.NotificationConfigNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -55,7 +55,7 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
         }
         try {
             GenericNotificationConfig notificationConfig = convert(entity);
-            notificationConfig.setId(UUID.toString(UUID.random()));
+            notificationConfig.setId(RandomString.generate());
             notificationConfig.setCreatedAt(new Date());
             notificationConfig.setUpdatedAt(notificationConfig.getCreatedAt());
             return convert(genericNotificationConfigRepository.create(notificationConfig));

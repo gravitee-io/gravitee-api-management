@@ -43,15 +43,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.auth0.jwt.JWTSigner;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.portal.rest.model.Token;
 import io.gravitee.rest.api.portal.rest.model.Token.TokenTypeEnum;
 import io.gravitee.rest.api.portal.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
 
 /**
@@ -85,23 +85,14 @@ public class AuthResource extends AbstractResource {
             // Manage authorities, initialize it with dynamic permissions from the IDP
             Set<GrantedAuthority> authorities = new HashSet<>(userDetails.getAuthorities());
 
-            // We must also load permissions from repository for configured management or portal role
-            RoleEntity role = membershipService.getRole(
-                    MembershipReferenceType.MANAGEMENT,
-                    MembershipDefaultReferenceId.DEFAULT.toString(),
-                    userDetails.getUsername(),
-                    RoleScope.MANAGEMENT);
-            if (role != null) {
-                authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
-            }
-
-            role = membershipService.getRole(
-                    MembershipReferenceType.PORTAL,
-                    MembershipDefaultReferenceId.DEFAULT.toString(),
-                    userDetails.getUsername(),
-                    RoleScope.PORTAL);
-            if (role != null) {
-                authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
+         // We must also load permissions from repository for configured environment role
+            Set<RoleEntity> userRoles = membershipService.getRoles(
+                    MembershipReferenceType.ENVIRONMENT,
+                    GraviteeContext.getCurrentEnvironment(),
+                    MembershipMemberType.USER,
+                    userDetails.getId());
+            if (!userRoles.isEmpty()) {
+                userRoles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName())));
             }
 
             claims.put(Claims.PERMISSIONS, authorities);

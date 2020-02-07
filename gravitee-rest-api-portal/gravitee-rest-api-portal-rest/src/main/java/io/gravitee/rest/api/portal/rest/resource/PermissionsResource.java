@@ -72,7 +72,7 @@ public class PermissionsResource extends AbstractResource {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
-                permissions = membershipService.getMemberPermissions(apiEntity, userId);
+                permissions = membershipService.getUserMemberPermissions(apiEntity, userId);
             }
 
             return Response
@@ -95,7 +95,7 @@ public class PermissionsResource extends AbstractResource {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
-                permissions = membershipService.getMemberPermissions(application, userId);
+                permissions = membershipService.getUserMemberPermissions(application, userId);
             }
 
             return Response
@@ -106,7 +106,7 @@ public class PermissionsResource extends AbstractResource {
     }
 
     protected boolean isAdmin() {
-        return isUserInRole(PORTAL_ADMIN);
+        return isUserInRole(ENVIRONMENT_ADMIN);
     }
 
     private boolean isUserInRole(String role) {

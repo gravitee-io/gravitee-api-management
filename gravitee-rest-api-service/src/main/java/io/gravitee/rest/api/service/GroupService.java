@@ -24,21 +24,25 @@ import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface GroupService {
 
-    List<GroupEntity> findAll();
-    List<GroupEntity> findByName(String name);
-    GroupEntity create(NewGroupEntity group);
-    GroupEntity update(String groupId, UpdateGroupEntity group);
-    GroupEntity findById(String groupId);
-    Set<GroupEntity> findByIds(Set<String> groupIds);
-    Set<GroupEntity> findByEvent(GroupEvent event);
-    Set<GroupEntity> findByUser(String user);
-    void delete(String groupId);
-    boolean isUserAuthorizedToAccessApiData(ApiEntity api, List<String> excludedGroups, String username);
-    boolean isUserAuthorizedToAccessPortalData(List<String> excludedGroups, String username);
-    List<ApiEntity> getApis(String groupId);
-    List<ApplicationEntity> getApplications(String groupId);
+    void                    addUserToGroup                      (String groupId, String username, String... roleIds);
+    GroupEntity             create                              (NewGroupEntity group);
+    void                    delete                              (String groupId);
+    void                    deleteUserFromGroup                 (String groupId, String username);
+    List<GroupEntity>       findAll                             ();
+    GroupEntity             findById                            (String groupId);
+    Set<GroupEntity>        findByIds                           (Set<String> groupIds);
+    Set<GroupEntity>        findByEvent                         (GroupEvent event);
+    List<GroupEntity>       findByName                          (String name);
+    Set<GroupEntity>        findByUser                          (String username);
+    List<ApiEntity>         getApis                             (String groupId);
+    List<ApplicationEntity> getApplications                     (String groupId);
+    int                     getNumberOfMembers                  (String groupId);
+    boolean                 isUserAuthorizedToAccessApiData     (ApiEntity api, List<String> excludedGroups, String username);
+    boolean                 isUserAuthorizedToAccessPortalData  (List<String> excludedGroups, String username);
+    GroupEntity             update                              (String groupId, UpdateGroupEntity group);
 }

@@ -23,19 +23,22 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.Workflow;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,7 +82,9 @@ public class ApiService_UpdateTest {
     @Mock
     private ApiRepository apiRepository;
     @Mock
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
+    @Mock
+    private RoleService roleService;
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
     @Mock
@@ -196,10 +201,18 @@ public class ApiService_UpdateTest {
         when(existingApi.getProxy()).thenReturn(proxy);
         when(existingApi.getLifecycleState()).thenReturn(CREATED);
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
-        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
-        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
-                .thenReturn(Collections.singleton(po));
+        
+        RoleEntity poRoleEntity = new RoleEntity();
+        poRoleEntity.setName(SystemRole.PRIMARY_OWNER.name());
+        poRoleEntity.setScope(RoleScope.API);
+        
+        MemberEntity po = new MemberEntity();
+        po.setId(USER_NAME);
+        po.setReferenceId(API_ID);
+        po.setReferenceType(MembershipReferenceType.API);
+        po.setRoles(Collections.singletonList(poRoleEntity));
+        when(membershipService.getMembersByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(poRoleEntity));
     }
 
     @Test

@@ -17,13 +17,15 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -71,7 +73,10 @@ public class ApplicationService_UpdateTest {
     private ApplicationRepository applicationRepository;
 
     @Mock
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
+
+    @Mock
+    private RoleService roleService;
 
     @Mock
     private UserService userService;
@@ -108,10 +113,16 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getDescription()).thenReturn("My description");
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.update(any())).thenReturn(application);
-        Membership po = new Membership(USER_NAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
-        po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferencesAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
-                .thenReturn(Collections.singleton(po));
+        
+        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(mock(RoleEntity.class)));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         final ApplicationEntity applicationEntity = applicationService.update(APPLICATION_ID, existingApplication);
 
@@ -167,10 +178,16 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getDescription()).thenReturn("My description");
         when(applicationRepository.update(any())).thenReturn(application);
-        Membership po = new Membership(USER_NAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
-        po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferencesAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
-                .thenReturn(Collections.singleton(po));
+        
+        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(mock(RoleEntity.class)));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         final ApplicationEntity applicationEntity = applicationService.update(APPLICATION_ID, existingApplication);
 

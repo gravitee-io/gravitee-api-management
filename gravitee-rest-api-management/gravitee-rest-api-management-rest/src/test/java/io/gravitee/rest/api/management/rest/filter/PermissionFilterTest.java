@@ -15,10 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.filter;
 
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -121,8 +119,8 @@ public class PermissionFilterTest {
             verify(apiService, times(1)).findById(api.getId());
             verify(applicationService, never()).findById(any());
             verify(roleService, times(1)).hasPermission(any(), any(), any());
-            verify(membershipService, times(1)).getMemberPermissions(api, USERNAME);
-            verify(membershipService, never()).getRole(any(), any(), any(), any());
+            verify(membershipService, times(1)).getUserMemberPermissions(api, USERNAME);
+            verify(membershipService, never()).getRoles(any(), any(), any(), any());
             throw e;
         }
 
@@ -138,8 +136,8 @@ public class PermissionFilterTest {
         verify(apiService, times(1)).findById(api.getId());
         verify(applicationService, never()).findById(any());
         verify(roleService, times(1)).hasPermission(any(), any(), any());
-        verify(membershipService, times(1)).getMemberPermissions(api, USERNAME);
-        verify(membershipService, never()).getRole(any(), any(), any(), any());
+        verify(membershipService, times(1)).getUserMemberPermissions(api, USERNAME);
+        verify(membershipService, never()).getRoles(any(), any(), any(), any());
     }
 
     /**
@@ -174,8 +172,8 @@ public class PermissionFilterTest {
             verify(applicationService, times(1)).findById(application.getId());
             verify(apiService, never()).findById(any());
             verify(roleService, times(1)).hasPermission(any(), any(), any());
-            verify(membershipService, times(1)).getMemberPermissions(application, USERNAME);
-            verify(membershipService, never()).getRole(any(), any(), any(), any());
+            verify(membershipService, times(1)).getUserMemberPermissions(application, USERNAME);
+            verify(membershipService, never()).getRoles(any(), any(), any(), any());
             throw e;
         }
 
@@ -191,24 +189,23 @@ public class PermissionFilterTest {
         verify(apiService, never()).findById(any());
         verify(applicationService, times(1)).findById(application.getId());
         verify(roleService, times(1)).hasPermission(any(), any(), any());
-        verify(membershipService, times(1)).getMemberPermissions(application, USERNAME);
-        verify(membershipService, never()).getRole(any(), any(), any(), any());
+        verify(membershipService, times(1)).getUserMemberPermissions(application, USERNAME);
+        verify(membershipService, never()).getRoles(any(), any(), any(), any());
     }
 
     /**
-     * MANAGEMENT Tests
+     * ENVIRONMENT Tests
      */
 
     private void initManagementMocks() {
         Principal user = () -> USERNAME;
         when(securityContext.getUserPrincipal()).thenReturn(user);
         Permission perm = mock(Permission.class);
-        when(perm.value()).thenReturn(RolePermission.MANAGEMENT_API);
+        when(perm.value()).thenReturn(RolePermission.ENVIRONMENT_API);
         when(perm.acls()).thenReturn(new RolePermissionAction[]{RolePermissionAction.UPDATE});
         when(permissions.value()).thenReturn(new Permission[]{perm});
         UriInfo uriInfo = mock(UriInfo.class);
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
-        when(membershipService.getRole(any(), any(), any(), any())).thenReturn(mock(RoleEntity.class));
     }
 
     @Test(expected = ForbiddenAccessException.class)
@@ -222,9 +219,9 @@ public class PermissionFilterTest {
             verify(applicationService, never()).findById(any());
             verify(apiService, never()).findById(any());
             verify(roleService, times(1)).hasPermission(any(), any(), any());
-            verify(membershipService, never()).getMemberPermissions(any(ApiEntity.class), any());
-            verify(membershipService, never()).getMemberPermissions(any(ApplicationEntity.class), any());
-            verify(membershipService, times(1)).getRole(eq(MembershipReferenceType.MANAGEMENT), any(), any(), eq(RoleScope.MANAGEMENT));
+            verify(membershipService, never()).getUserMemberPermissions(any(ApiEntity.class), any());
+            verify(membershipService, never()).getUserMemberPermissions(any(ApplicationEntity.class), any());
+            verify(membershipService, times(1)).getUserMemberPermissions(eq(MembershipReferenceType.ENVIRONMENT), any(), any());
             throw e;
         }
 
@@ -241,59 +238,8 @@ public class PermissionFilterTest {
         verify(applicationService, never()).findById(any());
         verify(apiService, never()).findById(any());
         verify(roleService, times(1)).hasPermission(any(), any(), any());
-        verify(membershipService, never()).getMemberPermissions(any(ApiEntity.class), any());
-        verify(membershipService, never()).getMemberPermissions(any(ApplicationEntity.class), any());
-        verify(membershipService, times(1)).getRole(eq(MembershipReferenceType.MANAGEMENT), any(), any(), eq(RoleScope.MANAGEMENT));
-    }
-
-    /**
-     * PORTAL Tests
-     */
-
-    private void initPortalMocks() {
-        Principal user = () -> USERNAME;
-        when(securityContext.getUserPrincipal()).thenReturn(user);
-        Permission perm = mock(Permission.class);
-        when(perm.value()).thenReturn(RolePermission.PORTAL_METADATA);
-        when(perm.acls()).thenReturn(new RolePermissionAction[]{RolePermissionAction.UPDATE});
-        when(permissions.value()).thenReturn(new Permission[]{perm});
-        UriInfo uriInfo = mock(UriInfo.class);
-        when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
-        when(membershipService.getRole(any(), any(), any(), any())).thenReturn(mock(RoleEntity.class));
-    }
-
-    @Test(expected = ForbiddenAccessException.class)
-    public void shouldThrowForbiddenExceptionWhenNoPortalPermissions() {
-        initPortalMocks();
-        when(roleService.hasPermission(any(), any(), any())).thenReturn(false);
-
-        try {
-            permissionFilter.filter(permissions, containerRequestContext);
-        } catch(ForbiddenAccessException e) {
-            verify(applicationService, never()).findById(any());
-            verify(apiService, never()).findById(any());
-            verify(roleService, times(1)).hasPermission(any(), any(), any());
-            verify(membershipService, never()).getMemberPermissions(any(ApiEntity.class), any());
-            verify(membershipService, never()).getMemberPermissions(any(ApplicationEntity.class), any());
-            verify(membershipService, times(1)).getRole(eq(MembershipReferenceType.PORTAL), any(), any(), eq(RoleScope.PORTAL));
-            throw e;
-        }
-
-        Assert.fail("Should throw a ForbiddenAccessException");
-    }
-
-    @Test
-    public void shouldBeAuthorizedWhenPortalPermissions() {
-        initPortalMocks();
-        when(roleService.hasPermission(any(), any(), any())).thenReturn(true);
-
-        permissionFilter.filter(permissions, containerRequestContext);
-
-        verify(applicationService, never()).findById(any());
-        verify(apiService, never()).findById(any());
-        verify(roleService, times(1)).hasPermission(any(), any(), any());
-        verify(membershipService, never()).getMemberPermissions(any(ApiEntity.class), any());
-        verify(membershipService, never()).getMemberPermissions(any(ApplicationEntity.class), any());
-        verify(membershipService, times(1)).getRole(eq(MembershipReferenceType.PORTAL), any(), any(), eq(RoleScope.PORTAL));
+        verify(membershipService, never()).getUserMemberPermissions(any(ApiEntity.class), any());
+        verify(membershipService, never()).getUserMemberPermissions(any(ApplicationEntity.class), any());
+        verify(membershipService, times(1)).getUserMemberPermissions(eq(MembershipReferenceType.ENVIRONMENT), any(), any());
     }
 }

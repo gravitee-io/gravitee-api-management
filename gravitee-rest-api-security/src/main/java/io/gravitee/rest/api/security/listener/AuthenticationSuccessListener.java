@@ -21,17 +21,14 @@ import java.net.URLConnection;
 import java.util.Collection;
 import java.util.Optional;
 
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.model.NewExternalUserEntity;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.UpdateUserEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
@@ -41,9 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.GrantedAuthority;
-
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -66,7 +60,6 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
     @Override
     public void onApplicationEvent(AuthenticationSuccessEvent event) {
         final UserDetails details = (UserDetails) event.getAuthentication().getPrincipal();
-
         try {
             UserEntity registeredUser = userService.findBySource(details.getSource(), details.getSourceId(), false);
             updateRegisteredUser(registeredUser, details);
@@ -96,8 +89,8 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             details.setUsername(createdUser.getId());
 
             if (!addDefaultRole) {
-                addRole(RoleScope.MANAGEMENT, createdUser.getId(), event.getAuthentication().getAuthorities());
-                addRole(RoleScope.PORTAL, createdUser.getId(), event.getAuthentication().getAuthorities());
+                addRole(RoleScope.ENVIRONMENT, createdUser.getId(), event.getAuthentication().getAuthorities());
+                addRole(RoleScope.ORGANIZATION, createdUser.getId(), event.getAuthentication().getAuthorities());
             }
         }
 
@@ -178,7 +171,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
 
     /**
      * add a role to a user.
-     * If no role found (not provided or no exist), the defaul role is set.
+     * If no role found (not provided or no exist), the default role is set.
      * if no role set, throw an IllegalArgumentException
      * @param roleScope
      * @param userId
@@ -186,59 +179,39 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
      */
     private void addRole(RoleScope roleScope, String userId, Collection<? extends GrantedAuthority> authorities) {
         String roleName;
-        String managementRole = getRoleFromAuthorities(roleScope, authorities);
-        if (managementRole != null && !SystemRole.ADMIN.name().equals(managementRole)) {
-            try {
-                roleName = roleService.findById(convertToRepositoryRoleScope(roleScope), managementRole).getName();
-            }
-            catch (RoleNotFoundException notFoundException) {
-                Optional<RoleEntity> first = roleService.findDefaultRoleByScopes(convertToRepositoryRoleScope(roleScope)).stream().findFirst();
+        String role = getRoleFromAuthorities(roleScope, authorities);
+        if (role != null && !SystemRole.ADMIN.name().equals(role)) {
+            Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(roleScope, role);
+            if (optionalRole.isPresent()) {
+                roleName = optionalRole.get().getName();
+            } else {
+                Optional<RoleEntity> first = roleService.findDefaultRoleByScopes(roleScope).stream().findFirst();
                 if (first.isPresent()) {
                     roleName = first.get().getName();
                 } else {
-                    throw new IllegalArgumentException("No default role exist for scope MANAGEMENT");
+                    throw new IllegalArgumentException("No default role exist for scope " + roleScope.name());
                 }
             }
-        } else if (!SystemRole.ADMIN.name().equals(managementRole)) {
-            Optional<RoleEntity> first = roleService.findDefaultRoleByScopes(convertToRepositoryRoleScope(roleScope)).stream().findFirst();
+        } else if (!SystemRole.ADMIN.name().equals(role)) {
+            Optional<RoleEntity> first = roleService.findDefaultRoleByScopes(roleScope).stream().findFirst();
             if (first.isPresent()) {
                 roleName = first.get().getName();
             } else {
-                throw new IllegalArgumentException("No default role exist for scope MANAGEMENT");
+                throw new IllegalArgumentException("No default role exist for scope " + roleScope.name());
             }
         } else {
-            roleName = managementRole;
+            roleName = role;
         }
 
-        membershipService.addOrUpdateMember(
-                new MembershipService.MembershipReference(convertToMembershipReferenceType(roleScope), MembershipDefaultReferenceId.DEFAULT.name()),
-                new MembershipService.MembershipUser(userId, null),
-                new MembershipService.MembershipRole(convertToRepositoryRoleScope(roleScope), roleName));
-    }
-
-    /**
-     * convert io.gravitee.rest.api.model.permissions.RoleScope to io.gravitee.repository.management.model.RoleScope
-     * @param roleScope
-     * @return
-     */
-    private io.gravitee.repository.management.model.RoleScope convertToRepositoryRoleScope(RoleScope roleScope) {
-        if (RoleScope.MANAGEMENT.equals(roleScope)) {
-            return io.gravitee.repository.management.model.RoleScope.MANAGEMENT;
+        MembershipService.MembershipReference membershipRef;
+        if(roleScope == RoleScope.ENVIRONMENT) {
+            membershipRef = new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment());
         } else {
-            return io.gravitee.repository.management.model.RoleScope.PORTAL;
+            membershipRef = new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization());
         }
-    }
-
-    /**
-     * convert io.gravitee.rest.api.model.permissions.RoleScope to io.gravitee.repository.management.model.MembershipReferenceType
-     * @param roleScope
-     * @return
-     */
-    private MembershipReferenceType convertToMembershipReferenceType(RoleScope roleScope) {
-        if (RoleScope.MANAGEMENT.equals(roleScope)) {
-            return MembershipReferenceType.MANAGEMENT;
-        } else {
-            return MembershipReferenceType.PORTAL;
-        }
+        membershipService.addRoleToMemberOnReference(
+                membershipRef,
+                new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(roleScope, roleName));
     }
 }

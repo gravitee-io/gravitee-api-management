@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 
 import java.util.Arrays;
 import java.util.Map;

@@ -16,9 +16,10 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.portal.rest.model.Group;
 import io.gravitee.rest.api.portal.rest.model.Member;
@@ -57,7 +58,7 @@ public class GroupsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
     })
     public Response findAll(@BeanParam PaginationParam paginationParam){
         List<Group> groups = groupService.findAll().stream()
@@ -70,14 +71,17 @@ public class GroupsResource extends AbstractResource {
     @Path("/{groupId}/members")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-        @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.READ)
+        @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
     })
     public Response getMembersByGroupId(@PathParam("groupId") String groupId, @BeanParam PaginationParam paginationParam) {
         //check that group exists
         groupService.findById(groupId);
 
-        List<Member> groupsMembers = membershipService.getMembers(GROUP, groupId, RoleScope.APPLICATION).stream()
-                .filter(Objects::nonNull)
+        List<Member> groupsMembers = membershipService.getMembersByReference(MembershipReferenceType.GROUP, groupId).stream()
+                .filter(groupMemberEntity ->
+                    groupMemberEntity != null &&
+                    groupMemberEntity.getRoles().stream().anyMatch(role -> role.getScope().equals(RoleScope.APPLICATION))
+                )
                 .map(groupMemberEntity -> memberMapper.convert(groupMemberEntity, uriInfo))
                 .collect(toList());
         

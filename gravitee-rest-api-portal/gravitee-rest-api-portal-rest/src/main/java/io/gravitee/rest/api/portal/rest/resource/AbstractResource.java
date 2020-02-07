@@ -56,8 +56,7 @@ import java.util.*;
  */
 public abstract class AbstractResource {
 
-    public static final String MANAGEMENT_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
-    public static final String PORTAL_ADMIN = RoleScope.PORTAL.name() + ':' + SystemRole.ADMIN.name();
+    public static final String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
 
     protected static final String METADATA_DATA_KEY = "data";
     protected static final String METADATA_DATA_TOTAL_KEY = "total";

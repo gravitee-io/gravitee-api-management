@@ -68,7 +68,7 @@ public class ViewsResource extends AbstractViewResource  {
             apis = apiService.findByVisibility(Visibility.PUBLIC);
         }
 
-        boolean viewAll = (all && hasPermission(RolePermission.PORTAL_VIEW, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE));
+        boolean viewAll = (all && hasPermission(RolePermission.ENVIRONMENT_VIEW, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE));
 
         return viewService.findAll()
                 .stream()
@@ -102,7 +102,7 @@ public class ViewsResource extends AbstractViewResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_VIEW, acls = RolePermissionAction.CREATE)
     })
     public ViewEntity create(@Valid @NotNull final NewViewEntity view) {
         return viewService.create(view);
@@ -112,7 +112,7 @@ public class ViewsResource extends AbstractViewResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_VIEW, acls = RolePermissionAction.UPDATE)
     })
     public List<ViewEntity> update(@Valid @NotNull final List<UpdateViewEntity> views) {
         return viewService.update(views);

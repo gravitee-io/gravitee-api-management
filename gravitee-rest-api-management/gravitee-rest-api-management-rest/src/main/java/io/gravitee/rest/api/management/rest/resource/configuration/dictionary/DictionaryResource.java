@@ -54,12 +54,12 @@ public class DictionaryResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "A dictionary"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions(@Permission(value = RolePermission.MANAGEMENT_DICTIONARY, acls = RolePermissionAction.READ))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.READ))
     public DictionaryEntity getDictionary(
             @PathParam("dictionary") String dictionary) {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
         // remove provider informations for readonlyUsers
-        boolean notReadOnly = hasPermission(RolePermission.MANAGEMENT_DICTIONARY, RolePermissionAction.CREATE, RolePermissionAction.UPDATE, RolePermissionAction.DELETE);
+        boolean notReadOnly = hasPermission(RolePermission.ENVIRONMENT_DICTIONARY, RolePermissionAction.CREATE, RolePermissionAction.UPDATE, RolePermissionAction.DELETE);
         if (!notReadOnly) {
             dictionaryEntity.setProvider(null);
             dictionaryEntity.setTrigger(null);
@@ -75,7 +75,7 @@ public class DictionaryResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Updated dictionary", response = DictionaryEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions(@Permission(value = RolePermission.MANAGEMENT_DICTIONARY, acls = RolePermissionAction.UPDATE))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE))
     public DictionaryEntity updateDictionary(
             @PathParam("dictionary") String dictionary,
             @ApiParam(name = "dictionary", required = true) @Valid @NotNull final UpdateDictionaryEntity updatedDictionary) {
@@ -91,7 +91,7 @@ public class DictionaryResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Dictionary successfully deployed", response = DictionaryEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions(@Permission(value = RolePermission.MANAGEMENT_DICTIONARY, acls = RolePermissionAction.UPDATE))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE))
     public Response deployDictionary(@PathParam("dictionary") String dictionary) {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
 
@@ -119,7 +119,7 @@ public class DictionaryResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Dictionary successfully undeployed", response = DictionaryEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions(@Permission(value = RolePermission.MANAGEMENT_DICTIONARY, acls = RolePermissionAction.UPDATE))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE))
     public Response undeployDictionary(@PathParam("dictionary") String dictionary) {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
 
@@ -160,7 +160,7 @@ public class DictionaryResource extends AbstractResource {
             @ApiResponse(code = 200, message = "Dictionary state updated"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_DICTIONARY, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE)
     })
     public Response doLifecycleAction(
             @Context HttpHeaders headers,

@@ -53,7 +53,9 @@ public class MemberMapper {
         memberUser.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt()));
         
         memberItem.setUser(memberUser);
-        memberItem.setRole(member.getRole());
+        if(member.getRoles() != null && !member.getRoles().isEmpty()) {
+            memberItem.setRole(member.getRoles().get(0).getName());
+        }
         memberItem.setUpdatedAt(member.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         return memberItem;
     }

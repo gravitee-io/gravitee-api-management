@@ -16,10 +16,10 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.ApiRatingUnavailableException;
 import io.gravitee.rest.api.service.exceptions.RatingAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
@@ -112,7 +112,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             final Rating rating = findModelById(answerEntity.getRatingId());
 
             final RatingAnswer ratingAnswer = new RatingAnswer();
-            ratingAnswer.setId(UUID.toString(UUID.random()));
+            ratingAnswer.setId(RandomString.generate());
             ratingAnswer.setRating(answerEntity.getRatingId());
             ratingAnswer.setUser(getAuthenticatedUsername());
             ratingAnswer.setComment(answerEntity.getComment());
@@ -339,7 +339,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     private Rating convert(final NewRatingEntity ratingEntity) {
         final Rating rating = new Rating();
-        rating.setId(UUID.toString(UUID.random()));
+        rating.setId(RandomString.generate());
         rating.setReferenceId(ratingEntity.getApi());
         rating.setReferenceType(RatingReferenceType.API);
         rating.setRate(ratingEntity.getRate());

@@ -223,7 +223,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             Dictionary dictionary = convert(newDictionaryEntity);
             
-            dictionary.setEnvironment(GraviteeContext.getCurrentEnvironment());
+            dictionary.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
             
             // Set date fields
             dictionary.setCreatedAt(new Date());
@@ -255,7 +255,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             dictionary.setId(id);
             dictionary.setCreatedAt(optDictionary.get().getCreatedAt());
-            dictionary.setEnvironment(optDictionary.get().getEnvironment());
+            dictionary.setEnvironmentId(optDictionary.get().getEnvironmentId());
             dictionary.setUpdatedAt(new Date());
             dictionary.setState(optDictionary.get().getState());
 

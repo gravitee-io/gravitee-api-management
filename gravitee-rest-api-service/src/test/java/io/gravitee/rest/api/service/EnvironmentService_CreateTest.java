@@ -89,7 +89,7 @@ public class EnvironmentService_CreateTest {
                 && arg.getName().equals("env_name")
                 && arg.getDescription().equals("env_desc")
                 && arg.getDomainRestrictions().equals(domainRestrictions)
-                && arg.getOrganization().equals("DEFAULT")
+                && arg.getOrganizationId().equals("DEFAULT")
             ));
         verify(mockEnvironmentRepository, never()).update(any());
         verify(mockAPIHeaderService, times(1)).initialize("env_id");
@@ -122,7 +122,7 @@ public class EnvironmentService_CreateTest {
                 && arg.getName().equals("env_name")
                 && arg.getDescription().equals("env_desc")
                 && arg.getDomainRestrictions().equals(domainRestrictions)
-                && arg.getOrganization().equals("DEFAULT")
+                && arg.getOrganizationId().equals("DEFAULT")
             ));
         verify(mockEnvironmentRepository, never()).create(any());
         verify(mockAPIHeaderService, never()).initialize("env_id");

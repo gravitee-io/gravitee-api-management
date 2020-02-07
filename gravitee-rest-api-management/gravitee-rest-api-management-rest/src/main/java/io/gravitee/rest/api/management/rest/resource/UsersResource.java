@@ -57,7 +57,7 @@ public class UsersResource extends AbstractResource {
     private UserService userService;
 
     @GET
-    @Permissions(@Permission(value = RolePermission.MANAGEMENT_USERS, acls = READ))
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ))
     @ApiOperation(
             value = "Search for API using the search engine",
             notes = "User must have the MANAGEMENT_USERS[READ] permission to use this service"
@@ -74,7 +74,7 @@ public class UsersResource extends AbstractResource {
     }
 
     @POST
-    @Permissions(@Permission(value = RolePermission.MANAGEMENT_USERS, acls = CREATE))
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = CREATE))
     @ApiOperation(
             value = "Create a user",
             notes = "User must have the MANAGEMENT_USERS[CREATE] permission to use this service"

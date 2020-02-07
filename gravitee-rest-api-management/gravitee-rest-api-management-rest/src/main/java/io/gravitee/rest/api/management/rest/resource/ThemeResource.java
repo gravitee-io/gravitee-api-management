@@ -49,7 +49,7 @@ public class ThemeResource extends AbstractResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_THEME, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ)
     })
     public ThemeEntity get(final @PathParam("themeId") String themeId)  {
         return themeService.findById(themeId);
@@ -59,7 +59,7 @@ public class ThemeResource extends AbstractResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_THEME, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE)
     })
     public ThemeEntity update(@PathParam("themeId") String themeId, @Valid @NotNull final UpdateThemeEntity theme) {
         theme.setId(themeId);
@@ -70,7 +70,7 @@ public class ThemeResource extends AbstractResource  {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_THEME, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE)
     })
     public ThemeEntity reset(@PathParam("themeId") String themeId) {
         return themeService.resetToDefaultTheme(themeId);
@@ -79,7 +79,7 @@ public class ThemeResource extends AbstractResource  {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_THEME, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("themeId") String themeId) {
         themeService.delete(themeId);

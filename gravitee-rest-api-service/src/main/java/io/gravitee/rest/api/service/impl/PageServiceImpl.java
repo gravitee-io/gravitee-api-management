@@ -21,7 +21,6 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.fetcher.api.*;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
@@ -31,6 +30,7 @@ import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
@@ -40,6 +40,7 @@ import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.apache.commons.lang3.StringUtils;
@@ -376,7 +377,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		try {
 			logger.debug("Create page {} for API {}", newPageEntity, apiId);
 
-			String id = UUID.toString(UUID.random());
+			String id = RandomString.generate();
 
 			PageType newPageType = newPageEntity.getType();
 			
@@ -1128,7 +1129,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			Page page = convert(rootPage);
 			page.setReferenceId(apiId);
 			if (searchResult.isEmpty()) {
-				page.setId(UUID.toString(UUID.random()));
+				page.setId(RandomString.generate());
 				pageRepository.create(page);
 			} else {
 				page.setId(searchResult.get(0).getId());
@@ -1260,20 +1261,36 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		if (api.getVisibility() == Visibility.PUBLIC && pageIsPublished) {
 			isDisplayable = true;
 		} else if (username != null) {
-			MemberEntity member = membershipService.getMember(MembershipReferenceType.API, api.getId(), username, io.gravitee.repository.management.model.RoleScope.API);
-			if (member == null && api.getGroups() != null) {
-				Iterator<String> groupIdIterator = api.getGroups().iterator();
-				while (!isDisplayable && groupIdIterator.hasNext()) {
-					String groupId = groupIdIterator.next();
-					member = membershipService.getMember(MembershipReferenceType.GROUP, groupId, username, io.gravitee.repository.management.model.RoleScope.API);
-					isDisplayable = isDisplayableForMember(member, pageIsPublished);
-				}
-			} else {
-				isDisplayable = isDisplayableForMember(member, pageIsPublished);
-			}
+		    MemberEntity member = membershipService.getUserMember(MembershipReferenceType.API, api.getId(), username);
+            if (member == null && api.getGroups() != null) {
+                Iterator<String> groupIdIterator = api.getGroups().iterator();
+                while (!isDisplayable && groupIdIterator.hasNext()) {
+                    String groupId = groupIdIterator.next();
+                    member = membershipService.getUserMember(MembershipReferenceType.GROUP, groupId, username);
+                    isDisplayable = isDisplayableForMember(member, pageIsPublished);
+                }
+            } else {
+                isDisplayable = isDisplayableForMember(member, pageIsPublished);
+            }
 		}
 		return isDisplayable;
 	}
+
+    private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {
+        // if not member => not displayable
+        if (member == null) {
+            return false;
+        }
+        // if member && published page => displayable
+        if (pageIsPublished) {
+            return true;
+        }
+
+        // only members which could modify a page can see an unpublished page
+        return roleService.hasPermission(member.getPermissions(), ApiPermission.DOCUMENTATION,
+                new RolePermissionAction[] { RolePermissionAction.UPDATE, RolePermissionAction.CREATE,
+                        RolePermissionAction.DELETE });
+    }
 
 	@Override
 	public PageEntity fetch(String pageId, String contributor) {
@@ -1306,26 +1323,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		} catch (TechnicalException ex) {
 			throw onUpdateFail(pageId, ex);
 		}
-	}
-
-	private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {
-	    // if not member => not displayable
-		if (member == null) {
-			return false;
-		}
-		// if member && published page => displayable
-		if (pageIsPublished) {
-			return true;
-		}
-
-		// only members which could modify a page can see an unpublished page
-		return roleService.hasPermission(
-				member.getPermissions(),
-				ApiPermission.DOCUMENTATION,
-				new RolePermissionAction[]{
-						RolePermissionAction.UPDATE,
-						RolePermissionAction.CREATE,
-						RolePermissionAction.DELETE});
 	}
 
 	private static Page convert(NewPageEntity newPageEntity) {

@@ -59,7 +59,7 @@ public class ViewResource extends AbstractViewResource {
             @ApiResponse(code = 200, message = "View's definition", response = ViewEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     public ViewEntity get(@PathParam("id") String viewId) {
-        boolean canShowView = hasPermission(RolePermission.PORTAL_VIEW, RolePermissionAction.READ);
+        boolean canShowView = hasPermission(RolePermission.ENVIRONMENT_VIEW, RolePermissionAction.READ);
         ViewEntity view = viewService.findById(viewId);
 
         if (!canShowView && view.isHidden()) {
@@ -82,7 +82,7 @@ public class ViewResource extends AbstractViewResource {
     public Response picture(
             @Context Request request,
             @PathParam("id") String viewId) throws ViewNotFoundException {
-        boolean canShowView = hasPermission(RolePermission.PORTAL_VIEW, RolePermissionAction.READ);
+        boolean canShowView = hasPermission(RolePermission.ENVIRONMENT_VIEW, RolePermissionAction.READ);
         ViewEntity view = viewService.findById(viewId);
 
         if (!canShowView && view.isHidden()) {
@@ -131,7 +131,7 @@ public class ViewResource extends AbstractViewResource {
             @ApiResponse(code = 200, message = "View successfully updated", response = ViewEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_VIEW, acls = RolePermissionAction.UPDATE)
     })
     public ViewEntity update(@PathParam("id") String viewId, @Valid @NotNull final UpdateViewEntity view) {
         checkAndScaleImage(view.getPicture());
@@ -150,7 +150,7 @@ public class ViewResource extends AbstractViewResource {
             @ApiResponse(code = 204, message = "View successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_VIEW, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("id") String id) {
         viewService.delete(id);

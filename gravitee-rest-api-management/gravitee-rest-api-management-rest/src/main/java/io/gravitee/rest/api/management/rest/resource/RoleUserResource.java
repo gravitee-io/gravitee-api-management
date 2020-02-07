@@ -16,24 +16,20 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import java.net.URI;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -48,15 +44,22 @@ public class RoleUserResource extends AbstractResource  {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("scope")RoleScope scope,
                        @PathParam("role") String role,
                        @PathParam("userId") String userId) {
-        if (RoleScope.MANAGEMENT.equals(scope) || RoleScope.PORTAL.equals(scope)) {
-            membershipService.deleteMember(
-                    RoleScope.MANAGEMENT.equals(scope) ? MembershipReferenceType.MANAGEMENT : MembershipReferenceType.PORTAL,
-                    MembershipDefaultReferenceId.DEFAULT.name(),
+        if (RoleScope.ORGANIZATION.equals(scope)) {
+            membershipService.deleteReferenceMember(
+                    MembershipReferenceType.ORGANIZATION,
+                    GraviteeContext.getCurrentOrganization(),
+                    MembershipMemberType.USER,
+                    userId);
+        } else if (RoleScope.ENVIRONMENT.equals(scope)) {
+            membershipService.deleteReferenceMember(
+                    MembershipReferenceType.ENVIRONMENT,
+                    GraviteeContext.getCurrentEnvironment(),
+                    MembershipMemberType.USER,
                     userId);
         }
     }

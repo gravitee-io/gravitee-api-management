@@ -16,33 +16,18 @@
 package io.gravitee.rest.api.model.permissions;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum ManagementPermission implements Permission {
-    INSTANCE(    "INSTANCE",     1000),
-    GROUP(       "GROUP",        1200),
-    TAG(         "TAG",          1300),
-    TENANT(      "TENANT",       1400),
-    API(         "API",          1500),
-    ROLE(        "ROLE",         1600),
-    APPLICATION( "APPLICATION",  1700),
-    PLATFORM(    "PLATFORM",     1800),
-    AUDIT(       "AUDIT",        1900),
-    NOTIFICATION("NOTIFICATION", 2000),
-    USER        ("USER",         2100),
-    MESSAGE     ("MESSAGE",      2200),
-    DICTIONARY  ("DICTIONARY",   2300),
-    ALERT       ("ALERT",        2400),
-    ENTRYPOINT  ("ENTRYPOINT",   2500),
-    SETTINGS    ("SETTINGS",     2600),
-    DASHBOARD   ("DASHBOARD",    2700),
-    QUALITY_RULE("QUALITY_RULE", 2800);
+public enum OrganizationPermission implements Permission {
+    USER           (   "USER",        1000    ),
+    ENVIRONMENT    (   "ENVIRONMENT", 1100    ),
+    ROLE           (   "ROLE",        1200    );
 
     String name;
     int mask;
 
-    ManagementPermission(String name, int mask) {
+    OrganizationPermission(String name, int mask) {
         this.name = name;
         this.mask = mask;
     }

@@ -17,10 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.rest.api.model.permissions.ApiPermission;
-import io.gravitee.rest.api.model.permissions.ApplicationPermission;
-import io.gravitee.rest.api.model.permissions.ManagementPermission;
-import io.gravitee.rest.api.model.permissions.PortalPermission;
+import io.gravitee.rest.api.model.permissions.*;
 import io.swagger.annotations.Api;
 
 import javax.ws.rs.GET;
@@ -49,8 +46,8 @@ public class RoleScopesResource extends AbstractResource  {
     @Produces(MediaType.APPLICATION_JSON)
     public Map<String, List<String>> list()  {
         final Map<String, List<String>> roles = new LinkedHashMap<>(4);
-        roles.put(RoleScope.MANAGEMENT.name(), stream(ManagementPermission.values()).map(ManagementPermission::getName).sorted().collect(toList()));
-        roles.put(RoleScope.PORTAL.name(), stream(PortalPermission.values()).map(PortalPermission::getName).sorted().collect(toList()));
+        roles.put(RoleScope.ORGANIZATION.name(), stream(OrganizationPermission.values()).map(OrganizationPermission::getName).sorted().collect(toList()));
+        roles.put(RoleScope.ENVIRONMENT.name(), stream(EnvironmentPermission.values()).map(EnvironmentPermission::getName).sorted().collect(toList()));
         roles.put(RoleScope.API.name(), stream(ApiPermission.values()).map(ApiPermission::getName).sorted().collect(toList()));
         roles.put(RoleScope.APPLICATION.name(), stream(ApplicationPermission.values()).map(ApplicationPermission::getName).sorted().collect(toList()));
         return roles;

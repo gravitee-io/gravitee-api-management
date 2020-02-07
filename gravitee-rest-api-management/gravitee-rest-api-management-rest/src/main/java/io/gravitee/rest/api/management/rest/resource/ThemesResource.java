@@ -60,7 +60,7 @@ public class ThemesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_THEME, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.CREATE)
     })
     public ThemeEntity create(@Valid @NotNull final NewThemeEntity theme) {
         return themeService.create(theme);

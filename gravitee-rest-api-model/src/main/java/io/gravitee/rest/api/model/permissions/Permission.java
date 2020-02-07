@@ -25,16 +25,16 @@ public interface Permission {
 
     static Permission[] findByScope(RoleScope scope) {
          switch (scope) {
-             case PORTAL:
-                 return PortalPermission.values();
-             case MANAGEMENT:
-                 return ManagementPermission.values();
              case API:
                  return ApiPermission.values();
              case APPLICATION:
                  return ApplicationPermission.values();
              case GROUP:
                  return GroupPermission.values();
+             case ENVIRONMENT:
+                 return EnvironmentPermission.values();
+             case ORGANIZATION:
+                 return OrganizationPermission.values();
              default:
                  throw new IllegalArgumentException("[" + scope + "] are not a RolePermission");
         }

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.query.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -40,16 +39,13 @@ import javax.ws.rs.core.Response;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
 import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ANALYTICS;
-import static io.gravitee.rest.api.model.permissions.RolePermission.MANAGEMENT_PLATFORM;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_PLATFORM;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.permissions.RolePermission.*;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -73,7 +69,7 @@ public class PlatformAnalyticsResource extends AbstractResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = MANAGEMENT_PLATFORM, acls = READ)
+            @Permission(value = ENVIRONMENT_PLATFORM, acls = READ)
     })
     public Response platformAnalytics(@BeanParam AnalyticsParam analyticsParam) {
 

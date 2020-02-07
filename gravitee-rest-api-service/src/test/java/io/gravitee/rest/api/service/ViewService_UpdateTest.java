@@ -61,12 +61,12 @@ public class ViewService_UpdateTest {
     public void shouldNotUpdateUnknownView_multi_mode() throws TechnicalException {
         UpdateViewEntity mockView = mock(UpdateViewEntity.class);
         when(mockView.getId()).thenReturn("unknown");
-        when(mockViewRepository.findById("unknown", "DEFAULT")).thenReturn(Optional.empty());
+        when(mockViewRepository.findById("unknown")).thenReturn(Optional.empty());
 
         List<ViewEntity> list = viewService.update(singletonList(mockView));
 
         assertTrue(list.isEmpty());
-        verify(mockViewRepository, times(1)).findById(any(), any());
+        verify(mockViewRepository, times(1)).findById(any());
         verify(mockViewRepository, never()).update(any());
         verify(mockAuditService, never()).createPortalAuditLog(any(), eq(VIEW_UPDATED), any(), any(), any());
     }
@@ -74,11 +74,11 @@ public class ViewService_UpdateTest {
     @Test(expected = ViewNotFoundException.class)
     public void shouldNotUpdateUnknownView_single_mode() throws TechnicalException {
         UpdateViewEntity mockView = mock(UpdateViewEntity.class);
-        when(mockViewRepository.findById("unknown", "DEFAULT")).thenReturn(Optional.empty());
+        when(mockViewRepository.findById("unknown")).thenReturn(Optional.empty());
 
         viewService.update("unknown", mockView);
 
-        verify(mockViewRepository, times(1)).findById(any(), any());
+        verify(mockViewRepository, times(1)).findById(any());
         verify(mockViewRepository, never()).update(any());
         verify(mockAuditService, never()).createPortalAuditLog(any(), eq(VIEW_UPDATED), any(), any(), any());
     }
@@ -87,7 +87,7 @@ public class ViewService_UpdateTest {
     public void shouldUpdateView_multi_mode() throws TechnicalException {
         UpdateViewEntity mockView = mock(UpdateViewEntity.class);
         when(mockView.getId()).thenReturn("known");
-        when(mockViewRepository.findById("known", "DEFAULT")).thenReturn(Optional.of(new View()));
+        when(mockViewRepository.findById("known")).thenReturn(Optional.of(new View()));
         View updatedView = mock(View.class);
         when(updatedView.getId()).thenReturn("view-id");
         when(updatedView.getName()).thenReturn("view-name");
@@ -112,7 +112,7 @@ public class ViewService_UpdateTest {
         assertEquals("Hidden", true, list.get(0).isHidden());
         assertEquals("UpdatedAt", new Date(1234567890L), list.get(0).getUpdatedAt());
         assertEquals("CreatedAt", new Date(9876543210L), list.get(0).getCreatedAt());
-        verify(mockViewRepository, times(1)).findById(any(), any());
+        verify(mockViewRepository, times(1)).findById(any());
         verify(mockViewRepository, times(1)).update(any());
         verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(VIEW_UPDATED), any(), any(), any());
     }
@@ -121,7 +121,7 @@ public class ViewService_UpdateTest {
     public void shouldUpdateView_single_mode() throws TechnicalException {
         UpdateViewEntity mockView = mock(UpdateViewEntity.class);
         when(mockView.getId()).thenReturn("view-id");
-        when(mockViewRepository.findById("view-id", "DEFAULT")).thenReturn(Optional.of(new View()));
+        when(mockViewRepository.findById("view-id")).thenReturn(Optional.of(new View()));
         View updatedView = mock(View.class);
         when(updatedView.getId()).thenReturn("view-id");
         when(updatedView.getName()).thenReturn("view-name");
@@ -145,7 +145,7 @@ public class ViewService_UpdateTest {
         assertEquals("Hidden", true, view.isHidden());
         assertEquals("UpdatedAt", new Date(1234567890L), view.getUpdatedAt());
         assertEquals("CreatedAt", new Date(9876543210L), view.getCreatedAt());
-        verify(mockViewRepository, times(1)).findById(any(), any());
+        verify(mockViewRepository, times(1)).findById(any());
         verify(mockViewRepository, times(1)).update(any());
         verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(VIEW_UPDATED), any(), any(), any());
     }

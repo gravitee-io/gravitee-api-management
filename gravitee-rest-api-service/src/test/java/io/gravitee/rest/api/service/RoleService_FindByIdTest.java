@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
-import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -34,7 +33,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static io.gravitee.rest.api.model.permissions.PortalPermission.DOCUMENTATION;
+import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -54,40 +53,43 @@ public class RoleService_FindByIdTest {
 
     @Test
     public void shouldFindById_C() throws TechnicalException {
-        test_int_to_CRUD(1108, RolePermissionAction.CREATE);
+        test_int_to_CRUD(3008, RolePermissionAction.CREATE);
     }
 
     @Test
     public void shouldFindById_R() throws TechnicalException {
-        test_int_to_CRUD(1104, RolePermissionAction.READ);
+        test_int_to_CRUD(3004, RolePermissionAction.READ);
     }
 
     @Test
     public void shouldFindById_U() throws TechnicalException {
-        test_int_to_CRUD(1102, RolePermissionAction.UPDATE);
+        test_int_to_CRUD(3002, RolePermissionAction.UPDATE);
     }
 
     @Test
     public void shouldFindById_D() throws TechnicalException {
-        test_int_to_CRUD(1101, RolePermissionAction.DELETE);
+        test_int_to_CRUD(3001, RolePermissionAction.DELETE);
     }
 
     @Test
     public void shouldFindById_CRUD() throws TechnicalException {
-        test_int_to_CRUD(1115, RolePermissionAction.CREATE, RolePermissionAction.READ, RolePermissionAction.UPDATE, RolePermissionAction.DELETE);
+        test_int_to_CRUD(3015, RolePermissionAction.CREATE, RolePermissionAction.READ, RolePermissionAction.UPDATE, RolePermissionAction.DELETE);
     }
 
     private void test_int_to_CRUD(int perm, RolePermissionAction... action) throws TechnicalException {
         Role roleMock = mock(Role.class);
-        when(roleMock.getScope()).thenReturn(RoleScope.PORTAL);
+        when(roleMock.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleMock.getId()).thenReturn("id");
         when(roleMock.getName()).thenReturn("name");
         when(roleMock.getPermissions()).thenReturn(new int[]{perm});
-        when(mockRoleRepository.findById(RoleScope.PORTAL, "name", "DEFAULT", RoleReferenceType.ORGANIZATION)).thenReturn(Optional.of(roleMock));
+        when(mockRoleRepository.findById("id")).thenReturn(Optional.of(roleMock));
 
-        RoleEntity entity = roleService.findById(RoleScope.PORTAL, "name");
+        RoleEntity entity = roleService.findById("id");
 
         assertNotNull("no entity found", entity);
-        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.PORTAL , entity.getScope());
+        assertEquals("invalid id", "id" , entity.getId());
+        assertEquals("invalid name", "name" , entity.getName());
+        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT , entity.getScope());
         assertFalse("no permissions found", entity.getPermissions().isEmpty());
         assertTrue("invalid Permission name", entity.getPermissions().containsKey(DOCUMENTATION.getName()));
         char[] perms = entity.getPermissions().get(DOCUMENTATION.getName());

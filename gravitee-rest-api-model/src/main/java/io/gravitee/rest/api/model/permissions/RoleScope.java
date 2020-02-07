@@ -20,9 +20,10 @@ package io.gravitee.rest.api.model.permissions;
  * @author GraviteeSource Team
  */
 public enum RoleScope {
-    MANAGEMENT,
-    PORTAL,
     API,
     APPLICATION,
-    GROUP
+    GROUP,
+    ENVIRONMENT,
+    ORGANIZATION,
+    PLATFORM
 }

@@ -590,7 +590,7 @@ public class ApiResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
     })
     public Response duplicateAPI(@PathParam("api") String api, @ApiParam(name = "api", required = true)
             @Valid @NotNull final DuplicateApiEntity duplicateApiEntity) {

@@ -51,7 +51,7 @@ public class ApiHeadersResource extends AbstractResource {
     @GET
     @Produces(APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_API_HEADER, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.READ)
     })
     public List<ApiHeaderEntity> get() {
         return apiHeaderService.findAll();
@@ -61,7 +61,7 @@ public class ApiHeadersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_API_HEADER, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.CREATE)
     })
     public ApiHeaderEntity create(@Valid @NotNull final NewApiHeaderEntity newApiHeaderEntity) {
         return apiHeaderService.create(newApiHeaderEntity);

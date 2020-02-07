@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -24,7 +22,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.swagger.annotations.Api;
 
@@ -37,6 +34,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 
@@ -46,6 +44,7 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"User"})
@@ -56,14 +55,12 @@ public class UserResource extends AbstractResource {
     @Inject
     private UserService userService;
     @Inject
-    private MembershipService membershipService;
-    @Inject
     private GroupService groupService;
 
     @GET
     @Produces(APPLICATION_JSON)
     @Permissions(
-            @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ)
     )
     public UserEntity getUser(@PathParam("id") String userId) {
         UserEntity user = userService.findByIdWithRoles(userId);
@@ -77,7 +74,7 @@ public class UserResource extends AbstractResource {
 
     @DELETE
     @Permissions(
-            @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.DELETE)
     )
     public Response deleteUser(@PathParam("id") String userId) {
         userService.delete(userId);
@@ -88,21 +85,18 @@ public class UserResource extends AbstractResource {
     @Path("/groups")
     @Produces(APPLICATION_JSON)
     @Permissions(
-            @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ)
     )
     public List<UserGroupEntity> getGroups(@PathParam("id") String userId) {
         List<UserGroupEntity> groups = new ArrayList<>();
-        RoleScope[] scopes = {RoleScope.API, RoleScope.APPLICATION, RoleScope.GROUP};
         groupService.findByUser(userId).forEach(groupEntity -> {
             UserGroupEntity userGroupEntity = new UserGroupEntity();
             userGroupEntity.setId(groupEntity.getId());
             userGroupEntity.setName(groupEntity.getName());
             userGroupEntity.setRoles(new HashMap<>());
-            for (RoleScope scope: scopes) {
-                RoleEntity role = membershipService.getRole(MembershipReferenceType.GROUP, groupEntity.getId(), userId, scope);
-                if (role != null) {
-                    userGroupEntity.getRoles().put(role.getScope().name(), role.getName());
-                }
+            Set<RoleEntity> roles = membershipService.getRoles(MembershipReferenceType.GROUP, groupEntity.getId(), MembershipMemberType.USER, userId);
+            if (!roles.isEmpty()) {
+                roles.forEach(role -> userGroupEntity.getRoles().put(role.getScope().name(), role.getName()));
             }
             groups.add(userGroupEntity);
         });
@@ -114,14 +108,14 @@ public class UserResource extends AbstractResource {
     @Path("/memberships")
     @Produces(APPLICATION_JSON)
     @Permissions(
-            @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ)
     )
     public UserMembershipList getMemberships(@PathParam("id") String userId, @QueryParam("type") String sType) {
         MembershipReferenceType type = null;
         if (sType != null) {
             type = MembershipReferenceType.valueOf(sType.toUpperCase());
         }
-        List<UserMembership> userMemberships = membershipService.findUserMembership(userId, type);
+        List<UserMembership> userMemberships = membershipService.findUserMembership(type, userId);
         Metadata metadata = membershipService.findUserMembershipMetadata(userMemberships, type);
         UserMembershipList userMembershipList = new UserMembershipList();
         userMembershipList.setMemberships(userMemberships);
@@ -131,7 +125,7 @@ public class UserResource extends AbstractResource {
 
     @POST
     @Permissions(
-            @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE)
     )
     @Path("resetPassword")
     public Response resetPassword(@PathParam("id") String userId) {
@@ -180,5 +174,12 @@ public class UserResource extends AbstractResource {
                 .tag(etag)
                 .type(image.getType())
                 .build();
+    }
+    
+    @PUT
+    @Path("/roles")
+    public Response updateUserRoles(@PathParam("id") String userId, List<String> roleIds ) {
+        userService.updateUserRoles(userId, roleIds);
+        return Response.ok().build();
     }
 }

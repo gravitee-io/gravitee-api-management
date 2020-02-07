@@ -58,7 +58,7 @@ public class PlatformEventsResource  extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_PLATFORM, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)
     })
     public Page<EventEntity> listEvents(@BeanParam EventSearchParam eventSearchParam) {
         eventSearchParam.validate();

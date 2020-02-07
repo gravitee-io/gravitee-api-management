@@ -19,16 +19,16 @@ import com.auth0.jwt.JWTSigner;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
 import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,22 +96,21 @@ abstract class AbstractAuthenticationResource {
         Set<GrantedAuthority> authorities = new HashSet<>(userDetails.getAuthorities());
 
         // We must also load permissions from repository for configured management or portal role
-        RoleEntity role = membershipService.getRole(
-                MembershipReferenceType.MANAGEMENT,
-                MembershipDefaultReferenceId.DEFAULT.toString(),
-                userDetails.getId(),
-                RoleScope.MANAGEMENT);
-        if (role != null) {
-            authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
+        Set<RoleEntity> userRoles = membershipService.getRoles(
+                MembershipReferenceType.ENVIRONMENT,
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipMemberType.USER,
+                userDetails.getId());
+        if (!userRoles.isEmpty()) {
+            userRoles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName())));
         }
-
-        role = membershipService.getRole(
-                MembershipReferenceType.PORTAL,
-                MembershipDefaultReferenceId.DEFAULT.toString(),
-                userDetails.getId(),
-                RoleScope.PORTAL);
-        if (role != null) {
-            authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
+        userRoles = membershipService.getRoles(
+                MembershipReferenceType.ORGANIZATION,
+                GraviteeContext.getCurrentOrganization(),
+                MembershipMemberType.USER,
+                userDetails.getId());
+        if (!userRoles.isEmpty()) {
+            userRoles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName())));
         }
 
         // JWT signer

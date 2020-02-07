@@ -18,11 +18,9 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
@@ -68,7 +66,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.emptyList(), null);
 
         assertTrue(userAuthorizedToAccess);
-        verify(membershipService, never()).getMember(any(), any(), any(), any());
+        verify(membershipService, never()).getRoles(any(), any(), any(), any());
         verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
@@ -79,7 +77,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.emptyList(), null);
 
         assertFalse(userAuthorizedToAccess);
-        verify(membershipService, never()).getMember(any(), any(), any(), any());
+        verify(membershipService, never()).getRoles(any(), any(), any(), any());
         verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
@@ -88,7 +86,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.emptyList(), "user");
 
         assertTrue(userAuthorizedToAccess);
-        verify(membershipService, never()).getMember(any(), any(), any(), any());
+        verify(membershipService, never()).getRoles(any(), any(), any(), any());
         verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
@@ -96,11 +94,11 @@ public class GroupService_IsUserAuthorizedToAccessTest {
     public void shouldBeAuthorizedForPrivateApiWithoutGroups() throws TechnicalException {
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(api.getGroups()).thenReturn(null);
-
+        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
         assertFalse(userAuthorizedToAccess);
-        verify(membershipService, times(1)).getMember(any(), any(), any(), any());
+        verify(membershipService, times(1)).getRoles(any(), any(), any(), any());
         verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
@@ -109,29 +107,24 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, null, "user");
 
         assertTrue(userAuthorizedToAccess);
-        verify(membershipService, never()).getMember(any(), any(), any(), any());
+        verify(membershipService, never()).getRoles(any(), any(), any(), any());
         verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
     @Test
     public void shouldBeAuthorizedForPrivateApiWithDirectMember() throws TechnicalException {
         when(api.getId()).thenReturn("apiId");
-        when(membershipService.getMember(
+        when(membershipService.getRoles(
                 MembershipReferenceType.API,
                 api.getId(),
-                "user",
-                RoleScope.API)).
-                thenReturn(new MemberEntity());
+                MembershipMemberType.USER,
+                "user")).
+                thenReturn(new HashSet<>(Arrays.asList(new RoleEntity())));
 
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
         assertTrue(userAuthorizedToAccess);
-        verify(membershipService, times(1)).getMember(any(), any(), any(), any());
-        verify(membershipService, times(1)).
-                getMember(MembershipReferenceType.API,
-                        api.getId(),
-                        "user",
-                        RoleScope.API);
+        verify(membershipService, times(1)).getRoles(any(), any(), any(), any());
         verify(api, never()).getGroups();
         verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
@@ -141,33 +134,35 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(api.getId()).thenReturn("apiId");
         when(api.getGroups()).thenReturn(new HashSet<>(Arrays.asList("grp1", "grp2")));
-        when(membershipService.getMember(
+        when(membershipService.getRoles(
                 MembershipReferenceType.API,
                 api.getId(),
-                "user",
-                RoleScope.API)).
-                thenReturn(null);
-        when(membershipService.getMember(
+                MembershipMemberType.USER,
+                "user")).
+                thenReturn(Collections.emptySet());
+        RoleEntity apiRoleEntity = new RoleEntity();
+        apiRoleEntity.setScope(RoleScope.API);
+        when(membershipService.getRoles(
                 MembershipReferenceType.GROUP,
                 "grp2",
-                "user",
-                RoleScope.API)).
-                thenReturn(new MemberEntity());
+                MembershipMemberType.USER,
+                "user")).
+                thenReturn(new HashSet<>(Arrays.asList(apiRoleEntity)));
 
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
         assertTrue(userAuthorizedToAccess);
-        verify(membershipService, times(2)).getMember(any(), any(), any(), any());
+        verify(membershipService, times(2)).getRoles(any(), any(), any(), any());
         verify(membershipService, times(1)).
-                getMember(MembershipReferenceType.API,
+                getRoles(MembershipReferenceType.API,
                         api.getId(),
-                        "user",
-                        RoleScope.API);
+                        MembershipMemberType.USER,
+                        "user");
         verify(membershipService, times(1)).
-                getMember(MembershipReferenceType.GROUP,
+                getRoles(MembershipReferenceType.GROUP,
                         "grp2",
-                        "user",
-                        RoleScope.API);
+                        MembershipMemberType.USER,
+                        "user");
         verify(api, atLeast(2)).getGroups();
         verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
@@ -177,33 +172,33 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(api.getId()).thenReturn("apiId");
         when(api.getGroups()).thenReturn(new HashSet<>(Arrays.asList("grp1", "grp2")));
-        when(membershipService.getMember(
+        when(membershipService.getRoles(
                 MembershipReferenceType.API,
                 api.getId(),
-                "user",
-                RoleScope.API)).
-                thenReturn(null);
-        when(membershipService.getMember(
+                MembershipMemberType.USER,
+                "user")).
+                thenReturn(Collections.emptySet());
+        when(membershipService.getRoles(
                 MembershipReferenceType.GROUP,
                 "grp2",
-                "user",
-                RoleScope.API)).
-                thenReturn(null);
+                MembershipMemberType.USER,
+                "user")).
+                thenReturn(Collections.emptySet());
 
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
         assertFalse(userAuthorizedToAccess);
-        verify(membershipService, times(2)).getMember(any(), any(), any(), any());
+        verify(membershipService, times(2)).getRoles(any(), any(), any(), any());
         verify(membershipService, times(1)).
-                getMember(MembershipReferenceType.API,
+                getRoles(MembershipReferenceType.API,
                         api.getId(),
-                        "user",
-                        RoleScope.API);
+                        MembershipMemberType.USER,
+                        "user");
         verify(membershipService, times(1)).
-                getMember(MembershipReferenceType.GROUP,
+                getRoles(MembershipReferenceType.GROUP,
                         "grp2",
-                        "user",
-                        RoleScope.API);
+                        MembershipMemberType.USER,
+                        "user");
         verify(api, atLeast(2)).getGroups();
         verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
@@ -217,33 +212,33 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         grp1.setId("grp1");
         grp2.setId("grp2");
         when(groupRepository.findAllByEnvironment("DEFAULT")).thenReturn(new HashSet<>(Arrays.asList(grp1, grp2)));
-        when(membershipService.getMember(
+        when(membershipService.getRoles(
                 MembershipReferenceType.API,
                 api.getId(),
-                "user",
-                RoleScope.API)).
-                thenReturn(null);
-        when(membershipService.getMember(
+                MembershipMemberType.USER,
+                "user")).
+                thenReturn(Collections.emptySet());
+        when(membershipService.getRoles(
                 MembershipReferenceType.GROUP,
                 "grp2",
-                "user",
-                RoleScope.API)).
-                thenReturn(null);
+                MembershipMemberType.USER,
+                "user")).
+                thenReturn(Collections.emptySet());
 
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
         assertFalse(userAuthorizedToAccess);
-        verify(membershipService, times(2)).getMember(any(), any(), any(), any());
+        verify(membershipService, times(2)).getRoles(any(), any(), any(), any());
         verify(membershipService, times(1)).
-                getMember(MembershipReferenceType.API,
+                getRoles(MembershipReferenceType.API,
                         api.getId(),
-                        "user",
-                        RoleScope.API);
+                        MembershipMemberType.USER,
+                        "user");
         verify(membershipService, times(1)).
-                getMember(MembershipReferenceType.GROUP,
+                getRoles(MembershipReferenceType.GROUP,
                         "grp2",
-                        "user",
-                        RoleScope.API);
+                        MembershipMemberType.USER,
+                        "user");
         verify(api, never()).getGroups();
         verify(groupRepository, times(1)).findAllByEnvironment("DEFAULT");
     }

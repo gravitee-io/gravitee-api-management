@@ -25,6 +25,7 @@ import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageSourceEntity;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.junit.Test;
@@ -94,7 +95,7 @@ public class PageService_ImportDirectoryTest {
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         Page newPage = mock(Page.class);
-        when(newPage.getId()).thenReturn(UUID.toString(UUID.random()));
+        when(newPage.getId()).thenReturn(RandomString.generate());
         when(newPage.isPublished()).thenReturn(Boolean.TRUE);
         when(pageRepository.create(any())).thenReturn(newPage);
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");

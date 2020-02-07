@@ -38,6 +38,7 @@
         <module>gravitee-rest-api-services-subscriptions</module>
         <module>gravitee-rest-api-services-dictionary</module>
         <module>gravitee-rest-api-services-search-indexer</module>
+        <module>gravitee-rest-api-services-v3-upgrader</module>
     </modules>
 
     <dependencyManagement>

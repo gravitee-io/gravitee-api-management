@@ -36,6 +36,7 @@ public class MembershipListItem {
     }
 
     public String getRole() {
-        return member.getRole();
+        RoleEntity roleEntity = member.getRoles().get(0);
+        return roleEntity == null ? null : roleEntity.getName();
     }
 }

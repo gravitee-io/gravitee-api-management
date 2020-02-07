@@ -21,13 +21,11 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import org.junit.Before;
@@ -38,14 +36,12 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static java.util.Collections.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
@@ -63,7 +59,11 @@ public class ApiService_FindByUserTest {
     @Mock
     private ApiRepository apiRepository;
     @Mock
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
+    @Mock
+    private GroupService groupService;
+    @Mock
+    private RoleService roleService;
     @Mock
     private SubscriptionService subscriptionService;
     @Spy
@@ -90,19 +90,29 @@ public class ApiService_FindByUserTest {
     @Test
     public void shouldFindByUser() throws TechnicalException {
         when(privateApi.getId()).thenReturn("private-api");
-        when(apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").visibility(PUBLIC).build())).thenReturn(singletonList(api));
-        when(apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").ids(api.getId()).build())).thenReturn(singletonList(api));
-        when(apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").ids(privateApi.getId()).build())).thenReturn(singletonList(privateApi));
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").visibility(PUBLIC).build())).thenReturn(singletonList(api));
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api.getId()).build())).thenReturn(singletonList(api));
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(privateApi.getId()).build())).thenReturn(singletonList(privateApi));
 
-        Membership membership = new Membership(USER_NAME, api.getId(), MembershipReferenceType.API);
-        membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), "USER"));
-        Set<Membership> memberships = Collections.singleton(membership);
-        when(membershipRepository.findByUserAndReferenceType(anyString(), any(MembershipReferenceType.class)))
-                .thenReturn(memberships);
-        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
-        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
-                .thenReturn(Collections.singleton(po));
+        MembershipEntity membership = new MembershipEntity();
+        membership.setId("id");
+        membership.setMemberId(USER_NAME);
+        membership.setMemberType(MembershipMemberType.USER);
+        membership.setReferenceId(api.getId());
+        membership.setReferenceType(MembershipReferenceType.API);
+        membership.setRoleId("API_USER");
+
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)).thenReturn(Collections.singleton(membership));
+        
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId("API_PRIMARY_OWNER");
+        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(poRole));
+
+        MemberEntity poMember = new MemberEntity();
+        poMember.setId("admin");
+        poMember.setRoles(Collections.singletonList(poRole));
+        when(membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, Collections.singletonList(api.getId()), "API_PRIMARY_OWNER")).thenReturn(new HashSet(Arrays.asList(poMember)));
+        when(membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, Collections.singletonList(privateApi.getId()), "API_PRIMARY_OWNER")).thenReturn(new HashSet(Arrays.asList(poMember)));
 
         when(subscription.getApi()).thenReturn("private-api");
         when(subscriptionService.search(any())).thenReturn(singletonList(subscription));
@@ -118,8 +128,8 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
-        when(apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").visibility(PUBLIC).build())).thenReturn(emptyList());
-        when(membershipRepository.findByUserAndReferenceType(anyString(), any(MembershipReferenceType.class)))
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").visibility(PUBLIC).build())).thenReturn(emptyList());
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
                 .thenReturn(Collections.emptySet());
 
         final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null);

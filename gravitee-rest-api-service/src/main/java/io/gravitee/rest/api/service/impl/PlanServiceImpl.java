@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Path;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -26,6 +25,7 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.processor.PlanSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -152,7 +152,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             Plan plan = new Plan();
 
-            plan.setId(UUID.toString(UUID.random()));
+            plan.setId(RandomString.generate());
             plan.setApi(newPlan.getApi());
             plan.setName(newPlan.getName());
             plan.setDescription(newPlan.getDescription());

@@ -17,11 +17,12 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
@@ -32,24 +33,22 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApplicationService_FindByIdTest {
 
     private static final String APPLICATION_ID = "id-app";
-    private static final String USER_NAME = "myUser";
 
     @InjectMocks
     private ApplicationServiceImpl applicationService = new ApplicationServiceImpl();
@@ -58,7 +57,7 @@ public class ApplicationService_FindByIdTest {
     private ApplicationRepository applicationRepository;
 
     @Mock
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
 
     @Mock
     private UserService userService;
@@ -71,10 +70,6 @@ public class ApplicationService_FindByIdTest {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
-        Membership po = new Membership(USER_NAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
-        po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferenceAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
-                .thenReturn(Collections.singleton(po));
 
         final ApplicationEntity applicationEntity = applicationService.findById(APPLICATION_ID);
 

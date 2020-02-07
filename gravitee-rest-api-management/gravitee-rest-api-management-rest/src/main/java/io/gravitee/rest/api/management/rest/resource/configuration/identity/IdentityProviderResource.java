@@ -52,7 +52,7 @@ public class IdentityProviderResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "An identity provider"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions(@Permission(value = RolePermission.PORTAL_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
     public IdentityProviderEntity getIdentityProvider(
             @PathParam("identityProvider") String identityProvider) {
         return identityProviderService.findById(identityProvider);
@@ -66,7 +66,7 @@ public class IdentityProviderResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Updated identity provider", response = IdentityProviderEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions(@Permission(value = RolePermission.PORTAL_IDENTITY_PROVIDER, acls = RolePermissionAction.UPDATE))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER, acls = RolePermissionAction.UPDATE))
     public IdentityProviderEntity updateIdentityProvider(
             @PathParam("identityProvider") String identityProvider,
             @ApiParam(name = "dictionary", required = true) @Valid @NotNull final UpdateIdentityProviderEntity updatedIdentityProvider) {
@@ -80,7 +80,7 @@ public class IdentityProviderResource extends AbstractResource {
             @ApiResponse(code = 204, message = "Identity provider successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_IDENTITY_PROVIDER, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER, acls = RolePermissionAction.DELETE)
     })
     public Response deleteIdentityProvider(@PathParam("identityProvider") String identityProvider) {
         identityProviderService.delete(identityProvider);

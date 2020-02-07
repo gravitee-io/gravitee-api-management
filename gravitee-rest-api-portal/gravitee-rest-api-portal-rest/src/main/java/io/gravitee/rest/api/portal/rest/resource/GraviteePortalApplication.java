@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.portal.rest.filter.GraviteeContextFilter;
-import io.gravitee.rest.api.portal.rest.filter.PermissionsFilter;
-import io.gravitee.rest.api.portal.rest.filter.SecurityContextFilter;
+import io.gravitee.rest.api.portal.rest.filter.*;
 import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.provider.*;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
@@ -57,7 +55,8 @@ public class GraviteePortalApplication extends ResourceConfig {
         register(QueryParamExceptionMapper.class);
 
         register(SecurityContextFilter.class);
-        register(GraviteeContextFilter.class);
+        register(GraviteeContextRequestFilter.class);
+        register(GraviteeContextResponseFilter.class);
         register(PermissionsFilter.class);
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);

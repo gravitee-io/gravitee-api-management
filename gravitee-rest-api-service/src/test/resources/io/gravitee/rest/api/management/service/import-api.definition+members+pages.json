@@ -100,12 +100,16 @@
     {
       "source": "source",
       "sourceId": "ref-admin",
-      "role": "PRIMARY_OWNER"
+      "roles": [
+        "API_PRIMARY_OWNER"
+      ]
     },
     {
       "source": "source",
       "sourceId": "ref-user",
-      "role": "OWNER"
+      "roles": [
+        "API_OWNER"
+      ]
     }
   ],
   "pages": [

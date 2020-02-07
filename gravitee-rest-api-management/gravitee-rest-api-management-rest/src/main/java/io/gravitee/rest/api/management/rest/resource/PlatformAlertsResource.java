@@ -53,7 +53,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @ApiOperation(value = "List configured alerts of the platform")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = READ)
+            @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
     })
     public List<AlertTriggerEntity> list() {
         return alertService.findByReference(PLATFORM, PLATFORM_REFERENCE_ID);
@@ -64,7 +64,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @ApiOperation(value = "Get the status of alerting module")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = READ)
+            @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
     })
     public AlertStatusEntity status() {
         return alertService.getStatus();
@@ -74,7 +74,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = RolePermissionAction.CREATE)
     })
     public AlertTriggerEntity create(@Valid @NotNull final NewAlertTriggerEntity alertEntity) {
         alertEntity.setReferenceType(PLATFORM);
@@ -87,7 +87,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = RolePermissionAction.UPDATE)
     })
     public AlertTriggerEntity update(@PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
         alertEntity.setId(alert);
@@ -100,7 +100,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("alert") String alert) {
         alertService.delete(alert, PLATFORM_REFERENCE_ID);

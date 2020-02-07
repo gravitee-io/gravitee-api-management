@@ -55,7 +55,7 @@ public class DictionariesResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(@Permission(value = RolePermission.MANAGEMENT_DICTIONARY, acls = RolePermissionAction.READ))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.READ))
     @ApiOperation(value = "Get the list of global dictionaries",
             notes = "User must have the DICTIONARY[READ] permission to use this service")
     @ApiResponses({
@@ -93,7 +93,7 @@ public class DictionariesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_DICTIONARY, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.CREATE)
     })
     @ApiOperation(value = "Create a dictionary",
             notes = "User must have the DICTIONARY[CREATE] permission to use this service")

@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
-import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
@@ -36,7 +35,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Collections;
 import java.util.Optional;
 
-import static io.gravitee.rest.api.model.permissions.PortalPermission.DOCUMENTATION;
+import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -62,23 +61,26 @@ public class RoleService_UpdateTest {
     @Test
     public void shouldUpdate() throws TechnicalException {
         UpdateRoleEntity updateRoleEntityMock = mock(UpdateRoleEntity.class);
+        when(updateRoleEntityMock.getId()).thenReturn("updated_mock_role");
         when(updateRoleEntityMock.getName()).thenReturn("update mock role");
-        when(updateRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL);
+        when(updateRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
         when(updateRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(
                 DOCUMENTATION.getName(),
                 new char[]{RolePermissionAction.CREATE.getId()}));
         Role roleMock = mock(Role.class);
+        when(roleMock.getId()).thenReturn("updated_mock_role");
         when(roleMock.getName()).thenReturn("new mock role");
-        when(roleMock.getScope()).thenReturn(RoleScope.PORTAL);
-        when(roleMock.getPermissions()).thenReturn(new int[]{1108});
+        when(roleMock.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleMock.getPermissions()).thenReturn(new int[]{3008});
         when(mockRoleRepository.update(any())).thenReturn(roleMock);
-        when(mockRoleRepository.findById(RoleScope.PORTAL, "update mock role", "DEFAULT", RoleReferenceType.ORGANIZATION)).thenReturn(Optional.of(roleMock));
+        when(mockRoleRepository.findById("updated_mock_role")).thenReturn(Optional.of(roleMock));
 
         RoleEntity entity = roleService.update(updateRoleEntityMock);
 
         assertNotNull("no entoty created", entity);
+        assertEquals("invalid id","updated_mock_role", entity.getId());
         assertEquals("invalid name","new mock role", entity.getName());
-        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.PORTAL , entity.getScope());
+        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT , entity.getScope());
         assertFalse("no permissions found", entity.getPermissions().isEmpty());
         assertTrue("invalid Permission name", entity.getPermissions().containsKey(DOCUMENTATION.getName()));
         char[] perms = entity.getPermissions().get(DOCUMENTATION.getName());
@@ -89,10 +91,11 @@ public class RoleService_UpdateTest {
     @Test(expected = RoleNotFoundException.class)
     public void shouldNotUpdateIfNotExists() throws TechnicalException {
         UpdateRoleEntity updateRoleEntityMock = mock(UpdateRoleEntity.class);
+        when(updateRoleEntityMock.getId()).thenReturn("updated_mock_role");
         when(updateRoleEntityMock.getName()).thenReturn("update mock role");
-        when(updateRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.PORTAL);
+        when(updateRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
 
-        when(mockRoleRepository.findById(RoleScope.PORTAL, "update mock role", "DEFAULT", RoleReferenceType.ORGANIZATION)).thenReturn(Optional.empty());
+        when(mockRoleRepository.findById("updated_mock_role")).thenReturn(Optional.empty());
 
         roleService.update(updateRoleEntityMock);
 

@@ -66,8 +66,8 @@ public class ApplicationsResource extends AbstractResource {
             @ApiResponse(code = 200, message = "User's applications", response = ApplicationEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.PORTAL_APPLICATION, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ)
     })
     public List<ApplicationListItem> listApplications(
             @QueryParam("group") final String group,
@@ -110,7 +110,7 @@ public class ApplicationsResource extends AbstractResource {
             @ApiResponse(code = 201, message = "Application successfully created", response = ApplicationEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.CREATE),
     })
     public Response createApplication(
             @ApiParam(name = "application", required = true)

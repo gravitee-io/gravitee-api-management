@@ -19,16 +19,11 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanStatus;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 
 import java.io.IOException;
 import java.util.*;
@@ -88,7 +83,7 @@ public class Api1_15VersionSerializer extends ApiSerializer {
 
         // members
         if (!filteredFieldsList.contains("members")) {
-            Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API);
+            Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
             List<Member> members = (memberEntities == null ? Collections.emptyList() : new ArrayList<>(memberEntities.size()));
             if (memberEntities != null && !memberEntities.isEmpty()) {
                 memberEntities.forEach(m -> {
@@ -96,7 +91,7 @@ public class Api1_15VersionSerializer extends ApiSerializer {
                     if (userEntity != null) {
                         Member member = new Member();
                         member.setUsername(getUsernameFromSourceId(userEntity.getSourceId()));
-                        member.setRole(m.getRole());
+                        member.setRole(m.getRoles().get(0).getName());
                         members.add(member);
                     }
                 });

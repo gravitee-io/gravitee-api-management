@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.AuditService;
@@ -62,6 +63,9 @@ public class ApplicationService_ArchiveTest {
     private SubscriptionService subscriptionService;
 
     @Mock
+    private MembershipService membershipService;
+
+    @Mock
     private SubscriptionEntity subscription;
 
     @Mock
@@ -84,6 +88,7 @@ public class ApplicationService_ArchiveTest {
         applicationService.archive(APPLICATION_ID);
 
         verify(apiKeyService, times(1)).delete("key");
+        verify(membershipService, times(1)).deleteReference(MembershipReferenceType.APPLICATION, APPLICATION_ID);
         verify(subscriptionService, times(1)).close("sub");
         verify(application, times(1)).setStatus(ApplicationStatus.ARCHIVED);
         verify(applicationRepository, times(1)).update(application);

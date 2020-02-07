@@ -47,7 +47,7 @@ public class MetadataResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_METADATA, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.READ)
     })
     public List<MetadataEntity> list() {
         return metadataService.findAllDefault();
@@ -57,7 +57,7 @@ public class MetadataResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_METADATA, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.CREATE)
     })
     public MetadataEntity create(@Valid @NotNull final NewMetadataEntity metadata) {
         return metadataService.create(metadata);
@@ -67,7 +67,7 @@ public class MetadataResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_METADATA, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.UPDATE)
     })
     public MetadataEntity update(@Valid @NotNull final UpdateMetadataEntity metadata) {
         return metadataService.update(metadata);
@@ -77,7 +77,7 @@ public class MetadataResource extends AbstractResource {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_METADATA, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("metadata") String metadata) {
         metadataService.delete(metadata);

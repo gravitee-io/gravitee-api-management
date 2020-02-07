@@ -195,13 +195,26 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
-        String uriPrefix = "/organizations/**/environments/**";
+        String uriOrgPrefix = "/organizations/**";
+        String uriPrefix = uriOrgPrefix + "/environments/**";
 
         return security.authorizeRequests()
                 // Swagger
                 .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
 
                 .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
+                
+                // organizations resources
+                .antMatchers(HttpMethod.POST, uriOrgPrefix + "/users/registration/**").permitAll()
+                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users").authenticated()
+                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users/**").authenticated()
+                .antMatchers(HttpMethod.PUT, uriOrgPrefix + "/users/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, uriOrgPrefix + "/users/**").authenticated()
+
+                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/rolescopes/**").permitAll()
+                .antMatchers(uriOrgPrefix + "/configuration/**").authenticated()
+
+                // environments resources
                 .antMatchers(HttpMethod.POST, uriPrefix + "/user/login").permitAll()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/user/**").authenticated()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/auth/**").permitAll()

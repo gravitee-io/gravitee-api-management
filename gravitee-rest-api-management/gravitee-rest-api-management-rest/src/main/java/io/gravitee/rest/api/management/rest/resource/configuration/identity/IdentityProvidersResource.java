@@ -55,7 +55,7 @@ public class IdentityProvidersResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @GET
-    @Permissions(@Permission(value = RolePermission.PORTAL_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
     @ApiOperation(value = "Get the list of identity providers",
             notes = "User must have the PORTAL_IDENTITY_PROVIDER[READ] permission to use this service")
     @ApiResponses({
@@ -77,7 +77,7 @@ public class IdentityProvidersResource extends AbstractResource {
 
     @POST
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_IDENTITY_PROVIDER, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER, acls = RolePermissionAction.CREATE)
     })
     @ApiOperation(value = "Create an identity provider",
             notes = "User must have the PORTAL_IDENTITY_PROVIDER[CREATE] permission to use this service")

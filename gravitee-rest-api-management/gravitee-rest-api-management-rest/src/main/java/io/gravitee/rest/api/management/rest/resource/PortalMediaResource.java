@@ -41,7 +41,7 @@ public class PortalMediaResource extends AbstractResource {
 
     @POST
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)

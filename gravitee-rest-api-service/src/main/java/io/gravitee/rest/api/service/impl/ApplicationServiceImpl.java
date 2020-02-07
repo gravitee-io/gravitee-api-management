@@ -17,20 +17,28 @@ package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.utils.UUID;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
+import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.application.*;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationListItemSettings;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.OAuthClientSettings;
+import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
@@ -50,7 +58,6 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Application.AuditEvent.*;
 import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonMap;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -69,7 +76,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     private UserService userService;
 
     @Autowired
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
+
+    @Autowired
+    private RoleService roleService;
 
     @Autowired
     private GroupService groupService;
@@ -102,19 +112,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Optional<Application> application = applicationRepository.findById(applicationId);
 
             if (application.isPresent()) {
-                Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndRole(
-                        MembershipReferenceType.APPLICATION,
-                        applicationId,
-                        RoleScope.APPLICATION,
-                        SystemRole.PRIMARY_OWNER.name())
-                        .stream()
-                        .findFirst();
-                if (! primaryOwnerMembership.isPresent()) {
+                MemberEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(MembershipReferenceType.APPLICATION, application.get().getId());
+                if (primaryOwnerMemberEntity == null) {
                     LOGGER.error("The Application {} doesn't have any primary owner.", applicationId);
                     return convert(application.get(), null);
                 }
 
-                return convert(application.get(), userService.findById(primaryOwnerMembership.get().getUserId()));
+                return convert(application.get(), userService.findById(primaryOwnerMemberEntity.getId()));
             }
 
             throw new ApplicationNotFoundException(applicationId);
@@ -130,18 +134,27 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             LOGGER.debug("Find applications for user {}", username);
 
             //find applications where the user is a member
-            List<String> appIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.APPLICATION).stream()
-                    .map(Membership::getReferenceId).collect(Collectors.toList());
-            final Set<Application> applications =
-                    applicationRepository.findByIds(appIds).stream().
-                            filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus())).
-                            collect(Collectors.toSet());
-
-            //find applications which be part of the same group as the user
-            List<String> groupIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.GROUP).stream()
-                    .filter(m -> m.getRoles().keySet().contains(RoleScope.APPLICATION.getId()))
-                    .map(Membership::getReferenceId).collect(Collectors.toList());
-            applications.addAll(applicationRepository.findByGroups(groupIds, ApplicationStatus.ACTIVE));
+            Set<String> appIds = membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.APPLICATION)
+                    .stream()
+                    .map(MembershipEntity::getReferenceId)
+                    .collect(Collectors.toSet());
+            //find user groups
+            List<String> groupIds = groupService.findByUser(username)
+                    .stream()
+                    .map(GroupEntity::getId)
+                    .collect(Collectors.toList());
+            appIds.addAll(
+                    //find applications where group is a member
+                    membershipService.getMembershipsByMembersAndReference(MembershipMemberType.GROUP, groupIds, MembershipReferenceType.APPLICATION)
+                        .stream()
+                        .map(MembershipEntity::getReferenceId)
+                        .collect(Collectors.toSet())
+                    );
+            
+            final Set<Application> applications = applicationRepository.findByIds(new ArrayList<>(appIds))
+                        .stream()
+                        .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
+                        .collect(Collectors.toSet());
 
             if (applications.isEmpty()) {
                 return emptySet();
@@ -164,7 +177,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Set<Application> applications = applicationRepository.
                     findByName(name.trim()).stream().
                     filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus())).
-                    filter(app -> GraviteeContext.getCurrentEnvironment().equals(app.getEnvironment())).
+                    filter(app -> GraviteeContext.getCurrentEnvironment().equals(app.getEnvironmentId())).
                     collect(Collectors.toSet());
             return convertToList(applications);
         } catch (TechnicalException ex) {
@@ -265,9 +278,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             Application application = convert(newApplicationEntity);
-            application.setId( UUID.toString(UUID.random()));
+            application.setId(RandomString.generate());
             application.setStatus(ApplicationStatus.ACTIVE);
-            application.setEnvironment(GraviteeContext.getCurrentEnvironment());
+            application.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
             metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
             // Add Default groups
@@ -286,6 +299,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setUpdatedAt(application.getCreatedAt());
 
             Application createdApplication = applicationRepository.create(application);
+            
             // Audit
             auditService.createApplicationAuditLog(
                     createdApplication.getId(),
@@ -296,12 +310,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     null,
                     createdApplication);
 
-            // Add the primary owner of the newly created API
-            Membership membership = new Membership(userId, createdApplication.getId(), MembershipReferenceType.APPLICATION);
-            membership.setRoles(singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
-            membership.setCreatedAt(application.getCreatedAt());
-            membership.setUpdatedAt(application.getCreatedAt());
-            membershipRepository.create(membership);
+            // Add the primary owner of the newly created Application
+            membershipService.addRoleToMemberOnReference(
+                    new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, createdApplication.getId()),
+                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name()));
+
             // create the default mail notification
             UserEntity userEntity = userService.findById(userId);
             if (userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
@@ -389,7 +403,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             Application application = convert(updateApplicationEntity);
             application.setId(applicationId);
-            application.setEnvironment(optApplicationToUpdate.get().getEnvironment());
+            application.setEnvironmentId(optApplicationToUpdate.get().getEnvironmentId());
             application.setStatus(ApplicationStatus.ACTIVE);
             application.setType(optApplicationToUpdate.get().getType());
             application.setCreatedAt(optApplicationToUpdate.get().getCreatedAt());
@@ -553,6 +567,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     application.getUpdatedAt(),
                     previousApplication,
                     application);
+            // delete memberships
+            membershipService.deleteReference(MembershipReferenceType.APPLICATION, applicationId);
+
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete application {}", applicationId, ex);
             throw new TechnicalManagementException(String.format(
@@ -564,18 +581,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (applications == null || applications.isEmpty()){
             return Collections.emptySet();
         }
+        Optional<RoleEntity> optPrimaryOwnerRole = roleService.findByScopeAndName(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name());
+        if (!optPrimaryOwnerRole.isPresent()) {
+            throw new RoleNotFoundException("APPLICATION_PRIMARY_OWNER");
+        }
+        
         //find primary owners usernames of each applications
-        Set<Membership> memberships = membershipRepository.findByReferencesAndRole(
-                MembershipReferenceType.APPLICATION,
-                applications.stream().map(Application::getId).collect(Collectors.toList()),
-                RoleScope.APPLICATION,
-                SystemRole.PRIMARY_OWNER.name()
-        );
+        final List<String> appIds = applications.stream().map(Application::getId).collect(Collectors.toList());
 
+        Set<MembershipEntity> memberships = membershipService.getMembershipsByReferencesAndRole(io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION , appIds, optPrimaryOwnerRole.get().getId());
         int poMissing = applications.size() - memberships.size();
         if (poMissing > 0) {
-            Set<String> appIds = applications.stream().map(Application::getId).collect(Collectors.toSet());
-            Set<String> appMembershipsIds = memberships.stream().map(Membership::getReferenceId).collect(Collectors.toSet());
+            Set<String> appMembershipsIds = memberships.stream().map(MembershipEntity::getReferenceId).collect(Collectors.toSet());
 
             appIds.removeAll(appMembershipsIds);
             Optional<String> optionalApplicationsAsString = appIds.stream().reduce((a, b) -> a + " / " + b);
@@ -588,10 +605,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         Map<String, String> applicationToUser = new HashMap<>(memberships.size());
-        memberships.forEach(membership -> applicationToUser.put(membership.getReferenceId(), membership.getUserId()));
+        memberships.forEach(membership -> applicationToUser.put(membership.getReferenceId(), membership.getMemberId()));
 
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
-        userService.findByIds(memberships.stream().map(Membership::getUserId).collect(Collectors.toList()))
+        userService.findByIds(memberships.stream().map(MembershipEntity::getMemberId).collect(Collectors.toList()))
                 .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
         return applications.stream()

@@ -56,7 +56,7 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @GET
-    @Permissions(@Permission(value = RolePermission.PORTAL_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.READ))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.READ))
     @ApiOperation(value = "Get the list of client registration providers",
             notes = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[READ] permission to use this service")
     @ApiResponses({
@@ -77,7 +77,7 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
 
     @POST
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.CREATE)
     })
     @ApiOperation(value = "Create a client registration provider",
             notes = "User must have the PORTAL_CLIENT_REGISTRATION_PROVIDER[CREATE] permission to use this service")

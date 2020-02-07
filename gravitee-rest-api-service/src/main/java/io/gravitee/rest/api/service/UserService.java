@@ -54,4 +54,5 @@ public interface UserService {
     Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action, String confirmationPageUrl);
     UserEntity create(NewExternalUserEntity newExternalUserEntity);
     UserEntity createOrUpdateUserFromSocialIdentityProvider(SocialIdentityProviderEntity socialProvider, String userInfo);
+    void updateUserRoles(String userId, List<String> roleIds);
 }

@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.model.View;
-import io.gravitee.rest.api.model.UpdateViewEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.impl.ViewServiceImpl;
@@ -57,24 +56,24 @@ public class ViewService_DeleteTest {
 
     @Test
     public void shouldNotDeleteUnknownView() throws TechnicalException {
-        when(mockViewRepository.findById("unknown", "DEFAULT")).thenReturn(Optional.empty());
+        when(mockViewRepository.findById("unknown")).thenReturn(Optional.empty());
 
         viewService.delete("unknown");
 
-        verify(mockViewRepository, times(1)).findById(any(), any());
-        verify(mockViewRepository, never()).delete(any(), any());
+        verify(mockViewRepository, times(1)).findById(any());
+        verify(mockViewRepository, never()).delete(any());
         verify(mockAuditService, never()).createPortalAuditLog(any(), eq(VIEW_UPDATED), any(), any(), any());
         verify(mockApiService, never()).deleteViewFromAPIs(eq("unknown"));
     }
 
     @Test
     public void shouldDeleteView() throws TechnicalException {
-        when(mockViewRepository.findById("known", "DEFAULT")).thenReturn(Optional.of(new View()));
+        when(mockViewRepository.findById("known")).thenReturn(Optional.of(new View()));
 
         viewService.delete("known");
 
-        verify(mockViewRepository, times(1)).findById(eq("known"), eq("DEFAULT"));
-        verify(mockViewRepository, times(1)).delete(eq("known"), eq("DEFAULT"));
+        verify(mockViewRepository, times(1)).findById("known");
+        verify(mockViewRepository, times(1)).delete("known");
         verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(VIEW_DELETED), any(), any(), any());
         verify(mockApiService, times(1)).deleteViewFromAPIs(eq("known"));
     }

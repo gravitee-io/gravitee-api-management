@@ -65,7 +65,7 @@ public class ApplicationsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.CREATE),
     })
     public Response createApplication(@Valid @NotNull(message = "Input must not be null.") ApplicationInput applicationInput) {
         NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
@@ -119,8 +119,8 @@ public class ApplicationsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.PORTAL_APPLICATION, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ)
     })
     public Response getApplications(@BeanParam PaginationParam paginationParam,
                                     @QueryParam("forSubscription") final boolean forSubscription) {

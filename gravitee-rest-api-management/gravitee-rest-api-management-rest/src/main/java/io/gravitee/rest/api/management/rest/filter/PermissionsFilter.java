@@ -15,18 +15,15 @@
  */
 package io.gravitee.rest.api.management.rest.filter;
 
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 
@@ -80,8 +77,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (    securityContext.isUserInRole(AbstractResource.MANAGEMENT_ADMIN) ||
-                securityContext.isUserInRole(AbstractResource.PORTAL_ADMIN)) {
+        if (securityContext.isUserInRole(AbstractResource.ENVIRONMENT_ADMIN)) {
             logger.debug("User [{}] has full access because of its ADMIN role",
                     securityContext.getUserPrincipal().getName());
             return;
@@ -96,38 +92,37 @@ public class PermissionsFilter implements ContainerRequestFilter {
             if (principal != null) {
                 String username = principal.getName();
                 for (Permission permission : permissions.value()) {
-                    RoleEntity role;
                     Map<String, char[]> memberPermissions;
                     switch (permission.value().getScope()) {
-                        case MANAGEMENT:
-                            role = membershipService.getRole(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name(), username, RoleScope.MANAGEMENT);
-                            if (roleService.hasPermission(role.getPermissions(), permission.value().getPermission(), permission.acls())) {
+                        case ORGANIZATION:
+                            memberPermissions = membershipService.getUserMemberPermissions(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization(), username);
+                            if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
                                 return;
                             }
                             break;
-                        case PORTAL:
-                            role = membershipService.getRole(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name(), username, RoleScope.PORTAL);
-                            if (roleService.hasPermission(role.getPermissions(), permission.value().getPermission(), permission.acls())) {
+                        case ENVIRONMENT:
+                            memberPermissions = membershipService.getUserMemberPermissions(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), username);
+                            if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
                                 return;
                             }
                             break;
                         case APPLICATION:
                             ApplicationEntity application = getApplication(requestContext);
-                            memberPermissions = membershipService.getMemberPermissions(application, username);
+                            memberPermissions = membershipService.getUserMemberPermissions(application, username);
                             if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
                                 return;
                             }
                             break;
                         case API:
                             ApiEntity api = getApi(requestContext);
-                            memberPermissions = membershipService.getMemberPermissions(api, username);
+                            memberPermissions = membershipService.getUserMemberPermissions(api, username);
                             if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
                                 return;
                             }
                             break;
                         case GROUP:
                             GroupEntity group = getGroup(requestContext);
-                            memberPermissions = membershipService.getMemberPermissions(group, username);
+                            memberPermissions = membershipService.getUserMemberPermissions(group, username);
                             if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
                                 return;
                             }

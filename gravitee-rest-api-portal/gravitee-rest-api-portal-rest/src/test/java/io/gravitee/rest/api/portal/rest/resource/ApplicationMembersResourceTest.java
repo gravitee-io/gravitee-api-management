@@ -16,15 +16,14 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,9 +32,8 @@ import org.mockito.Mockito;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -69,12 +67,12 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         MemberEntity memberEntity2 = new MemberEntity();
         memberEntity2.setId(MEMBER_2);
-
-        doReturn(new HashSet<>(Arrays.asList(memberEntity1, memberEntity2))).when(membershipService).getMembers(MembershipReferenceType.APPLICATION, APPLICATION, RoleScope.APPLICATION);
-        doReturn(memberEntity1).when(membershipService).getMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_1, RoleScope.APPLICATION);
-        doReturn(null).when(membershipService).getMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_2, RoleScope.APPLICATION);
-        doReturn(new Member().id(MEMBER_1)).when(memberMapper).convert(eq(memberEntity1), any());
         doReturn(new Member().id(MEMBER_2)).when(memberMapper).convert(eq(memberEntity2), any());
+        doReturn(new Member().id(MEMBER_1)).when(memberMapper).convert(eq(memberEntity1), any());
+        doReturn(new HashSet<>(Arrays.asList(memberEntity1, memberEntity2))).when(membershipService).getMembersByReference(MembershipReferenceType.APPLICATION, APPLICATION);
+        doReturn(memberEntity1).when(membershipService).getUserMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_1);
+        doReturn(null).when(membershipService).getUserMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_2);
+        
 
         doThrow(ApplicationNotFoundException.class).when(applicationService).findById(UNKNOWN_APPLICATION);
         doThrow(UserNotFoundException.class).when(userService).findById(UNKNOWN_MEMBER);
@@ -128,8 +126,8 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNoMemberAndNoLink() {
 
-        doReturn(new HashSet<>()).when(membershipService).getMembers(any(), any(), any());
-
+        doReturn(new HashSet<>()).when(membershipService).getMembersByReference(any(), any());
+        
         //Test with default limit
         final Response response = target(APPLICATION).path("members").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -166,8 +164,8 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     public void shouldDeleteMember() {
         final Response response = target(APPLICATION).path("members").path(MEMBER_1).request().delete();
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-
-        Mockito.verify(membershipService).deleteMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_1);
+        
+        Mockito.verify(membershipService).deleteReferenceMember(MembershipReferenceType.APPLICATION, APPLICATION, MembershipMemberType.USER, MEMBER_1);
     }
 
     @Test
@@ -178,12 +176,12 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor = ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
         ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(MembershipService.MembershipRole.class);
-        ArgumentCaptor<MembershipService.MembershipUser> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipUser.class);
+        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
 
-        Mockito.verify(membershipService).addOrUpdateMember(memberShipRefCaptor.capture(), memberShipUserCaptor.capture(), memberShipRoleCaptor.capture());
+        Mockito.verify(membershipService).addRoleToMemberOnReference(memberShipRefCaptor.capture(), memberShipUserCaptor.capture(), memberShipRoleCaptor.capture());
         assertEquals(APPLICATION, memberShipRefCaptor.getValue().getId());
         assertEquals("USER", memberShipRoleCaptor.getValue().getName());
-        assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getId());
+        assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());
     }
 
     @Test
@@ -194,49 +192,48 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor = ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
         ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(MembershipService.MembershipRole.class);
-        ArgumentCaptor<MembershipService.MembershipUser> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipUser.class);
+        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
 
-        Mockito.verify(membershipService).addOrUpdateMember(memberShipRefCaptor.capture(), memberShipUserCaptor.capture(), memberShipRoleCaptor.capture());
+        Mockito.verify(membershipService).addRoleToMemberOnReference(memberShipRefCaptor.capture(), memberShipUserCaptor.capture(), memberShipRoleCaptor.capture());
         assertEquals(APPLICATION, memberShipRefCaptor.getValue().getId());
         assertEquals("USER", memberShipRoleCaptor.getValue().getName());
-        assertEquals(MEMBER_2, memberShipUserCaptor.getValue().getId());
+        assertEquals(MEMBER_2, memberShipUserCaptor.getValue().getMemberId());
     }
 
     @Test
     public void shouldTransferOwnerShip() {
         RoleEntity mockRoleEntity = new RoleEntity();
-        doReturn(mockRoleEntity).when(roleService).findById(any(), any());
-
         TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwnerId(MEMBER_1).primaryOwnerNewrole("OWNER");
+        doReturn(Optional.of(mockRoleEntity)).when(roleService).findByScopeAndName(any(), any());
         final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
         ArgumentCaptor<String> applicationCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<RoleEntity> roleCaptor = ArgumentCaptor.forClass(RoleEntity.class);
-        ArgumentCaptor<MembershipService.MembershipUser> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipUser.class);
+        ArgumentCaptor<List<RoleEntity>> roleCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
 
         Mockito.verify(membershipService).transferApplicationOwnership(applicationCaptor.capture(), memberShipUserCaptor.capture(), roleCaptor.capture());
         assertEquals(APPLICATION, applicationCaptor.getValue());
-        assertEquals(mockRoleEntity, roleCaptor.getValue());
-        assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getId());
+        assertEquals(mockRoleEntity, roleCaptor.getValue().get(0));
+        assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());
     }
 
     @Test
     public void shouldTransferOwnerShipWithWrongRole() {
-        doThrow(new RoleNotFoundException(RoleScope.APPLICATION, "OWNER")).when(roleService).findById(any(), any());
-
+        doReturn(Optional.empty()).when(roleService).findByScopeAndName(any(), any());
         TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwnerId(MEMBER_1).primaryOwnerNewrole("OWNER");
         final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
         ArgumentCaptor<String> applicationCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<RoleEntity> roleCaptor = ArgumentCaptor.forClass(RoleEntity.class);
-        ArgumentCaptor<MembershipService.MembershipUser> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipUser.class);
+        ArgumentCaptor<List<RoleEntity>> roleCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
 
         Mockito.verify(membershipService).transferApplicationOwnership(applicationCaptor.capture(), memberShipUserCaptor.capture(), roleCaptor.capture());
         assertEquals(APPLICATION, applicationCaptor.getValue());
-        assertEquals(null, roleCaptor.getValue());
-        assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getId());
+        assertNotNull(roleCaptor.getValue());
+        assertTrue(roleCaptor.getValue().isEmpty());
+        assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());
     }
 
     //404 GET /members

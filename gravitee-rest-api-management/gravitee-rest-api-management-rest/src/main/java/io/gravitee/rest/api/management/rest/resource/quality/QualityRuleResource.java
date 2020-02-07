@@ -46,7 +46,7 @@ public class QualityRuleResource extends AbstractResource {
     @GET
     @Produces(APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_QUALITY_RULE, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.READ)
     })
     public QualityRuleEntity get(@PathParam("id") String id) {
         return qualityRuleService.findById(id);
@@ -56,7 +56,7 @@ public class QualityRuleResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_QUALITY_RULE, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.UPDATE)
     })
     public QualityRuleEntity update(@PathParam("id") String id, @Valid @NotNull final UpdateQualityRuleEntity updateQualityRuleEntity) {
         updateQualityRuleEntity.setId(id);
@@ -66,7 +66,7 @@ public class QualityRuleResource extends AbstractResource {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_QUALITY_RULE, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("id") String id) {
         qualityRuleService.delete(id);

@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.common.utils.UUID;
 import io.gravitee.rest.api.model.quality.NewQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateQualityRuleEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.QualityRuleService;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.QualityRuleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -158,7 +158,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
 
     private QualityRule convert(final NewQualityRuleEntity qualityRuleEntity) {
         final QualityRule qualityRule = new QualityRule();
-        qualityRule.setId(UUID.toString(UUID.random()));
+        qualityRule.setId(RandomString.generate());
         qualityRule.setName(qualityRuleEntity.getName());
         qualityRule.setDescription(qualityRuleEntity.getDescription());
         qualityRule.setWeight(qualityRuleEntity.getWeight());

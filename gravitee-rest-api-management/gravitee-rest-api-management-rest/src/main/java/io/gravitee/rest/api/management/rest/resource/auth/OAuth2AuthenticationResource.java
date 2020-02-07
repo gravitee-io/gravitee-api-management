@@ -27,16 +27,14 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
-import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.Api;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
@@ -67,7 +65,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.singleton;
 import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
 
 /**
@@ -91,9 +88,6 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
     @Autowired
     private RoleService roleService;
-
-    @Autowired
-    private MembershipService membershipService;
 
     @Autowired
     private Environment environment;
@@ -306,10 +300,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 addRolesToUser(userId, rolesToAdd);
             }
         }
-        final Set<RoleEntity> roles =
-                membershipService.getRoles(MembershipReferenceType.PORTAL, singleton("DEFAULT"), userId, RoleScope.PORTAL);
-        roles.addAll(membershipService.getRoles(MembershipReferenceType.MANAGEMENT, singleton("DEFAULT"), userId, RoleScope.MANAGEMENT));
-
+        final Set<RoleEntity> roles = membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), MembershipMemberType.USER, userId);
+        roles.addAll(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization(), MembershipMemberType.USER, userId));
         final Set<GrantedAuthority> authorities = new HashSet<>();
         if (!roles.isEmpty()) {
             authorities.addAll(commaSeparatedStringToAuthorityList(roles.stream()
@@ -368,9 +360,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     }
                 }
 
-                membershipService.addOrUpdateMember(
+                membershipService.addRoleToMemberOnReference(
                         new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupEntity.getId()),
-                        new MembershipService.MembershipUser(userId, null),
+                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                         new MembershipService.MembershipRole(mapScope(roleEntity.getScope()), defaultRole));
             }
         }
@@ -379,15 +371,10 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private void addRolesToUser(String userId, Collection<RoleEntity> rolesToAdd) {
         // add roles to user
         for (RoleEntity roleEntity : rolesToAdd) {
-            membershipService.addOrUpdateMember(
-                    new MembershipService.MembershipReference(
-                            io.gravitee.rest.api.model.permissions.RoleScope.MANAGEMENT == roleEntity.getScope() ?
-                                    MembershipReferenceType.MANAGEMENT : MembershipReferenceType.PORTAL,
-                            MembershipDefaultReferenceId.DEFAULT.name()),
-                    new MembershipService.MembershipUser(userId, null),
-                    new MembershipService.MembershipRole(
-                            RoleScope.valueOf(roleEntity.getScope().name()),
-                            roleEntity.getName()));
+            membershipService.addRoleToMemberOnReference(
+                    new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment()),
+                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.valueOf(roleEntity.getScope().name()), roleEntity.getName()));
         }
     }
 
@@ -429,22 +416,25 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
             // Get roles
             if (match) {
-                if (mapping.getPortal() != null) {
-                    try {
-                        RoleEntity roleEntity = roleService.findById(RoleScope.PORTAL, mapping.getPortal());
-                        rolesToAdd.add(roleEntity);
-                    } catch (RoleNotFoundException rnfe) {
-                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getPortal());
-                    }
+                if (mapping.getOrganizations() != null && !mapping.getOrganizations().isEmpty()) {
+                    mapping.getOrganizations().forEach(organizationRoleName -> {
+                        Optional<RoleEntity> optRoleEntity = roleService.findByScopeAndName(RoleScope.ORGANIZATION, organizationRoleName);
+                        if(optRoleEntity.isPresent()) {
+                            rolesToAdd.add(optRoleEntity.get());
+                        } else {
+                            LOGGER.error("Unable to create user, missing role in repository : {}", organizationRoleName);
+                        }
+                    });
                 }
-
-                if (mapping.getManagement() != null) {
-                    try {
-                        RoleEntity roleEntity = roleService.findById(RoleScope.MANAGEMENT, mapping.getManagement());
-                        rolesToAdd.add(roleEntity);
-                    } catch (RoleNotFoundException rnfe) {
-                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getManagement());
-                    }
+                if (mapping.getEnvironments() != null && !mapping.getEnvironments().isEmpty()) {
+                    mapping.getEnvironments().forEach(environmentRoleName -> {
+                        Optional<RoleEntity> optRoleEntity = roleService.findByScopeAndName(RoleScope.ENVIRONMENT, environmentRoleName);
+                        if(optRoleEntity.isPresent()) {
+                            rolesToAdd.add(optRoleEntity.get());
+                        } else {
+                            LOGGER.error("Unable to create user, missing role in repository : {}", environmentRoleName);
+                        }
+                    });
                 }
             }
         }

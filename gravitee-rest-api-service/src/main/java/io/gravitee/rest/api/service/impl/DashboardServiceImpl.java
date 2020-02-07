@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.model.UpdateDashboardEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.DashboardService;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.DashboardNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -207,7 +208,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
 
     private Dashboard convert(final NewDashboardEntity dashboardEntity, final List<Dashboard> dashboards) {
         final Dashboard dashboard = new Dashboard();
-        dashboard.setId(UUID.toString(UUID.random()));
+        dashboard.setId(RandomString.generate());
         dashboard.setReferenceId(dashboardEntity.getReferenceId());
         dashboard.setReferenceType(dashboardEntity.getReferenceType().name());
         dashboard.setName(dashboardEntity.getName());

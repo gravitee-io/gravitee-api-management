@@ -28,6 +28,7 @@ import java.util.Objects;
  */
 public class RoleEntity {
 
+    private String id;
     private String name;
     private String description;
     private RoleScope scope;
@@ -35,6 +36,13 @@ public class RoleEntity {
     private boolean defaultRole;
     private boolean system;
     private Map<String, char[]> permissions;
+
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -86,11 +94,11 @@ public class RoleEntity {
 
         RoleEntity that = (RoleEntity) o;
 
-        return Objects.equals(scope, that.scope) && Objects.equals(name, that.name);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(scope, name);
+        return Objects.hash(id);
     }
 }

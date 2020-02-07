@@ -139,7 +139,7 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
     public Response createPage(
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
@@ -170,7 +170,7 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
     public PageEntity updatePage(
             @PathParam("page") String page,
@@ -193,7 +193,7 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
     public PageEntity partialUpdatePage(
             @PathParam("page") String page,
@@ -215,7 +215,7 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 201, message = "Page successfully refreshed", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
     public PageEntity fetchPage(
     @PathParam("page") String page) {
@@ -234,7 +234,7 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 201, message = "Pages successfully refreshed", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
     public Response fetchAllPages() {
         String contributor = getAuthenticatedUser();
@@ -267,7 +267,7 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 204, message = "Page successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE)
     })
     public void deletePage(
             @PathParam("page") String page) {
@@ -288,7 +288,7 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
     public List<PageEntity> importFiles(
             @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity) {
@@ -306,7 +306,7 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
     public List<PageEntity> updateImportFiles(
             @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity) {
