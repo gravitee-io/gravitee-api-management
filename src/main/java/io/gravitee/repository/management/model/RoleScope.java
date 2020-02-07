@@ -15,36 +15,16 @@
  */
 package io.gravitee.repository.management.model;
 
-import java.util.Optional;
-import java.util.stream.Stream;
-
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
 public enum RoleScope {
-    MANAGEMENT(1),
-    PORTAL(2),
-    API(3),
-    APPLICATION(4),
-    GROUP(5);
+    API,
+    APPLICATION,
+    GROUP,
+    ENVIRONMENT,
+    ORGANIZATION,
+    PLATFORM;
 
-    private int id;
-
-    RoleScope(int id) {
-        this.id = id;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public static RoleScope valueOf(int id) {
-        Optional<RoleScope> scope = Stream.of(RoleScope.values()).filter(r -> r.getId() == id).findFirst();
-        if (scope.isPresent()) {
-            return scope.get();
-        } else {
-            throw new IllegalArgumentException(id + " not a RoleScope id");
-        }
-    }
 }

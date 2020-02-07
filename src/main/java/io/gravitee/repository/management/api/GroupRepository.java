@@ -27,13 +27,13 @@ import java.util.Set;
 public interface GroupRepository extends CrudRepository<Group, String> {
 
     /**
-     * List all APIs
+     * List all Groups
      * @return all groups
      * @throws TechnicalException if something goes wrong
      */
     Set<Group> findAll() throws TechnicalException;
     
-    Set<Group> findAllByEnvironment(String environment) throws TechnicalException;
+    Set<Group> findAllByEnvironment(String environmentId) throws TechnicalException;
     
     Set<Group> findByIds(Set<String> ids) throws TechnicalException;
 }

@@ -32,7 +32,7 @@ public class Event {
     /**
      * The ID of the environment the event is attached to
      */
-    private String environment;
+    private String environmentId;
     
     /**
      * The event Type
@@ -64,12 +64,12 @@ public class Event {
      */
     private Date updatedAt;
 
-    public String getEnvironment() {
-        return environment;
+    public String getEnvironmentId() {
+        return environmentId;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getId() {

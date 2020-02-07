@@ -28,5 +28,5 @@ public interface ApiHeaderRepository extends CrudRepository<ApiHeader, String> {
 
     Set<ApiHeader> findAll() throws TechnicalException;
     
-    Set<ApiHeader> findAllByEnvironment(String environment) throws TechnicalException;
+    Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException;
 }

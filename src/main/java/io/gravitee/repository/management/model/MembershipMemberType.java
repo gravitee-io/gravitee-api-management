@@ -16,9 +16,11 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum MembershipDefaultReferenceId {
-   DEFAULT
+public enum MembershipMemberType {
+
+    USER,
+    GROUP
 }

@@ -38,7 +38,8 @@ public interface UserRepository extends CrudRepository<User, String> {
 	 *
 	 * @param source The source identifier.
 	 * @param sourceId The user identifier (from the source).
-	 * @param environment The environment of the user
+	 * @param referenceId The reference id of the item the user belongs to
+	 * @param referenceType The reference type of the item the user belongs to (ENVIRONMENT, ORGANIZATION)
 	 * @return Option user found
 	 */
 	Optional<User> findBySource(String source, String sourceId, String referenceId, UserReferenceType referenceType) throws TechnicalException;

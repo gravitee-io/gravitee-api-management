@@ -27,7 +27,7 @@ public class Environment {
     private String id;
     private String name;
     private String description;
-    private String organization;
+    private String organizationId;
     private List<String> domainRestrictions;
     
     public String getId() {
@@ -54,12 +54,12 @@ public class Environment {
         this.description = description;
     }
 
-    public String getOrganization() {
-        return organization;
+    public String getOrganizationId() {
+        return organizationId;
     }
 
-    public void setOrganization(String organization) {
-        this.organization = organization;
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
 
     public List<String> getDomainRestrictions() {
@@ -89,7 +89,7 @@ public class Environment {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", organization='" + organization + '\'' +
+                ", organizationId='" + organizationId + '\'' +
                 ", domain restrictions='" + domainRestrictions + '\'' +
                 '}';
     }

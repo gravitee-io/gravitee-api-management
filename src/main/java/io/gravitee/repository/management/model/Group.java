@@ -17,7 +17,6 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -30,10 +29,9 @@ public class Group {
     }
 
     private String id;
-    private String environment;
+    private String environmentId;
     private String name;
     private List<GroupEventRule> eventRules;
-    private Map<Integer, String> roles;
     private Date createdAt;
     private Date updatedAt;
     private Integer maxInvitation;
@@ -42,12 +40,12 @@ public class Group {
     private boolean systemInvitation;
     private boolean emailInvitation;
 
-    public String getEnvironment() {
-        return environment;
+    public String getEnvironmentId() {
+        return environmentId;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getId() {
@@ -88,14 +86,6 @@ public class Group {
 
     public void setEventRules(List<GroupEventRule> eventRules) {
         this.eventRules = eventRules;
-    }
-
-    public Map<Integer, String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Map<Integer, String> roles) {
-        this.roles = roles;
     }
 
     public Integer getMaxInvitation() {

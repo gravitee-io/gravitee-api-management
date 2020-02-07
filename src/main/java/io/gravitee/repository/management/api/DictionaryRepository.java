@@ -35,9 +35,9 @@ public interface DictionaryRepository extends CrudRepository<Dictionary, String>
 
     /**
      * List all dictionaries by environment
-     * @param environment
+     * @param environmentId
      * @return all dictionaries for a given environment
      * @throws TechnicalException
      */
-    Set<Dictionary> findAllByEnvironment(String environment) throws TechnicalException;
+    Set<Dictionary> findAllByEnvironment(String environmentId) throws TechnicalException;
 }

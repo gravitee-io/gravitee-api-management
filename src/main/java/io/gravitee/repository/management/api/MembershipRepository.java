@@ -30,93 +30,120 @@ public interface MembershipRepository {
 
     Membership create(Membership membership) throws TechnicalException;
     Membership update(Membership membership) throws TechnicalException;
-    void delete(Membership membership) throws TechnicalException;
+    void delete(String membershipId) throws TechnicalException;
 
     /**
      * find membership by id.
-     * the MembershipId is a combination of username, reference type and referenceId
-     * => a user has only one membership for a given reference
-     * @param userId the user
-     * @param referenceType the reference type
-     * @param referenceId the reference id
+     * @param membershipId the membership id
      * @return an optional membership
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Optional<Membership> findById(String userId, MembershipReferenceType referenceType, String referenceId) throws TechnicalException;
+    Optional<Membership> findById(String membershipId) throws TechnicalException;
 
 
     /**
      * find membership by ids.
-     * the MembershipId is a combination of username, reference type and referenceId
-     * => a user has only one membership for a given reference
-     * @param userId the user
-     * @param referenceType the reference type
-     * @param referenceIds the reference ids
-     * @return an optional membership
+     * @param membershipIds the membership ids
+     * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByIds(String userId, MembershipReferenceType referenceType, Set<String> referenceIds) throws TechnicalException;
+    Set<Membership> findByIds(Set<String> membershipIds) throws TechnicalException;
 
     /**
      * find all memberships for a specific reference
      * => find all members of an api
      * @param referenceType the reference type
      * @param referenceId the reference id
-     * @param roleScope the roleScope, could be null
-     * @param roleName the roleName, could be null
+     * @param roleId the role id, could be null
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName) throws TechnicalException;
+    Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId) throws TechnicalException;
 
     /**
      * find all memberships for a specific reference
      * => find all primary owner of a list of apis
      * @param referenceType the reference type
      * @param referenceIds the reference ids
-     * @param roleScope the roleScope, could be null
-     * @param roleName the roleName, could be null
+     * @param roleId the role id, could be null
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByReferencesAndRole (MembershipReferenceType referenceType, List<String> referenceIds, RoleScope roleScope, String roleName) throws TechnicalException;
+    Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId) throws TechnicalException;
 
     /**
-     * find all memberships for a user and a referenceType
+     * find all memberships for a member and a referenceType
      * => find all apis of a user
-     * @param userId the user
+     * @param memberId the member
+     * @param memberType the member type. Can be USER or GROUP.
      * @param referenceType the referenceType
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByUserAndReferenceType(String userId, MembershipReferenceType referenceType) throws TechnicalException;
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType) throws TechnicalException;
+
+    /**
+     * find all memberships for a list of member and a referenceType
+     * => find all apis of a user
+     * @param membersId the members
+     * @param memberType the member type. Can be USER or GROUP.
+     * @param referenceType the referenceType
+     * @return the list of memberships, or an empty set
+     * @throws TechnicalException if something goes wrong, should never happen.
+     */
+    Set<Membership> findByMemberIdsAndMemberTypeAndReferenceType(List<String> memberIds, MembershipMemberType memberType, MembershipReferenceType referenceType) throws TechnicalException;
 
     /**
      * find all memberships for a role
-     * @param roleScope the role
-     * @param roleName the role
+     * @param roleId the role Id
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByRole(RoleScope roleScope, String roleName) throws TechnicalException;
+    Set<Membership> findByRoleId(String roleId) throws TechnicalException;
 
     /**
-     * find all memberships for a user, a referenceType and a membership type
+     * find all memberships for a member, a referenceType and a role
      * => find all apis of a user where he is a primary owner
-     * @param userId the user
+     * @param memberId the member
+     * @param memberType the member type. Can be USER or GROUP.
      * @param referenceType the referenceType
-     * @param roleScope the roleScope, could be null
-     * @param roleName the roleName, could be null
+     * @param roleId the role id, could be null
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByUserAndReferenceTypeAndRole(String userId, MembershipReferenceType referenceType, RoleScope roleScope, String roleName) throws TechnicalException;
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String roleId) throws TechnicalException;
 
     /**
-     * find all memberships for a user
-     * @param userId the user
+     * find all memberships for a member, a referenceType, a referenceId and a role
+     * => determine whether or not a user has a specific role for a specific ref
+     * @param memberId the member
+     * @param memberType the member type. Can be USER or GROUP.
+     * @param referenceType the referenceType
+     * @param referenceId the referenceId
+     * @param roleId the role id
+     * @return a list of memberships, or an empty set
+     * @throws TechnicalException if something goes wrong, should never happen.
+     */
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId, String roleId) throws TechnicalException;
+
+    /**
+     * find all memberships for a member, a referenceType and a referenceId
+     * => get all the role of a member on a specific reference
+     * @param memberId the member
+     * @param memberType the member type. Can be USER or GROUP.
+     * @param referenceType the referenceType
+     * @param referenceId the referenceId
+     * @return a list of memberships, or an empty set
+     * @throws TechnicalException if something goes wrong, should never happen.
+     */
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId) throws TechnicalException;
+
+    /**
+     * find all memberships for a member
+     * @param memberId the member
+     * @param memberType the member type. Can be USER or GROUP.
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByUser(String userId) throws TechnicalException;
+    Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) throws TechnicalException;
 }

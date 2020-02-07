@@ -30,7 +30,7 @@ public class View {
     public static final String ALL_ID = "all";
 
     private String id;
-    private String environment;
+    private String environmentId;
     private String name;
     private String description;
     private boolean defaultView;
@@ -41,12 +41,12 @@ public class View {
     private Date createdAt;
     private Date updatedAt;
 
-    public String getEnvironment() {
-        return environment;
+    public String getEnvironmentId() {
+        return environmentId;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getId() {
@@ -148,7 +148,7 @@ public class View {
     public String toString() {
         return "View{" +
                 "id='" + id + '\'' +
-                ", environment='" + environment + '\'' +
+                ", environmentId='" + environmentId + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", defaultView='" + defaultView + '\'' +

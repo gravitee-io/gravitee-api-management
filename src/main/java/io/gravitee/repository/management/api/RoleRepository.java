@@ -25,30 +25,35 @@ import io.gravitee.repository.management.model.RoleScope;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface RoleRepository {
 
-    Optional<Role> findById(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException;
+    Optional<Role> findById(String roleId) throws TechnicalException;
 
     Role create(Role role) throws TechnicalException;
 
     Role update(Role role) throws TechnicalException;
 
-    void delete(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException;
-    /**
-     * find all roles by scope id
-     * @param scope the scope id (Application, API, Portal or Management)
-     * @return list of roles
-     * @throws TechnicalException if something wrong happen
-     */
-    Set<Role> findByScope(RoleScope scope) throws TechnicalException;
+    void delete(String roleId) throws TechnicalException;
 
     /**
-     * find all roles by scope id
+     * find all roles by scope id and scope name for a given reference
+     * @param scope the scope id (Application, API, Group, Environment, Organization, Platform)
+     * @param name the scope name
+     * @param referenceId the id of the reference of the role
+     * @param referenceType the type of the reference of the role. Can be ORGANIZATION or ENVIRONMENT.
+     * @return an Optional of Role
+     * @throws TechnicalException if something wrong happen
+     */
+    Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException;
+
+    /**
+     * find all roles by scope id for a given reference
      * @param scope the scope id (Application, API, Portal or Management)
-     * @param referenceId
-     * @param referenceType
+     * @param referenceId the id of the reference of the role
+     * @param referenceType the type of the reference of the role. Can be ORGANIZATION or ENVIRONMENT.
      * @return list of roles
      * @throws TechnicalException if something wrong happen
      */

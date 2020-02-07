@@ -26,6 +26,7 @@ public class Role {
     public enum AuditEvent implements Audit.AuditEvent {
         ROLE_CREATED, ROLE_UPDATED, ROLE_DELETED
     }
+    private String id;
     private String name;
     private String referenceId;
     private RoleReferenceType referenceType;
@@ -40,6 +41,7 @@ public class Role {
     public Role(){}
 
     public Role(Role cloned) {
+        this.id = cloned.id;
         this.name = cloned.name;
         this.referenceId = cloned.referenceId;
         this.referenceType = cloned.referenceType;
@@ -50,6 +52,14 @@ public class Role {
         this.system = cloned.system;
         this.createdAt = cloned.createdAt;
         this.updatedAt = cloned.updatedAt;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getReferenceId() {
@@ -130,18 +140,19 @@ public class Role {
         if (this == o) return true;
         if (!(o instanceof Role)) return false;
         Role role = (Role) o;
-        return Objects.equals(name, role.name) && Objects.equals(scope, role.scope) && Objects.equals(referenceId, role.referenceId) && referenceType == role.referenceType;
+        return Objects.equals(id, role.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(scope, name);
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
         return "Role{" +
-                "name='" + name + '\'' +
+                "id='" + id + '\'' +
+                ",name='" + name + '\'' +
                 ", referenceId='" + referenceId + '\'' +
                 ", referenceType='" + referenceType + '\'' +
                 ", scope='" + scope + '\'' +

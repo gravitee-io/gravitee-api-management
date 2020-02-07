@@ -27,5 +27,5 @@ import java.util.Set;
 public interface EntrypointRepository extends CrudRepository<Entrypoint, String>{
     Set<Entrypoint> findAll() throws TechnicalException;
     
-    Set<Entrypoint> findAllByEnvironment(String environment) throws TechnicalException;
+    Set<Entrypoint> findAllByEnvironment(String environmentId) throws TechnicalException;
 }

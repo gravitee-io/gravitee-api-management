@@ -20,16 +20,28 @@ import java.util.*;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Membership {
     public enum AuditEvent implements Audit.ApiAuditEvent {
         MEMBERSHIP_CREATED, MEMBERSHIP_UPDATED, MEMBERSHIP_DELETED
     }
+    
     /**
-     * The userid
+     * Membership technical ID
      */
-    private String userId;
+    private String id;
+    
+    /**
+     * The memberId
+     */
+    private String memberId;
+
+    /**
+     * The member type
+     */
+    private MembershipMemberType memberType;
 
     /**
      * The external reference id. Depending on the reference type.
@@ -44,9 +56,9 @@ public class Membership {
     private MembershipReferenceType referenceType;
 
     /**
-     * Roles
+     * Role id
      */
-    private Map<Integer, String> roles;
+    private String roleId;
 
     /**
      * Creation date
@@ -62,17 +74,22 @@ public class Membership {
         super();
     }
 
-    public Membership(String userId, String referenceId, MembershipReferenceType referenceType) {
-        this.userId = userId;
+    public Membership(String id, String memberId, MembershipMemberType memberType, String referenceId, MembershipReferenceType referenceType, String roleId) {
+        this.id = id;
+        this.memberId = memberId;
+        this.memberType = memberType;
         this.referenceId = referenceId;
         this.referenceType = referenceType;
+        this.roleId = roleId;
     }
 
     public Membership(Membership cloned) {
-        this.userId = cloned.userId;
+        this.id = cloned.id;
+        this.memberId = cloned.memberId;
+        this.memberType = cloned.memberType;
         this.referenceId = cloned.referenceId;
         this.referenceType = cloned.referenceType;
-        this.roles = new HashMap<>(cloned.roles);
+        this.roleId = cloned.roleId;
         this.createdAt = cloned.createdAt;
         this.updatedAt = cloned.updatedAt;
     }
@@ -85,12 +102,20 @@ public class Membership {
         this.createdAt = createdAt;
     }
 
-    public Map<Integer, String> getRoles() {
-        return roles;
+    public String getId() {
+        return id;
     }
 
-    public void setRoles(Map<Integer, String> roles) {
-        this.roles = roles;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(String roleId) {
+        this.roleId = roleId;
     }
 
     public Date getUpdatedAt() {
@@ -101,12 +126,20 @@ public class Membership {
         this.updatedAt = updatedAt;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getMemberId() {
+        return memberId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setMemberId(String memberId) {
+        this.memberId = memberId;
+    }
+
+    public MembershipMemberType getMemberType() {
+        return memberType;
+    }
+
+    public void setMemberType(MembershipMemberType memberType) {
+        this.memberType = memberType;
     }
 
     public String getReferenceId() {
@@ -129,21 +162,22 @@ public class Membership {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Membership m = (Membership)o;
-        return Objects.equals(userId, m.userId) &&
-                Objects.equals(referenceId, m.referenceId) &&
-                Objects.equals(referenceType, m.referenceType);
+        return Objects.equals(id, m.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, referenceId, referenceType);
+        return Objects.hash(id);
     }
 
     public String toString() {
         return "Membership{" +
-                "userId='" + userId + '\'' +
+                "id='" + id + '\'' +
+                ", memberId='" + memberId + '\'' +
+                ", memberType='" + memberType + '\'' +
                 ", referenceId='" + referenceId + '\'' +
                 ", referenceType='" + referenceType + '\'' +
+                ", roleId='" + roleId + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Application {
@@ -38,7 +38,7 @@ public class Application {
     /**
      * The ID of the environment the application is attached to
      */
-    private String environment;
+    private String environmentId;
     
     /**
      * The application name
@@ -80,7 +80,7 @@ public class Application {
 
     public Application(Application cloned) {
         this.id = cloned.id;
-        this.environment = cloned.environment;
+        this.environmentId = cloned.environmentId;
         this.name = cloned.name;
         this.description = cloned.description;
         this.createdAt = cloned.createdAt;
@@ -122,12 +122,12 @@ public class Application {
         this.updatedAt = updatedAt;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public String getEnvironmentId() {
+        return environmentId;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getId() {
@@ -195,7 +195,7 @@ public class Application {
     public String toString() {
         return "Application{" +
                 "id='" + id + '\'' +
-                ", environment='" + environment + '\'' +
+                ", environmentId='" + environmentId + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", groups='" + groups + '\'' +

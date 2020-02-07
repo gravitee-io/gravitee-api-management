@@ -34,7 +34,7 @@ public class ApiHeader {
     /**
      * The ID of the environment the api is attached to
      */
-    private String environment;
+    private String environmentId;
     
     /**
      * The api name.
@@ -65,7 +65,7 @@ public class ApiHeader {
 
     public ApiHeader(ApiHeader cloned) {
         this.id = cloned.id;
-        this.environment = cloned.environment;
+        this.environmentId = cloned.environmentId;
         this.name = cloned.name;
         this.value = cloned.value;
         this.order = cloned.order;
@@ -73,12 +73,12 @@ public class ApiHeader {
         this.updatedAt = cloned.updatedAt;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public String getEnvironmentId() {
+        return environmentId;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getId() {
@@ -145,7 +145,7 @@ public class ApiHeader {
     public String toString() {
         return "ApiHeader{" +
                 "id='" + id + '\'' +
-                ", environment='" + environment + '\'' +
+                ", environmentId='" + environmentId + '\'' +
                 ", name='" + name + '\'' +
                 ", value='" + value + '\'' +
                 ", order='" + order + '\'' +
