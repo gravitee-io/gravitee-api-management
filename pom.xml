@@ -23,7 +23,7 @@
   <properties>
     <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
     <node.version>v8.11.3</node.version>
-    <yarn.version>v1.7.0</yarn.version>
+    <npm.version>6.11.2</npm.version>
   </properties>
 
   <parent>
@@ -61,7 +61,7 @@
             <exclude>**/*.ttf</exclude>
             <exclude>**/*.woff2</exclude>
             <exclude>**/*.eot</exclude>
-            <exclude>yarn.lock</exclude>
+            <exclude>package-json.lock</exclude>
           </excludes>
         </configuration>
       </plugin>
@@ -91,26 +91,26 @@
         <version>${frontend-maven-plugin.version}</version>
         <executions>
           <execution>
-            <id>install node and yarn</id>
+            <id>install node</id>
             <goals>
-              <goal>install-node-and-yarn</goal>
+              <goal>install-node-and-npm</goal>
             </goals>
             <configuration>
               <nodeVersion>${node.version}</nodeVersion>
-              <yarnVersion>${yarn.version}</yarnVersion>
+              <npmVersion>${npm.version}</npmVersion>
             </configuration>
           </execution>
           <execution>
-            <id>yarn install</id>
+            <id>npm install</id>
             <goals>
-              <goal>yarn</goal>
+              <goal>npm</goal>
             </goals>
             <phase>generate-resources</phase>
           </execution>
           <execution>
-            <id>build with yarn</id>
+            <id>build with npm</id>
             <goals>
-              <goal>yarn</goal>
+              <goal>npm</goal>
             </goals>
             <phase>process-resources</phase>
             <configuration>

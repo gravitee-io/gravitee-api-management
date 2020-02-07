@@ -5,26 +5,23 @@ image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-managemen
 image:https://badges.gitter.im/Join Chat.svg["Gitter", link="https://gitter.im/gravitee-io/gravitee-io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
 endif::[]
 
-= Install
+== Install
 
-**Yarn tasks are ran from this base dir.**
+**NPM tasks are ran from this base dir.**
 
 - Install http://nodejs.org[nodejs], it comes with http://npmjs.org[npm]
-- Install https://yarnpkg.com[yarn]
 - Then install node modules with:
 ```
-yarn install
+npm install
 ```
-
-__Prefer the use of yarn to use stable dependencies versions fixed by the yarn.lock file__
 
 **If you're working on Windows**
 
 - Install Microsoft's windows-build-tools using npm install --global --production windows-build-tools from an elevated PowerShell or CMD.exe (run as Administrator).
 - Restart your computer
-- Re-run yarn install
+- Re-run npm install
 
-If you don't install this library, you may have such errors when you'll do yarn install :
+If you don't install this library, you may have such errors when you'll do npm install :
 ```
 ERROR in ./~/css-loader?importLoaders=1!./~/sass-loader!./~/postcss-loader!./src/index.scss Module build failed: Error: Node Sass does not yet support your current environment: Windows 64-bit with Unsupported runtime (57) For more information on which environments are supported please see: https://github.com/sass/node-sass/releases/tag/v3.13.1
 ```
@@ -33,27 +30,27 @@ ERROR in ./~/css-loader?importLoaders=1!./~/sass-loader!./~/postcss-loader!./src
 
 If you wanna serve the built version on dev mode :
 ```
-yarn run serve
+npm run serve
 ```
 
 If you wanna serve the built version on production mode :
 ```
-yarn run serve:dist
+npm run serve:dist
 ```
 
 If you wanna serve the built version pointing on the demo's server :
 ```
-yarn run serve:demo
+npm run serve:demo
 ```
 
 If you wanna serve the built version pointing on the nightly's server :
 ```
-yarn run serve:nightly
+npm run serve:nightly
 ```
 
 If you wanna launch e2e (end to end) tests with Protractor on the built version :
 ```
-yarn run buildNoReg
+npm run buildNoReg
 ```
 
 Tested and approved with the https://www.browserstack.com[BrowserStack platform]
