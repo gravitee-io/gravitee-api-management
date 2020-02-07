@@ -1,7 +1,7 @@
 [
    {
       "id":"international",
-      "environment": "DEFAULT",
+      "environmentId": "DEFAULT",
       "name":"International",
       "description": "Description for international view",
       "defaultView": true,
@@ -12,7 +12,7 @@
    },
    {
       "id":"products",
-      "environment": "DEFAULT",
+      "environmentId": "DEFAULT",
       "name":"Products",
       "description": "Description for products view",
       "defaultView": false,
@@ -23,7 +23,7 @@
    },
    {
       "id":"stores",
-      "environment": "DEFAULT",
+      "environmentId": "DEFAULT",
       "name":"Stores",
       "description": "Description for stores view",
       "defaultView": false,

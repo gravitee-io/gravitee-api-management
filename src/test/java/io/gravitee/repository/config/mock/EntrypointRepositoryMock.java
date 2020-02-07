@@ -39,18 +39,18 @@ public class EntrypointRepositoryMock extends AbstractRepositoryMock<EntrypointR
     void prepare(EntrypointRepository entrypointRepository) throws Exception {
         final Entrypoint entrypoint = new Entrypoint();
         entrypoint.setId("new-entrypoint");
-        entrypoint.setEnvironment("DEFAULT");
+        entrypoint.setEnvironmentId("DEFAULT");
         entrypoint.setValue("Entry point value");
         entrypoint.setTags("internal;product");
 
         final Entrypoint entrypoint2 = new Entrypoint();
         entrypoint2.setId("entrypoint");
-        entrypoint.setEnvironment("DEFAULT");
+        entrypoint.setEnvironmentId("DEFAULT");
         entrypoint2.setValue("https://public-api.company.com");
 
         final Entrypoint entrypoint2Updated = new Entrypoint();
         entrypoint2Updated.setId("entrypoint");
-        entrypoint2Updated.setEnvironment("new_DEFAULT");
+        entrypoint2Updated.setEnvironmentId("new_DEFAULT");
         entrypoint2Updated.setValue("New value");
         entrypoint2Updated.setTags("New tags");
 

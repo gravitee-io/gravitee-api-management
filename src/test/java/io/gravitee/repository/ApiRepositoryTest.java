@@ -55,7 +55,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
         Api api = new Api();
         api.setId(apiId);
-        api.setEnvironment("DEFAULT");
+        api.setEnvironmentId("DEFAULT");
         api.setName("sample-new name");
         api.setVersion("1");
         api.setLifecycleState(STOPPED);
@@ -70,7 +70,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Api saved not found", optional.isPresent());
 
         Api apiSaved = optional.get();
-        assertEquals("Invalid saved environment id.", api.getEnvironment(), apiSaved.getEnvironment());
+        assertEquals("Invalid saved environment id.", api.getEnvironmentId(), apiSaved.getEnvironmentId());
         assertEquals("Invalid saved api version.", api.getVersion(), apiSaved.getVersion());
         assertEquals("Invalid deployment lifecycle.", api.getLifecycleState(), apiSaved.getLifecycleState());
         assertEquals("Invalid api private api status.", api.getVisibility(), apiSaved.getVisibility());
@@ -95,7 +95,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
         final Api api = optional.get();
         api.setName("New API name");
-        api.setEnvironment("new_DEFAULT");
+        api.setEnvironmentId("new_DEFAULT");
         api.setDescription("New description");
         api.setViews(new HashSet<>(asList("view1", "view2")));
         api.setDefinition("New definition");
@@ -120,7 +120,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
         final Api apiUpdated = optionalUpdated.get();
         assertEquals("Invalid saved API name.", "New API name", apiUpdated.getName());
-        assertEquals("Invalid saved environment id.", "new_DEFAULT", apiUpdated.getEnvironment());
+        assertEquals("Invalid saved environment id.", "new_DEFAULT", apiUpdated.getEnvironmentId());
         assertEquals("Invalid API description.", "New description", apiUpdated.getDescription());
         assertEquals("Invalid API views.", new HashSet<>(asList("view1", "view2")), apiUpdated.getViews());
         assertEquals("Invalid API definition.", "New definition", apiUpdated.getDefinition());
@@ -141,7 +141,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Find api by name return no result ", optional.isPresent());
 
         Api api = optional.get();
-        assertEquals("Invalid environment id.", "DEFAULT", api.getEnvironment());
+        assertEquals("Invalid environment id.", "DEFAULT", api.getEnvironmentId());
         assertEquals("Invalid api name", "api-to-findById name", api.getName());
         assertEquals("Invalid api version", "1", api.getVersion());
         assertEquals("Invalid api visibility", PUBLIC, api.getVisibility());
@@ -259,7 +259,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByEnvironment() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());

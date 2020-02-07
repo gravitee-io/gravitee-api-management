@@ -54,7 +54,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
     public void shouldCreate() throws Exception {
         final Dictionary dictionary = new Dictionary();
         dictionary.setId("new-dictionary");
-        dictionary.setEnvironment("DEFAULT");
+        dictionary.setEnvironmentId("DEFAULT");
         dictionary.setName("My dic 1");
         dictionary.setDescription("Description for my dic 1");
         dictionary.setCreatedAt(new Date(1000000000000L));
@@ -71,7 +71,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("Dictionary saved not found", optional.isPresent());
 
         final Dictionary dictionarySaved = optional.get();
-        Assert.assertEquals("Invalid saved environment id.",  dictionary.getEnvironment(), dictionarySaved.getEnvironment());
+        Assert.assertEquals("Invalid saved environment id.",  dictionary.getEnvironmentId(), dictionarySaved.getEnvironmentId());
         Assert.assertEquals("Invalid saved dictionary name.", dictionary.getName(), dictionarySaved.getName());
         Assert.assertEquals("Invalid dictionary description.", dictionary.getDescription(), dictionarySaved.getDescription());
         Assert.assertEquals("Invalid dictionary createdAt.", dictionary.getCreatedAt(), dictionarySaved.getCreatedAt());
@@ -87,7 +87,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
 
         final Dictionary dictionary = optional.get();
         dictionary.setName("My dic 1");
-        dictionary.setEnvironment("new_DEFAULT");
+        dictionary.setEnvironmentId("new_DEFAULT");
         dictionary.setDescription("Description for my dic 1");
         dictionary.setCreatedAt(new Date(1000000000000L));
         dictionary.setUpdatedAt(new Date(1486771200000L));
@@ -103,7 +103,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("Dictionary to update not found", optionalUpdated.isPresent());
 
         final Dictionary dictionaryUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved envrionment id.", dictionary.getEnvironment(), dictionaryUpdated.getEnvironment());
+        Assert.assertEquals("Invalid saved envrionment id.", dictionary.getEnvironmentId(), dictionaryUpdated.getEnvironmentId());
         Assert.assertEquals("Invalid saved dictionary name.", dictionary.getName(), dictionaryUpdated.getName());
         Assert.assertEquals("Invalid dictionary description.", dictionary.getDescription(), dictionaryUpdated.getDescription());
         Assert.assertEquals("Invalid dictionary createdAt.", dictionary.getCreatedAt(), dictionaryUpdated.getCreatedAt());

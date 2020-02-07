@@ -64,7 +64,7 @@ public class ApiHeaderRepositoryMock extends AbstractRepositoryMock<ApiHeaderRep
         //shouldUpdate
         ApiHeader up = new ApiHeader();
         up.setId("toUpdate");
-        up.setEnvironment("new_DEFAULT");
+        up.setEnvironmentId("new_DEFAULT");
         up.setName("newName");
         up.setValue("newValue");
         up.setOrder(123);

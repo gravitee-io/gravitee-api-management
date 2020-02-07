@@ -2,7 +2,7 @@
   {
     "id": "application1",
     "name": "application-sample1",
-    "environment": "DEFAULT",
+    "environmentId": "DEFAULT",
     "description": "Sample application1 description",
     "status": "ACTIVE",
     "type": "SIMPLE",
@@ -16,7 +16,7 @@
   {
     "id": "application2",
     "name": "application-sample2",
-    "environment": "DEFAULT",
+    "environmentId": "DEFAULT",
     "description": "Sample application2 description",
     "status": "ACTIVE",
     "type": "SIMPLE",

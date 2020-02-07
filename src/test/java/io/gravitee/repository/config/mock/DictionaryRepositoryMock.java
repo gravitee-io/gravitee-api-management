@@ -42,7 +42,7 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
     void prepare(DictionaryRepository dictionaryRepository) throws Exception {
         final Dictionary newDictionary = mock(Dictionary.class);
         when(newDictionary.getName()).thenReturn("My dic 1");
-        when(newDictionary.getEnvironment()).thenReturn("DEFAULT");
+        when(newDictionary.getEnvironmentId()).thenReturn("DEFAULT");
         when(newDictionary.getDescription()).thenReturn("Description for my dic 1");
         when(newDictionary.getCreatedAt()).thenReturn(new Date(1000000000000L));
         when(newDictionary.getUpdatedAt()).thenReturn(new Date(1439032010883L));
@@ -57,7 +57,7 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
 
         final Dictionary dictionaryUpdated = mock(Dictionary.class);
         when(dictionaryUpdated.getName()).thenReturn("My dic 1");
-        when(dictionaryUpdated.getEnvironment()).thenReturn("new_DEFAULT");
+        when(dictionaryUpdated.getEnvironmentId()).thenReturn("new_DEFAULT");
         when(dictionaryUpdated.getDescription()).thenReturn("Description for my dic 1");
         when(dictionaryUpdated.getCreatedAt()).thenReturn(new Date(1000000000000L));
         when(dictionaryUpdated.getUpdatedAt()).thenReturn(new Date(1486771200000L));

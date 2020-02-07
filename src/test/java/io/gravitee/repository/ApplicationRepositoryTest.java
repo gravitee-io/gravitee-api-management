@@ -71,7 +71,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Application application = new Application();
 
         application.setId(name);
-        application.setEnvironment("DEFAULT");
+        application.setEnvironmentId("DEFAULT");
         application.setName(name);
         application.setDescription("Application description");
         Map<String, String> metadata = new HashMap<>();
@@ -91,7 +91,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
         Application appSaved = optional.get();
 
-        assertEquals("Invalid environment id.", application.getEnvironment(), appSaved.getEnvironment());
+        assertEquals("Invalid environment id.", application.getEnvironmentId(), appSaved.getEnvironmentId());
         assertEquals("Invalid application name.", application.getName(), appSaved.getName());
         assertEquals("Invalid application description.", application.getDescription(), appSaved.getDescription());
         assertEquals("Invalid application status.", application.getStatus(), appSaved.getStatus());
@@ -106,7 +106,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
         Application application = new Application();
         application.setId(applicationName);
-        application.setEnvironment("new_DEFAULT");
+        application.setEnvironmentId("new_DEFAULT");
         application.setName(applicationName);
         application.setDescription("Updated description");
         Map<String, String> metadata = new HashMap<>();
@@ -125,7 +125,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
         Application appUpdated = optional.get();
 
-        assertEquals("Invalid updated environment id.", application.getEnvironment(), appUpdated.getEnvironment());
+        assertEquals("Invalid updated environment id.", application.getEnvironmentId(), appUpdated.getEnvironmentId());
         assertEquals("Invalid updated application name.", application.getName(), appUpdated.getName());
         assertEquals("Invalid updated application description.", application.getDescription(), appUpdated.getDescription());
         assertEquals("Invalid updated application status.", application.getStatus(), appUpdated.getStatus());

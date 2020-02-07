@@ -1,21 +1,21 @@
 [
   {
-    "userId" : "admin",
+    "id" : "api-to-findById_admin",
+    "memberId" : "admin",
+    "memberType" : "USER",
     "referenceId" : "api-to-findById",
     "referenceType" : "API",
-    "roles" : {
-      "3": "PRIMARY_OWNER"
-    },
+    "roleId": "API_PRIMARY_OWNER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   },
   {
-    "userId" : "user",
+    "id" : "api-to-findById_user",
+    "memberId" : "user",
+    "memberType" : "USER",
     "referenceId" : "api-to-findById",
     "referenceType" : "API",
-    "roles" : {
-      "3": "USER"
-    },
+    "roleId" : "API_USER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   }

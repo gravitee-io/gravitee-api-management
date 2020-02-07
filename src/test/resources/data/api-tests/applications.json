@@ -1,7 +1,7 @@
 [
 	{
 	   	"id":"application-sample",
-        "environment": "DEFAULT",
+        "environmentId": "DEFAULT",
 		"name":"application-sample",
 	   	"description":"Sample application1 description",
 		"type": "SIMPLE",

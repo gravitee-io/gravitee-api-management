@@ -1,7 +1,7 @@
 [
   {
     "id": "application-sample",
-    "environment": "DEFAULT",
+    "environmentId": "DEFAULT",
     "name": "application-sample",
     "description": "Sample application description",
     "status": "ACTIVE",
@@ -15,7 +15,7 @@
   },
   {
     "id": "updated-app",
-    "environment": "DEFAULT",
+    "environmentId": "DEFAULT",
     "name": "updated-app",
     "description": "Sample updated-app description",
     "status": "ACTIVE",
@@ -30,7 +30,7 @@
   },
   {
     "id": "deleted-app",
-    "environment": "DEFAULT",
+    "environmentId": "DEFAULT",
     "name": "deleted-app",
     "description": "Sample deleted-app description",
     "status": "ACTIVE",
@@ -44,7 +44,7 @@
   },
   {
     "id": "grouped-app1",
-    "environment": "DEFAULT",
+    "environmentId": "DEFAULT",
     "name": "grouped-app",
     "description": "Sample grouped-app description",
     "status": "ACTIVE",
@@ -58,7 +58,7 @@
   },
   {
     "id": "grouped-app2",
-    "environment": "DEFAULT",
+    "environmentId": "DEFAULT",
     "name": "grouped-app",
     "description": "Sample grouped-app description",
     "status": "ARCHIVED",
@@ -72,7 +72,7 @@
   },
   {
     "id": "searched-app1",
-    "environment": "DEV",
+    "environmentId": "DEV",
     "name": "searched-app1",
     "description": "Sample searched app",
     "status": "ACTIVE",
@@ -85,7 +85,7 @@
   },
   {
     "id": "searched-app2",
-    "environment": "TEST",
+    "environmentId": "TEST",
     "name": "searched-app2",
     "description": "Sample searched app",
     "status": "ACTIVE",
@@ -98,7 +98,7 @@
   },
   {
     "id": "app-with-client-id",
-    "environment": "PROD",
+    "environmentId": "PROD",
     "name": "app-with-client-id",
     "description": "Sample searched app",
     "status": "ACTIVE",
@@ -112,7 +112,7 @@
   },
   {
     "id": "app-with-long-client-id",
-    "environment": "DEV",
+    "environmentId": "DEV",
     "name": "app-with-long-client-id",
     "description": "Sample searched app",
     "status": "ACTIVE",
@@ -126,7 +126,7 @@
   },
   {
     "id": "app-with-long-name",
-    "environment": "DEV",
+    "environmentId": "DEV",
     "name": "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012",
     "description": "Sample searched app",
     "status": "ACTIVE",

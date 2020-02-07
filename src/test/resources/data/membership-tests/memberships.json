@@ -1,71 +1,71 @@
 [
   {
-    "userId" : "user1",
+    "id": "api1_user1",
+    "memberId" : "user1",
+    "memberType" : "USER",
     "referenceId" : "api1",
     "referenceType" : "API",
-    "roles" : {
-      "3": "OWNER"
-    },
+    "roleId" : "API_OWNER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   },
   {
-    "userId" : "user2",
+    "id": "api2_user2",
+    "memberId" : "user2",
+    "memberType" : "USER",
     "referenceId" : "api2",
     "referenceType" : "API",
-    "roles" : {
-      "3": "OWNER"
-    },
+    "roleId" : "API_OWNER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   },
   {
-    "userId" : "user3",
+    "id": "api3_user3",
+    "memberId" : "user3",
+    "memberType" : "USER",
     "referenceId" : "api3",
     "referenceType" : "API",
-    "roles" : {
-      "3": "USER"
-    },
+    "roleId" : "API_USER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   },
   {
-    "userId" : "userToDelete",
+    "id": "app1_userToDelete",
+    "memberId" : "userToDelete",
+    "memberType" : "USER",
     "referenceId" : "app1",
     "referenceType" : "APPLICATION",
-    "roles" : {
-      "4": "USER"
-    },
+    "roleId" : "APPLICATION_USER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   },
   {
-    "userId" : "userToUpdate",
+    "id": "app1_userToUpdate",
+    "memberId" : "userToUpdate",
+    "memberType" : "USER",
     "referenceId" : "app1",
     "referenceType" : "APPLICATION",
-    "roles" : {
-      "4": "USER"
-    },
+    "roleId" : "APPLICATION_USER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   },
   {
-    "userId" : "user_findByIds",
+    "id": "api1_user_findByIds",
+    "memberId" : "user_findByIds",
+    "memberType" : "USER",
     "referenceId" : "api1_findByIds",
     "referenceType" : "API",
-    "roles" : {
-      "3": "OWNER"
-    },
+    "roleId" : "API_OWNER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   },
   {
-    "userId" : "user_findByIds",
+    "id": "api2_user_findByIds",
+    "memberId" : "user_findByIds",
+    "memberType" : "USER",
     "referenceId" : "api2_findByIds",
     "referenceType" : "API",
-    "roles" : {
-      "3": "OWNER"
-    },
+    "roleId" : "API_OWNER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   }

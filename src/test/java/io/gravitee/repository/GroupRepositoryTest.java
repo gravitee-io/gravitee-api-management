@@ -43,7 +43,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         Group group = new Group();
         group.setId("1");
         group.setName("my group");
-        group.setEnvironment("DEFAULT");
+        group.setEnvironmentId("DEFAULT");
         group.setLockApiRole(true);
         group.setLockApplicationRole(true);
         group.setSystemInvitation(true);
@@ -55,7 +55,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(group1);
         assertNotNull(group1.getId());
         assertEquals(group.getId(), group1.getId());
-        assertEquals(group.getEnvironment(), group1.getEnvironment());
+        assertEquals(group.getEnvironmentId(), group1.getEnvironmentId());
         assertEquals(group.getName(), group1.getName());
         assertEquals(group.isLockApiRole(), group1.isLockApiRole());
         assertEquals(group.isLockApplicationRole(), group1.isLockApplicationRole());
@@ -71,7 +71,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(group);
         assertTrue(group.isPresent());
         assertEquals("group-application-1", group.get().getId());
-        assertEquals("group-application-1 environment id", group.get().getEnvironment());
+        assertEquals("group-application-1 environment-id", group.get().getEnvironmentId());
         assertEquals("group-application-1 name", group.get().getName());
         assertTrue(group.get().isLockApiRole());
         assertTrue(group.get().isLockApplicationRole());
@@ -79,7 +79,6 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertTrue(group.get().isEmailInvitation());
         assertEquals(99, group.get().getMaxInvitation().intValue());
         assertEquals(2, group.get().getEventRules().size());
-        assertEquals(2, group.get().getRoles().size());
     }
 
     @Test
@@ -94,7 +93,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
     public void shouldUpdate() throws TechnicalException {
         Group group = new Group();
         group.setId("group-application-1");
-        group.setEnvironment("new_DEFAULT");
+        group.setEnvironmentId("new_DEFAULT");
         group.setName("Modified Name");
         group.setUpdatedAt(new Date(1000000000000L));
         group.setLockApiRole(true);
@@ -106,7 +105,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         Group update = groupRepository.update(group);
 
         assertEquals(group.getId(), update.getId());
-        assertEquals(group.getEnvironment(), update.getEnvironment());
+        assertEquals(group.getEnvironmentId(), update.getEnvironmentId());
         assertEquals(group.getName(), update.getName());
         assertEquals(new Date(1000000000000L), update.getUpdatedAt());
         assertTrue(group.isLockApiRole());
@@ -123,7 +122,6 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(groups);
         assertFalse("not empty", groups.isEmpty());
         assertEquals(2, groups.size());
-        assertEquals(2, groups.stream().filter(group -> "group-application-1".equals(group.getId())).findAny().get().getRoles().size());
     }
 
     @Test

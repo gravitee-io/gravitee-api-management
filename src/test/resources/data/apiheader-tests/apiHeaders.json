@@ -1,7 +1,7 @@
 [
   {
     "id": "1",
-    "environment": "DEFAULT",
+    "environmentId": "DEFAULT",
     "name": "h1",
     "value": "val1",
     "order": 1,
@@ -10,7 +10,7 @@
   },
   {
     "id": "2",
-    "environment": "DEFAULT",
+    "environmentId": "DEFAULT",
     "name": "h2",
     "value": "val2",
     "order": 2,
@@ -19,7 +19,7 @@
   },
   {
     "id": "toUpdate",
-    "environment": "ToBeUpdated",
+    "environmentId": "ToBeUpdated",
     "name": "oldName",
     "value": "oldValue",
     "order": 3,

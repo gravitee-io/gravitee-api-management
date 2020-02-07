@@ -52,7 +52,7 @@ public class EntrypointRepositoryTest extends AbstractRepositoryTest {
     public void shouldCreate() throws Exception {
         final Entrypoint entrypoint = new Entrypoint();
         entrypoint.setId("new-entrypoint");
-        entrypoint.setEnvironment("DEFAULT");
+        entrypoint.setEnvironmentId("DEFAULT");
         entrypoint.setValue("Entrypoint value");
         entrypoint.setTags("internal;product");
 
@@ -75,7 +75,7 @@ public class EntrypointRepositoryTest extends AbstractRepositoryTest {
 
         final Entrypoint entrypoint = optional.get();
         entrypoint.setValue("New value");
-        entrypoint.setEnvironment("new_DEFAULT");
+        entrypoint.setEnvironmentId("new_DEFAULT");
         entrypoint.setTags("New tags");
 
         int nbEntryPointsBeforeUpdate = entrypointRepository.findAll().size();
@@ -89,7 +89,7 @@ public class EntrypointRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid saved entrypoint.", entrypoint, optionalUpdated.get());
         assertEquals("Invalid saved value.", "New value", optionalUpdated.get().getValue());
         assertEquals("Invalid saved tags.", "New tags", optionalUpdated.get().getTags());
-        assertEquals("Invalid saved environment.", "new_DEFAULT", optionalUpdated.get().getEnvironment());
+        assertEquals("Invalid saved environment.", "new_DEFAULT", optionalUpdated.get().getEnvironmentId());
         
     }
 

@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EnvironmentRepositoryMock extends AbstractRepositoryMock<EnvironmentRepository> {
@@ -44,7 +44,7 @@ public class EnvironmentRepositoryMock extends AbstractRepositoryMock<Environmen
         envCreate.setId("DEFAULT-create");
         envCreate.setName("Default env for create");
         envCreate.setDescription("Default env description for create");
-        envCreate.setOrganization("DEFAULT-ORG");
+        envCreate.setOrganizationId("DEFAULT-ORG");
         envCreate.setDomainRestrictions(Arrays.asList("domain", "restriction"));
 
         final Environment env2Update = new Environment();
@@ -62,7 +62,7 @@ public class EnvironmentRepositoryMock extends AbstractRepositoryMock<Environmen
         final Environment envFindById = new Environment();
         envFindById.setId("DEFAULT-findById");
         envFindById.setName("Default env for findById");
-        envCreate.setOrganization("DEFAULT-ORG");
+        envCreate.setOrganizationId("DEFAULT-ORG");
 
 
         when(EnvironmentRepository.create(any(Environment.class))).thenReturn(envCreate);

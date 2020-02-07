@@ -41,7 +41,7 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
     void prepare(ViewRepository viewRepository) throws Exception {
         final View newView = mock(View.class);
         when(newView.getName()).thenReturn("View name");
-        when(newView.getEnvironment()).thenReturn("DEFAULT");
+        when(newView.getEnvironmentId()).thenReturn("DEFAULT");
         when(newView.getDescription()).thenReturn("Description for the new view");
         when(newView.getCreatedAt()).thenReturn(new Date(1486771200000L));
         when(newView.getUpdatedAt()).thenReturn(new Date(1486771200000L));
@@ -53,7 +53,7 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
 
         final View viewProducts = new View();
         viewProducts.setId("view");
-        viewProducts.setEnvironment("DEFAULT");
+        viewProducts.setEnvironmentId("DEFAULT");
         viewProducts.setName("Products");
         viewProducts.setCreatedAt(new Date(1000000000000L));
         viewProducts.setUpdatedAt(new Date(1111111111111L));
@@ -63,7 +63,7 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
 
         final View viewProductsUpdated = mock(View.class);
         when(viewProductsUpdated.getName()).thenReturn("New product");
-        when(viewProductsUpdated.getEnvironment()).thenReturn("DEFAULT");
+        when(viewProductsUpdated.getEnvironmentId()).thenReturn("DEFAULT");
         when(viewProductsUpdated.getDescription()).thenReturn("New description");
         when(viewProductsUpdated.getCreatedAt()).thenReturn(new Date(1486771200000L));
         when(viewProductsUpdated.getUpdatedAt()).thenReturn(new Date(1486771200000L));
@@ -82,9 +82,9 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
 
         when(viewRepository.create(any(View.class))).thenReturn(newView);
 
-        when(viewRepository.findById("new-view", "DEFAULT")).thenReturn(of(newView));
-        when(viewRepository.findById("unknown", "DEFAULT")).thenReturn(empty());
-        when(viewRepository.findById("products", "DEFAULT")).thenReturn(of(viewProducts), of(viewProductsUpdated));
+        when(viewRepository.findById("new-view")).thenReturn(of(newView));
+        when(viewRepository.findById("unknown")).thenReturn(empty());
+        when(viewRepository.findById("products")).thenReturn(of(viewProducts), of(viewProductsUpdated));
 
         when(viewRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }

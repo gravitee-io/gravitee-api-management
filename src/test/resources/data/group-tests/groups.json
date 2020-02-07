@@ -1,7 +1,7 @@
 [
   {
     "id": "group-application-1",
-    "environment": "group-application-1 environment id",
+    "environmentId": "group-application-1 environment-id",
     "name": "group-application-1 name",
     "lockApiRole": true,
     "lockApplicationRole": true,
@@ -15,18 +15,11 @@
       {
         "event": "APPLICATION_CREATE"
       }
-    ],
-    "roles" : {
-      "3": "OWNER",
-      "4": "USER"
-    }
+    ]
   },
   {
     "id": "group-api-to-delete",
-    "environment": "DEFAULT",
-    "name": "group-api-to-delete name",
-    "roles" : {
-      "3": "OWNER"
-    }
+    "environmentId": "DEFAULT",
+    "name": "group-api-to-delete name"
   }
 ]

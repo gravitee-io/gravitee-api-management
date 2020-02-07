@@ -59,7 +59,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiToUpdate.getApiLifecycleState()).thenReturn(PUBLISHED);
         final Api apiUpdated = mock(Api.class);
         when(apiUpdated.getName()).thenReturn("New API name");
-        when(apiUpdated.getEnvironment()).thenReturn("new_DEFAULT");
+        when(apiUpdated.getEnvironmentId()).thenReturn("new_DEFAULT");
         when(apiUpdated.getDescription()).thenReturn("New description");
         when(apiUpdated.getViews()).thenReturn(Sets.newSet("view1", "view2"));
         when(apiUpdated.getDefinition()).thenReturn("New definition");
@@ -85,7 +85,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(newApi.getLifecycleState()).thenReturn(LifecycleState.STOPPED);
         when(newApi.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(newApi.getDefinition()).thenReturn("{}");
-        when(newApi.getEnvironment()).thenReturn("DEFAULT");
+        when(newApi.getEnvironmentId()).thenReturn("DEFAULT");
         when(newApi.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(newApi.getUpdatedAt()).thenReturn(parse("12/02/2016"));
         when(newApi.getApiLifecycleState()).thenReturn(ApiLifecycleState.CREATED);
@@ -99,7 +99,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
 
         final Api apiToFindById = mock(Api.class);
         when(apiToFindById.getId()).thenReturn("api-to-findById");
-        when(apiToFindById.getEnvironment()).thenReturn("DEFAULT");
+        when(apiToFindById.getEnvironmentId()).thenReturn("DEFAULT");
         when(apiToFindById.getVersion()).thenReturn("1");
         when(apiToFindById.getName()).thenReturn("api-to-findById name");
         when(apiToFindById.getLifecycleState()).thenReturn(LifecycleState.STOPPED);
@@ -134,7 +134,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
                 groupedApi, apiToDelete, apiToUpdate));
         when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(asList(apiToFindById,
                 groupedApi));
-        when(apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").build())).thenReturn(asList(apiToFindById,
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build())).thenReturn(asList(apiToFindById,
                 groupedApi));
         when(apiRepository.search(
                 new ApiCriteria.Builder().version("1").build(),
