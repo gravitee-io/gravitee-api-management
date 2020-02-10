@@ -38,7 +38,7 @@
       <td md-cell>{{metadata.format}}</td>
       <td md-cell>{{metadata.value}}</td>
       <td md-cell width="48px">
-        <ng-md-icon permission permission-only="'portal-metadata-d'"
+        <ng-md-icon permission permission-only="'environment-metadata-d'"
                     icon="delete" ng-click="$ctrl.deleteMetadata(metadata)"
                     style="font-size: 24px; height: 24px;">
           <md-tooltip md-direction="top" md-visible="false">Delete metadata</md-tooltip>
@@ -52,7 +52,7 @@
   </div>
 </div>
 
-<md-button permission permission-only="'portal-metadata-c'"
+<md-button permission permission-only="'environment-metadata-c'"
            aria-label="Add metadata"
            class="md-fab md-fab-bottom-right md-fab-scrollable"
            ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"

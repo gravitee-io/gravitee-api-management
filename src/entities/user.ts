@@ -48,8 +48,8 @@ export class User {
       return false;
     }
     return _.some(this.userPermissions, (userPermission) => {
-      return _.startsWith(userPermission, 'management-instance')
-       || _.startsWith(userPermission, 'management-platform');
+      return _.startsWith(userPermission, 'environment-instance')
+       || _.startsWith(userPermission, 'environment-platform');
     });
   }
 }

@@ -97,7 +97,7 @@ const EditPageComponent: ng.IComponentOptions = {
       if (this.apiId) {
         this.canUpdate = UserService.isUserHasPermissions(['api-documentation-u']);
       } else {
-        this.canUpdate = UserService.isUserHasPermissions(['portal-documentation-u']);
+        this.canUpdate = UserService.isUserHasPermissions(['environment-documentation-u']);
       }
 
       if (this.page.type === 'SWAGGER') {

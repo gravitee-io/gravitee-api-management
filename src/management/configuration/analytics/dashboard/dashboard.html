@@ -58,11 +58,11 @@
         <gv-dashboard model="$ctrl.dashboard" update-mode="$ctrl.updateMode"></gv-dashboard>
 
         <md-card-actions layout="row" ng-if="$ctrl.updateMode">
-          <md-button type="submit" class="md-raised md-primary" permission permission-only="['management-dashboard-c', 'management-dashboard-u']"
+          <md-button type="submit" class="md-raised md-primary" permission permission-only="['environment-dashboard-c', 'environment-dashboard-u']"
                      ng-disabled="$ctrl.formDashboard.$invalid || $ctrl.formDashboard.$pristine">
             Save
           </md-button>
-          <md-button type="button" class="md-raised" permission permission-only="['management-dashboard-c', 'management-dashboard-u']"
+          <md-button type="button" class="md-raised" permission permission-only="['environment-dashboard-c', 'environment-dashboard-u']"
                      ng-click="$ctrl.reset()" ng-disabled="$ctrl.formDashboard.$pristine">
             Reset
           </md-button>
@@ -72,7 +72,7 @@
   </form>
 </div>
 
-<md-button permission permission-only="['management-dashboard-c', 'management-dashboard-u']" ng-if="$ctrl.updateMode"
+<md-button permission permission-only="['environment-dashboard-c', 'environment-dashboard-u']" ng-if="$ctrl.updateMode"
            aria-label="Add widget"
            class="md-fab md-fab-bottom-right md-fab-scrollable"
            ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"

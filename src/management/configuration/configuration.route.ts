@@ -52,11 +52,11 @@ function configurationRouterConfig($stateProvider) {
         perms: {
           only: [
             // hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
-            'portal-view-r', 'portal-metadata-r', 'portal-top_apis-r', 'management-group-r',
-            'management-tag-c', 'management-tenant-c', 'management-group-c', 'management-role-c', 'portal-documentation-c',
-            'management-tag-u', 'management-tenant-u', 'management-group-u', 'management-role-u', 'portal-documentation-u',
-            'management-tag-d', 'management-tenant-d', 'management-group-d', 'management-role-d', 'portal-documentation-d',
-            'portal-api_header-r'
+            'environment-view-r', 'environment-metadata-r', 'environment-top_apis-r', 'environment-group-r',
+            'environment-tag-c', 'environment-tenant-c', 'environment-group-c', 'organization-role-c', 'environment-documentation-c',
+            'environment-tag-u', 'environment-tenant-u', 'environment-group-u', 'organization-role-u', 'environment-documentation-u',
+            'environment-tag-d', 'environment-tenant-d', 'environment-group-d', 'organization-role-d', 'environment-documentation-d',
+            'environment-api_header-r'
           ]
         }
       }
@@ -73,7 +73,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-views'
         },
         perms: {
-          only: ['portal-view-r']
+          only: ['environment-view-r']
         }
       }
     })
@@ -86,7 +86,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-views'
         },
         perms: {
-          only: ['portal-view-c']
+          only: ['environment-view-c']
         }
       }
     })
@@ -103,7 +103,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-views'
         },
         perms: {
-          only: ['portal-view-u', 'portal-view-d']
+          only: ['environment-view-u', 'environment-view-d']
         }
       }
     })
@@ -121,7 +121,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-sharding-tags'
         },
         perms: {
-          only: ['management-tag-r']
+          only: ['environment-tag-r']
         }
       }
     })
@@ -137,7 +137,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-entrypoint'
         },
         perms: {
-          only: ['management-entrypoint-c']
+          only: ['environment-entrypoint-c']
         }
       }
     })
@@ -153,7 +153,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-entrypoint'
         },
         perms: {
-          only: ['management-entrypoint-u']
+          only: ['environment-entrypoint-u']
         }
       }
     })
@@ -169,7 +169,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-sharding-tag'
         },
         perms: {
-          only: ['management-tag-r', 'management-tag-c', 'management-tag-u']
+          only: ['environment-tag-r', 'environment-tag-c', 'environment-tag-u']
         }
       }
     })
@@ -185,7 +185,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-tenants'
         },
         perms: {
-          only: ['management-tenant-r']
+          only: ['environment-tenant-r']
         }
       }
     })
@@ -203,7 +203,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-groups'
         },
         perms: {
-          only: ['management-group-r']
+          only: ['environment-group-r']
         }
       }
     })
@@ -233,7 +233,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-group'
         },
         perms: {
-          only: ['management-group-r']
+          only: ['environment-group-r']
         }
       }
     })
@@ -270,7 +270,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-portal-pages'
         },
         perms: {
-          only: ['portal-documentation-r']
+          only: ['environment-documentation-r']
         }
       },
       params: {
@@ -320,7 +320,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-portal-pages'
         },
         perms: {
-          only: ['portal-documentation-c']
+          only: ['environment-documentation-c']
         }
       },
       params: {
@@ -358,7 +358,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-portal-pages'
         },
         perms: {
-          only: ['portal-documentation-c']
+          only: ['environment-documentation-c']
         }
       }
     })
@@ -408,7 +408,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-portal-pages'
         },
         perms: {
-          only: ['portal-documentation-u']
+          only: ['environment-documentation-u']
         }
       },
       params: {
@@ -432,7 +432,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-metadata'
         },
         perms: {
-          only: ['portal-metadata-r']
+          only: ['environment-metadata-r']
         }
       }
     })
@@ -441,8 +441,8 @@ function configurationRouterConfig($stateProvider) {
       component: 'roles',
       resolve: {
         roleScopes: (RoleService: RoleService) => RoleService.listScopes(),
-        managementRoles: (RoleService: RoleService) => RoleService.list('MANAGEMENT'),
-        portalRoles: (RoleService: RoleService) => RoleService.list('PORTAL'),
+        organizationRoles: (RoleService: RoleService) => RoleService.list('ORGANIZATION'),
+        environmentRoles: (RoleService: RoleService) => RoleService.list('ENVIRONMENT'),
         apiRoles: (RoleService: RoleService) => RoleService.list('API'),
         applicationRoles: (RoleService: RoleService) => RoleService.list('APPLICATION')
       },
@@ -452,13 +452,13 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-roles'
         },
         perms: {
-          only: ['management-role-r']
+          only: ['organization-role-r']
         }
       },
       params: {
         roleScope: {
           type: 'string',
-          value: 'MANAGEMENT',
+          value: 'ORGANIZATION',
           squash: false
         }
       }
@@ -475,7 +475,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-roles'
         },
         perms: {
-          only: ['management-role-c']
+          only: ['organization-role-c']
         }
       }
     })
@@ -491,7 +491,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-roles'
         },
         perms: {
-          only: ['management-role-u']
+          only: ['organization-role-u']
         }
       }
     })
@@ -504,7 +504,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-roles'
         },
         perms: {
-          only: ['management-role-u']
+          only: ['organization-role-u']
         }
       },
       resolve: {
@@ -540,7 +540,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-top_apis'
         },
         perms: {
-          only: ['portal-top_apis-r']
+          only: ['environment-top_apis-r']
         }
       }
     })
@@ -557,7 +557,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-users'
         },
         perms: {
-          only: ['management-user-c', 'management-user-r', 'management-user-u', 'management-user-d']
+          only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d']
         }
       }
     })
@@ -573,12 +573,12 @@ function configurationRouterConfig($stateProvider) {
           UserService.getUserGroups($stateParams.userId).then(response =>
             response.data
           ),
-        managementRoles: (RoleService: RoleService) =>
-          RoleService.list('MANAGEMENT').then( (roles) =>
+        organizationRoles: (RoleService: RoleService) =>
+          RoleService.list('ORGANIZATION').then( (roles) =>
             roles
           ),
-        portalRoles: (RoleService: RoleService) =>
-          RoleService.list('PORTAL').then( (roles) =>
+        environmentRoles: (RoleService: RoleService) =>
+          RoleService.list('ENVIRONMENT').then( (roles) =>
             roles
           ),
         apiRoles: (RoleService: RoleService) =>
@@ -596,7 +596,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-user'
         },
         perms: {
-          only: ['management-user-c', 'management-user-r', 'management-user-u', 'management-user-d']
+          only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d']
         }
       }
     })
@@ -609,7 +609,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-create-user'
         },
         perms: {
-          only: ['management-user-c']
+          only: ['organization-user-c']
         }
       }
     })
@@ -625,7 +625,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-portal'
         },
         perms: {
-          only: ['portal-settings-r']
+          only: ['environment-settings-r']
         }
       }
     })
@@ -646,7 +646,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-dictionaries'
         },
         perms: {
-          only: ['management-dictionary-r']
+          only: ['environment-dictionary-r']
         }
       }
     })
@@ -659,7 +659,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-dictionary'
         },
         perms: {
-          only: ['management-dictionary-c']
+          only: ['environment-dictionary-c']
         }
       }
     })
@@ -676,7 +676,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-dictionary'
         },
         perms: {
-          only: ['management-dictionary-c', 'management-dictionary-r', 'management-dictionary-u', 'management-dictionary-d']
+          only: ['environment-dictionary-c', 'environment-dictionary-r', 'environment-dictionary-u', 'environment-dictionary-d']
         }
       }
     })
@@ -694,7 +694,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-analytics'
         },
         perms: {
-          only: ['portal-settings-r']
+          only: ['environment-settings-r']
         }
       }
     })
@@ -707,7 +707,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-dashboard'
         },
         perms: {
-          only: ['management-dashboard-c']
+          only: ['environment-dashboard-c']
         }
       }
     })
@@ -723,7 +723,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-dashboard'
         },
         perms: {
-          only: ['management-dashboard-u']
+          only: ['environment-dashboard-u']
         }
       }
     })
@@ -740,7 +740,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-apiportalheader'
         },
         perms: {
-          only: ['portal-api_header-r']
+          only: ['environment-api_header-r']
         }
       }
     })
@@ -756,7 +756,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-apiquality'
         },
         perms: {
-          only: ['portal-settings-r']
+          only: ['environment-settings-r']
         }
       }
     })
@@ -769,7 +769,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-apiquality'
         },
         perms: {
-          only: ['management-quality_rule-c']
+          only: ['environment-quality_rule-c']
         }
       }
     })
@@ -785,7 +785,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-apiquality'
         },
         perms: {
-          only: ['management-quality_rule-u']
+          only: ['environment-quality_rule-u']
         }
       }
     })
@@ -806,7 +806,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-identityproviders'
         },
         perms: {
-          only: ['portal-identity_provider-r']
+          only: ['environment-identity_provider-r']
         }
       }
     })
@@ -819,7 +819,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-identityprovider'
         },
         perms: {
-          only: ['portal-identity_provider-c']
+          only: ['environment-identity_provider-c']
         }
       }
     })
@@ -833,13 +833,13 @@ function configurationRouterConfig($stateProvider) {
         groups: (GroupService: GroupService) =>
           GroupService.list().then(response => response.data),
 
-        portalRoles: (RoleService: RoleService) =>
-          RoleService.list('PORTAL').then( (roles) =>
+        environmentRoles: (RoleService: RoleService) =>
+          RoleService.list('ENVIRONMENT').then( (roles) =>
             roles
           ),
 
-        managementRoles: (RoleService: RoleService) =>
-          RoleService.list('MANAGEMENT').then( (roles) =>
+        organizationRoles: (RoleService: RoleService) =>
+          RoleService.list('ORGANIZATION').then( (roles) =>
             roles
           )
       },
@@ -849,7 +849,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-identityprovider'
         },
         perms: {
-          only: ['portal-identity_provider-r', 'portal-identity_provider-u', 'portal-identity_provider-d']
+          only: ['environment-identity_provider-r', 'environment-identity_provider-u', 'environment-identity_provider-d']
         }
       }
     })
@@ -862,7 +862,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-apilogging'
         },
         perms: {
-          only: ['portal-settings-r']
+          only: ['environment-settings-r']
         }
       }
     })
@@ -883,7 +883,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-client-registration-providers'
         },
         perms: {
-          only: ['portal-client_registration_provider-r']
+          only: ['environment-client_registration_provider-r']
         }
       }
     })
@@ -896,7 +896,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-client-registration-provider'
         },
         perms: {
-          only: ['portal-client_registration_provider-c']
+          only: ['environment-client_registration_provider-c']
         }
       }
     })
@@ -913,7 +913,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-client-registration-provider'
         },
         perms: {
-          only: ['portal-client_registration_provider-r', 'portal-client_registration_provider-u', 'portal-client_registration_provider-d']
+          only: ['environment-client_registration_provider-r', 'environment-client_registration_provider-u', 'environment-client_registration_provider-d']
         }
       }
     });

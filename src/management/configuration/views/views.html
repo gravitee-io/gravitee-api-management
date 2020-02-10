@@ -46,19 +46,19 @@
           <tr md-row ng-repeat="view in $ctrl.views | orderBy:view.order">
             <td md-cell width="1%" nowrap><a ui-sref="management.settings.view({viewId: view.id})">{{view.name}}</a></td>
             <td md-cell>{{view.description}}</td>
-            <td permission permission-only="'portal-view-u'" md-cell  width="1%" nowrap>
+            <td permission permission-only="'environment-view-u'" md-cell  width="1%" nowrap>
               <md-checkbox ng-model="view.defaultView" aria-label="default" ng-change="$ctrl.toggleDefault(view)"></md-checkbox>
             </td>
-            <td permission permission-only="'portal-view-u'" md-cell width="1%" nowrap>
+            <td permission permission-only="'environment-view-u'" md-cell width="1%" nowrap>
               <ng-md-icon icon="visibility{{view.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility(view)"></ng-md-icon>
             </td>
             <td md-cell width="1%" nowrap>{{view.totalApis}}</td>
             <td md-cell width="96px" nowrap style="text-align: center">
-              <ng-md-icon permission permission-only="'portal-view-u'" ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward($index)"></ng-md-icon>
-              <ng-md-icon permission permission-only="'portal-view-u'" ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward($index)"></ng-md-icon>
+              <ng-md-icon permission permission-only="'environment-view-u'" ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward($index)"></ng-md-icon>
+              <ng-md-icon permission permission-only="'environment-view-u'" ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward($index)"></ng-md-icon>
             </td>
             <td md-cell width="48px" style="padding: 0 12px !important;">
-              <ng-md-icon permission permission-only="'portal-view-d'"
+              <ng-md-icon permission permission-only="'environment-view-d'"
                           icon="delete" ng-click="$ctrl.deleteView(view)"
                           ng-if="view.id !== 'all'">
                 <md-tooltip md-direction="top" md-visible="false">Delete</md-tooltip>
@@ -72,7 +72,7 @@
   </div>
 </div>
 
-<md-button permission permission-only="'portal-view-c'"
+<md-button permission permission-only="'environment-view-c'"
            aria-label="Add view"
            class="md-fab md-fab-bottom-right md-fab-scrollable"
            ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"

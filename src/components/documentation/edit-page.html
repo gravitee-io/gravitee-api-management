@@ -190,7 +190,7 @@
                                         <td md-cell width="48px">
                                             <ng-md-icon icon="delete" ng-click="$ctrl.remove(translation)"
                                                         style="font-size: 24px; height: 24px;"
-                                                        permission permission-only="['portal-documentation-u', 'api-documentation-u']">
+                                                        permission permission-only="['environment-documentation-u', 'api-documentation-u']">
                                                 <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
                                             </ng-md-icon>
                                         </td>
@@ -200,7 +200,7 @@
                         </md-table-container>
                         
                         <div style="text-align: right">
-                            <md-button permission permission-only="['portal-documentation-u', 'api-documentation-u']"
+                            <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
                                 type="button"
                                 aria-label="Add translation"
                                 class="md-raised md-primary"
@@ -229,7 +229,7 @@
             </md-tabs>
 
             <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;" ng-if="$ctrl.canUpdate && $ctrl.currentTab === 'translations' && $ctrl.currentTranslation">
-                <md-button permission permission-only="['portal-documentation-u', 'api-documentation-u']"
+                <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
                     type="button"
                     aria-label="Save translation"
                     class="md-raised md-primary"
@@ -322,7 +322,7 @@
                                         <td md-cell width="48px">
                                             <ng-md-icon icon="delete" ng-click="$ctrl.remove(translation)"
                                                         style="font-size: 24px; height: 24px;"
-                                                        permission permission-only="['portal-documentation-u', 'api-documentation-u']">
+                                                        permission permission-only="['environment-documentation-u', 'api-documentation-u']">
                                                 <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
                                             </ng-md-icon>
                                         </td>
@@ -332,7 +332,7 @@
                         </md-table-container>
                         
                         <div style="text-align: right">
-                            <md-button permission permission-only="['portal-documentation-u', 'api-documentation-u']"
+                            <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
                                 type="button"
                                 aria-label="Add translation"
                                 class="md-raised md-primary"
@@ -513,7 +513,7 @@
                 <md-button class="md-raised md-primary" type="submit" ng-click="$ctrl.save()" ng-disabled="!$ctrl.page.name" ng-if="$ctrl.currentTab !== 'translations' || !$ctrl.currentTranslation">
                     Save
                 </md-button>
-                <md-button permission permission-only="['portal-documentation-u', 'api-documentation-u']"
+                <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
                     type="button"
                     aria-label="Save translation"
                     class="md-raised md-primary"

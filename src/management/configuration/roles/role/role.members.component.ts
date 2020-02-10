@@ -36,7 +36,7 @@ const RoleMembersComponent: ng.IComponentOptions = {
     this.roleScope = $stateParams.roleScope;
     this.role = $stateParams.role;
     this.$onInit = () => {
-      if (this.roleScope !== 'MANAGEMENT' && this.roleScope !== 'PORTAL') {
+      if (this.roleScope !== 'ORGANIZATION' && this.roleScope !== 'ENVIRONMENT' ) {
         $state.go('management.settings');
       }
     };

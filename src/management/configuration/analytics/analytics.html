@@ -26,34 +26,34 @@
           <thead md-head>
           <tr md-row>
             <th md-column class="column-with-logo">Name</th>
-            <th permission permission-only="'management-dashboard-u'" width="64px" nowrap></th>
-            <th permission permission-only="'management-dashboard-u'" width="48px" nowrap></th>
-            <th permission permission-only="'management-dashboard-u'" width="48px" nowrap></th>
-            <th permission permission-only="'management-dashboard-d'" width="48px" nowrap></th>
+            <th permission permission-only="'environment-dashboard-u'" width="64px" nowrap></th>
+            <th permission permission-only="'environment-dashboard-u'" width="48px" nowrap></th>
+            <th permission permission-only="'environment-dashboard-u'" width="48px" nowrap></th>
+            <th permission permission-only="'environment-dashboard-d'" width="48px" nowrap></th>
           </tr>
           </thead>
           <tbody md-body>
           <tr md-row ng-repeat="dashboard in dashboards">
-            <td md-cell permission permission-only="'management-dashboard-u'">
+            <td md-cell permission permission-only="'environment-dashboard-u'">
               <a ng-style="dashboard.enabled?'':{'font-style': 'italic', 'color': 'grey'}"
                  ui-sref="management.settings.dashboard({type: type, dashboardId: dashboard.id})">{{dashboard.name}}</a>
             </td>
-            <td md-cell permission permission-except="'management-dashboard-u'">
+            <td md-cell permission permission-except="'environment-dashboard-u'">
               <span ng-style="dashboard.enabled?'':{'font-style': 'italic', 'color': 'grey'}">{{dashboard.name}}</span>
             </td>
             <td md-cell width="48px">
               <ng-md-icon ng-if="!dashboard.enabled" icon="not_interested" ng-click="$ctrl.toggleEnable(dashboard)"
                           style="font-size: 24px; height: 24px;"
-                          permission permission-only="'management-dashboard-u'">
+                          permission permission-only="'environment-dashboard-u'">
                 <md-tooltip md-direction="top" md-visible="false">Enable this dashboard</md-tooltip>
               </ng-md-icon>
               <ng-md-icon ng-if="dashboard.enabled" icon="done" ng-click="$ctrl.toggleEnable(dashboard)"
                           style="font-size: 24px; height: 24px;"
-                          permission permission-only="'management-dashboard-u'">
+                          permission permission-only="'environment-dashboard-u'">
                 <md-tooltip md-direction="top" md-visible="false">Disable this dashboard</md-tooltip>
               </ng-md-icon>
             </td>
-            <td md-cell permission permission-only="'management-dashboard-u'" width="76px" nowrap>
+            <td md-cell permission permission-only="'environment-dashboard-u'" width="76px" nowrap>
               <ng-md-icon ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(dashboard)">
                 <md-tooltip md-direction="top" md-visible="false">Move upward</md-tooltip>
               </ng-md-icon>
@@ -62,7 +62,7 @@
                 <md-tooltip md-direction="top" md-visible="false">Move downward</md-tooltip>
               </ng-md-icon>
             </td>
-            <td md-cell permission permission-only="'management-dashboard-d'">
+            <td md-cell permission permission-only="'environment-dashboard-d'">
               <ng-md-icon icon="delete" ng-click="$ctrl.delete(dashboard)"></ng-md-icon>
             </td>
           </tr>
@@ -76,7 +76,7 @@
                             sub-message="Start creating a dashboard"
                             create-mode="true"></gravitee-empty-state>
       <div class="md-actions gravitee-api-save-button" layout="row">
-        <md-button permission permission-only="'management-dashboard-c'"
+        <md-button permission permission-only="'environment-dashboard-c'"
                    aria-label="Add dashboard {{type}}"
                    ui-sref="management.settings.dashboardnew({type: type})"
                    class="md-raised md-primary">
@@ -95,9 +95,9 @@
 
       <md-card-actions>
         <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
-                   permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Save</md-button>
+                   permission permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']">Save</md-button>
         <md-button type="button" class="md-raised" ng-click="$ctrl.reset()" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
-                   permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Reset</md-button>
+                   permission permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']">Reset</md-button>
       </md-card-actions>
     </form>
   </div>

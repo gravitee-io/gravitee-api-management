@@ -143,18 +143,18 @@
               </md-input-container>
 
               <md-input-container class="md-block" flex-gt-sm>
-                <label>Portal Role</label>
-                <md-select ng-model="mapping.portal">
-                  <md-option ng-repeat="role in $ctrl.portalRoles" ng-value="role.name">
+                <label>Environment Role</label>
+                <md-select ng-model="mapping.environments" multiple>
+                  <md-option ng-repeat="role in $ctrl.environmentRoles" ng-value="role.name">
                     {{role.name}}
                   </md-option>
                 </md-select>
               </md-input-container>
 
               <md-input-container class="md-block" flex-gt-sm>
-                <label>Management Role</label>
-                <md-select ng-model="mapping.management">
-                  <md-option ng-repeat="role in $ctrl.managementRoles" ng-value="role.name">
+                <label>Organization Role</label>
+                <md-select ng-model="mapping.organizations" multiple>
+                  <md-option ng-repeat="role in $ctrl.organizationRoles" ng-value="role.name">
                     {{role.name}}
                   </md-option>
                 </md-select>
@@ -171,17 +171,17 @@
     <div class="md-actions gravitee-api-save-button" layout="row">
       <md-button ng-if="$ctrl.updateMode" class="md-raised md-primary" type="submit"
                  ng-disabled="formIdentityProvider.$invalid || formIdentityProvider.$pristine"
-                 permission permission-only="['portal-identity_provider-u']">
+                 permission permission-only="['environment-identity_provider-u']">
         Update
       </md-button>
       <md-button ng-if="!$ctrl.updateMode" class="md-raised md-primary" type="submit"
                  ng-disabled="formIdentityProvider.$invalid || formIdentityProvider.$pristine"
-                 permission permission-only="['portal-identity_provider-c']">
+                 permission permission-only="['environment-identity_provider-c']">
         Create
       </md-button>
 
       <md-button class="md-raised" type="button" ng-click="$ctrl.reset()"
-                 permission permission-only="['portal-identity_provider-u']"
+                 permission permission-only="['environment-identity_provider-u']"
                  ng-disabled="formIdentityProvider.$invalid || formIdentityProvider.$pristine">
         Reset
       </md-button>

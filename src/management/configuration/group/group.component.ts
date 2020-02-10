@@ -182,7 +182,7 @@ const GroupComponent: ng.IComponentOptions = {
     };
 
     this.isSuperAdmin = () => {
-      return UserService.isUserHasPermissions(['management-group-u']);
+      return UserService.isUserHasPermissions(['environment-group-u']);
     };
 
     this.canSave = () => {

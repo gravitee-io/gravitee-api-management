@@ -120,7 +120,7 @@
     </div>
 
     <div ng-style="{'text-align': $ctrl.apisProvider.length == 0 && !$ctrl.isSearchResult() ? 'center' : 'none' }">
-      <md-button ng-if="!devMode" permission permission-only="'management-api-c'"
+      <md-button ng-if="!devMode" permission permission-only="'environment-api-c'"
                  ng-class="{'md-fab-bottom-right': $ctrl.apisProvider.length > 0 || $ctrl.isSearchResult()}" class="md-fab"
                  aria-label="create-api" ui-sref="management.apis.new">
         <ng-md-icon icon="add" style="fill: #fff;"></ng-md-icon>

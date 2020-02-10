@@ -74,7 +74,7 @@
                       sub-message="{{$ctrl.subMessage}}"
                       create-mode="true"></gravitee-empty-state>
 
-<div permission permission-only="'portal-application-c'" ng-style="$ctrl.applications.length == 0 && {'text-align':'center'}">
+<div permission permission-only="'environment-application-c'" ng-style="$ctrl.applications.length == 0 && {'text-align':'center'}">
   <md-button ng-class="{'md-fab-bottom-right': $ctrl.applications.length > 0}" class="md-fab"
              aria-label="Create New Application" ui-sref="management.applications.create">
     <ng-md-icon icon="add"></ng-md-icon>

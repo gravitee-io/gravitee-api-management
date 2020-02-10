@@ -33,7 +33,7 @@ class ApplicationsController {
     UserService.current().then(function (user) {
       if (!user.username) {
         that.subMessage = 'Login to get access to your applications';
-      } else if (UserService.isUserHasPermissions(['management-application-c'])) {
+      } else if (UserService.isUserHasPermissions(['environment-application-c'])) {
         that.subMessage = 'Start creating an application';
       } else {
         that.subMessage = '';

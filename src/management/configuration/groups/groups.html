@@ -76,7 +76,7 @@
                       message="There is no group to manage"
                       ></gravitee-empty-state>
 <div ng-style="{'text-align': $ctrl.groups.length == 0 ? 'center' : 'none' }">
-    <md-button permission permission-only="['management-group-c']"
+    <md-button permission permission-only="['environment-group-c']"
                ng-class="{'md-fab-bottom-right md-fab-scrollable': $ctrl.groups.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}" class="md-fab"
                aria-label="Add"
                ng-click="$ctrl.showAddGroupModal()">

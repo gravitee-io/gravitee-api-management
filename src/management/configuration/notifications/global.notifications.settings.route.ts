@@ -32,7 +32,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
           icon: 'notifications',
         },
         perms: {
-          only: ['management-notification-r']
+          only: ['environment-notification-r']
         }
       },
       resolve: {
@@ -63,7 +63,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
           page: 'management-configuration-notifications'
         },
         perms: {
-          only: ['management-notification-r']
+          only: ['environment-notification-r']
         }
       }
     })
@@ -77,7 +77,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
           parameter: 'alert.enabled'
         },
         perms: {
-          only: ['management-alert-r']
+          only: ['environment-alert-r']
         }
       },
       resolve: {
@@ -98,7 +98,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
           page: 'management-alerts'
         },
         perms: {
-          only: ['management-alert-c']
+          only: ['environment-alert-c']
         }
       },
       resolve: {
@@ -119,7 +119,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
           page: 'management-alerts'
         },
         perms: {
-          only: ['management-alert-u']
+          only: ['environment-alert-u']
         }
       },
       resolve: {

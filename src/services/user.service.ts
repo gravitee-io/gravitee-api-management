@@ -29,7 +29,6 @@ class UserService {
    * Current authenticated user or empty user if not authenticated.
    */
   public currentUser: User;
-  private baseURL: string;
   private usersURL: string;
   private userURL: string;
   private searchUsersURL: string;
@@ -50,7 +49,6 @@ class UserService {
               private StringService: StringService,
               private Base64Service: Base64Service) {
     'ngInject';
-    this.baseURL = Constants.baseURL;
     this.searchUsersURL = `${Constants.baseURL}search/users/`;
     this.usersURL = `${Constants.baseURL}users/`;
     this.userURL = `${Constants.baseURL}user/`;
@@ -75,7 +73,7 @@ class UserService {
   }
 
   create(user): ng.IPromise<any> {
-    return this.$http.post(`${this.baseURL}users`, user);
+    return this.$http.post(this.usersURL, user);
   }
 
   register(user): ng.IPromise<any> {
@@ -247,6 +245,10 @@ class UserService {
 
   getCurrentUserTags(): ng.IPromise<any> {
     return this.$http.get(`${this.userURL}tags`);
+  }
+
+  updateUserRoles(id: string, roles: any[]): ng.IPromise<any> {
+    return this.$http.put(`${this.usersURL}${id}/roles`, roles);
   }
 }
 

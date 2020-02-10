@@ -43,7 +43,7 @@
                         <td md-cell>{{::user.username}}</td>
                         <td md-cell ng-click="$event.stopPropagation()">
                             <div layout="row" layout-align="end center">
-                    <span permission permission-only="['management-role-u']">
+                    <span permission permission-only="['organization-role-u']">
                         <md-tooltip md-direction="top">delete</md-tooltip>
                         <ng-md-icon icon="delete" ng-click="$ctrl.deleteUser(user, $index)" aria-label="delete-user"></ng-md-icon>
                     </span>
@@ -56,7 +56,7 @@
         </div>
     </div>
 </div>
-<md-button permission permission-only="['management-role-u']"
+<md-button permission permission-only="['organization-role-u']"
            class="md-fab md-fab-bottom-right md-fab-scrollable"
            ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
            aria-label="Add"

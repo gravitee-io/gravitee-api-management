@@ -80,7 +80,7 @@ function apisRouterConfig($stateProvider: StateProvider) {
       template: require('./creation/newApi.html'),
       data: {
         perms: {
-          only: ['management-api-c']
+          only: ['environment-api-c']
         },
         docs: {
           page: 'management-apis-create'
@@ -96,7 +96,7 @@ function apisRouterConfig($stateProvider: StateProvider) {
       },
       data: {
         perms: {
-          only: ['management-api-c']
+          only: ['environment-api-c']
         },
         docs: {
           page: 'management-apis-create-steps'

@@ -45,7 +45,7 @@
           </div>
         </div>
 
-        <div permission permission-only="'management-group-u'">
+        <div permission permission-only="'environment-group-u'">
           <div layout="column">
             <md-input-container class="gv-input-number">
               <label>Max members (default unlimited)</label>
@@ -85,7 +85,7 @@
               <md-tab-label>Members</md-tab-label>
               <md-tab-body>
               <div style="margin: 16px 0 8px;">You can manage all members of this group.
-                <span permission permission-except="'management-group-u'" ng-if="$ctrl.group.max_invitation"> Limited to {{$ctrl.group.max_invitation}} members.</span>
+                <span permission permission-except="'environment-group-u'" ng-if="$ctrl.group.max_invitation"> Limited to {{$ctrl.group.max_invitation}} members.</span>
                 <div ng-if="$ctrl.hasGroupAdmin() && !$ctrl.group.system_invitation && !$ctrl.group.email_invitation" style="font-weight: bold;">
                   Enable email invitation and/or user search to allow the group administrator to add users.
                 </div>

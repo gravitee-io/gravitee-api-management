@@ -60,7 +60,7 @@
       <div class="md-actions gravitee-api-save-button" layout="row">
         <md-button class="md-raised md-primary"
                    type="submit"
-                   permission permission-only="['api-notification-u', 'application-notification-u', 'management-notification-u']"
+                   permission permission-only="['api-notification-u', 'application-notification-u', 'environment-notification-u']"
                    ng-disabled="!$ctrl.validate() || $ctrl.formNotification.$pristine"
                    ng-click="$ctrl.save()">
           Save
@@ -68,7 +68,7 @@
         <md-button class="md-raised md-warn"
                    type="button"
                    ng-click="$ctrl.delete()"
-                   permission permission-only="['api-notification-d', 'application-notification-d', 'management-notification-d']"
+                   permission permission-only="['api-notification-d', 'application-notification-d', 'environment-notification-d']"
                    ng-if="$ctrl.selectedNotificationSetting.config_type==='generic'">
           Delete
         </md-button>
@@ -77,7 +77,7 @@
       </div>
     </form>
   </div>
-  <md-button permission permission-only="['api-notification-c', 'application-notification-c', 'management-notification-c']"
+  <md-button permission permission-only="['api-notification-c', 'application-notification-c', 'environment-notification-c']"
              class="md-fab md-fab-bottom-right md-fab-scrollable"
              ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
              aria-label="Add"

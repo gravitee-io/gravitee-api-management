@@ -123,7 +123,7 @@
               <md-checkbox ng-click="$ctrl.toggleHighlightAPI(api)" aria-label="highlight API" ng-checked="$ctrl.isHighlightApi(api)"></md-checkbox>
             </td>
             <td md-cell>
-              <ng-md-icon permission permission-only="'portal-view-u'" icon="delete" ng-click="$ctrl.removeApi(api)"></ng-md-icon>
+              <ng-md-icon permission permission-only="'environment-view-u'" icon="delete" ng-click="$ctrl.removeApi(api)"></ng-md-icon>
             </td>
           </tr>
         </tbody>
@@ -133,7 +133,7 @@
       <div layout="row">
         <md-button ng-disabled="$ctrl.viewForm.$invalid || $ctrl.viewForm.$pristine && !$ctrl.formChanged"
                    ng-click="$ctrl.save()"
-                   permission permission-only="['portal-view-c', 'portal-view-u']"
+                   permission permission-only="['environment-view-c', 'environment-view-u']"
                    class="md-raised md-primary">
           Save
         </md-button>

@@ -49,7 +49,7 @@ class MetadataController {
   }
 
   updateMetadata(metadata) {
-    if (this.UserService.isUserHasPermissions(['portal-metadata-u'])) {
+    if (this.UserService.isUserHasPermissions(['environment-metadata-u'])) {
       const that = this;
       this.$mdDialog.show({
         controller: 'UpdateMetadataDialogController',

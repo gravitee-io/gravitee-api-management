@@ -50,7 +50,7 @@ function managementRouterConfig($stateProvider) {
           order: 30
         },
         perms: {
-          only: ['management-instance-r']
+          only: ['environment-instance-r']
         },
         docs: {
           page: 'management-gateways'
@@ -112,7 +112,7 @@ function managementRouterConfig($stateProvider) {
           order: 40
         },
         perms: {
-          only: ['management-platform-r']
+          only: ['environment-platform-r']
         },
         docs: {
           page: 'management-dashboard'
@@ -150,7 +150,7 @@ function managementRouterConfig($stateProvider) {
           order: 50
         },
         perms: {
-          only: ['management-audit-r']
+          only: ['environment-audit-r']
         },
         docs: {
           page: 'management-audit'
@@ -176,15 +176,15 @@ function managementRouterConfig($stateProvider) {
           order: 50
         },
         perms: {
-          only: ['management-message-c']
+          only: ['environment-message-c']
         },
         docs: {
           page: 'management-messages'
         }
       },
       resolve: {
-        resolvedScope: () => 'MANAGEMENT',
-        resolvedRoles: (RoleService: RoleService) => RoleService.list('MANAGEMENT')
+        resolvedScope: () => 'ENVIRONMENT',
+        resolvedRoles: (RoleService: RoleService) => RoleService.list('ENVIRONMENT')
       }
     })
     .state('management.tasks', {

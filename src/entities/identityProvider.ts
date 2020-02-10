@@ -20,8 +20,8 @@ export class GroupMapping {
 
 export class RoleMapping {
   public condition: string;
-  public portal: string;
-  public management: string;
+  public environments: string[];
+  public organizations: string[];
 }
 
 export class IdentityProvider {

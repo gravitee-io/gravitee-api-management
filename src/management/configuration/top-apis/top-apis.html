@@ -40,11 +40,11 @@
             <td md-cell width="1%" nowrap>{{::topApi.version}}</td>
             <td md-cell>{{::topApi.description}}</td>
             <td md-cell width="96px" style="text-align: center;" nowrap>
-              <ng-md-icon permission permission-only="'portal-top_apis-u'" ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(topApi.order)"></ng-md-icon>
-              <ng-md-icon permission permission-only="'portal-top_apis-u'" ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(topApi.order)"></ng-md-icon>
+              <ng-md-icon permission permission-only="'environment-top_apis-u'" ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(topApi.order)"></ng-md-icon>
+              <ng-md-icon permission permission-only="'environment-top_apis-u'" ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(topApi.order)"></ng-md-icon>
             </td>
             <td md-cell width="48px">
-              <ng-md-icon permission permission-only="'portal-top_apis-d'"
+              <ng-md-icon permission permission-only="'environment-top_apis-d'"
                           icon="delete" ng-click="$ctrl.delete(topApi)"
                           style="height: 24px; font-size: 24px;"></ng-md-icon>
             </td>
@@ -56,7 +56,7 @@
   </div>
 </div>
 
-<md-button permission permission-only="'portal-top_apis-c'"
+<md-button permission permission-only="'environment-top_apis-c'"
            aria-label="Add top API"
            class="md-fab md-fab-bottom-right md-fab-scrollable"
            ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"

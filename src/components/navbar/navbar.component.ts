@@ -105,7 +105,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     };
 
     vm.isAppManagement = function () {
-      return vm.graviteeUser.allowedTo(['portal-application-r', 'management-application-r']);
+      return vm.graviteeUser.allowedTo(['environment-application-r']);
     };
 
     vm.getLogo = function() {

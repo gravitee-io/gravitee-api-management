@@ -40,7 +40,7 @@ class RoleService {
   }
 
   isUserRoleManagement(scope: string) {
-    return _.includes(['MANAGEMENT', 'PORTAL'], scope);
+    return 'ORGANIZATION' === scope || 'ENVIRONMENT' === scope;
   }
 
   get(roleScope, roleName) {

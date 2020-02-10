@@ -21,8 +21,8 @@ import { StateService } from '@uirouter/core';
 const RolesComponent: ng.IComponentOptions = {
   bindings: {
     roleScopes: '<',
-    managementRoles: '<',
-    portalRoles: '<',
+    organizationRoles: '<',
+    environmentRoles: '<',
     apiRoles: '<',
     applicationRoles: '<'
   },
@@ -37,8 +37,8 @@ const RolesComponent: ng.IComponentOptions = {
     this.rolesByScope = {};
 
     this.$onInit = () => {
-      this.rolesByScope.MANAGEMENT = this.managementRoles;
-      this.rolesByScope.PORTAL = this.portalRoles;
+      this.rolesByScope.ORGANIZATION = this.organizationRoles;
+      this.rolesByScope.ENVIRONMENT = this.environmentRoles;
       this.rolesByScope.API = this.apiRoles;
       this.rolesByScope.APPLICATION = this.applicationRoles;
     };

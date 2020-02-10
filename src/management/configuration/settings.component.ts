@@ -35,41 +35,41 @@ const SettingsComponent: ng.IComponentOptions = {
       // PORTAL
       analytics: {
         perm: UserService.isUserHasPermissions(
-          ['portal-settings-r']),
+          ['environment-settings-r']),
         goTo: 'management.settings.analytics'
       },
       apiPortalHeader: {
         perm: UserService.isUserHasPermissions(
-          ['portal-api_header-r']),
+          ['environment-api_header-r']),
         goTo: 'management.settings.apiPortalHeader'
       },
       apiQuality: {
-        perm: UserService.isUserHasPermissions(['portal-settings-r']),
+        perm: UserService.isUserHasPermissions(['environment-settings-r']),
         goTo: 'management.settings.apiQuality'
       },
       clientRegistration: {
         perm: UserService.isUserHasPermissions(
-          ['portal-client_registration_provider-r']),
+          ['environment-client_registration_provider-r']),
         goTo: 'management.settings.clientregistrationproviders.list'
       },
       identityProviders: {
         perm: UserService.isUserHasPermissions(
-          ['portal-identity_provider-r']),
+          ['environment-identity_provider-r']),
         goTo: 'management.settings.identityproviders.list'
       },
       documentations: {
         perm: UserService.isUserHasPermissions(
-          ['portal-documentation-c', 'portal-documentation-u', 'portal-documentation-d']),
+          ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d']),
         goTo: 'management.settings.documentation'
       },
       metadata: {
         perm: UserService.isUserHasPermissions(
-          ['portal-metadata-r']),
+          ['environment-metadata-r']),
         goTo: 'management.settings.metadata'
       },
       portalSettings: {
         perm: UserService.isUserHasPermissions(
-          ['portal-settings-r']),
+          ['environment-settings-r']),
         goTo: 'management.settings.portal'
       },
       theme: {
@@ -79,68 +79,68 @@ const SettingsComponent: ng.IComponentOptions = {
       },
       topApis: {
         perm: UserService.isUserHasPermissions(
-          ['portal-top_apis-r']),
+          ['environment-top_apis-r']),
         goTo: 'management.settings.top-apis'
       },
       views: {
         perm: UserService.isUserHasPermissions(
-          ['portal-view-r']),
+          ['environment-view-r']),
         goTo: 'management.settings.views'
       },
 
       // MANAGEMENT
       managementSettings: {
         perm: UserService.isUserHasPermissions(
-          ['management-settings-r']),
+          ['environment-settings-r']),
         goTo: 'management.settings.management'
       },
 
       // GATEWAYS
       api_logging: {
         perm: UserService.isUserHasPermissions(
-          ['portal-settings-r']),
+          ['environment-settings-r']),
         goTo: 'management.settings.api_logging'
       },
       dictionaries: {
         perm: UserService.isUserHasPermissions(
-          ['management-dictionary-r']),
+          ['environment-dictionary-r']),
         goTo: 'management.settings.dictionaries.list'
       },
       tags: {
         perm: UserService.isUserHasPermissions(
-          ['management-tag-c', 'management-tag-u', 'management-tag-d']),
+          ['environment-tag-c', 'environment-tag-u', 'environment-tag-d']),
         goTo: 'management.settings.tags'
       },
       tenants: {
         perm: UserService.isUserHasPermissions(
-          ['management-tenant-c', 'management-tenant-u', 'management-tenant-d']),
+          ['environment-tenant-c', 'environment-tenant-u', 'environment-tenant-d']),
         goTo: 'management.settings.tenants'
       },
 
       // USER MANAGEMENT
       users: {
         perm: UserService.isUserHasPermissions(
-          ['management-user-r']),
+          ['organization-user-r']),
         goTo: 'management.settings.users'
       },
       groups: {
         perm: UserService.isUserHasPermissions(
-          ['management-group-r']),
+          ['environment-group-r']),
         goTo: 'management.settings.groups'
       },
       roles: {
         perm: UserService.isUserHasPermissions(
-          ['management-role-c', 'management-role-u', 'management-role-d']),
+          ['organization-role-c', 'organization-role-u', 'organization-role-d']),
         goTo: 'management.settings.roles'
       },
 
       // ALERT
       notifications: {
-        perm: UserService.isUserHasPermissions(['management-notification-r']),
+        perm: UserService.isUserHasPermissions(['environment-notification-r']),
         goTo: 'management.settings.notifications'
       },
       alerts: {
-        perm: UserService.isUserHasPermissions(['management-alert-r']) && Constants.alert && Constants.alert.enabled,
+        perm: UserService.isUserHasPermissions(['environment-alert-r']) && Constants.alert && Constants.alert.enabled,
         goTo: 'management.settings.alerts'
       }};
 

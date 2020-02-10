@@ -35,7 +35,7 @@
       </th>
       <th md-column md-order-by="name">Name</th>
       <th md-column md-order-by="description">Description</th>
-      <th permission permission-only="'management-tenant-d'"></th>
+      <th permission permission-only="'environment-tenant-d'"></th>
     </tr>
     </thead>
     <tbody md-body>
@@ -50,23 +50,23 @@
                         role="button"></ng-md-icon>
         </span>
       </td>
-      <td permission permission-only="'management-tenant-u'"
+      <td permission permission-only="'environment-tenant-u'"
           md-cell ng-click="$ctrl.editName($event, tenant)" ng-class="{'gravitee-placeholder': !tenant.name}">
         {{tenant.name || 'Add a name'}}
       </td>
-      <td permission permission-only="'management-tenant-u'"
+      <td permission permission-only="'environment-tenant-u'"
           md-cell ng-click="$ctrl.editDescription($event, tenant)" ng-class="{'gravitee-placeholder': !tenant.description}">
         {{tenant.description || 'Add a description'}}
       </td>
-      <td permission permission-except="'management-tenant-u'">
+      <td permission permission-except="'environment-tenant-u'">
         {{tenant.name}}
       </td>
-      <td permission permission-except="'management-tenant-u'">
+      <td permission permission-except="'environment-tenant-u'">
         {{tenant.description}}
       </td>
-      <td md-cell permission permission-only="'management-tenant-d'"><ng-md-icon icon="delete" ng-click="$ctrl.deleteTenant(tenant)"></ng-md-icon></td>
+      <td md-cell permission permission-only="'environment-tenant-d'"><ng-md-icon icon="delete" ng-click="$ctrl.deleteTenant(tenant)"></ng-md-icon></td>
     </tr>
-    <tr md-row permission permission-only="'management-tenant-c'">
+    <tr md-row permission permission-only="'environment-tenant-c'">
       <td md-cell></td>
       <td md-cell ng-click="$ctrl.newTenant($event)" class="gravitee-placeholder">
         New tenant
@@ -77,7 +77,7 @@
     </tbody>
   </table>
 </md-table-container>
-<div permission permission-only="['management-tenant-c', 'management-tenant-u']">
+<div permission permission-only="['environment-tenant-c', 'environment-tenant-u']">
   <md-button ng-click="$ctrl.saveTenants()"
              ng-disabled="!$ctrl.tenantsToCreate.length && !$ctrl.tenantsToUpdate.length"
              class="md-raised md-primary">Save</md-button>

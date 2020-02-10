@@ -34,7 +34,7 @@
             <th md-column md-order-by="name">Name</th>
             <th md-column md-order-by="description">Description</th>
             <th md-column md-order-by="description">Restricted groups</th>
-            <th permission permission-only="'management-tag-d'" width="10%"></th>
+            <th permission permission-only="'environment-tag-d'" width="10%"></th>
           </tr>
           </thead>
           <tbody md-body>
@@ -53,7 +53,7 @@
             <td md-cell>{{tag.name}}</td>
             <td md-cell>{{tag.description}}</td>
             <td md-cell>{{$ctrl.groupNames(tag.restricted_groups)}}</td>
-            <td md-cell permission permission-only="'management-tag-d'" ng-click="$event.stopPropagation()">
+            <td md-cell permission permission-only="'environment-tag-d'" ng-click="$event.stopPropagation()">
               <ng-md-icon icon="delete" ng-click="$ctrl.deleteTag(tag)"></ng-md-icon>
             </td>
           </tr>
@@ -70,9 +70,9 @@
         </md-input-container>
         <md-card-actions>
           <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
-                     permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Save</md-button>
+                     permission permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']">Save</md-button>
           <md-button type="button" class="md-raised" ng-click="$ctrl.resetSettings()" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
-                     permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Reset</md-button>
+                     permission permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']">Reset</md-button>
         </md-card-actions>
       </div>
     </form>
@@ -86,18 +86,18 @@
           <tr md-row>
             <th md-column>Entrypoint</th>
             <th md-column>Tags</th>
-            <th permission permission-only="'management-entrypoint-u'" width="64px" nowrap></th>
-            <th permission permission-only="'management-entrypoint-d'" width="64px" nowrap></th>
+            <th permission permission-only="'environment-entrypoint-u'" width="64px" nowrap></th>
+            <th permission permission-only="'environment-entrypoint-d'" width="64px" nowrap></th>
           </tr>
           </thead>
           <tbody md-body>
           <tr md-row ng-repeat="entrypoint in $ctrl.entrypoints | orderBy: order">
             <td md-cell>{{entrypoint.value}}</td>
             <td md-cell>{{entrypoint.tags.join(', ')}}</td>
-            <td md-cell permission permission-only="'management-entrypoint-u'">
+            <td md-cell permission permission-only="'environment-entrypoint-u'">
               <ng-md-icon icon="edit" ui-sref="management.settings.entrypoint({entrypointId: entrypoint.id})"></ng-md-icon>
             </td>
-            <td md-cell permission permission-only="'management-entrypoint-d'">
+            <td md-cell permission permission-only="'environment-entrypoint-d'">
               <ng-md-icon icon="delete" ng-click="$ctrl.deleteEntrypoint(entrypoint)"></ng-md-icon>
             </td>
           </tr>
@@ -108,7 +108,7 @@
   </div>
   <gravitee-empty-state ng-if="$ctrl.tags.length == 0" icon="label" message="There is no sharding tag to manage"></gravitee-empty-state>
   <div ng-style="{'text-align': $ctrl.tags.length == 0 ? 'center' : 'none' }">
-    <md-button permission permission-only="['management-tag-c']"
+    <md-button permission permission-only="['environment-tag-c']"
                ng-class="{'md-fab-bottom-right md-fab-scrollable': $ctrl.tags.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}" class="md-fab"
                aria-label="Add"
                ng-click="$ctrl.showAddTagModal()" ui-sref="management.settings.tag({tagId: 'new'})">

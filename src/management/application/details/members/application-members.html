@@ -48,7 +48,7 @@
                   <md-option ng-value="role.name" ng-repeat="role in $ctrl.roles" ng-disabled="role.system">{{role.name}}</md-option>
                 </md-select>
               </td>
-              <td md-cell permission permission-only="'application-member-r'">
+              <td md-cell permission permission-except="'application-member-u'">
                 <span>{{member.role}}</span>
               </td>
               <td md-cell>

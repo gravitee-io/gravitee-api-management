@@ -48,13 +48,13 @@
                         <td md-cell width="1%" nowrap><a ng-click="$ctrl.updateHeader(header)">{{header.name}}</a></td>
                         <td md-cell><code>{{header.value}}</code></td>
                         <td md-cell width="76px" nowrap layout="row" layout-align="center center">
-                            <div permission permission-only="'portal-api_header-u'">
+                            <div permission permission-only="'environment-api_header-u'">
                                 <ng-md-icon ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(header)"></ng-md-icon>
                                 <ng-md-icon ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(header)"></ng-md-icon>
                             </div>
                         </td>
                         <td md-cell width="48px" nowrap>
-                            <ng-md-icon permission permission-only="'portal-api_header-d'"
+                            <ng-md-icon permission permission-only="'environment-api_header-d'"
                                         icon="delete" ng-click="$ctrl.deleteHeader(header)">
                                 <md-tooltip md-direction="top" md-visible="false">Delete</md-tooltip>
                             </ng-md-icon>
@@ -67,7 +67,7 @@
     </div>
 </div>
 
-<md-button permission permission-only="'portal-api_header-c'"
+<md-button permission permission-only="'environment-api_header-c'"
            aria-label="Add"
            class="md-fab md-fab-bottom-right md-fab-scrollable"
            ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"

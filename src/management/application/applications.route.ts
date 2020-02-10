@@ -43,7 +43,7 @@ function applicationsConfig($stateProvider) {
           order: 20
         },
         perms: {
-          only: ['management-application-r']
+          only: ['environment-application-r']
         },
         devMode: true,
         docs: {
@@ -62,7 +62,7 @@ function applicationsConfig($stateProvider) {
       },
       data: {
         perms: {
-          only: ['portal-application-c']
+          only: ['environment-application-c']
         },
         devMode: true,
         docs: {

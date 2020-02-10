@@ -21,8 +21,8 @@ import _ = require('lodash');
 import {IScope} from 'angular';
 
 interface IUserDetailComponentScope extends ng.IScope {
-  selectedMgmtRole: string;
-  selectedPortalRole: string;
+  selectedOrganizationRole: string[];
+  selectedEnvironmentRole: string[];
   userApis: any[];
   userApplications: any[];
 }
@@ -30,8 +30,8 @@ const UserDetailComponent: ng.IComponentOptions = {
   bindings: {
     selectedUser: '<',
     groups: '<',
-    managementRoles: '<',
-    portalRoles: '<',
+    organizationRoles: '<',
+    environmentRoles: '<',
     apiRoles: '<',
     applicationRoles: '<'
   },
@@ -48,10 +48,8 @@ const UserDetailComponent: ng.IComponentOptions = {
     'ngInject';
     this.$rootScope = $rootScope;
     this.$onInit = () => {
-      let idxPortalRole = this.selectedUser.roles[0].scope === 'portal' ? 0 : 1;
-      let idxMgmtRole =   this.selectedUser.roles[0].scope === 'portal' ? 1 : 0;
-      $scope.selectedMgmtRole = this.selectedUser.roles[idxMgmtRole].name;
-      $scope.selectedPortalRole = this.selectedUser.roles[idxPortalRole].name;
+      $scope.selectedOrganizationRole = _.map(_.filter(this.selectedUser.roles, role => role.scope === 'organization'), role => role.id);
+      $scope.selectedEnvironmentRole = _.map(_.filter(this.selectedUser.roles, role => role.scope === 'environment'), role => role.id);
       $scope.userApis = [];
       $scope.userApplications = [];
     };
@@ -101,10 +99,27 @@ const UserDetailComponent: ng.IComponentOptions = {
       }
     };
 
-    this.updateGlobalRole = (rolescope, rolename) => {
-      RoleService.addRole(rolescope, rolename, {id: this.selectedUser.id}).then( (response) =>
-        NotificationService.show('Role updated')
-      );
+    this.updateOrganizationsRole = (organizationRoles: any[]) => {
+      let newRoles = [];
+      if ($scope.selectedEnvironmentRole && $scope.selectedEnvironmentRole.length > 0) {
+        newRoles = _.concat($scope.selectedEnvironmentRole, organizationRoles);
+      } else {
+        newRoles = organizationRoles;
+      }
+
+      UserService.updateUserRoles(this.selectedUser.id, newRoles);
+      NotificationService.show('Organization Role updated');
+    };
+
+    this.updateEnvironmentsRole = (environmentRoles: any[]) => {
+      let newRoles = [];
+      if ($scope.selectedOrganizationRole && $scope.selectedOrganizationRole.length > 0) {
+        newRoles = _.concat($scope.selectedOrganizationRole, environmentRoles);
+      } else {
+        newRoles = environmentRoles;
+      }
+      UserService.updateUserRoles(this.selectedUser.id, newRoles);
+      NotificationService.show('Environment Role updated');
     };
 
     this.addGroupDialog = () => {

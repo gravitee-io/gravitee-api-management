@@ -144,17 +144,17 @@
         <div class="md-actions gravitee-api-save-button" layout="row">
           <md-button ng-if="$ctrl.updateMode" class="md-raised md-primary" type="submit"
                      ng-disabled="$ctrl.status.available_plugins === 0 || $ctrl.formAlert.$invalid || $ctrl.formAlert.$pristine"
-                     permission permission-only="['api-alert-u', 'application-alert-u', 'management-alert-u']">
+                     permission permission-only="['api-alert-u', 'application-alert-u', 'environment-alert-u']">
             Update
           </md-button>
           <md-button ng-if="!$ctrl.updateMode" class="md-raised md-primary" type="submit"
                      ng-disabled="$ctrl.status.available_plugins === 0 || $ctrl.formAlert.$invalid || $ctrl.formAlert.$pristine"
-                     permission permission-only="['api-alert-c', 'application-alert-c', 'management-alert-c']">
+                     permission permission-only="['api-alert-c', 'application-alert-c', 'environment-alert-c']">
             Create
           </md-button>
 
           <md-button class="md-raised" type="button" ng-click="$ctrl.reset()"
-                     permission permission-only="['api-alert-d', 'application-alert-d', 'management-alert-d']"
+                     permission permission-only="['api-alert-d', 'application-alert-d', 'environment-alert-d']"
                      ng-disabled="$ctrl.status.available_plugins === 0 || $ctrl.formAlert.$invalid || $ctrl.formAlert.$pristine">
             Reset
           </md-button>
@@ -163,7 +163,7 @@
                      ng-disabled="$ctrl.status.available_plugins === 0"
                      type="button"
                      ng-click="$ctrl.delete()"
-                     permission permission-only="['api-alert-d', 'application-alert-d', 'management-alert-d']">
+                     permission permission-only="['api-alert-d', 'application-alert-d', 'environment-alert-d']">
             Delete
           </md-button>
         </div>

@@ -45,13 +45,13 @@
               <span ng-if="role.system" flex class="badge">System</span>
           </td>
           <td md-cell ng-click="$event.stopPropagation()" width="48px">
-              <span style="padding: 0 20px 0 0;" ng-if="$ctrl.idUserManagementEnabled(role)" permission permission-only="['management-role-u']">
+              <span style="padding: 0 20px 0 0;" ng-if="$ctrl.idUserManagementEnabled(role)" permission permission-only="['organization-role-u']">
                 <md-tooltip md-direction="top">members</md-tooltip>
                 <ng-md-icon icon="group" ng-click="$event.stopPropagation();$ctrl.manageMembers(role);" aria-label="delete-user"></ng-md-icon>
               </span>
           </td>
           <td md-cell ng-click="$event.stopPropagation()" width="48px">
-             <span permission permission-only="['management-role-d']">
+             <span permission permission-only="['organization-role-d']">
                <md-tooltip md-direction="top">delete</md-tooltip>
                <ng-md-icon ng-if="!role.system && !role.default" icon="delete" ng-click="$event.stopPropagation();$ctrl.deleteRole(role);" aria-label="delete-user"></ng-md-icon>
              </span>
@@ -61,7 +61,7 @@
     </table>
   </md-table-container>
             <div class="md-actions gravitee-api-save-button" layout="row">
-            <md-button permission permission-only="'management-role-c'"
+            <md-button permission permission-only="'organization-role-c'"
                        aria-label="Add role"
                        ng-click="$ctrl.newRole(scope)"
                        class="md-raised md-primary">

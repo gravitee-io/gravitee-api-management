@@ -78,7 +78,7 @@
             <td md-cell>{{clientRegistrationProvider.description}}</td>
             <td md-cell>{{clientRegistrationProvider.updated_at | date:'MMM d, y h:mm:ss a'}}</td>
             <td md-cell width="40" nowrap>
-              <ng-md-icon permission permission-only="'portal-client_registration_provider-d'"
+              <ng-md-icon permission permission-only="'environment-client_registration_provider-d'"
                           icon="delete" ng-click="$ctrl.delete(clientRegistrationProvider)">
                 <md-tooltip md-direction="top" md-visible="false">Delete</md-tooltip>
               </ng-md-icon>
@@ -96,7 +96,7 @@
                             create-mode="true"></gravitee-empty-state>
 
       <div style="text-align: center;">
-        <md-button permission permission-only="'portal-client_registration_provider-c'"
+        <md-button permission permission-only="'environment-client_registration_provider-c'"
                    ng-if="$ctrl.clientRegistrationProviders.length === 0"
                    aria-label="Add client registration provider"
                    class="md-fab"

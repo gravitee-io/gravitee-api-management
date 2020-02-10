@@ -72,9 +72,9 @@
 
       <md-card-actions>
         <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formQuality.$invalid || $ctrl.formQuality.$pristine"
-                   permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Save</md-button>
+                   permission permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']">Save</md-button>
         <md-button type="button" class="md-raised" ng-click="$ctrl.reset()" ng-disabled="$ctrl.formQuality.$invalid || $ctrl.formQuality.$pristine"
-                   permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Reset</md-button>
+                   permission permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']">Reset</md-button>
       </md-card-actions>
     </div>
   </div>
@@ -92,18 +92,18 @@
               <tr md-row>
                 <th md-column>Quality rule</th>
                 <th md-column>Weight</th>
-                <th permission permission-only="'management-quality_rule-u'" width="64px" nowrap></th>
-                <th permission permission-only="'management-quality_rule-d'" width="64px" nowrap></th>
+                <th permission permission-only="'environment-quality_rule-u'" width="64px" nowrap></th>
+                <th permission permission-only="'environment-quality_rule-d'" width="64px" nowrap></th>
               </tr>
               </thead>
               <tbody md-body>
               <tr md-row ng-repeat="qualityRule in $ctrl.qualityRules">
                 <td md-cell>{{qualityRule.name}}</td>
                 <td md-cell>{{qualityRule.weight}}</td>
-                <td md-cell permission permission-only="'management-quality_rule-u'">
+                <td md-cell permission permission-only="'environment-quality_rule-u'">
                   <ng-md-icon icon="edit" ui-sref="management.settings.qualityRule({qualityRuleId: qualityRule.id})"></ng-md-icon>
                 </td>
-                <td md-cell permission permission-only="'management-quality_rule-d'">
+                <td md-cell permission permission-only="'environment-quality_rule-d'">
                   <ng-md-icon icon="delete" ng-click="$ctrl.delete(qualityRule)"></ng-md-icon>
                 </td>
               </tr>
@@ -116,7 +116,7 @@
   </div>
 </div>
 
-<md-button permission permission-only="'management-quality_rule-c'"
+<md-button permission permission-only="'environment-quality_rule-c'"
            aria-label="Add quality rule"
            class="md-fab md-fab-bottom-right md-fab-scrollable"
            ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"

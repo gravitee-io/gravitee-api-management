@@ -54,7 +54,7 @@
             <td md-cell width="15%" nowrap>{{user.email}}</td>
             <td md-cell width="15%" nowrap>{{user.source}}</td>
             <td md-cell width="1%" nowrap ng-click="$event.stopPropagation()">
-                <span permission permission-only="['management-user-d']">
+                <span permission permission-only="['organization-user-d']">
                     <md-tooltip md-direction="top">delete</md-tooltip>
                     <ng-md-icon icon="delete" style="width:20px; display: block;" ng-click="$ctrl.remove($event, user)" aria-label="delete-user"></ng-md-icon>
                 </span>

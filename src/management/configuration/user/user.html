@@ -46,16 +46,16 @@
             <td md-cell width="35%">{{$ctrl.selectedUser.lastConnectionAt | date:'MMM d, y h:mm:ss a'}}</td>
         </tr>
         <tr md-row style="background-color: white; height: 30px;">
-            <td md-cell nowrap><span style="font-weight: bold">Management Role</span></td>
+            <td md-cell nowrap><span style="font-weight: bold">Organization Role</span></td>
             <td md-cell>
-                <md-select ng-model="selectedMgmtRole" aria-label="management Role" ng-change="$ctrl.updateGlobalRole('MANAGEMENT', selectedMgmtRole)">
-                    <md-option ng-value="role.name" ng-repeat="role in $ctrl.managementRoles">{{role.name}}</md-option>
+                <md-select ng-model="selectedOrganizationRole" aria-label="organization Role" ng-change="$ctrl.updateOrganizationsRole(selectedOrganizationRole)" multiple>
+                    <md-option ng-value="role.id" ng-repeat="role in $ctrl.organizationRoles">{{role.name}}</md-option>
                 </md-select>
             </td>
-            <td md-cell><span style="font-weight: bold">Portal Role</span></td>
+            <td md-cell><span style="font-weight: bold">Environment Role</span></td>
             <td md-cell>
-                <md-select ng-model="selectedPortalRole" aria-label="Portal Role" ng-change="$ctrl.updateGlobalRole('PORTAL', selectedPortalRole)">
-                    <md-option ng-value="role.name" ng-repeat="role in $ctrl.portalRoles">{{role.name}}</md-option>
+                <md-select ng-model="selectedEnvironmentRole" aria-label="Environment Role" ng-change="$ctrl.updateEnvironmentsRole(selectedEnvironmentRole)" multiple>
+                    <md-option ng-value="role.id" ng-repeat="role in $ctrl.environmentRoles">{{role.name}}</md-option>
                 </md-select>
             </td>
         </tr>
@@ -63,7 +63,7 @@
     </table>
 </md-table-container>
 <div layout="row" layout-align="center center">
-    <md-button type="button" class="md-raised md-warn" permission permission-only="'management-user-u'"
+    <md-button type="button" class="md-raised md-warn" permission permission-only="'organization-user-u'"
                aria-label="User reset password" style="fill: white"
                ng-if="$ctrl.selectedUser.source === 'gravitee'" ng-click="$ctrl.resetPasswordDialog()">
         <ng-md-icon icon="autorenew"></ng-md-icon>Reset user password
@@ -120,7 +120,7 @@
                         </td>
                         <td md-cell ng-click="$event.stopPropagation()">
                             <div layout="row" layout-align="end center">
-                    <span permission permission-only="['management-user-d']">
+                    <span permission permission-only="['organization-user-d']">
                         <md-tooltip md-direction="top">delete</md-tooltip>
                         <ng-md-icon icon="delete" ng-click="$ctrl.remove($event, group)" aria-label="delete-user"></ng-md-icon>
                     </span>
@@ -193,7 +193,7 @@
     </div>
 </div>
 
-<md-button permission permission-only="['management-user-c']"
+<md-button permission permission-only="['organization-user-c']"
            class="md-fab md-fab-bottom-right md-fab-scrollable"
            ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
            aria-label="Add"

@@ -64,7 +64,7 @@
             </td>
             <td md-cell>{{identityProvider.updated_at | date:'MMM d, y h:mm:ss a'}}</td>
             <td md-cell width="40" nowrap>
-              <ng-md-icon permission permission-only="'portal-identity_provider-d'"
+              <ng-md-icon permission permission-only="'environment-identity_provider-d'"
                           icon="delete" ng-click="$ctrl.delete(identityProvider)">
                 <md-tooltip md-direction="top" md-visible="false">Delete</md-tooltip>
               </ng-md-icon>
@@ -83,7 +83,7 @@
 
     </div>
   </div>
-  <md-fab-speed-dial permission permission-only="'portal-identity_provider-c'"
+  <md-fab-speed-dial permission permission-only="'environment-identity_provider-c'"
                      md-direction="{{$ctrl.identityProviders.length > 0 ? 'left' : 'down'}}" md-open="false"
                      ng-class="{'md-fab-bottom-right md-fab-scrollable' : $ctrl.identityProviders.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}" class="md-scale">
     <md-fab-trigger>

@@ -28,8 +28,8 @@
               <th md-column>Name</th>
               <th md-column>Description</th>
               <th md-column>Last updated at</th>
-              <th permission permission-only="'management-alert-d'" width="48px" nowrap></th>
-              <th permission permission-only="'management-alert-d'" width="48px" nowrap></th>
+              <th permission permission-only="'environment-alert-d'" width="48px" nowrap></th>
+              <th permission permission-only="'environment-alert-d'" width="48px" nowrap></th>
             </tr>
             </thead>
             <tbody md-body>
@@ -40,30 +40,30 @@
                     {{alert.severity}}
                   </span>
               </td>
-              <td md-cell permission permission-only="'management-alert-u'">
+              <td md-cell permission permission-only="'environment-alert-u'">
                 <a ng-style="alert.enabled?'':{'font-style': 'italic', 'color': 'grey'}"
                    ng-click="$ctrl.goTo('alert', alert.id)">{{alert.name}}</a>
               </td>
               <td md-cell>
                 {{alert.description}}
               </td>
-              <td md-cell permission permission-except="'management-alert-u'">
+              <td md-cell permission permission-except="'environment-alert-u'">
                 <span ng-style="alert.enabled?'':{'font-style': 'italic', 'color': 'grey'}">{{alert.name}}</span>
               </td>
               <td md-cell>{{alert.updated_at | humanDatetimeFilter }}</td>
               <td md-cell width="48px">
                 <ng-md-icon ng-if="!alert.enabled" icon="not_interested" ng-click="$ctrl.toggleEnable(alert)"
                             style="font-size: 24px; height: 24px;"
-                            permission permission-only="'management-alert-u'">
+                            permission permission-only="'environment-alert-u'">
                   <md-tooltip md-direction="top" md-visible="false">Enable this alert</md-tooltip>
                 </ng-md-icon>
                 <ng-md-icon ng-if="alert.enabled" icon="done" ng-click="$ctrl.toggleEnable(alert)"
                             style="font-size: 24px; height: 24px;"
-                            permission permission-only="'management-alert-u'">
+                            permission permission-only="'environment-alert-u'">
                   <md-tooltip md-direction="top" md-visible="false">Disable this alert</md-tooltip>
                 </ng-md-icon>
               </td>
-              <td md-cell permission permission-only="'management-alert-d'">
+              <td md-cell permission permission-only="'environment-alert-d'">
                 <ng-md-icon icon="delete" ng-click="$ctrl.delete(alert)"></ng-md-icon>
               </td>
             </tr>
@@ -80,7 +80,7 @@
   </div>
 </div>
 <div ng-style="{'text-align': $ctrl.alerts.length == 0 ? 'center' : 'none' }">
-  <md-button permission permission-only="['api-alert-c', 'application-alert-c', 'management-alert-c']"
+  <md-button permission permission-only="['api-alert-c', 'application-alert-c', 'environment-alert-c']"
              ng-class="{'md-fab-bottom-right': $ctrl.alerts.length > 0}" class="md-fab"
              aria-label="create-alert" ng-click="$ctrl.goTo('alertnew')">
     <ng-md-icon icon="add" style="fill: #fff;"></ng-md-icon>

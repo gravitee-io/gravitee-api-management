@@ -67,7 +67,7 @@
       </div>
 
     <div layout-gt-sm="row" ng-if="$ctrl.updateMode && $ctrl.dictionary.type === 'dynamic'"
-         permission permission-only="['management-dictionary-u']">
+         permission permission-only="['environment-dictionary-u']">
       <label>Lifecycle</label>
       <md-input-container class="md-block" flex-gt-sm>
         <md-button class="md-raised" type="button"
@@ -84,7 +84,7 @@
     </div>
   </div>
 
-  <div class="gv-form"ng-if="$ctrl.dictionary.type === 'dynamic'" permission permission-only="['management-dictionary-c', 'management-dictionary-u', 'management-dictionary-d']">
+  <div class="gv-form"ng-if="$ctrl.dictionary.type === 'dynamic'" permission permission-only="['environment-dictionary-c', 'environment-dictionary-u', 'environment-dictionary-d']">
     <h2>Trigger</h2>
     <div class="gv-form-content" layout="column">
     <div layout="row" layout-sm="column">
@@ -106,7 +106,7 @@
     </div>
     </div>
   </div>
-  <div class="gv-form" ng-if="$ctrl.dictionary.type === 'dynamic'" permission permission-only="['management-dictionary-c', 'management-dictionary-u', 'management-dictionary-d']">
+  <div class="gv-form" ng-if="$ctrl.dictionary.type === 'dynamic'" permission permission-only="['environment-dictionary-c', 'environment-dictionary-u', 'environment-dictionary-d']">
     <h2>Provider</h2>
     <div class="gv-form-content" layout="column">
 
@@ -158,29 +158,29 @@
   <div class="md-actions gravitee-api-save-button" layout="row">
     <md-button ng-if="$ctrl.updateMode" class="md-raised md-primary" type="submit"
                ng-disabled="$ctrl.formDictionary.$invalid || $ctrl.formDictionary.$pristine"
-               permission permission-only="['management-dictionary-u']">
+               permission permission-only="['environment-dictionary-u']">
       Update
     </md-button>
     <md-button ng-if="!$ctrl.updateMode" class="md-raised md-primary" type="submit"
                ng-disabled="$ctrl.formDictionary.$invalid || $ctrl.formDictionary.$pristine"
-               permission permission-only="['management-dictionary-c']">
+               permission permission-only="['environment-dictionary-c']">
       Create
     </md-button>
 
     <md-button class="md-raised md-primary" ng-if="$ctrl.updateMode && $ctrl.dictionary.type === 'manual'"
-               permission permission-only="['management-dictionary-u']" ng-click="$ctrl.deploy()">
+               permission permission-only="['environment-dictionary-u']" ng-click="$ctrl.deploy()">
       <ng-md-icon icon="backup" style="fill: white;"></ng-md-icon>
       Deploy
     </md-button>
 
     <md-button class="md-raised" type="button" ng-click="$ctrl.reset()"
-               permission permission-only="['management-dictionary-u']"
+               permission permission-only="['environment-dictionary-u']"
                ng-disabled="$ctrl.formDictionary.$invalid || $ctrl.formDictionary.$pristine">
       Reset
     </md-button>
 
     <md-button ng-if="$ctrl.updateMode" class="md-raised md-warn float-right" type="button" ng-click="$ctrl.delete()"
-               permission permission-only="['management-dictionary-d']">
+               permission permission-only="['environment-dictionary-d']">
       Delete
     </md-button>
   </div>
@@ -212,7 +212,7 @@
             {{value || 'Set value'}}
           </td>
           <td md-cell ng-if="$ctrl.dictionary.type === 'manual'">
-            <ng-md-icon permission permission-only="['management-dictionary-u']"
+            <ng-md-icon permission permission-only="['environment-dictionary-u']"
                         ng-click="$ctrl.deleteProperty(key)" icon="delete"></ng-md-icon>
           </td>
         </tr>
@@ -230,11 +230,11 @@
     <div class="md-actions gravitee-api-save-button" layout="row">
       <md-button ng-if="$ctrl.dictionary.type === 'manual'"
                  class="md-raised md-primary" type="submit"
-                 permission permission-only="['management-dictionary-u']">
+                 permission permission-only="['environment-dictionary-u']">
         Save properties
       </md-button>
       <md-button class="md-raised md-warn float-right" type="button" ng-click="$ctrl.deleteSelectedProperties()"
-                 permission permission-only="['management-dictionary-u']" ng-disabled="!$ctrl.hasSelectedProperties()">
+                 permission permission-only="['environment-dictionary-u']" ng-disabled="!$ctrl.hasSelectedProperties()">
         Delete
       </md-button>
     </div>
@@ -246,7 +246,7 @@
 
 <md-button
           ng-if="$ctrl.dictionary.type === 'manual' && $ctrl.dictionary.id"
-          permission permission-only="'management-dictionary-u'"
+          permission permission-only="'environment-dictionary-u'"
           aria-label="Create property"
           class="md-fab md-fab-bottom-right"
           ng-click="$ctrl.addProperty()">

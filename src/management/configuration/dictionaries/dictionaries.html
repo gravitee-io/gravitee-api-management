@@ -44,8 +44,8 @@
       <td md-cell>{{dictionary.description}}</td>
       <td md-cell>
         {{dictionary.type}}
-        <span permission permission-only="['management-dictionary-u']" ng-if="dictionary.type === 'dynamic' && dictionary.state === 'started'" style="color: #429f46;"> - Started</span>
-        <span permission permission-only="['management-dictionary-u']" ng-if="dictionary.type === 'dynamic' && dictionary.state !== 'started'" style="color: red"> - Stopped</span>
+        <span permission permission-only="['environment-dictionary-u']" ng-if="dictionary.type === 'dynamic' && dictionary.state === 'started'" style="color: #429f46;"> - Started</span>
+        <span permission permission-only="['environment-dictionary-u']" ng-if="dictionary.type === 'dynamic' && dictionary.state !== 'started'" style="color: red"> - Stopped</span>
       </td>
       <td md-cell>{{dictionary.properties}}</td>
       <td md-cell>{{dictionary.updated_at | date:'MMM d, y h:mm:ss a'}}</td>
@@ -64,7 +64,7 @@
 
     </div>
   </div>
-<md-button permission permission-only="'management-dictionary-c'"
+<md-button permission permission-only="'environment-dictionary-c'"
            aria-label="Add dictionary"
            class="md-fab md-fab-bottom-right md-fab-scrollable"
            ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
