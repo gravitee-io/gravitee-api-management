@@ -1,50 +1,54 @@
 //                   #2D323E
 $backgroundColor: rgb(45, 50, 62);
 
+@import '~angular-gridster/dist/angular-gridster.css';
 @import '~angular-loading-bar/build/loading-bar.css';
 @import '~angular-material/modules/scss/angular-material';
 @import '~angular-material-data-table/dist/md-data-table.css';
+@import '~angular-moment-picker/dist/angular-moment-picker.css';
+@import '~angular-timeline/dist/angular-timeline.css';
 @import '~bootstrap/dist/css/bootstrap.css';
-@import '~angular-gridster/dist/angular-gridster.css';
-@import '~dragular/dist/dragular.css';
-@import '~v-accordion/dist/v-accordion.css';
-@import '~codemirror/lib/codemirror.css';
 @import '~codemirror/addon/dialog/dialog.css';
 @import '~codemirror/addon/lint/lint.css';
-@import '~angular-timeline/dist/angular-timeline.css';
+@import '~codemirror/lib/codemirror.css';
+@import '~dragular/dist/dragular.css';
+@import '~highlight.js/styles/tomorrow.css';
+@import '~md-color-picker/dist/mdColorPicker.css';
 @import '~md-steppers/dist/md-steppers.min.css';
 @import '~tui-editor/dist/tui-editor.css';
-@import '~md-color-picker/dist/mdColorPicker.css';
+@import '~v-accordion/dist/v-accordion.css';
+
 @import 'constants';
-@import 'portal/portal';
-@import 'user/user';
-@import 'user/login/login';
+
+@import 'components/circularPercentage/circularPercentage';
+@import 'components/contextual/contextual-doc.component';
+@import 'components/dashboard/dashboard';
+@import 'components/documentation/page/page';
+@import 'components/image/image';
+@import 'components/import/import-api';
+@import 'components/navbar/navbar';
+@import 'components/notifications/notifications';
+@import 'components/sidenav/sidenav';
+@import 'components/widget/widget';
+
+@import 'management/analytics';
 @import 'management/api/api';
 @import 'management/application/applications';
-@import 'components/dashboard/dashboard';
-@import 'components/sidenav/sidenav';
-@import 'components/image/image';
-@import 'components/widget/widget';
-@import 'management/instances/instances';
-@import 'management/platform/dashboard/dashboard';
-@import 'components/documentation/page/page';
-@import 'components/contextual/contextual-doc.component';
-@import 'management/tasks/tasks';
-@import 'management/portalnotifications/portalnotifications';
-@import 'management/submenu';
-@import 'management/forms';
-@import '~highlight.js/styles/tomorrow.css';
+@import 'management/configuration/theme/theme';
+@import 'management/configuration/user/user';
+@import 'management/configuration/users/users';
 @import 'management/configuration/views/view/view';
 @import 'management/datatable';
-@import 'management/analytics';
-@import '~angular-moment-picker/dist/angular-moment-picker.css';
-@import 'management/configuration/users/users';
-@import 'management/configuration/user/user';
-@import 'management/components/notifications/notifications';
-@import 'management/components/circularPercentage/circularPercentage';
-@import 'management/components/import/import-api';
+@import 'management/forms';
+@import 'management/instances/instances';
+@import 'management/platform/dashboard/dashboard';
+@import 'management/portalnotifications/portalnotifications';
 @import 'management/stepper';
-@import 'management/configuration/theme/theme';
+@import 'management/submenu';
+@import 'management/tasks/tasks';
+
+@import 'user/user';
+@import 'user/login/login';
 
 html {
   font-family: 'Roboto Slab', serif;

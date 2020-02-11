@@ -17,7 +17,7 @@ class ResetPasswordController {
   constructor(jwtHelper, $state, $scope, UserService, NotificationService) {
     'ngInject';
     if (!$state.params.token) {
-      $state.go('portal.home');
+      $state.go('management');
     }
     try {
       if (jwtHelper.isTokenExpired($state.params.token)) {

@@ -22,7 +22,6 @@ angular.lowercase = _.toLower;
 
 import './index.scss';
 
-import './portal/portal.module';
 import './management/management.module';
 
 let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
@@ -45,13 +44,11 @@ function fetchData() {
       ConstantsJSON = responses[0].data;
       let build = responses[1].data;
       angular.module('gravitee-management').constant('Build', build);
-      angular.module('gravitee-portal').constant('Build', build);
       return $http.get(`${ConstantsJSON.baseURL}portal`);
     })
     .then( (response: any) => {
       let constants = _.merge(response.data, ConstantsJSON);
       angular.module('gravitee-management').constant('Constants', constants);
-      angular.module('gravitee-portal').constant('Constants', constants);
 
       if (constants.theme.css) {
         const link = document.createElement('link');
@@ -81,12 +78,12 @@ function initLoader(constants: any) {
 function initTheme(constants: any) {
   return $http.get(`./themes/${constants.theme.name}-theme.json`, configNoCache)
     .then((response: any) => {
-      angular.module('gravitee-portal').constant('Theme', response.data);
+      angular.module('gravitee-management').constant('Theme', response.data);
     });
 }
 
 function bootstrapApplication() {
   angular.element(document).ready(function () {
-    angular.bootstrap(document, ['gravitee-portal', 'gravitee-management']);
+    angular.bootstrap(document, ['gravitee-management']);
   });
 }

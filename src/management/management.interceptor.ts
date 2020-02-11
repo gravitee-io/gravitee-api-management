@@ -70,7 +70,7 @@ function interceptorConfig(
           notificationService.showError(error, errorMessage);
           if (error.status === 403) {
             // if the user try to access a forbidden resource (after redirection for example), do not stay on login form
-            $timeout(function () {$state.go('portal.home'); });
+            $timeout(function () {$state.go('management'); });
           }
         }
       }

@@ -25,6 +25,7 @@ interface IGroupDetailComponentScope extends ng.IScope {
   selectedApiRole: string;
   selectedApplicationRole: string;
   currentTab: string;
+  formGroup: any;
 }
 const GroupComponent: ng.IComponentOptions = {
   bindings: {
@@ -67,7 +68,7 @@ const GroupComponent: ng.IComponentOptions = {
     };
 
     this.update = () => {
-      let roles = {};
+      let roles: any = {};
 
       if ($scope.selectedApiRole) {
         roles.API = $scope.selectedApiRole;

@@ -92,7 +92,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       resolve: {
         checkUser : function (UserService, $state) {
           if (UserService.currentUser && UserService.currentUser.id) {
-            $state.go('portal.home');
+            $state.go('management');
           }
         },
         identityProviders: (PortalService: PortalService) => PortalService.listSocialIdentityProviders().then(response => response.data)
@@ -114,7 +114,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       resolve: {
         checkUser : function (UserService, $state) {
           if (UserService.currentUser && UserService.currentUser.id) {
-            $state.go('portal.home');
+            $state.go('management');
           }
         }
       }
@@ -142,27 +142,20 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       controller: (UserService: UserService, $state: StateService, $rootScope: IScope, $window: ng.IWindowService) => {
         UserService.logout().then(
           () => {
-            $state.go('portal.home');
+            $state.go('login');
             $rootScope.$broadcast('graviteeUserRefresh', {});
             $rootScope.$broadcast('graviteeUserCancelScheduledServices');
             let userLogoutEndpoint = $window.localStorage.getItem('user-logout-url');
             $window.localStorage.removeItem('user-logout-url');
             if (userLogoutEndpoint != null) {
-              const redirectUri = encodeURIComponent(window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname));
-              $window.location.href = userLogoutEndpoint + redirectUri;
+              $window.location.href = userLogoutEndpoint + encodeURIComponent(window.location.origin);
             }
           }
         );
       }
-    })
-    .state('support', {
-      url: '/support',
-      template: require('./support/ticket.html'),
-      controller: 'SupportTicketController',
-      controllerAs: 'supportTicketCtrl'
     });
 
-  $urlServiceProvider.rules.otherwise('/');
+  $urlServiceProvider.rules.otherwise('/login');
 }
 
 export default routerConfig;

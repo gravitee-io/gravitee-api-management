@@ -71,7 +71,7 @@ class LoginController {
       if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm') {
         this.$state.go(route.from.name, route.fromParams);
       } else {
-        this.$state.go('portal.home');
+        this.$state.go('management');
       }
     }
 

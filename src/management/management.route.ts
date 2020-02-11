@@ -25,7 +25,6 @@ function managementRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management', {
-      url: '/management',
       redirectTo: 'management.apis.list',
       parent: 'withSidenav',
       controller: function ($rootScope, Constants) {
@@ -189,7 +188,7 @@ function managementRouterConfig($stateProvider) {
       }
     })
     .state('management.tasks', {
-    url: '/tasks',
+      url: '/tasks',
       component: 'tasks',
       data: {
         docs: {
@@ -201,6 +200,12 @@ function managementRouterConfig($stateProvider) {
           return graviteeUser.tasks;
         }
       }
+    })
+    .state('management.support', {
+      url: '/support',
+      template: require('./support/ticket.html'),
+      controller: 'SupportTicketController',
+      controllerAs: 'supportTicketCtrl'
     });
 }
 

@@ -19,6 +19,8 @@ import 'angular-animate';
 import 'angular-material';
 import 'angular-sanitize';
 import 'angular-local-storage';
+import 'angular-translate';
+import 'angular-translate-loader-static-files';
 
 import * as traverse from 'traverse';
 import * as marked from 'marked';
@@ -55,11 +57,12 @@ import DialogTransferApiController
 import DialogApiKeyExpirationController
   from '../management/api/portal/subscriptions/apikey.expiration.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
-import FileContentDirective from './components/filecontent/filecontent.directive';
+import FileContentDirective from '../components/filecontent/filecontent.directive';
 import DocumentationService from '../services/documentation.service';
 import NotificationService from '../services/notification.service';
 
 import PolicyService from '../services/policy.service';
+import PortalService from '../services/portal.service';
 import ResourceService from '../services/resource.service';
 import FetcherService from '../services/fetcher.service';
 import NotifierService from '../services/notifier.service';
@@ -73,6 +76,8 @@ import DialogApiDuplicateController from '../management/api/portal/general/dialo
 import SidenavService from '../components/sidenav/sidenav.service';
 import {SidenavComponent} from '../components/sidenav/sidenav.component';
 import {SubmenuComponent} from '../components/sidenav/submenu.component';
+import { NavbarComponent } from '../components/navbar/navbar.component';
+
 // Api
 import ApiHeaderComponent from '../management/api/header/api-header.component';
 import ApiCreationComponent from '../management/api/creation/steps/api-creation.component';
@@ -82,7 +87,7 @@ import ApiCreationStep2Component from '../management/api/creation/steps/api-crea
 import ApiCreationStep3Component from '../management/api/creation/steps/api-creation-step3.component';
 import ApiCreationStep4Component from '../management/api/creation/steps/api-creation-step4.component';
 import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
-import ApiImportComponent from '../management/components/import/import-api.component';
+import ApiImportComponent from '../components/import/import-api.component';
 
 // API Plan
 import ApiPlanComponent from '../management/api/api-plan.component';
@@ -169,6 +174,8 @@ import ApiLoggingConfigurationController from '../management/api/analytics/logs/
 import DialogConfigureLoggingEditorController
   from '../management/api/analytics/logs/configure-logging-editor.dialog.controller';
 // Others
+import ThemeElementDirective from '../components/theme/theme-element.directive';
+
 import ImageDirective from '../components/image/image.directive';
 import EventsService from '../services/events.service';
 import AnalyticsService from '../services/analytics.service';
@@ -260,21 +267,21 @@ import TaskService from '../services/task.service';
 import PortalNotificationsComponent from './portalnotifications/portalnotifications.component';
 import UserNotificationService from '../services/userNotification.service';
 // Notification Settings
-import NotificationsComponent from './components/notifications/notifications.component';
+import NotificationsComponent from '../components/notifications/notifications.component';
 import NotificationSettingsComponent
-  from './components/notifications/notificationsettings/notificationsettings.component';
+  from '../components/notifications/notificationsettings/notificationsettings.component';
 import NotificationSettingsService from '../services/notificationSettings.service';
 // Documentation
-import DocumentationManagementComponent from './components/documentation/documentation-management.component';
+import DocumentationManagementComponent from '../components/documentation/documentation-management.component';
 import PageComponent from '../components/documentation/page/page.component';
 import PageSwaggerComponent from '../components/documentation/page/page-swagger.component';
 import PageMarkdownComponent from '../components/documentation/page/page-markdown.component';
 import PageEditorMarkdownComponent from '../components/documentation/page/page-editormarkdown.component';
 import PageEditorMarkdownViewerComponent from '../components/documentation/page/page-editormarkdown-viewer.component';
 import PageSidenavDirective from '../components/documentation/page/page-sidenav.directive';
-import NewPageComponent from './components/documentation/new-page.component';
-import EditPageComponent from './components/documentation/edit-page.component';
-import ImportPagesComponent from './components/documentation/import-pages.component';
+import NewPageComponent from '../components/documentation/new-page.component';
+import EditPageComponent from '../components/documentation/edit-page.component';
+import ImportPagesComponent from '../components/documentation/import-pages.component';
 // Healthcheck
 import ApiHealthCheckConfigureController
   from '../management/api/proxy/backend/healthcheck/healthcheck-configure.controller';
@@ -287,7 +294,7 @@ import HealthCheckMetricComponent from '../components/healthcheckmetric/healthch
 
 // Ticket
 import TicketService from '../services/ticket.service';
-import SupportTicketController from '../support/ticket.controller';
+import SupportTicketController from '../management/support/ticket.controller';
 // Audit
 import AuditService from '../services/audit.service';
 import AuditController from '../management/audit/audit.controller';
@@ -335,6 +342,10 @@ import managementRouterConfig from './management.route';
 import interceptorConfig from './management.interceptor';
 import delegatorConfig from './management.delegator';
 import runBlock from './management.run';
+import managementI18nConfig from './management.i18n';
+
+// i18n
+import i18nCustomLoader from './i18n/loader';
 
 import uiRouter from '@uirouter/angularjs';
 import {permission, uiPermission} from 'angular-permission';
@@ -342,7 +353,7 @@ import ApiHeaderController from './api/header/api-header.controller';
 
 import ChartService from '../services/chart.service';
 import DialogAddNotificationSettingsController
-  from './components/notifications/notificationsettings/addnotificationsettings.dialog.controller';
+  from '../components/notifications/notificationsettings/addnotificationsettings.dialog.controller';
 
 import TopApisController from './configuration/top-apis/top-apis.controller';
 import TopApiService from '../services/top-api.service';
@@ -357,7 +368,7 @@ import DialogImportPathMappingController from './api/analytics/pathMappings/moda
 import RouterService from '../services/router.service';
 
 import MessageService from '../services/message.service';
-import MessagesComponent from './components/messages/messages.component';
+import MessagesComponent from './messages/messages.component';
 import apisMessagesRouterConfig from './api/messages/apis.messages.route';
 
 import ApiPortalHeaderComponent from '../management/configuration/api-portal-header/api-portal-header.component';
@@ -370,28 +381,28 @@ import NewApiPortalHeaderDialogController
 import Base64Service from '../services/base64.service';
 // Alerts
 import AlertService from '../services/alert.service';
-import AlertsComponent from './components/alerts/alerts.component';
-import AlertComponent from './components/alerts/alert/alert.component';
-import AlertNotificationsComponent from './components/alerts/alert/notifications/alert-notifications';
-import AlertNotificationComponent from './components/alerts/alert/notifications/alert-notification';
-import AlertTriggerDampeningComponent from './components/alerts/alert/triggers/trigger-dampening.component';
-import AlertTriggerWindowComponent from './components/alerts/alert/triggers/trigger-window.component';
-import AlertTriggerFiltersComponent from './components/alerts/alert/triggers/trigger-filters.component';
-import AlertTriggerFilterComponent from './components/alerts/alert/triggers/trigger-filter.component';
-import AlertTriggerConditionComponent from './components/alerts/alert/triggers/trigger-condition.component';
-import AlertTriggerConditionThresholdComponent from './components/alerts/alert/triggers/conditions/trigger-condition-threshold.component';
-import AlertTriggerConditionThresholdRangeComponent from './components/alerts/alert/triggers/conditions/trigger-condition-threshold-range.component';
-import AlertTriggerConditionStringComponent from './components/alerts/alert/triggers/conditions/trigger-condition-string.component';
-import AlertTriggerConditionCompareComponent from './components/alerts/alert/triggers/conditions/trigger-condition-compare.component';
-import AlertTriggerMetricsSimpleConditionComponent from './components/alerts/alert/triggers/trigger-metrics-simple-condition.component';
-import AlertTriggerMetricsAggregationComponent from './components/alerts/alert/triggers/trigger-metrics-aggregation.component';
-import AlertTriggerMetricsRateComponent from './components/alerts/alert/triggers/trigger-metrics-rate.component';
-import AlertTriggerApiHealthCheckEndpointStatusChangedComponent from './components/alerts/alert/triggers/trigger-api-hc-endpoint-status-changed.component';
-import AlertTriggerNodeLifecycleChangedComponent from './components/alerts/alert/triggers/trigger-node-lifecycle-changed.component';
-import AlertTriggerApplicationQuotaComponent from './components/alerts/alert/triggers/trigger-application-quota.component';
+import AlertsComponent from '../components/alerts/alerts.component';
+import AlertComponent from '../components/alerts/alert/alert.component';
+import AlertNotificationsComponent from '../components/alerts/alert/notifications/alert-notifications';
+import AlertNotificationComponent from '../components/alerts/alert/notifications/alert-notification';
+import AlertTriggerDampeningComponent from '../components/alerts/alert/triggers/trigger-dampening.component';
+import AlertTriggerWindowComponent from '../components/alerts/alert/triggers/trigger-window.component';
+import AlertTriggerFiltersComponent from '../components/alerts/alert/triggers/trigger-filters.component';
+import AlertTriggerFilterComponent from '../components/alerts/alert/triggers/trigger-filter.component';
+import AlertTriggerConditionComponent from '../components/alerts/alert/triggers/trigger-condition.component';
+import AlertTriggerConditionThresholdComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-threshold.component';
+import AlertTriggerConditionThresholdRangeComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-threshold-range.component';
+import AlertTriggerConditionStringComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-string.component';
+import AlertTriggerConditionCompareComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-compare.component';
+import AlertTriggerMetricsSimpleConditionComponent from '../components/alerts/alert/triggers/trigger-metrics-simple-condition.component';
+import AlertTriggerMetricsAggregationComponent from '../components/alerts/alert/triggers/trigger-metrics-aggregation.component';
+import AlertTriggerMetricsRateComponent from '../components/alerts/alert/triggers/trigger-metrics-rate.component';
+import AlertTriggerApiHealthCheckEndpointStatusChangedComponent from '../components/alerts/alert/triggers/trigger-api-hc-endpoint-status-changed.component';
+import AlertTriggerNodeLifecycleChangedComponent from '../components/alerts/alert/triggers/trigger-node-lifecycle-changed.component';
+import AlertTriggerApplicationQuotaComponent from '../components/alerts/alert/triggers/trigger-application-quota.component';
 
-import CircularPercentageComponent from './components/circularPercentage/circularPercentage.component';
-import CircularPercentageController from './components/circularPercentage/circularPercentage.controller';
+import CircularPercentageComponent from '../components/circularPercentage/circularPercentage.component';
+import CircularPercentageController from '../components/circularPercentage/circularPercentage.controller';
 
 import EntrypointService from '../services/entrypoint.service';
 import EntrypointComponent from './configuration/tags/entrypoint/entrypoint.component';
@@ -401,7 +412,7 @@ import DeleteEntrypointDialogController from './configuration/tags/entrypoint/de
 import TagComponent from './configuration/tags/tag/tag.component';
 import TagController from './configuration/tags/tag/tag.controller';
 
-import SelectFolderDialogController from './components/documentation/dialog/selectfolder.controller';
+import SelectFolderDialogController from '../components/documentation/dialog/selectfolder.controller';
 // API Response Templates
 import ApiResponseTemplatesController
   from '../management/api/proxy/general/response-templates/response-templates.controller';
@@ -443,6 +454,9 @@ import DialogQueryFilterInformationController
 import ThemeController from './configuration/theme/theme.controller';
 import ThemeComponent from './configuration/theme/theme.component';
 import ThemeService from '../services/theme.service';
+
+import authenticationConfig from '../authentication/authentication.config';
+
 
 (<any>window).traverse = traverse;
 
@@ -529,7 +543,7 @@ require('../../node_modules/@highcharts/map-collection/custom/world.js');
 
 (<any>window).jsyaml = jsyaml;
 
-window.moment = moment;
+(<any>window).moment = moment;
 require('angular-moment-picker');
 
 (<any>window).tinycolor = tinycolor;
@@ -540,7 +554,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
   'utf8-base64', 'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
-  'ngAnimate', 'LocalStorageModule', 'satellizer', ngInfiniteScroll, 'moment-picker', 'mdColorPicker'])
+  'ngAnimate', 'LocalStorageModule', 'satellizer', ngInfiniteScroll, 'moment-picker', 'mdColorPicker', 'pascalprecht.translate'])
   .config(['cfpLoadingBarProvider', function (cfpLoadingBarProvider) {
     cfpLoadingBarProvider.includeSpinner = false;
   }])
@@ -550,7 +564,10 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   })
   .config(config)
   .config(routerConfig)
+  .config(authenticationConfig)
   .config(managementRouterConfig)
+  .config(managementI18nConfig)
+  .factory('i18nCustomLoader', i18nCustomLoader)
   .config(applicationRouterConfig)
   .config(applicationsNotificationsRouterConfig)
   .config(apisRouterConfig)
@@ -567,7 +584,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .config(delegatorConfig)
   .config(function ($mdThemingProvider: angular.material.IThemingProvider) {
     $mdThemingProvider.theme('default')
-      .primaryPalette('blue');
+      .primaryPalette('blue')
+      .accentPalette('blue');
 
     $mdThemingProvider.theme('sidenav')
       .backgroundPalette('grey', {
@@ -690,6 +708,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('ChartService', ChartService)
   .service('TopApiService', TopApiService)
   .service('MessageService', MessageService)
+  .service('PortalService', PortalService)
   .service('ThemeService', ThemeService)
 
   .directive('filecontent', () => FileContentDirective)
@@ -700,6 +719,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .directive('graviteeEmptyState', () => new EmptyStateDirective())
   .directive('graviteeChart', () => new ChartDirective())
   .directive('graviteeUserAvatar', () => new UserAvatarDirective())
+  .directive('gvThemeElement', () => ThemeElementDirective)
 
   .component('gvWidget', WidgetComponent)
   .component('gvWidgetDataTable', WidgetDataTableComponent)
@@ -819,6 +839,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   .component('gvSidenav', SidenavComponent)
   .component('gvSubmenu', SubmenuComponent)
+  .component('graviteeNavbar', NavbarComponent)
 
   .filter('currentSubmenus', submenuFilter)
   .service('SidenavService', SidenavService)
