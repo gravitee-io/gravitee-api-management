@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.processor.error.templates;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -24,6 +25,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.gateway.handlers.api.processor.error.SimpleFailureProcessor;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,7 +34,7 @@ import java.util.Map;
  */
 public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcessor {
 
-    private static final String WILDCARD_CONTENT_TYPE = "*/*";
+    static final String WILDCARD_CONTENT_TYPE = "*/*";
 
     private final Map<String, ResponseTemplates> templates;
 
@@ -59,21 +61,26 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
 
     private void handleAcceptHeader(final ExecutionContext context, final ResponseTemplates templates, final ProcessorFailure failure) {
         // Extract the content-type from the request
-        String acceptHeader = context.request().headers().getFirst(HttpHeaders.ACCEPT);
+        List<MediaType> acceptMediaTypes = context.request().headers().getAccept();
 
         // If no accept header, check if there is a template for type matching '*/*'
-        if (acceptHeader == null) {
+        if (acceptMediaTypes == null || acceptMediaTypes.isEmpty()) {
             handleWildcardTemplate(context, templates, failure);
         } else {
-            // Accept header may contain multiple
-            ResponseTemplate template = templates.getTemplates().get(acceptHeader);
+            // Check against the accepted media types from incoming request sort by the quality factor
+            MediaType.sortByQualityValue(acceptMediaTypes);
 
-            // No template is matching the accept header, fallback to  wildcard
-            if (template == null) {
-                handleWildcardTemplate(context, templates, failure);
-            } else {
-                handleTemplate(context, template, failure);
+            for (MediaType type : acceptMediaTypes) {
+                ResponseTemplate template = templates.getTemplates().get(type.toMediaString());
+
+                if (template != null) {
+                    handleTemplate(context, template, failure);
+                    return;
+                }
             }
+
+            // No template matching the accepted media types, fallback to wildcard
+            handleWildcardTemplate(context, templates, failure);
         }
     }
 
