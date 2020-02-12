@@ -20,6 +20,7 @@ import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.core.processor.chain.DefaultProcessorChain;
 import io.gravitee.gateway.reactor.processor.notfound.NotFoundProcessor;
 import io.gravitee.gateway.reactor.processor.notfound.NotFoundReporter;
+import io.gravitee.gateway.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,7 +42,9 @@ public class NotFoundProcessorChainFactory {
     public Processor<ExecutionContext> create() {
         return new DefaultProcessorChain<>(Arrays.asList(
                 new NotFoundProcessor(environment),
+                new ResponseTimeProcessor(),
                 new NotFoundReporter(reporterService, logEnabled)
         ));
     }
+
 }
