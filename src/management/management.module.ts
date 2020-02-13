@@ -380,6 +380,7 @@ import AlertsComponent from "./components/alerts/alerts.component";
 import AlertComponent from "./components/alerts/alert/alert.component";
 import AlertNotificationsComponent from "./components/alerts/alert/notifications/alert-notifications";
 import AlertNotificationComponent from "./components/alerts/alert/notifications/alert-notification";
+import AlertHistoryComponent from "./components/alerts/alert/history/alert-history.component";
 import AlertTriggerDampeningComponent from "./components/alerts/alert/triggers/trigger-dampening.component";
 import AlertTriggerWindowComponent from "./components/alerts/alert/triggers/trigger-window.component";
 import AlertTriggerFiltersComponent from "./components/alerts/alert/triggers/trigger-filters.component";
@@ -906,6 +907,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('alertComponent', AlertComponent)
   .component('gvAlertNotification', AlertNotificationComponent)
   .component('gvAlertNotifications', AlertNotificationsComponent)
+  .component('gvAlertHistory', AlertHistoryComponent)
   .component('gvAlertTriggerWindow', AlertTriggerWindowComponent)
   .component('gvAlertTriggerDampening', AlertTriggerDampeningComponent)
   .component('gvAlertTriggerCondition', AlertTriggerConditionComponent)

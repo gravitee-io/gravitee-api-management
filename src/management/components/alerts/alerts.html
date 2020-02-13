@@ -27,7 +27,9 @@
               <th md-column width="1%" nowrap></th>
               <th md-column>Name</th>
               <th md-column>Description</th>
-              <th md-column>Last updated at</th>
+              <th md-column>Last 5m / 1h / 1d / 1M</th>
+              <th md-column>Last alert</th>
+              <th md-column>Last message</th>
               <th permission permission-only="'management-alert-d'" width="48px" nowrap></th>
               <th permission permission-only="'management-alert-d'" width="48px" nowrap></th>
             </tr>
@@ -50,7 +52,27 @@
               <td md-cell permission permission-except="'management-alert-u'">
                 <span ng-style="alert.enabled?'':{'font-style': 'italic', 'color': 'grey'}">{{alert.name}}</span>
               </td>
-              <td md-cell>{{alert.updated_at | humanDatetimeFilter }}</td>
+              <td md-cell>
+                <span>
+                  {{ alert.counters['5m'] }} / {{ alert.counters['1h'] }} / {{ alert.counters['1d'] }} / {{ alert.counters['1M'] }}
+                  <md-tooltip>
+                    {{ alert.counters['5m'] }} during the last 5 minutes /
+                    {{ alert.counters['1h'] }} during the last 1 hour /
+                    {{ alert.counters['1d'] }} during the last 1 day /
+                    {{ alert.counters['1M'] }} during the last 1 month
+                  </md-tooltip>
+                </span>
+              </td>
+              <td md-cell>
+                <span ng-if="alert.last_alert_at">{{ alert.last_alert_at | humanDatetimeFilter }}
+                  <md-tooltip>{{ alert.last_alert_at | date:'medium' }}</md-tooltip>
+                </span>
+                <span ng-if="alert.last_alert_at === undefined">-</span>
+              </td>
+              <td md-cell>
+                <span ng-if="alert.last_alert_message">{{alert.last_alert_message}}</span>
+                <span ng-if="alert.last_alert_message === undefined">-</span>
+              </td>
               <td md-cell width="48px">
                 <ng-md-icon ng-if="!alert.enabled" icon="not_interested" ng-click="$ctrl.toggleEnable(alert)"
                             style="font-size: 24px; height: 24px;"

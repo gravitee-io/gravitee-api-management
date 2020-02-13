@@ -138,6 +138,13 @@
               <gv-alert-notifications alert="$ctrl.alert"></gv-alert-notifications>
             </md-tab-body>
           </md-tab>
+
+          <md-tab md-on-select="$ctrl.currentTab=$ctrl.selectTab(2)">
+            <md-tab-label>History</md-tab-label>
+            <md-tab-body>
+              <gv-alert-history alert="$ctrl.alert"></gv-alert-history>
+            </md-tab-body>
+          </md-tab>
         </md-tabs>
 
         <!-- Form actions -->
