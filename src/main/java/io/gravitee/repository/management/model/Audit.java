@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Audit {
@@ -39,7 +39,8 @@ public class Audit {
 
     public enum AuditProperties {
         PLAN, PAGE, API_KEY, METADATA, GROUP, USER, ROLE, API, APPLICATION, TAG, TENANT, VIEW, PARAMETER, DICTIONARY,
-        API_HEADER, IDENTITY_PROVIDER, ENTRYPOINT, REQUEST_ID, CLIENT_REGISTRATION_PROVIDER, QUALITY_RULE, API_QUALITY_RULE, DASHBOARD
+        API_HEADER, IDENTITY_PROVIDER, ENTRYPOINT, REQUEST_ID, CLIENT_REGISTRATION_PROVIDER, QUALITY_RULE, API_QUALITY_RULE,
+        DASHBOARD, THEME
     }
 
     private String id;
