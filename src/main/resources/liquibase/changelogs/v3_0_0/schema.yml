@@ -22,7 +22,7 @@ databaseChangeLog:
           - dropPrimaryKey:
               constraintName: pk_plan_apis
               tableName: plan_apis
-              
+
           - dropTable:
               tableName: plan_apis
 
@@ -83,7 +83,7 @@ databaseChangeLog:
                       nullable: false
           - sql:
               sql: update identity_providers set reference_type='ENVIRONMENT', reference_id='DEFAULT'
-          
+
           - addColumn:
               tableName: parameters
               columns:
@@ -99,7 +99,7 @@ databaseChangeLog:
                       nullable: false
           - sql:
               sql: update parameters set reference_type='ENVIRONMENT', reference_id='DEFAULT'
-          
+
           - addColumn:
               tableName: roles
               columns:
@@ -263,7 +263,7 @@ databaseChangeLog:
                     type: nvarchar(64)
                     constraints:
                       nullable: false
-          
+
           - sql:
               sql: update views set environment='DEFAULT'
 
@@ -315,3 +315,22 @@ databaseChangeLog:
               constraintName: pk_organization_domain_restrictions
               columnNames: organization_id, domain_restriction
               tableName: organization_domain_restrictions
+
+          - createTable:
+              tableName: themes
+              columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
+                - column: {name: enabled, type: boolean, constraints: { nullable: false } }
+                - column: {name: definition, type: nclob, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: logo, type: nclob, constraints: { nullable: true } }
+                - column: {name: optional_logo, type: nclob, constraints: { nullable: true } }
+                - column: {name: background_image, type: nclob, constraints: { nullable: true } }
+          - addPrimaryKey:
+              constraintName: pk_themes
+              columnNames: id
+              tableName: themes
