@@ -440,6 +440,10 @@ import DeleteApiQualityRuleDialogController from '../management/configuration/ap
 import DialogQueryFilterInformationController
   from './configuration/analytics/dashboard/query-filter-information.dialog.controller';
 
+import ThemeController from './configuration/theme/theme.controller';
+import ThemeComponent from './configuration/theme/theme.component';
+import ThemeService from '../services/theme.service';
+
 (<any>window).traverse = traverse;
 
 (<any>window).marked = marked;
@@ -579,6 +583,14 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
     $showdownProvider.loadExtension('prettify');
     $showdownProvider.loadExtension('docHelper');
   })
+  .config(function($sceDelegateProvider, Constants) {
+    $sceDelegateProvider.resourceUrlWhitelist([
+      // Allow same origin resource loads.
+      'self',
+      // Allow loading from our assets domain. **.
+      `${Constants.portal.url}/**`
+    ]);
+  })
   .run(runBlock)
   .controller('ApisController', ApisController)
   .controller('ApiAdminController', ApiAdminController)
@@ -651,6 +663,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('SupportTicketController', SupportTicketController)
   .controller('AuditController', AuditController)
   .controller('ApiAuditController', ApiAuditController)
+  .controller('ThemeController', ThemeController)
   .controller('TopApisController', TopApisController)
   .controller('AddTopApiDialogController', AddTopApiDialogController)
   .controller('DeleteTopApiDialogController', DeleteTopApiDialogController)
@@ -685,6 +698,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('ChartService', ChartService)
   .service('TopApiService', TopApiService)
   .service('MessageService', MessageService)
+  .service('ThemeService', ThemeService)
 
   .directive('filecontent', () => FileContentDirective)
   .directive('noDirtyCheck', () => new FormDirective())
@@ -715,6 +729,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('roles', RolesComponent)
   .component('role', RoleComponent)
   .component('roleMembers', RoleMembersComponent)
+  .component('theme', ThemeComponent)
   .component('topApis', TopApisComponent)
   .component('portalSettings', PortalSettingsComponent)
   .component('analyticsSettings', AnalyticsSettingsComponent)

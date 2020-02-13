@@ -130,9 +130,11 @@
                 <label>Max size upload file (bytes)</label>
                 <input type="number" min="0" ng-model="$ctrl.settings.portal.uploadMedia.maxSizeInOctet">
             </md-input-container>
+          <md-input-container class="md-block" flex-gt-xs>
+            <label>Portal URL (used for customization)</label>
+            <input type="text" ng-model="$ctrl.settings.portal.url">
+          </md-input-container>
         </div></div>
-
-
 
     <div class="gv-form">
         <h2>Theme</h2>
@@ -149,13 +151,7 @@
                 <label>Loader</label>
                 <input ng-model="$ctrl.settings.theme.loader">
             </md-input-container>
-            <md-input-container class="md-block" flex-gt-xs>
-                <label>Css file (for example themes/assets/gravitee.css)</label>
-                <input ng-model="$ctrl.settings.theme.css">
-            </md-input-container>
         </div></div>
-
-
 
     <div class="gv-form">
         <h2>Schedulers</h2>

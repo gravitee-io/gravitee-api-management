@@ -72,6 +72,11 @@ const SettingsComponent: ng.IComponentOptions = {
           ['portal-settings-r']),
         goTo: 'management.settings.portal'
       },
+      theme: {
+        perm: UserService.isUserHasPermissions(
+          ['portal-theme-r']),
+        goTo: 'management.settings.theme'
+      },
       topApis: {
         perm: UserService.isUserHasPermissions(
           ['portal-top_apis-r']),

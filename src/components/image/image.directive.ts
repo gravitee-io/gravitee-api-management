@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import NotificationService from '../../services/notification.service';
+
 class ImageDirective {
   constructor() {
     'ngInject';
@@ -22,11 +25,14 @@ class ImageDirective {
       scope: {
         image: '=',
         imageClass: '@',
-        imageDefault: '@',
+        imageDefault: '=',
         imageOriginal: '=?',
         imageForm: '=',
         imageUrl: '=',
-        imageBorderRadius: '@'
+        imageBorderRadius: '@',
+        changeLabel: '@',
+        deleteLabel: '@',
+        canDelete: '=',
       },
       template: require('./image.html'),
       controller: ImageController,
@@ -38,11 +44,18 @@ class ImageDirective {
 }
 
 class ImageController {
-  constructor(private $rootScope, private $scope, private Upload) {
+  constructor(private $rootScope, private $scope, private Upload, private NotificationService: NotificationService) {
     'ngInject';
+    $scope.maxSize = '1MB';
+    if ($scope.changeLabel == null) {
+      $scope.changeLabel = 'Change picture';
+    }
+    if ($scope.deleteLabel == null) {
+      $scope.deleteLabel = 'Delete';
+    }
   }
 
-  selectImage(file) {
+  selectImage(file, invalidFiles) {
     if (file) {
       this.Upload.base64DataUrl(file).then((image: any) => {
         if (image) {
@@ -53,9 +66,17 @@ class ImageController {
           if (this.$scope.imageForm) {
             this.$scope.imageForm.$setDirty();
           }
-          this.$rootScope.$broadcast('apiPictureChangeSuccess', {image: image});
+          this.$rootScope.$broadcast('apiPictureChangeSuccess', { image: image });
         }
       });
+    }
+    if (invalidFiles && invalidFiles.length > 0) {
+      const fileError = invalidFiles[0];
+      if (fileError.$error === 'maxSize') {
+        this.NotificationService.showError(`Image "${ fileError.name }" exceeds the maximum authorized size (${ this.$scope.maxSize })`);
+      } else {
+        this.NotificationService.showError(`File is not valid (error: ${fileError.$error})`);
+      }
     }
   }
 
@@ -63,7 +84,15 @@ class ImageController {
     if (this.$scope.image) {
       return this.$scope.image;
     }
-    return this.$scope.imageUrl || this.$scope.imageDefault;
+    return this.$scope.imageDefault || this.$scope.imageUrl;
+  }
+
+  onDelete() {
+    this.$scope.image = null;
+    this.$rootScope.$broadcast('apiPictureChangeSuccess', { image: this.$scope.image });
+    if (this.$scope.imageForm) {
+      this.$scope.imageForm.$setDirty();
+    }
   }
 }
 

@@ -19,9 +19,11 @@
   <img ng-class="imageClass" ngf-no-object-url="true" ngf-src="imgCtrl.getSource()"
        ng-style="imageBorderRadius?{'border-radius': '100px'}:''" />
 </div>
-<div class="gravitee-upload-image-button" ngf-select="imgCtrl.selectImage($file)" ngf-pattern="'image/*'"
-     ngf-accept="'image/*'" ngf-max-size="1MB">
-  <p>
-    <a>Change picture</a>
-  </p>
+<div class="gravitee-upload-image-button">
+    <a ngf-select="imgCtrl.selectImage($file,$invalidFiles)" ngf-pattern="'image/*'"
+       ngf-accept="'image/*'"
+       ngf-max-size="maxSize">{{ changeLabel }}</a>
+    <a ng-if="canDelete" ng-click="imgCtrl.onDelete($event)">{{ deleteLabel }}</a>
 </div>
+
+

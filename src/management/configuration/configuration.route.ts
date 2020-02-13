@@ -513,6 +513,21 @@ function configurationRouterConfig($stateProvider) {
         )
       }
     })
+    .state('management.settings.theme', {
+      url: '/theme',
+      component: 'theme',
+      resolve: {
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-portal-theme'
+        },
+        perms: {
+          only: ['portal-documentation-r']
+        }
+      },
+    })
     .state('management.settings.top-apis', {
       url: '/top-apis',
       component: 'topApis',
