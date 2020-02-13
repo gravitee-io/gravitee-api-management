@@ -55,7 +55,7 @@
                    with-description
                    [value]="userRating?.value"></gv-rating>
 
-        <gv-button primary [disabled]="!hasValidRatingForm()">{{ "apiGeneral.rate" | translate}}</gv-button>
+        <gv-button type="submit" primary [disabled]="!hasValidRatingForm()">{{ "apiGeneral.rate" | translate}}</gv-button>
 
         </div>
       </form>

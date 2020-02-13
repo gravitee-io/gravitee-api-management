@@ -80,6 +80,53 @@
       "title": "Validace"
     }
   },
+  "application": {
+    "change_picture": "Změnit obrázek",
+    "client_id": {
+      "label": "ID klienta",
+      "title": "ID klienta"
+    },
+    "client_secret": {
+      "label": "Secret client",
+      "title": "Secret client"
+    },
+    "delete": {
+      "cancel": "application.delete.cancel",
+      "label": "application.delete.label",
+      "message": "application.delete.message",
+      "ok": "application.delete.ok"
+    },
+    "description": {
+      "label": "Popište účel této aplikace",
+      "title": "Description"
+    },
+    "general": "General",
+    "list": {
+      "connectedApis": "application.list.connectedApis"
+    },
+    "miscellaneous": {
+      "createdDate": "Datum vytvoření:",
+      "lastUpdate": "Poslední změna:",
+      "owner": "Owner:",
+      "type": "Type:"
+    },
+    "name": {
+      "label": "Název aplikace",
+      "title": "Název aplikace"
+    },
+    "oauth2": "integrace OAuth2",
+    "reset": "application.reset",
+    "save": "Save",
+    "success": {
+      "delete": "application.success.delete",
+      "save": "application.success.save"
+    },
+    "type": {
+      "label": "Typ aplikace",
+      "title": "Typ aplikace"
+    },
+    "types": "{type, select, BACKEND_TO_BACKEND {Server to server} NATIVE {Native} WEB {Web} BROWSER {Browser} SIMPLE {Simple} other {Simple}}"
+  },
   "applications": {
     "title": "Moje aplikace"
   },
@@ -107,6 +154,8 @@
       "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
     },
     "forbidden": "Nemáte dostatečná práva pro přístup k tomuto prostředku",
+    "picture_format_forbidden": "errors.picture_format_forbidden",
+    "picture_too_big": "errors.picture_too_big",
     "plan": {
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
@@ -352,14 +401,10 @@
   },
   "user": {
     "account": {
-      "errors": {
-        "avatar_format_forbidden": "Formát SVG není povolen",
-        "avatar_too_big": "Velikost vašeho avataru musí být menší než 500 kB"
-      },
       "success": "Váš účet byl úspěšně aktualizován",
       "title": "Osobní údaje"
     },
-    "change_picture": "Změnit fotografii",
+    "change_picture": "user.change_picture",
     "display_name": "Jméno:",
     "email": "Email:",
     "notifications": {

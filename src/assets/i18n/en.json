@@ -80,6 +80,53 @@
       "title": "Validation"
     }
   },
+  "application": {
+    "change_picture": "Change picture",
+    "client_id": {
+      "label": "Client ID",
+      "title": "Client ID"
+    },
+    "client_secret": {
+      "label": "Client secret",
+      "title": "Client secret"
+    },
+    "delete": {
+      "cancel": "application.delete.cancel",
+      "label": "application.delete.label",
+      "message": "application.delete.message",
+      "ok": "application.delete.ok"
+    },
+    "description": {
+      "label": "Describe the goal of this application",
+      "title": "Description"
+    },
+    "general": "Général",
+    "list": {
+      "connectedApis": "Connected APIs"
+    },
+    "miscellaneous": {
+      "createdDate": "Creation date:",
+      "lastUpdate": "Last update:",
+      "owner": "Owner:",
+      "type": "Type:"
+    },
+    "name": {
+      "label": "Name of the app",
+      "title": "Name of the application"
+    },
+    "oauth2": "OAuth2 integration",
+    "reset": "application.reset",
+    "save": "Save",
+    "success": {
+      "delete": "application.success.delete",
+      "save": "application.success.save"
+    },
+    "type": {
+      "label": "Application type",
+      "title": "Application type"
+    },
+    "types": "{type, select, BACKEND_TO_BACKEND{Backend to backend} NATIVE{Native} WEB{Web} BROWSER{Browser} SIMPLE{Simple} other{Simple}}"
+  },
   "applications": {
     "title": "Applications"
   },
@@ -107,6 +154,8 @@
       "required": "Please configure an e-mail to use the contact form"
     },
     "forbidden": "You do not have sufficient rights to access this resource",
+    "picture_format_forbidden": "errors.picture_format_forbidden",
+    "picture_too_big": "errors.picture_too_big",
     "plan": {
       "notSubscribable": "A client_id is required to subscribe to an OAuth2 or JWT plan.",
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."
@@ -352,14 +401,10 @@
   },
   "user": {
     "account": {
-      "errors": {
-        "avatar_format_forbidden": "SVG format is not allowed",
-        "avatar_too_big": "The size of your avatar must be less than 500Ko"
-      },
       "success": "Your account has been successfully updated",
       "title": "Personal informations"
     },
-    "change_picture": "Change photo",
+    "change_picture": "user.change_picture",
     "display_name": "Name:",
     "email": "Email:",
     "notifications": {

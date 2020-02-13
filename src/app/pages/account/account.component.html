@@ -23,8 +23,7 @@
       <div class="account__user-info">
         <div class="account__user-info__avatar">
           <gv-user-avatar [user]="currentUser" [avatar]="avatar" [size]="50"></gv-user-avatar>
-          <gv-button primary outlined (click)="avatarInput.click()">{{ "user.change_picture" | translate}}</gv-button>
-          <input style="display: none" #avatarInput type="file" accept="image/*" (change)="onFileSelected($event)">
+          <app-gv-file-upload [label]="'user.change_picture' | translate" (fileLoad)="onFileLoad($event)"></app-gv-file-upload>
           <gv-button primary (click)="update()" [disabled]="!avatar">{{ "user.update" | translate}}</gv-button>
         </div>
         <p>

@@ -15,13 +15,6 @@
     limitations under the License.
 
 -->
-<div class="page__content">
-  <h1 class="title">{{'applications.title' | translate}} <span>({{ nbApplications }})</span></h1>
-  <section>
-    <div class="applications">
-      <gv-card-full *ngFor="let application of applications; let index = index" [item]="application"
-                    [metrics]="metrics[index]" (click)="goToApplication(application)"></gv-card-full>
-    </div>
-  </section>
-</div>
-
+<gv-header slot="header" *ngIf="item" [item]="item"
+               [canSubscribe]="canSubscribe()"
+               (:gv-header:subscribe)="onSubscribe()"></gv-header>

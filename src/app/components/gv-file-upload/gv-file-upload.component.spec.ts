@@ -15,30 +15,27 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ApplicationsComponent } from './applications.component';
+import { GvFileUploadComponent } from './gv-file-upload.component';
 import { TranslateTestingModule } from '../../test/helper.spec';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { MarkdownModule } from 'ngx-markdown';
-import { RouterTestingModule } from '@angular/router/testing';
 
-describe('ApplicationsComponent', () => {
-  let component: ApplicationsComponent;
-  let fixture: ComponentFixture<ApplicationsComponent>;
+describe('GvFileUploadComponent', () => {
+  let component: GvFileUploadComponent;
+  let fixture: ComponentFixture<GvFileUploadComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ApplicationsComponent ],
-      imports: [ TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
+      imports: [ TranslateTestingModule],
+      declarations: [ GvFileUploadComponent ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
-      ],
+      ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationsComponent);
+    fixture = TestBed.createComponent(GvFileUploadComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

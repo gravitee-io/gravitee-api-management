@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { Application, ApplicationsService, SubscriptionService } from '@gravitee/ng-portal-webclient';
+import { Application, ApplicationService, SubscriptionService } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-table';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-applications',
@@ -28,25 +29,32 @@ export class ApplicationsComponent implements OnInit {
   metrics: Array<any>;
 
   constructor(
-    private applicationsService: ApplicationsService,
+    private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
+    private router: Router,
   ) {
     this.metrics = [];
   }
 
   ngOnInit() {
-    this.applicationsService.getApplications({ size: -1 }).toPromise().then((response) => {
+    this.applicationService.getApplications({ size: -1 }).toPromise().then((response) => {
       this.applications = response.data;
       this.metrics = this.applications.map((application) => this._getMetrics(application));
       // @ts-ignore
       this.nbApplications = response.metadata.data.total;
     });
   }
-​
+  ​
   private _getMetrics(application: Application) {
     return this.subscriptionService
       .getSubscriptions({ size: -1, applicationId: application.id, statuses: [ 'ACCEPTED' ] })
       .toPromise()
       .then((r) => ({ subscribers: r.data.length }));
+  }
+
+  goToApplication(application: Promise<Application>) {
+    Promise.resolve(application).then((_application) => {
+      this.router.navigate(['/applications/' + _application.id]);
+    });
   }
 }

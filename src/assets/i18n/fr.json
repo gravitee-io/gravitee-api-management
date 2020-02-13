@@ -4,9 +4,9 @@
       "connectedApp": "Applications liées"
     },
     "miscellaneous": {
-      "lastUpdate": "Mise à jour: ",
-      "publisher": "Propriétaire: ",
-      "version": "Version : "
+      "lastUpdate": "Mise à jour :",
+      "publisher": "Propriétaire :",
+      "version": "Version :"
     }
   },
   "apiGeneral": {
@@ -80,6 +80,53 @@
       "title": "Validation"
     }
   },
+  "application": {
+    "change_picture": "Changer l'image",
+    "client_id": {
+      "label": "Client ID",
+      "title": "Client ID"
+    },
+    "client_secret": {
+      "label": "Client secret",
+      "title": "Client secret"
+    },
+    "delete": {
+      "cancel": "Annuler",
+      "label": "Supprimer",
+      "message": "Êtes-vous sûr de vouloir supprimer cette application ?",
+      "ok": "Valider"
+    },
+    "description": {
+      "label": "Décrire le but de cette application",
+      "title": "Description"
+    },
+    "general": "Général",
+    "list": {
+      "connectedApis": "APIs connectées"
+    },
+    "miscellaneous": {
+      "createdDate": "Date de création :",
+      "lastUpdate": "Dernière modification :",
+      "owner": "Propriétaire :",
+      "type": "Type :"
+    },
+    "name": {
+      "label": "Nom de l'app",
+      "title": "Nom de l'application"
+    },
+    "oauth2": "Intégration OAuth2",
+    "reset": "Réinitialiser",
+    "save": "Sauvegarder",
+    "success": {
+      "delete": "Votre application a été supprimée avec succès",
+      "save": "Votre application a été mise à jour avec succès"
+    },
+    "type": {
+      "label": "Type d'application",
+      "title": "Type d'application"
+    },
+    "types": "{type, select, BACKEND_TO_BACKEND{Serveur à serveur} NATIVE{Native} WEB{Web} BROWSER{Navigateur} SIMPLE{Simple} other{Simple}}"
+  },
   "applications": {
     "title": "Mes applications"
   },
@@ -107,6 +154,8 @@
       "required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
     },
     "forbidden": "Vous ne disposez pas des droits suffisants pour accéder à cette ressource",
+    "picture_format_forbidden": "Le format SVG n'est pas autorisé",
+    "picture_too_big": "La taille de votre avatar doit être inférieur à 500Ko",
     "plan": {
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
@@ -181,7 +230,7 @@
     "error": "Une erreur est survenue pendant le chargement des informations de l'API",
     "labels": "Tags",
     "metrics": "Statistiques",
-    "moreInfo": "Informations supplémentaires",
+    "moreInfo": "Informations",
     "ratings": "Notes",
     "resources": "Ressources"
   },
@@ -352,10 +401,6 @@
   },
   "user": {
     "account": {
-      "errors": {
-        "avatar_format_forbidden": "Le format SVG n'est pas autorisé",
-        "avatar_too_big": "La taille de votre avatar doit être inférieur à 500Ko"
-      },
       "success": "Votre compte a été mis à jour avec succès",
       "title": "Informations personnelles"
     },

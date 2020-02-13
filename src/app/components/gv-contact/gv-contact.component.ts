@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
-import { ApiService, ApplicationsService, PortalService } from '@gravitee/ng-portal-webclient';
+import { ApiService, ApplicationService, PortalService } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from '../../services/notification.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { LoaderService } from '../../services/loader.service';
@@ -42,7 +42,7 @@ export class GvContactComponent implements OnInit, AfterViewInit {
   }[];
 
   constructor(
-    private applicationsService: ApplicationsService,
+    private applicationService: ApplicationService,
     private apiService: ApiService,
     private portalService: PortalService,
     private formBuilder: FormBuilder,
@@ -54,7 +54,7 @@ export class GvContactComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.initFormGroup();
-    this.applicationsService.getApplications({ size: -1 })
+    this.applicationService.getApplications({ size: -1 })
       .subscribe((response) => {
         this.applications = response.data.map(application => {
           return { label: `${ application.name } (${ application.owner.display_name })`, value: application.id };

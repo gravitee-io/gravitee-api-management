@@ -44,22 +44,8 @@ export class AccountComponent implements OnInit {
     });
   }
 
-  onFileSelected(event) {
-    this.notificationService.reset();
-    const reader = new FileReader();
-    const file = event.target.files[0];
-    if (file) {
-      if (file.size > 500_000) {
-        this.notificationService.warning(i18n('user.account.errors.avatar_too_big'));
-      } else if (file.type.startsWith('image/svg')) {
-        this.notificationService.warning(i18n('user.account.errors.avatar_format_forbidden'));
-      } else {
-        reader.readAsDataURL(file);
-        reader.onload = (loadEvent: any) => {
-          this.avatar = loadEvent.target.result;
-        };
-      }
-    }
+  onFileLoad(picture) {
+    this.avatar = picture;
   }
 
   update() {

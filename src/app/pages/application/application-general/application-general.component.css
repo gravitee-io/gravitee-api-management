@@ -13,24 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.gv-contact {
-  background-color: white;
-  padding: 1.5rem 4rem;
+.application {
+  display: flex;
+  --gv-image--h: '30px';
 }
 
-.gv-contact form {
-  max-width: 1076px;
+.application__section {
   display: flex;
   flex-direction: column;
-  margin: 0 auto;
+  flex: 1 1 auto;
+  max-width: 80%;
+  margin: 0 32px;
 }
 
-.gv-contact title {
-  margin-bottom: 1.5rem;
+.application__section__block {
+ background-color: white;
+ border-radius: 4px;
+ padding: 24px 50px;
 }
 
-.gv-contact__input {
-  --gv-button--p: 1rem 2rem;
-  max-width: 250px;
-  align-self: flex-end;
+.application__aside {
+  display: flex;
+  flex-direction: column;
+}
+
+.application__section > *, .application__aside > * {
+ margin-bottom: 32px;
+}
+
+.application__image {
+  --gv-image--w: 128px;
+  float: right;
+  width: 20%;
+}
+
+.application__input {
+  width: 75%;
+}
+
+.application__input__delete {
+  --gv-button--bgc: red;
 }

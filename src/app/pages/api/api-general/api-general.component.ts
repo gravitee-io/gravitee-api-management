@@ -149,7 +149,8 @@ export class ApiGeneralComponent implements OnInit {
                 { key: version, value: api.version },
                 {
                   key: lastUpdate,
-                  value: new Date(api.updated_at).toLocaleString(this.translateService.currentLang)
+                  value: new Date(api.updated_at),
+                  date: 'relative'
                 },
                 { key: publisher, value: api.owner.display_name }
               ];

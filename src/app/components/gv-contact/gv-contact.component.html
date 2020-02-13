@@ -64,7 +64,7 @@
         ngDefaultControl>
       </gv-checkbox>
 
-      <gv-button class="gv-contact__input" [disabled]="contactForm.invalid || contactForm.disabled" primary [loading]="loaderService.isLoading | async">
+      <gv-button type="submit" class="gv-contact__input" [disabled]="contactForm.invalid || contactForm.disabled" primary [loading]="loaderService.isLoading | async">
         {{ 'gv-contact.button' | translate }}
       </gv-button>
 

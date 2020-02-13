@@ -15,50 +15,35 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GvHeaderApiComponent } from './gv-header-api.component';
-import { RouterTestingModule } from '@angular/router/testing';
+import { ApplicationGeneralComponent } from './application-general.component';
+import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
+import { MarkdownModule } from 'ngx-markdown';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideMock } from '../../test/mock.helper.spec';
-import { CurrentUserService } from '../../services/current-user.service';
-import { TranslateTestingModule } from '../../test/helper.spec';
-import { TranslateService } from '@ngx-translate/core';
-import { ApiService } from '@gravitee/ng-portal-webclient';
+import { TranslateTestingModule } from 'src/app/test/helper.spec';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-describe('GvMenuHeaderComponent', () => {
-  let component: GvHeaderApiComponent;
-  let fixture: ComponentFixture<GvHeaderApiComponent>;
+describe('ApplicationGeneralComponent', () => {
+  let component: ApplicationGeneralComponent;
+  let fixture: ComponentFixture<ApplicationGeneralComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
-        TranslateTestingModule,
-        HttpClientTestingModule,
-      ],
-      declarations: [
-        GvHeaderApiComponent
-      ],
+      declarations: [ApplicationGeneralComponent, GvPageComponent],
+      imports: [MarkdownModule, HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        GvHeaderApiComponent,
-        provideMock(TranslateService),
-        provideMock(CurrentUserService),
-        provideMock(ApiService)
       ]
-    }).compileComponents();
+    })
+      .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvHeaderApiComponent);
+    fixture = TestBed.createComponent(ApplicationGeneralComponent);
     component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
+    fixture.detectChanges();
   });
-
 
   it('should create', () => {
     expect(component).toBeTruthy();

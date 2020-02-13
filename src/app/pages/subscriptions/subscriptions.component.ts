@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { Api, ApiService, Application, ApplicationsService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
+import { Api, ApiService, Application, ApplicationService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -37,7 +37,7 @@ export class SubscriptionsComponent implements OnInit {
   emptyKeySubscriptions: string;
 
   constructor(
-    private applicationsService: ApplicationsService,
+    private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
     private apiService: ApiService,
     private translateService: TranslateService,
@@ -78,7 +78,7 @@ export class SubscriptionsComponent implements OnInit {
     ];
     this.format = (key) => this.translateService.get(key).toPromise();
 
-    this.applicationsService.getApplications({ size: -1 }).toPromise().then((response) => {
+    this.applicationService.getApplications({ size: -1 }).toPromise().then((response) => {
       this.applications = response.data;
       this.subscriptionService.getSubscriptions({ size: -1, statuses: [ 'ACCEPTED' ] }).toPromise().then((responseSubscriptions) => {
         this.subscriptions = responseSubscriptions.data;

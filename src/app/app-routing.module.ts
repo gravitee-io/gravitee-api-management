@@ -29,7 +29,7 @@ import { DocumentationComponent } from './pages/documentation/documentation.comp
 import { FeatureEnum } from './model/feature.enum';
 import { FeatureGuardService } from './services/feature-guard.service';
 import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
-import { GvHeaderApiComponent } from './components/gv-header-api/gv-header-api.component';
+import { GvHeaderItemComponent } from './components/gv-header-item/gv-header-item.component';
 import { GvSearchComponent } from './components/gv-search/gv-search.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { LayoutComponent } from './layouts/layout/layout.component';
@@ -44,6 +44,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
 import { SubscribeGuardService } from './services/subscribe-guard.service';
+import { ApplicationGeneralComponent } from './pages/application/application-general/application-general.component';
 
 export const routes: Routes = [
   {
@@ -77,7 +78,7 @@ export const routes: Routes = [
                 path: ':apiId',
                 component: ApiGeneralComponent,
                 data: {
-                  menu: { slots: { top: GvHeaderApiComponent, right: GvSearchComponent } },
+                  menu: { slots: { top: GvHeaderItemComponent, right: GvSearchComponent } },
                   breadcrumb: true,
                   icon: 'general:clipboard',
                   title: i18n('route.catalogApi')
@@ -87,7 +88,7 @@ export const routes: Routes = [
                 path: ':apiId/doc',
                 component: ApiDocumentationComponent,
                 data: {
-                  menu: { slots: { top: GvHeaderApiComponent, right: GvSearchComponent } },
+                  menu: { slots: { top: GvHeaderItemComponent, right: GvSearchComponent } },
                   breadcrumb: true,
                   icon: 'home:library',
                   title: i18n('route.catalogApiDocumentation')
@@ -98,7 +99,7 @@ export const routes: Routes = [
                 component: ApiContactComponent,
                 canActivate: [AuthGuardService, FeatureGuardService],
                 data: {
-                  menu: { slots: { top: GvHeaderApiComponent, right: GvSearchComponent } },
+                  menu: { slots: { top: GvHeaderItemComponent, right: GvSearchComponent } },
                   breadcrumb: true,
                   icon: 'communication:contact#1',
                   title: i18n('route.catalogApiContact'),
@@ -113,7 +114,7 @@ export const routes: Routes = [
                 data: {
                   breadcrumb: false,
                   title: i18n('route.catalogApiSubscribe'),
-                  menu: { slots: { top: GvHeaderApiComponent } },
+                  menu: { slots: { top: GvHeaderItemComponent } },
                 }
               },
             ]
@@ -255,7 +256,23 @@ export const routes: Routes = [
               title: i18n('route.mySubscriptions'),
               icon: 'finance:share',
             }
-          }
+          },
+          {
+            path: ':applicationId',
+            data: {
+              menu: { slots: { top: GvHeaderItemComponent } },
+            },
+            children: [
+              {
+                path: '',
+                component: ApplicationGeneralComponent,
+                data: {
+                  icon: 'general:clipboard',
+                  title: i18n('route.catalogApi')
+                }
+              },
+            ]
+          },
         ]
       }
     ]

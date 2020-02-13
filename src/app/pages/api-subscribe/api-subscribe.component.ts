@@ -19,7 +19,7 @@ import '@gravitee/ui-components/wc/gv-stepper';
 import '@gravitee/ui-components/wc/gv-plans';
 import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-code';
-import { Api, ApiService, Application, ApplicationsService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
+import { Api, ApiService, Application, ApplicationService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
@@ -67,7 +67,7 @@ export class ApiSubscribeComponent implements OnInit {
               private route: ActivatedRoute,
               private translateService: TranslateService,
               private apiServices: ApiService,
-              private applicationsService: ApplicationsService,
+              private applicationService: ApplicationService,
               private subscriptionService: SubscriptionService,
               private formBuilder: FormBuilder,
               private configurationService: ConfigurationService,
@@ -106,7 +106,7 @@ export class ApiSubscribeComponent implements OnInit {
     });
 
     Promise.all([
-      this.applicationsService.getApplications({ size: -1, forSubscription: true }).toPromise(),
+      this.applicationService.getApplications({ size: -1, forSubscription: true }).toPromise(),
       this.apiService.getApiPlansByApiId({ apiId: this.apiId }).toPromise(),
       this.getSubscriptions(),
     ]).then(([allAppsResponse, apiPlansResponse]) => {

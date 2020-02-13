@@ -38,7 +38,8 @@ import { environment } from '../environments/environment';
 import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
 import { GvContactComponent } from './components/gv-contact/gv-contact.component';
 import { GvDocumentationComponent } from './components/gv-documentation/gv-documentation.component';
-import { GvHeaderApiComponent } from './components/gv-header-api/gv-header-api.component';
+import { GvFileUploadComponent } from './components/gv-file-upload/gv-file-upload.component';
+import { GvHeaderItemComponent } from './components/gv-header-item/gv-header-item.component';
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
 import { GvPageComponent } from './components/gv-page/gv-page.component';
@@ -70,6 +71,7 @@ import '@gravitee/ui-components/wc/gv-spinner';
 import { Router, Scroll } from '@angular/router';
 import { ViewportScroller } from '@angular/common';
 import { filter } from 'rxjs/operators';
+import { ApplicationGeneralComponent } from './pages/application/application-general/application-general.component';
 
 @NgModule({
   declarations: [
@@ -82,6 +84,7 @@ import { filter } from 'rxjs/operators';
     ApiSubscribeComponent,
     AppComponent,
     ApplicationsComponent,
+    ApplicationGeneralComponent,
     CatalogSearchComponent,
     CatalogSearchComponent,
     CategoriesComponent,
@@ -92,7 +95,7 @@ import { filter } from 'rxjs/operators';
     FilteredCatalogComponent,
     GvContactComponent,
     GvDocumentationComponent,
-    GvHeaderApiComponent,
+    GvHeaderItemComponent,
     GvMenuRightSlotDirective,
     GvMenuTopSlotDirective,
     GvPageComponent,
@@ -110,8 +113,9 @@ import { filter } from 'rxjs/operators';
     SafePipe,
     SinglePageComponent,
     SubscriptionsComponent,
+    GvFileUploadComponent,
   ],
-  entryComponents: [GvSearchComponent, GvHeaderApiComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
+  entryComponents: [GvSearchComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
   imports: [
     ApiModule,
     AppRoutingModule,
