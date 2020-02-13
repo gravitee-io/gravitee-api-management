@@ -18,7 +18,7 @@
 }
 
 .account, .notifications {
-  background-color: white;
+  background-color: var(--gv-theme-neutral-color-lightest);
   padding: 1.5rem 4rem;
   min-height: 50vh;
 }

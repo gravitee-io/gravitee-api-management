@@ -15,8 +15,8 @@
  */
 
 .api-subscribe__header {
-  background-color: var(--gv-theme-color-dark, #193E34);
-  color: #FFF;
+  background-color: var(--gv-theme-color-dark);
+  color: var(--gv-theme-font-color-light);
   padding: 2rem var(--gv-theme-layout--pr, 4rem) 1rem var(--gv-theme-layout--pl, 4rem);
   letter-spacing: 0.05em;
 }
@@ -26,7 +26,7 @@
 }
 
 .api-subscribe__content {
-  background-color: white;
+  background-color: var(--gv-theme-neutral-color-lightest);
   margin-right: 1rem;
   flex: 1;
   display: flex;
@@ -62,9 +62,9 @@
 .actions {
   display: flex;
   justify-content: space-between;
-  --gv-button--fz: 16px;
+  --gv-button--fz: var(--gv-theme-font-size-l);
   --gv-button--p: 6px 12px;
-  border-top: 1px solid var(--gv-theme-color-grey-3);
+  border-top: 1px solid var(--gv-theme-neutral-color-dark);
   padding: 2rem 3rem;
 }
 
@@ -72,17 +72,17 @@
   padding: 2rem;
   text-align: center;
   border-radius: 2px;
-  background-color: #FAFAFA;
-  font-size: 14px;
+  background-color: var(--gv-theme-neutral-color-lighter);
+  font-size: var(--gv-theme-font-size-m);
   line-height: 22px;
   margin-bottom: 16px;
 }
 
 .subscription-accepted {
-  background-color: #009B5B;
-  color: white;
+  background-color: var();
+  color: var(--gv-theme-font-color-light);
   margin-bottom: 4rem;
-  --gv-icon--c: white;
+  --gv-icon--c: var(--gv-theme-font-color-light);
 }
 
 .subscription-accepted gv-input {
@@ -92,7 +92,7 @@
 }
 
 .step-3 .subscription-accepted a {
-  color: white;
+  color: var(--gv-theme-font-color-light);
 }
 
 .step-3 .success-icon {
@@ -121,7 +121,7 @@
 
 .api-subscribe__stepper {
   display: flex;
-  border-bottom: 1px solid var(--gv-theme-color-grey-3);
+  border-bottom: 1px solid var(--gv-theme-neutral-color-dark);
   padding: 2rem 1rem 1rem 1rem;
 }
 

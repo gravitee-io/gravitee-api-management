@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { PortalService, View } from '@gravitee/ng-portal-webclient';
 
-import '@gravitee/ui-components/wc/gv-card-category';
+import '@gravitee/ui-components/wc/gv-category-list';
 import { Router } from '@angular/router';
 import { delay } from '../../../utils/utils';
 import { TimeTooLongError } from '../../../exceptions/TimeTooLongError';
 
 @Component({
   selector: 'app-categories',
-  templateUrl: './categories.component.html',
-  styleUrls: ['./categories.component.css']
+  templateUrl: './categories.component.html'
 })
 export class CategoriesComponent implements OnInit {
   nbCategories: number;
@@ -58,13 +57,9 @@ export class CategoriesComponent implements OnInit {
     });
   }
 
-  getCategoryBackgroundColor(index) {
-    return `--gv-card-category--bgc: var(--gv-theme-color-category-${ index % 6 + 1 })`;
-  }
-
-  async onCardClick(category: Promise<View>) {
-    const view = await category;
-    await this.router.navigate([`/catalog/categories/${ view.id }`]);
+  @HostListener(':gv-category:click', ['$event.detail'])
+  onCardClick(category: View) {
+    this.router.navigate([`/catalog/categories/${ category.id }`]);
   }
 
 }

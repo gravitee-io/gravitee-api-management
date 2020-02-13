@@ -25,7 +25,7 @@ describe('workspace-project App', () => {
 
   it('should display welcome message', () => {
     page.navigateTo();
-    expect(page.getTitleText()).toEqual('gravitee-portal-webui app is running!');
+    expect(page.getTitleText()).toEqual('Libérez la puissance de vos APIs.');
   });
 
   afterEach(async () => {

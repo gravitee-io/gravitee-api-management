@@ -4,7 +4,7 @@
   "description": "Gravitee.io Portal",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --port=4100",
     "start:prod": "ng serve --aot --prod=true",
     "build": "ng build --aot",
     "build:prod": "ng build --prod=true",
@@ -27,7 +27,7 @@
     "@angular/platform-browser-dynamic": "^8.2.9",
     "@angular/router": "^8.2.9",
     "@github/time-elements": "^3.1.0",
-    "@gravitee/ng-portal-webclient": "^1.0.0-SNAPSHOT.202002101304",
+    "@gravitee/ng-portal-webclient": "^1.0.0-SNAPSHOT.202002251944",
     "@gravitee/ui-components": "github:gravitee-io/gravitee-ui-components",
     "@ibm/plex": "^4.0.2",
     "@ngx-translate/core": "^11.0.1",

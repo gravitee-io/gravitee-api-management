@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 :host {
-  background-color: white;
+  background-color: var(--gv-theme-neutral-color-lightest);
   width: 100%;
   border-radius: 4px;
 }

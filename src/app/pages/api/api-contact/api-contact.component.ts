@@ -19,7 +19,6 @@ import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-api-contact',
   templateUrl: './api-contact.component.html',
-  styleUrls: ['./api-contact.component.css']
 })
 export class ApiContactComponent implements OnInit {
 

@@ -1,21 +1,14 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import "~@gravitee/ui-components/assets/css/gravitee-theme.css";
+@import "~@gravitee/ui-components/assets/css/gravitee-theme.generated.css";
 @import "app/layouts/layout/layout.component.css";
 
 :root {
-  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
-
-  --gv-theme-font--c: #262626;
-  color: var(--gv-theme-font--c);
-
-  --gv-header--pl: var(--gv-theme-layout--pl);
-  --gv-header--pr: var(--gv-theme-layout--pr);
-  --gv-menu--pl: var(--gv-theme-layout--pl);
-  --gv-menu--pr: var(--gv-theme-layout--pr);
+  font-family: var(--gv-theme-font-family);
+  font-size: var(--gv-theme-font-size-s);
+  color: var(--gv-theme-font-color-dark);
 
   // ********** Layout ************
-  --gv-theme-layout--bgc: #E5E5E5;
   --gv-theme-layout--pb: 1rem;
   --gv-theme-layout--pl: 8rem;
   --gv-theme-layout--pr: 8rem;
@@ -27,6 +20,8 @@
   // ********** Page ************
   --gv-theme-page--pb: 4rem;
   --gv-theme-page--pt: 4rem;
+
+  --gv-theme-loader: url('assets/images/gravitee-loader.gif');
 }
 
 /* (1920x1080) Full HD Display */
@@ -88,41 +83,41 @@
 }
 
 h1.title {
-  font-size: 30px;
-  line-height: 38px;
+  font-size: var(--gv-theme-font-size-xxl);
+  line-height: var(--gv-theme-font-size-xxl);
   margin: 0;
 }
 
 h1.title span {
-  color: #BFBFBF;
+  color: var(--gv-theme-neutral-color-dark);
   font-weight: 600;
-  font-size: 12px;
-  line-height: 20px;
+  font-size: var(--gv-theme-font-size-s);
+  line-height: var(--gv-theme-font-size-s);
   margin-left: 8px;
 }
 
 h2.title {
   margin: 0;
-  font-size: 20px;
-  line-height: 28px;
+  font-size: var(--gv-theme-font-size-xl);
+  line-height: var(--gv-theme-font-size-xl);
   opacity: 0.5;
 }
 
 h3.title {
   margin: 0;
-  font-size: 16px;
-  line-height: 24px;
-  color: #595959;
+  font-size: var(--gv-theme-font-size-l);
+  line-height: var(--gv-theme-font-size-l);
+  opacity: 0.6;
 }
 
 h3.title p {
-  color: #BFBFBF;
+  opacity: 0.5;
 }
 
 h4.title {
   margin: 0;
-  font-size: 14px;
-  line-height: 22px;
+  font-size: var(--gv-theme-font-size-m);
+  line-height: var(--gv-theme-font-size-m);
 }
 
 .text-center {
@@ -130,7 +125,7 @@ h4.title {
 }
 
 h4.title span {
-  color: #BFBFBF;
+  color: var(--gv-theme-neutral-color-darker);
 }
 
 // TODO: remove .skeleton a when remove tachyons

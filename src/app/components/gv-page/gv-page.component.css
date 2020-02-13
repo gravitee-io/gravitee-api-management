@@ -15,7 +15,7 @@
  */
 :host {
   display: block;
-  background-color: white;
+  background-color: var(--gv-theme-neutral-color-lightest);
   border-radius: 4px;
   width: 100%;
 }

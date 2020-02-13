@@ -27,7 +27,7 @@
 }
 
 .api__section__block {
- background-color: white;
+ background-color: var(--gv-theme-neutral-color-lightest);
  border-radius: 4px;
  padding: 24px 50px;
 }
@@ -54,7 +54,7 @@
 .rating-form-content {
   display: flex;
   flex-direction: column;
-  background-color: #E5E5E5;
+  background-color: var(--gv-theme-neutral-color);
   padding: 1rem;
   margin: 1rem 0;
 }

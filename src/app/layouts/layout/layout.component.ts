@@ -29,6 +29,7 @@ import { NotificationService } from '../../services/notification.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ConfigurationService } from '../../services/configuration.service';
 import { FeatureEnum } from '../../model/feature.enum';
+import { SearchQueryParam } from '../../utils/search-query-param.enum';
 
 @Component({
   selector: 'app-layout',
@@ -62,7 +63,6 @@ export class LayoutComponent implements OnInit {
       }
     });
   }
-
 
   async ngOnInit() {
     this.currentUserService.get().subscribe(newCurrentUser => {
@@ -114,7 +114,7 @@ export class LayoutComponent implements OnInit {
           break;
       }
       const navRoute: INavRoute = {
-        active : this.router.isActive(path, false),
+        active: this.router.isActive(path, false),
         path,
         target,
         title: element.name
@@ -155,7 +155,7 @@ export class LayoutComponent implements OnInit {
 
         if (portalLinks.slots.footer) {
           this.links.footer = portalLinks.slots.footer
-            .filter( catLinks => !catLinks.root )
+            .filter(catLinks => !catLinks.root)
             .map(catLinks => {
               return {
                 title: catLinks.category,
@@ -163,7 +163,8 @@ export class LayoutComponent implements OnInit {
               };
             });
         }
-      }});
+      }
+    });
 
     const currentRoute: ActivatedRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
     this.menuRoutes = this.navRouteService.getSiblingsNav(currentRoute);
@@ -195,7 +196,7 @@ export class LayoutComponent implements OnInit {
   }
 
   isHomepage(): boolean {
-    return '/' === this.router.url;
+    return '/' === this.router.url || this.router.url.startsWith('/?');
   }
 
   isAuthenticated(): boolean {

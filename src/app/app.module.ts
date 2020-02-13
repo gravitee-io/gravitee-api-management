@@ -175,7 +175,8 @@ export class AppModule {
 
 export function initApp(configurationService: ConfigurationService, authService: AuthService, currentUserService: CurrentUserService,
                         translationService: TranslationService) {
-  return () => configurationService.load().then(
-    () => authService.load().then(() => currentUserService.load().then(() => translationService.load()))
+  return () => configurationService.load().then(() => {
+      return authService.load().then(() => currentUserService.load().then(() => translationService.load()));
+    }
   );
 }

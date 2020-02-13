@@ -186,6 +186,13 @@
     "empty": "No API to display here",
     "error": "An error occurred while loading the API"
   },
+  "gv-category-list": {
+    "error": "An error occurred while loading list"
+  },
+  "gv-category": {
+    "empty": "No category to display here",
+    "error": "An error occurred while loading the category"
+  },
   "gv-code": {
     "copy": "Copy to clipboard"
   },

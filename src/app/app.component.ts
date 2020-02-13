@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, HostListener, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { CurrentUserService } from './services/current-user.service';
 import { NotificationService } from './services/notification.service';
 import { ActivatedRoute, NavigationEnd, NavigationStart, Router } from '@angular/router';
-import { NavRouteService } from './services/nav-route.service';
+import { INavRoute, NavRouteService } from './services/nav-route.service';
+import '@gravitee/ui-components/wc/gv-theme';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html'
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements AfterViewInit, OnDestroy {
+
+  isPreview = false;
 
   constructor(
     private titleService: Title,
@@ -37,18 +40,42 @@ export class AppComponent implements AfterViewInit {
     private activatedRoute: ActivatedRoute,
     private navRouteService: NavRouteService,
   ) {
+
+    this.activatedRoute.queryParamMap.subscribe(params => {
+      if (params.has('preview') && params.get('preview') === 'on') {
+        sessionStorage.setItem('gvPreview', 'true');
+      }
+    });
+
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.notificationService.reset();
       } else if (event instanceof NavigationEnd) {
         const currentRoute: ActivatedRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
         this._setBrowserTitle(currentRoute);
+        const gvPreview = sessionStorage.getItem('gvPreview');
+        if (gvPreview) {
+          this.isPreview = true;
+          this.notificationService.info('On preview mode');
+        }
       }
     });
+
+    this.notificationService.info('build');
+  }
+
+  @HostListener('window:beforeunload')
+  async ngOnDestroy() {
+    sessionStorage.removeItem('gvPreview');
   }
 
   ngAfterViewInit() {
     document.querySelector('#loader').remove();
+  }
+
+  @HostListener(':gv-theme:error', ['$event.detail'])
+  onThemeError(detail) {
+    this.notificationService.error(detail.message);
   }
 
   private _setBrowserTitle(currentRoute: ActivatedRoute) {

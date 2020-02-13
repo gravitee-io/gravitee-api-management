@@ -27,6 +27,11 @@
                 "glob": "**/*.js",
                 "input": "node_modules/@webcomponents/webcomponentsjs",
                 "output": "webcomponents/"
+              },
+              {
+                "glob": "*",
+                "input":  "node_modules/@gravitee/ui-components/assets/images",
+                "output": "images/"
               }
             ],
             "styles": [
@@ -103,6 +108,11 @@
                 "glob": "**/*.js",
                 "input": "node_modules/@webcomponents/webcomponentsjs",
                 "output": "webcomponents/"
+              },
+              {
+                "glob": "*",
+                "input":  "node_modules/@gravitee/ui-components/assets/images",
+                "output": "images/"
               }
             ],
             "styles": [

@@ -15,7 +15,10 @@
  */
 .application {
   display: flex;
-  --gv-image--h: '30px';
+}
+
+.application gv-image {
+  height: 30px;
 }
 
 .application__section {
@@ -42,9 +45,12 @@
 }
 
 .application__image {
-  --gv-image--w: 128px;
   float: right;
   width: 20%;
+}
+
+.application__image gv-image {
+  width: 128px;
 }
 
 .application__input {

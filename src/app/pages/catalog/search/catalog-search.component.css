@@ -16,7 +16,7 @@
 
 .search__form {
   background-color: var(--gv-theme-color-darker);
-  color: white;
+  color: var(--gv-theme-font-color-light);
   padding: 40px 25%;
 }
 
@@ -25,7 +25,7 @@
 }
 
 .catalog-search {
-  background-color: white;
+  background-color: var(--gv-theme-neutral-color-lightest);
 }
 
 .catalog-search__list {
@@ -34,7 +34,7 @@
 }
 
 .catalog-search__pagination {
-  border-top: 1px solid var(--gv-theme-layout--bgc);
+  border-top: 1px solid var(--gv-theme-neutral-color);
   padding: 1rem;
   display: flex;
   justify-content: center;
@@ -42,7 +42,7 @@
 
 .catalog-search__title {
   display: flex;
-  border-bottom: 1px solid var(--gv-theme-layout--bgc);
+  border-bottom: 1px solid var(--gv-theme-neutral-color);
   padding: 25px;
 }
 

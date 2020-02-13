@@ -16,11 +16,13 @@
 import { browser, by, element } from 'protractor';
 
 export class AppPage {
+
   navigateTo() {
     return browser.get(browser.baseUrl) as Promise<any>;
   }
 
   getTitleText() {
-    return element(by.css('app-root .content span')).getText() as Promise<string>;
+    return element(by.css('app-root .layout__header__homepage__title')).getText() as Promise<string>;
   }
+
 }

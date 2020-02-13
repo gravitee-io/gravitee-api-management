@@ -186,6 +186,13 @@
     "empty": "Žádné rozhraní API k zobrazení zde",
     "error": "Při načítání API došlo k chybě"
   },
+  "gv-category-list": {
+    "error": "Při načítání seznamu došlo k chybě"
+  },
+  "gv-category": {
+    "empty": "Žádná kategorie k zobrazení zde",
+    "error": "Při načítání kategorie došlo k chybě"
+  },
   "gv-code": {
     "copy": "Kopírovat do schránky"
   },

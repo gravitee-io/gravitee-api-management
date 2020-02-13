@@ -16,6 +16,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FeatureEnum } from '../model/feature.enum';
+import { applyTheme } from '@gravitee/ui-components/src/lib/theme';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +25,8 @@ export class ConfigurationService {
 
   private config: object;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+  }
 
   public get(key: string) {
     return key.split('.').reduce((prev, curr) => prev && prev[curr], this.config);
@@ -32,11 +34,19 @@ export class ConfigurationService {
 
   public load() {
     return new Promise((resolve) => {
-      this.http.get('./assets/config.json').subscribe( (configJson: any) => {
-        this.http.get(configJson.baseUrl + '/configuration').subscribe( (configPortal) => {
+      this.http.get('./assets/config.json').subscribe((configJson: any) => {
+        this.http.get(configJson.baseUrl + '/configuration').subscribe((configPortal) => {
           this.config = this._deepMerge(configJson, configPortal);
           resolve(true);
         }, () => resolve(false));
+
+        this.http.get(configJson.baseUrl + '/theme').toPromise()
+          .then((theme) => {
+            applyTheme(theme);
+          })
+          .catch(() => {
+          });
+
       });
     });
   }
