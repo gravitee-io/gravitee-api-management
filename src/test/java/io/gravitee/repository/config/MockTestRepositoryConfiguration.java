@@ -212,4 +212,9 @@ public class MockTestRepositoryConfiguration {
     public OrganizationRepositoryMock organizationRepository() throws Exception {
         return new OrganizationRepositoryMock();
     }
+
+    @Bean
+    public ThemeRepositoryMock themeRepository() throws Exception {
+        return new ThemeRepositoryMock();
+    }
 }

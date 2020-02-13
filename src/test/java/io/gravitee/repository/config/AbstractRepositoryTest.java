@@ -133,6 +133,8 @@ public abstract class AbstractRepositoryTest {
     protected EnvironmentRepository environmentRepository;
     @Inject
     protected OrganizationRepository organizationRepository;
+    @Inject
+    protected ThemeRepository themeRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -269,6 +271,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Organization) {
             organizationRepository.create((Organization) object);
+        }
+        else if (object instanceof Theme) {
+            themeRepository.create((Theme) object);
         }
     }
 
