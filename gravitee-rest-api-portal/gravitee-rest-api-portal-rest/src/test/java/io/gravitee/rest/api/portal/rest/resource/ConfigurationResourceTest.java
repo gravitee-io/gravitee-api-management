@@ -16,10 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.PageConfigurationKeys;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.PortalConfigEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.model.CategorizedLinks;
 import io.gravitee.rest.api.portal.rest.model.Link;
@@ -40,8 +37,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

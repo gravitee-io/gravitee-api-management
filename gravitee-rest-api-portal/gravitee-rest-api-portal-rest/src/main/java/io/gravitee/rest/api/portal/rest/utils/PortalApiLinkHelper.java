@@ -56,6 +56,10 @@ public final class PortalApiLinkHelper {
         return resourcesURL(baseUriBuilder, pageId, "pages");
     }
 
+    public static String themeURL(UriBuilder baseUriBuilder, String id) {
+        return resourcesURL(baseUriBuilder, id, "theme");
+    }
+
     public static String userURL(UriBuilder baseUriBuilder) {
         return resourcesURL(baseUriBuilder, null, "user");
     }

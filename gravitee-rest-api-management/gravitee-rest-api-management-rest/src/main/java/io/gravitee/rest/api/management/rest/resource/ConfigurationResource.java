@@ -153,4 +153,9 @@ public class ConfigurationResource {
     public DashboardsResource getDashboardsResource() {
         return resourceContext.getResource(DashboardsResource.class);
     }
+
+    @Path("themes")
+    public ThemesResource getThemesResource() {
+        return resourceContext.getResource(ThemesResource.class);
+    }
 }

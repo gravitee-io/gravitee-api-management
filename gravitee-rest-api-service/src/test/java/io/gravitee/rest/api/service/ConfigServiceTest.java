@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.PortalConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.impl.ConfigServiceImpl;
 
 import org.junit.Test;

@@ -48,6 +48,7 @@ public enum RolePermission {
     PORTAL_API_HEADER       (RoleScope.PORTAL, PortalPermission.API_HEADER),
     PORTAL_IDENTITY_PROVIDER(RoleScope.PORTAL, PortalPermission.IDENTITY_PROVIDER),
     PORTAL_CLIENT_REGISTRATION_PROVIDER(RoleScope.PORTAL, PortalPermission.CLIENT_REGISTRATION_PROVIDER),
+    PORTAL_THEME (RoleScope.PORTAL, PortalPermission.THEME),
 
     API_DEFINITION          (RoleScope.API, ApiPermission.DEFINITION),
     API_PLAN                (RoleScope.API, ApiPermission.PLAN),

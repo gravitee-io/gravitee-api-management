@@ -69,11 +69,6 @@
   "documentation" : {
     "url" : "https://docs.gravitee.io"
   },
-  "theme" : {
-    "name" : "default",
-    "logo" : "themes/assets/GRAVITEE_LOGO1-01.png",
-    "loader" : "assets/gravitee_logo_anim.gif"
-  },
   "plan" : {
     "security" : {
       "apikey" : {

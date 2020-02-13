@@ -1,0 +1,1598 @@
+{
+  "data": [
+    {
+      "name": "gv-theme",
+      "css": [
+        {
+          "name": "--gv-theme-darker--c",
+          "description": "Primary darker color",
+          "type": "color",
+          "value": "#1D3730",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-dark--c",
+          "description": "Primary dark color",
+          "type": "color",
+          "value": "#193E34",
+          "default": null
+        },
+        {
+          "name": "--gv-theme--c",
+          "description": "Primary color",
+          "type": "color",
+          "value": "#009B5B",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-light--c",
+          "description": "Primary light color",
+          "type": "color",
+          "value": "#D5FDCB",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-neutral-darkest--c",
+          "description": "Neutral darkest color",
+          "type": "color",
+          "value": "#000000",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-neutral-darker--c",
+          "description": "Neutral darker color",
+          "type": "color",
+          "value": "#BFBFBF",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-neutral-dark--c",
+          "description": "Neutral dark color",
+          "type": "color",
+          "value": "#D9D9D9",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-neutral--c",
+          "description": "Neutral color",
+          "type": "color",
+          "value": "#E5E5E5",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-neutral-light--c",
+          "description": "Neutral light color",
+          "type": "color",
+          "value": "#EFEFEF",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-neutral-lighter--c",
+          "description": "Neutral light color",
+          "type": "color",
+          "value": "#FAFAFA",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-neutral-lightest--c",
+          "description": "Neutral lightest color",
+          "type": "color",
+          "value": "#FFFFFF",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-dark--fc",
+          "description": "Dark font color",
+          "type": "color",
+          "value": "#262626",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-light--fc",
+          "description": "Light Font color",
+          "type": "color",
+          "value": "#FFFFFF",
+          "default": null
+        },
+        {
+          "name": "--gv-theme--ff",
+          "description": "Family",
+          "type": "string",
+          "value": "'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif",
+          "default": "'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif"
+        },
+        {
+          "name": "--gv-theme-s--fz",
+          "description": "Small (Default)",
+          "type": "length",
+          "value": "12px",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-xs--fz",
+          "description": "Extra small",
+          "type": "length",
+          "value": "10px",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-m--fz",
+          "description": "Medium",
+          "type": "length",
+          "value": "14px",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-l--fz",
+          "description": "Large",
+          "type": "length",
+          "value": "16px",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-xl--fz",
+          "description": "Extra large",
+          "type": "length",
+          "value": "26px",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-xxl--fz",
+          "description": "Extra extra large",
+          "type": "length",
+          "value": "30px",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-skeleton--c",
+          "description": "Primary skeleton color",
+          "type": "color",
+          "value": "#BFBFBF",
+          "default": null
+        },
+        {
+          "name": "--gv-theme--bgi",
+          "description": "Background image",
+          "type": "image",
+          "value": "url('/images/gravitee-bgi.jpg')",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-loader--bgi",
+          "description": "Loader image",
+          "type": "image",
+          "value": "url('/images/gravitee-loader.gif')",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-logo--bgi",
+          "description": "Logo background image",
+          "type": "image",
+          "value": "url('/images/gravitee-logo.png')",
+          "default": null
+        },
+        {
+          "name": "--gv-theme-logo-light--bgi",
+          "description": "Light background image",
+          "type": "image",
+          "value": "url('/images/gravitee-logo-light.png')",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-user-menu",
+      "css": [
+        {
+          "name": "--gv-user-menu--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--fc, #262626)",
+          "default": null
+        },
+        {
+          "name": "--gv-user-menu-hover--c",
+          "description": "Hover color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--c, #193E34)",
+          "default": null
+        },
+        {
+          "name": "--gv-user-menu--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "transparent",
+          "default": null
+        },
+        {
+          "name": "--gv-user-menu-list--bgc",
+          "description": "List background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-user-menu-hover--bgc",
+          "description": "Hover background color",
+          "type": "color",
+          "value": "var(--gv-theme-light--c, #D5FDCB)",
+          "default": null
+        },
+        {
+          "name": "--gv-user-menu--bdc",
+          "description": "Border color",
+          "type": "color",
+          "value": "lightgrey",
+          "default": null
+        },
+        {
+          "name": "--gv-user-menu--tsh",
+          "description": "Text shadow",
+          "type": "string",
+          "value": "none",
+          "default": null
+        },
+        {
+          "name": "--gv-user-menu-icon--c",
+          "description": "Icon color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-darkest--c, #000000)",
+          "default": null
+        },
+        {
+          "name": "--gv-user-menu-icon--s",
+          "description": "Height and icon width",
+          "type": "length",
+          "value": "16px",
+          "default": null
+        },
+        {
+          "name": "--gv-user-menu-link-a--ph",
+          "description": "Link horizontal padding",
+          "type": "length",
+          "value": "0",
+          "default": null
+        },
+        {
+          "name": "--gv-user-menu-link--ta",
+          "description": "Text align",
+          "type": "string",
+          "value": "right",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-pagination",
+      "css": [
+        {
+          "name": "--gv-pagination--fz",
+          "description": "Font size",
+          "type": "length",
+          "value": "var(--gv-theme-s--fz, 12px)",
+          "default": null
+        },
+        {
+          "name": "--gv-pagination-icon--s",
+          "description": "Height and icon width",
+          "type": "length",
+          "value": "18px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-menu",
+      "css": [
+        {
+          "name": "--gv-menu--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-light--fc, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-menu--bgc",
+          "description": "Background color.",
+          "type": "color",
+          "value": "var(--gv-theme-dark--c, #193E34)",
+          "default": null
+        },
+        {
+          "name": "--gv-menu-link-active--bdb",
+          "description": "Border of active link.",
+          "type": "string",
+          "value": "3px solid var(--gv-theme-light--c, #D5FDCB)",
+          "default": null
+        },
+        {
+          "name": "--gv-menu-link-active--bgc",
+          "description": "Active background color",
+          "type": "color",
+          "value": "transparent",
+          "default": null
+        },
+        {
+          "name": "--gv-menu-link--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "transparent",
+          "default": null
+        },
+        {
+          "name": "--gv-menu-link-a--pv",
+          "description": "Link vertical padding",
+          "type": "length",
+          "value": "0",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-header",
+      "css": [
+        {
+          "name": "--gv-header--bgc",
+          "description": "Background color.",
+          "type": "color",
+          "value": "var(--gv-theme-light--c, #D5FDCB)",
+          "default": null
+        },
+        {
+          "name": "--gv-header--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--fc, #262626)",
+          "default": null
+        },
+        {
+          "name": "--gv-header-image--h",
+          "description": "Image height",
+          "type": "length",
+          "value": "125px",
+          "default": null
+        },
+        {
+          "name": "--gv-header-image--w",
+          "description": "Image width",
+          "type": "length",
+          "value": "125px",
+          "default": null
+        },
+        {
+          "name": "--gv-header--h",
+          "description": "Height",
+          "type": "length",
+          "value": "150px",
+          "default": null
+        },
+        {
+          "name": "--gv-header-button--p",
+          "description": "Button adding",
+          "type": "length",
+          "value": "10px 24px",
+          "default": null
+        },
+        {
+          "name": "--gv-header-button--fz",
+          "description": "Button font size",
+          "type": "length",
+          "value": "var(--gv-theme-l--fz, 16px)",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-tree",
+      "css": [
+        {
+          "name": "--gv-tree--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-tree--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--fc, #262626)",
+          "default": null
+        },
+        {
+          "name": "--gv-tree-active--bd",
+          "description": "Active border",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-tree-active--bgc",
+          "description": "Active background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lighter--c, #FAFAFA)",
+          "default": null
+        },
+        {
+          "name": "--gv-tree-hover--bgc",
+          "description": "Hover background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-tree-link-a--ph",
+          "description": "Link horizontal padding",
+          "type": "length",
+          "value": "0",
+          "default": null
+        },
+        {
+          "name": "--gv-tree-link--ta",
+          "description": "Text align",
+          "type": "string",
+          "value": "left",
+          "default": null
+        },
+        {
+          "name": "--gv-tree-icon--s",
+          "description": "Height and icon width",
+          "type": "length",
+          "value": "20px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-table",
+      "css": [
+        {
+          "name": "--gv-table-selected--bgc",
+          "description": "Selected background color",
+          "type": "color",
+          "value": "var(--gv-theme--c, #009B5B)",
+          "default": null
+        },
+        {
+          "name": "--gv-table-hover--bgc",
+          "description": "Row background color on hover",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lighter--c, #FAFAFA)",
+          "default": null
+        },
+        {
+          "name": "--gv-table--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-light--cest, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-table--bdc",
+          "description": "Border color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-dark--c, #D9D9D9)",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-stepper",
+      "css": [
+        {
+          "name": "--gv-stepper-validate--bgc",
+          "description": "Validate background color",
+          "type": "color",
+          "value": "var(--gv-theme--c, #009B5B)",
+          "default": null
+        },
+        {
+          "name": "--gv-stepper-passed--bdc",
+          "description": "Passed border color",
+          "type": "color",
+          "value": "var(--gv-theme-light--c,#D5FDCB)",
+          "default": null
+        },
+        {
+          "name": "--gv-stepper--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-darker--c, #BFBFBF)",
+          "default": null
+        },
+        {
+          "name": "--gv-stepper--bdc",
+          "description": "Border color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-darker--c, #BFBFBF)",
+          "default": null
+        },
+        {
+          "name": "--gv-stepper--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-darker--c, #BFBFBF)",
+          "default": null
+        },
+        {
+          "name": "--gv-stepper-passed--c",
+          "description": "Passed color",
+          "type": "color",
+          "value": "#595959",
+          "default": null
+        },
+        {
+          "name": "--gv-stepper-icon--s",
+          "description": "Height and icon width",
+          "type": "length",
+          "value": "32px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-row",
+      "css": [
+        {
+          "name": "--gv-row--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-row-hover--bgc",
+          "description": "Background color when hover",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lighter--c, #FAFAFA)",
+          "default": null
+        },
+        {
+          "name": "--gv-row-icon--s",
+          "description": "Height and icon width",
+          "type": "length",
+          "value": "14px",
+          "default": null
+        },
+        {
+          "name": "--gv-row-image--h",
+          "description": "Image height",
+          "type": "length",
+          "value": "35px",
+          "default": null
+        },
+        {
+          "name": "--gv-row-image--w",
+          "description": "Image width",
+          "type": "length",
+          "value": "35px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-rating",
+      "css": [
+        {
+          "name": "--gv-rating--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme--c, #009B5B)",
+          "default": null
+        },
+        {
+          "name": "--gv-rating--s",
+          "description": "Size",
+          "type": "length",
+          "value": "13px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-rating-list",
+      "css": [
+        {
+          "name": "--gv-rating-list--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-rating-list-answer--bgc",
+          "description": "Answer background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lighter--c, #FAFAFA)",
+          "default": null
+        },
+        {
+          "name": "--gv-rating-list--bdc",
+          "description": "Border color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral--c, #E5E5E5)",
+          "default": null
+        },
+        {
+          "name": "--gv-rating-list--s",
+          "description": "Height and star width",
+          "type": "length",
+          "value": "18px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-promote",
+      "css": [
+        {
+          "name": "--gv-promote-image--bgc",
+          "description": "Image background color",
+          "type": "color",
+          "value": "var(--gv-theme-light--c,#D5FDCB)",
+          "default": null
+        },
+        {
+          "name": "--gv-promote--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-promote-image--h",
+          "description": "Image height",
+          "type": "length",
+          "value": "300px",
+          "default": null
+        },
+        {
+          "name": "--gv-promote-image--w",
+          "description": "Image width",
+          "type": "length",
+          "value": "300px",
+          "default": null
+        },
+        {
+          "name": "--gv-promote-button--p",
+          "description": "Button padding",
+          "type": "length",
+          "value": "19px 80px",
+          "default": null
+        },
+        {
+          "name": "--gv-promote-button--fz",
+          "description": "Button font size",
+          "type": "length",
+          "value": "var(--gv-theme-l--fz, 16px)",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-popover",
+      "css": [
+        {
+          "name": "--gv-popover--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lighter--c, #FAFAFA)",
+          "default": null
+        },
+        {
+          "name": "--gv-popover--bdc",
+          "description": "Border color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral--c, #E5E5E5)",
+          "default": null
+        },
+        {
+          "name": "--gv-popover--maw",
+          "description": "Max width",
+          "type": "length",
+          "value": "350px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-plans",
+      "css": [
+        {
+          "name": "--gv-plans--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-color, #009B5B)",
+          "default": null
+        },
+        {
+          "name": "--gv-plans-font--c",
+          "description": "Font color",
+          "type": "color",
+          "value": "var(--gv-theme-light--fc, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-plans-characteristic--bgc",
+          "description": "Characteristic background color",
+          "type": "color",
+          "value": "var(--gv-theme-light--c, #D5FDCB)",
+          "default": null
+        },
+        {
+          "name": "--gv-plans-characteristics--bdc",
+          "description": "Characteristics border color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral--c, #E5E5E5)",
+          "default": null
+        },
+        {
+          "name": "--gv-plans-icon--s",
+          "description": "Height and icon width",
+          "type": "length",
+          "value": "24px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-option",
+      "css": [
+        {
+          "name": "--gv-option--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-darker--c, #BFBFBF)",
+          "default": null
+        },
+        {
+          "name": "--gv-option--bdrs",
+          "description": "Border radius",
+          "type": "length",
+          "value": "0.15rem",
+          "default": null
+        },
+        {
+          "name": "--gv-option-button--p",
+          "description": "Button padding",
+          "type": "length",
+          "value": "5px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-list",
+      "css": [
+        {
+          "name": "--gv-list--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-list-icon--s",
+          "description": "Height and icon width",
+          "type": "length",
+          "value": "20px",
+          "default": null
+        },
+        {
+          "name": "--gv-list-image--h",
+          "description": "Image height",
+          "type": "length",
+          "value": "40px",
+          "default": null
+        },
+        {
+          "name": "--gv-list-image--w",
+          "description": "Image width",
+          "type": "length",
+          "value": "40px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-info",
+      "css": [
+        {
+          "name": "--gv-info--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-info-rating--s",
+          "description": "Height and rating width",
+          "type": "length",
+          "value": "24px",
+          "default": null
+        },
+        {
+          "name": "--gv-info-image--h",
+          "description": "Image height",
+          "type": "length",
+          "value": "32px",
+          "default": null
+        },
+        {
+          "name": "--gv-info-image--w",
+          "description": "Image width",
+          "type": "length",
+          "value": "32px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-confirm",
+      "css": [
+        {
+          "name": "--gv-confirm--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lighter--c, #FAFAFA)",
+          "default": null
+        },
+        {
+          "name": "--gv-confirm--maw",
+          "description": "Max width",
+          "type": "length",
+          "value": "250px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-code",
+      "css": [
+        {
+          "name": "--gv-code--ff",
+          "description": "Font family",
+          "type": "string",
+          "value": "Operator Mono, Inconsolata, Roboto Mono, monaco, consolas, monospace",
+          "default": "Operator Mono, Inconsolata, Roboto Mono, monaco, consolas, monospace"
+        },
+        {
+          "name": "--gv-code--fz",
+          "description": "Font size",
+          "type": "length",
+          "value": "var(--gv-theme-m--fz, 14px)",
+          "default": null
+        },
+        {
+          "name": "--gv-code--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lighter--c, #FAFAFA)",
+          "default": null
+        },
+        {
+          "name": "--gv-code--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--fc, #262626)",
+          "default": null
+        },
+        {
+          "name": "--gv-code--bdw",
+          "description": "Border width",
+          "type": "length",
+          "value": "1px",
+          "default": null
+        },
+        {
+          "name": "--gv-code--bds",
+          "description": "Border style",
+          "type": "string",
+          "value": "solid",
+          "default": null
+        },
+        {
+          "name": "--gv-code--bdc",
+          "description": "Border color",
+          "type": "color",
+          "value": "var(--gv-theme-color, #009B5B)",
+          "default": null
+        },
+        {
+          "name": "--gv-code-icon--s",
+          "description": "Height and icon width",
+          "type": "length",
+          "value": "24px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-category",
+      "css": [
+        {
+          "name": "--gv-category--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-category--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--fc, #262626)",
+          "default": null
+        },
+        {
+          "name": "--gv-category--h",
+          "description": "Height",
+          "type": "length",
+          "value": "228px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-category-list",
+      "css": [
+        {
+          "name": "--gv-category-list--bgc-1",
+          "description": "Category background color 1",
+          "type": "color",
+          "value": "#CCE6EB",
+          "default": null
+        },
+        {
+          "name": "--gv-category-list--bgc-2",
+          "description": "Category background color 2",
+          "type": "color",
+          "value": "#FCF1A8",
+          "default": null
+        },
+        {
+          "name": "--gv-category-list--bgc-3",
+          "description": "Category background color 3",
+          "type": "color",
+          "value": "#D9D4F1",
+          "default": null
+        },
+        {
+          "name": "--gv-category-list--bgc-4",
+          "description": "Category background color 4",
+          "type": "color",
+          "value": "#F9C15E",
+          "default": null
+        },
+        {
+          "name": "--gv-category-list--bgc-5",
+          "description": "Category background color 5",
+          "type": "color",
+          "value": "#D4FCCD",
+          "default": null
+        },
+        {
+          "name": "--gv-category-list--bgc-6",
+          "description": "Category background color 6",
+          "type": "color",
+          "value": "#E0C8B2",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-card",
+      "css": [
+        {
+          "name": "--gv-card--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-card-full-image--h",
+          "description": "Image height",
+          "type": "length",
+          "value": "65px",
+          "default": null
+        },
+        {
+          "name": "--gv-card-full-image--w",
+          "description": "Image width",
+          "type": "length",
+          "value": "110px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-card-full",
+      "css": [
+        {
+          "name": "--gv-card-full--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-card-full-image--h",
+          "description": "Image height",
+          "type": "length",
+          "value": "65px",
+          "default": null
+        },
+        {
+          "name": "--gv-card-full-image--w",
+          "description": "Image width",
+          "type": "length",
+          "value": "110px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-text",
+      "css": [
+        {
+          "name": "--gv-input--bdc",
+          "description": "Border color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-dark--c, #D9D9D9)",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-tag",
+      "css": [
+        {
+          "name": "--gv-tag--bdr",
+          "description": "Border radius",
+          "type": "length",
+          "value": "4px",
+          "default": null
+        },
+        {
+          "name": "--gv-tag--bsw",
+          "description": "Box shadow",
+          "type": "string",
+          "value": "none",
+          "default": null
+        },
+        {
+          "name": "--gv-tag--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lighter--c, #FAFAFA)",
+          "default": null
+        },
+        {
+          "name": "--gv-tag-major--bgc",
+          "description": "Major background color",
+          "type": "color",
+          "value": "var(--gv-theme--c, #009B5B)",
+          "default": null
+        },
+        {
+          "name": "--gv-tag-minor--bgc",
+          "description": "Minor background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-tag--bdc",
+          "description": "Border color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-dark--c, #D9D9D9)",
+          "default": null
+        },
+        {
+          "name": "--gv-tag-major--bdc",
+          "description": "Major border color",
+          "type": "color",
+          "value": "var(--gv-theme--c, #009B5B)",
+          "default": null
+        },
+        {
+          "name": "--gv-tag-minor--bdc",
+          "description": "Minor border color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-dark--c, #D9D9D9)",
+          "default": null
+        },
+        {
+          "name": "--gv-tag--bds",
+          "description": "Border style",
+          "type": "string",
+          "value": "solid",
+          "default": null
+        },
+        {
+          "name": "--gv-tag-major--bds",
+          "description": "Major border style",
+          "type": "string",
+          "value": "solid",
+          "default": null
+        },
+        {
+          "name": "--gv-tag-minor--bds",
+          "description": "Minor border style",
+          "type": "string",
+          "value": "dashed",
+          "default": null
+        },
+        {
+          "name": "--gv-tag--bdw",
+          "description": "Border width",
+          "type": "length",
+          "value": "1px",
+          "default": null
+        },
+        {
+          "name": "--gv-tag-major--bdw",
+          "description": "Major border width",
+          "type": "length",
+          "value": "1px",
+          "default": null
+        },
+        {
+          "name": "--gv-tag-minor--bdw",
+          "description": "Minor border width",
+          "type": "length",
+          "value": "1px",
+          "default": null
+        },
+        {
+          "name": "--gv-tag--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--fc, #262626)",
+          "default": null
+        },
+        {
+          "name": "--gv-tag-major--c",
+          "description": "Major color",
+          "type": "color",
+          "value": "var(--gv-theme-light--fc, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-tag-minor--c",
+          "description": "Minor color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--fc, #262626)",
+          "default": null
+        },
+        {
+          "name": "--gv-tag-icon--s",
+          "description": "Height and icon width",
+          "type": "length",
+          "value": "18px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-switch",
+      "css": [
+        {
+          "name": "--gv-switch-on--bgc",
+          "description": "On background color",
+          "type": "color",
+          "value": "var(--gv-theme--c, #009B5B)",
+          "default": null
+        },
+        {
+          "name": "--gv-switch-off--bgc",
+          "description": "Off background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-darker--c, #BFBFBF)",
+          "default": null
+        },
+        {
+          "name": "--gv-switch--bgc",
+          "description": "Switch background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-state",
+      "css": [
+        {
+          "name": "--gv-state--bdr",
+          "description": "Border radius",
+          "type": "length",
+          "value": "17px",
+          "default": null
+        },
+        {
+          "name": "--gv-state--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "#F0F5FF",
+          "default": null
+        },
+        {
+          "name": "--gv-state--c",
+          "description": "Color",
+          "type": "color",
+          "value": "#597EF7",
+          "default": null
+        },
+        {
+          "name": "--gv-state-major--bgc",
+          "description": "Major background color",
+          "type": "color",
+          "value": "var(--gv-theme-light--c, #D5FDCB)",
+          "default": null
+        },
+        {
+          "name": "--gv-state-major--c",
+          "description": "Major color",
+          "type": "color",
+          "value": "var(--gv-theme--c, #009B5B)",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-select",
+      "css": [
+        {
+          "name": "--gv-select--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-select--bdc",
+          "description": "Border color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral--c, #E5E5E5)",
+          "default": null
+        },
+        {
+          "name": "--gv-select--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--fc, #262626)",
+          "default": null
+        },
+        {
+          "name": "--gv-select-hover--bgc",
+          "description": "Active background color",
+          "type": "color",
+          "value": "var(--gv-theme-light--c, #D5FDCB)",
+          "default": null
+        },
+        {
+          "name": "--gv-select-selected--bgc",
+          "description": "Hover background color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral-lighter--c, #FAFAFA)",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-metric",
+      "css": [
+        {
+          "name": "--gv-metric--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme--c, #009B5B)",
+          "default": null
+        },
+        {
+          "name": "--gv-metric-icon--s",
+          "description": "Height and icon width",
+          "type": "length",
+          "value": "24px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-message",
+      "css": [
+        {
+          "name": "--gv-message-success--bgc",
+          "description": "Success background color",
+          "type": "color",
+          "value": "var(--gv-theme-light--c, #D5FDCB)",
+          "default": null
+        },
+        {
+          "name": "--gv-message-success--c",
+          "description": "Success color",
+          "type": "color",
+          "value": "var(--gv-theme-darker--c, #1D3730)",
+          "default": null
+        },
+        {
+          "name": "--gv-message-info--c",
+          "description": "Info color",
+          "type": "color",
+          "value": "#00529B",
+          "default": null
+        },
+        {
+          "name": "--gv-message-info--bgc",
+          "description": "Info background color",
+          "type": "color",
+          "value": "#BDE5F8",
+          "default": null
+        },
+        {
+          "name": "--gv-message-warn--c",
+          "description": "Warning color",
+          "type": "color",
+          "value": "#9F6000",
+          "default": null
+        },
+        {
+          "name": "--gv-message-warn--bgc",
+          "description": "Warning background color",
+          "type": "color",
+          "value": "#FEEFB3",
+          "default": null
+        },
+        {
+          "name": "--gv-message-error--c",
+          "description": "Error color",
+          "type": "color",
+          "value": "#820014",
+          "default": null
+        },
+        {
+          "name": "--gv-message-error--bgc",
+          "description": "Error background color",
+          "type": "color",
+          "value": "#FFCCC7",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-link",
+      "css": [
+        {
+          "name": "--gv-link-a--pv",
+          "description": "Vertical padding for the inner <a> tag",
+          "type": "length",
+          "value": "15px",
+          "default": null
+        },
+        {
+          "name": "--gv-link-a--ph",
+          "description": "Horizontal padding for the inner <a> tag",
+          "type": "length",
+          "value": "15px",
+          "default": null
+        },
+        {
+          "name": "--gv-link--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--fc, #262626)",
+          "default": null
+        },
+        {
+          "name": "--gv-link-active--c",
+          "description": "Active color",
+          "type": "color",
+          "value": "var(--gv-theme-light--fc, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-link--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "transparent",
+          "default": null
+        },
+        {
+          "name": "--gv-link-active--bgc",
+          "description": "Active background color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--c, #193E34)",
+          "default": null
+        },
+        {
+          "name": "--gv-link-active--bdb",
+          "description": "Active border bottom",
+          "type": "string",
+          "value": "none",
+          "default": null
+        },
+        {
+          "name": "--gv-link--ta",
+          "description": "Text align",
+          "type": "string",
+          "value": "center",
+          "default": null
+        },
+        {
+          "name": "--gv-link--td",
+          "description": "Text decoration",
+          "type": "string",
+          "value": "none",
+          "default": null
+        },
+        {
+          "name": "--gv-link--tsh",
+          "description": "Text shadow",
+          "type": "string",
+          "value": "none",
+          "default": null
+        },
+        {
+          "name": "--gv-link-icon--s",
+          "description": "Height and icon width",
+          "type": "length",
+          "value": "24px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-input",
+      "css": [
+        {
+          "name": "--gv-input--bdc",
+          "description": "Border color",
+          "type": "color",
+          "value": "var(--gv-theme-neutral--c, #E5E5E5)",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-image",
+      "css": [
+        {
+          "name": "--gv-image--h",
+          "description": "Height",
+          "type": "length",
+          "value": "128px",
+          "default": null
+        },
+        {
+          "name": "--gv-image--w",
+          "description": "Width",
+          "type": "length",
+          "value": "128px",
+          "default": null
+        },
+        {
+          "name": "--gv-image--bds",
+          "description": "Border style",
+          "type": "string",
+          "value": "none",
+          "default": null
+        },
+        {
+          "name": "--gv-image--bdw",
+          "description": "Border width",
+          "type": "length",
+          "value": "none",
+          "default": null
+        },
+        {
+          "name": "--gv-image--bdc",
+          "description": "Border color",
+          "type": "color",
+          "value": "none",
+          "default": null
+        },
+        {
+          "name": "--gv-image--bdrs",
+          "description": "Border radius",
+          "type": "length",
+          "value": "none",
+          "default": null
+        },
+        {
+          "name": "--gv-image--of",
+          "description": "Object-fit",
+          "type": "string",
+          "value": "contain",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-icon",
+      "css": [
+        {
+          "name": "--gv-icon--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--fc,  #262626)",
+          "default": null
+        },
+        {
+          "name": "--gv-icon--s",
+          "description": "Height and width",
+          "type": "length",
+          "value": "32px",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-checkbox",
+      "css": [
+        {
+          "name": "--gv-checkbox--bgc",
+          "description": "set the background color of the checked checkbox",
+          "type": "color",
+          "value": "var(--gv-theme--c, #009B5B)",
+          "default": null
+        }
+      ]
+    },
+    {
+      "name": "gv-button",
+      "css": [
+        {
+          "name": "--gv-button--bgc",
+          "description": "Background color",
+          "type": "color",
+          "value": "var(--gv-theme-dark--c, #193E34)",
+          "default": null
+        },
+        {
+          "name": "--gv-button--c",
+          "description": "Color",
+          "type": "color",
+          "value": "var(--gv-theme-light--fc, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-button-primary--c",
+          "description": "Primary color",
+          "type": "color",
+          "value": "var(--gv-theme-light--fc, #FFFFFF)",
+          "default": null
+        },
+        {
+          "name": "--gv-button-primary--bgc",
+          "description": "Primary background color",
+          "type": "color",
+          "value": "var(--gv-theme--c, #009B5B)",
+          "default": null
+        },
+        {
+          "name": "--gv-button--p",
+          "description": "Padding",
+          "type": "length",
+          "value": "0rem 0.5rem",
+          "default": null
+        },
+        {
+          "name": "--gv-button--fz",
+          "description": "Font size",
+          "type": "length",
+          "value": "var(--gv-theme-m--fz, 14px)",
+          "default": null
+        },
+        {
+          "name": "--gv-button--bdrs",
+          "description": "Border radius",
+          "type": "length",
+          "value": "0.15rem",
+          "default": null
+        }
+      ]
+    }
+  ]
+}

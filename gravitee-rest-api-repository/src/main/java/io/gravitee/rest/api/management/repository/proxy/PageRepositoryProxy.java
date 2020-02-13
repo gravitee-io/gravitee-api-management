@@ -30,7 +30,7 @@ import io.gravitee.repository.management.model.PageReferenceType;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
- * @author Guillaume GILLON 
+ * @author Guillaume GILLON
  */
 @Component
 public class PageRepositoryProxy extends AbstractProxy<PageRepository> implements PageRepository {

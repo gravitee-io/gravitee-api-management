@@ -191,6 +191,8 @@ public class PortalConfigEntity {
         private Enabled devMode;
         @ParameterKey(Key.PORTAL_USERCREATION_ENABLED)
         private Enabled userCreation;
+        @ParameterKey(Key.PORTAL_URL)
+        private String url;
 
         private PortalApis apis;
         private PortalAnalytics analytics;
@@ -236,6 +238,10 @@ public class PortalConfigEntity {
         public void setApikeyHeader(String apikeyHeader) {
             this.apikeyHeader = apikeyHeader;
         }
+
+        public String getUrl() { return url; }
+
+        public void setUrl(String url) { this.url = url; }
 
         public PortalApis getApis() {
             return apis;

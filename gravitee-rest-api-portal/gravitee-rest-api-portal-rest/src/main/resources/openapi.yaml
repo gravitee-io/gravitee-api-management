@@ -1794,6 +1794,30 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /theme:
+    get:
+      tags:
+        - Portal
+      summary: Get portal theme.
+      operationId: getPortalTheme
+      description: |
+        Get portal theme.
+      security: []
+      responses:
+        200:
+          description: Portal configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeResponse'
+        404:
+          description: Theme not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /configuration:
     get:
       tags:
@@ -3314,6 +3338,13 @@ components:
         category:
           description: Category of the hook.
           type: string
+    ThemeResponse:
+      properties:
+        definition:
+          description: The definition of custom theme.
+          type: object
+        _links:
+          $ref: '#/components/schemas/ThemeLinks'
     ConfigurationResponse:
       properties:
         company:
@@ -3326,8 +3357,6 @@ components:
           $ref: '#/components/schemas/ConfigurationScheduler'
         documentation:
           $ref: '#/components/schemas/ConfigurationDocumentation'
-        theme:
-          $ref: '#/components/schemas/ConfigurationTheme'
         plan:
           $ref: '#/components/schemas/ConfigurationPlan'
         apiReview:
@@ -3460,20 +3489,6 @@ components:
       properties:
         url:
           description: URL of the main documentation.
-          type: string
-    ConfigurationTheme:
-      properties:
-        name:
-          description: Name of the custom theme.
-          type: string
-        logo:
-          description: Logo used for the customization of the portal.
-          type: string
-        loader:
-          description: Custom loader used for the customization of the portal.
-          type: string
-        css:
-          description: Path to the CSS file used for the customization of the portal.
           type: string
     ConfigurationPlan:
       properties:
@@ -3990,6 +4005,16 @@ components:
         content:
           type: string
         parent:
+          type: string
+    ThemeLinks:
+      properties:
+        self:
+          type: string
+        backgroundImage:
+          type: string
+        logo:
+          type: string
+        optionalLogo:
           type: string
     UserLinks:
       properties:

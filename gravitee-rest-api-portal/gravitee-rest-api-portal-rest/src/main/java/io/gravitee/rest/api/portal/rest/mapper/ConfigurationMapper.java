@@ -45,16 +45,6 @@ public class ConfigurationMapper {
         configuration.setPlan(convert(configEntity.getPlan()));
         configuration.setPortal(convert(configEntity.getPortal()));
         configuration.setScheduler(convert(configEntity.getScheduler()));
-        configuration.setTheme(convert(configEntity.getTheme()));
-        return configuration;
-    }
-
-    private ConfigurationTheme convert(Theme theme) {
-        ConfigurationTheme configuration = new ConfigurationTheme();
-        configuration.setCss(theme.getCss());
-        configuration.setLoader(theme.getLoader());
-        configuration.setLogo(theme.getLogo());
-        configuration.setName(theme.getName());
         return configuration;
     }
 

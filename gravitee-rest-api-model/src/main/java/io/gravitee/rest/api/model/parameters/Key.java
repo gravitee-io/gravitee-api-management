@@ -40,6 +40,7 @@ public enum Key {
     PORTAL_APIS_SHOW_VIEWS_IN_APIHEADER("portal.apis.apiheader.showviews.enabled", "false"),
     PORTAL_UPLOAD_MEDIA_ENABLED("portal.uploadMedia.enabled", "false"),
     PORTAL_UPLOAD_MEDIA_MAXSIZE("portal.uploadMedia.maxSizeInOctet", "1000000"),
+    PORTAL_URL("portal.url", "http://localhost:4100"),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management"),
 
