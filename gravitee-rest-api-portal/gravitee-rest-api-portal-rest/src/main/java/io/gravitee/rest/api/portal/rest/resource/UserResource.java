@@ -64,7 +64,7 @@ public class UserResource extends AbstractResource {
         try {
             UserEntity userEntity = userService.findById(authenticatedUser);
             User currentUser = userMapper.convert(userEntity);
-            currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), userEntity.getPicture()));
+            currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), userEntity.getUpdatedAt()));
             return Response
                     .ok(currentUser)
                     .build();
@@ -89,7 +89,7 @@ public class UserResource extends AbstractResource {
         UserEntity updatedUser = userService.update(user.getId(), updateUserEntity);
 
         final User currentUser = userMapper.convert(updatedUser);
-        currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), updatedUser.getPicture()));
+        currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), updatedUser.getUpdatedAt()));
         return Response.ok(currentUser).build();
     }
 

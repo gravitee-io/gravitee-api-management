@@ -189,7 +189,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         
         
         String expectedBasePath = target(APPLICATION).getUri().toString();
-        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath);
+        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
         
         Application applicationResponse = response.readEntity(Application.class);
         assertEquals(APPLICATION, applicationResponse.getId());
@@ -251,7 +251,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         assertNull(settings.getoAuthClient());
         
         String expectedBasePath = target(APPLICATION).getUri().toString();
-        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath);
+        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
         
         Application applicationResponse = response.readEntity(Application.class);
         assertEquals(APPLICATION, applicationResponse.getId());
@@ -314,7 +314,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         assertNull(settings.getoAuthClient());
         
         String expectedBasePath = target(APPLICATION).getUri().toString();
-        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath);
+        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
         
         Application applicationResponse = response.readEntity(Application.class);
         assertEquals(APPLICATION, applicationResponse.getId());
@@ -406,7 +406,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         assertTrue(oAuthClientSettings.isRenewClientSecretSupported());
         
         String expectedBasePath = target(APPLICATION).getUri().toString();
-        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath);
+        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
         
         Application applicationResponse = response.readEntity(Application.class);
         assertEquals(APPLICATION, applicationResponse.getId());
@@ -421,7 +421,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         Mockito.verify(applicationService).findById(APPLICATION);
         
         String expectedBasePath = target(APPLICATION).getUri().toString();
-        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath);
+        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, null);
         
         Application applicationResponse = response.readEntity(Application.class);
         assertEquals(APPLICATION, applicationResponse.getId());
@@ -441,7 +441,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         Mockito.verify(applicationMapper).convert(renewedApplicationEntity);
 
         String expectedBasePath = target(APPLICATION).getUri().toString();
-        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath);
+        Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, null);
         
         Application applicationResponse = response.readEntity(Application.class);
         assertNotNull(applicationResponse);

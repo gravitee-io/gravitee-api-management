@@ -15,18 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.util.Date;
-import java.util.HashSet;
-
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -43,6 +31,17 @@ import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
+import java.util.Date;
+import java.util.HashSet;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -93,7 +92,7 @@ public class ApplicationResource extends AbstractResource {
     })
     public Response updateApplicationByApplicationId(@PathParam("applicationId") String applicationId, @Valid @NotNull(message="Input must not be null.") Application application) {
 
-        if(!application.getId().equalsIgnoreCase(applicationId)) {
+        if (!applicationId.equalsIgnoreCase(application.getId())) {
             throw new BadRequestException("'applicationId' is not the same that the application in payload");
         }
 
@@ -105,7 +104,9 @@ public class ApplicationResource extends AbstractResource {
 
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
         updateApplicationEntity.setDescription(application.getDescription());
-        updateApplicationEntity.setGroups(new HashSet<String>(application.getGroups()));
+        if (application.getGroups() != null) {
+            updateApplicationEntity.setGroups(new HashSet<>(application.getGroups()));
+        }
         updateApplicationEntity.setName(application.getName());
         updateApplicationEntity.setPicture(checkAndScaleImage(application.getPicture()));
 
@@ -125,7 +126,7 @@ public class ApplicationResource extends AbstractResource {
                 oacs.setGrantTypes(application.getSettings().getOauth().getGrantTypes());
                 oacs.setLogoUri(application.getSettings().getOauth().getLogoUri());
                 oacs.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
-                oacs.setRenewClientSecretSupported(application.getSettings().getOauth().getRenewClientSecretSupported().booleanValue());
+                oacs.setRenewClientSecretSupported(application.getSettings().getOauth().getRenewClientSecretSupported());
                 oacs.setResponseTypes(application.getSettings().getOauth().getResponseTypes());
                 settings.setoAuthClient(oacs);
             }
@@ -172,7 +173,8 @@ public class ApplicationResource extends AbstractResource {
     }
 
     private Application addApplicationLinks(Application application) {
-        return application.links(applicationMapper.computeApplicationLinks(PortalApiLinkHelper.applicationsURL(uriInfo.getBaseUriBuilder(), application.getId())));
+        return application.links(applicationMapper.computeApplicationLinks(
+                PortalApiLinkHelper.applicationsURL(uriInfo.getBaseUriBuilder(), application.getId()), application.getUpdatedAt()));
     }
 
 
@@ -196,4 +198,8 @@ public class ApplicationResource extends AbstractResource {
         return resourceContext.getResource(ApplicationAnalyticsResource.class);
     }
 
+    @Path("subscribers")
+    public ApplicationSubscribersResource getApplicationSubscribersResource() {
+        return resourceContext.getResource(ApplicationSubscribersResource.class);
+    }
 }

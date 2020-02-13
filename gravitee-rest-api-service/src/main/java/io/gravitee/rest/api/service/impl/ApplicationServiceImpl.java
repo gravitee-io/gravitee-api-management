@@ -15,31 +15,27 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_ARCHIVED;
-import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
-import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_UPDATED;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonMap;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import javax.xml.bind.DatatypeConverter;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.utils.UUID;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.*;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.application.*;
+import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
+import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
+import io.gravitee.rest.api.service.notification.ApplicationHook;
+import io.gravitee.rest.api.service.notification.HookScope;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,54 +43,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.xml.bind.DatatypeConverter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import io.gravitee.common.utils.UUID;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.repository.management.model.ApplicationType;
-import io.gravitee.repository.management.model.GroupEvent;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.rest.api.model.ApiKeyEntity;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.NewApplicationEntity;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
-import io.gravitee.rest.api.model.UpdateApplicationEntity;
-import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationListItemSettings;
-import io.gravitee.rest.api.model.application.ApplicationSettings;
-import io.gravitee.rest.api.model.application.OAuthClientSettings;
-import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
-import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
-import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.service.ApiKeyService;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.GenericNotificationConfigService;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
-import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
-import io.gravitee.rest.api.service.notification.ApplicationHook;
-import io.gravitee.rest.api.service.notification.HookScope;
+import static io.gravitee.repository.management.model.Application.AuditEvent.*;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -425,11 +384,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
                         optApplicationToUpdate.get().getMetadata().get("registration_payload"), updateApplicationEntity);
 
-                try {
-                    metadata.put("client_id", registrationResponse.getClientId());
-                    metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                if (registrationResponse != null) {
+                    try {
+                        metadata.put("client_id", registrationResponse.getClientId());
+                        metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 

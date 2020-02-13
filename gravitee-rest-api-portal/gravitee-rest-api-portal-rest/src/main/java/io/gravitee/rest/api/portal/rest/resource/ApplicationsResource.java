@@ -15,19 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
@@ -43,6 +30,18 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
+
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -137,7 +136,7 @@ public class ApplicationsResource extends AbstractResource {
 
     private Application addApplicationLinks(Application application) {
         String basePath = uriInfo.getAbsolutePathBuilder().path(application.getId()).build().toString();
-        return application.links(applicationMapper.computeApplicationLinks(basePath));
+        return application.links(applicationMapper.computeApplicationLinks(basePath, application.getUpdatedAt()));
     }
 
     @Path("{applicationId}")

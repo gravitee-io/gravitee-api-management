@@ -36,6 +36,7 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 /**
@@ -82,7 +83,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         Mockito.verify(applicationService).findByUser(any());
 
         ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(applicationMapper, Mockito.times(2)).computeApplicationLinks(ac.capture());
+        Mockito.verify(applicationMapper, Mockito.times(2)).computeApplicationLinks(ac.capture(), eq(null));
 
         String expectedBasePath = target().getUri().toString();
         List<String> bastPathList = ac.getAllValues();

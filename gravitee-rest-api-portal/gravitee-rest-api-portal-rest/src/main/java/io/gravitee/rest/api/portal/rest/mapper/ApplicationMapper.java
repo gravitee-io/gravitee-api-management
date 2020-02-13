@@ -23,6 +23,7 @@ import io.gravitee.rest.api.portal.rest.model.ApplicationLinks;
 import io.gravitee.rest.api.portal.rest.model.User;
 import org.springframework.stereotype.Component;
 
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Set;
@@ -42,7 +43,7 @@ public class ApplicationMapper {
         application.setDescription(applicationListItem.getDescription());
         Set<String> groups = applicationListItem.getGroups();
         if(groups != null) {
-            application.setGroups(new ArrayList<String>(groups));
+            application.setGroups(new ArrayList<>(groups));
         }
         application.setId(applicationListItem.getId());
         application.setName(applicationListItem.getName());
@@ -57,11 +58,11 @@ public class ApplicationMapper {
         return application;
     }
 
-    public ApplicationLinks computeApplicationLinks(String basePath) {
+    public ApplicationLinks computeApplicationLinks(String basePath, OffsetDateTime updateDate) {
         ApplicationLinks applicationLinks = new ApplicationLinks();
         applicationLinks.setMembers(basePath+"/members");
         applicationLinks.setNotifications(basePath+"/notifications");
-        applicationLinks.setPicture(basePath+"/picture");
+        applicationLinks.setPicture(basePath + "/picture" + (updateDate == null? "" : "?" + updateDate.hashCode()));
         applicationLinks.setSelf(basePath);
 
         return applicationLinks;
@@ -75,15 +76,16 @@ public class ApplicationMapper {
         application.setDescription(applicationEntity.getDescription());
         Set<String> groups = applicationEntity.getGroups();
         if(groups != null) {
-            application.setGroups(new ArrayList<String>(groups));
+            application.setGroups(new ArrayList<>(groups));
         }
         application.setId(applicationEntity.getId());
         application.setName(applicationEntity.getName());
         User owner = new User();
         owner.id(applicationEntity.getPrimaryOwner().getId());
+        owner.setDisplayName(applicationEntity.getPrimaryOwner().getDisplayName());
         application.setOwner(owner);
         application.setUpdatedAt(applicationEntity.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
-
+        application.setPicture(applicationEntity.getPicture());
 
         final ApplicationSettings applicationEntitySettings = applicationEntity.getSettings();
         if(applicationEntitySettings != null) {
@@ -100,17 +102,16 @@ public class ApplicationMapper {
                 final OAuthClientSettings oAuthClientEntitySettings = applicationEntitySettings.getoAuthClient();
 
                 appSettings.oauth(new io.gravitee.rest.api.portal.rest.model.OAuthClientSettings()
-                        .applicationType(oAuthClientEntitySettings.getApplicationType())
-                        .clientId(oAuthClientEntitySettings.getClientId())
-                        .clientSecret(oAuthClientEntitySettings.getClientSecret())
-                        .clientUri(oAuthClientEntitySettings.getClientUri())
-                        .logoUri(oAuthClientEntitySettings.getLogoUri())
-                        .grantTypes(oAuthClientEntitySettings.getGrantTypes())
-                        .redirectUris(oAuthClientEntitySettings.getRedirectUris())
-                        .responseTypes(oAuthClientEntitySettings.getResponseTypes())
-                        .renewClientSecretSupported(Boolean.valueOf(oAuthClientEntitySettings.isRenewClientSecretSupported()))
-                        )
-                ;
+                    .applicationType(oAuthClientEntitySettings.getApplicationType())
+                    .clientId(oAuthClientEntitySettings.getClientId())
+                    .clientSecret(oAuthClientEntitySettings.getClientSecret())
+                    .clientUri(oAuthClientEntitySettings.getClientUri())
+                    .logoUri(oAuthClientEntitySettings.getLogoUri())
+                    .grantTypes(oAuthClientEntitySettings.getGrantTypes())
+                    .redirectUris(oAuthClientEntitySettings.getRedirectUris())
+                    .responseTypes(oAuthClientEntitySettings.getResponseTypes())
+                    .renewClientSecretSupported(oAuthClientEntitySettings.isRenewClientSecretSupported())
+                );
             }
             application.setSettings(appSettings);
         }

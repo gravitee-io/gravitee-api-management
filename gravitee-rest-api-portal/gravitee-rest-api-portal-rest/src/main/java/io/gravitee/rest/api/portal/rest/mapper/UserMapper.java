@@ -25,6 +25,8 @@ import io.gravitee.rest.api.portal.rest.model.UserLinks;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
@@ -68,9 +70,9 @@ public class UserMapper {
         return registerUserEntity;
     }
 
-    public UserLinks computeUserLinks(String basePath, String picture) {
+    public UserLinks computeUserLinks(String basePath, Date updateDate) {
         UserLinks userLinks = new UserLinks();
-        userLinks.setAvatar(basePath + "/avatar" + (picture == null? "" : "?" + picture.hashCode()));
+        userLinks.setAvatar(basePath + "/avatar" + (updateDate == null? "" : "?" + updateDate.hashCode()));
         userLinks.setNotifications(basePath + "/notifications");
         userLinks.setSelf(basePath);
         return userLinks;

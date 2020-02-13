@@ -128,12 +128,12 @@ public class UserMapperTest {
     public void testUserLinks() {
         String basePath = "/user";
 
-        UserLinks links = userMapper.computeUserLinks(basePath, "123");
+        UserLinks links = userMapper.computeUserLinks(basePath, null);
 
         assertNotNull(links);
 
         assertEquals(basePath, links.getSelf());
-        assertEquals(basePath + "/avatar?48690", links.getAvatar());
+        assertEquals(basePath + "/avatar", links.getAvatar());
         assertEquals(basePath + "/notifications", links.getNotifications());
         assertEquals(basePath, links.getSelf());
     }

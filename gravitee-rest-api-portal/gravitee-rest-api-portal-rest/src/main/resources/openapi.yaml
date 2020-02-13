@@ -23,7 +23,7 @@ tags:
     description: All about application analytics
   - name: Api
     description: All about APIs
-  - name: Applications
+  - name: Application
     description: All about applications
   - name: Portal
     description: All about portal configurations
@@ -543,7 +543,7 @@ paths:
   /applications:
     get:
       tags:
-        - Applications
+        - Application
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
@@ -567,7 +567,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - Applications
+        - Application
       requestBody:
         description: Use to create an application.
         content:
@@ -602,7 +602,7 @@ paths:
       - $ref: '#/components/parameters/applicationIdParam'
     get:
       tags:
-        - Applications
+        - Application
       summary: Get an application.
       description: |
         Get an application.
@@ -624,7 +624,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     put:
       tags:
-        - Applications
+        - Application
       requestBody:
         description: Use to update an application.
         content:
@@ -658,7 +658,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - Applications
+        - Application
       summary: Delete an application
       description: |
         Delete an application.
@@ -679,7 +679,7 @@ paths:
       - $ref: '#/components/parameters/applicationIdParam'
     get:
       tags:
-        - Applications
+        - Application
       summary: Get the application's picture
       description: |
         Get the application's picture.
@@ -700,7 +700,7 @@ paths:
       - $ref: '#/components/parameters/applicationIdParam'
     get:
       tags:
-        - Applications
+        - Application
       summary: Get application notifications settings
       description: |
         Get application notifications settings.
@@ -724,7 +724,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - Applications
+        - Application
       requestBody:
         description: Use to create an notification
         content:
@@ -756,7 +756,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     put:
       tags:
-        - Applications
+        - Application
       requestBody:
         description: Use to update a portal notification config.
         content:
@@ -788,7 +788,7 @@ paths:
       - $ref: '#/components/parameters/notificationIdParam'
     put:
       tags:
-        - Applications
+        - Application
       requestBody:
         description: Use to update a generic notification.
         content:
@@ -820,7 +820,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - Applications
+        - Application
       summary: Delete a notification
       description: |
         Delete a notification.
@@ -845,7 +845,7 @@ paths:
       - $ref: '#/components/parameters/applicationIdParam'
     get:
       tags:
-        - Applications
+        - Application
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
@@ -870,7 +870,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - Applications
+        - Application
       requestBody:
         description: Use to create a member.
         content:
@@ -901,7 +901,7 @@ paths:
       - $ref: '#/components/parameters/applicationIdParam'
     post:
       tags:
-        - Applications
+        - Application
       requestBody:
         description: Use to transfer ownership of an application.
         content:
@@ -929,7 +929,7 @@ paths:
       - $ref: '#/components/parameters/memberIdParam'
     get:
       tags:
-        - Applications
+        - Application
       summary: Get an application member
       description: |
         Get an application member.
@@ -955,7 +955,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     put:
       tags:
-        - Applications
+        - Application
       requestBody:
         description: Use to update a member.
         content:
@@ -987,7 +987,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - Applications
+        - Application
       summary: Remove an application member
       description: |
         Remove an application member.
@@ -1012,7 +1012,7 @@ paths:
       - $ref: '#/components/parameters/applicationIdParam'
     get:
       tags:
-        - Applications
+        - Application
         - Analytics
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
@@ -1059,7 +1059,7 @@ paths:
       - $ref: '#/components/parameters/applicationIdParam'
     get:
       tags:
-        - Applications
+        - Application
         - Analytics
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
@@ -1099,7 +1099,7 @@ paths:
       - $ref: '#/components/parameters/applicationIdParam'
     post:
       tags:
-        - Applications
+        - Application
         - Analytics
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
@@ -1140,7 +1140,7 @@ paths:
       - $ref: '#/components/parameters/logIdParam'
     get:
       tags:
-        - Applications
+        - Application
         - Analytics
       parameters:
         - $ref: '#/components/parameters/logTimestampQueryParam'
@@ -1172,7 +1172,7 @@ paths:
       - $ref: '#/components/parameters/applicationIdParam'
     post:
       tags:
-        - Applications
+        - Application
       summary: Renew the client secret for an OAuth2 application
       description: |
         Renew the client secret for an OAuth2 application.
@@ -1188,6 +1188,35 @@ paths:
                 $ref: '#/components/schemas/Application'
         403:
           $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /applications/{applicationId}/subscribers:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Application
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+
+      summary: List APIs that subscribed with an application
+      description: |
+        If the current user is the owner of the API, all connected ACCEPTED, PAUSED & PENDING applications will be returned.
+        Else only APIs that current is allowed to access will.
+
+        This application has to be accessible by the current user, otherwise a 404 will be returned.
+      operationId: getSubscriberApisByApplicationId
+      security: []
+      responses:
+        200:
+          description: List accessible APIs for current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApisResponse'
         404:
           $ref: '#/components/responses/ApplicationNotFoundError'
         500:

@@ -15,22 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -41,6 +25,18 @@ import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationLinks;
 import io.gravitee.rest.api.portal.rest.model.User;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -107,7 +103,7 @@ public class ApplicationMapperTest {
     public void testApplicationLinks() {
         String basePath = "/"+APPLICATION;
         
-        ApplicationLinks links = applicationMapper.computeApplicationLinks(basePath);
+        ApplicationLinks links = applicationMapper.computeApplicationLinks(basePath, null);
         
         assertNotNull(links);
         
