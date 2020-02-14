@@ -15,52 +15,125 @@
     limitations under the License.
 
 -->
-<md-card class="no-box-shadow" ng-if="!isLoading && $ctrl.instances.length > 0">
-  <md-card-header>
-    <md-card-header-text layout="row" layout-align="center">
-      <div class="input-group apis-header-filter" flex="60">
-        <input class="form-control" type="text" ng-model="$ctrl.searchGatewayInstances"
-               placeholder="Search Gateway instances..." autofocus/>
+<div class="gv-sub-content">
+    <div class="gv-forms gv-forms-fluid" layout="column">
+      <div>
+        <h1>API Gateway</h1>
+        <md-switch style="margin: 0 auto;" ng-model="$ctrl.showHistory"
+                   ng-change="switchDisplayInstances()">
+          Show history
+        </md-switch>
       </div>
-    </md-card-header-text>
-    <md-switch style="margin: 0 auto;" ng-model="$ctrl.displayAllInstances"
-               ng-change="switchDisplayInstances()">
-      Display all instances
-    </md-switch>
-  </md-card-header>
-  <md-card-content ng-if="!isLoading && !$ctrl._displayEmptyMode"
-                   style="padding: 0; overflow-y: auto;">
-    <div layout="row" layout-wrap class="inset">
-      <div class="gravitee-instances-box"
-           ng-repeat="instance in $ctrl.instances | filter:$ctrl.searchGatewayInstances | orderBy:'-started_at'">
-        <a ui-sref="management.instances.detail.environment({instanceId: instance.event})">
-          <md-card class="gravitee-instances-box gravitee-card gravitee-api-card">
-            <md-card-header layout="row" layout-align="end start">
-            </md-card-header>
-            <md-card-content>
-              <div class="api-box-description">
-                <ng-md-icon icon="{{$ctrl.getOSIcon(instance.operating_system_name)}}" size="60"></ng-md-icon>
-                <div class="api-box-name-version">
-                  <div>{{instance.hostname}}</div>
-                  <div>{{instance.ip}}:{{instance.port}}</div>
-                  <span style="font-size: 10px">v.{{instance.version | limitTo:instance.version.indexOf("(")}}</span>
-                  <span ng-if="instance.tenant" style="font-size: 10px"> - {{instance.tenant}}</span>
-                  <div ng-if="instance.tags" style="font-size: 10px">Tags: {{instance.tags.join(', ')}}</div>
+
+        <div class="gv-form-content">
+          <div layout="column" ng-if="!$ctrl.showHistory">
+
+            <md-card class="no-box-shadow" ng-if="$ctrl.instances.content.length > 0">
+              <md-card-header>
+                <md-card-header-text layout="row" layout-align="center">
+                  <div class="input-group apis-header-filter" flex="60">
+                    <input class="form-control" type="text" ng-model="$ctrl.searchGatewayInstances"
+                           placeholder="Search Gateway instances..." autofocus/>
+                  </div>
+                </md-card-header-text>
+              </md-card-header>
+              <md-card-content ng-if="!$ctrl._displayEmptyMode"
+                               style="padding: 0; overflow-y: auto;">
+                <div layout="row" layout-wrap class="inset">
+                  <div class="gravitee-instances-box"
+                       ng-repeat="instance in $ctrl.instances.content | filter:$ctrl.searchGatewayInstances | orderBy:'-started_at'">
+                    <a ui-sref="management.instances.detail.environment({instanceId: instance.event})">
+                      <md-card class="gravitee-instances-box gravitee-card gravitee-api-card">
+                        <md-card-header layout="row" layout-align="end start">
+                        </md-card-header>
+                        <md-card-content>
+                          <div class="api-box-description">
+                            <ng-md-icon icon="{{$ctrl.getOSIcon(instance.operating_system_name)}}" size="60"></ng-md-icon>
+                            <div class="api-box-name-version">
+                              <div>{{instance.hostname}}</div>
+                              <div>{{instance.ip}}:{{instance.port}}</div>
+                              <span style="font-size: 10px">v.{{instance.version | limitTo:instance.version.indexOf("(")}}</span>
+                              <span ng-if="instance.tenant" style="font-size: 10px"> - {{instance.tenant}}</span>
+                              <div ng-if="instance.tags" style="font-size: 10px">Tags: {{instance.tags.join(', ')}}</div>
+                            </div>
+                            <div class="api-box-state" layout-padding>
+                                <span ng-class="{'gravitee-instances-started':instance.state === 'started',
+                                'gravitee-instances-stopped':instance.state === 'stopped'}">{{instance.state}}</span>
+                            </div>
+                          </div>
+                        </md-card-content>
+                      </md-card>
+                    </a>
+                  </div>
                 </div>
-                <div class="api-box-state" layout-padding>
-                    <span ng-class="{'gravitee-instances-started':instance.state === 'started',
-                    'gravitee-instances-stopped':instance.state === 'stopped'}">{{instance.state}}</span>
-                </div>
+              </md-card-content>
+            </md-card>
+          </div>
+
+          <div layout="column" ng-if="$ctrl.showHistory">
+            <div class="gv-form">
+              <div style="height: 200px">
+                <gv-dashboard on-timeframe-change="$ctrl.onTimeframeChange(timeframe)"></gv-dashboard>
               </div>
-            </md-card-content>
-          </md-card>
-        </a>
-      </div>
+
+              <div class="gv-form-content" layout="column">
+                <md-table-container>
+                  <table md-table class="gv-table-dense">
+                    <thead md-head>
+                    <tr md-row>
+                      <th md-column>Host</th>
+                      <th md-column>Status</th>
+                      <th md-column>Tags</th>
+                      <th md-column>Tenant</th>
+                      <th md-column>Started at</th>
+                      <th md-column>Last heartbeat</th>
+                      <th md-column>Stopped at</th>
+                    </tr>
+                    </thead>
+                    <tbody md-body>
+                    <tr md-row ng-repeat="instance in $ctrl.instances.content | orderBy:'-started_at'" style="height: 25px;">
+                      <td md-cell>
+                        <ng-md-icon icon="{{$ctrl.getOSIcon(instance.operating_system_name)}}" size="24"></ng-md-icon>
+                        <a ui-sref="management.instances.detail.environment({instanceId: instance.event})">
+                          <span>{{instance.hostname}} ({{instance.ip}}:{{instance.port}}) - </span>
+                          <span style="font-size: 10px">v.{{instance.version | limitTo:instance.version.indexOf("(")}}</span>
+                        </a>
+                      </td>
+                      <td md-cell>
+                        <span ng-class="{'gravitee-instances-started':instance.state === 'started',
+                                    'gravitee-instances-stopped':instance.state === 'stopped'}">{{instance.state}}</span>
+                      </td>
+                      <td md-cell>
+                        <div ng-if="instance.tags" style="font-size: 10px">{{instance.tags.join(', ')}}</div>
+                      </td>
+                      <td md-cell>
+                        <span ng-if="instance.tenant" style="font-size: 10px">{{instance.tenant}}</span>
+                      </td>
+                      <td md-cell>{{instance.started_at | datetimeFilter }}</td>
+                      <td md-cell>
+                        <span ng-if="instance.last_heartbeat_at">{{instance.last_heartbeat_at | datetimeFilter }}</span>
+                        <span ng-if="!instance.last_heartbeat_at">-</span>
+                      </td>
+                      <td md-cell>
+                        <span ng-if="instance.stopped_at">{{instance.stopped_at | datetimeFilter }}</span>
+                        <span ng-if="!instance.stopped_at">-</span>
+                      </td>
+                    </tr>
+                    <tr ng-if="$ctrl.instances.content.length === 0">
+                      <td md-cell colspan="7">No instance</td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </md-table-container>
+                <md-table-pagination md-limit="$ctrl.query.limit" md-limit-options="[10, 25, 50, 75, 100]" md-page="$ctrl.query.page" md-total="{{$ctrl.instances.totalElements}}" md-on-limit="$ctrl.searchInstances" md-on-paginate="$ctrl.searchInstances" md-page-select></md-table-pagination>
+              </div>
+            </div>
+          </div>
+        </div>
     </div>
-  </md-card-content>
-</md-card>
+</div>
 
 <gravitee-empty-state ng-if="$ctrl._displayEmptyMode"
                       icon="developer_dashboard"
                       model="Instance"
-                      message="There is no Gateway instance running"/>
+                      message="There is no API gateway instance running"/>

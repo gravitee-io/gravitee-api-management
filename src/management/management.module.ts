@@ -845,6 +845,11 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
       }
     };
   })
+  .filter('datetimeFilter', function () {
+    return function (input) {
+      return moment(input).format('D MMM YYYY HH:mm:ss');
+    };
+  })
   .filter('apiKeyFilter', function () {
     return function (keys) {
       return keys;

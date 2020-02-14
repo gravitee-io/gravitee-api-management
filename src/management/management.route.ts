@@ -40,7 +40,7 @@ function managementRouterConfig($stateProvider) {
       url: '/',
       component: 'instances',
       resolve: {
-        instances: (InstancesService: InstancesService) => InstancesService.list().then(response => response.data)
+        instances: (InstancesService: InstancesService) => InstancesService.search().then(response => response.data)
       },
       data: {
         menu: {
