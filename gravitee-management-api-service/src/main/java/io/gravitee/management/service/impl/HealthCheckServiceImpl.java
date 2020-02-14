@@ -16,17 +16,18 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.model.InstanceListItem;
+import io.gravitee.management.model.InstanceEntity;
 import io.gravitee.management.model.analytics.Analytics;
 import io.gravitee.management.model.analytics.HistogramAnalytics;
 import io.gravitee.management.model.analytics.Timestamp;
 import io.gravitee.management.model.analytics.query.DateHistogramQuery;
 import io.gravitee.management.model.analytics.query.LogQuery;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.healthcheck.*;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.HealthCheckService;
 import io.gravitee.management.service.InstanceService;
+import io.gravitee.management.service.exceptions.InstanceNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.AggregationType;
@@ -406,15 +407,15 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     private Map<String, String> getGatewayMetadata(String gateway) {
         Map<String, String> metadata = new HashMap<>();
 
-        Optional<InstanceListItem> instanceOptional = instanceService.findInstances(false, gateway).stream().findFirst();
-
-        if (instanceOptional.isPresent()) {
-            metadata.put("hostname", instanceOptional.get().getHostname());
-            metadata.put("ip", instanceOptional.get().getIp());
-            if (instanceOptional.get().getTenant() != null) {
-                metadata.put("tenant", instanceOptional.get().getTenant());
+        try {
+            InstanceEntity instance = instanceService.findById(gateway);
+            metadata.put("hostname", instance.getHostname());
+            metadata.put("ip", instance.getIp());
+            if (instance.getTenant() != null) {
+                metadata.put("tenant", instance.getTenant());
             }
-        } else {
+
+        } catch (InstanceNotFoundException infe) {
             metadata.put("deleted", "true");
         }
 

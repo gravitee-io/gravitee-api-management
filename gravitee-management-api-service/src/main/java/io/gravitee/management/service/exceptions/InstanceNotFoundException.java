@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.management.model.InstanceEntity;
-import io.gravitee.management.model.InstanceListItem;
-import io.gravitee.management.model.InstanceQuery;
-
-import java.util.Collection;
+package io.gravitee.management.service.exceptions;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface InstanceService {
+public class InstanceNotFoundException extends AbstractNotFoundException {
 
-    Page<InstanceListItem> search(InstanceQuery query);
-    InstanceEntity findById(String instance);
-    InstanceEntity findByEvent(String event);
+    private final String instanceId;
+
+    public InstanceNotFoundException(String instanceId) {
+        this.instanceId = instanceId;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Gateway [" + instanceId + "] can not be found.";
+    }
 }
