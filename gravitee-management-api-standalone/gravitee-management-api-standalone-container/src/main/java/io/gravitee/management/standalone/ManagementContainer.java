@@ -17,6 +17,7 @@ package io.gravitee.management.standalone;
 
 import io.gravitee.management.standalone.spring.StandaloneConfiguration;
 import io.gravitee.node.container.spring.SpringBasedContainer;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.util.List;
 
@@ -42,6 +43,11 @@ public class ManagementContainer extends SpringBasedContainer {
         // If you want to run Gravitee standalone from your IDE, please do not forget
         // to specify -Dgravitee.home=/path/to/gravitee/home in order to make it works.
         ManagementContainer container = new ManagementContainer();
+
+        // Move all java util logging logs to SLF4j
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+
         container.start();
     }
 }
