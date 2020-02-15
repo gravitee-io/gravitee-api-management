@@ -15,7 +15,7 @@
  */
 import UserService from '../../services/user.service';
 import {IScope} from 'angular';
-import { StateService } from '@uirouter/core';
+import {StateParams, StateService} from '@uirouter/core';
 import { User } from "../../entities/user";
 import RouterService from "../../services/router.service";
 import * as _ from 'lodash';
@@ -36,7 +36,8 @@ class LoginController {
     private $rootScope: IScope,
     private RouterService: RouterService,
     private identityProviders,
-    private $window
+    private $window,
+    private $stateParams: StateParams
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.portal.userCreation.enabled;
@@ -46,8 +47,12 @@ class LoginController {
   }
 
   authenticate(identityProvider: string) {
+    let nonce = this.nonce(32);
+
+    this.$window.localStorage[nonce] = JSON.stringify({ redirectUri: this.$stateParams.redirectUri });
+
     let provider = _.find(this.identityProviders, {'id': identityProvider}) as IdentityProvider;
-    this.AuthenticationService.authenticate(provider);
+    this.AuthenticationService.authenticate(provider, nonce);
   };
 
   login() {
@@ -74,7 +79,15 @@ class LoginController {
         this.$state.go('portal.home');
       }
     }
+  }
 
+  nonce(length: number) {
+    let text = "";
+    let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for(let i = 0; i < length; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
   }
 }
 
