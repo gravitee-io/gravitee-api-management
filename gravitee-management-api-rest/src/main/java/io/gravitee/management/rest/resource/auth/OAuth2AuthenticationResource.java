@@ -155,7 +155,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     boolean active = introspectPayload.path("active").asBoolean(true);
 
                     if (active) {
-                        return authenticateUser(identityProvider, servletResponse, token);
+                        return authenticateUser(identityProvider, servletResponse, token, null);
                     } else {
                         return Response
                                 .status(Response.Status.UNAUTHORIZED)
@@ -196,6 +196,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             accessData.add(CLIENT_SECRET, identityProvider.getClientSecret());
             accessData.add(CODE_KEY, payload.getCode());
             accessData.add(GRANT_TYPE_KEY, AUTH_CODE);
+
             Response response = client.target(identityProvider.getTokenEndpoint())
                     .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
                     .post(Entity.form(accessData));
@@ -203,7 +204,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 final String accessToken = (String) getResponseEntity(response).get(ACCESS_TOKEN_PROPERTY);
-                return authenticateUser(identityProvider, servletResponse, accessToken);
+                return authenticateUser(identityProvider, servletResponse, accessToken, payload.getState());
             } else {
                 LOGGER.debug("Exchange authorization code failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
             }
@@ -222,7 +223,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
      */
     private Response authenticateUser(final SocialIdentityProviderEntity socialProvider,
                                       final HttpServletResponse servletResponse,
-                                      final String accessToken) throws IOException {
+                                      final String accessToken,
+                                      final String state) throws IOException {
         // Step 2. Retrieve profile information about the authenticated end-user.
         Response response = client
                 .target(socialProvider.getUserInfoEndpoint())
@@ -234,7 +236,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return processUser(socialProvider, servletResponse, userInfo);
+            return processUser(socialProvider, servletResponse, userInfo, state);
         } else {
             LOGGER.debug("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
 
@@ -243,7 +245,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         return Response.status(response.getStatusInfo()).build();
     }
 
-    private Response processUser(final SocialIdentityProviderEntity socialProvider, final HttpServletResponse servletResponse, final String userInfo) {
+    private Response processUser(final SocialIdentityProviderEntity socialProvider, final HttpServletResponse servletResponse, final String userInfo, final String state) {
         HashMap<String, String> attrs = getUserProfileAttrs(socialProvider.getUserProfileMapping(), userInfo);
 
         String email = attrs.get(SocialIdentityProviderEntity.UserProfile.EMAIL);
@@ -322,7 +324,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         userDetails.setEmail(email);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
 
-        return connectUser(userId, servletResponse);
+        return connectUser(userId, state, servletResponse);
     }
 
     private HashMap<String, String> getUserProfileAttrs(Map<String, String> userProfileMapping, String userInfo) {
