@@ -5,11 +5,10 @@
 		</header>
 		<div style="margin-top: 50px; color: #424e5a;">
 			<h3>Hi,</h3>
-			<#if expirationDate??>
-                <p>The API Key <code>${apiKey}</code> will expire the ${expirationDate?date} at ${expirationDate?time}.
-			<#else>
-				<p>The API Key <code>${apiKey}</code> has expired.
-			</#if>
+			<p>
+				Your API Key <b><code>${apiKey}</code></b> used by subscription to plan <b>${plan.name}</b> for API
+				<b>${api.name}</b> and application <b>${application.name}</b> <#if expirationDate??>will expire the ${expirationDate?date} at ${expirationDate?time}.<#else>has expired.</#if>
+			</p>
 		</p>
 	</body>
 </html>
