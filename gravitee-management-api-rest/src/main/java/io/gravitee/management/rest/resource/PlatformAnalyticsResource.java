@@ -101,6 +101,10 @@ public class PlatformAnalyticsResource extends AbstractResource  {
             extraFilter = getExtraFilter(fieldName, ids);
         }
 
+        if (analyticsParam.getQuery() != null) {
+            analyticsParam.setQuery(analyticsParam.getQuery().replaceAll("\\?", "1"));
+        }
+
         switch (analyticsParam.getTypeParam().getValue()) {
             case DATE_HISTO:
                 analytics = executeDateHisto(analyticsParam, extraFilter);
