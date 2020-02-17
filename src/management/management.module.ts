@@ -173,6 +173,10 @@ import ImageDirective from '../components/image/image.directive';
 import EventsService from '../services/events.service';
 import AnalyticsService from '../services/analytics.service';
 import DashboardController from '../management/platform/dashboard/dashboard.controller';
+import PlatformLogsController from '../management/platform/logs/platform-logs.controller';
+import PlatformLogsComponent from '../management/platform/logs/platform-logs.component';
+import PlatformLogComponent from '../management/platform/logs/platform-log.component';
+
 import ViewsController from '../management/configuration/views/views.controller';
 import ViewController from './configuration/views/view/view.controller';
 import ViewService from '../services/view.service';
@@ -930,6 +934,11 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('DashboardService', DashboardService)
   .component('dashboard', AnalyticsDashboardComponent)
   .controller('DialogQueryFilterInformationController', DialogQueryFilterInformationController)
+
+  // Platform Analytics
+  .component('platformLogs', PlatformLogsComponent)
+  .component('platformLog', PlatformLogComponent)
+  .controller('PlatformLogsController', PlatformLogsController)
 
   .filter('humanDateFilter', function () {
     return function (input) {

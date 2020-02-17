@@ -1,0 +1,413 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-sub-content">
+  <div class="gv-forms gv-forms-fluid" layout="column">
+    <div class="gv-forms-header">
+      <h1>Platform Log</h1>
+      <a ui-sref="management.logs($ctrl.backStateParams)">Back to Logs</a>
+    </div>
+
+    <div class="gv-form">
+      <h2>Details</h2>
+      <div class="gv-form-content" layout="column">
+
+        <div ng-model="$ctrl.displayContext"
+             ng-if="!$ctrl.displayContext" ng-click="$ctrl.displayContext=true">
+          <a>Show context</a>
+        </div>
+        <div ng-model="$ctrl.displayContext"
+             ng-if="$ctrl.displayContext" ng-click="$ctrl.displayContext=false">
+          <a>Hide context</a>
+        </div>
+
+        <div ng-if="$ctrl.displayContext" layout="row" class="log-table" flex layout-padding layout-align="space-around start">
+          <div layout="column" flex="50">
+            <span class="log-header" style="text-align: center">Context</span>
+            <md-table-container>
+              <table md-table class="gv-table-dense">
+                <tbody md-body>
+                <tr md-row ng-if="$ctrl.log.securityToken">
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>{{$ctrl.log.securityType === 'api_key'?'API key': 'Client id'}}</td>
+                  <td md-cell>{{$ctrl.log.securityToken}}</td>
+                </tr>
+                <tr md-row ng-if="$ctrl.log.application">
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Application</td>
+                  <td md-cell>{{$ctrl.log.metadata[$ctrl.log.application].name}}</td>
+                </tr>
+                <tr md-row ng-if="$ctrl.log.plan">
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Plan</td>
+                  <td md-cell>{{$ctrl.log.metadata[$ctrl.log.plan].name}}</td>
+                </tr>
+                <tr md-row ng-if="$ctrl.log.user && $ctrl.Constants.logging.user.displayed">
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>User</td>
+                  <td md-cell>{{$ctrl.log.user}}</td>
+                </tr>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Endpoint</td>
+                  <td md-cell>{{$ctrl.log.endpoint}}</td>
+                </tr>
+                <tr md-row ng-if="$ctrl.log.subscription">
+                  <td md-cell></td>
+                  <td md-cell><a ui-sref="management.apis.detail.portal.subscriptions.subscription({apiId: $ctrl.log.api, subscriptionId: $ctrl.log.subscription})">Go to subscription</a></td>
+                </tr>
+                </tbody>
+              </table>
+            </md-table-container>
+          </div>
+          <div layout="column" flex="50">
+            <span class="log-header" style="text-align: center">Gateway</span>
+            <md-table-container>
+              <table md-table class="gv-table-dense">
+                <tbody md-body>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Host</td>
+                  <td md-cell>{{$ctrl.log.metadata[$ctrl.log.gateway].hostname}}</td>
+                </tr>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>IP</td>
+                  <td md-cell>{{$ctrl.log.metadata[$ctrl.log.gateway].ip}}</td>
+                </tr>
+                <tr md-row ng-if="$ctrl.log.tenant">
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Tenant</td>
+                  <td md-cell>{{$ctrl.log.tenant}}</td>
+                </tr>
+                </tbody>
+              </table>
+            </md-table-container>
+          </div>
+        </div>
+
+        <div layout="row" class="log-table gv-request-response-table" flex layout-padding layout-align="space-around start">
+          <div layout="column" flex="50">
+            <span class="log-header" style="text-align: center">Request</span>
+            <md-table-container class="gv-log-request-header">
+              <table md-table class="gv-table-dense">
+                <tbody md-body>
+                <tr md-row style="height: 30px;">
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Date</td>
+                  <td md-cell>{{$ctrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
+                </tr>
+                <tr md-row style="height: 30px;" ng-if="$ctrl.log.host">
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Host</td>
+                  <td md-cell>{{$ctrl.log.host}}</td>
+                </tr>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Request</td>
+                  <td md-cell>
+                <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected">
+                      {{$ctrl.log.method | uppercase}}
+                </span>
+                    <span>{{$ctrl.log.uri}}</span>
+                  </td>
+                </tr>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Content-length</td>
+                  <td md-cell>{{$ctrl.log.requestContentLength}}</td>
+                </tr>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Request ID</td>
+                  <td md-cell>{{$ctrl.log.id}}</td>
+                </tr>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Transaction ID</td>
+                  <td md-cell>{{$ctrl.log.transactionId}}</td>
+                </tr>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Remote IP</td>
+                  <td md-cell>{{$ctrl.log.remoteAddress}}</td>
+                </tr>
+                </tbody>
+              </table>
+            </md-table-container>
+          </div>
+          <div layout="column" flex="50">
+            <span class="log-header" style="text-align: center">Response</span>
+            <md-table-container ng-class="{'gv-log-response-header-{{$ctrl.log.status / 100 | number:0}}': true}">
+              <table md-table class="gv-table-dense">
+                <tbody md-body>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Status</td>
+                  <td md-cell><span class="gv-statuscode-{{$ctrl.log.status / 100 | number:0}}xx">{{$ctrl.log.status}}</span></td>
+                </tr>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Global response time</td>
+                  <td md-cell>{{$ctrl.log.responseTime | number}} ms</td>
+                </tr>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>API response time</td>
+                  <td md-cell>{{$ctrl.log.apiResponseTime | number}} ms</td>
+                </tr>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Latency</td>
+                  <td md-cell>{{$ctrl.log.responseTime - $ctrl.log.apiResponseTime | number}} ms</td>
+                </tr>
+                <tr md-row>
+                  <td md-cell style="width: 1%; font-weight: bold;" nowrap>Content-length</td>
+                  <td md-cell>{{$ctrl.log.responseContentLength}}</td>
+                </tr>
+                </tbody>
+              </table>
+            </md-table-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gv-form gv-form-danger" ng-if="$ctrl.log.message">
+      <h2>Error</h2>
+      <div class="gv-form-content" layout="column">
+
+        <div flex
+             ui-codemirror
+             ui-codemirror-opts="{lineNumbers: true, readOnly: true, mode: 'text/x-java'}"
+             ng-model="$ctrl.log.message">
+        </div>
+      </div>
+    </div>
+
+
+    <div class="gv-form">
+      <h2></h2>
+      <div class="gv-form-content" layout="column">
+        <div class="log-table" layout="column" layout-padding>
+          <div layout="row" layout-padding>
+            <span class="log-header" flex="5"></span>
+
+            <div flex="45" layout="row" layout-align="center center">
+              <span class="log-header">CONSUMER</span>
+            </div>
+
+            <span class="log-header" flex="5" ng-if="$ctrl.log.endpoint"></span>
+
+            <div flex="45" layout="row" layout-align="center center">
+              <span class="log-header">GATEWAY</span>
+            </div>
+          </div>
+
+          <div layout="row" layout-padding style="background-color: #e1f5fe; border: 1px solid #b3e5fc;">
+            <div flex="5" layout="row" layout-align="center center" style="background-color: #b3e5fc;">
+              <span class="vertical-text log-header" style="text-align: center;">REQUEST</span>
+            </div>
+
+            <div layout="column" flex="45" ng-if="$ctrl.log.clientRequest">
+              <md-table-container>
+                <table md-table class="gv-table-dense">
+                  <tbody md-body>
+                  <tr md-row>
+                    <td md-cell>
+                  <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected">
+                    {{$ctrl.log.clientRequest.method | uppercase}}
+                  </span>
+                    </td>
+                    <td md-cell>{{$ctrl.log.clientRequest.uri}}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </md-table-container>
+
+              <br>
+
+              <md-table-container>
+                <table md-table class="gv-table-dense">
+                  <tbody md-body>
+                  <tr md-row ng-repeat="header in $ctrl.log.clientRequest.headersAsList" style="height: 30px;">
+                    <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
+                    <td md-cell>{{header[1]}}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </md-table-container>
+
+              <br>
+
+              <div ng-if="$ctrl.log.clientRequest.body" class="log-body">
+                <div ui-codemirror
+                     ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.clientRequest)}"
+                     ng-model="$ctrl.log.clientRequest.body">
+                </div>
+                <button class="copy">
+                  <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+                  <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{$ctrl.log.clientRequest.body}}"
+                              ngclipboard-success="$ctrl.onCopyBodySuccess(e);" role="button"></ng-md-icon>
+                </button>
+              </div>
+            </div>
+            <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientRequest">
+              <p>No log for this request.</p>
+              <p>Please check or configure logging mode (client).</p>
+            </div>
+
+            <div flex="5" layout="column" layout-align="center center">
+          <span>
+            <ng-md-icon icon="arrow_forward" size="30px"></ng-md-icon>
+          </span>
+            </div>
+
+            <div layout="column" flex="45" ng-if="$ctrl.log.proxyRequest">
+              <md-table-container>
+                <table md-table class="gv-table-dense">
+                  <tbody md-body>
+                  <tr md-row>
+                    <td md-cell>
+                  <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.proxyRequest.method | uppercase}}-selected">
+                    {{$ctrl.log.proxyRequest.method | uppercase}}
+                  </span>
+                    </td>
+                    <td md-cell>{{$ctrl.log.proxyRequest.uri}}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </md-table-container>
+
+              <br>
+
+              <md-table-container ng-if="$ctrl.log.endpoint">
+                <table md-table class="gv-table-dense">
+                  <tbody md-body>
+                  <tr md-row ng-repeat="header in $ctrl.log.proxyRequest.headersAsList" style="height: 30px;">
+                    <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
+                    <td md-cell>{{header[1]}}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </md-table-container>
+
+              <br>
+
+              <div ng-if="$ctrl.log.proxyRequest.body" class="log-body">
+                <div ui-codemirror
+                     ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.proxyRequest)}"
+                     ng-model="$ctrl.log.proxyRequest.body">
+                </div>
+                <button class="copy">
+                  <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+                  <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{$ctrl.log.proxyRequest.body}}"
+                              ngclipboard-success="$ctrl.onCopyBodySuccess(e);" role="button"></ng-md-icon>
+                </button>
+              </div>
+            </div>
+            <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyRequest">
+              <p>No log for this request.</p>
+              <p>Please check or configure logging mode (proxy).</p>
+            </div>
+          </div>
+
+          <div layout="row" layout-padding ng-class="{'gv-log-response-panel-{{$ctrl.log.status / 100 | number:0}}': true}" style="margin-top:3px;">
+            <div flex="5" layout="row" layout-align="center center">
+              <span class="vertical-text log-header" style="text-align: center;">RESPONSE</span>
+            </div>
+
+            <div layout="column" flex="45" ng-if="$ctrl.log.clientResponse">
+              <md-table-container>
+                <table md-table class="gv-table-dense">
+                  <tbody md-body>
+                  <tr md-row>
+                    <td md-cell><span style="font-weight: bold">Status</span></td>
+                    <td md-cell><span class="gv-statuscode-{{$ctrl.log.clientResponse.status / 100 | number:0}}xx">{{$ctrl.log.clientResponse.status | number}}</span></td>
+                  </tr>
+                  </tbody>
+                </table>
+              </md-table-container>
+
+              <br>
+
+              <md-table-container>
+                <table md-table class="gv-table-dense">
+                  <tbody md-body>
+                  <tr md-row ng-repeat="header in $ctrl.log.clientResponse.headersAsList" style="height: 30px;">
+                    <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
+                    <td md-cell>{{header[1]}}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </md-table-container>
+
+              <br>
+
+              <div ng-if="$ctrl.log.clientResponse.body" class="log-body">
+                <div ui-codemirror
+                     ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.clientResponse)}"
+                     ng-model="$ctrl.log.clientResponse.body">
+                </div>
+                <button class="copy">
+                  <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+                  <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{$ctrl.log.clientResponse.body}}"
+                              ngclipboard-success="$ctrl.onCopyBodySuccess(e);" role="button"></ng-md-icon>
+                </button>
+              </div>
+            </div>
+            <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientResponse">
+              <p>No log for this response.</p>
+              <p>Please check or configure logging mode (client).</p>
+            </div>
+
+            <div flex="5" layout="column" layout-align="center center">
+          <span>
+            <ng-md-icon icon="arrow_back" size="30px"></ng-md-icon>
+          </span>
+            </div>
+
+            <div layout="column" flex="45" ng-if="$ctrl.log.proxyResponse">
+              <md-table-container>
+                <table md-table class="gv-table-dense">
+                  <tbody md-body>
+                  <tr md-row>
+                    <td md-cell><span style="font-weight: bold">Status</span></td>
+                    <td md-cell><span class="gv-statuscode-{{$ctrl.log.proxyResponse.status / 100 | number:0}}xx">{{$ctrl.log.proxyResponse.status | number}}</span></td>
+                  </tr>
+                  </tbody>
+                </table>
+              </md-table-container>
+
+              <br>
+
+              <md-table-container ng-if="$ctrl.log.endpoint">
+                <table md-table class="gv-table-dense">
+                  <tbody md-body>
+                  <tr md-row ng-repeat="header in $ctrl.log.proxyResponse.headersAsList" style="height: 30px;">
+                    <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
+                    <td md-cell>{{header[1]}}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </md-table-container>
+
+              <br>
+
+              <div ng-if="$ctrl.log.proxyResponse.body" class="log-body">
+                <div ui-codemirror
+                     ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.proxyResponse)}"
+                     ng-model="$ctrl.log.proxyResponse.body">
+                </div>
+                <button class="copy">
+                  <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+                  <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{$ctrl.log.proxyResponse.body}}"
+                              ngclipboard-success="$ctrl.onCopyBodySuccess(e);" role="button"></ng-md-icon>
+                </button>
+              </div>
+            </div>
+            <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyResponse">
+              <p>No log for this response.</p>
+              <p>Please check or configure logging mode (proxy).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

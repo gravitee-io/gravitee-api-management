@@ -20,6 +20,9 @@ import ApplicationService from "../services/application.service";
 import {User} from "../entities/user";
 import RoleService from "../services/role.service";
 import DashboardService from "../services/dashboard.service";
+import {StateParams} from "@uirouter/core";
+import TenantService from "../services/tenant.service";
+import AnalyticsService from "../services/analytics.service";
 
 function managementRouterConfig($stateProvider) {
   'ngInject';
@@ -135,6 +138,64 @@ function managementRouterConfig($stateProvider) {
         dashboard: {
           type: 'string',
           dynamic: true
+        }
+      }
+    })
+    .state('management.logs', {
+      url: '/logs?from&to&q&page&size',
+      component: 'platformLogs',
+      data: {
+        menu: null,
+        devMode: true,
+        perms: {
+          only: ['management-platform-r']
+        },
+        docs: {
+          page: 'management-dashboard'
+        }
+      },
+      params: {
+        from: {
+          type: 'int',
+          dynamic: true
+        },
+        to: {
+          type: 'int',
+          dynamic: true
+        },
+        q: {
+          type: 'string',
+          dynamic: true
+        },
+        page: {
+          type: 'int',
+          dynamic: true
+        },
+        size: {
+          type: 'int',
+          dynamic: true
+        }
+      },
+      resolve: {
+        apis: ($stateParams: StateParams, ApiService: ApiService) => ApiService.list(),
+        applications: ($stateParams: StateParams, ApplicationService: ApplicationService) => ApplicationService.list()
+      }
+    })
+    .state('management.log', {
+      url: '/logs/:logId?timestamp&from&to&q&page&size',
+      component: 'platformLog',
+      resolve: {
+        log: ($stateParams, AnalyticsService: AnalyticsService) =>
+          AnalyticsService.getLog($stateParams.logId, $stateParams.timestamp).then(response => response.data)
+      },
+      data: {
+        devMode: true,
+        menu: null,
+        perms: {
+          only: ['management-platform-r']
+        },
+        docs: {
+          page: 'management-dashboard'
         }
       }
     })

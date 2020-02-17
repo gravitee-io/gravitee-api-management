@@ -16,12 +16,24 @@
 
 import * as _ from 'lodash';
 
+export class LogsQuery {
+  from: number;
+  to: number;
+  query?: string;
+  page: number;
+  size: number;
+  field: string;
+  order: boolean;
+}
+
 class AnalyticsService {
+  private platformUrl: string;
   private analyticsURL: string;
   private analyticsHttpTimeout: number;
 
   constructor(private $http, Constants) {
     'ngInject';
+    this.platformUrl = `${Constants.baseURL}platform`;
     this.analyticsURL = `${Constants.baseURL}platform/analytics`;
     this.analyticsHttpTimeout = Constants.analytics.clientTimeout as number;
   }
@@ -41,6 +53,43 @@ class AnalyticsService {
 
 
     return this.$http.get(url, {timeout: this.analyticsHttpTimeout});
+  }
+
+  /*
+   * Logs
+   */
+  private buildURLWithQuery(query: LogsQuery, url) {
+    var keys = Object.keys(query);
+    _.forEach(keys, function (key) {
+      var val = query[key];
+      if (val !== undefined && val !== '') {
+        url += key + '=' + val + '&';
+      }
+    });
+    return url;
+  }
+
+  private cloneQuery(query: LogsQuery) {
+    let clonedQuery = _.clone(query);
+    if (_.startsWith(clonedQuery.field, '-')) {
+      clonedQuery.order = false;
+      clonedQuery.field = clonedQuery.field.substring(1);
+    } else {
+      clonedQuery.order = true;
+    }
+    return clonedQuery;
+  }
+
+  findLogs(query: LogsQuery): ng.IPromise<any> {
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.platformUrl + '/logs?'), {timeout: 30000});
+  }
+
+  exportLogsAsCSV(query: LogsQuery): ng.IPromise<any> {
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.platformUrl + '/logs/export?'), {timeout: 30000});
+  }
+
+  getLog(logId, timestamp) {
+    return this.$http.get(this.platformUrl + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
   }
 }
 

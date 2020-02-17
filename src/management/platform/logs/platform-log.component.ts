@@ -1,5 +1,5 @@
 import {StateService} from "@uirouter/core";
-import NotificationService from "../../../../services/notification.service";
+import NotificationService from "../../../services/notification.service";
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -16,7 +16,7 @@ import NotificationService from "../../../../services/notification.service";
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const LogComponent: ng.IComponentOptions = {
+const PlatformLogComponent: ng.IComponentOptions = {
   bindings: {
     log: '<'
   },
@@ -24,14 +24,6 @@ const LogComponent: ng.IComponentOptions = {
     'ngInject';
     this.Constants = Constants;
     this.NotificationService = NotificationService;
-
-    this.backStateParams = {
-      from: $state.params['from'],
-      to: $state.params['to'],
-      q: $state.params['q'],
-      page: $state.params['page'],
-      size: $state.params['size']
-    };
 
     this.$onInit = () => {
       this.headersAsList(this.log.clientRequest);
@@ -53,6 +45,14 @@ const LogComponent: ng.IComponentOptions = {
       }
     };
 
+    this.backStateParams = {
+      from: $state.params['from'],
+      to: $state.params['to'],
+      q: $state.params['q'],
+      page: $state.params['page'],
+      size: $state.params['size']
+    };
+
     this.getMimeType = function(log) {
       if (log.headers['Content-Type'] !== undefined) {
         let contentType = log.headers['Content-Type'][0];
@@ -67,7 +67,7 @@ const LogComponent: ng.IComponentOptions = {
       evt.clearSelection();
     };
   },
-  template: require('./log.html')
+  template: require('./platform-log.html')
 };
 
-export default LogComponent;
+export default PlatformLogComponent;
