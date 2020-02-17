@@ -54,7 +54,7 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
 
     @Autowired
     private Environment environment;
-    
+
     @Override
     public org.springframework.security.authentication.AuthenticationProvider
         configure() throws Exception {
@@ -68,6 +68,8 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
 
             if (found) {
                 String username = environment.getProperty("users[" + userIdx + "].username");
+                String firstname = environment.getProperty("users[" + userIdx + "].firstname");
+                String lastname = environment.getProperty("users[" + userIdx + "].lastname");
                 String password = environment.getProperty("users[" + userIdx + "].password");
                 String email = environment.getProperty("users[" + userIdx + "].email");
                 String roles = environment.getProperty("users[" + userIdx + "].roles");
@@ -78,6 +80,8 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
 
                 newUser.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
                 newUser.setSourceId(username);
+                newUser.setFirstname(firstname);
+                newUser.setLastname(lastname);
                 LOGGER.debug("Add an in-memory user: {}", newUser);
                 userDetailsService.createUser(newUser);
             }

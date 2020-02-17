@@ -179,6 +179,8 @@ security:
       users:
         - user:
           username: user
+          #firstname:
+          #lastname:
           # Passwords are encoded using BCrypt
           # Password value: password
           password: $2a$10$9kjw/SH9gucCId3Lnt6EmuFreUAcXSZgpvAYuW2ISv7hSOhHRH1AO
@@ -187,12 +189,16 @@ security:
           #email:
         - user:
           username: admin
+          #firstname:
+          #lastname:
           # Password value: admin
           password: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq
           roles: MANAGEMENT:ADMIN, PORTAL:ADMIN
           #email:
         - user:
           username: api1
+          #firstname:
+          #lastname:
           # Password value: api1
           password: $2a$10$iXdXO4wAYdhx2LOwijsp7.PsoAZQ05zEdHxbriIYCbtyo.y32LTji
           # You can declare multiple roles using comma separator
@@ -200,6 +206,8 @@ security:
           #email:
         - user:
           username: application1
+          #firstname:
+          #lastname:
           # Password value: application1
           password: $2a$10$2gtKPYRB9zaVaPcn5RBx/.3T.7SeZoDGs9GKqbo9G64fKyXFR1He.
           roles: MANAGEMENT:USER, PORTAL:USER
