@@ -38,6 +38,11 @@ public class PlatformResource {
         return resourceContext.getResource(PlatformAnalyticsResource.class);
     }
 
+    @Path("logs")
+    public PlatformLogsResource getPlatformLogsResource() {
+        return resourceContext.getResource(PlatformLogsResource.class);
+    }
+
     @Path("events")
     public PlatformEventsResource getPlatformEventsResource() {
         return resourceContext.getResource(PlatformEventsResource.class);

@@ -28,6 +28,7 @@ import java.util.Map;
 public class ApiRequest {
 
     private String id;
+    private String api;
     private long timestamp;
     private String transactionId;
     private String uri;
@@ -61,6 +62,14 @@ public class ApiRequest {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getApi() {
+        return api;
+    }
+
+    public void setApi(String api) {
+        this.api = api;
     }
 
     public long getTimestamp() {
