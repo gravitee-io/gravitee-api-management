@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.common.util.Reporting;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -32,7 +33,7 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
     /**
      * Code for an unknown caller / application
      */
-    private static final String APPLICATION_NAME_ANONYMOUS = "1";
+    private static final String APPLICATION_NAME_ANONYMOUS = Reporting.UNKNOWN_SERVICE;
 
     private final static ObjectMapper mapper = new ObjectMapper();
 
