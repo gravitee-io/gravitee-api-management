@@ -42,18 +42,23 @@
   </div>
   <div id="header-metadata" class="api-header-metadata">
     <ul class="api-description" style="white-space: nowrap; padding-left: 0;" layout="column">
-      <li ng-repeat="header in $ctrl.apiPortalHeaders" ng-if="header.value">
+      <li ng-repeat="header in $ctrl.apiPortalHeaders" ng-if="header.value && header.name !== 'api.endpoint'">
         {{ header.name | translate }}:
-        <span ng-if="header.name === 'api.endpoint'">
-          <span ng-if="$ctrl.resolvedEntrypoints.length === 1">{{::$ctrl.resolvedEntrypoints[0]}}{{::header.value}}</span>
-          <div ng-if="$ctrl.resolvedEntrypoints.length > 1" ng-repeat="entrypoint in ::$ctrl.resolvedEntrypoints">- {{::entrypoint}}{{::header.value}}</div>
-        </span>
-        <span ng-if="header.name !== 'api.endpoint'">{{::header.value}}</span>
+        <span><b>{{::header.value}}</b></span>
       </li>
     </ul>
-    <div id="header-tags" ng-if="$ctrl.Constants.portal.apis.apiHeaderShowTags.enabled && $ctrl.api.tags.length > 0">
-      <h2>{{ 'api.header.tags' | translate }}</h2>
-      <span ng-repeat="t in $ctrl.api.tags" class="tag-or-view">{{t}}</span>
+    <div id="header-entry-points">
+      <h2>{{ 'api.header.entryPoints' | translate }}</h2>
+      <div ng-repeat="entrypoint in ::$ctrl.resolvedEntrypoints" style="display: flex; align-items: center;">
+        <span ng-if="$ctrl.Constants.portal.apis.apiHeaderShowTags.enabled && entrypoint.tags[0]" class="tag-or-view fixed">
+          {{entrypoint.tags[0]}}
+          <md-tooltip md-direction="left">Sharding Tag</md-tooltip>
+        </span>
+        <span style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+          <small ng-if="!entrypoint.value"><i>{{ 'api.header.noEntryPoint' | translate }}</i></small>
+          <span ng-if="entrypoint.value">{{::entrypoint.value}}{{::$ctrl.api.context_path}}</span>
+        </span>
+      </div>
     </div>
     <div id="header-views" ng-if="$ctrl.Constants.portal.apis.apiHeaderShowViews.enabled && $ctrl.api.views.length > 0">
       <h2>{{ 'api.header.views' | translate }}</h2>

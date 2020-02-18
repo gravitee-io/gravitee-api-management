@@ -15,6 +15,7 @@
  */
 import ApiService from "../../../services/api.service";
 import TicketService from "../../../services/ticket.service";
+import * as _ from "lodash";
 
 const ApiHeaderComponent: ng.IComponentOptions = {
   bindings: {
@@ -45,7 +46,29 @@ const ApiHeaderComponent: ng.IComponentOptions = {
     });
 
     this.$onInit = () => {
-      this.resolvedEntrypoints = ApiService.getTagEntrypoints(this.api, this.entrypoints);
+      let apiEntryPoints: string[] = ApiService.getTagEntrypoints(this.api, this.entrypoints);
+      this.resolvedEntrypoints = [];
+      if (this.Constants.portal.apis.apiHeaderShowTags.enabled) {
+        _.filter(this.entrypoints, entrypoint => _.intersection(entrypoint.tags, this.api.tags).length > 0)
+          .forEach(resolvedEntryPoint => {
+            resolvedEntryPoint.tags.forEach(tag => {
+              this.resolvedEntrypoints.push({ tags: [tag], value: resolvedEntryPoint.value});
+            });
+          });
+      } else {
+        _.uniq(apiEntryPoints).forEach(apiEntryPoint => this.resolvedEntrypoints.push({ tags: [""], value: apiEntryPoint}));
+      }
+      // set default entry point if none has been set
+      if (this.resolvedEntrypoints.length === 0) {
+        this.resolvedEntrypoints.push({ tags: [""], value: apiEntryPoints[0]});
+      }
+      // manage tags without entry point
+      if (this.Constants.portal.apis.apiHeaderShowTags.enabled) {
+        let resolvedTags = _.difference(this.api.tags, _.map(this.resolvedEntrypoints, resolvedEntrypoint => resolvedEntrypoint.tags[0]));
+        if (resolvedTags.length > 0) {
+          resolvedTags.forEach(resolvedTag => this.resolvedEntrypoints.push({tags: [resolvedTag], value: ""}));
+        }
+      }
 
       $timeout(function () {
 
