@@ -24,6 +24,7 @@ import io.gravitee.management.model.analytics.*;
 import io.gravitee.management.model.analytics.query.CountQuery;
 import io.gravitee.management.model.analytics.query.DateHistogramQuery;
 import io.gravitee.management.model.analytics.query.GroupByQuery;
+import io.gravitee.management.model.api.ApiLifecycleState;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.analytics.AnalyticsException;
@@ -58,8 +59,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
      */
     private final Logger logger = LoggerFactory.getLogger(AnalyticsServiceImpl.class);
 
-    private static final String UNKNOWN_API = "?";
-    private static final String APPLICATION_KEYLESS = "?";
+    private static final String UNKNOWN_SERVICE = "1";
+    private static final String UNKNOWN_SERVICE_MAPPED = "?";
 
     private static final String METADATA_NAME = "name";
     private static final String METADATA_DELETED = "deleted";
@@ -296,7 +297,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     .collect(Collectors.toMap(
                             // https://stackoverflow.com/questions/5525795/does-javascript-guarantee-object-property-order/5525820#5525820
                             // because javascript does not preserve the order, we have to convert all "1" keys to a non int value
-                            bucket -> "1".equals(bucket.name()) ? "?" : bucket.name(),
+                            bucket -> UNKNOWN_SERVICE.equals(bucket.name()) ? UNKNOWN_SERVICE_MAPPED : bucket.name(),
                             GroupByResponse.Bucket::value,
                             (v1,v2) ->{ throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));},
                             LinkedHashMap::new)));
@@ -331,17 +332,20 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Map<String, String> metadata = new HashMap<>();
 
         try {
-            ApiEntity apiEntity = apiService.findById(api);
-            metadata.put(METADATA_NAME, apiEntity.getName());
-            metadata.put(METADATA_VERSION, apiEntity.getVersion());
-        } catch (ApiNotFoundException anfe) {
-            if (api.equals(UNKNOWN_API)) {
+            if (api.equals(UNKNOWN_SERVICE) || api.equals(UNKNOWN_SERVICE_MAPPED)) {
                 metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
-                metadata.put(METADATA_NAME, METADATA_DELETED_API_NAME);
+                ApiEntity apiEntity = apiService.findById(api);
+                metadata.put(METADATA_NAME, apiEntity.getName());
+                metadata.put(METADATA_VERSION, apiEntity.getVersion());
+                if (ApiLifecycleState.ARCHIVED.equals(apiEntity.getLifecycleState())) {
+                    metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                }
             }
+        } catch (ApiNotFoundException anfe) {
+            metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+            metadata.put(METADATA_NAME, METADATA_DELETED_API_NAME);
         }
 
         return metadata;
@@ -351,19 +355,19 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Map<String, String> metadata = new HashMap<>();
 
         try {
-            ApplicationEntity applicationEntity = applicationService.findById(application);
-            metadata.put(METADATA_NAME, applicationEntity.getName());
-            if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
-                metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
-            }
-        } catch (ApplicationNotFoundException anfe) {
-            if (application.equals(APPLICATION_KEYLESS)) {
+            if (application.equals(UNKNOWN_SERVICE) || application.equals(UNKNOWN_SERVICE_MAPPED)) {
                 metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
-                metadata.put(METADATA_NAME, METADATA_DELETED_APPLICATION_NAME);
+                ApplicationEntity applicationEntity = applicationService.findById(application);
+                metadata.put(METADATA_NAME, applicationEntity.getName());
+                if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
+                    metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                }
             }
+        } catch (ApplicationNotFoundException anfe) {
+            metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+            metadata.put(METADATA_NAME, METADATA_DELETED_APPLICATION_NAME);
         }
 
         return metadata;
