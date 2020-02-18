@@ -541,10 +541,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     private Map<String, char[]> getMemberPermissions(MembershipReferenceType membershipReferenceType, String referenceId, String userId, Set<String> groups, RoleScope roleScope) {
+        final Map<String, char[]> permissions = new HashMap<>();
+
         MemberEntity member = this.getMember(membershipReferenceType, referenceId, userId, roleScope);
         if (member != null) {
-            return member.getPermissions();
-        } else if (groups != null) {
+            permissions.putAll(member.getPermissions());
+        }
+
+        if (groups != null) {
             Map<String, Set<Character>> mergedPermissions = new HashMap<>();
             for (String groupid : groups) {
                 member = this.getMember(GROUP, groupid, userId, roleScope);
@@ -565,7 +569,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     }
                 }
             }
-            Map<String, char[]> permissions = new HashMap<>(mergedPermissions.size());
+
             mergedPermissions.forEach((String k, Set<Character> v) -> {
                 Character[] characters = v.toArray(new Character[v.size()]);
                 char[] chars = new char[characters.length];
@@ -574,9 +578,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 }
                 permissions.put(k, chars);
             });
-            return permissions;
+
         }
-        return Collections.emptyMap();
+
+        return permissions;
     }
 
     private MemberEntity convert(Membership membership, RoleScope roleScope) {

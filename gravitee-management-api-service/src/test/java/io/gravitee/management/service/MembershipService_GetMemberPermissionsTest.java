@@ -105,7 +105,7 @@ public class MembershipService_GetMemberPermissionsTest {
         doReturn(API_ID).when(membership).getReferenceId();
         doReturn(USERNAME).when(membership).getUserId();
         GroupEntity group = mock(GroupEntity.class);
-        doReturn(Collections.singleton(group)).when(api).getGroups();
+        doReturn(Collections.singleton(group.getId())).when(api).getGroups();
         doReturn(of(membership)).when(membershipRepository).findById(USERNAME, MembershipReferenceType.API, API_ID);
         UserEntity userEntity = mock(UserEntity.class);
         doReturn(userEntity).when(userService).findById(USERNAME);

@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -77,11 +78,13 @@ public class PermissionServiceImpl extends AbstractService implements Permission
                 membershipReferenceType = null;
                 repoRoleScope = null;
         }
-        Set<RoleEntity> roles = Collections.emptySet();
+        Set<RoleEntity> roles = new HashSet<>();
         RoleEntity firstDegreeRole = membershipService.getRole(membershipReferenceType, optionalReferenceId.orElse(MembershipDefaultReferenceId.DEFAULT.name()), getAuthenticatedUsername(), repoRoleScope);
         if (firstDegreeRole != null) {
-            roles = Collections.singleton(firstDegreeRole);
-        } else if (groupMembershipReferenceType != null) {
+            roles.add(firstDegreeRole);
+        }
+
+        if (groupMembershipReferenceType != null) {
             Set<String> groups;
             try {
                 groups = apiService.findById(referenceId).getGroups();
@@ -90,7 +93,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
             }
 
             if (groups != null && !groups.isEmpty()) {
-                roles = membershipService.getRoles(groupMembershipReferenceType, groups, getAuthenticatedUsername(), repoRoleScope);
+                roles.addAll(membershipService.getRoles(groupMembershipReferenceType, groups, getAuthenticatedUsername(), repoRoleScope));
             }
         }
         for (RoleEntity roleEntity : roles) {
