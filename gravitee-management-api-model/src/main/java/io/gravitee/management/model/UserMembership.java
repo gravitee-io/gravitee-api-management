@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.model;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -25,6 +26,7 @@ public class UserMembership {
 
     private String reference;
     private String type;
+    private Map<Integer, String> roles;
 
     public String getReference() {
         return reference;
@@ -40,6 +42,14 @@ public class UserMembership {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Map<Integer, String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Map<Integer, String> roles) {
+        this.roles = roles;
     }
 
     @Override

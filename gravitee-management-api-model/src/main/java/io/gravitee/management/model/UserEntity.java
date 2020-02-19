@@ -93,6 +93,9 @@ public class UserEntity implements Indexable {
      */
     private Date lastConnectionAt;
 
+    @JsonProperty("primary_owner")
+    private boolean primaryOwner;
+
     private String status;
 
     public String getId() {
@@ -211,6 +214,14 @@ public class UserEntity implements Indexable {
         }
 
         return displayName;
+    }
+
+    public boolean isPrimaryOwner() {
+        return primaryOwner;
+    }
+
+    public void setPrimaryOwner(boolean primaryOwner) {
+        this.primaryOwner = primaryOwner;
     }
 
     @Override

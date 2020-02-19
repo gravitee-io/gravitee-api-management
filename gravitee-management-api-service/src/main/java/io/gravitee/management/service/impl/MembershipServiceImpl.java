@@ -460,6 +460,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         UserMembership userMembership = new UserMembership();
                         userMembership.setType(type.name());
                         userMembership.setReference(membership.getReferenceId());
+                        userMembership.setRoles(membership.getRoles());
                         return userMembership;
                     })
                     .collect(Collectors.toSet());
