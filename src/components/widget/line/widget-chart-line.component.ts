@@ -73,7 +73,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
                   isFieldRequest = false;
                 }
                 let label = this.parent.widget.chart.labels ? this.parent.widget.chart.labels[idx] : '';
-                if (!label && value.metadata && value.metadata[bucket.name]) {
+                if (!label || (value.metadata && value.metadata[bucket.name])) {
                   label = value.metadata[bucket.name].name;
                 }
 
