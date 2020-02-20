@@ -408,7 +408,8 @@ public class ApiResource extends AbstractResource {
     public Response updateWithSwagger(
             @PathParam("api") String api,
             @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        final ApiEntity updatedApi = apiService.update(api, swaggerService.prepareForUpdate(swaggerDescriptor), swaggerDescriptor);
+        NewSwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(swaggerDescriptor);
+        final ApiEntity updatedApi = apiService.update(api, swaggerApiEntity, swaggerDescriptor);
         return Response
                 .ok(updatedApi)
                 .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))

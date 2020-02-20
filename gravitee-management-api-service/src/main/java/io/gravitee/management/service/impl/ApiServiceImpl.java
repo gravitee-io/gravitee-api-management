@@ -79,7 +79,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -280,8 +279,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 page.setType(SWAGGER);
                 page.setOrder(1);
                 if (INLINE.equals(swaggerDescriptor.getType())) {
-                    String modifiedApi = addGraviteeUrl(api.getProxy().getVirtualHosts(), swaggerDescriptor.getPayload());
-                    page.setContent(modifiedApi);
+                    page.setContent(swaggerDescriptor.getPayload());
                 } else {
                     final PageSourceEntity source = new PageSourceEntity();
                     page.setSource(source);
@@ -295,8 +293,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 page.setName(pageToUpdate.getName());
                 page.setOrder(pageToUpdate.getOrder());
                 if (INLINE.equals(swaggerDescriptor.getType())) {
-                    String modifiedApi = addGraviteeUrl(api.getProxy().getVirtualHosts(), swaggerDescriptor.getPayload());
-                    page.setContent(modifiedApi);
+                    page.setContent(swaggerDescriptor.getPayload());
                 } else {
                     final PageSourceEntity source = new PageSourceEntity();
                     page.setSource(source);
@@ -368,33 +365,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         });
 
         path.setRules(rules);
-    }
-
-    private String addGraviteeUrl(List<VirtualHost> virtualHosts, String payload) {
-        List<String> graviteeUrls = new ArrayList<>();
-        String portalEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
-        if (portalEntrypoint != null) {
-            virtualHosts.forEach(new Consumer<VirtualHost>() {
-                @Override
-                public void accept(VirtualHost virtualHost) {
-                    if (virtualHost.getHost() == null) {
-                        graviteeUrls.add(portalEntrypoint + virtualHost.getPath());
-                    } else {
-                        graviteeUrls.add(virtualHost.getHost() + virtualHost.getPath());
-                    }
-                }
-            });
-        }
-
-        List<EntrypointEntity> entrypoints = entrypointService.findAll();
-        entrypoints.stream().flatMap(new Function<EntrypointEntity, Stream<String>>() {
-            @Override
-            public Stream<String> apply(EntrypointEntity entrypoint) {
-                return virtualHosts.stream().map(virtualHost -> entrypoint.getValue() + virtualHost.getPath());
-            }
-        }).forEach(graviteeUrls::add);
-
-        return swaggerService.replaceServerList(payload, graviteeUrls);
     }
 
     private ApiEntity create0(UpdateApiEntity api, String userId) throws ApiAlreadyExistsException {
@@ -789,7 +759,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity update(String apiId, UpdateSwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    public ApiEntity update(String apiId, NewSwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
         final ApiEntity apiEntityToUpdate = this.findById(apiId);
         final UpdateApiEntity updateApiEntity = convert(apiEntityToUpdate);
 
@@ -1677,7 +1647,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     Map<String, String> metadataDecoded = Arrays
                             .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
                             .map(entry -> entry.split("="))
-                            .collect(Collectors.toMap(entry -> entry[0], entry -> entry[1]));
+                            .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
                     apiModelEntity.setMetadata(metadataDecoded);
                 } catch (Exception ex) {
                     throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
@@ -1704,7 +1674,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (SWAGGER.name().equals(pageEntity.getType())) {
             final ImportSwaggerDescriptorEntity importSwaggerDescriptorEntity = new ImportSwaggerDescriptorEntity();
             importSwaggerDescriptorEntity.setPayload(pageEntity.getContent());
-            final NewSwaggerApiEntity newSwaggerApiEntity = swaggerService.prepare(importSwaggerDescriptorEntity);
+            final NewSwaggerApiEntity newSwaggerApiEntity = swaggerService.createAPI(importSwaggerDescriptorEntity);
             apiEntity.getPathMappings().addAll(newSwaggerApiEntity.getPaths().stream().map(SwaggerPath::getPath).collect(toList()));
         }
 

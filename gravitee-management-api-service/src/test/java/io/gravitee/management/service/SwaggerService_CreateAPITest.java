@@ -15,7 +15,6 @@
  */
 package io.gravitee.management.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
@@ -23,7 +22,6 @@ import io.gravitee.management.model.api.NewSwaggerApiEntity;
 import io.gravitee.management.model.api.SwaggerPath;
 import io.gravitee.management.model.api.SwaggerVerb;
 import io.gravitee.management.service.impl.SwaggerServiceImpl;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -37,21 +35,15 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SwaggerService_PrepareTest {
+public class SwaggerService_CreateAPITest {
 
     private SwaggerService swaggerService = new SwaggerServiceImpl();
-
-    @Before
-    public void setUp() {
-        setField(swaggerService, "mapper", new ObjectMapper());
-    }
 
     // Swagger v1
     @Test
@@ -84,7 +76,6 @@ public class SwaggerService_PrepareTest {
     public void shouldPrepareAPIFromSwaggerV2_Inline_yaml() throws IOException {
         validate(prepareInline("io/gravitee/management/service/swagger-v2.yaml"));
     }
-
 
     // OpenAPI
     @Test
@@ -128,7 +119,7 @@ public class SwaggerService_PrepareTest {
         swaggerDescriptor.setPayload(descriptor);
         swaggerDescriptor.setWithPolicyMocks(withMocks);
 
-        return swaggerService.prepare(swaggerDescriptor);
+        return swaggerService.createAPI(swaggerDescriptor);
     }
 
     private NewSwaggerApiEntity prepareUrl(String file) {
@@ -141,7 +132,7 @@ public class SwaggerService_PrepareTest {
             fail(e.getMessage());
         }
 
-        return swaggerService.prepare(swaggerDescriptor);
+        return swaggerService.createAPI(swaggerDescriptor);
     }
 
     @Test

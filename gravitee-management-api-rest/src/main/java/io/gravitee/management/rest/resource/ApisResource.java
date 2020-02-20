@@ -196,7 +196,7 @@ public class ApisResource extends AbstractResource {
     })
     public Response importSwagger(
             @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        final ApiEntity api = apiService.create(swaggerService.prepare(swaggerDescriptor), getAuthenticatedUser(), swaggerDescriptor);
+        final ApiEntity api = apiService.create(swaggerService.createAPI(swaggerDescriptor), getAuthenticatedUser(), swaggerDescriptor);
         return Response
                 .created(URI.create("/apis/" + api.getId()))
                 .entity(api)
