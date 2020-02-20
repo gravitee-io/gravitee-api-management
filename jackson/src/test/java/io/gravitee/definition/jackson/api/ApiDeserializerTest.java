@@ -51,6 +51,7 @@ public class ApiDeserializerTest extends AbstractTest {
 
         Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
         Assert.assertTrue(((HttpEndpoint) endpoint).getHttpClientOptions().isUseCompression());
+        Assert.assertEquals(ProtocolVersion.HTTP_1_1, ((HttpEndpoint) endpoint).getHttpClientOptions().getVersion());
     }
 
     @Test
@@ -649,5 +650,43 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertNull(host2.getHost());
         Assert.assertEquals("/my-api2", host2.getPath());
         Assert.assertFalse(host2.isOverrideEntrypoint());
+    }
+
+    @Test
+    public void definition_http2_endpoint() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-http2-endpoint.json", Api.class);
+        Assert.assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
+
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
+        Assert.assertEquals(EndpointType.HTTP, endpoint.getType());
+        Assert.assertTrue(((HttpEndpoint) endpoint).getHttpClientOptions().isClearTextUpgrade());
+        Assert.assertEquals(ProtocolVersion.HTTP_2, ((HttpEndpoint) endpoint).getHttpClientOptions().getVersion());
+    }
+
+    @Test
+    public void definition_grpc_endpoint() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-grpc-endpoint.json", Api.class);
+        Assert.assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
+
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
+        Assert.assertEquals(EndpointType.GRPC, endpoint.getType());
+    }
+
+    @Test
+    public void definition_grpc_endpoint_ssl() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-grpc-endpoint-ssl.json", Api.class);
+        Assert.assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
+
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
+        Assert.assertEquals(EndpointType.GRPC, endpoint.getType());
+    }
+
+    @Test
+    public void definition_grpc_endpoint_without_type() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-grpc-endpoint-without-type.json", Api.class);
+        Assert.assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
+
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
+        Assert.assertEquals(EndpointType.HTTP, endpoint.getType());
     }
 }

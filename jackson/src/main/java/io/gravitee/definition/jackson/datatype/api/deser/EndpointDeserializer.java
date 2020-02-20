@@ -16,7 +16,6 @@
 package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
@@ -37,7 +36,28 @@ public abstract class EndpointDeserializer<T extends Endpoint> extends StdScalar
         super(vc);
     }
 
-    protected void deserialize(T endpoint, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    @Override
+    public T deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
+        JsonNode node = parser.getCodec().readTree(parser);
+
+        String name, target;
+
+        JsonNode nameNode = node.get("name");
+        if (nameNode != null) {
+            name = nameNode.asText();
+        } else {
+            throw ctxt.mappingException("Endpoint name is required");
+        }
+
+        JsonNode targetNode = node.get("target");
+        if (targetNode != null) {
+            target = targetNode.asText();
+        } else {
+            throw ctxt.mappingException("Endpoint target is required");
+        }
+
+        T endpoint = createEndpoint(name, target);
+
         final JsonNode weightNode = node.get("weight");
         if (weightNode != null) {
             int weight = weightNode.asInt(Endpoint.DEFAULT_WEIGHT);
@@ -75,5 +95,13 @@ public abstract class EndpointDeserializer<T extends Endpoint> extends StdScalar
         if (inheritNode != null) {
             endpoint.setInherit(inheritNode.asBoolean());
         }
+
+        deserialize(endpoint, node, ctxt);
+
+        return endpoint;
     }
+
+    protected abstract T createEndpoint(String name, String target);
+
+    protected abstract T deserialize(T endpoint, JsonNode node, DeserializationContext ctxt) throws IOException;
 }

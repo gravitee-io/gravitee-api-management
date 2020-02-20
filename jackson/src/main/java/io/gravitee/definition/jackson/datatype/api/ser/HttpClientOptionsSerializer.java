@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.ProtocolVersion;
 
 import java.io.IOException;
 
@@ -43,6 +44,13 @@ public class HttpClientOptionsSerializer extends StdScalarSerializer<HttpClientO
         jgen.writeNumberField("maxConcurrentConnections", httpClientOptions.getMaxConcurrentConnections());
         jgen.writeBooleanField("useCompression", httpClientOptions.isUseCompression());
         jgen.writeBooleanField("followRedirects", httpClientOptions.isFollowRedirects());
+
+        // For backward compatibility
+        if (httpClientOptions.getVersion() != ProtocolVersion.HTTP_1_1) {
+            jgen.writeStringField("version", httpClientOptions.getVersion().name());
+            jgen.writeBooleanField("clearTextUpgrade", httpClientOptions.isClearTextUpgrade());
+        }
+
         jgen.writeEndObject();
     }
 }

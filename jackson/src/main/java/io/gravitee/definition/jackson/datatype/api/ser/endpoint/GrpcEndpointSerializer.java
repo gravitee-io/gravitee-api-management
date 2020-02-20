@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model;
+package io.gravitee.definition.jackson.datatype.api.ser.endpoint;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import io.gravitee.definition.model.endpoint.GrpcEndpoint;
+
+import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum EndpointType {
+public class GrpcEndpointSerializer extends HttpEndpointSerializer<GrpcEndpoint>  {
 
-    HTTP("http"),
-    GRPC("grpc");
-
-    private final String name;
-
-    EndpointType(String name) {
-        this.name = name;
+    public GrpcEndpointSerializer(Class<GrpcEndpoint> t) {
+        super(t);
     }
 
-    public String typeName() {
-        return this.name;
+    @Override
+    protected void doSerialize(GrpcEndpoint endpoint, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+        super.doSerialize(endpoint, jgen, serializerProvider);
     }
 }

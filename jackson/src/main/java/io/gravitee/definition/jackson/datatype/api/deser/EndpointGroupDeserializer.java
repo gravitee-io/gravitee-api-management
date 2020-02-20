@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.endpoint.GrpcEndpoint;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
 
@@ -66,6 +67,9 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
                 switch (type) {
                     case HTTP:
                         endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(HttpEndpoint.class);
+                        break;
+                    case GRPC:
+                        endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(GrpcEndpoint.class);
                         break;
                     default:
                         endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(HttpEndpoint.class);

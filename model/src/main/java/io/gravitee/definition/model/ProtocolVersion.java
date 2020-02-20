@@ -19,18 +19,8 @@ package io.gravitee.definition.model;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum EndpointType {
+public enum ProtocolVersion {
 
-    HTTP("http"),
-    GRPC("grpc");
-
-    private final String name;
-
-    EndpointType(String name) {
-        this.name = name;
-    }
-
-    public String typeName() {
-        return this.name;
-    }
+    HTTP_1_1,
+    HTTP_2
 }

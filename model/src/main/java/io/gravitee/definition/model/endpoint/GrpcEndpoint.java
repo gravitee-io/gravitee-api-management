@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model;
+package io.gravitee.definition.model.endpoint;
+
+import io.gravitee.definition.model.EndpointType;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum EndpointType {
+public class GrpcEndpoint extends HttpEndpoint {
 
-    HTTP("http"),
-    GRPC("grpc");
-
-    private final String name;
-
-    EndpointType(String name) {
-        this.name = name;
-    }
-
-    public String typeName() {
-        return this.name;
+    public GrpcEndpoint(String name, String target) {
+        super(EndpointType.GRPC, name, target);
     }
 }

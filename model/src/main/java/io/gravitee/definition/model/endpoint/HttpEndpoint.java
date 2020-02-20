@@ -33,7 +33,11 @@ public class HttpEndpoint extends Endpoint {
     private EndpointHealthCheckService healthCheck;
 
     public HttpEndpoint(String name, String target) {
-        super(EndpointType.HTTP, name, target);
+        this(EndpointType.HTTP, name, target);
+    }
+
+    HttpEndpoint(EndpointType type, String name, String target) {
+        super(type, name, target);
     }
 
     public HttpProxy getHttpProxy() {

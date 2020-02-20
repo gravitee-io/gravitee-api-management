@@ -15,7 +15,6 @@
  */
 package io.gravitee.definition.jackson.datatype.api.deser.endpoint;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,50 +36,35 @@ import static java.lang.Boolean.FALSE;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpEndpointDeserializer extends EndpointDeserializer<HttpEndpoint> {
-    public HttpEndpointDeserializer(Class<HttpEndpoint> vc) {
+public class HttpEndpointDeserializer<T extends HttpEndpoint> extends EndpointDeserializer<T> {
+
+    public HttpEndpointDeserializer(Class<T> vc) {
         super(vc);
     }
 
     @Override
-    public HttpEndpoint deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
+    protected T createEndpoint(String name, String target) {
+        return (T) new HttpEndpoint(name, target);
+    }
 
-        String name, target;
-
-        JsonNode nameNode = node.get("name");
-        if (nameNode != null) {
-            name = nameNode.asText();
-        } else {
-            throw ctxt.mappingException("Endpoint name is required");
-        }
-
-        JsonNode targetNode = node.get("target");
-        if (targetNode != null) {
-            target = targetNode.asText();
-        } else {
-            throw ctxt.mappingException("Endpoint target is required");
-        }
-
-        HttpEndpoint endpoint = new HttpEndpoint(name, target);
-        deserialize(endpoint, jp, node, ctxt);
-
+    @Override
+    protected T deserialize(T endpoint, JsonNode node, DeserializationContext ctxt) throws IOException {
         JsonNode healthcheckNode = node.get("healthcheck");
         if (healthcheckNode != null && healthcheckNode.isObject()) {
-            EndpointHealthCheckService healthCheckService = healthcheckNode.traverse(jp.getCodec()).readValueAs(EndpointHealthCheckService.class);
+            EndpointHealthCheckService healthCheckService = healthcheckNode.traverse(ctxt.getParser().getCodec()).readValueAs(EndpointHealthCheckService.class);
             endpoint.setHealthCheck(healthCheckService);
         }
 
         if (endpoint.getInherit() == null || endpoint.getInherit().equals(FALSE)) {
             JsonNode httpProxyNode = node.get("proxy");
             if (httpProxyNode != null) {
-                HttpProxy httpProxy = httpProxyNode.traverse(jp.getCodec()).readValueAs(HttpProxy.class);
+                HttpProxy httpProxy = httpProxyNode.traverse(ctxt.getParser().getCodec()).readValueAs(HttpProxy.class);
                 endpoint.setHttpProxy(httpProxy);
             }
 
             JsonNode httpClientOptionsNode = node.get("http");
             if (httpClientOptionsNode != null) {
-                HttpClientOptions httpClientOptions = httpClientOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientOptions.class);
+                HttpClientOptions httpClientOptions = httpClientOptionsNode.traverse(ctxt.getParser().getCodec()).readValueAs(HttpClientOptions.class);
                 endpoint.setHttpClientOptions(httpClientOptions);
             } else {
                 endpoint.setHttpClientOptions(new HttpClientOptions());
@@ -88,7 +72,7 @@ public class HttpEndpointDeserializer extends EndpointDeserializer<HttpEndpoint>
 
             JsonNode httpClientSslOptionsNode = node.get("ssl");
             if (httpClientSslOptionsNode != null) {
-                HttpClientSslOptions httpClientSslOptions = httpClientSslOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientSslOptions.class);
+                HttpClientSslOptions httpClientSslOptions = httpClientSslOptionsNode.traverse(ctxt.getParser().getCodec()).readValueAs(HttpClientSslOptions.class);
                 endpoint.setHttpClientSslOptions(httpClientSslOptions);
             }
 
@@ -104,7 +88,7 @@ public class HttpEndpointDeserializer extends EndpointDeserializer<HttpEndpoint>
 
             JsonNode headersNode = node.get("headers");
             if (headersNode != null && !headersNode.isEmpty(null)) {
-                Map<String, String> headers = headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {
+                Map<String, String> headers = headersNode.traverse(ctxt.getParser().getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {
                 });
                 if (headers != null && !headers.isEmpty()) {
                     if (endpoint.getHeaders() == null) {

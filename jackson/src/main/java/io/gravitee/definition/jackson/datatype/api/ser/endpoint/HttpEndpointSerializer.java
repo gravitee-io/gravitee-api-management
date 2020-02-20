@@ -29,14 +29,14 @@ import static java.lang.Boolean.FALSE;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpEndpointSerializer extends EndpointSerializer<HttpEndpoint>  {
+public class HttpEndpointSerializer<T extends HttpEndpoint> extends EndpointSerializer<T>  {
 
-    public HttpEndpointSerializer(Class<HttpEndpoint> t) {
+    public HttpEndpointSerializer(Class<T> t) {
         super(t);
     }
 
     @Override
-    protected void doSerialize(HttpEndpoint endpoint, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(T endpoint, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
         super.doSerialize(endpoint, jgen, serializerProvider);
 
         if (endpoint.getHealthCheck() != null) {

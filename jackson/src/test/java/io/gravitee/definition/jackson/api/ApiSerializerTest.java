@@ -17,6 +17,8 @@ package io.gravitee.definition.jackson.api;
 
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -293,6 +295,38 @@ public class ApiSerializerTest extends AbstractTest {
     @Test
     public void definition_virtualhosts() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-virtualhosts.json", Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_http2_endpoint() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-http2-endpoint.json", Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_grpc_endpoint() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-grpc-endpoint.json", Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_grpc_endpoint_ssl() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-grpc-endpoint-ssl.json", Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
+
+    @Test
+    public void definition_grpc_endpoint_without_type() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-grpc-endpoint-without-type.json", Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assert.assertNotNull(generatedJsonDefinition);

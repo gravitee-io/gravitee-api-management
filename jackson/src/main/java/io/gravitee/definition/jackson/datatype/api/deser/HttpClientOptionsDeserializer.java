@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.ProtocolVersion;
 
 import java.io.IOException;
 
@@ -39,68 +40,38 @@ public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer
 
         HttpClientOptions httpClientOptions = new HttpClientOptions();
 
-        JsonNode connectTimeoutNode = node.get("connectTimeout");
-        if (connectTimeoutNode != null) {
-            long connectTimeout = connectTimeoutNode.asLong(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT);
-            httpClientOptions.setConnectTimeout(connectTimeout);
-        } else {
-            httpClientOptions.setConnectTimeout(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT);
+        httpClientOptions.setConnectTimeout(
+                node.path("connectTimeout").asLong(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT));
+
+        httpClientOptions.setReadTimeout(
+                node.path("readTimeout").asLong(HttpClientOptions.DEFAULT_READ_TIMEOUT));
+
+        httpClientOptions.setIdleTimeout(
+                node.path("idleTimeout").asLong(HttpClientOptions.DEFAULT_IDLE_TIMEOUT));
+
+        httpClientOptions.setKeepAlive(
+                node.path("keepAlive").asBoolean(HttpClientOptions.DEFAULT_KEEP_ALIVE));
+
+        httpClientOptions.setPipelining(
+                node.path("pipelining").asBoolean(HttpClientOptions.DEFAULT_PIPELINING));
+
+        httpClientOptions.setMaxConcurrentConnections(
+                node.path("maxConcurrentConnections").asInt(HttpClientOptions.DEFAULT_MAX_CONCURRENT_CONNECTIONS));
+
+        httpClientOptions.setUseCompression(
+                node.path("useCompression").asBoolean(HttpClientOptions.DEFAULT_USE_COMPRESSION));
+
+        httpClientOptions.setFollowRedirects(
+                node.path("followRedirects").asBoolean(HttpClientOptions.DEFAULT_FOLLOW_REDIRECTS));
+
+        if (node.get("clearTextUpgrade") != null) {
+            httpClientOptions.setClearTextUpgrade(
+                    node.get("clearTextUpgrade").asBoolean(HttpClientOptions.DEFAULT_CLEAR_TEXT_UPGRADE));
         }
 
-        JsonNode readTimeoutNode = node.get("readTimeout");
-        if (readTimeoutNode != null) {
-            long readTimeout = readTimeoutNode.asLong(HttpClientOptions.DEFAULT_READ_TIMEOUT);
-            httpClientOptions.setReadTimeout(readTimeout);
-        } else {
-            httpClientOptions.setReadTimeout(HttpClientOptions.DEFAULT_READ_TIMEOUT);
-        }
-
-        JsonNode idleTimeoutNode = node.get("idleTimeout");
-        if (idleTimeoutNode != null) {
-            long idleTimeout = idleTimeoutNode.asLong(HttpClientOptions.DEFAULT_IDLE_TIMEOUT);
-            httpClientOptions.setIdleTimeout(idleTimeout);
-        } else {
-            httpClientOptions.setIdleTimeout(HttpClientOptions.DEFAULT_IDLE_TIMEOUT);
-        }
-
-        JsonNode keepAliveNode = node.get("keepAlive");
-        if (keepAliveNode != null) {
-            boolean keepAlive = keepAliveNode.asBoolean(HttpClientOptions.DEFAULT_KEEP_ALIVE);
-            httpClientOptions.setKeepAlive(keepAlive);
-        } else {
-            httpClientOptions.setKeepAlive(HttpClientOptions.DEFAULT_KEEP_ALIVE);
-        }
-
-        JsonNode pipeliningNode = node.get("pipelining");
-        if (pipeliningNode != null) {
-            boolean pipelining = pipeliningNode.asBoolean(HttpClientOptions.DEFAULT_PIPELINING);
-            httpClientOptions.setPipelining(pipelining);
-        } else {
-            httpClientOptions.setPipelining(HttpClientOptions.DEFAULT_PIPELINING);
-        }
-
-        JsonNode maxConcurrentConnectionsNode = node.get("maxConcurrentConnections");
-        if (maxConcurrentConnectionsNode != null) {
-            int maxConcurrentConnections = maxConcurrentConnectionsNode.asInt(HttpClientOptions.DEFAULT_MAX_CONCURRENT_CONNECTIONS);
-            httpClientOptions.setMaxConcurrentConnections(maxConcurrentConnections);
-        } else {
-            httpClientOptions.setMaxConcurrentConnections(HttpClientOptions.DEFAULT_MAX_CONCURRENT_CONNECTIONS);
-        }
-
-        JsonNode useCompressionNode = node.get("useCompression");
-        if (useCompressionNode != null) {
-            boolean useCompression = useCompressionNode.asBoolean(HttpClientOptions.DEFAULT_USE_COMPRESSION);
-            httpClientOptions.setUseCompression(useCompression);
-        } else {
-            httpClientOptions.setUseCompression(HttpClientOptions.DEFAULT_USE_COMPRESSION);
-        }
-
-        JsonNode followRedirectsNode = node.get("followRedirects");
-        if (followRedirectsNode != null) {
-            boolean followRedirects = followRedirectsNode.asBoolean(HttpClientOptions.DEFAULT_FOLLOW_REDIRECTS);
-            httpClientOptions.setFollowRedirects(followRedirects);
-        } else {
-            httpClientOptions.setFollowRedirects(HttpClientOptions.DEFAULT_FOLLOW_REDIRECTS);
+        if (node.get("version") != null) {
+            httpClientOptions.setVersion(ProtocolVersion.valueOf(
+                    node.path("version").asText(HttpClientOptions.DEFAULT_PROTOCOL_VERSION.name())));
         }
 
         return httpClientOptions;
