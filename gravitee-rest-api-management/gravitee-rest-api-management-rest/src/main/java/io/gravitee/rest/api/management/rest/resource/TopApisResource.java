@@ -101,7 +101,9 @@ public class TopApisResource extends AbstractResource  {
     private Consumer<TopApiEntity> addPictureUrl() {
         return topApiEntity -> {
             final UriBuilder ub = uriInfo.getBaseUriBuilder();
-            final UriBuilder uriBuilder = ub.path(GraviteeContext.getCurrentEnvironment()).path("apis").path(topApiEntity.getApi()).path("picture");
+            final UriBuilder uriBuilder = ub.path("organizations").path(GraviteeContext.getCurrentOrganization())
+                    .path("environments").path(GraviteeContext.getCurrentEnvironment())
+                    .path("apis").path(topApiEntity.getApi()).path("picture");
             topApiEntity.setPictureUrl(uriBuilder.build().toString());
         };
     }
