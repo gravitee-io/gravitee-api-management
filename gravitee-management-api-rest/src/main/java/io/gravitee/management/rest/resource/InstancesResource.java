@@ -15,10 +15,13 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.InstanceListItem;
+import io.gravitee.management.model.InstanceQuery;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.resource.param.InstanceSearchParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.InstanceService;
@@ -26,15 +29,12 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -57,8 +57,15 @@ public class InstancesResource {
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_INSTANCE, acls = RolePermissionAction.READ)
     })
-    public Collection<InstanceListItem> listInstances(@QueryParam("includeStopped") boolean includeStopped) {
-        return new ArrayList<>(instanceService.findInstances(includeStopped));
+    public Page<InstanceListItem> listInstances(@BeanParam InstanceSearchParam param) {
+        InstanceQuery query = new InstanceQuery();
+        query.setIncludeStopped(param.isIncludeStopped());
+        query.setFrom(param.getFrom());
+        query.setTo(param.getTo());
+        query.setPage(param.getPage());
+        query.setSize(param.getSize());
+
+        return instanceService.search(query);
     }
 
     @Path("{instance}")

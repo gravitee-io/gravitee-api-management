@@ -550,11 +550,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             group.setEventRules(groupEventRules);
         }
-        entity.setMaxInvitation(group.getMaxInvitation());
-        entity.setLockApiRole(group.isLockApiRole());
-        entity.setLockApplicationRole(group.isLockApplicationRole());
-        entity.setSystemInvitation(group.isSystemInvitation());
-        entity.setEmailInvitation(group.isEmailInvitation());
+        group.setMaxInvitation(entity.getMaxInvitation());
+        group.setLockApiRole(entity.isLockApiRole());
+        group.setLockApplicationRole(entity.isLockApplicationRole());
+        group.setSystemInvitation(entity.isSystemInvitation());
+        group.setEmailInvitation(entity.isEmailInvitation());
         return group;
     }
 

@@ -25,6 +25,7 @@ public class TokenEntity {
 
     private TokenType type;
     private String token;
+    private String state;
 
     public TokenType getType() {
         return type;
@@ -40,6 +41,14 @@ public class TokenEntity {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
     @Override

@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
@@ -150,6 +151,14 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         List<EventEntity> content = pageEvent.getContent().stream().map(this::convert).collect(Collectors.toList());
 
         return new Page<>(content, page, size, pageEvent.getTotalElements());
+    }
+
+    @Override
+    public <T> Page<T> search(List<EventType> eventTypes,
+                                    Map<String, Object> properties, long from, long to, int page, int size, Function<EventEntity, T> mapper) {
+        Page<EventEntity> result = search(eventTypes, properties, from, to, page, size);
+
+        return new Page<>(result.getContent().stream().map(mapper).collect(Collectors.toList()), page, size, result.getTotalElements());
     }
 
     @Override

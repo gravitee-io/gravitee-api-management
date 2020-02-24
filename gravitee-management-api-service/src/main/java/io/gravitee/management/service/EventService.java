@@ -24,6 +24,7 @@ import io.gravitee.management.model.NewEventEntity;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author Titouan COMPIEGNE
@@ -40,6 +41,10 @@ public interface EventService {
 
     Page<EventEntity> search(
             List<EventType> eventTypes, Map<String, Object> properties, long from, long to, int page, int size);
+
+    <T> Page<T> search(List<EventType> eventTypes,
+                       Map<String, Object> properties, long from, long to, int page, int size,
+                       Function<EventEntity, T> mapper);
 
     Collection<EventEntity> search(EventQuery query);
 }

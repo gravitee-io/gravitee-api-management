@@ -24,6 +24,7 @@ import io.gravitee.management.model.application.ApplicationSettings;
 import io.gravitee.management.model.application.SimpleApplicationSettings;
 import io.gravitee.management.model.common.Pageable;
 import io.gravitee.management.model.parameters.Key;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.common.JWTHelper.ACTION;
@@ -35,6 +36,7 @@ import io.gravitee.management.service.notification.PortalHook;
 import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.management.service.search.query.Query;
 import io.gravitee.management.service.search.query.QueryBuilder;
+import io.gravitee.repository.Scope;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
@@ -57,6 +59,8 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.gravitee.management.service.common.JWTHelper.ACTION.*;
@@ -605,12 +609,28 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         if (results.hasResults()) {
             List<UserEntity> users = new ArrayList<>((findByIds(results.getDocuments())));
+
+            populatePrimaryOwnerFlag(users);
+
             return new Page<>(users,
                     pageable.getPageNumber(),
                     pageable.getPageSize(),
                     results.getHits());
         }
         return new Page<>(Collections.emptyList(), 1, 0, 0);
+    }
+
+    private void populatePrimaryOwnerFlag(final List<UserEntity> users) {
+        users.forEach(user -> {
+            final boolean apiPO = membershipService.findUserMembership(user.getId(), MembershipReferenceType.API)
+                    .stream().anyMatch(membership -> membership.getRoles() != null &&
+                            SystemRole.PRIMARY_OWNER.name().equals(membership.getRoles().get(RoleScope.API.getId())));
+
+            final boolean appPO = membershipService.findUserMembership(user.getId(), MembershipReferenceType.APPLICATION)
+                    .stream().anyMatch(membership -> membership.getRoles() != null &&
+                            SystemRole.PRIMARY_OWNER.name().equals(membership.getRoles().get(RoleScope.APPLICATION.getId())));
+            user.setPrimaryOwner(apiPO || appPO);
+        });
     }
 
 
@@ -628,6 +648,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     .stream()
                     .map(u -> convert(u, false))
                     .collect(toList());
+
+            populatePrimaryOwnerFlag(entities);
 
             return new Page<>(entities,
                     users.getPageNumber() + 1,
