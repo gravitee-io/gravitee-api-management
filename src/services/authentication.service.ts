@@ -36,14 +36,14 @@ class AuthenticationService {
     'ngInject';
   }
 
-  authenticate(provider: IdentityProvider) {
+  authenticate(provider: IdentityProvider, state?: string) {
     provider.type = (provider.type === 'oidc') ? 'oauth2' : provider.type;
 
     let satellizerProvider = this.SatellizerConfig.providers[provider.id];
     if (!satellizerProvider) {
       satellizerProvider = _.merge(provider, {
         oauthType: '2.0',
-        requiredUrlParams: ['scope'],
+        requiredUrlParams: ['scope', 'state'],
         scopeDelimiter: ' ',
         scope: provider.scopes
       });
@@ -53,17 +53,28 @@ class AuthenticationService {
     }
 
     this.SatellizerConfig.providers[provider.id] = _.merge(satellizerProvider, {
+      state: state,
       url: this.Constants.baseURL + 'auth/oauth2/' + provider.id,
       redirectUri: window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname),
     });
 
     this.$auth.authenticate(provider.id)
-      .then( () => {
+      .then( (response) => {
         this.UserService.current().then( (user) => {
           if (provider.userLogoutEndpoint) {
             this.$window.localStorage.setItem("user-logout-url", provider.userLogoutEndpoint);
           }
           this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : user});
+
+          let state = response.data.state;
+
+          if (state !== undefined) {
+            let nonce = JSON.parse(this.$window.localStorage[state]);
+            if (nonce.redirectUri) {
+              this.$window.location.href = '#!' + nonce.redirectUri;
+              return;
+            }
+          }
 
           let route = this.RouterService.getLastRoute();
           if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm') {

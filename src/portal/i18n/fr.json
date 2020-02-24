@@ -164,7 +164,9 @@
     },
     "header": {
       "views": "Vues",
-      "tags": "Tags"
+      "tags": "Tags",
+      "entryPoints": "Points d’entrée",
+      "noEntryPoint": "Aucune entrée configurée"
     }
   },
   "applications": {

@@ -164,7 +164,9 @@
     },
     "header": {
       "views": "Views",
-      "tags": "Tags"
+      "tags": "Tags",
+      "entryPoints": "Entry Points",
+      "noEntryPoint": "No entry point set"
     }
   },
   "applications": {

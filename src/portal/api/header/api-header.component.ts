@@ -16,6 +16,7 @@
 import _ = require('lodash');
 import ApiService from "../../../services/api.service";
 import TicketService from "../../../services/ticket.service";
+import * as _ from "lodash";
 
 const ApiHeaderComponent: ng.IComponentOptions = {
   bindings: {
