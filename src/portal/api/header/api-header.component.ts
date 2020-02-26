@@ -52,10 +52,34 @@ const ApiHeaderComponent: ng.IComponentOptions = {
         if (this.api.proxy.virtual_hosts.length > 0) {
           ctxtpath = this.api.proxy.virtual_hosts[0].path;
         }
-
         this.api.entrypoints[0].target = Constants.portal.entrypoint + ctxtpath;
-
       }
+
+      // resolve entry points
+      this.resolvedEntrypoints = [];
+      if (this.Constants.portal.apis.apiHeaderShowTags.enabled) {
+        this.api.entrypoints.forEach(resolvedEntryPoint => {
+          if (resolvedEntryPoint.tags) {
+            resolvedEntryPoint.tags.forEach(tag => {
+              this.resolvedEntrypoints.push({tags: [tag], value: resolvedEntryPoint.target});
+            });
+          }
+        });
+      } else {
+        _.uniq(_.map(this.api.entrypoints, "target")).forEach(apiEntryPoint => this.resolvedEntrypoints.push({ tags: [""], value: apiEntryPoint}));
+      }
+      // set default entry point if none has been set
+      if (this.resolvedEntrypoints.length === 0) {
+        this.resolvedEntrypoints.push({ tags: [""], value: this.api.entrypoints[0].target});
+      }
+      // manage tags without entry point
+      if (this.Constants.portal.apis.apiHeaderShowTags.enabled) {
+        let resolvedTags = _.difference(this.api.tags, _.map(this.resolvedEntrypoints, resolvedEntrypoint => resolvedEntrypoint.tags[0]));
+        if (resolvedTags.length > 0) {
+          resolvedTags.forEach(resolvedTag => this.resolvedEntrypoints.push({tags: [resolvedTag], value: ""}));
+        }
+      }
+
       $timeout(function () {
 
         const apiNavbar = document.getElementById("api-navbar");
