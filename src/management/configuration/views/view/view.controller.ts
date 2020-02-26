@@ -140,6 +140,7 @@ class ViewController {
 
   toggleVisibility() {
     this.view.hidden = !this.view.hidden;
+    this.formChanged = true;
   }
 
   isHighlightApi(api) {
