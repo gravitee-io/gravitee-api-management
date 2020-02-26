@@ -18,8 +18,8 @@ package io.gravitee.repository.bridge.client.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -44,47 +44,71 @@ public class HttpMembershipRepository extends AbstractRepository implements Memb
     }
 
     @Override
-    public void delete(Membership membership) throws TechnicalException {
+    public void delete(String membershipId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Optional<Membership> findById(String userId, MembershipReferenceType referenceType, String referenceId) throws TechnicalException {
+    public Optional<Membership> findById(String membershipId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Membership> findByIds(String userId, MembershipReferenceType referenceType, Set<String> referenceIds) throws TechnicalException {
+    public Set<Membership> findByIds(Set<String> membershipIds) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Membership> findByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName) throws TechnicalException {
+    public Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Membership> findByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, RoleScope roleScope, String roleName) throws TechnicalException {
+    public Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Membership> findByUserAndReferenceType(String userId, MembershipReferenceType referenceType) throws TechnicalException {
+    public Set<Membership> findByRoleId(String roleId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Membership> findByRole(RoleScope roleScope, String roleName) throws TechnicalException {
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(String memberId, MembershipMemberType memberType,
+            MembershipReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Membership> findByUserAndReferenceTypeAndRole(String userId, MembershipReferenceType referenceType, RoleScope roleScope, String roleName) throws TechnicalException {
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(String memberId,
+            MembershipMemberType memberType, MembershipReferenceType referenceType, String roleId)
+            throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Membership> findByUser(String userId) throws TechnicalException {
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(String memberId,
+            MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId, String roleId)
+            throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType)
+            throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(String memberId,
+            MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId)
+            throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Membership> findByMemberIdsAndMemberTypeAndReferenceType(List<String> memberIds,
+            MembershipMemberType memberType, MembershipReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 }

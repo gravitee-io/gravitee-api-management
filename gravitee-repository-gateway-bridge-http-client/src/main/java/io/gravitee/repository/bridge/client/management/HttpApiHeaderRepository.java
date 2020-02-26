@@ -55,7 +55,7 @@ public class HttpApiHeaderRepository extends AbstractRepository implements ApiHe
     }
 
     @Override
-    public Set<ApiHeader> findAllByEnvironment(String environment) throws TechnicalException {
+    public Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException {
         throw new IllegalStateException();
     }
 }

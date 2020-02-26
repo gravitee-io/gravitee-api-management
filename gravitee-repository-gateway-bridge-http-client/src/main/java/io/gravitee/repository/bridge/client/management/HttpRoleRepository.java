@@ -33,7 +33,7 @@ import java.util.Set;
 public class HttpRoleRepository extends AbstractRepository implements RoleRepository {
 
     @Override
-    public Optional<Role> findById(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
+    public Optional<Role> findById(String roleId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
@@ -48,12 +48,7 @@ public class HttpRoleRepository extends AbstractRepository implements RoleReposi
     }
 
     @Override
-    public void delete(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Set<Role> findByScope(RoleScope scope) throws TechnicalException {
+    public void delete(String roleId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
@@ -73,4 +68,11 @@ public class HttpRoleRepository extends AbstractRepository implements RoleReposi
             throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope scope, String name, String referenceId,
+            RoleReferenceType referenceType) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
 }

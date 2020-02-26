@@ -61,7 +61,7 @@ public class HttpGroupRepository extends AbstractRepository implements GroupRepo
     }
 
     @Override
-    public Set<Group> findAllByEnvironment(String environment) throws TechnicalException {
+    public Set<Group> findAllByEnvironment(String environmentId) throws TechnicalException {
         throw new IllegalStateException();
     }
 }
