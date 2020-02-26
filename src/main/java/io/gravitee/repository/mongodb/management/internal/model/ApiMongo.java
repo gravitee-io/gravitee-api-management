@@ -40,7 +40,7 @@ public class ApiMongo extends Auditable {
     @Field("name")
     private String name;
 
-    private String environment;
+    private String environmentId;
     
     private String version;
 
@@ -74,12 +74,12 @@ public class ApiMongo extends Auditable {
         this.id = id;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public String getEnvironmentId() {
+        return environmentId;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getVisibility() {
@@ -204,7 +204,7 @@ public class ApiMongo extends Auditable {
         final StringBuilder sb = new StringBuilder("Api{");
         sb.append("id='").append(id).append('\'');
         sb.append("name='").append(name).append('\'');
-        sb.append(", environment='").append(environment).append('\'');
+        sb.append(", environmentId='").append(environmentId).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", state='").append(lifecycleState).append('\'');
         sb.append(", visibility='").append(visibility).append('\'');

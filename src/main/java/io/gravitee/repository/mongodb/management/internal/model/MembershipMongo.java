@@ -18,7 +18,6 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -28,24 +27,64 @@ import java.util.Objects;
 @Document(collection = "memberships")
 public class MembershipMongo extends Auditable {
     @Id
-    MembershipPkMongo id;
+    private String id;
 
-    private List<String> roles;
+    private String memberId;
+    
+    private String memberType;
+    
+    private String referenceId;
+    
+    private String referenceType;
+    
+    private String roleId;
 
-    public MembershipPkMongo getId() {
+    public String getMemberId() {
+        return memberId;
+    }
+
+    public void setMemberId(String memberId) {
+        this.memberId = memberId;
+    }
+
+    public String getMemberType() {
+        return memberType;
+    }
+
+    public void setMemberType(String memberType) {
+        this.memberType = memberType;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public String getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    public String getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(String roleId) {
+        this.roleId = roleId;
+    }
+
+    public String getId() {
         return id;
     }
 
-    public void setId(MembershipPkMongo id) {
+    public void setId(String id) {
         this.id = id;
-    }
-
-    public List<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<String> roles) {
-        this.roles = roles;
     }
 
     @Override
@@ -53,20 +92,23 @@ public class MembershipMongo extends Auditable {
         if (this == o) return true;
         if (!(o instanceof MembershipMongo)) return false;
         MembershipMongo membershipMongo = (MembershipMongo) o;
-        return Objects.equals(id, membershipMongo.id) &&
-                Objects.equals(roles, membershipMongo.roles);
+        return Objects.equals(id, membershipMongo.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, roles);
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
         return "MembershipMongo{" +
                 "id='" + id + '\'' +
-                ", roles ='" + roles + '\'' +
+                ", memberId='" + memberId + '\'' +
+                ", memberType='" + memberType + '\'' +
+                ", referenceId ='" + referenceId + '\'' +
+                ", referenceType ='" + referenceType + '\'' +
+                ", roleId ='" + roleId + '\'' +
                 '}';
     }
 }

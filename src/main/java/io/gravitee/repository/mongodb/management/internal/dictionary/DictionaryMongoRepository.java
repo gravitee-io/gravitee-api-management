@@ -29,8 +29,8 @@ import io.gravitee.repository.mongodb.management.internal.model.DictionaryMongo;
  */
 @Repository
 public interface DictionaryMongoRepository extends MongoRepository<DictionaryMongo, String> {
-    @Query("{ environment: ?0 }")
-    List<DictionaryMongo> findByEnvironment(String environment);
+    @Query("{ environmentId: ?0 }")
+    List<DictionaryMongo> findByEnvironmentId(String environmentId);
 }
 
 

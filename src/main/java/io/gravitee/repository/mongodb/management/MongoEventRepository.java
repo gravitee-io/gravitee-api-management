@@ -131,7 +131,7 @@ public class MongoEventRepository implements EventRepository {
 
         EventMongo eventMongo = new EventMongo();
         eventMongo.setId(event.getId());
-        eventMongo.setEnvironment(event.getEnvironment());
+        eventMongo.setEnvironmentId(event.getEnvironmentId());
         eventMongo.setType(event.getType().toString());
         eventMongo.setPayload(event.getPayload());
         eventMongo.setParentId(event.getParentId());
@@ -149,7 +149,7 @@ public class MongoEventRepository implements EventRepository {
 
         Event event = new Event();
         event.setId(eventMongo.getId());
-        event.setEnvironment(eventMongo.getEnvironment());
+        event.setEnvironmentId(eventMongo.getEnvironmentId());
         event.setType(EventType.valueOf(eventMongo.getType()));
         event.setPayload(eventMongo.getPayload());
         event.setParentId(eventMongo.getParentId());

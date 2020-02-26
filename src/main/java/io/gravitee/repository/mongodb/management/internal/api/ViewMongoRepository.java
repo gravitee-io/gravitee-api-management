@@ -22,17 +22,16 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import io.gravitee.repository.mongodb.management.internal.model.ViewMongo;
-import io.gravitee.repository.mongodb.management.internal.model.ViewPkMongo;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface ViewMongoRepository extends MongoRepository<ViewMongo, ViewPkMongo> {
+public interface ViewMongoRepository extends MongoRepository<ViewMongo, String> {
 
-    @Query("{ 'id.environment': ?0 }")
-    List<ViewMongo> findByEnvironment(String environment);
+    @Query("{ 'environmentId': ?0 }")
+    List<ViewMongo> findByEnvironmentId(String environmentId);
 }
 
 

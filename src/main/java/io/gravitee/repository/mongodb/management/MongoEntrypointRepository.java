@@ -85,7 +85,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
         try {
             //Update
             entrypointMongo.setValue(entrypoint.getValue());
-            entrypointMongo.setEnvironment(entrypoint.getEnvironment());
+            entrypointMongo.setEnvironmentId(entrypoint.getEnvironmentId());
             entrypointMongo.setTags(entrypoint.getTags());
 
             EntrypointMongo entrypointMongoUpdated = internalEntryPointRepo.save(entrypointMongo);
@@ -115,7 +115,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
                 .map(entrypointMongo -> {
                     final Entrypoint entrypoint = new Entrypoint();
                     entrypoint.setId(entrypointMongo.getId());
-                    entrypoint.setEnvironment(entrypointMongo.getEnvironment());
+                    entrypoint.setEnvironmentId(entrypointMongo.getEnvironmentId());
                     entrypoint.setValue(entrypointMongo.getValue());
                     entrypoint.setTags(entrypointMongo.getTags());
                     return entrypoint;
@@ -124,13 +124,13 @@ public class MongoEntrypointRepository implements EntrypointRepository {
     }
 
     @Override
-    public Set<Entrypoint> findAllByEnvironment(String environment) throws TechnicalException {
-        final List<EntrypointMongo> entrypoints = internalEntryPointRepo.findByEnvironment(environment);
+    public Set<Entrypoint> findAllByEnvironment(String environmentId) throws TechnicalException {
+        final List<EntrypointMongo> entrypoints = internalEntryPointRepo.findByEnvironmentId(environmentId);
         return entrypoints.stream()
                 .map(entrypointMongo -> {
                     final Entrypoint entrypoint = new Entrypoint();
                     entrypoint.setId(entrypointMongo.getId());
-                    entrypoint.setEnvironment(entrypointMongo.getEnvironment());
+                    entrypoint.setEnvironmentId(entrypointMongo.getEnvironmentId());
                     entrypoint.setValue(entrypointMongo.getValue());
                     entrypoint.setTags(entrypointMongo.getTags());
                     return entrypoint;

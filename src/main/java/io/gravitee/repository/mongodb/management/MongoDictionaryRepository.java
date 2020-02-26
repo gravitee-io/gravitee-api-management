@@ -87,7 +87,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
         try {
             dictionaryMongo.setName(dictionary.getName());
-            dictionaryMongo.setEnvironment(dictionary.getEnvironment());
+            dictionaryMongo.setEnvironmentId(dictionary.getEnvironmentId());
             dictionaryMongo.setDescription(dictionary.getDescription());
             dictionaryMongo.setUpdatedAt(dictionary.getUpdatedAt());
             dictionaryMongo.setDeployedAt(dictionary.getDeployedAt());
@@ -154,10 +154,10 @@ public class MongoDictionaryRepository implements DictionaryRepository {
     }
 
     @Override
-    public Set<Dictionary> findAllByEnvironment(String environment) throws TechnicalException {
+    public Set<Dictionary> findAllByEnvironment(String environmentId) throws TechnicalException {
         LOGGER.debug("Find all dictionaries by environment");
 
-        List<DictionaryMongo> dictionaries = internalDictionaryRepo.findByEnvironment(environment);
+        List<DictionaryMongo> dictionaries = internalDictionaryRepo.findByEnvironmentId(environmentId);
         Set<Dictionary> res = mapper.collection2set(dictionaries, DictionaryMongo.class, Dictionary.class);
 
         LOGGER.debug("Find all dictionaries by environment- Done");

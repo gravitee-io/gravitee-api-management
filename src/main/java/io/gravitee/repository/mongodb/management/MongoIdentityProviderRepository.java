@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,9 +119,10 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
     public Set<IdentityProvider> findAll() throws TechnicalException {
         LOGGER.debug("Find all identity providers");
 
-        List<IdentityProviderMongo> identityProviders = internalIdentityProviderRepository.findAll();
-        Set<IdentityProvider> res = mapper.collection2set(identityProviders, IdentityProviderMongo.class, IdentityProvider.class);
-
+        Set<IdentityProvider> res = internalIdentityProviderRepository.findAll().stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
+        
         LOGGER.debug("Find all identity providers - Done");
         return res;
     }
@@ -182,9 +184,10 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
             IdentityProviderReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("Find all identity providers by ref");
 
-        List<IdentityProviderMongo> identityProviders = internalIdentityProviderRepository.findByReferenceIdAndReferenceType(referenceId, referenceType.name());
-        Set<IdentityProvider> res = mapper.collection2set(identityProviders, IdentityProviderMongo.class, IdentityProvider.class);
-
+        Set<IdentityProvider> res = internalIdentityProviderRepository.findByReferenceIdAndReferenceType(referenceId, referenceType.name()).stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
+        
         LOGGER.debug("Find all identity providers by ref - Done");
         return res;
     }

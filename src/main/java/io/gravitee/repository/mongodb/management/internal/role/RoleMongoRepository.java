@@ -23,22 +23,21 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import io.gravitee.repository.mongodb.management.internal.model.RoleMongo;
-import io.gravitee.repository.mongodb.management.internal.model.RolePkMongo;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface RoleMongoRepository extends MongoRepository<RoleMongo, RolePkMongo> {
+public interface RoleMongoRepository extends MongoRepository<RoleMongo, String> {
 
-    @Query("{ 'id.scope' : ?0 }")
-    Set<RoleMongo> findByScope(int scopeId);
+    @Query("{ 'scope' : ?0, 'name' : ?1, 'referenceId': ?2, 'referenceType': ?3 }")
+    Set<RoleMongo> findByScopeAndNameAndReferenceIdAndReferenceType(String scope, String name, String referenceId, String referenceType);
+
+    @Query("{ 'scope' : ?0, 'referenceId': ?1, 'referenceType': ?2 }")
+    Set<RoleMongo> findByScopeAndReferenceIdAndReferenceType(String scope, String referenceId, String referenceType);
     
-    @Query("{ 'id.scope' : ?0, 'id.referenceId': ?1, 'id.referenceType': ?2 }")
-    Set<RoleMongo> findByScopeAndReferenceIdAndReferenceType(int scopeId, String referenceId, String referenceType);
-    
-    @Query("{ 'id.referenceId': ?0, 'id.referenceType': ?1 }")
+    @Query("{ 'referenceId': ?0, 'referenceType': ?1 }")
     List<RoleMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }
 

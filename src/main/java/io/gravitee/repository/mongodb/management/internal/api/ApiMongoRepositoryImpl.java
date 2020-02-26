@@ -61,8 +61,8 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             if (criteria.getGroups() != null && !criteria.getGroups().isEmpty()) {
                 query.addCriteria(where("groups").in(criteria.getGroups()));
             }
-            if (criteria.getEnvironment() != null) {
-                query.addCriteria(where("environment").is(criteria.getEnvironment()));
+            if (criteria.getEnvironmentId() != null) {
+                query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
             }
             if (criteria.getLabel() != null && !criteria.getLabel().isEmpty()) {
                 query.addCriteria(where("labels").in(criteria.getLabel()));

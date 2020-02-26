@@ -48,11 +48,11 @@ public interface ApplicationMongoRepository extends MongoRepository<ApplicationM
     @Query("{ status: {$in: ?0} }")
     List<ApplicationMongo> findAll(List<ApplicationStatus> statuses);
     
-    @Query("{ environment: ?0, status: {$in: ?1} }")
-    List<ApplicationMongo> findAllByEnvironment(String environment, List<ApplicationStatus> statuses);
+    @Query("{ environmentId: ?0, status: {$in: ?1} }")
+    List<ApplicationMongo> findAllByEnvironmentId(String environmentId, List<ApplicationStatus> statuses);
     
-    @Query("{ environment: ?0 }")
-    List<ApplicationMongo> findAllByEnvironment(String environment);
+    @Query("{ environmentId: ?0 }")
+    List<ApplicationMongo> findAllByEnvironmentId(String environmentId);
 }
 
 

@@ -65,9 +65,9 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
             query.addCriteria(Criteria.where("updatedAt").gte(new Date(filter.getFrom())).lt(new Date(filter.getTo())));
         }
 
-        // set environment
-        if (filter.getEnvironment() != null) {
-            query.addCriteria(Criteria.where("environment").is(filter.getEnvironment()));
+        // set environmentId
+        if (filter.getEnvironmentId() != null) {
+            query.addCriteria(Criteria.where("environmentId").is(filter.getEnvironmentId()));
         }
         
         // set sort by updated at

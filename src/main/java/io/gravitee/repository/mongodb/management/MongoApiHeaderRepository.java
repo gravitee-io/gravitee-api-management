@@ -111,8 +111,8 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
     }
 
     @Override
-    public Set<ApiHeader> findAllByEnvironment(String environment) throws TechnicalException {
-        final List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.findByEnvironment(environment);
+    public Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException {
+        final List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.findByEnvironmentId(environmentId);
         return apiHeaders.stream()
                 .map(apiHeaderMongo -> mapper.map(apiHeaderMongo, ApiHeader.class))
                 .collect(Collectors.toSet());

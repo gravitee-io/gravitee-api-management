@@ -16,7 +16,6 @@
 package io.gravitee.repository.mongodb.management.internal.api;
 
 import io.gravitee.repository.mongodb.management.internal.model.ApiHeaderMongo;
-import io.gravitee.repository.mongodb.management.internal.model.GroupMongo;
 
 import java.util.List;
 
@@ -30,8 +29,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ApiHeaderMongoRepository extends MongoRepository<ApiHeaderMongo, String> {
-    @Query("{ environment: ?0 }")
-    List<ApiHeaderMongo> findByEnvironment(String environment);
+    @Query("{ environmentId: ?0 }")
+    List<ApiHeaderMongo> findByEnvironmentId(String environmentId);
 }
 
 

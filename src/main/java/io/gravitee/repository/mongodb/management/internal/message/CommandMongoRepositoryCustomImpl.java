@@ -59,8 +59,8 @@ public class CommandMongoRepositoryCustomImpl implements CommandMongoRepositoryC
             query.addCriteria(where("from").ne(criteria.getNotFrom()));
         }
 
-        if (criteria.getEnvironment() != null && !criteria.getEnvironment().isEmpty()){
-            query.addCriteria(where("environment").is(criteria.getEnvironment()));
+        if (criteria.getEnvironmentId() != null && !criteria.getEnvironmentId().isEmpty()){
+            query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
         }
         
         return mongoTemplate.find(query, CommandMongo.class);

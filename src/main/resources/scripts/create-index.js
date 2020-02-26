@@ -51,16 +51,25 @@ db.pages.reIndex();
 
 // "memberships" collection
 db.memberships.dropIndexes();
-db.memberships.createIndex( {"_id.userId":1, "_id.referenceId":1, "_id.referenceType":1}, { unique: true } );
-db.memberships.createIndex( {"_id.referenceId":1, "_id.referenceType":1} );
-db.memberships.createIndex( {"_id.referenceId":1, "_id.referenceType":1, "roles":1} );
-db.memberships.createIndex( {"_id.userId":1, "_id.referenceType":1} );
-db.memberships.createIndex( {"_id.userId":1, "_id.referenceType":1, "roles":1} );
+db.memberships.createIndex( { "id" : 1 }, { unique : true } );
+db.memberships.createIndex( { "memberId" : 1 } );
+db.memberships.createIndex( { "member" : 1 } );
+db.memberships.createIndex( { "referenceId" : 1 } );
+db.memberships.createIndex( { "referenceType" : 1 } );
+db.memberships.createIndex( { "referenceId":1, "referenceType":1 } );
+db.memberships.createIndex( { "referenceId":1, "referenceType":1, "roleId":1 } );
+db.memberships.createIndex( { "roleId" : 1 } );
+db.memberships.createIndex( { "memberId":1, "memberType":1, "referenceType":1 });
+db.memberships.createIndex( { "memberId":1, "memberType":1, "referenceType":1, "roleId":1 });
+db.memberships.createIndex( { "memberId":1, "memberType":1, "referenceType":1, "referenceId":1 });
+db.memberships.createIndex( { "memberId":1, "memberType":1, "referenceType":1, "referenceId":1, "roleId":1 });
+db.memberships.createIndex( { "memberId":1, "memberType":1 });
 db.memberships.reIndex();
 
 // "roles" collection
 db.roles.dropIndexes();
-db.roles.createIndex( {"_id.scope": 1 } );
+db.roles.createIndex( {"id": 1 } );
+db.roles.createIndex( {"scope": 1 } );
 db.roles.reIndex();
 
 // "audits" collection

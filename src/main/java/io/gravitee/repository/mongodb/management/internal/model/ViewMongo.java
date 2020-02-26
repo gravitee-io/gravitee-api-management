@@ -18,7 +18,6 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -29,8 +28,9 @@ import java.util.Objects;
 public class ViewMongo extends Auditable{
 
 	@Id
-	private ViewPkMongo id;
+	private String id;
 	private String name;
+    private String environmentId;
 	private String description;
 	private boolean defaultView;
 	private boolean hidden;
@@ -38,10 +38,10 @@ public class ViewMongo extends Auditable{
 	private String highlightApi;
 	private String picture;
 
-	public ViewPkMongo getId() {
+	public String getId() {
 		return id;
 	}
-	public void setId(ViewPkMongo id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -52,7 +52,14 @@ public class ViewMongo extends Auditable{
 		this.name = name;
 	}
 
-	public String getDescription() {
+	public String getEnvironmentId() {
+        return environmentId;
+    }
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
+    }
+    
+    public String getDescription() {
 		return description;
 	}
 	public void setDescription(String description) {
@@ -114,6 +121,7 @@ public class ViewMongo extends Auditable{
 		return "ViewMongo{" +
 				"id='" + id + '\'' +
 				", name='" + name + '\'' +
+				", environmentId='" + environmentId + '\'' +
 				", description='" + description + '\'' +
 				", defaultView='" + defaultView + '\'' +
 				", hidden='" + hidden + '\'' +

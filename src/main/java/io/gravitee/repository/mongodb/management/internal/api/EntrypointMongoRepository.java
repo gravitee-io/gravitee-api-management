@@ -29,6 +29,6 @@ import io.gravitee.repository.mongodb.management.internal.model.EntrypointMongo;
  */
 @Repository
 public interface EntrypointMongoRepository extends MongoRepository<EntrypointMongo, String> {
-    @Query("{ environment: ?0 }")
-    List<EntrypointMongo> findByEnvironment(String environment);
+    @Query("{ environmentId: ?0 }")
+    List<EntrypointMongo> findByEnvironmentId(String environmentId);
 }

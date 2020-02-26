@@ -27,17 +27,49 @@ import java.util.Objects;
 @Document(collection = "roles")
 public class RoleMongo extends Auditable {
     @Id
-    private RolePkMongo id;
+    private String id;
+    private String scope;
+    private String name;
+    private String referenceId;
+    private String referenceType;
     private String description;
     private boolean defaultRole;
     private boolean system;
     private int[] permissions;
 
-    public RolePkMongo getId() {
+    public String getId() {
         return id;
     }
-    public void setId(RolePkMongo id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+    public String getReferenceType() {
+        return referenceType;
+    }
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
     }
 
     public String getDescription() {
@@ -85,6 +117,10 @@ public class RoleMongo extends Auditable {
     public String toString() {
         return "RoleMongo{" +
                 "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", scope='" + scope + '\'' +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType='" + referenceType + '\'' +
                 ", defaultRole='" + defaultRole + '\'' +
                 ", system='" + system + '\'' +
                 '}';

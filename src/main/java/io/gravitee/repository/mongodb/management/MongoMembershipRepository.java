@@ -18,11 +18,10 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.mongodb.management.internal.membership.MembershipMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.MembershipMongo;
-import io.gravitee.repository.mongodb.management.internal.model.MembershipPkMongo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +33,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
+ * @author GraviteeSource Teams
  */
 @Component
 public class MongoMembershipRepository implements MembershipRepository {
@@ -46,139 +45,166 @@ public class MongoMembershipRepository implements MembershipRepository {
 
     @Override
     public Membership create(Membership membership) throws TechnicalException {
-        logger.debug("Create membership [{}, {}, {}]", membership.getUserId(), membership.getReferenceType(), membership.getReferenceId());
+        logger.debug("Create membership [{}, {}, {}, {}, {}]", membership.getMemberId(), membership.getMemberType().name(), membership.getReferenceType(), membership.getReferenceId(), membership.getRoleId());
         Membership m = map(internalMembershipRepo.insert(map(membership)));
-        logger.debug("Create membership [{}, {}, {}] - Done", m.getUserId(), m.getReferenceType(), m.getReferenceId());
+        logger.debug("Create membership [{}, {}, {}, {}, {}] - Done", m.getMemberId(), m.getMemberType().name(), m.getReferenceType(), m.getReferenceId(), m.getRoleId());
         return m;
     }
 
     @Override
     public Membership update(Membership membership) throws TechnicalException {
-        if (membership == null || membership.getUserId() == null || membership.getReferenceId() == null || membership.getReferenceType() == null) {
-            throw new IllegalStateException("Membership to update must have an user id, a reference id and type");
+        if (membership == null || membership.getMemberId() == null || membership.getReferenceId() == null || membership.getReferenceType() == null || membership.getRoleId() == null) {
+            throw new IllegalStateException("Membership to update must have an user id, a reference id and type, and a role");
         }
 
-        final MembershipPkMongo id = mapPk(membership);
+        String id = membership.getId();
         MembershipMongo membershipMongo = internalMembershipRepo.findById(id).orElse(null);
 
         if (membershipMongo == null) {
             throw new IllegalStateException(String.format("No membership found with id [%s]", id));
         }
 
-        logger.debug("Update membership [{}, {}, {}]", membership.getUserId(), membership.getReferenceType(), membership.getReferenceId());
+        logger.debug("Update membership [{}, {}, {}, {}, {}]", membership.getMemberId(), membership.getMemberType().name(), membership.getReferenceType(), membership.getReferenceId(), membership.getRoleId());
         Membership m = map(internalMembershipRepo.save(map(membership)));
-        logger.debug("Update membership [{}, {}, {}] - Done", membership.getUserId(), membership.getReferenceType(), membership.getReferenceId());
+        logger.debug("Update membership [{}, {}, {}, {}, {}] - Done", membership.getMemberId(), membership.getMemberType().name(), membership.getReferenceType(), membership.getReferenceId(), membership.getRoleId());
         return m;
     }
 
     @Override
-    public void delete(Membership membership) throws TechnicalException {
-        logger.debug("Delete membership [{}, {}, {}]", membership.getUserId(), membership.getReferenceType(), membership.getReferenceId());
-        internalMembershipRepo.deleteById(mapPk(membership));
-        logger.debug("Delete membership [{}, {}, {}] - Done", membership.getUserId(), membership.getReferenceType(), membership.getReferenceId());
+    public void delete(String membershipId) throws TechnicalException {
+        logger.debug("Delete membership [{}]", membershipId);
+        internalMembershipRepo.deleteById(membershipId);
+        logger.debug("Delete membership [{}] - Done", membershipId);
     }
 
     @Override
-    public Optional<Membership> findById(String userId, MembershipReferenceType referenceType, String referenceId) throws TechnicalException {
-        logger.debug("Find membership by ID [{}, {}, {}]", userId, referenceType, referenceId);
+    public Optional<Membership> findById(String membershipId) throws TechnicalException {
+        logger.debug("Find membership by ID [{}]", membershipId);
 
-        MembershipPkMongo membershipPkMongo = new MembershipPkMongo();
-        membershipPkMongo.setUserId(userId);
-        membershipPkMongo.setReferenceType(referenceType.name());
-        membershipPkMongo.setReferenceId(referenceId);
-        MembershipMongo membershipMongo = internalMembershipRepo.findById(membershipPkMongo).orElse(null);
+        MembershipMongo membershipMongo = internalMembershipRepo.findById(membershipId).orElse(null);
 
-        logger.debug("Find membership by ID [{}, {}, {}]", userId, referenceType, referenceId);
+        logger.debug("Find membership by ID [{}]", membershipId);
         return Optional.ofNullable(map(membershipMongo));
     }
 
     @Override
-    public Set<Membership> findByIds(String userId, MembershipReferenceType referenceType, Set<String> referenceIds) throws TechnicalException {
-        logger.debug("Find membership by IDs [{}, {}, {}]", userId, referenceType, referenceIds);
+    public Set<Membership> findByIds(Set<String> membershipIds) throws TechnicalException {
+        logger.debug("Find membership by IDs [{}]", membershipIds);
 
-        Set<Membership> memberships = internalMembershipRepo.findByIds(userId, referenceType.name(), referenceIds).
+        Set<Membership> memberships = internalMembershipRepo.findByIds(membershipIds).
                 stream().
                 map(this::map).
                 collect(Collectors.toSet());
 
-        logger.debug("Find membership by IDs [{}, {}, {}]", userId, referenceType, referenceIds);
+        logger.debug("Find membership by IDs [{}]", membershipIds);
         return memberships;
     }
 
     @Override
-    public Set<Membership> findByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName) throws TechnicalException {
-        logger.debug("Find membership by reference [{}, {}]", referenceType, referenceId);
+    public Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId) throws TechnicalException {
+        logger.debug("Find membership by reference and roleId [{}, {}, {}]", referenceType, referenceId, roleId);
         Set<MembershipMongo> membershipMongos;
-        String membershipType = convertRoleToType(roleScope, roleName);
-        if (membershipType == null) {
+        if (roleId == null) {
             membershipMongos = internalMembershipRepo.findByReference(referenceType.name(), referenceId);
         } else {
-            membershipMongos = internalMembershipRepo.findByReferenceAndMembershipType(referenceType.name(), referenceId, membershipType);
+            membershipMongos = internalMembershipRepo.findByReferenceAndRoleId(referenceType.name(), referenceId, roleId);
         }
         Set<Membership> memberships = membershipMongos.stream().map(this::map).collect(Collectors.toSet());
-        logger.debug("Find membership by reference [{}, {}] = {}", referenceType, referenceId, memberships);
+        logger.debug("Find membership by reference and roleId [{}, {}, {}] = {}", referenceType, referenceId, roleId, memberships);
         return memberships;
     }
 
     @Override
-    public Set<Membership> findByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, RoleScope roleScope, String roleName) throws TechnicalException {
-        logger.debug("Find membership by references [{}, {}]", referenceType, referenceIds);
+    public Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId) throws TechnicalException {
+        logger.debug("Find membership by references and roleId [{}, {}, {}]", referenceType, referenceIds, roleId);
         Set<MembershipMongo> membershipMongos;
-        String membershipType = convertRoleToType(roleScope, roleName);
-        if (membershipType == null) {
+        if (roleId == null) {
             membershipMongos = internalMembershipRepo.findByReferences(referenceType.name(), referenceIds);
         } else {
-            membershipMongos = internalMembershipRepo.findByReferencesAndMembershipType(referenceType.name(), referenceIds, membershipType);
+            membershipMongos = internalMembershipRepo.findByReferencesAndRoleId(referenceType.name(), referenceIds, roleId);
         }
         Set<Membership> memberships = membershipMongos.stream().map(this::map).collect(Collectors.toSet());
-        logger.debug("Find membership by references [{}, {}] = {}", referenceType, referenceIds, memberships);
+        logger.debug("Find membership by references and roleId [{}, {}, {}] = {}", referenceType, referenceIds, roleId, memberships);
         return memberships;
     }
 
     @Override
-    public Set<Membership> findByUserAndReferenceType(String userId, MembershipReferenceType referenceType) throws TechnicalException {
-        logger.debug("Find membership by user and referenceType [{}, {}]", userId, referenceType);
-        Set<Membership> memberships = internalMembershipRepo.findByUserAndReferenceType(userId, referenceType.name()).
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType) throws TechnicalException {
+        logger.debug("Find membership by user and referenceType [{}, {}, {}]", memberId, memberType, referenceType);
+        Set<Membership> memberships = internalMembershipRepo.findByMemberIdAndMemberTypeAndReferenceType(memberId, memberType.name(), referenceType.name()).
                 stream().
                 map(this::map).
                 collect(Collectors.toSet());
-        logger.debug("Find membership by user and referenceType [{}, {}] = {}", userId, referenceType, memberships);
+        logger.debug("Find membership by user and referenceType [{}, {}, {}] = {}", memberId, memberType, referenceType, memberships);
         return memberships;
     }
 
     @Override
-    public Set<Membership> findByRole(RoleScope roleScope, String roleName) throws TechnicalException {
-        logger.debug("Find membership by role [{}, {}]", roleScope, roleName);
-        String membershipType = convertRoleToType(roleScope, roleName);
-        Set<Membership> memberships = internalMembershipRepo.findByMembershipType(membershipType).
+    public Set<Membership> findByRoleId(String roleId) throws TechnicalException {
+        logger.debug("Find membership by roleId [{}]", roleId);
+        Set<Membership> memberships = internalMembershipRepo.findByRoleId(roleId).
                 stream().
                 map(this::map).
                 collect(Collectors.toSet());
-        logger.debug("Find membership by role [{}, {}]", roleScope, roleName, memberships);
+        logger.debug("Find membership by roleId [{}] = {}", roleId, memberships);
         return memberships;
     }
 
     @Override
-    public Set<Membership> findByUserAndReferenceTypeAndRole(String userId, MembershipReferenceType referenceType, RoleScope roleScope, String roleName) throws TechnicalException {
-        String membershipType = convertRoleToType(roleScope, roleName);
-        logger.debug("Find membership by user and referenceType and membershipType [{}, {}, {}]", userId, referenceType, membershipType);
-        Set<Membership> memberships = internalMembershipRepo.findByUserAndReferenceTypeAndMembershipType(userId, referenceType.name(), membershipType).
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String roleId) throws TechnicalException {
+        logger.debug("Find membership by user and referenceType and roleId [{}, {}, {}, {}]", memberId, memberType, referenceType, roleId);
+        Set<Membership> memberships = internalMembershipRepo.findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(memberId, memberType.name(), referenceType.name(), roleId).
                 stream().
                 map(this::map).
                 collect(Collectors.toSet());
-        logger.debug("Find membership by user and referenceType and membershipType [{}, {}, {}] = {}", userId, referenceType, membershipType, memberships);
+        logger.debug("Find membership by user and referenceType and roleId [{}, {}, {}, {}] = {}", memberId, memberType, referenceType, roleId, memberships);
         return memberships;
     }
 
-
     @Override
-    public Set<Membership> findByUser(String userId) throws TechnicalException {
-        logger.debug("Find membership by user [{}]", userId);
-        Set<Membership> memberships = internalMembershipRepo.findByUser(userId).
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId, String roleId) throws TechnicalException {
+        logger.debug("Find membership by user and referenceType and referenceId and roleId [{}, {}, {}, {}, {}]", memberId, memberType, referenceType, referenceId, roleId);
+        Set<Membership> memberships = internalMembershipRepo.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(memberId, memberType.name(), referenceType.name(), referenceId, roleId).
                 stream().
                 map(this::map).
                 collect(Collectors.toSet());
-        logger.debug("Find membership by user [{}] = {}", userId, memberships);
+        logger.debug("Find membership by user and referenceType and referenceId, roleId [{}, {}, {}, {}, {}] = {}", memberId, memberType, referenceType, referenceId,roleId, memberships);
+        return memberships;
+    }
+
+    @Override
+    public Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) throws TechnicalException {
+        logger.debug("Find membership by user [{}, {}]", memberId, memberType);
+        Set<Membership> memberships = internalMembershipRepo.findByMemberIdAndMemberType(memberId, memberType.name()).
+                stream().
+                map(this::map).
+                collect(Collectors.toSet());
+        logger.debug("Find membership by user [{}, {}] = {}", memberId, memberType, memberships);
+        return memberships;
+    }
+
+    @Override
+    public Set<Membership> findByMemberIdsAndMemberTypeAndReferenceType(List<String> memberIds,
+            MembershipMemberType memberType, MembershipReferenceType referenceType) throws TechnicalException {
+        logger.debug("Find membership by members and reference type [{}, {}, {}]", memberIds, memberType, referenceType);
+        Set<Membership> memberships = internalMembershipRepo.findByMemberIdsAndMemberTypeAndReferenceType(memberIds, memberType.name(), referenceType.name()).
+                stream().
+                map(this::map).
+                collect(Collectors.toSet());
+        logger.debug("Find membership by members and reference type [{}, {}, {}] = {}", memberIds, memberType, referenceType, memberships);
+        return memberships;
+    }
+
+    @Override
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(String memberId,
+            MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId)
+            throws TechnicalException {
+        logger.debug("Find membership by member and reference [{}, {}, {}, {}]", memberId, memberType, referenceId, referenceType);
+        Set<Membership> memberships = internalMembershipRepo.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(memberId, memberType.name(), referenceType.name(), referenceId).
+                stream().
+                map(this::map).
+                collect(Collectors.toSet());
+        logger.debug("Find membership by user [{}, {}, {}, {}] = {}", memberId, memberType, referenceId, referenceType, memberships);
         return memberships;
     }
 
@@ -187,17 +213,12 @@ public class MongoMembershipRepository implements MembershipRepository {
             return null;
         }
         Membership membership = new Membership();
-        membership.setUserId(membershipMongo.getId().getUserId());
-        membership.setReferenceType(MembershipReferenceType.valueOf(membershipMongo.getId().getReferenceType()));
-        membership.setReferenceId(membershipMongo.getId().getReferenceId());
-        if (membershipMongo.getRoles() != null) {
-            Map<Integer, String> roles = new HashMap<>(membershipMongo.getRoles().size());
-            for (String roleAsString : membershipMongo.getRoles()) {
-                String[] role = convertTypeToRole(roleAsString);
-                roles.put(Integer.valueOf(role[0]), role[1]);
-            }
-            membership.setRoles(roles);
-        }
+        membership.setId(membershipMongo.getId());
+        membership.setMemberId(membershipMongo.getMemberId());
+        membership.setMemberType(MembershipMemberType.valueOf(membershipMongo.getMemberType()));
+        membership.setReferenceType(MembershipReferenceType.valueOf(membershipMongo.getReferenceType()));
+        membership.setReferenceId(membershipMongo.getReferenceId());
+        membership.setRoleId(membershipMongo.getRoleId());
         membership.setCreatedAt(membershipMongo.getCreatedAt());
         membership.setUpdatedAt(membershipMongo.getUpdatedAt());
         return membership;
@@ -208,46 +229,14 @@ public class MongoMembershipRepository implements MembershipRepository {
             return null;
         }
         MembershipMongo membershipMongo = new MembershipMongo();
-        membershipMongo.setId(mapPk(membership));
-        if (membership.getRoles() != null) {
-            List<String> roles = new ArrayList<>(membership.getRoles().size());
-            for (Map.Entry<Integer, String> roleEntry : membership.getRoles().entrySet()) {
-                roles.add(convertRoleToType(roleEntry.getKey(), roleEntry.getValue()));
-            }
-            membershipMongo.setRoles(roles);
-        }
+        membershipMongo.setId(membership.getId());
+        membershipMongo.setMemberId(membership.getMemberId());
+        membershipMongo.setMemberType(membership.getMemberType().name());
+        membershipMongo.setReferenceId(membership.getReferenceId());
+        membershipMongo.setReferenceType(membership.getReferenceType().name());
+        membershipMongo.setRoleId(membership.getRoleId());
         membershipMongo.setCreatedAt(membership.getCreatedAt());
         membershipMongo.setUpdatedAt(membership.getUpdatedAt());
         return membershipMongo;
-    }
-
-    private MembershipPkMongo mapPk(Membership membership) {
-        MembershipPkMongo membershipPkMongo = new MembershipPkMongo();
-        membershipPkMongo.setUserId(membership.getUserId());
-        membershipPkMongo.setReferenceType(membership.getReferenceType().name());
-        membershipPkMongo.setReferenceId(membership.getReferenceId());
-        return membershipPkMongo;
-    }
-
-    private String convertRoleToType(RoleScope roleScope, String roleName) {
-        if (roleName == null) {
-            return null;
-        }
-        return convertRoleToType(roleScope.getId(), roleName);
-    }
-
-    private String convertRoleToType(int roleScope, String roleName) {
-        return roleScope + ":" + roleName;
-    }
-
-    private String[] convertTypeToRole(String type) {
-        if (type == null) {
-            return null;
-        }
-        String[] role = type.split(":");
-        if (role.length != 2) {
-            return null;
-        }
-        return role;
     }
 }

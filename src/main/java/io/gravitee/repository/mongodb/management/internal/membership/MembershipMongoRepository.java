@@ -16,7 +16,6 @@
 package io.gravitee.repository.mongodb.management.internal.membership;
 
 import io.gravitee.repository.mongodb.management.internal.model.MembershipMongo;
-import io.gravitee.repository.mongodb.management.internal.model.MembershipPkMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -29,32 +28,42 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @Repository
-public interface MembershipMongoRepository extends MongoRepository<MembershipMongo, MembershipPkMongo> {
+public interface MembershipMongoRepository extends MongoRepository<MembershipMongo, String> {
 
-    @Query("{ 'id.userId': ?0, 'id.referenceType': ?1, 'id.referenceId': {$in: ?2} }")
-    Set<MembershipMongo> findByIds(String userId, String referenceType, Set<String> referenceIds);
+    @Query("{ 'id': {$in: ?0} }")
+    Set<MembershipMongo> findByIds(Set<String> membershipIds);
 
-    @Query("{ 'id.referenceType' : ?0, 'id.referenceId' : ?1 }")
+    @Query("{ 'referenceType' : ?0, 'referenceId' : ?1 }")
     Set<MembershipMongo> findByReference(String referenceType, String referenceId);
 
-    @Query("{ 'id.referenceType' : ?0, 'id.referenceId' : ?1, 'roles' : ?2 }")
-    Set<MembershipMongo> findByReferenceAndMembershipType(String referenceType, String referenceId, String membershipType);
+    @Query("{ 'referenceType' : ?0, 'referenceId' : ?1, 'roleId' : ?2 }")
+    Set<MembershipMongo> findByReferenceAndRoleId(String referenceType, String referenceId, String roleId);
 
-    @Query("{ 'id.referenceType' : ?0, 'id.referenceId' : { $in : ?1 } }")
+    @Query("{ 'referenceType' : ?0, 'referenceId' : { $in : ?1 } }")
     Set<MembershipMongo> findByReferences(String referenceType, List<String> referenceId);
 
-    @Query("{ 'id.referenceType' : ?0, 'id.referenceId' : { $in : ?1 }, 'roles' : ?2 }")
-    Set<MembershipMongo> findByReferencesAndMembershipType(String referenceType, List<String>  referenceId, String membershipType);
+    @Query("{ 'referenceType' : ?0, 'referenceId' : { $in : ?1 }, 'roleId' : ?2 }")
+    Set<MembershipMongo> findByReferencesAndRoleId(String referenceType, List<String>  referenceId, String roleId);
 
-    @Query("{ 'roles' : ?0 }")
-    Set<MembershipMongo> findByMembershipType(String membershipType);
+    @Query("{ 'roleId' : ?0 }")
+    Set<MembershipMongo> findByRoleId(String roleId);
 
-    @Query("{ 'id.userId' : ?0, 'id.referenceType' : ?1 }")
-    Set<MembershipMongo> findByUserAndReferenceType(String userId, String referenceType);
+    @Query("{ 'memberId' : ?0, 'memberType' : ?1, 'referenceType' : ?2 }")
+    Set<MembershipMongo> findByMemberIdAndMemberTypeAndReferenceType(String memberId, String memberType, String referenceType);
 
-    @Query("{ 'id.userId' : ?0, 'id.referenceType' : ?1, 'roles' : ?2 }")
-    Set<MembershipMongo> findByUserAndReferenceTypeAndMembershipType(String userId, String referenceType, String membershipType);
+    @Query("{ 'memberId' : { $in : ?0 }, 'memberType' : ?1, 'referenceType' : ?2 }")
+    Set<MembershipMongo> findByMemberIdsAndMemberTypeAndReferenceType(List<String> memberIds, String memberType, String referenceType);
 
-    @Query("{ 'id.userId' : ?0 }")
-    Set<MembershipMongo> findByUser(String userId);
+    @Query("{ 'memberId' : ?0, 'memberType' : ?1, 'referenceType' : ?2, 'roleId' : ?3 }")
+    Set<MembershipMongo> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(String memberId, String memberType, String referenceType, String roleId);
+
+    @Query("{ 'memberId' : ?0, 'memberType' : ?1, 'referenceType' : ?2, 'referenceId' : ?3 }")
+    Set<MembershipMongo> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(String memberId, String memberType, String referenceType, String referenceId);
+
+    @Query("{ 'memberId' : ?0, 'memberType' : ?1, 'referenceType' : ?2, 'referenceId' : ?3, 'roleId' : ?4 }")
+    Set<MembershipMongo> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(String memberId, String memberType, String referenceType, String referenceId, String roleId);
+
+    @Query("{ 'memberId' : ?0, 'memberType' : ?1 }")
+    Set<MembershipMongo> findByMemberIdAndMemberType(String memberId, String memberType);
+    
 }

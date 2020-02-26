@@ -35,6 +35,6 @@ public interface GroupMongoRepository extends MongoRepository<GroupMongo, String
     @Query("{ _id: {$in: ?0} }")
     Collection<GroupMongo> findByIds(Set<String> ids);
 
-    @Query("{ environment: ?0 }")
-    List<GroupMongo> findByEnvironment(String environment);
+    @Query("{ environmentId: ?0 }")
+    List<GroupMongo> findByEnvironmentId(String environmentId);
 }

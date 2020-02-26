@@ -20,7 +20,6 @@ import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.model.View;
 import io.gravitee.repository.mongodb.management.internal.api.ViewMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ViewMongo;
-import io.gravitee.repository.mongodb.management.internal.model.ViewPkMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,10 +47,10 @@ public class MongoViewRepository implements ViewRepository {
     private GraviteeMapper mapper;
 
     @Override
-    public Optional<View> findById(String viewId, String environment) throws TechnicalException {
+    public Optional<View> findById(String viewId) throws TechnicalException {
         LOGGER.debug("Find view by ID [{}]", viewId);
 
-        final ViewMongo view = internalViewRepo.findById(new ViewPkMongo(viewId, environment)).orElse(null);
+        final ViewMongo view = internalViewRepo.findById(viewId).orElse(null);
 
         LOGGER.debug("Find view by ID [{}] - Done", viewId);
         return Optional.ofNullable(mapper.map(view, View.class));
@@ -77,7 +76,7 @@ public class MongoViewRepository implements ViewRepository {
             throw new IllegalStateException("View to update must have a name");
         }
 
-        final ViewMongo viewMongo = internalViewRepo.findById(new ViewPkMongo(view.getId(), view.getEnvironment())).orElse(null);
+        final ViewMongo viewMongo = internalViewRepo.findById(view.getId()).orElse(null);
 
         if (viewMongo == null) {
             throw new IllegalStateException(String.format("No view found with name [%s]", view.getId()));
@@ -94,9 +93,9 @@ public class MongoViewRepository implements ViewRepository {
     }
 
     @Override
-    public void delete(String viewId, String environment) throws TechnicalException {
+    public void delete(String viewId) throws TechnicalException {
         try {
-            internalViewRepo.deleteById(new ViewPkMongo(viewId, environment));
+            internalViewRepo.deleteById(viewId);
         } catch (Exception e) {
             LOGGER.error("An error occured when deleting view [{}]", viewId, e);
             throw new TechnicalException("An error occured when deleting view");
@@ -112,8 +111,8 @@ public class MongoViewRepository implements ViewRepository {
     }
 
     @Override
-    public Set<View> findAllByEnvironment(String environment) throws TechnicalException {
-        final List<ViewMongo> views = internalViewRepo.findByEnvironment(environment);
+    public Set<View> findAllByEnvironment(String environmentId) throws TechnicalException {
+        final List<ViewMongo> views = internalViewRepo.findByEnvironmentId(environmentId);
         return views.stream()
                 .map(viewMongo -> mapper.map(viewMongo, View.class))
                 .collect(Collectors.toSet());

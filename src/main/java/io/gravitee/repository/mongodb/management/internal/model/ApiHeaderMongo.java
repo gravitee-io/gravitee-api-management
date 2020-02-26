@@ -29,7 +29,7 @@ public class ApiHeaderMongo extends Auditable{
 
 	@Id
 	private String id;
-	private String environment;
+	private String environmentId;
 	private String name;
 	private String value;
 	private int order;
@@ -41,11 +41,11 @@ public class ApiHeaderMongo extends Auditable{
 		this.id = id;
 	}
 
-	public String getEnvironment() {
-        return environment;
+	public String getEnvironmentId() {
+        return environmentId;
     }
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
     public String getName() {
 		return name;
@@ -85,7 +85,7 @@ public class ApiHeaderMongo extends Auditable{
 	public String toString() {
 		return "ApiHeaderMongo{" +
 				"id='" + id + '\'' +
-                ", environment='" + environment + '\'' +
+                ", environmentId='" + environmentId + '\'' +
 				", name='" + name + '\'' +
 				", value='" + value + '\'' +
 				", order='" + order + '\'' +

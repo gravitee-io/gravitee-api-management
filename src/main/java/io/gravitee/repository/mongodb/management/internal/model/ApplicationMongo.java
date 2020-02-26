@@ -39,7 +39,7 @@ public class ApplicationMongo extends Auditable {
     @Field("name")
     private String name;
 
-    private String environment;
+    private String environmentId;
     
     private String description;
 
@@ -61,12 +61,12 @@ public class ApplicationMongo extends Auditable {
         this.id = id;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public String getEnvironmentId() {
+        return environmentId;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getDescription() {
@@ -143,7 +143,7 @@ public class ApplicationMongo extends Auditable {
     public String toString() {
         final StringBuilder sb = new StringBuilder("Application{");
         sb.append("id='").append(id).append('\'');
-        sb.append(", environment='").append(environment).append('\'');
+        sb.append(", environmentId='").append(environmentId).append('\'');
         sb.append(", name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
         sb.append(", status='").append(status).append('\'');

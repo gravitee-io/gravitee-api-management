@@ -31,7 +31,7 @@ public class DictionaryMongo extends Auditable {
 	@Id
 	private String id;
 
-	private String environment;
+	private String environmentId;
 	
 	private String name;
 
@@ -57,12 +57,12 @@ public class DictionaryMongo extends Auditable {
 		this.id = id;
 	}
 
-	public String getEnvironment() {
-        return environment;
+	public String getEnvironmentId() {
+        return environmentId;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getName() {

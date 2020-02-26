@@ -23,7 +23,7 @@ import java.util.List;
 @Document(collection = "commands")
 public class CommandMongo extends Auditable {
     private String id;
-    private String environment;
+    private String environmentId;
     private String from;
     private String to;
     private List<String> tags;
@@ -39,12 +39,12 @@ public class CommandMongo extends Auditable {
         this.id = id;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public String getEnvironmentId() {
+        return environmentId;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public String getFrom() {

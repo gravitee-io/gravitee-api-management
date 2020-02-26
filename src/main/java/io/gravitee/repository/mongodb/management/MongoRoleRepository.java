@@ -31,7 +31,6 @@ import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.mongodb.management.internal.model.RoleMongo;
-import io.gravitee.repository.mongodb.management.internal.model.RolePkMongo;
 import io.gravitee.repository.mongodb.management.internal.role.RoleMongoRepository;
 
 /**
@@ -47,12 +46,12 @@ public class MongoRoleRepository implements RoleRepository {
     private RoleMongoRepository internalRoleRepo;
 
     @Override
-    public Optional<Role> findById(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("Find role by ID [{}, {}]", scope, name);
+    public Optional<Role> findById(String roleId) throws TechnicalException {
+        LOGGER.debug("Find role by ID [{}]", roleId);
 
-        final RoleMongo role = internalRoleRepo.findById(new RolePkMongo(scope.getId(), name, referenceId, referenceType.name())).orElse(null);
+        final RoleMongo role = internalRoleRepo.findById(roleId).orElse(null);
 
-        LOGGER.debug("Find role by ID [{}, {}] - Done", scope, name);
+        LOGGER.debug("Find role by ID [{}] - Done", roleId);
         return Optional.ofNullable(map(role));
     }
 
@@ -72,7 +71,10 @@ public class MongoRoleRepository implements RoleRepository {
 
     @Override
     public Role update(Role role) throws TechnicalException {
-        final RolePkMongo id = convert(role);
+        if (role == null || role.getId() == null || role.getScope() == null || role.getName() == null) {
+            throw new IllegalStateException("Role to update must not be null");
+        }
+        final String id = role.getId();
         final RoleMongo roleMongo = internalRoleRepo.findById(id).orElse(null);
 
         if (roleMongo == null) {
@@ -95,23 +97,25 @@ public class MongoRoleRepository implements RoleRepository {
     }
 
     @Override
-    public void delete(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
+    public void delete(String roleId) throws TechnicalException {
         try {
-            internalRoleRepo.deleteById(new RolePkMongo(scope.getId(), name, referenceId, referenceType.name()));
+            internalRoleRepo.deleteById(roleId);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting role [{}, {}]", scope, name, e);
+            LOGGER.error("An error occured when deleting role [{}]", roleId, e);
             throw new TechnicalException("An error occured when deleting role");
         }
     }
 
     @Override
-    public Set<Role> findByScope(RoleScope scope) throws TechnicalException {
-        LOGGER.debug("Find role by scope [{}]", scope);
+    public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("Find role by scope and name [{}, {}, {}, {}]", scope, name, referenceId, referenceType);
 
-        final Set<RoleMongo> roles = internalRoleRepo.findByScope(scope.getId());
-
-        LOGGER.debug("Find role by scope [{}] - Done", scope);
-        return roles.stream().map(this::map).collect(Collectors.toSet());
+        final Optional<Role> role = internalRoleRepo.findByScopeAndNameAndReferenceIdAndReferenceType(scope.name(), name, referenceId, referenceType.name()).stream()
+                .map(this::map)
+                .findFirst();
+        
+        LOGGER.debug("Find role by scope and name [{}, {}, {}, {}] - Done", scope, name, referenceId, referenceType);
+        return role;
     }
 
     @Override
@@ -122,23 +126,17 @@ public class MongoRoleRepository implements RoleRepository {
                 .collect(Collectors.toSet());
     }
 
-    private RolePkMongo convert(Role role) {
-        if (role == null || role.getScope() == null || role.getName() == null) {
-            throw new IllegalStateException("Role to update must not be null");
-        }
-        return new RolePkMongo(role.getScope().getId(), role.getName(), role.getReferenceId(), role.getReferenceType().name());
-    }
-
     private Role map(RoleMongo roleMongo) {
         if (roleMongo == null) {
             return null;
         }
 
         Role role = new Role();
-        role.setScope(RoleScope.valueOf(roleMongo.getId().getScope()));
-        role.setName(roleMongo.getId().getName());
-        role.setReferenceId(roleMongo.getId().getReferenceId());
-        role.setReferenceType(RoleReferenceType.valueOf(roleMongo.getId().getReferenceType()));
+        role.setId(roleMongo.getId());
+        role.setScope(RoleScope.valueOf(roleMongo.getScope()));
+        role.setName(roleMongo.getName());
+        role.setReferenceId(roleMongo.getReferenceId());
+        role.setReferenceType(RoleReferenceType.valueOf(roleMongo.getReferenceType()));
         role.setDescription(roleMongo.getDescription());
         role.setDefaultRole(roleMongo.isDefaultRole());
         role.setSystem(roleMongo.isSystem());
@@ -154,7 +152,11 @@ public class MongoRoleRepository implements RoleRepository {
         }
 
         RoleMongo roleMongo = new RoleMongo();
-        roleMongo.setId(convert(role));
+        roleMongo.setId(role.getId());
+        roleMongo.setScope(role.getScope().name());
+        roleMongo.setName(role.getName());
+        roleMongo.setReferenceId(role.getReferenceId());
+        roleMongo.setReferenceType(role.getReferenceType().name());
         roleMongo.setDescription(role.getDescription());
         roleMongo.setDefaultRole(role.isDefaultRole());
         roleMongo.setSystem(role.isSystem());
@@ -178,7 +180,7 @@ public class MongoRoleRepository implements RoleRepository {
             RoleReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("Find role by scope and ref [{}, {}, {}]", scope, referenceId, referenceType);
 
-        final Set<RoleMongo> roles = internalRoleRepo.findByScopeAndReferenceIdAndReferenceType(scope.getId(), referenceId, referenceType.name());
+        final Set<RoleMongo> roles = internalRoleRepo.findByScopeAndReferenceIdAndReferenceType(scope.name(), referenceId, referenceType.name());
 
         LOGGER.debug("Find role by scope [{}, {}, {}] - Done", scope, referenceId, referenceType);
         return roles.stream().map(this::map).collect(Collectors.toSet());
