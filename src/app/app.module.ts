@@ -26,6 +26,7 @@ import { AppComponent } from './app.component';
 import { ApplicationsComponent } from './pages/applications/applications.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AuthService } from './services/auth.service';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BrowserModule } from '@angular/platform-browser';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
@@ -50,7 +51,6 @@ import { GvPageSwaggerUIComponent } from './components/gv-page-swaggerui/gv-page
 import { GvSearchComponent } from './components/gv-search/gv-search.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { LayoutComponent } from './layouts/layout/layout.component';
 import { LoginComponent } from './pages/login/login.component';
 import { LogoutComponent } from './pages/logout/logout.component';
 import { MarkdownModule } from 'ngx-markdown';
@@ -72,6 +72,7 @@ import { Router, Scroll } from '@angular/router';
 import { ViewportScroller } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { ApplicationGeneralComponent } from './pages/application/application-general/application-general.component';
+import { NotFoundComponent } from './pages/not-found/not-found.component';
 
 @NgModule({
   declarations: [
@@ -105,7 +106,6 @@ import { ApplicationGeneralComponent } from './pages/application/application-gen
     GvPageSwaggerUIComponent,
     GvSearchComponent,
     HomepageComponent,
-    LayoutComponent,
     LoginComponent,
     LogoutComponent,
     RegistrationComponent,
@@ -114,11 +114,13 @@ import { ApplicationGeneralComponent } from './pages/application/application-gen
     SinglePageComponent,
     SubscriptionsComponent,
     GvFileUploadComponent,
+    NotFoundComponent,
   ],
   entryComponents: [GvSearchComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
   imports: [
     ApiModule,
     AppRoutingModule,
+    BrowserAnimationsModule,
     BrowserModule,
     HttpClientModule,
     MarkdownModule.forRoot({ loader: HttpClient }),

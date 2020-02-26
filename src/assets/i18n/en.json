@@ -330,6 +330,11 @@
     "username": "Username",
     "withProviders": "Or"
   },
+  "notFound": {
+    "goHome": "Go Home",
+    "message": "The page you are looking for does not seem / no longer exist. No worries, nothing is lost yet!",
+    "title": "Page not found"
+  },
   "registration": {
     "backHome": "Back to portal",
     "backLogin": "Back to Sign in",
@@ -377,6 +382,7 @@
     "logout": "Sign out",
     "myApplications": "My applications",
     "mySubscriptions": "My subscriptions",
+    "notFound": "Page not found",
     "user": "My account"
   },
   "search": {

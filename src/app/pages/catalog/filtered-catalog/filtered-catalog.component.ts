@@ -16,6 +16,7 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { Api, ApiService, CategoryApiQuery, PortalService, View, ApiMetrics } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-promote';
+import '@gravitee/ui-components/wc/gv-card-list';
 import '@gravitee/ui-components/wc/gv-card-full';
 import '@gravitee/ui-components/wc/gv-card';
 import '@gravitee/ui-components/wc/gv-select';
@@ -47,8 +48,7 @@ export class FilteredCatalogComponent implements OnInit {
   private page: number;
   private size: number;
 
-  allApis: Array<Promise<Api>>;
-  allApisMetrics: Array<Promise<ApiMetrics>>;
+  allApis: Array<Promise<{item: Api, metric: any}>>;
   randomList: Promise<any>[];
   promotedApi: Promise<any>;
   promotedMetrics: ApiMetrics;
@@ -75,7 +75,6 @@ export class FilteredCatalogComponent implements OnInit {
               private apiLabels: ApiLabelsPipe,
               private config: ConfigurationService) {
     this.allApis = [];
-    this.allApisMetrics = [];
     this.randomList = [];
   }
 
@@ -97,15 +96,7 @@ export class FilteredCatalogComponent implements OnInit {
           this.page = page;
           this.size = size;
 
-          Promise.race([this._loadCategory(), delay(500)])
-            .catch((err) => {
-              if (err instanceof TimeTooLongError) {
-                // @ts-ignore
-                this.promotedApi = new Promise(null);
-                this.randomList = new Array(4);
-                this.allApis = new Array(this.size);
-              }
-            });
+          Promise.race([this._loadCategory(), delay(500)]).catch((err) => this._catchLoading(err));
         }
       } else {
         const view = params.get('view') || FilteredCatalogComponent.DEFAULT_VIEW;
@@ -114,16 +105,21 @@ export class FilteredCatalogComponent implements OnInit {
           this.page = page;
           this.size = size;
 
-          Promise.race([this._load(), delay(500)]).catch((err) => {
-            if (err instanceof TimeTooLongError) {
-              // @ts-ignore
-              this.promotedApi = new Promise(null);
-              this.allApis = new Array(this.size);
-            }
-          });
+          Promise.race([this._load(), delay(500)]).catch((err) => this._catchLoading(err));
         }
       }
     });
+  }
+
+  private _catchLoading(err) {
+    if (err instanceof TimeTooLongError) {
+      // @ts-ignore
+      this.promotedApi = new Promise(null);
+      this.randomList = new Array(4);
+      this.allApis = new Array(this.size);
+    } else {
+      throw err;
+    }
   }
 
   private _initDisplayOptions() {
@@ -179,7 +175,7 @@ export class FilteredCatalogComponent implements OnInit {
           this.promotedMetrics = await this.apiService.getApiMetricsByApiId({ apiId: promoted.id }).toPromise();
         }
         // @ts-ignore
-        this.promotedApi = promoted || {};
+        this.promotedApi = Promise.resolve(promoted || {});
         return this.promotedApi;
       })
       .catch((err) => Promise.reject(err));
@@ -237,11 +233,13 @@ export class FilteredCatalogComponent implements OnInit {
         }
 
         this.allApis = allList.map((a) => {
-          this.allApisMetrics.push(this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise());
+          const metric = this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise();
           a.states = this.apiStates.transform(a);
           a.labels = this.apiLabels.transform(a);
-          return Promise.resolve(a);
+          const item = Promise.resolve(a);
+          return { item, metric };
         });
+
       })
       .catch((err) => {
         this.allApis = this.allApis.map(() => Promise.reject(err));
@@ -308,6 +306,7 @@ export class FilteredCatalogComponent implements OnInit {
     return !this.inCategory() && this.hasViewMode() && this.views && this.views.length > 0;
   }
 
+  @HostListener(':gv-card-full:click', ['$event.detail'])
   goToApi(api: Promise<Api>) {
     Promise.resolve(api).then((_api) => {
       this.router.navigate(['/catalog/api/' + _api.id]);

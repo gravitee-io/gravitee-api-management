@@ -61,7 +61,7 @@ export class NavRouteService {
       const children = _route.routeConfig ? _route.routeConfig.children : _route.children;
       // @ts-ignore
       return Promise.all(children
-      // @ts-ignore
+        // @ts-ignore
         .filter((child) => child.data != null && child.data.title)
         .filter(this.isVisiblePath(_hiddenPaths))
         .filter((child) => this.featureGuardService.canActivate(child) === true)
@@ -93,7 +93,7 @@ export class NavRouteService {
   }
 
   private isVisiblePath(_hiddenPaths) {
-    return (child) =>  !_hiddenPaths.includes(child.path);
+    return (child) => !_hiddenPaths.includes(child.path);
   }
 
   async getSiblingsNav(activatedRoute: ActivatedRoute): Promise<INavRoute[]> {

@@ -27,7 +27,7 @@ declare let Redoc: any;
   styleUrls: ['./gv-page-redoc.component.css']
 })
 export class GvPageRedocComponent {
-  isSwaggerParsing = false;
+  isLoaded = false;
   currentPage: Page;
 
   @Input() set page(page: Page) {
@@ -50,12 +50,11 @@ export class GvPageRedocComponent {
     private apiService: ApiService,
     private notificationService: NotificationService,
     private route: ActivatedRoute,
-    ) {
+  ) {
 
-    }
+  }
 
   refresh(page: Page) {
-    this.isSwaggerParsing = true;
     let redocElement = document.getElementById('redoc');
     if (!redocElement) {
       redocElement = document.createElement('div');
@@ -63,16 +62,16 @@ export class GvPageRedocComponent {
       document.querySelector('.gv-page-container').appendChild(redocElement);
     }
     // @ts-ignore
-    Redoc.init(page._links.content, { }, document.getElementById('redoc'),
+    Redoc.init(page._links.content, {}, document.getElementById('redoc'),
       (errors) => {
         if (errors) {
           document.querySelector('.gv-page-container').removeChild(redocElement);
           this.notificationService.error(i18n('gv-page.swagger.badFormat'));
         } else {
-          this.currentPage = page;
-          this.isSwaggerParsing = false;
+          this.isLoaded = true;
         }
-      }
-    );
+      });
+    this.currentPage = page;
   }
+
 }

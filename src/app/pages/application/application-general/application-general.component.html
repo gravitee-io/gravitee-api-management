@@ -63,7 +63,7 @@
         <div>
           <gv-button *ngIf="canUpdate"
                      type="submit" [disabled]="applicationForm.invalid || applicationForm.pristine" primary
-                     [loading]="loaderService.isLoading | async">
+                     [loading]="isLoading() | async">
             {{ 'application.save' | translate }}
           </gv-button>
 
@@ -73,7 +73,7 @@
 
           <gv-confirm *ngIf="canDelete" [message]="'application.delete.message' | translate" (:gv-confirm:ok)="delete()"
                       [cancelLabel]="'application.delete.cancel' | translate" [okLabel]="'application.delete.ok' | translate">
-            <gv-button secondary [loading]="loaderService.isLoading | async">
+            <gv-button secondary [loading]="isLoading() | async">
               {{ 'application.delete.label' | translate }}
             </gv-button>
           </gv-confirm>

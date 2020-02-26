@@ -330,6 +330,11 @@
     "username": "Identifiant",
     "withProviders": "Ou"
   },
+  "notFound": {
+    "goHome": "Retour à l'accueil",
+    "message": "La page que vous recherchez ne semble pas / plus exister. Pas d'inquiétude, rien n'est encore perdu !",
+    "title": "Oups, page introuvable"
+  },
   "registration": {
     "backHome": "Retour au portail",
     "backLogin": "Retour à la page d'identification",
@@ -377,6 +382,7 @@
     "logout": "Se déconnecter",
     "myApplications": "Mes applications",
     "mySubscriptions": "Mes souscriptions",
+    "notFound": "Page introuvable",
     "user": "Mon compte"
   },
   "search": {

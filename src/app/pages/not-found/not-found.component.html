@@ -15,5 +15,12 @@
     limitations under the License.
 
 -->
-<gv-input style="width: 100%;" (:gv-input:submit)="onSearchInput($event)" [attr.value]="query"
-          type="search" [attr.placeholder]="'catalog.search' | translate"></gv-input>
+<div class="page__content">
+  <h1 class="title">{{ 'notFound.title' | translate }}</h1>
+  <section>
+    <h2 class="title">{{ 'notFound.message' | translate }}</h2>
+    <gv-button (click)="goHome($event)">{{ 'notFound.goHome' | translate }}</gv-button>
+  </section>
+
+
+</div>

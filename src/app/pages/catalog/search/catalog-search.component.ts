@@ -24,7 +24,6 @@ import { ApiService, ApisResponse, Api } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-query-param.enum';
 import { ConfigurationService } from '../../../services/configuration.service';
-import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { delay } from '../../../utils/utils';
 import { TimeTooLongError } from '../../../exceptions/TimeTooLongError';
 
@@ -49,7 +48,6 @@ export class CatalogSearchComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private config: ConfigurationService,
-    private apiLabelsPipe: ApiLabelsPipe,
   ) {
     this.searchForm = this.formBuilder.group({ query: '' });
     this.paginationSize = config.get('pagination.size.default');
@@ -85,12 +83,11 @@ export class CatalogSearchComponent implements OnInit {
       .then((apisResponse: ApisResponse) => {
         if (apisResponse.data.length) {
           this.apiResults = apisResponse.data.map((a) => {
-            // a.labels = this.apiLabelsPipe.transform(a);
             return Promise.resolve(a);
           });
         } else {
           // @ts-ignore
-          this.apiResults = [Promise.resolve({})];
+          this.apiResults = [];
         }
         this.paginationData = apisResponse.metadata.pagination;
         this.totalElements = (this.paginationData ? this.paginationData.total : 0);

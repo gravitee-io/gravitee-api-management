@@ -330,6 +330,11 @@
     "username": "Uživatelské jméno",
     "withProviders": "Nebo"
   },
+  "notFound": {
+    "goHome": "Zpět na domovskou stránku",
+    "message": "Hledaná stránka se nezdá / již neexistuje. Žádné starosti, zatím nic není ztraceno!",
+    "title": "Stránka nebyla nalezena"
+  },
   "registration": {
     "backHome": "Zpátky na portal",
     "backLogin": "Zpátky na přihlášení",
@@ -375,8 +380,9 @@
     "homepage": "Domovská stránka",
     "login": "Přihlásit",
     "logout": "Odhlásit",
-    "myApplications": "route.myApplications",
-    "mySubscriptions": "route.mySubscriptions",
+    "myApplications": "Moje aplikace",
+    "mySubscriptions": "Moje předplatné",
+    "notFound": "Stránka nebyla nalezena",
     "user": "Můj účet"
   },
   "search": {

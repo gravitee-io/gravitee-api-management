@@ -51,6 +51,9 @@ export class ApiRequestInterceptor implements HttpInterceptor {
       () => {
       },
       (err: any) => {
+        if (err.status === 404) {
+          this.router.navigate(['/404']);
+        }
         if (err instanceof HttpErrorResponse) {
           if (err.status === 0) {
             this.notificationService.error(i18n('errors.server.unavailable'));
@@ -62,7 +65,9 @@ export class ApiRequestInterceptor implements HttpInterceptor {
           const error = err.error.errors[0];
           if (!SILENT_CODES.includes(error.code)) {
             this.notificationService.error(error.code, error.parameters, error.message);
-          } else if (error.status === '503') {
+          }
+
+          if (error.status === '503') {
             // configuration has been updated, we have to reload the configuration
             this.configService.load();
           }

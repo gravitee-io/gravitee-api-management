@@ -16,12 +16,17 @@
 
 -->
 <div *ngIf="!isEmpty()" class="gv-documentation">
-  <div class="gv-documentation__menu">
-    <gv-tree [items]="menu" [closed]="isSwagger(currentPage)" [selectedItem]="currentMenuItem"></gv-tree>
+  <div class="gv-documentation__menu" [ngClass]="{show: isLoaded}">
+    <gv-tree [items]="menu" [selectedItem]="currentMenuItem"></gv-tree>
   </div>
-  <app-gv-page *ngIf="currentPage" [page]="currentPage" [ngClass]="{'gv-documentation__content_swagger': isSwagger(currentPage)}" class="gv-documentation__content"></app-gv-page>
+  <div class="gv-documentation__loading" *ngIf="!isLoaded">
+    <gv-icon shape="navigation:waiting"></gv-icon>
+  </div>
+  <app-gv-page *ngIf="currentPage" [page]="currentPage"
+               [ngClass]="{'gv-documentation__content_swagger': isSwagger(currentPage), show: isLoaded}"
+               class="gv-documentation__content"></app-gv-page>
 </div>
 
 <div *ngIf="isEmpty()" class="gv-documentation__empty">
-  {{'gv-documentation.empty' | translate}}
+  {{'gv-documentation.empty' | translate}}
 </div>

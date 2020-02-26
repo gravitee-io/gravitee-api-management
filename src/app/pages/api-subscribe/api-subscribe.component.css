@@ -79,7 +79,7 @@
 }
 
 .subscription-accepted {
-  background-color: var();
+  background-color: var(--gv-theme-color);
   color: var(--gv-theme-font-color-light);
   margin-bottom: 4rem;
   --gv-icon--c: var(--gv-theme-font-color-light);

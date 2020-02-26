@@ -17,10 +17,11 @@
 .catalog__section__top {
   display: flex;
   margin-bottom: 2rem;
+  flex: 1;
 }
 
-gv-promote-api {
-  flex: 1;
+gv-promote {
+  flex: 1 1 auto;
 }
 
 .catalog__article__random {
@@ -44,11 +45,6 @@ gv-promote-api {
   grid-template-columns: repeat(2, 1fr);
   grid-gap: 1rem;
   align-items: flex-end;
-}
-
-.catalog__cards__all {
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 1rem;
 }
 
 .catalog__list {
@@ -79,6 +75,11 @@ gv-promote-api {
   .catalog__section__top {
     display: flex;
     flex-direction: column;
+    margin-bottom: 0;
+  }
+
+  .catalog__section__content {
+    margin-top: 1rem;
   }
 
   gv-promote-api {
@@ -94,11 +95,8 @@ gv-promote-api {
   }
 
   .catalog__article__random {
+    padding-top: 2rem;
     align-items: flex-start;
-  }
-
-  .catalog__cards__all {
-    flex-direction: column;
   }
 
   .categories__section > gv {

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Api, ApiMetrics, ApiService, Page, PortalService } from '@gravitee/ng-portal-webclient';
 import { Router } from '@angular/router';
 import { ApiStatesPipe } from '../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
+import '@gravitee/ui-components/wc/gv-card-list';
 
 @Component({
   selector: 'app-homepage',
@@ -27,7 +28,7 @@ import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
 export class HomepageComponent implements OnInit {
 
   public homepage: Page;
-  public topApis: Api[];
+  public topApis: { item: Api; metric: Promise<ApiMetrics> }[];
   public allApisMetrics: Promise<ApiMetrics>[] = [];
 
   constructor(
@@ -36,7 +37,8 @@ export class HomepageComponent implements OnInit {
     private router: Router,
     private apiStates: ApiStatesPipe,
     private apiLabels: ApiLabelsPipe,
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     this.portalService.getPages({ homepage: true }).subscribe(response => {
@@ -44,16 +46,20 @@ export class HomepageComponent implements OnInit {
     });
     this.apiService.getApis({ cat: 'FEATURED', size: 3 }).subscribe(response => {
       this.topApis = response.data.map((a) => {
-        this.allApisMetrics.push(this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise());
+        const metric = this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise();
         // @ts-ignore
         a.states = this.apiStates.transform(a);
         a.labels = this.apiLabels.transform(a);
-        return a;
+        return { item: a, metric };
       });
     });
   }
 
-  goToApi(api: Api) {
-    this.router.navigate(['/catalog/api/' + api.id]);
+  @HostListener(':gv-card-full:click', ['$event.detail'])
+  goToApi(api: Promise<Api>) {
+    Promise.resolve(api).then((_api) => {
+      this.router.navigate(['/catalog/api/' + _api.id]);
+    });
   }
+
 }

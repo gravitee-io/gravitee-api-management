@@ -19,17 +19,29 @@ import { TreeItem } from '../../model/tree-item';
 import { NotificationService } from '../../services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import '@gravitee/ui-components/wc/gv-tree';
+import { animate, style, transition, trigger } from '@angular/animations';
+import { logger } from 'codelyzer/util/logger';
 
 @Component({
   selector: 'app-gv-documentation',
   templateUrl: './gv-documentation.component.html',
-  styleUrls: ['./gv-documentation.component.css']
+  styleUrls: ['./gv-documentation.component.css'],
+  animations: [
+    trigger('grow', [
+      transition('void <=> *', []),
+      transition('* <=> *', [
+        style({ height: '{{startHeight}}px', opacity: 0 }),
+        animate('.5s ease'),
+      ], { params: { startHeight: 0 } })
+    ])
+  ]
 })
 export class GvDocumentationComponent implements OnInit {
 
   currentPage: Page;
   currentMenuItem: TreeItem;
   menu: TreeItem[];
+  isLoaded = false;
 
   @Input() rootDir: string;
 
@@ -54,13 +66,17 @@ export class GvDocumentationComponent implements OnInit {
         this.menu = [];
       }
     }
+    setTimeout(() => {
+      this.isLoaded = true;
+    }, 700);
   }
 
   constructor(
     private notificationService: NotificationService,
     private route: ActivatedRoute,
     private router: Router,
-    ) { }
+  ) {
+  }
 
   ngOnInit() {
   }
@@ -80,7 +96,7 @@ export class GvDocumentationComponent implements OnInit {
       }
     });
     pagesMap = pagesMap
-      .filter(page => (!page.parent && page.type.toUpperCase() !== Page.TypeEnum.ROOT) || ( page.parent && page.parent === this.rootDir) )
+      .filter(page => (!page.parent && page.type.toUpperCase() !== Page.TypeEnum.ROOT) || (page.parent && page.parent === this.rootDir))
       .sort((p1, p2) => p1.order - p2.order);
     return this.buildMenu(pagesMap, selectedPage);
   }
@@ -154,6 +170,6 @@ export class GvDocumentationComponent implements OnInit {
   }
 
   isEmpty() {
-    return !this.menu || this.menu.length === 0;
+    return this.isLoaded && (!this.menu || this.menu.length === 0);
   }
 }

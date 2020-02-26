@@ -32,7 +32,6 @@ import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filte
 import { GvHeaderItemComponent } from './components/gv-header-item/gv-header-item.component';
 import { GvSearchComponent } from './components/gv-search/gv-search.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
-import { LayoutComponent } from './layouts/layout/layout.component';
 import { LoginComponent } from './pages/login/login.component';
 import { LogoutComponent } from './pages/logout/logout.component';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -45,238 +44,249 @@ import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
 import { SubscribeGuardService } from './services/subscribe-guard.service';
 import { ApplicationGeneralComponent } from './pages/application/application-general/application-general.component';
+import { NotFoundComponent } from './pages/not-found/not-found.component';
 
 export const routes: Routes = [
+  { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
   {
-    path: '', component: LayoutComponent, data: { menu: { hiddenPaths: [''] } }, children: [
-      { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false } },
+    path: 'dashboard',
+    component: DashboardComponent,
+    data: { title: i18n('route.dashboard'), expectedRole: Role.AUTH_USER, animation: { type: 'fade' } },
+    canActivate: [AuthGuardService],
+  },
+  {
+    path: 'catalog',
+    data: {
+      title: i18n('route.catalog'),
+      breadcrumb: true,
+      menu: { hiddenPaths: ['categories/:categoryId', 'api/'] },
+      fallbackRedirectTo: 'catalog/featured',
+    },
+    children: [
+      { path: '', redirectTo: 'categories', pathMatch: 'full' },
+      { path: 'search', component: CatalogSearchComponent, data: { menu: { slots: { right: GvSearchComponent } } } },
       {
-        path: 'dashboard',
-        component: DashboardComponent,
-        data: { title: i18n('route.dashboard'), expectedRole: Role.AUTH_USER },
-        canActivate: [AuthGuardService]
-      },
-      {
-        path: 'catalog',
+        path: 'api',
         data: {
-          title: i18n('route.catalog'),
-          breadcrumb: true,
-          menu: { hiddenPaths: ['categories/:categoryId', 'api/'] },
-          fallbackRedirectTo: 'catalog/featured'
+          breadcrumb: false,
+          menu: { hiddenPaths: [':apiId/subscribe'] }
         },
         children: [
-          { path: '', redirectTo: 'categories', pathMatch: 'full' },
-          { path: 'search', component: CatalogSearchComponent, data: { menu: { slots: { right: GvSearchComponent } } } },
           {
-            path: 'api',
+            path: ':apiId',
+            component: ApiGeneralComponent,
+            data: {
+              menu: { slots: { top: GvHeaderItemComponent, right: GvSearchComponent } },
+              breadcrumb: true,
+              icon: 'general:clipboard',
+              title: i18n('route.catalogApi'),
+              animation: { type: 'slide', group: 'api', index: 1 }
+            }
+          },
+          {
+            path: ':apiId/doc',
+            component: ApiDocumentationComponent,
+            data: {
+              menu: { slots: { top: GvHeaderItemComponent, right: GvSearchComponent } },
+              breadcrumb: true,
+              icon: 'home:library',
+              title: i18n('route.catalogApiDocumentation'),
+              animation: { type: 'fade' }
+            }
+          },
+          {
+            path: ':apiId/contact',
+            component: ApiContactComponent,
+            canActivate: [AuthGuardService, FeatureGuardService],
+            data: {
+              menu: { slots: { top: GvHeaderItemComponent, right: GvSearchComponent } },
+              breadcrumb: true,
+              icon: 'communication:contact#1',
+              title: i18n('route.catalogApiContact'),
+              expectedFeature: FeatureEnum.contact,
+              expectedRole: Role.AUTH_USER,
+              animation: { type: 'slide', group: 'api', index: 3 }
+            }
+          },
+          {
+            path: ':apiId/subscribe',
+            component: ApiSubscribeComponent,
+            canActivate: [SubscribeGuardService],
             data: {
               breadcrumb: false,
-              menu: { hiddenPaths: [':apiId/subscribe'] }
-            },
-            children: [
-              {
-                path: ':apiId',
-                component: ApiGeneralComponent,
-                data: {
-                  menu: { slots: { top: GvHeaderItemComponent, right: GvSearchComponent } },
-                  breadcrumb: true,
-                  icon: 'general:clipboard',
-                  title: i18n('route.catalogApi')
-                }
-              },
-              {
-                path: ':apiId/doc',
-                component: ApiDocumentationComponent,
-                data: {
-                  menu: { slots: { top: GvHeaderItemComponent, right: GvSearchComponent } },
-                  breadcrumb: true,
-                  icon: 'home:library',
-                  title: i18n('route.catalogApiDocumentation')
-                }
-              },
-              {
-                path: ':apiId/contact',
-                component: ApiContactComponent,
-                canActivate: [AuthGuardService, FeatureGuardService],
-                data: {
-                  menu: { slots: { top: GvHeaderItemComponent, right: GvSearchComponent } },
-                  breadcrumb: true,
-                  icon: 'communication:contact#1',
-                  title: i18n('route.catalogApiContact'),
-                  expectedFeature: FeatureEnum.contact,
-                  expectedRole: Role.AUTH_USER
-                }
-              },
-              {
-                path: ':apiId/subscribe',
-                component: ApiSubscribeComponent,
-                canActivate: [SubscribeGuardService],
-                data: {
-                  breadcrumb: false,
-                  title: i18n('route.catalogApiSubscribe'),
-                  menu: { slots: { top: GvHeaderItemComponent } },
-                }
-              },
-            ]
-          },
-          {
-            path: 'categories',
-            component: CategoriesComponent,
-            canActivate: [FeatureGuardService],
-            data: {
-              expectedFeature: FeatureEnum.viewMode,
-              title: i18n('route.catalogCategories'),
-              icon: 'layout:layout-arrange',
-              menu: { slots: { right: GvSearchComponent } },
+              title: i18n('route.catalogApiSubscribe'),
+              menu: { slots: { top: GvHeaderItemComponent } },
             }
           },
-          {
-            path: 'categories/:categoryId',
-            component: FilteredCatalogComponent,
-            canActivate: [FeatureGuardService],
-            data: {
-              expectedFeature: FeatureEnum.viewMode,
-              title: i18n('route.catalogCategory'),
-              menu: { slots: { right: GvSearchComponent } },
-            },
-          },
-          {
-            path: 'featured',
-            component: FilteredCatalogComponent,
-            data: {
-              title: i18n('route.catalogFeatured'),
-              icon: 'home:flower#2',
-              menu: { slots: { right: GvSearchComponent } },
-              categoryApiQuery: CategoryApiQuery.FEATURED,
-            }
-          },
-          {
-            path: 'starred',
-            component: FilteredCatalogComponent,
-            canActivate: [FeatureGuardService],
-            data: {
-              title: i18n('route.catalogStarred'),
-              icon: 'general:star',
-              menu: { slots: { right: GvSearchComponent } },
-              categoryApiQuery: CategoryApiQuery.STARRED,
-              expectedFeature: FeatureEnum.rating,
-            }
-          },
-          {
-            path: 'trendings',
-            component: FilteredCatalogComponent,
-            data: {
-              title: i18n('route.catalogTrending'),
-              icon: 'home:fireplace',
-              menu: { slots: { right: GvSearchComponent } },
-              categoryApiQuery: CategoryApiQuery.TRENDINGS,
-            }
-          }
         ]
       },
       {
-        path: 'user', data: { menu: { hiddenPaths: ['login', 'logout'] } },
-        children: [
-          {
-            path: 'login',
-            component: LoginComponent,
-            canActivate: [AuthGuardService],
-            data: { title: i18n('route.login'), expectedRole: Role.GUEST }
-          },
-          {
-            path: 'account',
-            component: AccountComponent,
-            canActivate: [AuthGuardService],
-            data: {
-              title: i18n('route.user'),
-              icon: 'general:user',
-              expectedRole: Role.AUTH_USER
-            },
-          },
-          {
-            path: 'contact',
-            component: ContactComponent,
-            canActivate: [AuthGuardService, FeatureGuardService],
-            data: {
-              title: i18n('route.contact'),
-              icon: 'communication:contact#1',
-              expectedFeature: FeatureEnum.contact,
-              expectedRole: Role.AUTH_USER
-            }
-          },
-          {
-            path: 'logout',
-            component: LogoutComponent,
-            canActivate: [AuthGuardService],
-            data: {
-              title: i18n('route.logout'),
-              separator: true,
-              icon: 'home:door-open',
-              expectedRole: Role.AUTH_USER
-            }
-          },
-          { path: 'registration', component: RegistrationComponent },
-          { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent }
-        ]
+        path: 'categories',
+        component: CategoriesComponent,
+        canActivate: [FeatureGuardService],
+        data: {
+          expectedFeature: FeatureEnum.viewMode,
+          title: i18n('route.catalogCategories'),
+          icon: 'layout:layout-arrange',
+          menu: { slots: { right: GvSearchComponent } },
+          animation: { type: 'slide', group: 'catalog', index: 1 }
+        }
       },
-      { path: 'documentation', redirectTo: 'documentation/root' },
-      { path: 'documentation/:rootDir', component: DocumentationComponent },
-      { path: 'pages/:pageId', component: SinglePageComponent },
       {
         path: 'categories/:categoryId',
         component: FilteredCatalogComponent,
         canActivate: [FeatureGuardService],
         data: {
           expectedFeature: FeatureEnum.viewMode,
+          title: i18n('route.catalogCategory'),
+          menu: { slots: { right: GvSearchComponent } },
         },
       },
       {
-        path: 'applications',
-        canActivate: [AuthGuardService, FeatureGuardService],
+        path: 'featured',
+        component: FilteredCatalogComponent,
         data: {
-          title: i18n('route.applications'),
-          menu: {},
-          expectedRole: Role.AUTH_USER,
-          expectedFeature: FeatureEnum.applications,
-        },
-        children: [
-          { path: '', redirectTo: 'mine', pathMatch: 'full' },
-          {
-            path: 'mine',
-            component: ApplicationsComponent,
-            data: {
-              title: i18n('route.myApplications'),
-              icon: 'devices:server',
-            }
-          },
-          {
-            path: 'subscriptions',
-            component: SubscriptionsComponent,
-            data: {
-              title: i18n('route.mySubscriptions'),
-              icon: 'finance:share',
-            }
-          },
-          {
-            path: ':applicationId',
-            data: {
-              menu: { slots: { top: GvHeaderItemComponent } },
-            },
-            children: [
-              {
-                path: '',
-                component: ApplicationGeneralComponent,
-                data: {
-                  icon: 'general:clipboard',
-                  title: i18n('route.catalogApi')
-                }
-              },
-            ]
-          },
-        ]
+          title: i18n('route.catalogFeatured'),
+          icon: 'home:flower#2',
+          menu: { slots: { right: GvSearchComponent } },
+          categoryApiQuery: CategoryApiQuery.FEATURED,
+          animation: { type: 'slide', group: 'catalog', index: 2 }
+        }
+      },
+      {
+        path: 'starred',
+        component: FilteredCatalogComponent,
+        canActivate: [FeatureGuardService],
+        data: {
+          title: i18n('route.catalogStarred'),
+          icon: 'general:star',
+          menu: { slots: { right: GvSearchComponent } },
+          categoryApiQuery: CategoryApiQuery.STARRED,
+          expectedFeature: FeatureEnum.rating,
+          animation: { type: 'slide', group: 'catalog', index: 3 }
+        }
+      },
+      {
+        path: 'trendings',
+        component: FilteredCatalogComponent,
+        data: {
+          title: i18n('route.catalogTrending'),
+          icon: 'home:fireplace',
+          menu: { slots: { right: GvSearchComponent } },
+          categoryApiQuery: CategoryApiQuery.TRENDINGS,
+          animation: { type: 'slide', group: 'catalog', index: 4 }
+        }
       }
     ]
-  }
+  },
+  {
+    path: 'user', data: { menu: { hiddenPaths: ['login', 'logout'] } },
+    children: [
+      {
+        path: 'login',
+        component: LoginComponent,
+        canActivate: [AuthGuardService],
+        data: { title: i18n('route.login'), expectedRole: Role.GUEST, animation: { type: 'fade' } }
+      },
+      {
+        path: 'account',
+        component: AccountComponent,
+        canActivate: [AuthGuardService],
+        data: {
+          title: i18n('route.user'),
+          icon: 'general:user',
+          expectedRole: Role.AUTH_USER,
+          animation: { type: 'slide', group: 'user', index: 1 }
+        },
+      },
+      {
+        path: 'contact',
+        component: ContactComponent,
+        canActivate: [AuthGuardService, FeatureGuardService],
+        data: {
+          title: i18n('route.contact'),
+          icon: 'communication:contact#1',
+          expectedFeature: FeatureEnum.contact,
+          expectedRole: Role.AUTH_USER,
+          animation: { type: 'slide', group: 'user', index: 2 }
+        }
+      },
+      {
+        path: 'logout',
+        component: LogoutComponent,
+        canActivate: [AuthGuardService],
+        data: {
+          title: i18n('route.logout'),
+          separator: true,
+          icon: 'home:door-open',
+          expectedRole: Role.AUTH_USER
+        }
+      },
+      { path: 'registration', component: RegistrationComponent },
+      { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent }
+    ]
+  },
+  { path: 'documentation', redirectTo: 'documentation/root', pathMatch: 'full' },
+  { path: 'documentation/:rootDir', component: DocumentationComponent, data: { animation: { type: 'fade' } } },
+  { path: 'pages/:pageId', component: SinglePageComponent },
+  {
+    path: 'categories/:categoryId',
+    component: FilteredCatalogComponent,
+    canActivate: [FeatureGuardService],
+    data: {
+      expectedFeature: FeatureEnum.viewMode,
+    },
+  },
+  {
+    path: 'applications',
+    canActivate: [AuthGuardService, FeatureGuardService],
+    data: {
+      title: i18n('route.applications'),
+      menu: {},
+      expectedRole: Role.AUTH_USER,
+      expectedFeature: FeatureEnum.applications,
+      animation: {}
+    },
+    children: [
+      { path: '', redirectTo: 'mine', pathMatch: 'full' },
+      {
+        path: 'mine',
+        component: ApplicationsComponent,
+        data: {
+          title: i18n('route.myApplications'),
+          icon: 'devices:server',
+          animation: { type: 'slide', group: 'app', index: 1 }
+        }
+      },
+      {
+        path: 'subscriptions',
+        component: SubscriptionsComponent,
+        data: {
+          title: i18n('route.mySubscriptions'),
+          icon: 'finance:share',
+          animation: { type: 'slide', group: 'app', index: 2 }
+        }
+      },
+      {
+        path: ':applicationId',
+        data: {
+          menu: { slots: { top: GvHeaderItemComponent }, animation: { type: 'fade' } },
+        },
+        children: [
+          {
+            path: '',
+            component: ApplicationGeneralComponent,
+            data: {
+              icon: 'general:clipboard',
+              title: i18n('route.catalogApi'),
+              animation: { type: 'fade' }
+            }
+          },
+        ]
+      },
+    ]
+  },
+  { path: '**', component: NotFoundComponent, data: { title: i18n('route.notFound') } }
 ];
 
 @NgModule({

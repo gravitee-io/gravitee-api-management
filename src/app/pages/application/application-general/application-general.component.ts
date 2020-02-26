@@ -156,4 +156,8 @@ export class ApplicationGeneralComponent implements OnInit {
       this.notificationService.success(i18n('application.success.delete'));
     });
   }
+
+  isLoading() {
+    return this.loaderService.isLoading;
+  }
 }

@@ -13,41 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  width: 100%;
-  background-color: var(--gv-theme-color-dark);
+.page__content {
+  --gv-button--fz: 1rem;
+  --gv-button--p: 1rem;
+}
+
+.page__content {
   display: flex;
-  height: 100%;
+  flex-direction: column;
+  max-width: 750px;
 }
 
-.gv-page-container {
-  background-color: var(--gv-theme-neutral-color-lightest);
-  display: none;
-  opacity: 0;
-  transition: opacity 1000ms ease-in-out;
+section {
+  border-top: 8px solid var(--gv-theme-color-dark);
 }
 
-.gv-page-container.show {
-  display: block;
-  opacity: 1;
-}
-
-.gv-documentation__loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 90%;
-  height: 90%;
-}
-
-.gv-documentation__loading gv-icon {
-  --gv-icon--c: var(--gv-theme-neutral-color-lightest);
-  --gv-icon--s: 32px;
-  animation: spinner 1.6s linear infinite;
-}
-
-@keyframes spinner {
-  to {
-    transform: rotate(360deg);
-  }
+section > * {
+  margin: 4rem 0;
 }

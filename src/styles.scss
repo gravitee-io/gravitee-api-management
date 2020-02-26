@@ -1,7 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import "~@gravitee/ui-components/assets/css/gravitee-theme.generated.css";
-@import "app/layouts/layout/layout.component.css";
 
 :root {
   font-family: var(--gv-theme-font-family);
@@ -75,7 +74,7 @@
 .page__content {
   padding: var(--gv-theme-page--pt) var(--gv-theme-layout--pr) var(--gv-theme-page--pb) var(--gv-theme-layout--pl);
   max-width: calc(1412 + var(--gv-theme-page--pr) + var(--gv-theme-page--pl));
-  min-height: calc(100vh - var(--gv-theme-layout-footer-top--h) - var(--gv-theme-layout-header--h));
+  min-height: calc(100vh - var(--gv-theme-layout-header--h));
 }
 
 .page__content section {

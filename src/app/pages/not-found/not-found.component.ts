@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: block;
-  background-color: var(--gv-theme-neutral-color-lightest);
-  width: 100%;
+import { Component, OnInit } from '@angular/core';
+import '@gravitee/ui-components/wc/gv-button';
+import '@gravitee/ui-components/wc/gv-icon';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-not-found',
+  templateUrl: './not-found.component.html',
+  styleUrls: ['./not-found.component.css']
+})
+export class NotFoundComponent implements OnInit {
+
+  constructor(private router: Router) { }
+
+  ngOnInit() {
+  }
+
+  goHome($event: any) {
+    this.router.navigate(['/']);
+  }
+
 }
