@@ -24,14 +24,11 @@ import io.gravitee.repository.management.model.GroupEventRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
 
@@ -54,7 +51,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Group.class, "groups", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
@@ -87,7 +84,6 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
                     .findFirst();
             if (group.isPresent()) {
                 addGroupEvents(group.get());
-                addRoles(group.get());
             }
             return group;
         } catch (final Exception ex) {
@@ -101,7 +97,6 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         try {
             jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(group));
             storeGroupEvents(group, false);
-            storeGroupRoles(group, false);
             return findById(group.getId()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create group", ex);
@@ -117,7 +112,6 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         try {
             jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(group, group.getId()));
             storeGroupEvents(group, true);
-            storeGroupRoles(group, true);
             return findById(group.getId()).orElseThrow(() -> new IllegalStateException(format("No group found with id [%s]", group.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
@@ -130,53 +124,12 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
     @Override
     public void delete(final String id) throws TechnicalException {
         jdbcTemplate.update("delete from group_event_rules where group_id = ?", id);
-        jdbcTemplate.update("delete from group_roles where group_id = ?", id);
         jdbcTemplate.update(ORM.getDeleteSql(), id);
     }
 
     private void addGroupEvents(Group parent) {
         List<GroupEventRule> groupEvents = getEvents(parent.getId());
         parent.setEventRules(groupEvents);
-    }
-
-    private void addRoles(Group parent) {
-        Map<Integer, String> roles = getRoles(parent.getId());
-        parent.setRoles(roles);
-    }
-
-    private Map<Integer, String> getRoles(String groupId) {
-        Map<Integer, String> roles = new HashMap<>();
-        jdbcTemplate.query("select role_scope, role_name from group_roles where group_id = ?"
-                , new RowCallbackHandler() {
-                    @Override
-                    public void processRow(ResultSet rs) throws SQLException {
-                        roles.put(rs.getInt(1), rs.getString(2));
-                    }
-                }, groupId);
-        return roles;
-    }
-
-    private void storeGroupRoles(Group parent, boolean deleteFirst) {
-        if (deleteFirst) {
-            jdbcTemplate.update("delete from group_roles where group_id = ?", parent.getId());
-        }
-        if (parent.getRoles() != null) {
-            List<Integer> scopes = new ArrayList<>(parent.getRoles().keySet());
-            jdbcTemplate.batchUpdate("insert into group_roles ( group_id, role_scope, role_name ) values ( ?, ?, ? )"
-                    , new BatchPreparedStatementSetter() {
-                        @Override
-                        public void setValues(PreparedStatement ps, int i) throws SQLException {
-                            ps.setString(1, parent.getId());
-                            ps.setInt(2, scopes.get(i));
-                            ps.setString(3, parent.getRoles().get(scopes.get(i)));
-                        }
-
-                        @Override
-                        public int getBatchSize() {
-                            return scopes.size();
-                        }
-                    });
-        }
     }
 
     private List<GroupEventRule> getEvents(String groupId) {
@@ -226,7 +179,6 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             Set<Group> groups = new HashSet<>();
             for (Group group : rows) {
                 addGroupEvents(group);
-                addRoles(group);
                 groups.add(group);
             }
             return groups;
@@ -252,7 +204,6 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             Set<Group> groups = new HashSet<>();
             for (Group group : rows) {
                 addGroupEvents(group);
-                addRoles(group);
                 groups.add(group);
             }
             return groups;
@@ -263,23 +214,22 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
     }
 
     @Override
-    public Set<Group> findAllByEnvironment(String environment) throws TechnicalException {
-        LOGGER.debug("JdbcGroupRepository.findAllByEnvironment({})", environment);
+    public Set<Group> findAllByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcGroupRepository.findAllByEnvironment({})", environmentId);
         try {
             List<Group> rows = jdbcTemplate.query(
-                    SELECT_ESCAPED_GROUP_TABLE_NAME + " where environment = ?"
+                    SELECT_ESCAPED_GROUP_TABLE_NAME + " where environment_id = ?"
                     , ORM.getRowMapper()
-                    , environment);
+                    , environmentId);
             Set<Group> groups = new HashSet<>();
             for (Group group : rows) {
                 addGroupEvents(group);
-                addRoles(group);
                 groups.add(group);
             }
             return groups;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find all groups by environment : {}", environment, ex);
-            throw new TechnicalException("Failed to find all groups by environment : " + environment, ex);
+            LOGGER.error("Failed to find all groups by environment : {}", environmentId, ex);
+            throw new TechnicalException("Failed to find all groups by environment : " + environmentId, ex);
         }
     }
 }

@@ -55,7 +55,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Api.class, "apis", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("version", Types.NVARCHAR, String.class)
@@ -218,7 +218,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         final JdbcHelper.CollatingRowMapper<Api> rowMapper =
                 new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
 
-        String projection ="av.*, a.id, a.environment, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
+        String projection ="av.*, a.id, a.environment_id, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
                 "a.visibility, a.lifecycle_state, a.picture, a.api_lifecycle_state";
 
         if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isDefinition()) {
@@ -267,8 +267,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (!StringUtils.isEmpty(apiCriteria.getLifecycleStates())) {
                 sbQuery.append("and a.api_lifecycle_state in (").append(ORM.buildInClause(apiCriteria.getLifecycleStates())).append(") ");
             }
-            if (!isEmpty(apiCriteria.getEnvironment())) {
-                sbQuery.append("and a.environment = ? ");
+            if (!isEmpty(apiCriteria.getEnvironmentId())) {
+                sbQuery.append("and a.environment_id = ? ");
             }
         }
         sbQuery.append("order by a.name");
@@ -303,8 +303,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                         if (!isEmpty(apiCriteria.getLifecycleStates())) {
                             ORM.setArguments(ps, apiCriteria.getLifecycleStates(), lastIndex++);
                         }
-                        if (!isEmpty(apiCriteria.getEnvironment())) {
-                            ps.setString(lastIndex++, apiCriteria.getEnvironment());
+                        if (!isEmpty(apiCriteria.getEnvironmentId())) {
+                            ps.setString(lastIndex++, apiCriteria.getEnvironmentId());
                         }
                     }
                 }

@@ -60,7 +60,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Application.class, "applications", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn(TYPE_FIELD, Types.NVARCHAR, ApplicationType.class)
@@ -295,21 +295,21 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     }
 
     @Override
-    public Set<Application> findAllByEnvironment(String environment, ApplicationStatus... ass)
+    public Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... ass)
             throws TechnicalException {
-        LOGGER.debug("JdbcApplicationRepository.findAllByEnvironment({}, {})", environment, (Object[])ass);
+        LOGGER.debug("JdbcApplicationRepository.findAllByEnvironment({}, {})", environmentId, (Object[])ass);
 
         try {
             List<ApplicationStatus> statuses = Arrays.asList(ass);
             
-            StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where a.environment = ?");
+            StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where a.environment_id = ?");
             boolean first = false;
             ORM.buildInCondition(first, query, STATUS_FIELD, statuses);
 
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(query.toString()
                     , (PreparedStatement ps) -> {
-                        ORM.setArguments(ps, Arrays.asList(environment), 1);
+                        ORM.setArguments(ps, Arrays.asList(environmentId), 1);
                         ORM.setArguments(ps, statuses, 2);
                     }
                     , rowMapper

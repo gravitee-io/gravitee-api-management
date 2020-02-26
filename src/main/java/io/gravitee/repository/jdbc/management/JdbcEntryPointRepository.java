@@ -40,7 +40,7 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Entrypoint.class, "entrypoints", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("value", Types.NVARCHAR, String.class)
             .addColumn("tags", Types.NVARCHAR, String.class)
             .build();
@@ -56,12 +56,12 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
     }
     
     @Override
-    public Set<Entrypoint> findAllByEnvironment(String environment) throws TechnicalException {
-        LOGGER.debug("JdbcEntryPointRepository.findAllByEnvironment({})", environment);
+    public Set<Entrypoint> findAllByEnvironment(String environment_id) throws TechnicalException {
+        LOGGER.debug("JdbcEntryPointRepository.findAllByEnvironment({})", environment_id);
         try {
-            List<Entrypoint> entrypoints = jdbcTemplate.query("select * from entrypoints where environment = ?"
+            List<Entrypoint> entrypoints = jdbcTemplate.query("select * from entrypoints where environment_id = ?"
                     , ORM.getRowMapper()
-                    , environment
+                    , environment_id
             );
             return new HashSet<>(entrypoints);
         } catch (final Exception ex) {

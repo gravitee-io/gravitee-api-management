@@ -15,24 +15,17 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -47,16 +40,14 @@ import io.gravitee.repository.management.model.RoleScope;
  * @author njt
  */
 @Repository
-public class JdbcRoleRepository implements RoleRepository {
+public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String> implements RoleRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRoleRepository.class);
 
     private static final String SCOPE_FIELD = "scope";
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Role.class, "roles", "key")
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Role.class, "roles", "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, RoleReferenceType.class)
@@ -83,12 +74,22 @@ public class JdbcRoleRepository implements RoleRepository {
     };
 
     @Override
+    protected JdbcObjectMapper getOrm() {
+        return ORM;
+    }
+
+    @Override
+    protected String getId(Role item) {
+        return item.getId();
+    }
+    
+    @Override
     public Role create(Role item) throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.create({})", item);
         try {
             jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
             storePermissions(item, false);
-            return findById(item.getScope(), item.getName(), item.getReferenceId(), item.getReferenceType()).orElse(null);
+            return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create role", ex);
             throw new TechnicalException("Failed to create role", ex);
@@ -99,42 +100,12 @@ public class JdbcRoleRepository implements RoleRepository {
     public Role update(final Role role) throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.update({})", role);
         if (role == null) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update("update roles set "
-                            + " scope = ?"
-                            + " , name = ?"
-                            + " , reference_id = ?"
-                            + " , reference_type = ?"
-                            + " , description = ?"
-                            + " , default_role = ?"
-                            + " , " + escapeReservedWord("system") + " = ? "
-                            + " , created_at = ? "
-                            + " , updated_at = ? "
-                            + " where "
-                            + " scope = ? "
-                            + " and name = ? "
-                            + " and reference_id = ?"
-                            + " and reference_type = ?"
-
-                    , role.getScope() == null ? null : role.getScope().name()
-                    , role.getName()
-                    , role.getReferenceId()
-                    , role.getReferenceType().name()
-                    , role.getDescription()
-                    , role.isDefaultRole()
-                    , role.isSystem()
-                    , role.getCreatedAt()
-                    , role.getUpdatedAt()
-                    , role.getScope() == null ? null : role.getScope().name()
-                    , role.getName()
-                    , role.getReferenceId()
-                    , role.getReferenceType().name()
-            );
+            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(role, role.getId()));
             storePermissions(role, true);
-            return findById(role.getScope(), role.getName(), role.getReferenceId(), role.getReferenceType()).orElseThrow(() ->
-                    new IllegalStateException(format("No role found with id [%s, %s]", role.getScope(), role.getName())));
+            return findById(role.getId()).orElseThrow(() -> new IllegalStateException(format("No role found with id [%s]", role.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -145,11 +116,11 @@ public class JdbcRoleRepository implements RoleRepository {
 
 
     @Override
-    public void delete(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcRoleRepository.delete({}, {})", scope, name);
+    public void delete(String roleId) throws TechnicalException {
+        LOGGER.debug("JdbcRoleRepository.delete({})", roleId);
         try {
-            jdbcTemplate.update("delete from role_permissions where role_scope = ? and role_name = ? and reference_id = ? and reference_type = ?", scope.name(), name, referenceId, referenceType.name());
-            jdbcTemplate.update("delete from roles where scope = ? and name = ? and reference_id = ? and reference_type = ?", scope.name(), name, referenceId, referenceType.name());
+            jdbcTemplate.update("delete from role_permissions where role_id = ?", roleId);
+            jdbcTemplate.update(ORM.getDeleteSql(), roleId);
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete role:", ex);
             throw new TechnicalException("Failed to delete role", ex);
@@ -179,23 +150,16 @@ public class JdbcRoleRepository implements RoleRepository {
         LOGGER.debug("JdbcRoleRepository.storePermissions({}, {})", role, deleteFirst);
         try {
             if (deleteFirst) {
-                jdbcTemplate.update("delete from role_permissions where role_scope = ? and role_name = ? and reference_id = ? and reference_type = ?"
-                        , role.getScope() == null ? null : role.getScope().name()
-                        , role.getName()
-                        , role.getReferenceId()
-                        , role.getReferenceType().name()                );
+                jdbcTemplate.update("delete from role_permissions where role_id = ?", role.getId());
             }
             int[] permissions = dedupePermissions(role.getPermissions());
             if ((permissions != null) && permissions.length > 0) {
-                jdbcTemplate.batchUpdate("insert into role_permissions ( role_scope, role_name, reference_id, reference_type, permission ) values ( ?, ?, ?, ?, ? )"
+                jdbcTemplate.batchUpdate("insert into role_permissions ( role_id, permission ) values ( ?, ? )"
                         , new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, role.getScope().name());
-                        ps.setString(2, role.getName());
-                        ps.setString(3, role.getReferenceId());
-                        ps.setString(4, role.getReferenceType().name());
-                        ps.setInt(5, permissions[i]);
+                        ps.setString(1, role.getId());
+                        ps.setInt(2, permissions[i]);
                     }
 
                     @Override
@@ -211,21 +175,19 @@ public class JdbcRoleRepository implements RoleRepository {
     }
 
     @Override
-    public Optional<Role> findById(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcRoleRepository.findById({}, {})", scope, name);
+    public Optional<Role> findById(String roleId) throws TechnicalException {
+        LOGGER.debug("JdbcRoleRepository.findById({})", roleId);
         try {
-            JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query("select * from roles r"
-                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name and rp.reference_id = r.reference_id and rp.reference_type = r.reference_type"
-                    + " where r.scope = ? and r.name = ? and r.reference_id = ? and r.reference_type = ?"
+                    + " left join role_permissions rp on rp.role_id = r.id"
+                    + " where r.id = ?"
                     + " order by r.reference_type, r.reference_id, r.scope,r.name"
                     , rowMapper
-                    , scope == null ? null : scope.name()
-                    , name
-                    , referenceId
-                    , referenceType.name()
+                    , roleId
             );
             Optional<Role> result = rowMapper.getRows().stream().findFirst();
+            LOGGER.debug("JdbcRoleRepository.findById({}) = {}", roleId, result);
             return result;
         } catch (final Exception ex) {
             LOGGER.error("Failed to find role by id:", ex);
@@ -234,21 +196,28 @@ public class JdbcRoleRepository implements RoleRepository {
     }
 
     @Override
-    public Set<Role> findByScope(RoleScope scope) throws TechnicalException {
-        LOGGER.debug("JdbcRoleRepository.findByScope({})", scope);
+    public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("JdbcRoleRepository.findByScopeAndName({}, {}, {}, {})", scope, name, referenceId, referenceType);
         try {
-            JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name and rp.reference_id = r.reference_id and rp.reference_type = r.reference_type"
-                    + " where r.scope = ? "
+                    + " left join role_permissions rp on rp.role_id = r.id"
+                    + " where r.scope = ? and r.name = ? and r.reference_id = ? and r.reference_type = ?"
                     + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper
                     , scope.name()
+                    , name
+                    , referenceId
+                    , referenceType.name()
             );
-            return new HashSet<>(rowMapper.getRows());
+            List<Role> rows = rowMapper.getRows();
+            if (rows.size() >1) {
+                throw new TechnicalException("More than 1 role exist with same name and same scope for this reference");
+            }
+            return Optional.of(rows.get(0));
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find role by scope:", ex);
-            throw new TechnicalException("Failed to find role by scope", ex);
+            LOGGER.error("Failed to find role by scope and name:", ex);
+            throw new TechnicalException("Failed to find role by scope and name", ex);
         }
     }
 
@@ -256,9 +225,9 @@ public class JdbcRoleRepository implements RoleRepository {
     public Set<Role> findAll() throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.findAll()");
         try {
-            JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name and rp.reference_id = r.reference_id and rp.reference_type = r.reference_type"
+                    + " left join role_permissions rp on rp.role_id = r.id"
                     + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper
             );
@@ -275,9 +244,9 @@ public class JdbcRoleRepository implements RoleRepository {
             throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.findAllByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
-            JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name and rp.reference_id = r.reference_id and rp.reference_type = r.reference_type"
+                    + " left join role_permissions rp on rp.role_id = r.id"
                     + " where r.reference_id = ? and r.reference_type = ?"
                     + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper
@@ -297,9 +266,9 @@ public class JdbcRoleRepository implements RoleRepository {
             RoleReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.findByScopeAndReferenceIdAndReferenceType({}, {}, {})", scope, referenceId, referenceType);
         try {
-            JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name and rp.reference_id = r.reference_id and rp.reference_type = r.reference_type"
+                    + " left join role_permissions rp on rp.role_id = r.id"
                     + " where r.scope = ? and r.reference_id = ? and r.reference_type = ?"
                     + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper

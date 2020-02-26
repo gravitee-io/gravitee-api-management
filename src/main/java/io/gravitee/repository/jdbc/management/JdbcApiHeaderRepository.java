@@ -41,7 +41,7 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(ApiHeader.class, "api_headers", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("value", Types.NVARCHAR, String.class)
             .addColumn("order", Types.INTEGER, int.class)
@@ -60,12 +60,12 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
     }
 
     @Override
-    public Set<ApiHeader> findAllByEnvironment(String environment) throws TechnicalException {
-        LOGGER.debug("JdbcApiHeaderRepository.findAllByEnvironment({})", environment);
+    public Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcApiHeaderRepository.findAllByEnvironment({})", environmentId);
         try {
-            List<ApiHeader> apiHeaders = jdbcTemplate.query("select * from api_headers where environment = ?"
+            List<ApiHeader> apiHeaders = jdbcTemplate.query("select * from api_headers where environment_id = ?"
                     , ORM.getRowMapper()
-                    , environment
+                    , environmentId
             );
             return new HashSet<>(apiHeaders);
         } catch (final Exception ex) {

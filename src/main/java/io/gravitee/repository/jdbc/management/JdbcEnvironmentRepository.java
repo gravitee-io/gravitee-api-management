@@ -42,7 +42,7 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("organization", Types.NVARCHAR, String.class)
+            .addColumn("organization_id", Types.NVARCHAR, String.class)
             .build();
 
     @Override
@@ -108,12 +108,12 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
         }
     }
     @Override
-    public Set<Environment> findByOrganization(String organization) throws TechnicalException {
-        LOGGER.debug("JdbcEnvironmentRepository.findByOrganization({})", organization);
+    public Set<Environment> findByOrganization(String organizationId) throws TechnicalException {
+        LOGGER.debug("JdbcEnvironmentRepository.findByOrganization({})", organizationId);
         try {
-            List<Environment> environments = jdbcTemplate.query("select * from environments where organization = ?"
+            List<Environment> environments = jdbcTemplate.query("select * from environments where organization_id = ?"
                     , ORM.getRowMapper()
-                    , organization
+                    , organizationId
             );
             return new HashSet<>(environments);
         } catch (final Exception ex) {

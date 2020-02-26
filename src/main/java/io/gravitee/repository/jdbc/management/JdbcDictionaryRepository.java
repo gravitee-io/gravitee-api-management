@@ -62,7 +62,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Dictionary.class, "dictionaries", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, DictionaryType.class)
@@ -305,16 +305,16 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
     }
 
     @Override
-    public Set<Dictionary> findAllByEnvironment(String environment) throws TechnicalException {
-        LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironment({})", environment);
+    public Set<Dictionary> findAllByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironment({})", environmentId);
         try {
             JdbcHelper.CollatingRowMapper<Dictionary> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from dictionaries d left join dictionary_property dp on d.id = dp.dictionary_id where d.environment = ?"
+            jdbcTemplate.query("select * from dictionaries d left join dictionary_property dp on d.id = dp.dictionary_id where d.environment_id = ?"
                     , rowMapper
-                    , environment
+                    , environmentId
             );
             Set<Dictionary> result = new HashSet<>(rowMapper.getRows());
-            LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironment({}) = {}", environment, result);
+            LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironment({}) = {}", environmentId, result);
             return result;
         } catch (final Exception ex) {
             LOGGER.error("Failed to find dictionary by environment:", ex);
