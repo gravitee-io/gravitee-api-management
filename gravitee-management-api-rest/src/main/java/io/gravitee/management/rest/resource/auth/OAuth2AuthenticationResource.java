@@ -163,7 +163,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                                 .build();
                     }
                 } else {
-                    LOGGER.debug("Token exchange failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
+                    LOGGER.error("Token exchange failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
                 }
 
                 return Response
@@ -206,7 +206,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 final String accessToken = (String) getResponseEntity(response).get(ACCESS_TOKEN_PROPERTY);
                 return authenticateUser(identityProvider, servletResponse, accessToken, payload.getState());
             } else {
-                LOGGER.debug("Exchange authorization code failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
+                LOGGER.error("Exchange authorization code failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
             }
             return Response
                     .status(Response.Status.UNAUTHORIZED)
@@ -238,7 +238,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             return processUser(socialProvider, servletResponse, userInfo, state);
         } else {
-            LOGGER.debug("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
+            LOGGER.error("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
 
         }
 
