@@ -56,17 +56,17 @@ public class UserResourceTest extends AbstractResourceTest {
     @Before
     public void init() throws IOException, URISyntaxException {
         resetAllMocks();
-        
+
         doReturn(new User()).when(userMapper).convert(nullable(UserEntity.class));
         doReturn(new UserLinks()).when(userMapper).computeUserLinks(any(), any());
-        
+
         InlinePictureEntity mockImage = new InlinePictureEntity();
         byte[] apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
         doReturn(mockImage).when(userService).getPicture(any());
     }
-    
+
     @Test
     public void shouldGetCurrentUser() {
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
@@ -76,25 +76,25 @@ public class UserResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
         Mockito.verify(userService).findById(userId.capture());
-        
+
         assertEquals(USER_NAME, userId.getValue());
-        
+
         User user = response.readEntity(User.class);
         assertNotNull(user);
-        
+
         assertNotNull(user.getLinks());
     }
-    
+
     @Test
     public void shouldHaveUnauthorizedAccessWhileUpdatingWithWrongId() {
         UserInput user = new UserInput();
         user.setId("anotherId");
         user.setAvatar("");
-        
+
         final Response response = target().request().put(Entity.json(user));
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
     }
-    
+
     @Test
     public void shouldUpdateCurrentUser() {
         UserInput userInput = new UserInput();
@@ -109,29 +109,29 @@ public class UserResourceTest extends AbstractResourceTest {
         userInput.setAvatar(newAvatar);
         userInput.setId(USER_NAME);
         when(userService.update(eq(USER_NAME), any())).thenReturn(new UserEntity());
-        
+
         final Response response = target().request().put(Entity.json(userInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         ArgumentCaptor<UpdateUserEntity> user = ArgumentCaptor.forClass(UpdateUserEntity.class);
         Mockito.verify(userService).update(eq(USER_NAME), user.capture());
-        
+
         final UpdateUserEntity updateUserEntity = user.getValue();
         assertNotNull(updateUserEntity);
         assertEquals(expectedAvatar, updateUserEntity.getPicture());
         assertNull(updateUserEntity.getStatus());
-        
+
         User updateUser = response.readEntity(User.class);
         assertNotNull(updateUser);
     }
-    
+
     @Test
     public void shouldGetUserAvatar() throws IOException {
         doReturn(new UserEntity()).when(userService).findById(any());
         final Response response = target().path("avatar").request().get();
         assertEquals(OK_200, response.getStatus());
     }
-    
+
     @Test
     public void shouldGetUserAvatarRedirectUrl() throws IOException {
         doReturn(new UserEntity()).when(userService).findById(any());
@@ -139,12 +139,12 @@ public class UserResourceTest extends AbstractResourceTest {
         final Response response = target().path("avatar").request().get();
         assertEquals(OK_200, response.getStatus());
     }
-    
+
     @Test
-    public void shouldGetNotFound() throws IOException {
+    public void shouldGetNoContent() throws IOException {
         doReturn(new UserEntity()).when(userService).findById(any());
         doReturn(null).when(userService).getPicture(any());
         final Response response = target().path("avatar").request().get();
-        assertEquals(NOT_FOUND_404, response.getStatus());
+        assertEquals(OK_200, response.getStatus());
     }
 }

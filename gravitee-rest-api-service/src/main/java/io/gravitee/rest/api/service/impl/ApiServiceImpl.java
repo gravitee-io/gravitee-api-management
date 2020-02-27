@@ -40,6 +40,7 @@ import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.plan.PlanQuery;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -195,7 +196,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiEntity create(final NewApiEntity newApiEntity, final String userId,
-            final ImportSwaggerDescriptorEntity swaggerDescriptor, final List<SwaggerPath> swaggerPaths) throws ApiAlreadyExistsException {
+                             final ImportSwaggerDescriptorEntity swaggerDescriptor, final List<SwaggerPath> swaggerPaths) throws ApiAlreadyExistsException {
         UpdateApiEntity apiEntity = new UpdateApiEntity();
 
         apiEntity.setName(newApiEntity.getName());
@@ -236,7 +237,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         final List<String> declaredPaths = newApiEntity.getPaths() != null ? newApiEntity.getPaths() : new ArrayList<>();
         if (!declaredPaths.contains("/")) {
-          declaredPaths.add(0, "/");
+            declaredPaths.add(0, "/");
         }
 
         // Initialize with a default path and provided paths
@@ -258,20 +259,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
 
 
-
         return createdApi;
     }
 
     private void createOrUpdateDocumentation(final ImportSwaggerDescriptorEntity swaggerDescriptor,
-            final ApiEntity api, boolean isForCreation) {
+                                             final ApiEntity api, boolean isForCreation) {
         List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder()
                 .api(api.getId())
                 .type(PageType.SWAGGER)
                 .build()
-                );
+        );
 
         if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
-            if(isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
+            if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
                 final NewPageEntity page = new NewPageEntity();
                 page.setName("Swagger");
                 page.setType(SWAGGER);
@@ -286,7 +286,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
                 }
                 pageService.createPage(api.getId(), page);
-            } else if(apiDocs.size() == 1) {
+            } else if (apiDocs.size() == 1) {
                 PageEntity pageToUpdate = apiDocs.get(0);
                 final UpdatePageEntity page = new UpdatePageEntity();
                 page.setName(pageToUpdate.getName());
@@ -352,8 +352,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             try {
                 final Object responseProperties = swaggerVerb.getResponseProperties();
                 if (responseProperties != null) {
-                    configuration.put("content", objectMapper.writeValueAsString(swaggerVerb.isArray()?
-                            singletonList(responseProperties): responseProperties));
+                    configuration.put("content", objectMapper.writeValueAsString(swaggerVerb.isArray() ?
+                            singletonList(responseProperties) : responseProperties));
                 }
                 policy.setConfiguration(objectMapper.writeValueAsString(configuration));
             } catch (final JsonProcessingException e) {
@@ -452,14 +452,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
 
                 Api createdApi = apiRepository.create(repoApi);
-                
+
                 //Create SystemFolder
                 NewPageEntity asideSystemFolder = new NewPageEntity();
                 asideSystemFolder.setName(SystemFolderType.ASIDE.folderName());
                 asideSystemFolder.setPublished(true);
                 asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
                 pageService.createPage(createdApi.getId(), asideSystemFolder);
-                
+
                 // Audit
                 auditService.createApiAuditLog(
                         createdApi.getId(),
@@ -701,11 +701,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 groupApis = apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
             }
 
+            // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members
+            Collection<SubscriptionEntity> search = subscriptionService.search(new SubscriptionQuery());
+            Set<String> subscribedApiId = search.stream()
+                    .map(subscriptionEntity -> subscriptionEntity.getApi())
+                    .collect(toSet());
+            List<Api> subscribedApis = apiRepository
+                    .search(queryToCriteria(apiQuery).ids(subscribedApiId.toArray(new String[subscribedApiId.size()])).build());
+
             // merge all apis
             final Set<ApiEntity> apis = new HashSet<>(publicApis.size() + userApis.size() + groupApis.size());
             apis.addAll(convert(publicApis));
             apis.addAll(convert(userApis));
             apis.addAll(convert(groupApis));
+            apis.addAll(convert(subscribedApis));
             return filterApiByQuery(apis.stream(), apiQuery).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
@@ -715,18 +724,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public Set<ApiEntity> findPublishedByUser(String userId, ApiQuery apiQuery) {
-        if(apiQuery == null) {
+        if (apiQuery == null) {
             apiQuery = new ApiQuery();
         }
         apiQuery.setLifecycleStates(Arrays.asList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
         return findByUser(userId, apiQuery);
     }
-    
+
     @Override
     public Set<ApiEntity> findPublishedByUser(String userId) {
         return findPublishedByUser(userId, null);
     }
-    
+
     private Stream<ApiEntity> filterApiByQuery(Stream<ApiEntity> apiEntityStream, ApiQuery query) {
         if (query == null) {
             return apiEntityStream;
@@ -902,7 +911,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         // validate regex on pathMappings
         if (updateApiEntity.getPathMappings() != null) {
-            updateApiEntity.getPathMappings().forEach( pathMapping -> {
+            updateApiEntity.getPathMappings().forEach(pathMapping -> {
                 try {
                     Pattern.compile(pathMapping);
                 } catch (java.util.regex.PatternSyntaxException pse) {
@@ -1217,7 +1226,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public ApiEntity createOrUpdateWithDefinition(final ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
 
         String apiDefinition = apiDefinitionOrURL;
-        if(apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
+        if (apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
             apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         }
 
@@ -1289,7 +1298,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             .stream()
                             .anyMatch(m -> m.getRole().equals(memberToImport.getRole())
                                     && (m.getSourceId().equals(memberToImport.getSourceId())
-                                        && m.getSource().equals(memberToImport.getSource())));
+                                    && m.getSource().equals(memberToImport.getSource())));
 
                     // add/update members if :
                     //  - not already present with the same role
@@ -1298,7 +1307,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     if (!presentWithSameRole
                             && !SystemRole.PRIMARY_OWNER.name().equals(memberToImport.getRole())
                             && !(memberToImport.getSourceId().equals(currentPo.getSourceId())
-                                && memberToImport.getSource().equals(currentPo.getSource()))) {
+                            && memberToImport.getSource().equals(currentPo.getSource()))) {
                         try {
                             UserEntity userEntity = userService.findBySource(memberToImport.getSource(), memberToImport.getSourceId(), false);
                             membershipService.addOrUpdateMember(
@@ -1560,24 +1569,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public List<ApiHeaderEntity> getPortalHeaders(String apiId) {
-            List<ApiHeaderEntity> entities = apiHeaderService.findAll();
-            ApiModelEntity apiEntity = this.findByIdForTemplates(apiId);
-            Map<String, Object> model = new HashMap<>();
-            model.put("api", apiEntity);
-            entities.forEach(entity -> {
-                // Skip api.endpoint which is no more required for entrypoints
-                // this avoid exception with existing header which is trying to get value from context-path
-                if (! entity.getName().equals("api.endpoint") && entity.getValue().contains("${")) {
-                    try {
-                        Template template = new Template(entity.getId() + entity.getUpdatedAt().toString(), entity.getValue(), freemarkerConfiguration);
-                        entity.setValue(FreeMarkerTemplateUtils.processTemplateIntoString(template, model));
-                    } catch (IOException | TemplateException e) {
-                        LOGGER.error("Unable to apply templating on api headers ", e);
-                        throw new TechnicalManagementException("Unable to apply templating on api headers", e);
-                    }
+        List<ApiHeaderEntity> entities = apiHeaderService.findAll();
+        ApiModelEntity apiEntity = this.findByIdForTemplates(apiId);
+        Map<String, Object> model = new HashMap<>();
+        model.put("api", apiEntity);
+        entities.forEach(entity -> {
+            // Skip api.endpoint which is no more required for entrypoints
+            // this avoid exception with existing header which is trying to get value from context-path
+            if (!entity.getName().equals("api.endpoint") && entity.getValue().contains("${")) {
+                try {
+                    Template template = new Template(entity.getId() + entity.getUpdatedAt().toString(), entity.getValue(), freemarkerConfiguration);
+                    entity.setValue(FreeMarkerTemplateUtils.processTemplateIntoString(template, model));
+                } catch (IOException | TemplateException e) {
+                    LOGGER.error("Unable to apply templating on api headers ", e);
+                    throw new TechnicalManagementException("Unable to apply templating on api headers", e);
                 }
-            });
-            return entities;
+            }
+        });
+        return entities;
     }
 
     @Override
@@ -1607,7 +1616,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final Proxy proxy = apiEntity.getProxy();
         proxy.setVirtualHosts(singletonList(new VirtualHost(duplicateApiEntity.getContextPath())));
         newApiEntity.setProxy(proxy);
-        newApiEntity.setVersion(duplicateApiEntity.getVersion() == null? apiEntity.getVersion(): duplicateApiEntity.getVersion());
+        newApiEntity.setVersion(duplicateApiEntity.getVersion() == null ? apiEntity.getVersion() : duplicateApiEntity.getVersion());
 
         if (duplicateApiEntity.getFilteredFields().contains("groups")) {
             newApiEntity.setGroups(null);
@@ -1775,7 +1784,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (loggingToUpdate == loggingUpdated ||
                     (loggingToUpdate != null && loggingUpdated != null
                             && Objects.equals(loggingToUpdate.getMode(), loggingUpdated.getMode())
-                            &&  Objects.equals(loggingToUpdate.getCondition(), loggingUpdated.getCondition()))) {
+                            && Objects.equals(loggingToUpdate.getCondition(), loggingUpdated.getCondition()))) {
                 return;
             }
 

@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ThemeService;
+import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
@@ -46,7 +47,7 @@ public class ThemeResource extends AbstractResource {
             String themeURL = PortalApiLinkHelper.themeURL(uriInfo.getBaseUriBuilder(), theme.getId());
             return Response.ok(themeMapper.convert(theme, themeURL)).build();
         }
-        throw new NotFoundException();
+        return Response.ok().build();
     }
 
     @GET

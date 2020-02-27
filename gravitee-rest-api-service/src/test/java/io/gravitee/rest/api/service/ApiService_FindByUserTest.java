@@ -28,6 +28,9 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.Set;
 
+import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.model.*;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,10 +48,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ParameterService;
@@ -72,10 +71,16 @@ public class ApiService_FindByUserTest {
     private ApiRepository apiRepository;
     @Mock
     private MembershipRepository membershipRepository;
+    @Mock
+    private SubscriptionService subscriptionService;
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
     @Mock
     private Api api;
+    @Mock
+    private Api privateApi;
+    @Mock
+    private SubscriptionEntity subscription;
     @Mock
     private UserService userService;
     @Mock
@@ -89,8 +94,10 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldFindByUser() throws TechnicalException {
+        when(privateApi.getId()).thenReturn("private-api");
         when(apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").visibility(PUBLIC).build())).thenReturn(singletonList(api));
         when(apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").ids(api.getId()).build())).thenReturn(singletonList(api));
+        when(apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").ids(privateApi.getId()).build())).thenReturn(singletonList(privateApi));
 
         Membership membership = new Membership(USER_NAME, api.getId(), MembershipReferenceType.API);
         membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), "USER"));
@@ -102,10 +109,13 @@ public class ApiService_FindByUserTest {
         when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
                 .thenReturn(Collections.singleton(po));
 
+        when(subscription.getApi()).thenReturn("private-api");
+        when(subscriptionService.search(any())).thenReturn(singletonList(subscription));
+
         final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null);
 
         assertNotNull(apiEntities);
-        assertEquals(1, apiEntities.size());
+        assertEquals(2, apiEntities.size());
     }
 
     @Test

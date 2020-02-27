@@ -342,7 +342,7 @@ public abstract class AbstractResource {
 
     protected Response createPictureResponse(Request request, InlinePictureEntity image) {
         if (image == null || image.getContent() == null) {
-            return Response.status(Status.NOT_FOUND).build();
+            return Response.ok().build();
         }
         CacheControl cc = new CacheControl();
         cc.setNoTransform(true);

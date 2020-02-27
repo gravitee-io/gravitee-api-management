@@ -100,7 +100,7 @@ public class UserResource extends AbstractResource {
         PictureEntity picture = userService.getPicture(userId);
 
         if (picture == null) {
-            throw new NotFoundException();
+            return Response.ok().build();
         }
 
         if (picture instanceof UrlPictureEntity) {
