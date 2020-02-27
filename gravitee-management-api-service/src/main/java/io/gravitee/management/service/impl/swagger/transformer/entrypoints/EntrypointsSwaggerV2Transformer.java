@@ -41,7 +41,9 @@ public class EntrypointsSwaggerV2Transformer implements SwaggerV2Transformer {
     public void transform(SwaggerV2Descriptor descriptor) {
         if (entrypoints != null && ! entrypoints.isEmpty()) {
             Swagger swagger = descriptor.getSpecification();
-            swagger.getSchemes().clear();
+            if (swagger.getSchemes() != null) {
+                swagger.getSchemes().clear();
+            }
 
             // Swagger v2 supports only a single server
             ApiEntrypointEntity first = entrypoints.iterator().next();
