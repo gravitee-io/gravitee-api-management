@@ -28,7 +28,7 @@
       <th md-column md-order-by="name">Name</th>
       <th md-column md-order-by="format">Format</th>
       <th md-column md-order-by="value">Default value</th>
-      <th md-column width="48px"></th>
+      <th md-column width="64px" nowrap>></th>
     </tr>
     </thead>
     <tbody md-body>
@@ -37,7 +37,7 @@
       <td md-cell>{{metadata.name}}</td>
       <td md-cell>{{metadata.format}}</td>
       <td md-cell>{{metadata.value}}</td>
-      <td md-cell width="48px">
+      <td md-cell width="64px" nowrap>>
         <ng-md-icon permission permission-only="'portal-metadata-d'"
                     icon="delete" ng-click="$ctrl.deleteMetadata(metadata)"
                     style="font-size: 24px; height: 24px;">
