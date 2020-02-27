@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div ng-if="$ctrl.data[$ctrl.chartData[0].key] !== undefined" class="gv-widget-stats-container">
+<div ng-if="$ctrl.data[$ctrl.chartData[0].key] !== undefined">
   <div layout="row" layout-align="center center" layout-wrap="">
     <div layout="column" class="gv-widget-stats" ng-class="{'gv-widget-stats-sm': $ctrl.lowResolution}" ng-repeat="data in $ctrl.chartData" ng-style="{color: data.color}">
       <div class="gv-widget-stats-value" ng-class="{'gv-widget-stats-value-sm': $ctrl.lowResolution}">{{$ctrl.data[data.key] | number:0}}{{data.unit}}</div>
