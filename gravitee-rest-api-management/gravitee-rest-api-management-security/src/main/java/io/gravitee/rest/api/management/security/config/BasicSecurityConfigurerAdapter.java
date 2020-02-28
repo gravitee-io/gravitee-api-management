@@ -195,6 +195,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         String uriPrefix = "/management/organizations/**/environments/**";
 
         return security.authorizeRequests()
+                // Swagger
+                .antMatchers(HttpMethod.GET, "/management/swagger.json").permitAll()
+
                 .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/user/login").permitAll()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/user/**").authenticated()
@@ -229,9 +232,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.GET, uriPrefix + "/users/**").authenticated()
                 .antMatchers(HttpMethod.PUT, uriPrefix + "/users/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, uriPrefix + "/users/**").authenticated()
-
-                // Swagger
-                .antMatchers(HttpMethod.GET, uriPrefix + "/swagger.json").permitAll()
 
                 // Configuration Groups
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/groups/**").permitAll()
