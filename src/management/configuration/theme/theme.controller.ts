@@ -32,6 +32,7 @@ class ThemeController {
               private Constants,
               private ThemeService: ThemeService,
               private NotificationService: NotificationService) {
+    'ngInject';
     $scope.themeForm = {};
     $scope.targetURL = Constants.portal.url;
     $scope.previewName = 'GvPreviewName';
