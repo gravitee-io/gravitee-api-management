@@ -15,43 +15,45 @@
  */
 package io.gravitee.management.service.impl.swagger.transformer.entrypoints;
 
+import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.api.ApiEntrypointEntity;
-import io.gravitee.management.service.impl.swagger.transformer.OAITransformer;
+import io.gravitee.management.service.impl.swagger.SwaggerProperties;
+import io.gravitee.management.service.impl.swagger.transformer.page.AbstractPageConfigurationSwaggerTransformer;
 import io.gravitee.management.service.swagger.OAIDescriptor;
 import io.swagger.v3.oas.models.servers.Server;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EntrypointsOAITransformer implements OAITransformer {
+public class EntrypointsOAITransformer extends AbstractPageConfigurationSwaggerTransformer<OAIDescriptor> {
 
     private final List<ApiEntrypointEntity> entrypoints;
 
-    public EntrypointsOAITransformer(List<ApiEntrypointEntity> entrypoints) {
+    public EntrypointsOAITransformer(final PageEntity page, final List<ApiEntrypointEntity> entrypoints) {
+        super(page);
         this.entrypoints = entrypoints;
     }
 
     @Override
     public void transform(OAIDescriptor descriptor) {
-        if (entrypoints != null && ! entrypoints.isEmpty()) {
-            // Remove all existing servers
-            descriptor.getSpecification().getServers().clear();
+        if (asBoolean(SwaggerProperties.ENTRYPOINTS_AS_SERVERS) && entrypoints != null && ! entrypoints.isEmpty()) {
+            List<Server> servers = new ArrayList<>();
 
             // Add server according to entrypoints
-            entrypoints.forEach(new Consumer<ApiEntrypointEntity>() {
-                @Override
-                public void accept(ApiEntrypointEntity entrypoint) {
-                    Server server = new Server();
+            entrypoints.forEach(entrypoint -> {
+                Server server = new Server();
 
-                    server.setUrl(entrypoint.getTarget());
+                server.setUrl(entrypoint.getTarget());
 
-                    descriptor.getSpecification().getServers().add(server);
-                }
+                servers.add(server);
+
             });
+
+            descriptor.getSpecification().setServers(servers);
         }
     }
 }

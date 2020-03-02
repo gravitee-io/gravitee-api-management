@@ -15,8 +15,12 @@
  */
 package io.gravitee.management.service.impl.swagger.transformer.entrypoints;
 
+import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.api.ApiEntrypointEntity;
+import io.gravitee.management.service.impl.swagger.SwaggerProperties;
 import io.gravitee.management.service.impl.swagger.transformer.SwaggerV2Transformer;
+import io.gravitee.management.service.impl.swagger.transformer.page.AbstractPageConfigurationSwaggerTransformer;
+import io.gravitee.management.service.swagger.SwaggerDescriptor;
 import io.gravitee.management.service.swagger.SwaggerV2Descriptor;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
@@ -29,23 +33,21 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EntrypointsSwaggerV2Transformer implements SwaggerV2Transformer {
+public class EntrypointsSwaggerV2Transformer extends AbstractPageConfigurationSwaggerTransformer<SwaggerV2Descriptor> {
 
     private final List<ApiEntrypointEntity> entrypoints;
 
-    public EntrypointsSwaggerV2Transformer(List<ApiEntrypointEntity> entrypoints) {
+    public EntrypointsSwaggerV2Transformer(final PageEntity page, final List<ApiEntrypointEntity> entrypoints) {
+        super(page);
         this.entrypoints = entrypoints;
     }
 
     @Override
     public void transform(SwaggerV2Descriptor descriptor) {
-        if (entrypoints != null && ! entrypoints.isEmpty()) {
+        if (asBoolean(SwaggerProperties.ENTRYPOINTS_AS_SERVERS) && entrypoints != null && ! entrypoints.isEmpty()) {
             Swagger swagger = descriptor.getSpecification();
-            if (swagger.getSchemes() != null) {
-                swagger.getSchemes().clear();
-            }
 
-            // Swagger v2 supports only a single server
+            // Swagger vs2 supports only a single server
             ApiEntrypointEntity first = entrypoints.iterator().next();
             URI target = URI.create(first.getTarget());
             swagger.setSchemes(Collections.singletonList(Scheme.forValue(target.getScheme())));

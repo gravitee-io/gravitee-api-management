@@ -29,11 +29,26 @@ public abstract class AbstractPageConfigurationSwaggerTransformer<T extends Swag
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    final static String TRY_IT_PROPERTY = "tryItURL";
-
     protected final PageEntity page;
 
-    AbstractPageConfigurationSwaggerTransformer(PageEntity page) {
+    protected AbstractPageConfigurationSwaggerTransformer(PageEntity page) {
         this.page = page;
+    }
+
+    protected String getProperty(String property) {
+        if (page.getConfiguration() == null) {
+            return null;
+        }
+
+        return page.getConfiguration().get(property);
+    }
+
+    protected boolean asBoolean(String property) {
+        String value = getProperty(property);
+        return (value != null) && Boolean.parseBoolean(value);
+    }
+
+    protected String asString(String property) {
+        return getProperty(property);
     }
 }

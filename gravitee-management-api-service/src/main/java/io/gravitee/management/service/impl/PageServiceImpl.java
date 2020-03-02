@@ -157,20 +157,15 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 		// If swagger page, let's try to apply transformations
 		if (io.gravitee.repository.management.model.PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
-			// Apply this only if there is no custom URL
-			boolean custom = (pageEntity.getConfiguration() != null &&
-					pageEntity.getConfiguration().get("tryItURL") != null &&
-					!pageEntity.getConfiguration().get("tryItURL").isEmpty());
-
 			SwaggerDescriptor<?> descriptor = swaggerService.parse(pageEntity.getContent());
 
 			if (descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V1 || descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V2) {
 				Collection<SwaggerTransformer<SwaggerV2Descriptor>> transformers = new ArrayList<>();
 				transformers.add(new PageConfigurationSwaggerV2Transformer(pageEntity));
 
-				if (apiId != null && !custom) {
+				if (apiId != null) {
 					List<ApiEntrypointEntity> entrypoints = apiService.findById(apiId).getEntrypoints();
-					transformers.add(new EntrypointsSwaggerV2Transformer(entrypoints));
+					transformers.add(new EntrypointsSwaggerV2Transformer(pageEntity, entrypoints));
 				}
 
 				swaggerService.transform((SwaggerV2Descriptor) descriptor, transformers);
@@ -178,9 +173,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				Collection<SwaggerTransformer<OAIDescriptor>> transformers = new ArrayList<>();
 				transformers.add(new PageConfigurationOAITransformer(pageEntity));
 
-				if (apiId != null && !custom) {
+				if (apiId != null) {
 					List<ApiEntrypointEntity> entrypoints = apiService.findById(apiId).getEntrypoints();
-					transformers.add(new EntrypointsOAITransformer(entrypoints));
+					transformers.add(new EntrypointsOAITransformer(pageEntity, entrypoints));
 				}
 
 				swaggerService.transform((OAIDescriptor) descriptor, transformers);

@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl.swagger.transformer.page;
 
 import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.service.impl.swagger.SwaggerProperties;
 import io.gravitee.management.service.impl.swagger.transformer.OAITransformer;
 import io.gravitee.management.service.swagger.OAIDescriptor;
 
@@ -34,12 +35,8 @@ public class PageConfigurationOAITransformer extends AbstractPageConfigurationSw
 
     @Override
     public void transform(OAIDescriptor descriptor) {
-        if (page.getConfiguration() != null
-                && page.getConfiguration().get(TRY_IT_PROPERTY) != null
-                && !page.getConfiguration().get(TRY_IT_PROPERTY).isEmpty()) {
-
-            String tryItUrl = page.getConfiguration().get(TRY_IT_PROPERTY);
-
+        String tryItUrl = asString(SwaggerProperties.TRY_IT);
+        if (tryItUrl != null && ! tryItUrl.isEmpty()) {
             URI newURI = URI.create(tryItUrl);
             descriptor.getSpecification().getServers().forEach(server -> {
                 try {

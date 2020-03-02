@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl.swagger.transformer.page;
 
 import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.service.impl.swagger.SwaggerProperties;
 import io.gravitee.management.service.impl.swagger.transformer.SwaggerV2Transformer;
 import io.gravitee.management.service.swagger.SwaggerV2Descriptor;
 import io.swagger.models.Scheme;
@@ -35,12 +36,8 @@ public class PageConfigurationSwaggerV2Transformer extends AbstractPageConfigura
 
     @Override
     public void transform(SwaggerV2Descriptor descriptor) {
-        if (page.getConfiguration() != null
-                && page.getConfiguration().get(TRY_IT_PROPERTY) != null
-                && !page.getConfiguration().get(TRY_IT_PROPERTY).isEmpty()) {
-
-            String tryItUrl = page.getConfiguration().get(TRY_IT_PROPERTY);
-
+        String tryItUrl = asString(SwaggerProperties.TRY_IT);
+        if (tryItUrl != null && ! tryItUrl.isEmpty()) {
             URI newURI = URI.create(tryItUrl);
             descriptor.getSpecification().setSchemes(Collections.singletonList(Scheme.forValue(newURI.getScheme())));
             descriptor.getSpecification().setHost((newURI.getPort() != -1) ? newURI.getHost() + ':' + newURI.getPort() : newURI.getHost());

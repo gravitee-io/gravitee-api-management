@@ -21,13 +21,12 @@ import com.google.common.io.Resources;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.service.impl.SwaggerServiceImpl;
+import io.gravitee.management.service.impl.swagger.SwaggerProperties;
 import io.gravitee.management.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
 import io.gravitee.management.service.impl.swagger.transformer.page.PageConfigurationSwaggerV2Transformer;
 import io.gravitee.management.service.swagger.OAIDescriptor;
-import io.gravitee.management.service.swagger.SwaggerDescriptor;
 import io.gravitee.management.service.swagger.SwaggerV1Descriptor;
 import io.gravitee.management.service.swagger.SwaggerV2Descriptor;
-import io.swagger.models.Swagger;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
 import org.junit.Before;
@@ -66,8 +65,7 @@ public class SwaggerService_TransformTest {
         pageEntity.setContent(descriptor);
         pageEntity.setContentType(contentType);
         Map<String, String> pageConfigurationEntity = new HashMap<>();
-        pageConfigurationEntity.put("tryIt", "true");
-        pageConfigurationEntity.put("tryItURL", "https://my.domain.com/v1");
+        pageConfigurationEntity.put(SwaggerProperties.TRY_IT, "https://my.domain.com/v1");
         pageEntity.setConfiguration(pageConfigurationEntity);
         return pageEntity;
     }
