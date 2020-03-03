@@ -152,6 +152,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
+    private static final String LOGGING_DELIMITER_BASE = "\\s+(\\|\\||\\&\\&)\\s+";
     private static final String ENDPOINTS_DELIMITER = "\n";
     @Override
     public ApiEntity create(final NewApiEntity newApiEntity, final String userId) throws ApiAlreadyExistsException {
@@ -554,11 +555,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(logging.getCondition());
                     if (matcher.matches()) {
                         String currentDurationAsStr = matcher.group("timestamp");
-                        String before = matcher.group("before");
-                        String after = matcher.group("after");
+                        String before = formatExpression(matcher, "before");
+                        String after = formatExpression(matcher, "after");
                         try {
-                            Long currentDuration = Long.valueOf(currentDurationAsStr);
-                            if (currentDuration > maxEndDate) {
+                            final long currentDuration = Long.parseLong(currentDurationAsStr);
+                            if (currentDuration > maxEndDate || (!before.isEmpty() || !after.isEmpty())) {
                                 logging.setCondition(before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after);
                             }
                         } catch (NumberFormatException nfe) {
@@ -571,6 +572,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
             }
         }
+    }
+
+    private String formatExpression(final Matcher matcher, final String group) {
+        final String matchedExpression = matcher.group(group);
+        final boolean expressionBlank = matchedExpression == null || "".equals(matchedExpression);
+        final boolean after = "after".equals(group);
+
+        String expression;
+        if (after) {
+            expression = expressionBlank ? "" : " && (" + matchedExpression + ")";
+            expression = expression.replaceAll("\\(" + LOGGING_DELIMITER_BASE, "\\(");
+        } else {
+            expression = expressionBlank ? "" : "(" + matchedExpression + ") && ";
+            expression = expression.replaceAll(LOGGING_DELIMITER_BASE + "\\)", "\\)");
+        }
+        return expression;
     }
 
     @Override
