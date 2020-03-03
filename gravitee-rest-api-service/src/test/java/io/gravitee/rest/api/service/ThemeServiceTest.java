@@ -372,7 +372,7 @@ public class ThemeServiceTest {
         ThemeDefinition themeDefinition = mapper.readValue(definition, ThemeDefinition.class);
         assertNotNull(themeDefinition);
         assertNotNull(themeDefinition.getData());
-        assertEquals(themeDefinition.getData().size(), 36);
+        assertEquals(themeDefinition.getData().size(), 37);
     }
 
     @Test
@@ -423,12 +423,12 @@ public class ThemeServiceTest {
         ThemeDefinition themeDefinition = mapper.readValue(def, ThemeDefinition.class);
         String customDef = themeServiceImpl.getDefinition("/themes/legacy-definition.json");
         ThemeDefinition legacyDefinition = mapper.readValue(customDef, ThemeDefinition.class);
-        assertEquals(themeDefinition.getData().size(), 36);
+        assertEquals(themeDefinition.getData().size(), 37);
         assertEquals(legacyDefinition.getData().size(), 36);
 
         ThemeDefinition mergedDefinition = mapper.merge(def, customDef);
         assertNotNull(mergedDefinition);
-        assertEquals(mergedDefinition.getData().size(), 36);
+        assertEquals(mergedDefinition.getData().size(), 37);
 
         assertNotNull(mapper.getThemeCssDefinition(legacyDefinition, "gv-theme", "--gv-theme--c"));
         assertNull(mapper.getThemeCssDefinition(themeDefinition, "gv-theme", "--gv-theme--c"));
