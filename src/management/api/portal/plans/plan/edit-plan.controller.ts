@@ -42,9 +42,6 @@ class ApiEditPlanController {
     }[]
   };
 
-  invalidPolicies = ['api-key', 'oauth2', 'jwt', 'rate-limit', 'quota', 'resource-filtering', 'xslt', 'xml-json',
-    'rest-to-json', 'json-to-json', 'html-json', 'policy-assign-content'];
-
   constructor(
     private $scope,
     private $state: StateService,
@@ -79,9 +76,6 @@ class ApiEditPlanController {
     }
 
     this.planPolicies = this.plan.paths['/'];
-
-    // Remove some policies from the "plan" policies scope
-    _.remove(this.policies, (policy) => this.invalidPolicies.indexOf(policy.id) !== -1);
 
     // Add policy metadata
     if (this.planPolicies) {
