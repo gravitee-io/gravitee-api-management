@@ -194,15 +194,14 @@
                 <md-tab md-on-select="currentTab=$ctrl.selectTab(3)" ng-if="$ctrl.canUpdate">
                     <md-tab-label>Access Control</md-tab-label>
                     <md-tab-body>
-                        <h3>Groups Authorizations</h3>
-                        <md-input-container class="md-block" flex="100">
-                            <label>Groups allowed to access to this page. All by default.</label>
-                            <md-select ng-model="$ctrl.page.authorizedGroups" multiple>
-                                <md-option ng-repeat="group in $ctrl.groups | orderBy:'name'" ng-value="group.id">
-                                    {{group.name}}
-                                </md-option>
-                            </md-select>
-                        </md-input-container>
+                      <md-input-container class="md-block" flex="100">
+                          <label>Groups excluded</label>
+                          <md-select ng-model="$ctrl.page.excluded_groups" multiple>
+                              <md-option ng-repeat="group in $ctrl.groups | orderBy:'name'" ng-value="group.id">
+                                  {{group.name}}
+                              </md-option>
+                          </md-select>
+                      </md-input-container>
                     </md-tab-body>
                 </md-tab>
             </md-tabs>

@@ -99,8 +99,8 @@
 
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex="100">
-              <label>Groups allowed to access this plan</label>
-              <md-select ng-model="$ctrl.parent.plan.authorizedGroups" multiple>
+              <label>Groups excluded</label>
+              <md-select ng-model="$ctrl.parent.plan.excluded_groups" multiple>
                 <md-option ng-repeat="group in $ctrl.parent.groups | orderBy:'name'" ng-value="group.id">
                   {{group.name}}
                 </md-option>

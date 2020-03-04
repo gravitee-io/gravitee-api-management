@@ -78,11 +78,6 @@ const EditPageComponent: ng.IComponentOptions = {
         mode: "javascript",
       };
 
-      if (this.page['excluded_groups']) {
-        this.page.authorizedGroups = _.difference(_.map(this.groups, 'id'), this.page['excluded_groups']);
-      } else {
-        this.page.authorizedGroups = _.map(this.groups, 'id');
-      }
       if (this.apiId) {
         this.canUpdate = UserService.isUserHasPermissions(["api-documentation-u"]);
       } else {
@@ -120,13 +115,6 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.save = () => {
-
-      // Convert authorized groups to excludedGroups
-      this.page.excluded_groups = [];
-      if (this.groups) {
-        this.page.excluded_groups = _.difference(_.map(this.groups, 'id'), this.page.authorizedGroups);
-      }
-
       DocumentationService.update(this.page, this.apiId)
         .then( (response) => {
           NotificationService.show("'" + this.page.name + "' has been updated");

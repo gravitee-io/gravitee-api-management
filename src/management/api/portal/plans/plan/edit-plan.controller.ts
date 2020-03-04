@@ -102,12 +102,6 @@ class ApiEditPlanController {
         this.groups = [];
       }
     }
-
-    if (this.plan['excluded_groups']) {
-      this.plan.authorizedGroups = _.difference(_.map(this.groups, 'id'), this.plan['excluded_groups']);
-    } else {
-      this.plan.authorizedGroups = _.map(this.groups, 'id');
-    }
   }
 
   moveToNextStep(step: any) {
@@ -155,12 +149,6 @@ class ApiEditPlanController {
   saveOrUpdate() {
     // Transform security definition to json
     this.plan.securityDefinition = JSON.stringify(this.plan.securityDefinition);
-
-    // Convert authorized groups to excludedGroups
-    this.plan.excludedGroups = [];
-    if (this.groups) {
-      this.plan.excludedGroups = _.difference(_.map(this.groups, 'id'), this.plan.authorizedGroups);
-    }
 
     this.ApiService.savePlan(this.$stateParams.apiId, this.plan).then( () => {
       this.NotificationService.show(this.plan.name + ' has been saved successfully');
