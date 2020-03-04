@@ -15,22 +15,21 @@
  */
 package io.gravitee.rest.api.service;
 
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
-import java.util.Collections;
-import java.util.Set;
-
-import io.gravitee.repository.management.api.SubscriptionRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,21 +38,15 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import java.util.Collections;
+import java.util.Set;
 
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
-import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static java.util.Collections.*;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -85,6 +78,8 @@ public class ApiService_FindByUserTest {
     private UserService userService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private ApplicationService applicationService;
 
     @Before
     public void setUp() {
@@ -111,6 +106,9 @@ public class ApiService_FindByUserTest {
 
         when(subscription.getApi()).thenReturn("private-api");
         when(subscriptionService.search(any())).thenReturn(singletonList(subscription));
+        final ApplicationListItem application = new ApplicationListItem();
+        application.setId("appId");
+        when(applicationService.findByUser(any())).thenReturn(singleton(application));
 
         final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null);
 

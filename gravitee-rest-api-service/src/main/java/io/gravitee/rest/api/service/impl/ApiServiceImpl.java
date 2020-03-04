@@ -27,14 +27,23 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -53,15 +62,6 @@ import io.gravitee.rest.api.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiLifecycleState;
-import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.repository.management.model.*;
 import io.vertx.core.buffer.Buffer;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -79,17 +79,16 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.*;
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
-import static io.gravitee.repository.management.model.Api.AuditEvent.*;
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static java.util.Collections.*;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
@@ -170,6 +169,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private AlertService alertService;
     @Autowired
     private RoleService roleService;
+    @Autowired
+    private ApplicationService applicationService;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
@@ -702,20 +703,27 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members
-            Collection<SubscriptionEntity> search = subscriptionService.search(new SubscriptionQuery());
-            Set<String> subscribedApiId = search.stream()
-                    .map(subscriptionEntity -> subscriptionEntity.getApi())
-                    .collect(toSet());
-            List<Api> subscribedApis = apiRepository
-                    .search(queryToCriteria(apiQuery).ids(subscribedApiId.toArray(new String[subscribedApiId.size()])).build());
+            final Set<String> applications =
+                    applicationService.findByUser(userId).stream().map(ApplicationListItem::getId).collect(toSet());
+            List<Api> subscribedApis = emptyList();
+            if (!applications.isEmpty()) {
+                final SubscriptionQuery query = new SubscriptionQuery();
+                query.setApplications(applications);
+                final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
+                if (subscriptions != null && !subscriptions.isEmpty()) {
+                    subscribedApis = apiRepository
+                            .search(queryToCriteria(apiQuery).ids(subscriptions.stream()
+                                    .map(SubscriptionEntity::getApi).distinct().toArray(String[]::new)).build());
+                }
+            }
 
             // merge all apis
-            final Set<ApiEntity> apis = new HashSet<>(publicApis.size() + userApis.size() + groupApis.size());
+            final Set<ApiEntity> apis = new HashSet<>();
             apis.addAll(convert(publicApis));
             apis.addAll(convert(userApis));
             apis.addAll(convert(groupApis));
             apis.addAll(convert(subscribedApis));
-            return filterApiByQuery(apis.stream(), apiQuery).collect(Collectors.toSet());
+            return filterApiByQuery(apis.stream(), apiQuery).collect(toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + userId, ex);
