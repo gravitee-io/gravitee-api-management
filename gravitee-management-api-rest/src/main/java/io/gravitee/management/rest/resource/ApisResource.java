@@ -20,6 +20,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.model.RatingSummaryEntity;
+import io.gravitee.management.model.ViewEntity;
 import io.gravitee.management.model.WorkflowState;
 import io.gravitee.management.model.api.*;
 import io.gravitee.management.model.permissions.RolePermission;
@@ -46,13 +47,13 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static io.gravitee.management.model.Visibility.PUBLIC;
 import static io.gravitee.management.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.repository.management.model.View.ALL_ID;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -78,6 +79,8 @@ public class ApisResource extends AbstractResource {
     private RatingService ratingService;
     @Inject
     private VirtualHostService virtualHostService;
+    @Inject
+    private ViewService viewService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -99,8 +102,8 @@ public class ApisResource extends AbstractResource {
         apiQuery.setName(apisParam.getName());
         apiQuery.setTag(apisParam.getTag());
         apiQuery.setState(apisParam.getState());
-        if (!ALL_ID.equals(apisParam.getView())) {
-            apiQuery.setView(apisParam.getView());
+        if (apisParam.getView() != null && !ALL_ID.equals(apisParam.getView())) {
+            apiQuery.setView(viewService.findById(apisParam.getView()).getId());
         }
 
         final Collection<ApiEntity> apis;
@@ -250,7 +253,7 @@ public class ApisResource extends AbstractResource {
             }
 
             Map<String, Object> filters = new HashMap<>();
-            filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
+            filters.put("api", apis.stream().map(ApiEntity::getId).collect(toSet()));
 
             return Response.ok().entity(apiService.search(query, filters)
                     .stream()
@@ -291,7 +294,6 @@ public class ApisResource extends AbstractResource {
         apiItem.setCreatedAt(api.getCreatedAt());
         apiItem.setUpdatedAt(api.getUpdatedAt());
         apiItem.setLabels(api.getLabels());
-        apiItem.setViews(api.getViews());
         apiItem.setPrimaryOwner(api.getPrimaryOwner());
 
         if (api.getVisibility() != null) {

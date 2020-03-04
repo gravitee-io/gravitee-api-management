@@ -74,6 +74,9 @@ public class ApiService_FindByIdTest {
     @Mock
     private EntrypointService entrypointService;
 
+    @Mock
+    private ViewService viewService;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();

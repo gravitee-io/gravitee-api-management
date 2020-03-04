@@ -100,6 +100,8 @@ public class ApiService_UpdateTest {
     private WorkflowService workflowService;
     @Mock
     private VirtualHostService virtualHostService;
+    @Mock
+    private ViewService viewService;
 
     @Before
     public void setUp() {

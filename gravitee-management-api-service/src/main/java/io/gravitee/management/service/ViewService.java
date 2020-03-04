@@ -28,20 +28,12 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ViewService {
-
     List<ViewEntity> findAll();
-
     ViewEntity findById(String id);
-
     ViewEntity create(NewViewEntity view);
-
     ViewEntity update(String viewId, UpdateViewEntity view);
-
     List<ViewEntity> update(List<UpdateViewEntity> views);
-
     void delete(String viewId);
-
     void createDefaultView();
-
     InlinePictureEntity getPicture(String viewId);
 }

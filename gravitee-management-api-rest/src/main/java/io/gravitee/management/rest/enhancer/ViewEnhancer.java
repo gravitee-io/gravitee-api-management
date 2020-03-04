@@ -33,8 +33,8 @@ public class ViewEnhancer {
     public Function<ViewEntity, ViewEntity> enhance(Set<ApiEntity> apis) {
         return view -> {
             long totalApis = apis.stream()
-                                    .filter(api -> View.ALL_ID.equals(view.getId())
-                                            || (api.getViews() != null && api.getViews().contains(view.getId())))
+                                    .filter(api -> View.ALL_ID.equals(view.getKey())
+                                            || (api.getViews() != null && api.getViews().contains(view.getKey())))
                                     .count();
             view.setTotalApis(totalApis);
 

@@ -73,27 +73,22 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
     @Mock
     private ApiRepository apiRepository;
-
     @Mock
     private MembershipRepository membershipRepository;
-
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
-
     @Mock
     private Api api;
-
     @Mock
     private UserService userService;
-
     @Mock
     private AuditService auditService;
-
     @Mock
     private SearchEngineService searchEngineService;
-
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private ViewService viewService;
 
     private UpdateApiEntity existingApi;
 

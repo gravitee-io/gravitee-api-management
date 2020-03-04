@@ -70,7 +70,6 @@ public class ViewResource extends AbstractViewResource {
         return view;
     }
 
-
     @GET
     @Path("picture")
     @ApiOperation(value = "Get the View's picture",

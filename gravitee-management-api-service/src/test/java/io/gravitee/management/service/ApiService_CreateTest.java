@@ -85,19 +85,22 @@ public class ApiService_CreateTest {
     private AuditService auditService;
     @Mock
     private SearchEngineService searchEngineService;
-    
+
     @Mock
     private ParameterService parameterService;
-    
+
     @Mock
     private GenericNotificationConfigService genericNotificationConfigService;
-    
+
     @Mock
     private ApiMetadataService apiMetadataService;
 
     @Mock
     private VirtualHostService virtualHostService;
-    
+
+    @Mock
+    private ViewService viewService;
+
     @Before
     public void init() {
         final SecurityContext securityContext = mock(SecurityContext.class);

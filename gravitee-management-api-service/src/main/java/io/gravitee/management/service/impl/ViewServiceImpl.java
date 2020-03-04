@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.InlinePictureEntity;
 import io.gravitee.management.model.NewViewEntity;
 import io.gravitee.management.model.UpdateViewEntity;
@@ -82,19 +83,21 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     }
 
     @Override
-    public ViewEntity findById(String id) {
+    public ViewEntity findById(final String id) {
         try {
             LOGGER.debug("Find view by id : {}", id);
             Optional<View> view = viewRepository.findById(id);
-
+            if (!view.isPresent()) {
+                view = viewRepository.findByKey(id);
+            }
             if (view.isPresent()) {
                 return convert(view.get());
             }
-
             throw new ViewNotFoundException(id);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find a view using its ID: {}", id, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find a view using its ID: " + id, ex);
+            final String error = "An error occurs while trying to find a view using its id: " + id;
+            LOGGER.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
         }
     }
 
@@ -259,7 +262,8 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
 
     private View convert(final NewViewEntity viewEntity) {
         final View view = new View();
-        view.setId(IdGenerator.generate(viewEntity.getName()));
+        view.setId(UUID.toString(UUID.random()));
+        view.setKey(IdGenerator.generate(viewEntity.getName()));
         view.setName(viewEntity.getName());
         view.setDescription(viewEntity.getDescription());
         view.setOrder(viewEntity.getOrder());
@@ -272,6 +276,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     private View convert(final UpdateViewEntity viewEntity) {
         final View view = new View();
         view.setId(viewEntity.getId());
+        view.setKey(IdGenerator.generate(viewEntity.getName()));
         view.setName(viewEntity.getName());
         view.setDescription(viewEntity.getDescription());
         view.setDefaultView(viewEntity.isDefaultView());
@@ -285,6 +290,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     private ViewEntity convert(final View view) {
         final ViewEntity viewEntity = new ViewEntity();
         viewEntity.setId(view.getId());
+        viewEntity.setKey(view.getKey());
         viewEntity.setName(view.getName());
         viewEntity.setDescription(view.getDescription());
         viewEntity.setDefaultView(view.isDefaultView());

@@ -75,6 +75,9 @@ public class ApiService_FindByUserTest {
     @Mock
     private ParameterService parameterService;
 
+    @Mock
+    private ViewService viewService;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();

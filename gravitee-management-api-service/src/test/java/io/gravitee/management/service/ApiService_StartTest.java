@@ -84,6 +84,9 @@ public class ApiService_StartTest {
     @Mock
     private ParameterService parameterService;
 
+    @Mock
+    private ViewService viewService;
+
     @Before
     public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();

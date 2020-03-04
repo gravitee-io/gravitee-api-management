@@ -173,11 +173,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private AlertService alertService;
     @Autowired
     private RoleService roleService;
+    @Autowired
+    private ViewService viewService;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
     private static final String ENDPOINTS_DELIMITER = "\n";
-    
+
     @Override
     public ApiEntity create(final NewApiEntity newApiEntity, final String userId) throws ApiAlreadyExistsException {
         return create(newApiEntity, userId, null, null);
@@ -260,7 +262,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ApiEntity createdApi = create0(apiEntity, userId);
 
         createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
-        
+
         return createdApi;
     }
 
@@ -271,9 +273,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 .type(PageType.SWAGGER)
                 .build()
                 );
-        
+
         if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
-            if(isForCreation || (apiDocs == null || apiDocs.isEmpty())) { 
+            if(isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
                 final NewPageEntity page = new NewPageEntity();
                 page.setName("Swagger");
                 page.setType(SWAGGER);
@@ -323,7 +325,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiEntity.setPathMappings(swaggerPaths.stream().map(SwaggerPath::getPath).collect(toSet()));
         }
     }
-    
+
     private void addMockToPath(SwaggerPath swaggerPath, final Path path) {
         final List<Rule> rules = new ArrayList<>();
         swaggerPath.getVerbs().forEach(swaggerVerb -> {
@@ -867,7 +869,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                     .user(userService.findById(getAuthenticatedUsername()))
                                     .build());
                 }
-                
+
                 Api updatedApi = apiRepository.update(api);
 
                 // Audit
@@ -1256,12 +1258,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public ApiEntity createOrUpdateWithDefinition(final ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
-        
+
         String apiDefinition = apiDefinitionOrURL;
         if(apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
             apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         }
-        
+
         try {
             final UpdateApiEntity importedApi = objectMapper
                     // because definition could contains other values than the api itself (pages, members)
@@ -1487,7 +1489,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         for (final PageEntityTreeNode child : children) {
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
-            
+
             PageQuery query = new PageQuery.Builder().
                     api(apiId).
                     name(pageEntityToImport.getName()).
@@ -1529,7 +1531,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 LOGGER.error("Not able to identify the page to update: {}. Too much page with the same name", pageEntityToImport.getName());
                 throw new TechnicalManagementException("Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much page with the same name");
             }
-            
+
             if(child.children != null && !child.children.isEmpty()) {
                 this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children);
             }
@@ -2025,9 +2027,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
         apiEntity.setPicture(api.getPicture());
-        apiEntity.setViews(api.getViews());
         apiEntity.setLabels(api.getLabels());
 
+        final Set<String> apiViews = api.getViews();
+        if (apiViews != null) {
+            final List<ViewEntity> views = viewService.findAll();
+            final Set<String> newApiViews = new HashSet<>(apiViews.size());
+            for (final String apiView : apiViews) {
+                final Optional<ViewEntity> optionalView = views.stream().filter(v -> apiView.equals(v.getId())).findAny();
+                optionalView.ifPresent(view -> newApiViews.add(view.getKey()));
+            }
+            apiEntity.setViews(newApiViews);
+        }
         final LifecycleState state = api.getLifecycleState();
         if (state != null) {
             apiEntity.setState(Lifecycle.State.valueOf(state.name()));
@@ -2065,7 +2076,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setName(updateApiEntity.getName().trim());
         api.setDescription(updateApiEntity.getDescription().trim());
         api.setPicture(updateApiEntity.getPicture());
-        api.setViews(updateApiEntity.getViews());
+
+        final Set<String> apiViews = updateApiEntity.getViews();
+        if (apiViews != null) {
+            final List<ViewEntity> views = viewService.findAll();
+            final Set<String> newApiViews = new HashSet<>(apiViews.size());
+            for (final String apiView : apiViews) {
+                final Optional<ViewEntity> optionalView =
+                        views.stream().filter(v -> apiView.equals(v.getKey()) || apiView.equals(v.getId())).findAny();
+                optionalView.ifPresent(view -> newApiViews.add(view.getId()));
+            }
+            api.setViews(newApiViews);
+        }
 
         if (updateApiEntity.getLabels() != null) {
             api.setLabels(new ArrayList(new LinkedHashSet<>(updateApiEntity.getLabels())));
@@ -2079,18 +2101,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiDefinition.setName(updateApiEntity.getName());
             apiDefinition.setVersion(updateApiEntity.getVersion());
             apiDefinition.setProxy(updateApiEntity.getProxy());
-            
+
             apiDefinition.setPaths(updateApiEntity.getPaths());
             if (updateApiEntity.getPathMappings() != null) {
                 apiDefinition.setPathMappings(updateApiEntity.getPathMappings().stream()
                         .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(""))));
             }
-            
+
             apiDefinition.setServices(updateApiEntity.getServices());
             apiDefinition.setResources(updateApiEntity.getResources());
             apiDefinition.setProperties(updateApiEntity.getProperties());
             apiDefinition.setTags(updateApiEntity.getTags());
-            
+
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
 
             String definition = objectMapper.writeValueAsString(apiDefinition);
