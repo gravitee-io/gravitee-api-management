@@ -70,7 +70,7 @@ class ViewController {
         });
         that.$q.all(apiFunctions).then(() => {
           that.NotificationService.show('View ' + view.name + ' has been saved.');
-          that.$state.go('management.settings.view', {viewId: view.id}, {reload:true})
+          that.$state.go('management.settings.view', {viewId: view.key}, {reload:true})
         });
       })
   }
@@ -119,7 +119,7 @@ class ViewController {
           // we need to retrieve the API to get the all information required for the update
           this.ApiService.get(api.id).then(response => {
             let apiFound = response.data;
-            _.remove(apiFound.views, (v) => v === this.view.id);
+            _.remove(apiFound.views, (v) => v === this.view.key);
             this.ApiService.update(apiFound).then(() => {
               this.NotificationService.show("API '" + api.name + "' detached with success");
               _.remove(this.selectedAPIs, api);

@@ -68,7 +68,7 @@ export class PortalApiListController {
     if($stateParams.view) {
       this.selectedView = $stateParams.view;
       this.view = _.find(this.views, function (view) {
-        return that.selectedView === view.id;
+        return that.selectedView === view.key;
       });
       this.sortByHighlightApi(that.view);
     } else {

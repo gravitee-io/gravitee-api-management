@@ -20,10 +20,10 @@
     <div flex="15" layout="column" class="apis-sidenav" layout-padding>
       <ul>
         <li class="sidenav_item"
-            ng-class="{'active': view.id == apisCtrl.selectedView}"
+            ng-class="{'active': view.key == apisCtrl.selectedView}"
             ng-if="view.totalApis > 0"
             ng-repeat="view in apisCtrl.views track by view.id"
-            ui-sref=".({ view: view.id })" ui-sref-opts="{inherit: false}">
+            ui-sref=".({ view: view.key })" ui-sref-opts="{inherit: false}">
           <span>{{view.name}}</span>
         </li>
         <li ng-if="apisCtrl.selectedView === 'results'" class="sidenav_item"

@@ -44,7 +44,7 @@
           </thead>
           <tbody md-body>
           <tr md-row ng-repeat="view in $ctrl.views | orderBy:view.order">
-            <td md-cell width="1%" nowrap><a ui-sref="management.settings.view({viewId: view.id})">{{view.name}}</a></td>
+            <td md-cell width="1%" nowrap><a ui-sref="management.settings.view({viewId: view.key})">{{view.name}}</a></td>
             <td md-cell>{{view.description}}</td>
             <td permission permission-only="'portal-view-u'" md-cell  width="1%" nowrap>
               <md-checkbox ng-model="view.defaultView" aria-label="default" ng-change="$ctrl.toggleDefault(view)"></md-checkbox>
