@@ -225,7 +225,7 @@
         <gravitee-policy-api.version>1.6.0</gravitee-policy-api.version>
         <gravitee-alert-api.version>1.2.1</gravitee-alert-api.version>
         <gravitee-reporter-api.version>1.17.1</gravitee-reporter-api.version>
-        <gravitee-service-discovery-api.version>1.1.0</gravitee-service-discovery-api.version>
+        <gravitee-service-discovery-api.version>1.1.1-SNAPSHOT</gravitee-service-discovery-api.version>
         <gravitee-resource-oauth2-provider-api.version>1.3.0</gravitee-resource-oauth2-provider-api.version>
         <jetty.version>9.2.24.v20180105</jetty.version>
         <httpclient.version>4.5.7</httpclient.version>

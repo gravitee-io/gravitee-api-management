@@ -20,6 +20,7 @@ import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.discovery.api.ServiceDiscovery;
 import io.gravitee.discovery.api.service.Service;
@@ -142,14 +143,33 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
     }
 
     private DiscoveredEndpoint createEndpoint(final Service service, final EndpointGroup group) {
-        final String scheme = (service.port() == 443) ? "https" : "http";
+        final String scheme = (service.scheme() != null) ? service.scheme() : (service.port() == 443 ? "https" : "http");
+        final String basePath = (service.basePath() != null) ? service.basePath() : Service.DEFAULT_BASE_PATH;
+
         // : is forbidden thanks to https://github.com/gravitee-io/issues/issues/1939
         final String serviceName = "sd#" + service.id().replaceAll(":", "#");
-        final DiscoveredEndpoint discoveredEndpoint = new DiscoveredEndpoint(
-                serviceName,
-                scheme + "://" + service.host() + ':' + service.port());
+        final DiscoveredEndpoint discoveredEndpoint = new DiscoveredEndpoint(serviceName,
+                scheme + "://" + service.host() + (service.port() > 0 ? ':' + service.port() : "") + basePath);
         discoveredEndpoint.setHttpClientOptions(group.getHttpClientOptions());
-        discoveredEndpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
+
+        if (Service.HTTPS_SCHEME.equalsIgnoreCase(scheme)) {
+            HttpClientSslOptions groupHttpClientOptions = group.getHttpClientSslOptions();
+
+            // If truststore is defined at the group level, let's use the configuration
+            if (groupHttpClientOptions != null && !groupHttpClientOptions.isTrustAll() && groupHttpClientOptions.getTrustStore() != null) {
+                discoveredEndpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
+            } else {
+                // If SSL configuration has been done at the group level, let's use it
+                // If not, made a proper configuration for the discovered endpoint
+                discoveredEndpoint.setHttpClientSslOptions((groupHttpClientOptions != null) ? groupHttpClientOptions : new HttpClientSslOptions());
+                
+                // We don't know about the truststore, we should admit that we do trust all
+                discoveredEndpoint.getHttpClientSslOptions().setTrustAll(true);
+            }
+        } else {
+            discoveredEndpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
+        }
+
         discoveredEndpoint.setHttpProxy(group.getHttpProxy());
         return discoveredEndpoint;
     }
