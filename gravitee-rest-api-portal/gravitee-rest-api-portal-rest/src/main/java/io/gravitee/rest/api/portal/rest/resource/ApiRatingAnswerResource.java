@@ -54,7 +54,7 @@ public class ApiRatingAnswerResource extends AbstractResource {
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             RatingEntity ratingEntity = ratingService.findById(ratingId);
-            if (ratingEntity != null && ratingEntity.getId().equals(ratingId)) {
+            if (ratingEntity != null && ratingEntity.getApi().equals(apiId)) {
 
                 if (ratingEntity.getAnswers().stream().anyMatch(answer -> answer.getId().equals(answerId))){
                     ratingService.deleteAnswer(ratingId, answerId);

@@ -57,9 +57,9 @@ public class ApiRatingAnswersResourceTest extends AbstractResourceTest {
 
         RatingEntity ratingEntity = new RatingEntity();
         ratingEntity.setId(RATING);
+        ratingEntity.setApi(API);
         ratingEntity.setComment(RATING);
         ratingEntity.setRate(Integer.valueOf(1).byteValue());
-        doReturn(ratingEntity).when(ratingService).findByApiForConnectedUser(eq(API));
         doReturn(ratingEntity).when(ratingService).findById(eq(RATING));
         doReturn(ratingEntity).when(ratingService).createAnswer(any());
 

@@ -21,6 +21,8 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.permissions.ApiPermission;
+import io.gravitee.rest.api.model.permissions.ApplicationPermission;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -31,7 +33,12 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -57,8 +64,19 @@ public class PermissionsResource extends AbstractResource {
             apiQuery.setIds(Collections.singletonList(apiId));
             Set<ApiEntity> publishedByUser = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
             ApiEntity apiEntity = publishedByUser.stream().filter(a -> a.getId().equals(apiId)).findFirst().orElseThrow(() -> new ApiNotFoundException(apiId));
+            Map<String, char[]> permissions;
+            if (isAdmin()) {
+                permissions = new HashMap<>();
+                final char[] rights = new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
+                for (ApiPermission perm : ApiPermission.values()) {
+                    permissions.put(perm.getName(), rights);
+                }
+            } else {
+                permissions = membershipService.getMemberPermissions(apiEntity, userId);
+            }
+
             return Response
-                    .ok(membershipService.getMemberPermissions(apiEntity, userId))
+                    .ok(permissions)
                     .build();
 
         } else if (applicationId != null) {
@@ -68,11 +86,31 @@ public class PermissionsResource extends AbstractResource {
                     .findFirst().orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
             ApplicationEntity application = applicationService.findById(applicationListItem.getId());
+
+            Map<String, char[]> permissions;
+            if (isAdmin()) {
+                permissions = new HashMap<>();
+                final char[] rights = new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
+                for (ApplicationPermission perm : ApplicationPermission.values()) {
+                    permissions.put(perm.getName(), rights);
+                }
+            } else {
+                permissions = membershipService.getMemberPermissions(application, userId);
+            }
+
             return Response
-                    .ok(membershipService.getMemberPermissions(application, userId))
+                    .ok(permissions)
                     .build();
         }
         throw new BadRequestException("One of the two parameters appId or applicationId must not be null.");
+    }
+
+    protected boolean isAdmin() {
+        return isUserInRole(PORTAL_ADMIN);
+    }
+
+    private boolean isUserInRole(String role) {
+        return securityContext.isUserInRole(role);
     }
 
 }

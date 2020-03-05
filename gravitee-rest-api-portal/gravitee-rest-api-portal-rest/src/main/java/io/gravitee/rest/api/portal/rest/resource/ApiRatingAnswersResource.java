@@ -69,7 +69,7 @@ public class ApiRatingAnswersResource extends AbstractResource {
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             RatingEntity ratingEntity = ratingService.findById(ratingId);
-            if (ratingEntity!= null) {
+            if (ratingEntity!= null && ratingEntity.getApi().equals(apiId)) {
 
                 NewRatingAnswerEntity ratingAnswerEntity = new NewRatingAnswerEntity();
                 ratingAnswerEntity.setComment(ratingAnswerInput.getComment());

@@ -62,8 +62,11 @@ public class ApiRatingResource extends AbstractResource {
     public Response deleteApiRating(@PathParam("apiId") String apiId, @PathParam("ratingId") String ratingId) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            RatingEntity ratingEntity = ratingService.findByApiForConnectedUser(apiId);
-            if (ratingEntity!= null && ratingEntity.getId().equals(ratingId)) {
+
+            RatingEntity ratingEntity = ratingService.findById(ratingId);
+
+            if (ratingEntity!= null && ratingEntity.getApi().equals(apiId)) {
+
                 ratingService.delete(ratingId);
                 return Response
                         .status(Status.NO_CONTENT)
@@ -87,8 +90,8 @@ public class ApiRatingResource extends AbstractResource {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
-            RatingEntity ratingEntity = ratingService.findByApiForConnectedUser(apiId);
-            if (ratingEntity!= null && ratingEntity.getId().equals(ratingId)) {
+            RatingEntity ratingEntity = ratingService.findById(ratingId);
+            if (ratingEntity!= null && ratingEntity.getApi().equals(apiId)) {
                 UpdateRatingEntity rating = new UpdateRatingEntity();
                 rating.setId(ratingId);
                 rating.setApi(apiId);
