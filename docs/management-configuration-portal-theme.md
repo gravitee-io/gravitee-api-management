@@ -5,6 +5,7 @@ You will be able to define your theme and observe live preview.
 The **panel to the left** of the preview allows you to define your design preferences.
 
 **FULLSCREEN** button makes it easier to edit if you have several screens, the preview opens in a new window.
+`Only if Portal URL is configured in Portal settings.`
 
 **RESET** action allows you to reset the theme since the last backup.
 

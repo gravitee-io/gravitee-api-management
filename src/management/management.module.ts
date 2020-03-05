@@ -583,14 +583,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
     $showdownProvider.loadExtension('prettify');
     $showdownProvider.loadExtension('docHelper');
   })
-  .config(function($sceDelegateProvider, Constants) {
-    $sceDelegateProvider.resourceUrlWhitelist([
-      // Allow same origin resource loads.
-      'self',
-      // Allow loading from our assets domain. **.
-      `${Constants.portal.url}/**`
-    ]);
-  })
   .run(runBlock)
   .controller('ApisController', ApisController)
   .controller('ApiAdminController', ApiAdminController)

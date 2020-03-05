@@ -16,7 +16,7 @@
 
 import ThemeService from '../../../services/theme.service';
 import NotificationService from '../../../services/notification.service';
-import { Theme } from '../../../entities/theme';
+import {Theme} from '../../../entities/theme';
 
 class ThemeController {
 
@@ -25,16 +25,23 @@ class ThemeController {
   private connectionRequestInterval: NodeJS.Timer;
 
   private currentHref: any;
+  private handleEventHandlers: any;
 
   constructor(private $http,
               private $scope,
               private $mdDialog,
               private Constants,
               private ThemeService: ThemeService,
-              private NotificationService: NotificationService) {
+              private NotificationService: NotificationService,
+              private $sce) {
     'ngInject';
     $scope.themeForm = {};
     $scope.targetURL = Constants.portal.url;
+
+    $scope.trustSrc = function(src) {
+      return $sce.trustAsResourceUrl(src);
+    };
+
     $scope.previewName = 'GvPreviewName';
     $scope.buttonConfig = {
       hasBackdrop: true,
@@ -57,6 +64,14 @@ class ThemeController {
       'Georgia, \'DejaVu Serif\', Norasi, serif',
     ];
 
+    $scope.hasPreview = () => {
+      return $scope.targetURL != null && $scope.targetURL.trim() !== '';
+    };
+
+    $scope.onFullscreen = () => {
+      return !$scope.hasPreview() || $scope.hasPreview() && $scope.isDetached;
+    };
+
     $scope.getThemeVariables = (filter) => {
       const themeComponent = this.$scope.theme ? this.$scope.themeComponent : {};
       if (themeComponent.css) {
@@ -69,8 +84,13 @@ class ThemeController {
       return [];
     };
 
-    $scope.$on('accordion:onReady', function() {
-      $scope.accordion.toggle('image');
+    $scope.$on('accordion:onReady', function () {
+      if ($scope.hasPreview()) {
+        $scope.accordion.toggle('image');
+      } else {
+        $scope.accordion.expandAll();
+      }
+
     });
 
     $scope.getGlobalColorVariables = () => {
@@ -109,21 +129,14 @@ class ThemeController {
       }
       return [];
     };
-
-    window.addEventListener('message', this.handleEvent.bind(this), false);
-    this.loadTheme().then(() => {
-      this.connectionRequest();
-      $scope.href = $scope.targetURL + this.getQueryParams();
-    });
     $scope.isDetached = false;
-    setInterval(() => {
-      this.getWindow().postMessage(this.getData(), $scope.targetURL);
-    }, 30000);
 
     $scope.$on('apiPictureChangeSuccess', (event, args) => {
-      setTimeout(() => {
-        this.onDataChanged();
-      }, 0);
+      if ($scope.hasPreview()) {
+        setTimeout(() => {
+          this.onDataChanged();
+        }, 0);
+      }
     });
 
     $scope.getOptionalLogo = () => {
@@ -136,6 +149,26 @@ class ThemeController {
       }
       return '';
     };
+  }
+
+  $onInit = () => {
+    if (this.$scope.hasPreview()) {
+      this.handleEventHandlers = this.handleEvent.bind(this);
+      window.addEventListener('message', this.handleEventHandlers, false);
+      this.loadTheme().then(() => {
+        this.connectionRequest();
+        this.$scope.href = this.$scope.targetURL + this.getQueryParams();
+      });
+    } else {
+      this.loadTheme();
+    }
+  }
+
+  $onDestroy = () => {
+    if (this.$scope.hasPreview()) {
+      window.removeEventListener('message', this.handleEventHandlers);
+      clearInterval(this.connectionRequestInterval);
+    }
   }
 
   getDisplayName(name) {
@@ -173,12 +206,12 @@ class ThemeController {
       const parentProperty = property.default.split(',')[0].replace('var(', '');
       const parentCss = this.$scope.themeComponent.css.find((p) => p.name === parentProperty);
       if (parentCss) {
-        value = `(inherited from ${ parentCss.description })`;
+        value = `(inherited from ${parentCss.description})`;
       } else {
         console.warn('parentCss not found', parentProperty);
       }
     }
-    return `${ property.description }: ${ value }`;
+    return `${property.description}: ${value}`;
   }
 
   hasColors(component) {
@@ -189,7 +222,7 @@ class ThemeController {
     if (property.value === '' && property.default.startsWith('var(')) {
       const parentProperty = property.default.split(',')[0].replace('var(', '');
       const parentCss = this.$scope.themeComponent.css.find((p) => p.name === parentProperty);
-      return `Use ${ parentCss.description }: ${ parentCss.value }`;
+      return `Use ${parentCss.description}: ${parentCss.value}`;
     }
     return property.description;
   }
@@ -199,19 +232,31 @@ class ThemeController {
       this.detachedWindow = null;
       const iframe = document.getElementById('preview');
       if (!iframe) {
-        console.warn('iframe "preview" not found');
         return null;
       }
       // @ts-ignore
       return iframe.contentWindow;
+    } else if (this.detachedWindow == null || this.detachedWindow.opener == null) {
+      this.$scope.isDetached = false;
     }
     return this.detachedWindow;
   }
 
   connectionRequest = () => {
+    if (this.connectionRequestInterval) {
+      clearInterval(this.connectionRequestInterval);
+    }
+    let attempt = 0;
     this.connectionRequestInterval = setInterval(() => {
-      if (this.getWindow() && !this.connected) {
-        this.getWindow().postMessage(this.getData({ requestAnswer: true }), '*');
+      if (!this.connected) {
+        const window = this.getWindow();
+        if (window) {
+          window.postMessage(this.getData({requestAnswer: true}), '*');
+        } else if (++attempt >= 3) {
+          clearInterval(this.connectionRequestInterval);
+          this.$scope.isDetached = false;
+          this._reloadIframe();
+        }
       }
     }, 500);
   }
@@ -228,29 +273,33 @@ class ThemeController {
       }
 
       if (event.data.unload && this.$scope.isDetached) {
-        this.$scope.$apply(() => {
-          this.$scope.href = this.currentHref + this.getQueryParams();
-          this.$scope.isDetached = false;
-          this.connected = false;
-          this.connectionRequest();
-        });
+        this._reloadIframe();
       }
     }
   }
 
-  open = () => {
+  _reloadIframe() {
+    this.$scope.$apply(() => {
+      this.$scope.href = this.currentHref + this.getQueryParams();
+      this.$scope.isDetached = false;
+      this.connected = false;
+      this.connectionRequest();
+    });
+  }
+
+  open = (force) => {
     if (!this.$scope.isDetached) {
+      clearInterval(this.connectionRequestInterval);
       this.$scope.isDetached = true;
       setTimeout(() => {
         // Wait after last currentHref...
         this.connected = false;
         this.detachedWindow = window.open(this.currentHref + this.getQueryParams(),
           this.$scope.previewName,
-          `width=1024, height=${ window.screen.height }, left=${ window.screen.width - 1024 }`);
+          `width=1024, height=${window.screen.height}, left=${window.screen.width - 1024}`);
         this.connectionRequest();
       }, 500);
       this.$scope.accordion.expandAll();
-
     } else {
       this.detachedWindow.close();
     }
@@ -295,7 +344,6 @@ class ThemeController {
       // tslint:disable-next-line:no-empty
     }, () => {
     });
-
   }
 
   getLogoUrl() {

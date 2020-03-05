@@ -67,22 +67,17 @@
 
   }
 
-  md-select {
-    //max-width: 160px;
-    //width: 160px;
-  }
-
   .theme-component-label {
     color: rgba(0,0,0,0.54);
     font-size: 10px;
   }
 
-  .theme-component-container-detached v-accordion {
+  .theme-component-container-fullscreen v-accordion {
       display: flex;
       flex-wrap: wrap;
   }
 
-  .theme-component-container-detached v-pane {
+  .theme-component-container-fullscreen v-pane {
     flex: 1;
     min-width: 254px;
     padding: 0 5px;
@@ -93,9 +88,9 @@
     width: 100%;
   }
 
-  .theme-component-container-detached .gv-form-content,
-  .theme-component-container-detached,
-  .theme-component-container-detached .md-select {
+  .theme-component-container-fullscreen .gv-form-content,
+  .theme-component-container-fullscreen,
+  .theme-component-container-fullscreen .md-select {
     max-width: none;
     width: 100%;
   }
