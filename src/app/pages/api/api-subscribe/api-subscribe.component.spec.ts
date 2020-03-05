@@ -18,9 +18,9 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { ApiSubscribeComponent } from './api-subscribe.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from '../../test/helper.spec';
-import { ApiStatesPipe } from '../../pipes/api-states.pipe';
-import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
+import { TranslateTestingModule } from '../../../test/helper.spec';
+import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
+import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 

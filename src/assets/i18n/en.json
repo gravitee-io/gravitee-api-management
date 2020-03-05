@@ -154,8 +154,8 @@
       "required": "Please configure an e-mail to use the contact form"
     },
     "forbidden": "You do not have sufficient rights to access this resource",
-    "picture_format_forbidden": "errors.picture_format_forbidden",
-    "picture_too_big": "errors.picture_too_big",
+    "picture_format_forbidden": "SVG format is not allowed",
+    "picture_too_big": "Image size must be less than 500KB",
     "plan": {
       "notSubscribable": "A client_id is required to subscribe to an OAuth2 or JWT plan.",
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."

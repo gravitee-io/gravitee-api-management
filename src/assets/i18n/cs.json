@@ -154,8 +154,8 @@
       "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
     },
     "forbidden": "Nemáte dostatečná práva pro přístup k tomuto prostředku",
-    "picture_format_forbidden": "errors.picture_format_forbidden",
-    "picture_too_big": "errors.picture_too_big",
+    "picture_format_forbidden": "Formát SVG není povolen",
+    "picture_too_big": "Velikost obrázku musí být menší než 500 kB",
     "plan": {
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."

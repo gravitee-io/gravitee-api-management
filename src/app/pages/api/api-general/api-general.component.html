@@ -73,7 +73,7 @@
       </div>
 
 
-      <gv-rating-list [ratings]="ratings" [user]="currentUser" [permissions]="permissions"></gv-rating-list>
+      <gv-rating-list [ratings]="ratings" [user]="currentUser" [permissions]="ratingListPermissions"></gv-rating-list>
       <div class="rating-list-actions">
         <gv-button *ngIf="hasMoreRatings()" (click)="onShowMoreRatings()" primary outlined>{{"apiGeneral.showMore" | translate}} ({{getShowMoreLength()}})</gv-button>
       </div>

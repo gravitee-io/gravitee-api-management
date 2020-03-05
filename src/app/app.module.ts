@@ -21,7 +21,7 @@ import { ApiLabelsPipe } from './pipes/api-labels.pipe';
 import { ApiModule, BASE_PATH } from '@gravitee/ng-portal-webclient';
 import { ApiRequestInterceptor } from './interceptors/api-request.interceptor';
 import { ApiStatesPipe } from './pipes/api-states.pipe';
-import { ApiSubscribeComponent } from './pages/api-subscribe/api-subscribe.component';
+import { ApiSubscribeComponent } from './pages/api/api-subscribe/api-subscribe.component';
 import { AppComponent } from './app.component';
 import { ApplicationsComponent } from './pages/applications/applications.component';
 import { AppRoutingModule } from './app-routing.module';

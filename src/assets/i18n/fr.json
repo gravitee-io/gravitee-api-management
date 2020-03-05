@@ -155,7 +155,7 @@
     },
     "forbidden": "Vous ne disposez pas des droits suffisants pour accéder à cette ressource",
     "picture_format_forbidden": "Le format SVG n'est pas autorisé",
-    "picture_too_big": "La taille de votre avatar doit être inférieur à 500Ko",
+    "picture_too_big": "La taille de l'image doit être inférieure à 500Ko",
     "plan": {
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."

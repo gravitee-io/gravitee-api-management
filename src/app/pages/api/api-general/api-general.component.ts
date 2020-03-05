@@ -60,6 +60,7 @@ export class ApiGeneralComponent implements OnInit {
   linkedApp: Promise<any[]>;
   miscellaneous: any[];
   permissions: PermissionsResponse;
+  ratingListPermissions: { edit, delete, addAnswer, deleteAnswer };
   ratingForm: FormGroup;
   ratings: Array<Rating>;
   ratingsSortOptions: any;
@@ -77,6 +78,9 @@ export class ApiGeneralComponent implements OnInit {
     private configService: ConfigurationService,
     private formBuilder: FormBuilder
   ) {
+    this.ratingListPermissions = {
+      edit: false, delete: false, addAnswer: false, deleteAnswer: false
+    };
   }
 
   ngOnInit() {
@@ -171,7 +175,15 @@ export class ApiGeneralComponent implements OnInit {
       const apiId = this.apiId;
 
       this.permissionsService.getCurrentUserPermissions({ apiId }).toPromise()
-        .then((permissions) => (this.permissions = permissions))
+        .then((permissions) => {
+          if (permissions) {
+            this.ratingListPermissions.edit = permissions.RATING && permissions.RATING.includes('U');
+            this.ratingListPermissions.delete = permissions.RATING && permissions.RATING.includes('D');
+            this.ratingListPermissions.addAnswer = permissions.RATING_ANSWER && permissions.RATING_ANSWER.includes('C');
+            this.ratingListPermissions.deleteAnswer = permissions.RATING_ANSWER && permissions.RATING_ANSWER.includes('D');
+            this.permissions = permissions;
+          }
+        })
         .catch(() => (this.permissions = {}))
         .finally(() => {
 
@@ -185,7 +197,12 @@ export class ApiGeneralComponent implements OnInit {
               });
           }
 
-          this.apiService.getApiRatingsByApiId({ apiId, page: 1, size: this.ratingPageSize, order: this.currentOrder }).toPromise()
+          this.apiService.getApiRatingsByApiId({
+            apiId,
+            page: 1,
+            size: this.ratingPageSize,
+            order: this.currentOrder
+          }).toPromise()
             .then((ratingsResponse) => {
               this.ratings = ratingsResponse.data;
               this.ratingsMetadata = ratingsResponse.metadata;
@@ -283,7 +300,7 @@ export class ApiGeneralComponent implements OnInit {
       });
   }
 
-  @HostListener(':gv-rating-list:answer', ['$event.detail'])
+  @HostListener(':gv-rating-list:add-answer', ['$event.detail'])
   onAnswer({ rating, answer }) {
     const RatingAnswerInput = { comment: answer };
     this.apiService.createApiRatingAnswer({ apiId: this.apiId, ratingId: rating.id, RatingAnswerInput })

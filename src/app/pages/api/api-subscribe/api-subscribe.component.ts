@@ -26,7 +26,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { Plan } from '@gravitee/ng-portal-webclient';
 import StatusEnum = Subscription.StatusEnum;
 import { distinctUntilChanged } from 'rxjs/operators';
-import { ConfigurationService } from '../../services/configuration.service';
+import { ConfigurationService } from '../../../services/configuration.service';
 
 @Component({
   selector: 'app-api-subscribe',

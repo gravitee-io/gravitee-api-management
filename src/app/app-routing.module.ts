@@ -17,7 +17,7 @@ import { AccountComponent } from './pages/account/account.component';
 import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
 import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
-import { ApiSubscribeComponent } from './pages/api-subscribe/api-subscribe.component';
+import { ApiSubscribeComponent } from './pages/api/api-subscribe/api-subscribe.component';
 import { ApplicationsComponent } from './pages/applications/applications.component';
 import { AuthGuardService } from './services/auth-guard.service';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
