@@ -52,10 +52,6 @@
     },
     "exit": "Exit",
     "nextStep": "Next",
-    "noPlans": {
-      "contact": "I wish to contact the owner to find out more",
-      "description": "API has no plan available at this time"
-    },
     "plan": "Plan",
     "plans": {
       "description": "An essential catalog to organize my APIs",
@@ -265,6 +261,14 @@
     "previous": "Previous"
   },
   "gv-plans": {
+    "characteristics": {
+      "empty": "No information on this plan"
+    },
+    "empty": {
+      "redirect": "I wish to contact the owner to find out more",
+      "title": "The API has no plan available at this time."
+    },
+    "error": "An error occurred while loading the plans.",
     "security": {
       "apiKey": "Personal Key",
       "jwt": "Json Web Token",

@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import '@gravitee/ui-components/wc/gv-stepper';
 import '@gravitee/ui-components/wc/gv-plans';
 import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-code';
-import { Api, ApiService, Application, ApplicationService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
+import {
+  Api,
+  ApiService,
+  Application,
+  ApplicationService,
+  Subscription,
+  SubscriptionService
+} from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
@@ -100,7 +107,7 @@ export class ApiSubscribeComponent implements OnInit {
 
     this.apiId = this.route.snapshot.params.apiId;
     this.api = this.apiService.getApiByApiId({ apiId: this.apiId }).toPromise().then(api => {
-      this.apiSample = `$ curl "${ api.entrypoints[0] }"`;
+      this.apiSample = `$ curl "${api.entrypoints[0]}"`;
       this.apiName = api.name;
       return api;
     });
@@ -272,7 +279,7 @@ export class ApiSubscribeComponent implements OnInit {
             include: ['keys']
           }).toPromise();
           const apikeyHeader = this.configurationService.get('portal.apikeyHeader');
-          this.apiSample += ` -H "${ apikeyHeader }:${ subscription.keys[0].id }"`;
+          this.apiSample += ` -H "${apikeyHeader}:${subscription.keys[0].id}"`;
         } else {
           this.apiSample = null;
         }
@@ -345,7 +352,7 @@ export class ApiSubscribeComponent implements OnInit {
       this.availableApplications = this._applications.map(application => {
         disabled = false;
         title = undefined;
-        const label = `${ application.name } (${ application.owner.display_name })`;
+        const label = `${application.name} (${application.owner.display_name})`;
         const appSubscriptions = this._allSubscriptions.filter((sub) => sub.application === application.id);
         if (appSubscriptions.length > 0) {
           const appPlansSubscriptions = appSubscriptions.filter((subscription) => subscription.plan === plan.id);
@@ -374,6 +381,11 @@ export class ApiSubscribeComponent implements OnInit {
     }
   }
 
+  @HostListener(':gv-plans:redirect')
+  public on() {
+    this.router.navigate(['/catalog/api', this.apiId, 'contact']);
+  }
+
   private getCreatedAt() {
     return this._subscription ? new Date(this._subscription.created_at).toLocaleString(this.translateService.currentLang) : '';
   }
@@ -397,7 +409,11 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   private getSubscriptions() {
-    return this.subscriptionService.getSubscriptions({ apiId: this.apiId, size: -1, statuses: [ 'ACCEPTED', 'PENDING', 'PAUSED' ] })
+    return this.subscriptionService.getSubscriptions({
+      apiId: this.apiId,
+      size: -1,
+      statuses: ['ACCEPTED', 'PENDING', 'PAUSED']
+    })
       .toPromise()
       .then(response => {
         this._allSubscriptions = response.data;

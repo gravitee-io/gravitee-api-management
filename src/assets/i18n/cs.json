@@ -52,10 +52,6 @@
     },
     "exit": "volno",
     "nextStep": "následující",
-    "noPlans": {
-      "contact": "Chtěl bych kontaktovat majitele a zjistit více",
-      "description": "Rozhraní API nemá v tuto chvíli k dispozici žádný plán."
-    },
     "plan": "Plán",
     "plans": {
       "description": "Základní katalog pro organizování mých API",
@@ -265,6 +261,14 @@
     "previous": "Předchozí"
   },
   "gv-plans": {
+    "characteristics": {
+      "empty": "Žádné informace o tomto plánu"
+    },
+    "empty": {
+      "redirect": "Chtěl bych kontaktovat majitele a zjistit více",
+      "title": "Rozhraní API nemá v tuto chvíli k dispozici žádný plán."
+    },
+    "error": "Při načítání plánů došlo k chybě.",
     "security": {
       "apiKey": "Osobní klíč API",
       "jwt": "Json Web Token",

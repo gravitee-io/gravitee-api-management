@@ -17,7 +17,7 @@
 -->
 <div class="page__content">
 
-  <div class="api-subscribe__content" *ngIf="hasPlans() && !skeleton">
+  <div class="api-subscribe__content">
 
     <div class="api-subscribe__stepper" *ngIf="hasStepper()">
       <gv-stepper [steps]="steps" [current]="currentStep" (:gv-stepper:change)="onChangeStep($event)"
@@ -38,7 +38,7 @@
                     name="plan"
                     ngDefaultControl></gv-plans>
 
-          <div *ngIf="isKeyLess()">
+          <div *ngIf="isKeyLess() && apiSample">
             <h3>{{ 'apiSubscribe.plans.sample' | translate }}</h3>
             <gv-code lang="shell">{{apiSample}}</gv-code>
           </div>
@@ -149,12 +149,6 @@
                  [disabled]="!subscribeForm.valid"
                  [loading]="showValidateLoader"
                  icon-right="navigation:angle-right">{{'apiSubscribe.validate.subscription' | translate}}</gv-button>
-    </div>
-  </div>
-  <div class="api-subscribe__content" *ngIf="!hasPlans() || skeleton">
-    <div [ngClass]="{skeleton: skeleton, message: true}">
-      <p>{{ 'apiSubscribe.noPlans.description' | translate }}</p>
-      <a [routerLink]="['/catalog/api', apiId ,'contact']">{{ 'apiSubscribe.noPlans.contact' | translate }}</a>
     </div>
   </div>
 
