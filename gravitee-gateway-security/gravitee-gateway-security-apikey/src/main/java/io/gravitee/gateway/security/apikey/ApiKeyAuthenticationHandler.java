@@ -117,11 +117,8 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
                 return true;
             }
 
-            if (apiKey != null) {
-                request.metrics().setSecurityType(API_KEY);
-                request.metrics().setSecurityToken(apiKey);
-            }
-
+            request.metrics().setSecurityType(API_KEY);
+            request.metrics().setSecurityToken(apiKey);
             return apiKeyOptional.get().getPlan().equals(authenticationContext.getId());
         } catch (TechnicalException e) {
             // technical exception, any API key plan can be selected, the request will be rejected by the API Key policy whatsoever
