@@ -15,53 +15,47 @@
  */
 package io.gravitee.management.service.impl.swagger.converter.api;
 
-import io.gravitee.management.model.api.NewSwaggerApiEntity;
-import io.gravitee.management.model.api.SwaggerPath;
-import io.gravitee.management.model.api.SwaggerVerb;
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.management.model.api.SwaggerApiEntity;
+import io.gravitee.management.service.impl.swagger.visitor.v2.SwaggerDescriptorVisitor;
+import io.gravitee.management.service.impl.swagger.visitor.v2.SwaggerOperationVisitor;
 import io.gravitee.management.service.swagger.SwaggerV2Descriptor;
-import io.swagger.models.*;
-import io.swagger.models.properties.ObjectProperty;
-import io.swagger.models.properties.Property;
-import io.swagger.models.properties.RefProperty;
+import io.gravitee.policy.api.swagger.Policy;
+import io.swagger.models.Swagger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.toCollection;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toMap;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SwaggerV2ToAPIConverter implements SwaggerToApiConverter<SwaggerV2Descriptor> {
+public class SwaggerV2ToAPIConverter implements SwaggerToApiConverter<SwaggerV2Descriptor>, SwaggerDescriptorVisitor<SwaggerApiEntity> {
 
     private final static String DEFAULT_HTTPS_SCHEME = "https";
 
-    private final boolean includePolicies;
+    private final Collection<? extends SwaggerOperationVisitor> visitors;
 
     private final String defaultScheme;
 
-    public SwaggerV2ToAPIConverter(boolean includePolicies) {
-        this(includePolicies, DEFAULT_HTTPS_SCHEME);
+    public SwaggerV2ToAPIConverter(Collection<? extends SwaggerOperationVisitor> visitors) {
+        this(visitors, DEFAULT_HTTPS_SCHEME);
     }
 
-    public SwaggerV2ToAPIConverter(boolean includePolicies, String defaultScheme) {
-        this.includePolicies = includePolicies;
+    public SwaggerV2ToAPIConverter(Collection<? extends SwaggerOperationVisitor> visitors, String defaultScheme) {
+        this.visitors = visitors;
         this.defaultScheme = defaultScheme;
     }
 
     @Override
-    public NewSwaggerApiEntity convert(SwaggerV2Descriptor descriptor) {
-        if (descriptor == null || descriptor.getSpecification() == null || descriptor.getSpecification().getInfo() == null) {
-            return null;
-        }
-
-        Swagger swagger = descriptor.getSpecification();
-        final NewSwaggerApiEntity apiEntity = new NewSwaggerApiEntity();
+    public SwaggerApiEntity visit(Swagger swagger) {
+        final SwaggerApiEntity apiEntity = new SwaggerApiEntity();
         apiEntity.setName(swagger.getInfo().getTitle());
 
         if (swagger.getBasePath() != null && !swagger.getBasePath().isEmpty()) {
@@ -77,75 +71,61 @@ public class SwaggerV2ToAPIConverter implements SwaggerToApiConverter<SwaggerV2D
         String scheme = (swagger.getSchemes() == null || swagger.getSchemes().isEmpty()) ? defaultScheme :
                 swagger.getSchemes().iterator().next().toValue();
 
-        apiEntity.setEndpoint(Arrays.asList(scheme + "://" + swagger.getHost() + swagger.getBasePath()));
+        apiEntity.setEndpoint(Collections.singletonList(scheme + "://" + swagger.getHost() + swagger.getBasePath()));
         apiEntity.setPaths(swagger.getPaths().entrySet().stream()
                 .map(entry -> {
-                    final SwaggerPath swaggerPath = new SwaggerPath();
-                    swaggerPath.setPath(entry.getKey().replaceAll("\\{(.[^/]*)\\}", ":$1"));
-                    if (includePolicies) {
-                        final ArrayList<SwaggerVerb> verbs = new ArrayList<>();
-                        entry.getValue().getOperationMap().forEach((key, operation) -> {
-                            final SwaggerVerb swaggerVerb = new SwaggerVerb();
-                            swaggerVerb.setVerb(key.name());
-                            swaggerVerb.setDescription(operation.getSummary() == null ?
-                                    (operation.getOperationId() == null ? operation.getDescription() : operation.getOperationId()) :
-                                    operation.getSummary());
-                            final Map.Entry<String, Response> responseEntry = operation.getResponses().entrySet().iterator().next();
-                            swaggerVerb.setResponseStatus(responseEntry.getKey());
-                            if (operation.getProduces() != null && !operation.getProduces().isEmpty()) {
-                                swaggerVerb.setContentType(operation.getProduces().get(0));
-                            }
-                            final Model responseSchema = responseEntry.getValue().getResponseSchema();
-                            if (responseSchema != null) {
-                                if (responseSchema instanceof ArrayModel) {
-                                    final ArrayModel arrayModel = (ArrayModel) responseSchema;
-                                    swaggerVerb.setArray(true);
-                                    if (arrayModel.getItems() instanceof RefProperty) {
-                                        final String simpleRef = ((RefProperty) arrayModel.getItems()).getSimpleRef();
-                                        swaggerVerb.setResponseProperties(getResponseFromSimpleRef(swagger, simpleRef));
-                                    } else if (arrayModel.getItems() instanceof ObjectProperty) {
-                                        swaggerVerb.setResponseProperties(getResponseProperties(swagger, ((ObjectProperty) arrayModel.getItems()).getProperties()));
-                                    }
-                                } else if (responseSchema instanceof RefModel) {
-                                    final String simpleRef = ((RefModel) responseSchema).getSimpleRef();
-                                    swaggerVerb.setResponseProperties(getResponseFromSimpleRef(swagger, simpleRef));
-                                } else if (responseSchema instanceof ModelImpl) {
-                                    final ModelImpl model = (ModelImpl) responseSchema;
-                                    swaggerVerb.setArray("array".equals(model.getType()));
-                                    if ("object".equals(model.getType())) {
-                                        if (model.getAdditionalProperties() != null) {
-                                            swaggerVerb.setResponseProperties(Collections.singletonMap("additionalProperty", model.getAdditionalProperties().getType()));
-                                        }
+                    final io.gravitee.definition.model.Path path = new Path();
+                    path.setPath(entry.getKey().replaceAll("\\{(.[^/]*)\\}", ":$1"));
+                    List<Rule> rules = new ArrayList<>();
+
+                    entry.getValue().getOperationMap().forEach(new BiConsumer<io.swagger.models.HttpMethod, io.swagger.models.Operation>() {
+
+                        @Override
+                        public void accept(io.swagger.models.HttpMethod httpMethod, io.swagger.models.Operation operation) {
+                            visitors.forEach(new Consumer<SwaggerOperationVisitor>() {
+                                @Override
+                                public void accept(SwaggerOperationVisitor operationVisitor) {
+                                    // Consider only policy visitor for now
+                                    Optional<Policy> policy = (Optional<Policy>) operationVisitor.visit(swagger, operation);
+
+                                    if (policy.isPresent()) {
+                                        final Rule rule = new Rule();
+                                        rule.setEnabled(true);
+                                        rule.setDescription(operation.getSummary() == null ?
+                                                (operation.getOperationId() == null ? operation.getDescription() : operation.getOperationId()) :
+                                                operation.getSummary());
+                                        rule.setMethods(singleton(HttpMethod.valueOf(httpMethod.name())));
+
+                                        io.gravitee.definition.model.Policy defPolicy = new io.gravitee.definition.model.Policy();
+                                        defPolicy.setName(policy.get().getName());
+                                        defPolicy.setConfiguration(policy.get().getConfiguration());
+                                        rule.setPolicy(defPolicy);
+                                        rules.add(rule);
                                     }
                                 }
-                            }
-                            verbs.add(swaggerVerb);
-                        });
-                        swaggerPath.setVerbs(verbs);
-                    }
-                    return swaggerPath;
+                            });
+                        }
+                    });
+
+                    path.setRules(rules);
+
+                    return path;
                 })
-                .collect(toCollection(ArrayList::new)));
+                .collect(toMap(Path::getPath, path -> path)));
+
+        if (apiEntity.getPaths() != null) {
+            apiEntity.setPathMappings(apiEntity.getPaths().keySet());
+        }
+
         return apiEntity;
     }
 
-    private Map<String, Object> getResponseFromSimpleRef(Swagger swagger, String simpleRef) {
-        final Map<String, Property> properties = swagger.getDefinitions().get(simpleRef).getProperties();
-        if (properties == null) {
-            return emptyMap();
+    @Override
+    public SwaggerApiEntity convert(SwaggerV2Descriptor descriptor) {
+        if (descriptor == null || descriptor.getSpecification() == null || descriptor.getSpecification().getInfo() == null) {
+            return null;
         }
-        return getResponseProperties(swagger, properties);
-    }
 
-    private Map<String, Object> getResponseProperties(Swagger swagger, Map<String, Property> properties) {
-        return properties.entrySet()
-                .stream()
-                .collect(toMap(Map.Entry::getKey, e -> {
-                    final Property property = e.getValue();
-                    if (property instanceof RefProperty) {
-                        return this.getResponseFromSimpleRef(swagger, ((RefProperty) property).getSimpleRef());
-                    }
-                    return property.getType();
-                }));
+        return visit(descriptor.getSpecification());
     }
 }

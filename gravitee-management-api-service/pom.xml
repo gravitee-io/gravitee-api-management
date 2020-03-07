@@ -57,6 +57,10 @@
 			<artifactId>gravitee-management-api-fetcher</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.gravitee.policy</groupId>
+			<artifactId>gravitee-policy-api</artifactId>
+		</dependency>
 
 		<!-- Gravitee Dependencies -->
 		<dependency>

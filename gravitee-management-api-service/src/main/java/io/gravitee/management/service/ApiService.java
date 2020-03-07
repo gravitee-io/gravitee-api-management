@@ -40,10 +40,10 @@ public interface ApiService {
     Set<ApiEntity> findByVisibility(Visibility visibility);
 
     ApiEntity create(NewApiEntity api, String userId);
-    ApiEntity create(NewSwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
+    ApiEntity create(SwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     ApiEntity update(String apiId, UpdateApiEntity api);
-    ApiEntity update(String apiId, NewSwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor);
+    ApiEntity update(String apiId, SwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     void delete(String apiId);
 

@@ -26,6 +26,8 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.fetcher.spring.FetcherConfigurationConfiguration;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.impl.search.configuration.SearchEngineConfiguration;
+import io.gravitee.management.service.impl.swagger.policy.PolicyOperationVisitorManager;
+import io.gravitee.management.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.management.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
@@ -86,5 +88,10 @@ public class ServiceConfiguration {
 	@Bean
 	public ApiSerializer apiSerializer() {
 		return new ApiCompositeSerializer();
+	}
+
+	@Bean
+	public PolicyOperationVisitorManager policyVisitorManager() {
+		return new PolicyOperationVisitorManagerImpl();
 	}
 }

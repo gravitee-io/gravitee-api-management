@@ -16,7 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
-import io.gravitee.management.model.api.NewSwaggerApiEntity;
+import io.gravitee.management.model.api.SwaggerApiEntity;
 import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.management.service.impl.swagger.converter.api.OAIToAPIConverter;
@@ -24,7 +24,10 @@ import io.gravitee.management.service.impl.swagger.converter.api.SwaggerV2ToAPIC
 import io.gravitee.management.service.impl.swagger.parser.OAIParser;
 import io.gravitee.management.service.impl.swagger.parser.SwaggerV1Parser;
 import io.gravitee.management.service.impl.swagger.parser.SwaggerV2Parser;
+import io.gravitee.management.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.management.service.impl.swagger.transformer.SwaggerTransformer;
+import io.gravitee.management.service.impl.swagger.visitor.v2.SwaggerOperationVisitor;
+import io.gravitee.management.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.gravitee.management.service.swagger.OAIDescriptor;
 import io.gravitee.management.service.swagger.SwaggerDescriptor;
 import io.gravitee.management.service.swagger.SwaggerV1Descriptor;
@@ -33,10 +36,13 @@ import io.swagger.models.Swagger;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -51,14 +57,30 @@ public class SwaggerServiceImpl implements SwaggerService {
     @Value("${swagger.scheme:https}")
     private String defaultScheme;
 
+    @Autowired
+    private PolicyOperationVisitorManager policyOperationVisitorManager;
+
     @Override
-    public NewSwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
         SwaggerDescriptor descriptor = parse(swaggerDescriptor.getPayload());
         if (descriptor != null) {
             if (descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V1 || descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V2) {
-                return new SwaggerV2ToAPIConverter(swaggerDescriptor.isWithPolicyMocks(), defaultScheme).convert((SwaggerV2Descriptor) descriptor);
+                List<SwaggerOperationVisitor> visitors = policyOperationVisitorManager.getPolicyVisitors().stream()
+                        .filter(operationVisitor -> swaggerDescriptor.getWithPolicies() != null
+                                && swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId()))
+                        .map(operationVisitor -> policyOperationVisitorManager.getSwaggerOperationVisitor(operationVisitor.getId()))
+                        .collect(Collectors.toList());
+                return new SwaggerV2ToAPIConverter(visitors, defaultScheme)
+                        .convert((SwaggerV2Descriptor) descriptor);
             } else if (descriptor.getVersion() == SwaggerDescriptor.Version.OAI_V3) {
-                return new OAIToAPIConverter(swaggerDescriptor.isWithPolicyMocks()).convert((OAIDescriptor) descriptor);
+                List<OAIOperationVisitor> visitors = policyOperationVisitorManager.getPolicyVisitors().stream()
+                        .filter(operationVisitor -> swaggerDescriptor.getWithPolicies() != null
+                                && swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId()))
+                        .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
+                        .collect(Collectors.toList());
+
+                return new OAIToAPIConverter(visitors)
+                        .convert((OAIDescriptor) descriptor);
             }
         }
 

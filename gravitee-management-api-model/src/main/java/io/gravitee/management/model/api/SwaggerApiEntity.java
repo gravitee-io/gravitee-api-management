@@ -15,28 +15,38 @@
  */
 package io.gravitee.management.model.api;
 
+import io.gravitee.definition.model.Path;
+
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UpdateSwaggerApiEntity {
+public class SwaggerApiEntity {
 
     @NotNull
     private String name;
+
     @NotNull
     private String version;
+
     @NotNull
     private String description;
+
     @NotNull
     private String contextPath;
+
     @NotNull
     private List<String> endpoint;
-    private Set<String> groups;
-    private List<SwaggerPath> paths;
+
+    private Map<String, Path> paths = new HashMap<>();
+
+    private Set<String> pathMappings;
 
     public String getName() {
         return name;
@@ -78,31 +88,30 @@ public class UpdateSwaggerApiEntity {
         this.endpoint = endpoint;
     }
 
-    public List<SwaggerPath> getPaths() {
+    public Map<String, Path> getPaths() {
         return paths;
     }
 
-    public void setPaths(List<SwaggerPath> paths) {
+    public void setPaths(Map<String, Path> paths) {
         this.paths = paths;
     }
 
-    public Set<String> getGroups() {
-        return groups;
+    public Set<String> getPathMappings() {
+        return pathMappings;
     }
 
-    public void setGroups(Set<String> groups) {
-        this.groups = groups;
+    public void setPathMappings(Set<String> pathMappings) {
+        this.pathMappings = pathMappings;
     }
 
     @Override
     public String toString() {
-        return "UpdateSwaggerApiEntity{" +
+        return "SwaggerApiEntity{" +
                 "name='" + name + '\'' +
                 ", version='" + version + '\'' +
                 ", description='" + description + '\'' +
                 ", contextPath='" + contextPath + '\'' +
                 ", endpoint='" + endpoint + '\'' +
-                ", groups=" + groups +
                 ", paths=" + paths +
                 '}';
     }

@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.impl.swagger.converter.api;
+package io.gravitee.management.service.impl.swagger.visitor.v3;
 
-import io.gravitee.management.model.api.SwaggerApiEntity;
-import io.gravitee.management.service.impl.swagger.converter.SwaggerConverter;
-import io.gravitee.management.service.swagger.SwaggerDescriptor;
+import io.gravitee.management.service.impl.swagger.visitor.PathVisitor;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.PathItem;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface SwaggerToApiConverter<S extends SwaggerDescriptor> extends SwaggerConverter<S, SwaggerApiEntity> {
+public interface OAIPathVisitor<T> extends PathVisitor<T, OpenAPI, PathItem>, OAIVisitor {
 
-    SwaggerApiEntity convert(S descriptor);
 }

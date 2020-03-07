@@ -16,7 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
-import io.gravitee.management.model.api.NewSwaggerApiEntity;
+import io.gravitee.management.model.api.SwaggerApiEntity;
 import io.gravitee.management.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.management.service.swagger.SwaggerDescriptor;
 
@@ -35,7 +35,7 @@ public interface SwaggerService {
      * @param swaggerDescriptor Swagger descriptor
      * @return The API from the Swagger descriptor
      */
-    NewSwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor);
+    SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     /**
      * This method is used to transform a Swagger descriptor specification using swagger transformers.

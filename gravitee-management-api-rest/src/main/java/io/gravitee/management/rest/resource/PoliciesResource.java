@@ -23,6 +23,7 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.PolicyService;
+import io.gravitee.management.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
@@ -56,6 +57,9 @@ public class PoliciesResource {
     @Inject
     private PolicyService policyService;
 
+    @Inject
+    private PolicyOperationVisitorManager policyOperationVisitorManager;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List policies")
@@ -87,6 +91,25 @@ public class PoliciesResource {
     @Path("{policy}")
     public PolicyResource getPolicyResource() {
         return resourceContext.getResource(PolicyResource.class);
+    }
+
+    @GET
+    @Path("swagger")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List Swagger policies")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
+    })
+    public List<PolicyListItem> getSwaggerPolicy() {
+        return policyOperationVisitorManager.getPolicyVisitors()
+                .stream()
+                .map(operationVisitor -> {
+                    PolicyListItem item = new PolicyListItem();
+                    item.setId(operationVisitor.getId());
+                    item.setName(operationVisitor.getName());
+                    return item;
+                })
+                .collect(Collectors.toList());
     }
 
     private PolicyListItem convert(PolicyEntity policy) {

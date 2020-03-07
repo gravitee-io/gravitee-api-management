@@ -42,6 +42,7 @@
         <gravitee-fetcher-api.version>1.3.0</gravitee-fetcher-api.version>
         <gravitee-expression-language.version>1.3.0</gravitee-expression-language.version>
         <gravitee-alert-api.version>1.2.1</gravitee-alert-api.version>
+        <gravitee-policy-api.version>1.7.0-SNAPSHOT</gravitee-policy-api.version>
         <gravitee-notifier-api.version>1.2.1</gravitee-notifier-api.version>
         <gravitee-resource-oauth2-provider-api.version>1.3.0</gravitee-resource-oauth2-provider-api.version>
         <apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
@@ -166,6 +167,11 @@
                 <groupId>io.gravitee.notifier</groupId>
                 <artifactId>gravitee-notifier-api</artifactId>
                 <version>${gravitee-notifier-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.policy</groupId>
+                <artifactId>gravitee-policy-api</artifactId>
+                <version>${gravitee-policy-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.gravitee.alert</groupId>

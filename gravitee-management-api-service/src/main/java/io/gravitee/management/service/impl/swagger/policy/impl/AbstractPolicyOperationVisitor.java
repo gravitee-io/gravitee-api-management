@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.impl.swagger.converter.api;
+package io.gravitee.management.service.impl.swagger.policy.impl;
 
-import io.gravitee.management.model.api.SwaggerApiEntity;
-import io.gravitee.management.service.impl.swagger.converter.SwaggerConverter;
-import io.gravitee.management.service.swagger.SwaggerDescriptor;
+import io.gravitee.management.service.impl.swagger.visitor.OperationVisitor;
+import io.gravitee.policy.api.swagger.Policy;
+
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface SwaggerToApiConverter<S extends SwaggerDescriptor> extends SwaggerConverter<S, SwaggerApiEntity> {
+public abstract class AbstractPolicyOperationVisitor<D, O> implements OperationVisitor<Optional<Policy>, D, O> {
 
-    SwaggerApiEntity convert(S descriptor);
+    private final io.gravitee.policy.api.swagger.OperationVisitor<D, O> policyVisitor;
+
+    public AbstractPolicyOperationVisitor(io.gravitee.policy.api.swagger.OperationVisitor<D, O> policyVisitor) {
+        this.policyVisitor = policyVisitor;
+    }
+
+    @Override
+    public Optional<Policy> visit(D descriptor, O operation) {
+        return policyVisitor.visit(descriptor, operation);
+    }
 }

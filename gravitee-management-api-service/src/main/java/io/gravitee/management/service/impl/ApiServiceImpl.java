@@ -186,7 +186,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity create(final NewSwaggerApiEntity swaggerApiEntity, final String userId,
+    public ApiEntity create(final SwaggerApiEntity swaggerApiEntity, final String userId,
                             final ImportSwaggerDescriptorEntity swaggerDescriptor) throws ApiAlreadyExistsException {
 
         final NewApiEntity newApiEntity = new NewApiEntity();
@@ -195,18 +195,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         newApiEntity.setContextPath(swaggerApiEntity.getContextPath());
         newApiEntity.setDescription(swaggerApiEntity.getDescription());
         newApiEntity.setEndpoint(String.join(ENDPOINTS_DELIMITER, swaggerApiEntity.getEndpoint()));
-        newApiEntity.setGroups(swaggerApiEntity.getGroups());
 
-        return create(newApiEntity, userId, swaggerDescriptor, swaggerApiEntity.getPaths());
+        return create(newApiEntity, userId, swaggerDescriptor, swaggerApiEntity);
     }
 
     private ApiEntity create(final NewApiEntity newApiEntity, final String userId,
-            final ImportSwaggerDescriptorEntity swaggerDescriptor, final List<SwaggerPath> swaggerPaths) throws ApiAlreadyExistsException {
+            final ImportSwaggerDescriptorEntity swaggerDescriptor, final SwaggerApiEntity swaggerApiEntity) throws ApiAlreadyExistsException {
         UpdateApiEntity apiEntity = new UpdateApiEntity();
 
         apiEntity.setName(newApiEntity.getName());
         apiEntity.setDescription(newApiEntity.getDescription());
         apiEntity.setVersion(newApiEntity.getVersion());
+
         // check the existence of groups
         if (newApiEntity.getGroups() != null && !newApiEntity.getGroups().isEmpty()) {
             try {
@@ -255,8 +255,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setPaths(paths);
         apiEntity.setPathMappings(new HashSet<>(declaredPaths));
 
-        if (swaggerDescriptor != null) {
-            fillApiEntityFromSwagger(apiEntity, swaggerDescriptor, swaggerPaths);
+        if (swaggerApiEntity != null && swaggerDescriptor != null) {
+            if (swaggerDescriptor.isWithPolicyPaths()) {
+                apiEntity.setPaths(swaggerApiEntity.getPaths());
+            }
+
+            if (swaggerDescriptor.isWithPathMapping()) {
+                apiEntity.setPathMappings(swaggerApiEntity.getPathMappings());
+            }
         }
 
         final ApiEntity createdApi = create0(apiEntity, userId);
@@ -271,8 +277,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder()
                 .api(api.getId())
                 .type(PageType.SWAGGER)
-                .build()
-                );
+                .build());
 
         if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
             if(isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
@@ -305,68 +310,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 pageService.update(pageToUpdate.getId(), page);
             }
         }
-    }
-
-    private void fillApiEntityFromSwagger(UpdateApiEntity apiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor, List<SwaggerPath> swaggerPaths) {
-        if (swaggerDescriptor.isWithPolicyPaths() && swaggerPaths != null && !swaggerPaths.isEmpty()) {
-            final Map<String, Path> pathWithMocks = new HashMap<>(swaggerPaths.size());
-            swaggerPaths.forEach(swaggerPath -> {
-                final Path path = new Path();
-                path.setPath(swaggerPath.getPath());
-
-                if (swaggerDescriptor.isWithPolicyMocks()) {
-                    addMockToPath(swaggerPath, path);
-                }
-                pathWithMocks.put(swaggerPath.getPath(), path);
-            });
-            apiEntity.setPaths(pathWithMocks);
-        }
-        if (swaggerDescriptor.isWithPathMapping()) {
-            apiEntity.setPathMappings(swaggerPaths.stream().map(SwaggerPath::getPath).collect(toSet()));
-        }
-    }
-
-    private void addMockToPath(SwaggerPath swaggerPath, final Path path) {
-        final List<Rule> rules = new ArrayList<>();
-        swaggerPath.getVerbs().forEach(swaggerVerb -> {
-            final Rule rule = new Rule();
-            rule.setEnabled(true);
-            rule.setDescription(swaggerVerb.getDescription());
-            rule.setMethods(singleton(HttpMethod.valueOf(swaggerVerb.getVerb())));
-            final Policy policy = new Policy();
-            policy.setName("mock");
-
-            final Map<String, Object> configuration = new HashMap<>();
-
-            String responseStatus = swaggerVerb.getResponseStatus();
-            try {
-                Integer.parseInt(responseStatus);
-            } catch (final NumberFormatException nfe) {
-                responseStatus = "200";
-            }
-            configuration.put("status", responseStatus);
-            if (swaggerVerb.getContentType() != null) {
-                final Map<Object, Object> header = new HashMap<>(2);
-                header.put("name", "Content-Type");
-                header.put("value", swaggerVerb.getContentType());
-                configuration.put("headers", singletonList(header));
-            }
-            try {
-                final Object responseProperties = swaggerVerb.getResponseProperties();
-                if (responseProperties != null) {
-                    configuration.put("content", objectMapper.writeValueAsString(swaggerVerb.isArray()?
-                            singletonList(responseProperties): responseProperties));
-                }
-                policy.setConfiguration(objectMapper.writeValueAsString(configuration));
-            } catch (final JsonProcessingException e) {
-                e.printStackTrace();
-            }
-
-            rule.setPolicy(policy);
-            rules.add(rule);
-        });
-
-        path.setRules(rules);
     }
 
     private ApiEntity create0(UpdateApiEntity api, String userId) throws ApiAlreadyExistsException {
@@ -761,19 +704,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity update(String apiId, NewSwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    public ApiEntity update(String apiId, SwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
         final ApiEntity apiEntityToUpdate = this.findById(apiId);
         final UpdateApiEntity updateApiEntity = convert(apiEntityToUpdate);
 
-        //overwrite from swagger
+        // Overwrite from swagger
         updateApiEntity.setVersion(swaggerApiEntity.getVersion());
         updateApiEntity.setName(swaggerApiEntity.getName());
         updateApiEntity.setDescription(swaggerApiEntity.getDescription());
-        updateApiEntity.setGroups(swaggerApiEntity.getGroups());
 
-        //overwrite from swagger, if asked
-        List<SwaggerPath> swaggerPaths = swaggerApiEntity.getPaths();
-        fillApiEntityFromSwagger(updateApiEntity, swaggerDescriptor, swaggerPaths);
+        // Overwrite from swagger, if asked
+        if (swaggerApiEntity != null) {
+            updateApiEntity.setPaths(swaggerApiEntity.getPaths());
+
+            if (swaggerDescriptor.isWithPathMapping()) {
+                updateApiEntity.setPathMappings(swaggerApiEntity.getPathMappings());
+            }
+        }
+
         createOrUpdateDocumentation(swaggerDescriptor, apiEntityToUpdate, false);
 
         return update(apiId, updateApiEntity);
@@ -1676,8 +1624,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (SWAGGER.name().equals(pageEntity.getType())) {
             final ImportSwaggerDescriptorEntity importSwaggerDescriptorEntity = new ImportSwaggerDescriptorEntity();
             importSwaggerDescriptorEntity.setPayload(pageEntity.getContent());
-            final NewSwaggerApiEntity newSwaggerApiEntity = swaggerService.createAPI(importSwaggerDescriptorEntity);
-            apiEntity.getPathMappings().addAll(newSwaggerApiEntity.getPaths().stream().map(SwaggerPath::getPath).collect(toList()));
+            final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(importSwaggerDescriptorEntity);
+            apiEntity.getPathMappings().addAll(swaggerApiEntity.getPathMappings());
         }
 
         return update(apiEntity.getId(), ApiService.convert(apiEntity));

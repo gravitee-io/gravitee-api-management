@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.impl.swagger.converter.api;
+package io.gravitee.management.service.impl.swagger.policy;
 
-import io.gravitee.management.model.api.SwaggerApiEntity;
-import io.gravitee.management.service.impl.swagger.converter.SwaggerConverter;
-import io.gravitee.management.service.swagger.SwaggerDescriptor;
+import io.gravitee.plugin.core.api.AbstractSingleSubTypesFinder;
+import io.gravitee.policy.api.swagger.v2.SwaggerOperationVisitor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface SwaggerToApiConverter<S extends SwaggerDescriptor> extends SwaggerConverter<S, SwaggerApiEntity> {
+public class SwaggerOperationVisitorClassFinder extends AbstractSingleSubTypesFinder<SwaggerOperationVisitor> {
 
-    SwaggerApiEntity convert(S descriptor);
+    protected SwaggerOperationVisitorClassFinder() {
+        super(SwaggerOperationVisitor.class);
+    }
+
 }

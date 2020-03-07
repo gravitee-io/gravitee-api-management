@@ -18,6 +18,7 @@ package io.gravitee.management.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,8 +36,8 @@ public class ImportSwaggerDescriptorEntity {
     private boolean withPathMapping;
     @JsonProperty("with_policy_paths")
     private boolean withPolicyPaths;
-    @JsonProperty("with_policy_mocks")
-    private boolean withPolicyMocks;
+    @JsonProperty("with_policies")
+    private List<String> withPolicies;
 
     public Type getType() {
         return type;
@@ -78,12 +79,12 @@ public class ImportSwaggerDescriptorEntity {
         this.withPolicyPaths = withPolicyPaths;
     }
 
-    public boolean isWithPolicyMocks() {
-        return withPolicyMocks;
+    public List<String> getWithPolicies() {
+        return withPolicies;
     }
 
-    public void setWithPolicyMocks(boolean withPolicyMocks) {
-        this.withPolicyMocks = withPolicyMocks;
+    public void setWithPolicies(List<String> withPolicies) {
+        this.withPolicies = withPolicies;
     }
 
     public enum Type {
