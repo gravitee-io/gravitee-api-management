@@ -120,9 +120,13 @@ public class UserDetails extends User implements org.springframework.security.co
     public String getDisplayName() {
         String displayName;
 
-        if (firstname != null || lastname != null) {
-            displayName = firstname + ' ' + lastname;
-        } else if (email != null){
+        if ((firstname != null && !firstname.isEmpty()) || (lastname != null && !lastname.isEmpty())) {
+            if (firstname != null && !firstname.isEmpty()) {
+                displayName = firstname + ((lastname != null && !lastname.isEmpty()) ? ' ' + lastname : "");
+            } else {
+                displayName = lastname;
+            }
+        } else if (email != null && !email.isEmpty()){
             displayName = email;
         } else {
             displayName = sourceId;
