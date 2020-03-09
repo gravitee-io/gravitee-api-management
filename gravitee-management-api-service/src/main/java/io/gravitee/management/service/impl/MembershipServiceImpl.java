@@ -572,6 +572,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
 
             mergedPermissions.forEach((String k, Set<Character> v) -> {
+                final char[] membersPermissions = permissions.get(k);
+                if (membersPermissions != null) {
+                    for (char membersPermission : membersPermissions) {
+                        v.add(membersPermission);
+                    }
+                }
                 Character[] characters = v.toArray(new Character[v.size()]);
                 char[] chars = new char[characters.length];
                 for (int i = 0; i < characters.length; i++) {
