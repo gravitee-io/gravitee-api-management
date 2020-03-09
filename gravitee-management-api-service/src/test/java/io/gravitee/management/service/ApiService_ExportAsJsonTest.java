@@ -97,6 +97,9 @@ public class ApiService_ExportAsJsonTest {
     @Mock
     private ApplicationContext applicationContext;
 
+    @Mock
+    private ApiMetadataService apiMetadataService;
+
     @Before
     public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
@@ -108,6 +111,7 @@ public class ApiService_ExportAsJsonTest {
         when(applicationContext.getBean(PageService.class)).thenReturn(pageService);
         when(applicationContext.getBean(GroupService.class)).thenReturn(groupService);
         when(applicationContext.getBean(UserService.class)).thenReturn(userService);
+        when(applicationContext.getBean(ApiMetadataService.class)).thenReturn(apiMetadataService);
         ApiCompositeSerializer apiCompositeSerializer = new ApiCompositeSerializer();
         ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
         apiDefaultSerializer.setApplicationContext(applicationContext);
@@ -233,6 +237,14 @@ public class ApiService_ExportAsJsonTest {
         set.add(publishedPlan);
         set.add(closedPlan);
         when(planService.findByApi(API_ID)).thenReturn(set);
+        ApiMetadataEntity apiMetadataEntity = new ApiMetadataEntity();
+        apiMetadataEntity.setApiId(API_ID);
+        apiMetadataEntity.setKey("metadata-key");
+        apiMetadataEntity.setName("metadata-name");
+        apiMetadataEntity.setValue("metadata-value");
+        apiMetadataEntity.setDefaultValue("metadata-default-value");
+        apiMetadataEntity.setFormat(MetadataFormat.STRING);
+        when(apiMetadataService.findAllByApi(API_ID)).thenReturn(Collections.singletonList(apiMetadataEntity));
     }
 
     @Test
@@ -352,6 +364,21 @@ public class ApiService_ExportAsJsonTest {
         assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
     }
 
+    @Test
+    public void shouldConvertAsJsonWithoutMetadata() throws IOException {
+        shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version.DEFAULT, null);
+    }
+
+    @Test
+    public void shouldConvertAsJsonWithoutMetadata_1_15() throws IOException {
+        shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version.V_1_15, "1_15");
+    }
+
+    @Test
+    public void shouldConvertAsJsonWithoutMetadata_1_20() throws IOException {
+        shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version.V_1_20, "1_20");
+    }
+
     private void shouldConvertAsJsonForExport(ApiSerializer.Version version, String filename) throws TechnicalException, IOException {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name());
 
@@ -386,6 +413,16 @@ public class ApiService_ExportAsJsonTest {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "plans");
 
         URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportWithoutPlans" + (filename != null ? "-"+ filename : "") +".json");
+        String expectedJson = Resources.toString(url, Charsets.UTF_8);
+
+        assertThat(jsonForExport).isNotNull();
+        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
+    }
+
+    private void shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version version, String filename) throws IOException {
+        String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "metadata");
+
+        URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportWithoutMetadata" + (filename != null ? "-"+ filename : "") +".json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();

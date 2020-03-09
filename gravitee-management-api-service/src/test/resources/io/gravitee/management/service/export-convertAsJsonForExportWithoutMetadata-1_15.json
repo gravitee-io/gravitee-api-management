@@ -3,6 +3,10 @@
   "paths" : { },
   "resources" : [ ],
   "groups" : [ "My Group" ],
+  "members" : [ {
+    "username" : "johndoe-sourceId",
+    "role" : "PRIMARY_OWNER"
+  } ],
   "pages" : [ {
     "name" : "My Title",
     "type" : "MARKDOWN",
@@ -35,16 +39,6 @@
     },
     "comment_required" : false
   } ],
-  "metadata":[
-    {
-      "key":"metadata-key",
-      "name":"metadata-name",
-      "format":"STRING",
-      "value":"metadata-value",
-      "defaultValue":"metadata-default-value",
-      "apiId":"id-api"
-    }
-  ],
   "proxy": {
     "context_path": "/test",
     "strip_context_path": false,

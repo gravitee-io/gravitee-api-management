@@ -1296,6 +1296,35 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     }
                 }
             }
+            // Metadata
+            final JsonNode metadataDefinition = jsonNode.path("metadata");
+            if (metadataDefinition != null && metadataDefinition.isArray()) {
+                try {
+                    List<ApiMetadataEntity> apiMetadata = apiMetadataService.findAllByApi(createdOrUpdatedApiEntity.getId());
+                    List<ApiMetadataEntity> metadata = objectMapper.readValue(metadataDefinition.toString(),
+                            objectMapper.getTypeFactory().constructCollectionType(List.class, ApiMetadataEntity.class));
+                    for (JsonNode metadataNode : metadataDefinition) {
+                        // First we prevent the duplicate metadata name
+                        final String name = metadataNode.get("name").asText();
+                        final Optional<ApiMetadataEntity> optionalMetadata = apiMetadata.stream()
+                                .filter(m -> name.equalsIgnoreCase(m.getName()))
+                                .findAny();
+
+                        if (optionalMetadata.isPresent()) {
+                            UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(metadataNode.toString(), UpdateApiMetadataEntity.class);
+                            updateApiMetadataEntity.setKey(optionalMetadata.get().getKey());
+                            apiMetadataService.update(updateApiMetadataEntity);
+                        } else {
+                            NewApiMetadataEntity newApiMetadataEntity = objectMapper.readValue(metadataNode.toString(), NewApiMetadataEntity.class);
+                            newApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
+                            apiMetadataService.create(newApiMetadataEntity);
+                        }
+                    }
+                } catch (Exception ex) {
+                    LOGGER.error("An error occurs while creating API metadata", ex);
+                    throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
+                }
+            }
             return createdOrUpdatedApiEntity;
         } catch (final IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
@@ -1358,7 +1387,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         for (final PageEntityTreeNode child : children) {
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
-            
+
             PageQuery query = new PageQuery.Builder().
                     api(apiId).
                     name(pageEntityToImport.getName()).
@@ -1400,7 +1429,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 LOGGER.error("Not able to identify the page to update: {}. Too much page with the same name", pageEntityToImport.getName());
                 throw new TechnicalManagementException("Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much page with the same name");
             }
-            
+
             if(child.children != null && !child.children.isEmpty()) {
                 this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children);
             }

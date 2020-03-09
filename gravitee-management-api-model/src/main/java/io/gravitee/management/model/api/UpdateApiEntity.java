@@ -22,6 +22,7 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.management.model.ApiMetadataEntity;
 import io.gravitee.management.model.Visibility;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -89,7 +90,7 @@ public class UpdateApiEntity {
             dataType = "List",
             example = "public, private")
     private Set<String> tags;
-
+    
     @ApiModelProperty(
             value = "the API logo encoded in base64")
     private String picture;
@@ -123,6 +124,8 @@ public class UpdateApiEntity {
     @ApiModelProperty(
             value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ...")
     private Map<String, ResponseTemplates> responseTemplates;
+
+    private List<ApiMetadataEntity> metadata;
 
     public Visibility getVisibility() {
         return visibility;
@@ -250,5 +253,13 @@ public class UpdateApiEntity {
 
     public void setResponseTemplates(Map<String, ResponseTemplates> responseTemplates) {
         this.responseTemplates = responseTemplates;
+    }
+
+    public List<ApiMetadataEntity> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(List<ApiMetadataEntity> metadata) {
+        this.metadata = metadata;
     }
 }

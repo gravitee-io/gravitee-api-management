@@ -3,6 +3,10 @@
   "paths" : { },
   "resources" : [ ],
   "groups" : [ "My Group" ],
+  "members" : [ {
+    "username":"johndoe-sourceId",
+    "role" : "PRIMARY_OWNER"
+  } ],
   "pages" : [ {
     "name" : "My Title",
     "type" : "MARKDOWN",
@@ -35,42 +39,41 @@
     },
     "comment_required" : false
   } ],
-  "metadata":[
-    {
-      "key":"metadata-key",
-      "name":"metadata-name",
-      "format":"STRING",
-      "value":"metadata-value",
-      "defaultValue":"metadata-default-value",
-      "apiId":"id-api"
-    }
-  ],
+  "path_mappings":[],
   "proxy": {
     "context_path": "/test",
     "strip_context_path": false,
-    "loggingMode": "CLIENT_PROXY",
-    "endpoints": [
+    "logging": {
+      "mode":"CLIENT_PROXY",
+      "condition":"condition"
+    },
+    "groups": [
       {
-        "name": "default",
-        "target": "http://test",
-        "weight": 1,
-        "backup": false,
-        "type": "HTTP",
-        "http": {
-          "connectTimeout": 5000,
-          "idleTimeout": 60000,
-          "keepAlive": true,
-          "readTimeout": 10000,
-          "pipelining": false,
-          "maxConcurrentConnections": 100,
-          "useCompression": true,
-          "followRedirects": false,
-          "encodeURI":false
+        "name": "default-group",
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "http://test",
+            "weight": 1,
+            "backup": false,
+            "type": "HTTP",
+            "http": {
+              "connectTimeout": 5000,
+              "idleTimeout": 60000,
+              "keepAlive": true,
+              "readTimeout": 10000,
+              "pipelining": false,
+              "maxConcurrentConnections": 100,
+              "useCompression": true,
+              "followRedirects": false,
+              "encodeURI":false
+            }
+          }
+        ],
+        "load_balancing": {
+          "type": "ROUND_ROBIN"
         }
       }
-    ],
-    "load_balancing": {
-      "type": "ROUND_ROBIN"
-    }
+    ]
   }
 }

@@ -27,6 +27,7 @@ import io.gravitee.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam.LifecycleAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.service.ApiMetadataService;
 import io.gravitee.management.service.MessageService;
 import io.gravitee.management.service.NotifierService;
 import io.gravitee.management.service.QualityMetricsService;
@@ -76,6 +77,9 @@ public class ApiResource extends AbstractResource {
 
     @Autowired
     private MessageService messageService;
+
+    @Autowired
+    private ApiMetadataService apiMetadataService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -398,10 +402,10 @@ public class ApiResource extends AbstractResource {
             @PathParam("api") String api,
             @QueryParam("version") @DefaultValue("default") String version,
             @QueryParam("exclude") @DefaultValue("") String exclude) {
-        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
-        filterSensitiveData(apiEntity);
+        final ApiEntity apiEntity = apiService.findById(api);
+        final String apiDefinition = apiService.exportAsJson(api, version, exclude.split(","));
         return Response
-                .ok(apiService.exportAsJson(api, version, exclude.split(",")))
+                .ok(apiDefinition)
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity)))
                 .build();
     }
