@@ -1,0 +1,310 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="page__content">
+
+    <div class="application-creation__content">
+
+        <div class="application-creation__stepper">
+            <gv-stepper [steps]="steps" [current]="currentStep"
+                        (:gv-stepper:change)="onChangeStep($event)"></gv-stepper>
+        </div>
+
+        <div [ngClass]="{'step-content': true, 'one': currentStep === 1, 'two': currentStep === 2,'three': currentStep === 3, 'four': currentStep === 4}">
+
+            <form [formGroup]="applicationForm" *ngIf="applicationForm" class="form application-creation__form">
+
+                <div class="step step-1">
+                    <div class="step-grid-content">
+                        <div class="step-grid-column">
+                            <div class="form-control">
+                                <gv-input name="name"
+                                          formControlName="name"
+                                          ngDefaultControl
+                                          required
+                                          autofocus
+                                          label="{{ 'applicationCreation.general.name.label' | translate }}"
+                                          placeholder="{{ 'applicationCreation.general.name.placeholder' | translate }}"></gv-input>
+                            </div>
+
+                            <div class="form-control">
+                                <gv-text name="description"
+                                         formControlName="description"
+                                         ngDefaultControl
+                                         required
+                                         rows="10"
+                                         label="{{ 'applicationCreation.general.description.label' | translate }}"
+                                         placeholder="{{ 'applicationCreation.general.description.placeholder' | translate }}"></gv-text>
+                            </div>
+
+                        </div>
+                        <div class="step-grid-column">
+                            <div class="form-control">
+                                <gv-file-upload name="picture"
+                                                formControlName="picture"
+                                                ngDefaultControl
+                                                accept="image/*"
+                                                expect=".svg"
+                                                limit="500000"
+                                                [label]="'applicationCreation.general.image' | translate">
+                                </gv-file-upload>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step step-2" formGroupName="settings">
+
+                    <div class="form-control" formGroupName="oauth">
+                        <gv-option [options]="allowedOptions"
+                                   name="application_type"
+                                   formControlName="application_type"
+                                   autofocus
+                                   ngDefaultControl
+                                   class="application-types"
+                                   (input)="updateGrantTypes()"></gv-option>
+                    </div>
+
+                    <div *ngIf="!isOAuthClient()" formGroupName="app">
+                        <div class="form-control">
+                            <gv-input name="type"
+                                      formControlName="type"
+                                      ngDefaultControl
+                                      label="{{ 'applicationType.security.simple.title' | translate }}"
+                                      placeholder="{{ 'applicationType.security.simple.description' | translate }}"></gv-input>
+                        </div>
+
+                        <div class="form-control">
+                            <gv-input #clientId
+                                      name="clientId"
+                                      formControlName="client_id"
+                                      ngDefaultControl
+                                      (input)="onClientIdChange()"
+                                      label="{{ 'applicationType.security.clientId.label' | translate }}"
+                                      placeholder="{{ 'applicationType.security.clientId.description' | translate }}"></gv-input>
+                        </div>
+
+                    </div>
+
+                    <div *ngIf="isOAuthClient()" formGroupName="oauth" class="step-grid-content">
+                        <div class="step-grid-column">
+                            <div class="form-control" formArrayName="grant_types">
+
+                                <div>{{'applicationCreation.security.label' | translate }}</div>
+                                <div style="opacity: 0.7">{{'applicationCreation.security.description' | translate }}</div>
+
+                                <gv-switch *ngFor="let grantType of allGrantTypes"
+                                           label="{{ ('applicationType.security.' + grantType.type + '.title') | translate }}"
+                                           description="{{ ('applicationType.security.' + grantType.type + '.description') | translate }}"
+                                           [value]="grantType.value"
+                                           [disabled]="grantType.disabled"
+                                           (input)="onSwitchGrant($event, grantType)">
+                                </gv-switch>
+
+                            </div>
+                        </div>
+                        <div class="step-grid-column">
+                            <div class="form-control" *ngIf="requiresRedirectUris" formArrayName="redirect_uris">
+                                <gv-input
+                                        [required]="requiresRedirectUris"
+                                        autofocus
+                                        clickable
+                                        (:gv-input:submit)="addRedirectUri($event)"
+                                        (blur)="addRedirectUri($event)"
+                                        [label]="('applicationType.security.redirectUris.label' | translate)"
+                                        [valid]="hasRedirectUris"
+                                        [invalid]="!hasRedirectUris"
+                                        type="url"
+                                        placeholder="https://example.com"
+                                        icon="code:plus"></gv-input>
+                            </div>
+                            <div *ngIf="redirectURIs.controls.length > 0">
+                                <div class="label">{{ 'applicationType.security.redirectUris.description' | translate }}</div>
+                                <gv-tag *ngFor="let control of redirectURIs.controls; index as i"
+                                        icon-right="general:close" minor clickable
+                                        (click)="removeRedirectUri(i)">{{control.value}}</gv-tag>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+
+            <form [formGroup]="planForm" *ngIf="planForm" class="form application-creation__subscription-form">
+                <div class="step step-3">
+                    <gv-autocomplete #searchApiAutocomplete
+                                     class="form-control"
+                                     [options]="apiList"
+                                     (:gv-autocomplete:search)="onSearchApi($event)"
+                                     (:gv-autocomplete:select)="onSelectApi($event)">
+                        <gv-input type="search"
+                                  icon-left="general:search"
+                                  [value]="this.selectedApiName"
+                                  placeholder="{{ 'applicationCreation.subscription.api.description' | translate }}">
+
+                        </gv-input>
+                    </gv-autocomplete>
+                    <div>
+                        <div class="step-grid-content">
+                            <div class="step-grid-column">
+
+                                <div *ngIf="disabledPlans > 0 || plans && plans.length === 0"
+                                     class="form-control message">
+                                    <p *ngIf="selectedApi && plans.length === 0">{{ 'applicationCreation.subscription.noPlan' | translate }}</p>
+                                    <p *ngIf="selectedApi == null">{{ 'applicationCreation.subscription.plan.description' | translate }}</p>
+                                </div>
+
+                                <div *ngIf="selectedApi && plans && plans.length > 0"
+                                     class="application-creation__subscription-form__plans">
+                                    <gv-plans [plans]="plans"
+                                              formControlName="planId"
+                                              name="planId"
+                                              size="2"
+                                              ngDefaultControl></gv-plans>
+
+                                    <div class="actions">
+                                        <div>
+                                            <gv-button *ngIf="requireClientId" link (click)="focusClientId()">
+                                                {{ 'applicationCreation.subscription.disabledPlans' | translate: { count: disabledPlans } }}
+                                            </gv-button>
+                                        </div>
+                                        <gv-button *ngIf="currentStep === 3"
+                                                   [disabled]="canAddPlan || requireClientId"
+                                                   (click)="addPlan()"> {{ 'applicationCreation.subscription.add' | translate }}
+                                        </gv-button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step-grid-column">
+                                <gv-table [items]="this.subscribeList"
+                                          (input)="this.onRequestChange($event)"
+                                          emptymessage="{{ 'applicationCreation.subscription.description' | translate:{count: 0} }}"
+                                          [options]="subscriptionListOptions"></gv-table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="step step-4">
+                <div class="step-grid-content" *ngIf="canValidate() && !this.creationError">
+                    <div class="step-grid-column">
+                        <div class="validation-summary"
+                             [ngClass]="{'no-subscription': this.subscribeList.length === 0}">
+                            <h2>{{ 'applicationCreation.step.general' | translate}}</h2>
+                            <div class="general-summary form-control">
+                                <div *ngIf="pictureSrc">
+                                    <gv-image [src]="pictureSrc"></gv-image>
+                                </div>
+                                <div class="form-control">
+                                    <span>{{ 'applicationCreation.general.name.label'  | translate }}</span> {{appName}}
+                                </div>
+                                <div class="form-control">
+                                    <span>{{ 'applicationCreation.general.description.label'  | translate }}</span>
+                                    {{ appDescription }}
+                                </div>
+                            </div>
+                            <div style="clear: both" class="form-control"></div>
+                            <h2>{{ 'applicationCreation.step.security' | translate}}</h2>
+
+                            <div class="security-summary">
+                                <div class="form-control">
+                                    <span>{{ 'applicationType.security.simple.title' | translate }}</span> {{ applicationTypeName }}
+                                </div>
+                                <div *ngIf="!isOAuthClient()">
+                                    <div class="form-control" *ngIf="appClientId">
+                                        <div>
+                                            <span>{{ 'applicationType.security.clientId.label'  | translate }}</span> {{appClientId}}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div *ngIf="isOAuthClient()">
+                                    <div class="form-control">
+                                        <div>{{'applicationCreation.security.label' | translate }}</div>
+
+                                        <span *ngFor="let grantType of grantTypes.controls">
+                                                 <gv-tag major
+                                                         title="{{ ('applicationType.security.' + grantType.value + '.description') | translate }}">
+                                                                {{ ('applicationType.security.' + grantType.value + '.title') | translate }}
+                                                 </gv-tag>
+                                            </span>
+                                    </div>
+                                    <div *ngIf="requiresRedirectUris" class="form-control">
+                                        <div>{{ ('applicationType.security.redirectUris.label' | translate) }}</div>
+                                        <gv-tag *ngFor="let control of redirectURIs.controls; index as i"
+                                                minor>{{control.value}}</gv-tag>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-grid-column" *ngIf="currentStep === 4 && this.subscribeList.length > 0">
+                        <gv-table [items]="this.subscribeList"
+                                  title="{{ 'applicationCreation.validation.subscriptionTitle' | translate:{count: this.subscribeList.length} }}"
+                                  [options]="validationListOptions"></gv-table>
+                    </div>
+                </div>
+
+                <div class="message message-full message-pending"
+                     *ngIf="!canValidate() && !creationSuccess && !creationError">
+                    <gv-icon shape="general:smile"></gv-icon>
+                    <h2>{{'applicationCreation.validation.pending.title' | translate}} </h2>
+                    <p [innerHTML]="'applicationCreation.validation.pending.description' | translate"></p>
+                </div>
+                <div class="message message-full message-confirm" *ngIf="creationSuccess">
+                    <gv-icon shape="general:smile"></gv-icon>
+                    <h2>{{'apiSubscribe.success.congratulations' | translate}} </h2>
+                    <gv-button link
+                               [routerLink]="['/applications/', createdApplication.id]"
+                               [innerHTML]="'applicationCreation.validation.confirm' | translate: {name:createdApplication.name}"></gv-button>
+                </div>
+
+                <div class="message message-full message-error" *ngIf="creationError">
+                    <gv-icon shape="general:smile"></gv-icon>
+                    <h2>{{'applicationCreation.validation.error.title' | translate}} </h2>
+                    <div [innerHTML]="'applicationCreation.validation.error.description' | translate"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="actions">
+            <div>
+                <gv-button outlined (click)="onExit()"
+                           icon="code:stop">{{ 'applicationCreation.exit' | translate }}</gv-button>
+                <gv-button primary outlined (click)="onPrevious()"
+                           *ngIf="!this.creationSuccess"
+                           [disabled]="!canPrevious()"
+                           icon="navigation:angle-left">{{ 'applicationCreation.step.previous' | translate }}
+                </gv-button>
+            </div>
+
+            <gv-button primary (click)="onNext()"
+                       *ngIf="hasNext()"
+                       icon-right="navigation:angle-right">{{'applicationCreation.step.next' | translate }}</gv-button>
+            <gv-button *ngIf="hasCreate()"
+                       [disabled]="!canValidate()"
+                       [loading]="creationInProgress"
+                       (click)="createApp()"
+                       primary
+                       icon="code:check">{{'applicationCreation.step.createApp' | translate}}</gv-button>
+        </div>
+    </div>
+
+</div>
+

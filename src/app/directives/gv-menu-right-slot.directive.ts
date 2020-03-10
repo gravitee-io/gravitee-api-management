@@ -13,30 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentRef, ViewContainerRef } from '@angular/core';
+import { Directive, ViewContainerRef } from '@angular/core';
+import { GvSlot } from './gv-slot';
 
-export abstract class GvSlot {
+@Directive({
+  selector: '[appGvMenuRightSlot]'
+})
+export class GvMenuRightSlotDirective extends GvSlot {
 
-  constructor(private viewContainerRef: ViewContainerRef) {
+  constructor(viewContainerRef: ViewContainerRef) {
+    super(viewContainerRef);
   }
 
-  abstract getName(): string;
-
-  getViewContainerRef(): ViewContainerRef {
-    return this.viewContainerRef;
-  }
-
-  clear() {
-    this.viewContainerRef.clear();
-  }
-
-  setComponent(componentFactory) {
-    if (this.viewContainerRef.length === 0) {
-      this.viewContainerRef.createComponent(componentFactory);
-      if (this.viewContainerRef.element.nativeElement.nextSibling) {
-        this.viewContainerRef.element.nativeElement.nextSibling.slot = this.getName();
-      }
-    }
+  getName() {
+    return 'right';
   }
 
 }

@@ -177,6 +177,124 @@
     },
     "types": "{type, select, BACKEND_TO_BACKEND {Server to server} NATIVE {Native} WEB {Web} BROWSER {Browser} SIMPLE {Simple} other {Simple}}"
   },
+  "applicationCreation": {
+    "exit": "Výstup",
+    "general": {
+      "description": {
+        "label": "Popis",
+        "placeholder": "Stačí popsat jeho účel"
+      },
+      "image": "Obrázek aplikace",
+      "name": {
+        "label": "Název aplikace",
+        "placeholder": "Pojmenujte svou aplikaci"
+      }
+    },
+    "security": {
+      "description": "Z bezpečnostních důvodů definujte pouze typy, které potřebujete.",
+      "label": "Typy práv autorizovaných pro klienta."
+    },
+    "step": {
+      "createApp": "Vytvořte aplikaci",
+      "general": "Generále",
+      "next": "Další",
+      "previous": "Předchozí",
+      "security": "Zabezpečení",
+      "subscription": "Předplatné",
+      "validate": "Validace"
+    },
+    "subscription": {
+      "add": "Přidat",
+      "api": {
+        "description": "Najděte API pro vaši aplikaci"
+      },
+      "comment": "Komentář",
+      "description": "{count, plural, =0{Žádné předplatné} one{Jeden plán} other{{count} plán}}",
+      "disabledPlans": "KlientID je povinen se přihlásit k odběru deaktivovaných plánů",
+      "noPlan": "Pro toto API není k dispozici žádný plán",
+      "plan": {
+        "description": "Najděte API pro vaši aplikaci a přidejte plány, které chcete přihlásit k odběru"
+      },
+      "remove": "Odstranit",
+      "validation": {
+        "auto": "Automatické",
+        "manual": "Manuální",
+        "type": "Validace"
+      }
+    },
+    "validation": {
+      "confirm": "Aplikace \"{name}\" je připravena!",
+      "error": {
+        "description": "Při vytváření aplikace došlo k chybě.",
+        "title": "Promiň"
+      },
+      "pending": {
+        "description": "Chybí informace pro vytvoření aplikace.<br/> Zkontrolujte, zda jsou všechny kroky ověřeny.",
+        "title": "Už jste skoro hotovi"
+      },
+      "subscriptionTitle": "Žádost o předplatné"
+    }
+  },
+  "applicationType": {
+    "backend_to_backend": {
+      "description": "Stroj na stroj",
+      "title": "Backend to backend"
+    },
+    "browser": {
+      "description": "Angular, React, ...",
+      "title": "SPA"
+    },
+    "native": {
+      "description": "iOS, Android, ...",
+      "title": "Native"
+    },
+    "security": {
+      "authorization_code": {
+        "description": " ",
+        "title": "Autorizační kód"
+      },
+      "clientId": {
+        "description": " Client_id aplikace. Toto pole je vyžadováno k odběru určitého typu plánu API (OAuth2, JWT).",
+        "label": "Client ID"
+      },
+      "client_credentials": {
+        "description": " ",
+        "title": "Pověření klienta"
+      },
+      "implicit": {
+        "description": " ",
+        "title": "Implicitní"
+      },
+      "implicit_hybrid": {
+        "description": " hybridní",
+        "title": "Implicitní"
+      },
+      "password": {
+        "description": "Poskytuje vlastník zdroje",
+        "title": "Heslo"
+      },
+      "redirectUris": {
+        "description": "URI, kde autorizační server bude odesílat odpovědi OAuth",
+        "label": "Přesměrovat URI"
+      },
+      "refresh_token": {
+        "description": " ",
+        "title": "Obnovit token"
+      },
+      "simple": {
+        "description": "Typ aplikace (mobilní, web, ...)",
+        "title": "Typ"
+      }
+    },
+    "simple": {
+      "description": "Hands-free aplikace.<br/>Pomocí tohoto typu budete moci definovat client_id podle svých vlastních.",
+      "title": "Simple"
+    },
+    "web": {
+      "description": "Java, .Net, ...",
+      "title": "Web"
+    }
+  },
   "applications": {
     "title": "Moje aplikace"
   },
@@ -231,11 +349,7 @@
     "unexpected": "Vyskytla se neočekávaná chyba",
     "user": {
       "exists": "E-mail již existuje uživatel: {user}",
-      "finalized": "Účet již byl dokončen",
-      "notActive": "Status {user} není aktivní",
-      "resetPassword": {
-        "notFound": "Uživatel {user} nebyl nalezen"
-      }
+      "finalized": "Účet již byl dokončen"
     }
   },
   "footer": {
@@ -294,6 +408,15 @@
   },
   "gv-documentation": {
     "empty": "Momentálně žádná dokumentace"
+  },
+  "gv-file-upload": {
+    "chooseAnotherFile": "Vyberte jiný soubor",
+    "chooseFile": "Vyberte soubor",
+    "error": {
+      "maxSize": "Velikost souboru přesahuje povolený limit",
+      "typeNotAllowed": "Tento typ souboru není povolen"
+    },
+    "orDragIt": "nebo to pusť sem."
   },
   "gv-header": {
     "empty": "Žádné rozhraní API k zobrazení zde",
@@ -386,6 +509,9 @@
     "empty": "gv-stats.empty",
     "error": "gv-stats.error"
   },
+  "gv-stepper": {
+    "error": "Při načítání kroků došlo k chybě"
+  },
   "gv-table": {
     "accepted": "Přijatý",
     "empty": "gv-table.empty",
@@ -476,6 +602,7 @@
   },
   "route": {
     "analyticsApplication": "route.analyticsApplication",
+    "applicationCreation": "Vytvořte aplikaci",
     "applications": "Aplikace",
     "catalog": "Katalog",
     "catalogApi": "Obecné informace",

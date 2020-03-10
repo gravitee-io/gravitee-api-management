@@ -38,10 +38,10 @@ import { animation } from './route-animation';
 import { Link, PortalService, User } from '@gravitee/ng-portal-webclient';
 import { Notification } from './model/notification';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
-import { GvMenuInputSlotDirective } from './directives/gv-menu-input-slot.directive';
+import { GvMenuRightTransitionSlotDirective } from './directives/gv-menu-right-transition-slot.directive';
 import { ConfigurationService } from './services/configuration.service';
 import { FeatureEnum } from './model/feature.enum';
-import { GvMenuButtonSlotDirective } from './directives/gv-menu-button-slot.directive';
+import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvSlot } from './directives/gv-slot';
 
 // for google analytics
@@ -65,8 +65,8 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   public isPreview = false;
   public links: any = {};
   @ViewChild(GvMenuTopSlotDirective, { static: true }) appGvMenuTopSlot: GvMenuTopSlotDirective;
-  @ViewChild(GvMenuInputSlotDirective, { static: true }) appGvMenuRightSlot: GvMenuInputSlotDirective;
-  @ViewChild(GvMenuButtonSlotDirective, { static: true }) appGvMenuButtonSlot: GvMenuButtonSlotDirective;
+  @ViewChild(GvMenuRightTransitionSlotDirective, { static: true }) appGvMenuRightTransitionSlot: GvMenuRightTransitionSlotDirective;
+  @ViewChild(GvMenuRightSlotDirective, { static: true }) appGvMenuRightSlot: GvMenuRightSlotDirective;
   private slots: Array<GvSlot>;
 
   constructor(
@@ -139,7 +139,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     if (loader) {
       loader.remove();
     }
-    this.slots = [this.appGvMenuButtonSlot, this.appGvMenuRightSlot, this.appGvMenuTopSlot];
+    this.slots = [this.appGvMenuRightSlot, this.appGvMenuRightTransitionSlot, this.appGvMenuTopSlot];
   }
 
   prepareRoute(outlet: RouterOutlet) {
@@ -289,7 +289,10 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   private _injectMenuSlots(slots) {
     this.slots.forEach((directive) => {
       const name = directive.getName();
-      const slot = slots ? slots[name] : null;
+      let slot = slots ? slots[name] : null;
+      if (slots && slots.expectedFeature && !this.configurationService.hasFeature(slots.expectedFeature)) {
+        slot = null;
+      }
       this._updateSlot(slot, directive);
     });
   }

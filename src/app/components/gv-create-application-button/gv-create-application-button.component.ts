@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Directive, ViewContainerRef } from '@angular/core';
-import { GvSlot } from './gv-slot';
+import { Component, HostListener, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
-@Directive({
-  selector: '[appGvMenuButtonSlot]'
+@Component({
+  selector: 'app-gv-create-application-button',
+  templateUrl: './gv-create-application-button.component.html',
+  styleUrls: ['./gv-create-application-button.component.css']
 })
-export class GvMenuButtonSlotDirective extends GvSlot {
+export class GvCreateApplicationButtonComponent implements OnInit {
 
-  constructor(viewContainerRef: ViewContainerRef) {
-    super(viewContainerRef);
+  constructor(private router: Router) { }
+
+  ngOnInit() {
   }
 
-  getName() {
-    return 'button';
+  @HostListener(':gv-button:click')
+  onClick() {
+    this.router.navigate(['/applications/creation'], {});
   }
 
 }

@@ -41,15 +41,9 @@
 
   <div class="layout__content">
     <gv-menu [routes]="menuRoutes">
-      <div slot="header">
         <ng-template appGvMenuTopSlot></ng-template>
-      </div>
-      <div slot="input">
-        <ng-template appGvMenuInputSlot></ng-template>
-      </div>
-      <div slot="button">
-        <ng-template appGvMenuButtonSlot></ng-template>
-      </div>
+        <ng-template appGvMenuRightTransitionSlot></ng-template>
+        <ng-template appGvMenuRightSlot></ng-template>
     </gv-menu>
     <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
     <div [@routeAnimations]="prepareRoute(outlet)" >

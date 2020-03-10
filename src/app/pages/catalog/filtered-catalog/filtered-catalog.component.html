@@ -37,7 +37,7 @@
   <section class="catalog__section__content">
     <div class="catalog__section__content__title" [id]="fragments.filter">
       <h2 class="title"></h2>
-      <gv-select *ngIf="canFilter()"
+      <gv-select
                  [value]="this.currentView"
                  (input)="this.onSelectView($event)"
                  [attr.placeholder]="'catalog.filter' | translate"

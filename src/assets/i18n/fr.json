@@ -177,6 +177,124 @@
     },
     "types": "{type, select, BACKEND_TO_BACKEND{Serveur à serveur} NATIVE{Native} WEB{Web} BROWSER{Navigateur} SIMPLE{Simple} other{Simple}}"
   },
+  "applicationCreation": {
+    "exit": "Quitter",
+    "general": {
+      "description": {
+        "label": "Description",
+        "placeholder": "Décrivez simplement son objectif "
+      },
+      "image": "Image de l'application",
+      "name": {
+        "label": "Nom de l'application",
+        "placeholder": "Nommez votre application"
+      }
+    },
+    "security": {
+      "description": "Pour des raisons de sécurité, veuillez définir uniquement les types dont vous avez besoin.",
+      "label": "Types de droits autorisés pour le client."
+    },
+    "step": {
+      "createApp": "Créer l'application",
+      "general": "Général",
+      "next": "Suivant",
+      "previous": "Précédent",
+      "security": "Sécurité",
+      "subscription": "Souscription",
+      "validate": "Validation"
+    },
+    "subscription": {
+      "add": "Ajouter",
+      "api": {
+        "description": "Chercher une API pour votre application"
+      },
+      "comment": "Commentaire",
+      "description": "{count, plural, =0{Pas de souscription}  one{Une seule souscription} other{{count} souscriptions}}",
+      "disabledPlans": "Un clientID est requis pour souscrire {count, plural, =0{au plan désactivé} one{au plan désactivé} other{aux plans désactivés}}",
+      "noPlan": "Il n'y a pas de plan disponible pour cette API",
+      "plan": {
+        "description": "Recherchez les APIs votre application et ajouter les plans auxquels vous souhaitez souscrire"
+      },
+      "remove": "Supprimer",
+      "validation": {
+        "auto": "Automatique",
+        "manual": "Manuel",
+        "type": "Validation"
+      }
+    },
+    "validation": {
+      "confirm": "L'application \"{name}\" est prête !",
+      "error": {
+        "description": "Une erreur est survenue durant la création de l'application.",
+        "title": "Désolé"
+      },
+      "pending": {
+        "description": "Il manque des informations pour créer votre application.<br/> \nMerci de vérifier que toutes les étapes sont bien validées.",
+        "title": "Vous avez bientôt terminé"
+      },
+      "subscriptionTitle": "{count, plural, =0{Demande de souscription} one{Demande de souscription} other{Demandes de souscription}}"
+    }
+  },
+  "applicationType": {
+    "backend_to_backend": {
+      "description": "Machine à machine",
+      "title": "Backend to backend"
+    },
+    "browser": {
+      "description": "Angular, React, ...",
+      "title": "SPA"
+    },
+    "native": {
+      "description": "iOS, Android, ...",
+      "title": "Native"
+    },
+    "security": {
+      "authorization_code": {
+        "description": " ",
+        "title": "Code d'autorisation"
+      },
+      "clientId": {
+        "description": " Le client_id de l'application. Ce champ est obligatoire pour souscrire à un certain type de plan API (OAuth2, JWT).",
+        "label": "Client ID"
+      },
+      "client_credentials": {
+        "description": " ",
+        "title": "Informations d'identification du client"
+      },
+      "implicit": {
+        "description": " ",
+        "title": "Implicite"
+      },
+      "implicit_hybrid": {
+        "description": " hybride",
+        "title": "Implicite"
+      },
+      "password": {
+        "description": "Fourni par le propriétaire de la ressource",
+        "title": "Mot de passe"
+      },
+      "redirectUris": {
+        "description": "URI où le serveur d'autorisation enverra des réponses OAuth",
+        "label": "URIs de redirection"
+      },
+      "refresh_token": {
+        "description": " ",
+        "title": "Jeton d'actualisation"
+      },
+      "simple": {
+        "description": "Type d'application (mobile, web, ...)",
+        "title": "Type"
+      }
+    },
+    "simple": {
+      "description": "Une application mains libres.<br/>En utilisant ce type, vous pourrez définir le client_id par vos propres moyens.",
+      "title": "Simple"
+    },
+    "web": {
+      "description": "Java, .Net, ...",
+      "title": "Web"
+    }
+  },
   "applications": {
     "title": "Mes applications"
   },
@@ -231,11 +349,7 @@
     "unexpected": "Une erreur inattendue est survenue",
     "user": {
       "exists": "Il existe déjà un utilisateur avec l'email : {user}",
-      "finalized": "Le compte a déjà été finalisé",
-      "notActive": "L'utilisateur {user} n'est pas actif",
-      "resetPassword": {
-        "notFound" : "L'utilisateur {user} n'existe pas"
-      }
+      "finalized": "Le compte a déjà été finalisé"
     }
   },
   "footer": {
@@ -294,6 +408,15 @@
   },
   "gv-documentation": {
     "empty": "Aucune documentation pour le moment"
+  },
+  "gv-file-upload": {
+    "chooseAnotherFile": "Choisir un autre fichier",
+    "chooseFile": "Choisir un fichier",
+    "error": {
+      "maxSize": "La taille du fichier dépasse la limite autorisée",
+      "typeNotAllowed": "Ce type de fichier n'est pas autorisé"
+    },
+    "orDragIt": "ou déposez-le ici."
   },
   "gv-header": {
     "empty": "Aucune API à afficher ici",
@@ -386,6 +509,9 @@
     "empty": "Aucun résultat à afficher",
     "error": "Une erreur est survenue pendant de le chargement des données"
   },
+  "gv-stepper": {
+    "error": "Une erreur est survenue pendant le chargement des étapes"
+  },
   "gv-table": {
     "accepted": "Accepté",
     "empty": "Aucun résultat à afficher",
@@ -476,6 +602,7 @@
   },
   "route": {
     "analyticsApplication": "Analytics",
+    "applicationCreation": "Créer une appllication",
     "applications": "Applications",
     "catalog": "Catalogue",
     "catalogApi": "Informations générales",

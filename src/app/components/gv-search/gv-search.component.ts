@@ -13,13 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum FeatureEnum {
-  applications = 'portal.applications.enabled',
-  applicationCreation = 'portal.applicationCreation.enabled',
-  contact = 'portal.support.enabled',
-  googleAnalytics = 'portal.analytics.enabled',
-  localLogin = 'authentication.localLogin.enabled',
-  rating = 'portal.rating.enabled',
-  userRegistration = 'portal.userCreation.enabled',
-  viewMode = 'portal.apis.viewMode.enabled',
-}

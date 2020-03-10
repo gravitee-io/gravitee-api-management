@@ -16,32 +16,44 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 
-import { GvCreateApplicationComponent } from './gv-create-application.component';
+import { GvCreateApplicationButtonComponent } from './gv-create-application-button.component';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
-describe('GvCreateApplicationComponent', () => {
-  let component: GvCreateApplicationComponent;
-  let fixture: ComponentFixture<GvCreateApplicationComponent>;
+describe('GvCreateApplicationButtonComponent', () => {
+  let component: GvCreateApplicationButtonComponent;
+  let fixture: ComponentFixture<GvCreateApplicationButtonComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ GvCreateApplicationComponent ],
-      imports: [ TranslateTestingModule, RouterTestingModule ],
+      imports: [
+        RouterTestingModule,
+        TranslateTestingModule,
+        HttpClientTestingModule,
+      ],
+      declarations: [
+        GvCreateApplicationButtonComponent
+      ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
+      ],
+      providers: [
+        GvCreateApplicationButtonComponent,
       ]
-    })
-      .compileComponents();
+    }).compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvCreateApplicationComponent);
+    fixture = TestBed.createComponent(GvCreateApplicationButtonComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+    });
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });

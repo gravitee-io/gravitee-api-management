@@ -177,6 +177,124 @@
     },
     "types": "{type, select, BACKEND_TO_BACKEND{Backend to backend} NATIVE{Native} WEB{Web} BROWSER{Browser} SIMPLE{Simple} other{Simple}}"
   },
+  "applicationCreation": {
+    "exit": "Exit",
+    "general": {
+      "description": {
+        "label": "Description",
+        "placeholder": "Just describe its purpose"
+      },
+      "image": "Application Image",
+      "name": {
+        "label": "Application name",
+        "placeholder": "Name your application"
+      }
+    },
+    "security": {
+      "description": "For security reasons, please define only the types you need.",
+      "label": "Types of rights authorized for the client."
+    },
+    "step": {
+      "createApp": "Create the app",
+      "general": "General",
+      "next": "Next",
+      "previous": "Previous",
+      "security": "Security",
+      "subscription": "Subscription",
+      "validate": "Validation"
+    },
+    "subscription": {
+      "add": "Add",
+      "api": {
+        "description": "Find an API for your application"
+      },
+      "comment": "Comment",
+      "description": "{count, plural, =0{No subscription} one{Only one subscription} other{{count} subscriptions}}",
+      "disabledPlans": "A clientID is required to subscribe to {count, plural, =0{the disabled plan} one{the disabled plan} other{disabled plans}}",
+      "noPlan": "There is no plan available for this API",
+      "plan": {
+        "description": "Find the APIs for your application and add the plans you want to subscribe to"
+      },
+      "remove": "Remove",
+      "validation": {
+        "auto": "Automatic",
+        "manual": "Manual",
+        "type": "Validation"
+      }
+    },
+    "validation": {
+      "confirm": "The application \"{name}\" is ready!",
+      "error": {
+        "description": "An error occurred during the creation of the application.",
+        "title": "Sorry"
+      },
+      "pending": {
+        "description": "Information is missing to create your application.<br/> Please check that all the steps are validated.",
+        "title": "You are almost done"
+      },
+      "subscriptionTitle": "Subscription request"
+    }
+  },
+  "applicationType": {
+    "backend_to_backend": {
+      "description": "Machine to machine",
+      "title": "Backend to backend"
+    },
+    "browser": {
+      "description": "Angular, React, ...",
+      "title": "SPA"
+    },
+    "native": {
+      "description": "iOS, Android, ...",
+      "title": "Native"
+    },
+    "security": {
+      "authorization_code": {
+        "description": " ",
+        "title": "Authorization code"
+      },
+      "clientId": {
+        "description": " The Client_id of the application. This field is required to subscribe to certain type of API Plan (OAuth2, JWT).",
+        "label": "Client ID"
+      },
+      "client_credentials": {
+        "description": " ",
+        "title": "Client credentials"
+      },
+      "implicit": {
+        "description": " ",
+        "title": "Implicit"
+      },
+      "implicit_hybrid": {
+        "description": " Hybrid",
+        "title": "Implicit"
+      },
+      "password": {
+        "description": "Provided by the owner of the resource",
+        "title": "Password"
+      },
+      "redirectUris": {
+        "description": "URI where the authorization server will send OAuth responses",
+        "label": "Redirect URIs"
+      },
+      "refresh_token": {
+        "description": " ",
+        "title": "Refresh token"
+      },
+      "simple": {
+        "description": "Type of application (mobile, web, ...)",
+        "title": "Type"
+      }
+    },
+    "simple": {
+      "description": "A hands-free application.<br/>Using this type, you will be able to define the client_id by your own.",
+      "title": "Simple"
+    },
+    "web": {
+      "description": "Java, .Net, ...",
+      "title": "Web"
+    }
+  },
   "applications": {
     "title": "Applications"
   },
@@ -231,11 +349,7 @@
     "unexpected": "An unexpected error occurred",
     "user": {
       "exists": "There is already a user with the email: {user}",
-      "finalized": "The account has already been finalized",
-      "notActive": "User {user} status is not active",
-      "resetPassword": {
-        "notFound" : "User {user} not found"
-      }
+      "finalized": "The account has already been finalized"
     }
   },
   "footer": {
@@ -294,6 +408,15 @@
   },
   "gv-documentation": {
     "empty": "No documentation for the moment"
+  },
+  "gv-file-upload": {
+    "chooseAnotherFile": "choose another file",
+    "chooseFile": "Choose a file",
+    "error": {
+      "maxSize": "File size exceeds allowable limit",
+      "typeNotAllowed": "This file type is not allowed"
+    },
+    "orDragIt": "or drop it here."
   },
   "gv-header": {
     "empty": "No API to display here",
@@ -386,6 +509,9 @@
     "empty": "gv-stats.empty",
     "error": "gv-stats.error"
   },
+  "gv-stepper": {
+    "error": "An error occurred while loading the steps"
+  },
   "gv-table": {
     "accepted": "Accepted",
     "empty": "gv-table.empty",
@@ -476,6 +602,7 @@
   },
   "route": {
     "analyticsApplication": "route.analyticsApplication",
+    "applicationCreation": "Create an application",
     "applications": "Applications",
     "catalog": "Catalog",
     "catalogApi": "General informations",

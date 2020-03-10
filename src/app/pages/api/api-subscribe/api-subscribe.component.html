@@ -51,7 +51,7 @@
             <p *ngIf="hasLinkedApp()"
                [innerHTML]="'apiSubscribe.apps.linkedApp' | translate:{ count: getLinkedAppCount(), apiName: apiName }"></p>
             <p *ngIf="!hasAvailableApplications()"> <b>{{ 'apiSubscribe.apps.noAvailableApplications' | translate }}</b> </p>
-            <a href="">{{ 'apiSubscribe.apps.createApp' | translate }}</a>
+            <a [routerLink]="['/applications/creation']" [queryParams]="{api: apiId}">{{ 'apiSubscribe.apps.createApp' | translate }}</a>
           </div>
 
           <gv-select *ngIf="hasAvailableApplications()" label="{{ 'apiSubscribe.apps.chooseApp' | translate }}"
@@ -148,7 +148,7 @@
                  (click)="onValidate()" primary
                  [disabled]="!subscribeForm.valid"
                  [loading]="showValidateLoader"
-                 icon-right="navigation:angle-right">{{'apiSubscribe.validate.subscription' | translate}}</gv-button>
+                 icon="code:check">{{'apiSubscribe.validate.subscription' | translate}}</gv-button>
     </div>
   </div>
 

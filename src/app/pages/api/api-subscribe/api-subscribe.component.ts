@@ -160,7 +160,6 @@ export class ApiSubscribeComponent implements OnInit {
       step.validate = !!description && (typeof validate === 'boolean' ? validate : true);
       return step;
     }).slice(0, this.isKeyLess() ? 1 : this._allSteps.length);
-
   }
 
   onChangeStep({ detail: { current } }) {

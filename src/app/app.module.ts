@@ -41,7 +41,7 @@ import { GvContactComponent } from './components/gv-contact/gv-contact.component
 import { GvDocumentationComponent } from './components/gv-documentation/gv-documentation.component';
 import { GvFileUploadComponent } from './components/gv-file-upload/gv-file-upload.component';
 import { GvHeaderItemComponent } from './components/gv-header-item/gv-header-item.component';
-import { GvMenuInputSlotDirective } from './directives/gv-menu-input-slot.directive';
+import { GvMenuRightTransitionSlotDirective } from './directives/gv-menu-right-transition-slot.directive';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
 import { GvPageComponent } from './components/gv-page/gv-page.component';
 import { GvPageContentSlotDirective } from './directives/gv-page-content-slot.directive';
@@ -76,8 +76,9 @@ import { filter } from 'rxjs/operators';
 import { ApplicationAnalyticsComponent } from './pages/application/application-analytics/application-analytics.component';
 import { ApplicationGeneralComponent } from './pages/application/application-general/application-general.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
-import { GvCreateApplicationComponent } from './components/gv-create-application/gv-create-application.component';
-import { GvMenuButtonSlotDirective } from './directives/gv-menu-button-slot.directive';
+import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
+import { ApplicationCreationComponent } from './pages/application/application-creation/application-creation.component';
+import { GvCreateApplicationButtonComponent } from './components/gv-create-application-button/gv-create-application-button.component';
 import { GvAnalyticsDashboardComponent } from './components/gv-analytics-dashboard/gv-analytics-dashboard.component';
 import { GvAnalyticsFiltersComponent } from './components/gv-analytics-filters/gv-analytics-filters.component';
 import { ApplicationNotificationsComponent } from './pages/application/application-notifications/application-notifications.component';
@@ -107,8 +108,8 @@ import { ApplicationNotificationsComponent } from './pages/application/applicati
     GvContactComponent,
     GvDocumentationComponent,
     GvHeaderItemComponent,
-    GvMenuButtonSlotDirective,
-    GvMenuInputSlotDirective,
+    GvMenuRightSlotDirective,
+    GvMenuRightTransitionSlotDirective,
     GvMenuTopSlotDirective,
     GvPageComponent,
     GvPageContentSlotDirective,
@@ -128,7 +129,8 @@ import { ApplicationNotificationsComponent } from './pages/application/applicati
     SubscriptionsComponent,
     GvFileUploadComponent,
     NotFoundComponent,
-    GvCreateApplicationComponent,
+    ApplicationCreationComponent,
+    GvCreateApplicationButtonComponent,
     GvAnalyticsDashboardComponent,
     GvAnalyticsFiltersComponent,
   ],

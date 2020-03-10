@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+/** Hack because default box-shadow is not visible **/
+gv-button {
+    -ms-transition: all 200ms ease-in;
+    transition: all 200ms ease-in;
+}
 
-@Component({
-  selector: 'app-gv-create-application',
-  templateUrl: './gv-create-application.component.html'
-})
-export class GvCreateApplicationComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit() {
-  }
-
+gv-button:hover {
+    -webkit-transform: scale(1.1);
+    transform: scale(1.1);
 }

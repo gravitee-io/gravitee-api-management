@@ -47,7 +47,8 @@ import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.comp
 import { SubscribeGuardService } from './services/subscribe-guard.service';
 import { ApplicationGeneralComponent } from './pages/application/application-general/application-general.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
-import { GvCreateApplicationComponent } from './components/gv-create-application/gv-create-application.component';
+import { ApplicationCreationComponent } from './pages/application/application-creation/application-creation.component';
+import { GvCreateApplicationButtonComponent } from './components/gv-create-application-button/gv-create-application-button.component';
 import { ApplicationAnalyticsComponent } from './pages/application/application-analytics/application-analytics.component';
 import { ApplicationResolver } from './resolver/application.resolver';
 import { DashboardsResolver } from './resolver/dashboards.resolver';
@@ -83,7 +84,7 @@ export const routes: Routes = [
             path: ':apiId',
             component: ApiGeneralComponent,
             data: {
-              menu: { slots: { top: GvHeaderItemComponent, input: GvSearchInputComponent } },
+              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchInputComponent } },
               breadcrumb: true,
               icon: 'general:clipboard',
               title: i18n('route.catalogApi'),
@@ -94,7 +95,7 @@ export const routes: Routes = [
             path: ':apiId/doc',
             component: ApiDocumentationComponent,
             data: {
-              menu: { slots: { top: GvHeaderItemComponent, input: GvSearchInputComponent } },
+              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchInputComponent } },
               breadcrumb: true,
               icon: 'home:library',
               title: i18n('route.catalogApiDocumentation'),
@@ -106,7 +107,7 @@ export const routes: Routes = [
             component: ApiContactComponent,
             canActivate: [AuthGuardService, FeatureGuardService],
             data: {
-              menu: { slots: { top: GvHeaderItemComponent, input: GvSearchInputComponent } },
+              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchInputComponent } },
               breadcrumb: true,
               icon: 'communication:contact#1',
               title: i18n('route.catalogApiContact'),
@@ -135,7 +136,7 @@ export const routes: Routes = [
           expectedFeature: FeatureEnum.viewMode,
           title: i18n('route.catalogCategories'),
           icon: 'layout:layout-arrange',
-          menu: { slots: { input: GvSearchInputComponent } },
+          menu: { slots: { 'right-transition': GvSearchInputComponent } },
           animation: { type: 'slide', group: 'catalog', index: 1 }
         }
       },
@@ -146,7 +147,7 @@ export const routes: Routes = [
         data: {
           expectedFeature: FeatureEnum.viewMode,
           title: i18n('route.catalogCategory'),
-          menu: { slots: { input: GvSearchInputComponent } },
+          menu: { slots: { 'right-transition': GvSearchInputComponent } },
         },
       },
       {
@@ -155,7 +156,7 @@ export const routes: Routes = [
         data: {
           title: i18n('route.catalogFeatured'),
           icon: 'home:flower#2',
-          menu: { slots: { input: GvSearchInputComponent } },
+          menu: { slots: { 'right-transition': GvSearchInputComponent } },
           categoryApiQuery: CategoryApiQuery.FEATURED,
           animation: { type: 'slide', group: 'catalog', index: 2 }
         }
@@ -167,7 +168,7 @@ export const routes: Routes = [
         data: {
           title: i18n('route.catalogStarred'),
           icon: 'general:star',
-          menu: { slots: { input: GvSearchInputComponent } },
+          menu: { slots: { 'right-transition': GvSearchInputComponent } },
           categoryApiQuery: CategoryApiQuery.STARRED,
           expectedFeature: FeatureEnum.rating,
           animation: { type: 'slide', group: 'catalog', index: 3 }
@@ -179,7 +180,7 @@ export const routes: Routes = [
         data: {
           title: i18n('route.catalogTrending'),
           icon: 'home:fireplace',
-          menu: { slots: { input: GvSearchInputComponent } },
+          menu: { slots: { 'right-transition': GvSearchInputComponent } },
           categoryApiQuery: CategoryApiQuery.TRENDINGS,
           animation: { type: 'slide', group: 'catalog', index: 4 }
         }
@@ -251,7 +252,7 @@ export const routes: Routes = [
     canActivate: [AuthGuardService, FeatureGuardService],
     data: {
       title: i18n('route.applications'),
-      menu: {},
+      menu: { hiddenPaths: ['creation'] },
       expectedRole: Role.AUTH_USER,
       expectedFeature: FeatureEnum.applications,
       animation: {}
@@ -265,7 +266,7 @@ export const routes: Routes = [
           title: i18n('route.myApplications'),
           icon: 'devices:server',
           animation: { type: 'slide', group: 'apps', index: 1 },
-          menu: { slots: { button: GvCreateApplicationComponent } }
+          menu: { slots: { right: GvCreateApplicationButtonComponent, expectedFeature: FeatureEnum.applicationCreation } }
         }
       },
       {
@@ -275,7 +276,17 @@ export const routes: Routes = [
           title: i18n('route.mySubscriptions'),
           icon: 'finance:share',
           animation: { type: 'slide', group: 'apps', index: 2 },
-          menu: { slots: { button: GvCreateApplicationComponent } }
+          menu: { slots: { right: GvCreateApplicationButtonComponent, expectedFeature: FeatureEnum.applicationCreation } }
+        }
+      },
+      {
+        path: 'creation',
+        component: ApplicationCreationComponent,
+        canActivate: [FeatureGuardService],
+        data: {
+          title: i18n('route.applicationCreation'),
+          expectedFeature: FeatureEnum.applicationCreation,
+          animation: { type: 'fade' },
         }
       },
       {
