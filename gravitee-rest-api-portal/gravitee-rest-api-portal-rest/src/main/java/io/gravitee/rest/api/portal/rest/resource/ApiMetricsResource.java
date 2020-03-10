@@ -35,7 +35,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -103,9 +102,13 @@ public class ApiMetricsResource extends AbstractResource {
         query.setRootIdentifier(apiId);
         query.setField("response-time");
 
-        StatsAnalytics analytics = analyticsService.execute(query);
-        if (analytics != null) {
-            return analytics.getCount();
+        try {
+            final StatsAnalytics analytics = analyticsService.execute(query);
+            if (analytics != null) {
+                return analytics.getCount();
+            }
+        } catch (final Exception e) {
+            // do nothing as the analytics errors should not break the portal
         }
         return null;
     }

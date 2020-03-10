@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -37,7 +36,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -100,18 +98,20 @@ public class ApiSubscribersResource extends AbstractResource {
     }
 
     private int compareApp(Map<String, Long> nbHitsByApp, Application o1, Application o2) {
-        if(nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) == null) {
-            return 0;
-        }
-        if(nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) != null) {
-            return 1;
-        }
-        if(nbHitsByApp.get(o1.getId()) != null && nbHitsByApp.get(o2.getId()) == null) {
-            return -1;
-        }
-        int compareTo = nbHitsByApp.get(o2.getId()).compareTo(nbHitsByApp.get(o1.getId()));
-        if(compareTo != 0) {
-            return compareTo;
+        if (nbHitsByApp != null) {
+            if(nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) == null) {
+                return 0;
+            }
+            if(nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) != null) {
+                return 1;
+            }
+            if(nbHitsByApp.get(o1.getId()) != null && nbHitsByApp.get(o2.getId()) == null) {
+                return -1;
+            }
+            int compareTo = nbHitsByApp.get(o2.getId()).compareTo(nbHitsByApp.get(o1.getId()));
+            if(compareTo != 0) {
+                return compareTo;
+            }
         }
         return o1.getName().compareTo(o2.getName());
     }
@@ -126,9 +126,13 @@ public class ApiSubscribersResource extends AbstractResource {
         query.setRootField("api");
         query.setRootIdentifier(apiId);
 
-        TopHitsAnalytics analytics = analyticsService.execute(query);
-        if (analytics != null) {
-            return analytics.getValues();
+        try {
+            final TopHitsAnalytics analytics = analyticsService.execute(query);
+            if (analytics != null) {
+                return analytics.getValues();
+            }
+        } catch (final Exception e) {
+            // do nothing as the analytics errors should not break the portal
         }
         return null;
     }

@@ -56,8 +56,8 @@
           "name": "--gv-theme-neutral-color",
           "description": "Neutral color",
           "type": "color",
-          "default": "#E5E5E5",
-          "value": "#E5E5E5"
+          "default": "#F5F5F5",
+          "value": "#F5F5F5"
         },
         {
           "name": "--gv-theme-neutral-color-light",
@@ -513,25 +513,18 @@
       "name": "gv-row",
       "css": [
         {
-          "name": "--gv-row--bgc",
-          "description": "Background color",
-          "type": "color",
-          "default": "var(--gv-theme-neutral-color-lightest, #FFFFFF)",
-          "value": ""
-        },
-        {
           "name": "--gv-row-hover--bgc",
-          "description": "Background color when hover",
+          "description": "Hoover background color",
           "type": "color",
           "default": "var(--gv-theme-neutral-color-lighter, #FAFAFA)",
           "value": ""
         },
         {
-          "name": "--gv-row-icon--s",
-          "description": "Height and icon width",
-          "type": "length",
-          "default": "14px",
-          "value": "14px"
+          "name": "--gv-row-hover--trf-ty",
+          "description": "Hoover transform translateY",
+          "type": "string",
+          "default": "0",
+          "value": "0"
         },
         {
           "name": "--gv-row-image--h",
@@ -589,7 +582,7 @@
           "name": "--gv-rating-list--bdc",
           "description": "Border color",
           "type": "color",
-          "default": "var(--gv-theme-neutral-color, #E5E5E5)",
+          "default": "var(--gv-theme-neutral-color, #F5F5F5)",
           "value": ""
         },
         {
@@ -662,7 +655,7 @@
           "name": "--gv-popover--bdc",
           "description": "Border color",
           "type": "color",
-          "default": "var(--gv-theme-neutral-color, #E5E5E5)",
+          "default": "var(--gv-theme-neutral-color, #F5F5F5)",
           "value": ""
         },
         {
@@ -702,7 +695,7 @@
           "name": "--gv-plans-characteristics--bdc",
           "description": "Characteristics border color",
           "type": "color",
-          "default": "var(--gv-theme-neutral-color, #E5E5E5)",
+          "default": "var(--gv-theme-neutral-color, #F5F5F5)",
           "value": ""
         },
         {
@@ -1234,7 +1227,7 @@
           "name": "--gv-select--bdc",
           "description": "Border color",
           "type": "color",
-          "default": "var(--gv-theme-neutral-color, #E5E5E5)",
+          "default": "var(--gv-theme-neutral-color, #F5F5F5)",
           "value": ""
         },
         {
@@ -1443,7 +1436,7 @@
           "name": "--gv-input--bdc",
           "description": "Border color",
           "type": "color",
-          "default": "var(--gv-theme-neutral-color, #E5E5E5)",
+          "default": "var(--gv-theme-neutral-color, #F5F5F5)",
           "value": ""
         }
       ]
@@ -1549,17 +1542,24 @@
       "name": "gv-autocomplete",
       "css": [
         {
-          "name": "--gv-autocomplete-match--bgc",
-          "description": "Macth background color",
-          "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
-          "value": ""
-        },
-        {
           "name": "--gv-autocomplete-hover--bgc",
           "description": "Hover background color",
           "type": "color",
-          "default": "var(--gv-theme-neutral-color-light, #EFEFEF)",
+          "default": "var(--gv-theme-neutral-color-lighter, #FAFAFA)",
+          "value": ""
+        },
+        {
+          "name": "--gv-autocomplete--bgc",
+          "description": "Background color",
+          "type": "color",
+          "default": "var(--gv-theme-neutral-color-lightest, #FFFFFF)",
+          "value": ""
+        },
+        {
+          "name": "--gv-autocomplete--c",
+          "description": "Color",
+          "type": "color",
+          "default": "var(--gv-theme-font-color, #262626)",
           "value": ""
         }
       ]
