@@ -51,11 +51,18 @@
       <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update' : 'Create')}} each path from the swagger descriptor.</div>
       <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreatePolicyPaths">This will overwrite all the policies.</div>
     </md-checkbox>
-    <md-checkbox ng-model="$ctrl.importCreateMocks" aria-label="($ctrl.isForUpdate() ? 'Update' : 'Create') mocks on paths of policies" flex ng-change="$ctrl.updateWarnText()"
-                  ng-disabled="!$ctrl.importCreatePolicyPaths" style="margin-left: 20px;">
-      With mocks
-      <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update' : 'Add')}} mocks on each path from the swagger descriptor.</div>
-      <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreateMocks">This will overwrite all the mocks.</div>
+
+    <md-checkbox
+      ng-repeat="policy in $ctrl.policies track by policy.id"
+      ng-model="policy.enable"
+      aria-label="Apply {{::policy.name}} on paths"
+      flex
+      ng-change="$ctrl.updateWarnText()"
+      ng-disabled="!$ctrl.importCreatePolicyPaths" style="margin-left: 20px;">
+
+      Apply {{::policy.name}} policy
+      <div class="ipsum" style="color: grey;">Apply policy on each path from the swagger descriptor.</div>
+      <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreateMocks">This will overwrite all the existing policy.</div>
     </md-checkbox>
   </div>
 </md-dialog-content>

@@ -19,6 +19,7 @@ import SidenavService from '../../../../components/sidenav/sidenav.service';
 import UserService from '../../../../services/user.service';
 import {QualityMetrics} from "../../../../entities/qualityMetrics";
 import ApiService from "../../../../services/api.service";
+import PolicyService from "../../../../services/policy.service";
 
 class ApiPortalController {
   private initialApi: any;
@@ -40,6 +41,7 @@ class ApiPortalController {
     private ApiService: ApiService,
     private NotificationService,
     private UserService: UserService,
+    private PolicyService: PolicyService,
     private $scope,
     private $mdDialog,
     private $mdEditDialog,
@@ -298,18 +300,21 @@ class ApiPortalController {
 
   showImportDialog() {
     var that = this;
-    this.$mdDialog.show({
-      controller: 'DialogApiImportController',
-      controllerAs: 'dialogApiImportCtrl',
-      template: require('./dialog/apiImport.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        apiId: this.$scope.$parent.apiCtrl.api.id
-      }
-    }).then(function (response) {
-      if (response) {
-        that.onApiUpdate(response.data);
-      }
+    this.PolicyService.listSwaggerPolicies().then(policies => {
+      this.$mdDialog.show({
+        controller: 'DialogApiImportController',
+        controllerAs: 'dialogApiImportCtrl',
+        template: require('./dialog/apiImport.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          apiId: this.$scope.$parent.apiCtrl.api.id,
+          policies: policies.data
+        }
+      }).then(function (response) {
+        if (response) {
+          that.onApiUpdate(response.data);
+        }
+      });
     });
   }
 

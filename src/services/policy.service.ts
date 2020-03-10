@@ -29,6 +29,10 @@ class PolicyService {
     return this.$http.get(url);
   }
 
+  listSwaggerPolicies() {
+    return this.$http.get(this.policiesURL + "swagger");
+  }
+
   getSchema(policyId) {
     return this.$http.get(this.policiesURL + policyId + '/schema');
   }

@@ -22,6 +22,7 @@ import ApiService from "../../services/api.service";
 import {StateProvider} from '../../../node_modules/@uirouter/angularjs';
 import TenantService from "../../services/tenant.service";
 import UserService from "../../services/user.service";
+import PolicyService from "../../services/policy.service";
 
 export default apisRouterConfig;
 
@@ -78,6 +79,11 @@ function apisRouterConfig($stateProvider: StateProvider) {
     .state('management.apis.new', {
       url: '/new',
       template: require('./creation/newApi.html'),
+      controller: 'NewApiController',
+      controllerAs: '$ctrl',
+      resolve: {
+        policies: (PolicyService: PolicyService) => PolicyService.listSwaggerPolicies().then(response => response.data)
+      },
       data: {
         perms: {
           only: ['management-api-c']

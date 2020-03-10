@@ -83,6 +83,7 @@ import ApiCreationStep3Component from '../management/api/creation/steps/api-crea
 import ApiCreationStep4Component from '../management/api/creation/steps/api-creation-step4.component';
 import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
 import ApiImportComponent from '../management/components/import/import-api.component';
+import NewApiController from '../management/api/creation/newApiPortal.controller';
 
 // API Plan
 import ApiPlanComponent from '../management/api/api-plan.component';
@@ -733,6 +734,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('apiHeader', ApiHeaderComponent)
   .component('apiCreation', ApiCreationComponent)
   .controller('ApiCreationController', ApiCreationController)
+  .controller('NewApiController', NewApiController)
   .component('apiCreationStep1', ApiCreationStep1Component)
   .component('apiCreationStep2', ApiCreationStep2Component)
   .component('apiCreationStep3', ApiCreationStep3Component)

@@ -25,7 +25,8 @@ const ImportComponent: ng.IComponentOptions = {
   template: require('./import-api.html'),
   bindings: {
     apiId: '<',
-    cancelAction: '&'
+    cancelAction: '&',
+    policies: '<'
   },
   controller: function(
     $state: StateService,
@@ -34,7 +35,7 @@ const ImportComponent: ng.IComponentOptions = {
     NotificationService: NotificationService,
     ApiService: ApiService
   ) {
-    
+
     'ngInject';
 
     this.$onInit = () => {
@@ -96,7 +97,7 @@ const ImportComponent: ng.IComponentOptions = {
       }
       return false;
     };
-    
+
     this.isForUpdate = () => {
       return this.apiId != undefined;
     }
@@ -154,7 +155,7 @@ const ImportComponent: ng.IComponentOptions = {
         this.cancel();
       }
     }
-  
+
     this.importGraviteeIODefinition = () => {
       var id = (this.isForUpdate() ? this.apiId : null);
       var apiDefinition = (this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL);
@@ -169,14 +170,14 @@ const ImportComponent: ng.IComponentOptions = {
       });
     }
 
-    this.importSwagger = () => { 
+    this.importSwagger = () => {
       let swagger = {
         with_documentation: this.importCreateDocumentation,
         with_path_mapping: this.importCreatePathMapping,
         with_policy_paths: this.importCreatePolicyPaths,
-        with_policy_mocks: this.importCreateMocks
+        with_policies: _.map(_.filter(this.policies, 'enable'), 'id')
       };
-  
+
       if (this.importFileMode) {
         swagger.type = 'INLINE';
         swagger.payload = this.importAPIFile.content;
@@ -184,6 +185,7 @@ const ImportComponent: ng.IComponentOptions = {
         swagger.type = 'URL';
         swagger.payload = this.apiDescriptorURL;
       }
+
       if(this.isForUpdate()) {
         ApiService.importSwagger(this.apiId, swagger).then((api) => {
           NotificationService.show('API successfully imported');
