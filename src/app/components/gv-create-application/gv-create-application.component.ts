@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Directive, ViewContainerRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
-@Directive({
-  selector: '[appGvMenuRightSlot]'
+@Component({
+  selector: 'app-gv-create-application',
+  templateUrl: './gv-create-application.component.html'
 })
-export class GvMenuRightSlotDirective {
+export class GvCreateApplicationComponent implements OnInit {
 
-  constructor(public viewContainerRef: ViewContainerRef) { }
+  constructor() { }
+
+  ngOnInit() {
+  }
+
 }

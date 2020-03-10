@@ -116,7 +116,7 @@ export class FilteredCatalogComponent implements OnInit {
       // @ts-ignore
       this.promotedApi = new Promise(null);
       this.randomList = new Array(4);
-      this.allApis = new Array(this.size);
+      this.allApis = new Array(this.size).fill(new Promise(() => ({}) ));
     } else {
       throw err;
     }

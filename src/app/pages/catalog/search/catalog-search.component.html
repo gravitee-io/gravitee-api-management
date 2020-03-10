@@ -21,9 +21,26 @@
 
       <div class="catalog-search">
 
-        <div class="catalog-search__title">
-          <h1 class="title" *ngIf="hasResult()">{{ 'search.results.label' | translate : { "totalElements": totalElements } }}</h1>
-          <gv-select *ngIf="totalElements" [options]="pageSizes" small [value]="paginationSize" (input)="this.onChangePageSize($event)"></gv-select>
+        <div class="catalog-search__header">
+          <form class="catalog-search__form" [formGroup]="searchForm" (ngSubmit)="onSubmitSearch()">
+            <div class="catalog-search__bar">
+              <gv-input type="search"
+                        autofocus
+                        icon-left="general:search"
+                        formControlName="query"
+                        name="query"
+                        ngDefaultControl></gv-input>
+            </div>
+            <gv-select *ngIf="totalElements"
+                       [options]="pageSizes"
+                       [value]="this.searchForm.value.size"
+                       formControlName="size"
+                       name="size"
+                       ngDefaultControl="size"
+                       (input)="onSubmitSearch()">
+            </gv-select>
+          </form>
+          <div class="catalog-search__info" [innerHTML]="'search.results.label' | translate : { 'count': totalElements }"></div>
         </div>
 
         <div *ngIf="apiResults" class="catalog-search__list">

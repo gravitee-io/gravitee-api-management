@@ -15,50 +15,33 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GvSearchComponent } from './gv-search.component';
-import { RouterTestingModule } from '@angular/router/testing';
+import { GvCreateApplicationComponent } from './gv-create-application.component';
 import { TranslateTestingModule } from '../../test/helper.spec';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideMock } from '../../test/mock.helper.spec';
-import { TranslateService } from '@ngx-translate/core';
-import { CurrentUserService } from '../../services/current-user.service';
 
-describe('GvSearchComponent', () => {
-  let component: GvSearchComponent;
-  let fixture: ComponentFixture<GvSearchComponent>;
+describe('GvCreateApplicationComponent', () => {
+  let component: GvCreateApplicationComponent;
+  let fixture: ComponentFixture<GvCreateApplicationComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
-        TranslateTestingModule,
-        HttpClientTestingModule,
-      ],
-      declarations: [
-        GvSearchComponent
-      ],
+      declarations: [ GvCreateApplicationComponent ],
+      imports: [ TranslateTestingModule, RouterTestingModule ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        GvSearchComponent,
-        provideMock(TranslateService),
-        provideMock(CurrentUserService),
       ]
-    }).compileComponents();
+    })
+      .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvSearchComponent);
+    fixture = TestBed.createComponent(GvCreateApplicationComponent);
     component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
+    fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

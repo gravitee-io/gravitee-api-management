@@ -44,8 +44,11 @@
       <div slot="header">
         <ng-template appGvMenuTopSlot></ng-template>
       </div>
-      <div slot="right">
-        <ng-template appGvMenuRightSlot></ng-template>
+      <div slot="input">
+        <ng-template appGvMenuInputSlot></ng-template>
+      </div>
+      <div slot="button">
+        <ng-template appGvMenuButtonSlot></ng-template>
       </div>
     </gv-menu>
     <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>

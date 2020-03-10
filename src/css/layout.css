@@ -89,7 +89,6 @@
 }
 
 .layout__content {
-  background-color: var(--gv-theme-layout--bgc);
   flex-grow: 1;
 }
 

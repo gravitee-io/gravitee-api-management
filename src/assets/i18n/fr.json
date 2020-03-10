@@ -218,6 +218,9 @@
     "success": "Votre demande a été envoyé au responsable",
     "title": "Votre demande"
   },
+  "gv-create-application": {
+    "createApplication": "Créer une app"
+  },
   "gv-documentation": {
     "empty": "Aucune documentation pour le moment"
   },
@@ -391,7 +394,7 @@
   },
   "search": {
     "results": {
-      "label": "{totalElements} résultat(s)"
+      "label": "{count, plural, =0{Aucun résultat} one{{count} résultat} other{{count} résultats}}"
     }
   },
   "site": {

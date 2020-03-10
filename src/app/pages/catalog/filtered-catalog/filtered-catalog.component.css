@@ -70,6 +70,11 @@ gv-promote {
   margin-top: 1rem;
 }
 
+gv-row {
+  background-color: var(--gv-theme-neutral-color-lightest);
+  padding: 10px 5px;
+}
+
 @media only screen and (max-device-width: 1280px) {
 
   .catalog__section__top {

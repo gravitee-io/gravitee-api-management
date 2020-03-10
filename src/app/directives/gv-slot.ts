@@ -13,21 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Directive, ViewContainerRef } from '@angular/core';
-import { GvSlot } from './gv-slot';
+import { ViewContainerRef } from '@angular/core';
 
-@Directive({
-  selector: '[appGvMenuTopSlot]'
-})
-export class GvMenuTopSlotDirective extends GvSlot {
+export abstract class GvSlot {
 
-  constructor(viewContainerRef: ViewContainerRef) {
-    super(viewContainerRef);
+  constructor(private viewContainerRef: ViewContainerRef) {
   }
 
-  public getName() {
-    return 'top';
+  abstract getName(): string;
+
+  getViewContainerRef(): ViewContainerRef {
+    return this.viewContainerRef;
+  }
+
+  clear() {
+    this.viewContainerRef.clear();
+  }
+
+  setComponent(componentFactory) {
+    if (this.viewContainerRef.length === 0) {
+      this.viewContainerRef.createComponent(componentFactory);
+    }
   }
 
 }
-

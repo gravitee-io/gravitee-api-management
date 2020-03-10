@@ -41,14 +41,14 @@ import { GvContactComponent } from './components/gv-contact/gv-contact.component
 import { GvDocumentationComponent } from './components/gv-documentation/gv-documentation.component';
 import { GvFileUploadComponent } from './components/gv-file-upload/gv-file-upload.component';
 import { GvHeaderItemComponent } from './components/gv-header-item/gv-header-item.component';
-import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
+import { GvMenuInputSlotDirective } from './directives/gv-menu-input-slot.directive';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
 import { GvPageComponent } from './components/gv-page/gv-page.component';
 import { GvPageContentSlotDirective } from './directives/gv-page-content-slot.directive';
 import { GvPageMarkdownComponent } from './components/gv-page-markdown/gv-page-markdown.component';
 import { GvPageRedocComponent } from './components/gv-page-redoc/gv-page-redoc.component';
 import { GvPageSwaggerUIComponent } from './components/gv-page-swaggerui/gv-page-swaggerui.component';
-import { GvSearchComponent } from './components/gv-search/gv-search.component';
+import { GvSearchInputComponent } from './components/gv-search-input/gv-search-input.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { LoginComponent } from './pages/login/login.component';
@@ -73,6 +73,8 @@ import { ViewportScroller } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { ApplicationGeneralComponent } from './pages/application/application-general/application-general.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
+import { GvCreateApplicationComponent } from './components/gv-create-application/gv-create-application.component';
+import { GvMenuButtonSlotDirective } from './directives/gv-menu-button-slot.directive';
 
 @NgModule({
   declarations: [
@@ -97,14 +99,15 @@ import { NotFoundComponent } from './pages/not-found/not-found.component';
     GvContactComponent,
     GvDocumentationComponent,
     GvHeaderItemComponent,
-    GvMenuRightSlotDirective,
+    GvMenuButtonSlotDirective,
+    GvMenuInputSlotDirective,
     GvMenuTopSlotDirective,
     GvPageComponent,
     GvPageContentSlotDirective,
     GvPageMarkdownComponent,
     GvPageRedocComponent,
     GvPageSwaggerUIComponent,
-    GvSearchComponent,
+    GvSearchInputComponent,
     HomepageComponent,
     LoginComponent,
     LogoutComponent,
@@ -115,8 +118,9 @@ import { NotFoundComponent } from './pages/not-found/not-found.component';
     SubscriptionsComponent,
     GvFileUploadComponent,
     NotFoundComponent,
+    GvCreateApplicationComponent,
   ],
-  entryComponents: [GvSearchComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
+  entryComponents: [GvSearchInputComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
   imports: [
     ApiModule,
     AppRoutingModule,

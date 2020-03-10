@@ -18,7 +18,15 @@ import '@gravitee/ui-components/wc/gv-menu';
 import '@gravitee/ui-components/wc/gv-nav';
 import '@gravitee/ui-components/wc/gv-user-menu';
 import '@gravitee/ui-components/wc/gv-theme';
-import { AfterViewInit, Component, ComponentFactoryResolver, HostListener, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ComponentFactoryResolver,
+  HostListener,
+  OnInit,
+  ViewChild,
+  OnDestroy,
+} from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -30,9 +38,11 @@ import { animation } from './route-animation';
 import { Link, PortalService, User } from '@gravitee/ng-portal-webclient';
 import { Notification } from './model/notification';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
-import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
+import { GvMenuInputSlotDirective } from './directives/gv-menu-input-slot.directive';
 import { ConfigurationService } from './services/configuration.service';
 import { FeatureEnum } from './model/feature.enum';
+import { GvMenuButtonSlotDirective } from './directives/gv-menu-button-slot.directive';
+import { GvSlot } from './directives/gv-slot';
 
 @Component({
   selector: 'app-root',
@@ -52,7 +62,9 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   public isPreview = false;
   public links: any = {};
   @ViewChild(GvMenuTopSlotDirective, { static: true }) appGvMenuTopSlot: GvMenuTopSlotDirective;
-  @ViewChild(GvMenuRightSlotDirective, { static: true }) appGvMenuRightSlot: GvMenuRightSlotDirective;
+  @ViewChild(GvMenuInputSlotDirective, { static: true }) appGvMenuRightSlot: GvMenuInputSlotDirective;
+  @ViewChild(GvMenuButtonSlotDirective, { static: true }) appGvMenuButtonSlot: GvMenuButtonSlotDirective;
+  private slots: Array<GvSlot>;
 
   constructor(
     private titleService: Title,
@@ -66,7 +78,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private configurationService: ConfigurationService,
     private portalService: PortalService,
   ) {
-
     this.activatedRoute.queryParamMap.subscribe(params => {
       if (params.has('preview') && params.get('preview') === 'on') {
         sessionStorage.setItem('gvPreview', 'true');
@@ -101,6 +112,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   ngAfterViewInit() {
     document.querySelector('#loader').remove();
+    this.slots = [this.appGvMenuButtonSlot, this.appGvMenuRightSlot, this.appGvMenuTopSlot];
   }
 
   prepareRoute(outlet: RouterOutlet) {
@@ -111,7 +123,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     this.translateService.get(i18n('site.title')).subscribe((siteTitle) => {
       const data = currentRoute.snapshot.data;
       if (data && data.title) {
-        this.translateService.get(data.title).subscribe((title) => this.titleService.setTitle(`${ title } | ${ siteTitle }`));
+        this.translateService.get(data.title).subscribe((title) => this.titleService.setTitle(`${title} | ${siteTitle}`));
       } else {
         this.titleService.setTitle(siteTitle);
       }
@@ -231,9 +243,8 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     this.menuRoutes = this.navRouteService.getSiblingsNav(currentRoute);
     if (this.menuRoutes) {
       const menuOption = currentRoute.snapshot.data.menu;
-      if (typeof menuOption === 'object' && menuOption.slots) {
-        this._injectComponent(this.appGvMenuTopSlot.viewContainerRef, menuOption.slots.top);
-        this._injectComponent(this.appGvMenuRightSlot.viewContainerRef, menuOption.slots.right);
+      if (typeof menuOption === 'object') {
+        this._injectMenuSlots(menuOption.slots);
       } else {
         this._clearMenuSlots();
       }
@@ -243,16 +254,25 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private _clearMenuSlots() {
-    this.appGvMenuTopSlot.viewContainerRef.clear();
-    this.appGvMenuRightSlot.viewContainerRef.clear();
+    this.slots.forEach((directive) => {
+      directive.clear();
+    });
   }
 
-  private _injectComponent(viewContainerRef, slot) {
-    if (slot && viewContainerRef.length === 0) {
+  private _injectMenuSlots(slots) {
+    this.slots.forEach((directive) => {
+        const name = directive.getName();
+        const slot = slots ? slots[name] : null;
+        this._updateSlot(slot, directive);
+      });
+  }
+
+  private _updateSlot(slot, directive) {
+    if (slot == null) {
+      directive.clear();
+    } else {
       const componentFactory = this.componentFactoryResolver.resolveComponentFactory(slot);
-      viewContainerRef.createComponent(componentFactory);
-    } else if (slot == null) {
-      viewContainerRef.clear();
+      directive.setComponent(componentFactory);
     }
   }
 

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { async, TestBed } from '@angular/core/testing';
 
 import { CatalogSearchComponent } from './catalog-search.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateTestingModule } from 'src/app/test/helper.spec';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { provideMock } from '../../../test/mock.helper.spec';
 import { NotificationService } from '../../../services/notification.service';
@@ -27,10 +27,13 @@ import { ConfigurationService } from '../../../services/configuration.service';
 import { LoaderService } from '../../../services/loader.service';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
+import { of } from 'rxjs';
+import { ApiService } from '@gravitee/ng-portal-webclient';
+import { ActivatedRoute, Router } from '@angular/router';
 
 describe('CatalogSearchComponent', () => {
   let component: CatalogSearchComponent;
-  let fixture: ComponentFixture<CatalogSearchComponent>;
+  let configService: jasmine.SpyObj<ConfigurationService>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -57,17 +60,20 @@ describe('CatalogSearchComponent', () => {
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CatalogSearchComponent);
-    component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
+
+    configService = TestBed.get(ConfigurationService);
+    configService.get.and.returnValue([5, 10, 15]);
+
+    component = new CatalogSearchComponent(
+      TestBed.get(FormBuilder),
+      TestBed.get(ApiService),
+      TestBed.get(ActivatedRoute),
+      TestBed.get(Router),
+      configService
+    );
   });
 
   it('should create', () => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-    });
+    expect(component).toBeTruthy();
   });
 });

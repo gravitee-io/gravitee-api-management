@@ -14,73 +14,77 @@
  * limitations under the License.
  */
 import '@gravitee/ui-components/wc/gv-header';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Api, ApiService, Application, ApplicationService, User } from '@gravitee/ng-portal-webclient';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { CurrentUserService } from '../../services/current-user.service';
 import { NavRouteService } from '../../services/nav-route.service';
 
 @Component({
-    selector: 'app-gv-header-item',
-    templateUrl: './gv-header-item.component.html',
+  selector: 'app-gv-header-item',
+  templateUrl: './gv-header-item.component.html',
 })
 export class GvHeaderItemComponent implements OnInit {
-    public item: Promise<Api|Application>;
-    public currentUser: User;
-    private itemId: string;
-    private currentRoute: ActivatedRoute;
-    private _subscribeUrl: string;
+  public item: Promise<Api | Application>;
+  public currentUser: User;
+  private itemId: string;
+  private currentRoute: ActivatedRoute;
+  private _subscribeUrl: string;
 
-    constructor(public router: Router,
-                public activatedRoute: ActivatedRoute,
-                public navRouteService: NavRouteService,
-                public currentUserService: CurrentUserService,
-                public apiService: ApiService,
-                public applicationService: ApplicationService,
-    ) {}
+  constructor(public router: Router,
+              public activatedRoute: ActivatedRoute,
+              public navRouteService: NavRouteService,
+              public currentUserService: CurrentUserService,
+              public apiService: ApiService,
+              public applicationService: ApplicationService,
+  ) {
+  }
 
-    ngOnInit() {
-      this.init();
-      document.addEventListener(':gv-header-item:refresh', () => {
-        this.init();
-      });
-    }
+  ngOnInit() {
+    this.loadData();
 
-    init() {
-      this.currentRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
-      if (this.currentRoute) {
-        const params = this.currentRoute.snapshot.params;
-        if (params.apiId) {
-          this.itemId = params.apiId;
-          this._subscribeUrl = `catalog/api/${ this.itemId }/subscribe`;
-          this.item = this.apiService
-            .getApiByApiId({ apiId: this.itemId })
-            .toPromise()
-            .catch((err) => Promise.reject(err));
-        } else {
-          this.itemId = params.applicationId;
-          this.item = this.applicationService
-            .getApplicationByApplicationId({ applicationId: this.itemId })
-            .toPromise()
-            .catch((err) => Promise.reject(err));
-        }
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.loadData();
       }
+    });
+  }
 
-      this.currentUserService.get().subscribe(newCurrentUser => {
-        this.currentUser = newCurrentUser;
-      });
+  private loadData() {
+    this.currentRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
+    if (this.currentRoute) {
+      const params = this.currentRoute.snapshot.params;
+      if (params.apiId && this.itemId !== params.apiId) {
+        this.itemId = params.apiId;
+        this._subscribeUrl = `catalog/api/${this.itemId}/subscribe`;
+        this.item = this.apiService
+          .getApiByApiId({ apiId: this.itemId })
+          .toPromise()
+          .catch((err) => Promise.reject(err));
+      } else if (params.applicationId && params.applicationId !== this.itemId) {
+        this.itemId = params.applicationId;
+        this.item = this.applicationService
+          .getApplicationByApplicationId({ applicationId: this.itemId })
+          .toPromise()
+          .catch((err) => Promise.reject(err));
+      }
     }
 
-    @HostListener(':gv-header-item:refresh')
-    onRefresh() {
-      this.init();
-    }
+    this.currentUserService.get().subscribe(newCurrentUser => {
+      this.currentUser = newCurrentUser;
+    });
+  }
 
-    canSubscribe() {
-        return this._subscribeUrl && !this.router.isActive(this._subscribeUrl, true);
-    }
+  @HostListener('document:gv-header-item:refresh')
+  onRefresh() {
+    this.loadData();
+  }
 
-    onSubscribe() {
-        this.router.navigate([this._subscribeUrl]);
-    }
+  canSubscribe() {
+    return this._subscribeUrl && !this.router.isActive(this._subscribeUrl, true);
+  }
+
+  onSubscribe() {
+    this.router.navigate([this._subscribeUrl]);
+  }
 }

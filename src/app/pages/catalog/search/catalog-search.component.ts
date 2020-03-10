@@ -35,12 +35,11 @@ import { TimeTooLongError } from '../../../exceptions/TimeTooLongError';
 export class CatalogSearchComponent implements OnInit {
 
   searchForm: FormGroup;
-  pageSizes: [];
+  pageSizes: Array<any>;
   paginationData: any;
   apiResults: Array<Promise<Api>>;
   totalElements: number;
   currentPage;
-  paginationSize: number;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -49,36 +48,43 @@ export class CatalogSearchComponent implements OnInit {
     private router: Router,
     private config: ConfigurationService,
   ) {
-    this.searchForm = this.formBuilder.group({ query: '' });
-    this.paginationSize = config.get('pagination.size.default');
-    this.pageSizes = config.get('pagination.size.values');
+    this.totalElements = 0;
+    this.searchForm = this.formBuilder.group({ query: '', size: '' });
+    this.searchForm.value.size =
+      this.pageSizes = config.get('pagination.size.values');
   }
 
   ngOnInit() {
     this.activatedRoute.queryParamMap.subscribe(params => {
       if (params.has(SearchQueryParam.QUERY)) {
         const query = params.get(SearchQueryParam.QUERY);
-        this.searchForm.reset({ query });
+        this.searchForm.value.query = query;
       }
-      if (params.has(SearchQueryParam.SIZE)) {
-        const size = parseInt(params.get(SearchQueryParam.SIZE), 10);
-        const closestPageSize = this.pageSizes.reduce((prev, curr) => {
-          return (Math.abs(curr - size) < Math.abs(prev - size) ? curr : prev);
-        });
-        this.paginationSize = closestPageSize;
 
-      }
-      this.currentPage = params.get(SearchQueryParam.PAGE) || 1;
-      Promise.race([this._loadData(), delay(500)]).catch((err) => {
-        if (err instanceof TimeTooLongError) {
-          this.apiResults = new Array<Promise<Api>>(this.paginationSize);
-        }
+      const size = params.has(SearchQueryParam.SIZE) ?
+        parseInt(params.get(SearchQueryParam.SIZE), 10) :
+        this.config.get('pagination.size.default');
+
+      const closestPageSize = this.pageSizes.reduce((prev, curr) => {
+        return (Math.abs(curr - size) < Math.abs(prev - size) ? curr : prev);
       });
+      this.searchForm.value.size = closestPageSize;
+
+      this.searchForm.reset({ query: this.searchForm.value.query, size: this.searchForm.value.size });
+      this.currentPage = params.get(SearchQueryParam.PAGE) || 1;
+      if (this.searchForm.value.query.trim() !== '') {
+        Promise.race([this._loadData(), delay(500)]).catch((err) => {
+          if (err instanceof TimeTooLongError) {
+            this.apiResults = new Array<Promise<Api>>(this.searchForm.value.size);
+          }
+        });
+      }
     });
   }
 
   _loadData() {
-    return this.apiService.searchApis(new SearchRequestParams(this.searchForm.value.query || '*', this.paginationSize, this.currentPage))
+    const params = new SearchRequestParams(this.searchForm.value.query || '*', this.searchForm.value.size, this.currentPage);
+    return this.apiService.searchApis(params)
       .toPromise()
       .then((apisResponse: ApisResponse) => {
         if (apisResponse.data.length) {
@@ -95,31 +101,26 @@ export class CatalogSearchComponent implements OnInit {
       .catch((err) => {
         // @ts-ignore
         this.apiResults = this.apiResults.map(() => Promise.reject(err));
+        this.totalElements = 0;
       });
   }
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
   _onPaginate({ page }) {
     if (this.paginationData.current_page !== page) {
-      const queryParams = new SearchRequestParams(this.searchForm.value.query, this.paginationSize, page);
+      const queryParams = new SearchRequestParams(
+        this.activatedRoute.snapshot.queryParamMap.get(SearchQueryParam.QUERY),
+        this.searchForm.value.size, page);
       this.router.navigate([], { queryParams });
     }
-  }
-
-  onChangePageSize(event) {
-    this.paginationSize = event.target.value;
-    this.onSubmitSearch();
   }
 
   onSubmitSearch() {
     if (this.searchForm.valid) {
-      const queryParams = new SearchRequestParams(this.searchForm.value.query, this.paginationSize);
-      this.router.navigate([], { queryParams });
+      const query = this.searchForm.value.query || this.activatedRoute.snapshot.queryParamMap.get(SearchQueryParam.QUERY);
+      const queryParams = new SearchRequestParams(query, this.searchForm.value.size);
+      this.router.navigate([], { queryParams, queryParamsHandling: 'merge' });
     }
-  }
-
-  hasResult(): boolean {
-    return this.totalElements != null;
   }
 
   goToApi(api: Promise<Api>) {

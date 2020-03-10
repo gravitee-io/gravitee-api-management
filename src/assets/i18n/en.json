@@ -218,6 +218,9 @@
     "success": "Your request has been sent to the owner",
     "title": "Your request"
   },
+  "gv-create-application": {
+    "createApplication": "Create an app"
+  },
   "gv-documentation": {
     "empty": "No documentation for the moment"
   },
@@ -391,7 +394,7 @@
   },
   "search": {
     "results": {
-      "label": "{totalElements} result(s)"
+      "label": "{count, plural, =0{No result} one{{count} result} other{{count} results}}"
     }
   },
   "site": {

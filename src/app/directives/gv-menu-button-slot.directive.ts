@@ -17,17 +17,16 @@ import { Directive, ViewContainerRef } from '@angular/core';
 import { GvSlot } from './gv-slot';
 
 @Directive({
-  selector: '[appGvMenuTopSlot]'
+  selector: '[appGvMenuButtonSlot]'
 })
-export class GvMenuTopSlotDirective extends GvSlot {
+export class GvMenuButtonSlotDirective extends GvSlot {
 
   constructor(viewContainerRef: ViewContainerRef) {
     super(viewContainerRef);
   }
 
-  public getName() {
-    return 'top';
+  getName() {
+    return 'button';
   }
 
 }
-

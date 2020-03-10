@@ -19,15 +19,15 @@ import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
 import {
-  ApiService,
-  Api,
-  Link,
-  Page,
-  Rating,
-  User,
-  PermissionsService,
-  PermissionsResponse,
-  GetApiRatingsByApiIdRequestParams
+    ApiService,
+    Api,
+    Link,
+    Page,
+    Rating,
+    User,
+    PermissionsService,
+    PermissionsResponse,
+    GetApiRatingsByApiIdRequestParams
 } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, PRIMARY_OUTLET, Router } from '@angular/router';
 import { ApiMetrics } from '@gravitee/ng-portal-webclient/model/apiMetrics';
@@ -40,15 +40,15 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { ConfigurationService } from '../../../services/configuration.service';
 
 @Component({
-  selector: 'app-api-general',
-  templateUrl: './api-general.component.html',
-  styleUrls: ['./api-general.component.css']
+    selector: 'app-api-general',
+    templateUrl: './api-general.component.html',
+    styleUrls: ['./api-general.component.css']
 })
 export class ApiGeneralComponent implements OnInit {
 
-  private apiId: any;
-  private ratingPageSize: any;
-  private ratingsMetadata: any;
+    private apiId: any;
+    private ratingPageSize: any;
+    private ratingsMetadata: any;
 
   canRate: boolean;
   currentApi: Promise<Api>;
@@ -83,98 +83,100 @@ export class ApiGeneralComponent implements OnInit {
     };
   }
 
-  ngOnInit() {
-    const apiId = this.route.snapshot.params.apiId;
-    if (apiId) {
+    ngOnInit() {
+        this.route.params.subscribe((params) => {
+            const apiId = params.apiId;
+            if (apiId) {
+                if (this.hasRatingFeature()) {
 
-      if (this.hasRatingFeature()) {
+                    this.translateService.get([
+                            i18n('apiGeneral.ratingsSortOptions.newest'),
+                            i18n('apiGeneral.ratingsSortOptions.oldest'),
+                            i18n('apiGeneral.ratingsSortOptions.best'),
+                            i18n('apiGeneral.ratingsSortOptions.worst'),
+                            i18n('apiGeneral.ratingsSortOptions.answers'),
+                        ]
+                    ).toPromise().then(translations => {
+                        const options = Object.values(translations).map(label => ({ label, value: 'date' }));
+                        options[1].value = '-date';
+                        options[2].value = 'value';
+                        options[3].value = '-value';
+                        options[4].value = 'answers';
+                        this.ratingsSortOptions = options;
+                    });
+                    this.ratingPageSize = 3;
+                    this.currentOrder = 'date';
+                }
 
-        this.translateService.get([
-            i18n('apiGeneral.ratingsSortOptions.newest'),
-            i18n('apiGeneral.ratingsSortOptions.oldest'),
-            i18n('apiGeneral.ratingsSortOptions.best'),
-            i18n('apiGeneral.ratingsSortOptions.worst'),
-            i18n('apiGeneral.ratingsSortOptions.answers'),
-          ]
-        ).toPromise().then(translations => {
-          const options = Object.values(translations).map(label => ({ label, value: 'date' }));
-          options[1].value = '-date';
-          options[2].value = 'value';
-          options[3].value = '-value';
-          options[4].value = 'answers';
-          this.ratingsSortOptions = options;
+                this.apiId = apiId;
+
+                this.apiService.getPagesByApiId({
+                    apiId,
+                    homepage: true
+                }).subscribe(response => this.homepage = response.data[0]);
+                this.currentApiMetrics = this.apiService.getApiMetricsByApiId({ apiId }).toPromise();
+                this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise().then((api) => {
+                    this.apiService.getApiLinks({ apiId }).subscribe(apiLinks => {
+                        if (apiLinks.slots && apiLinks.slots.aside) {
+                            apiLinks.slots.aside.forEach((catLinks) => {
+                                if (catLinks.root) {
+                                    this.resources = this._buildLinks(apiId, catLinks.links);
+                                }
+                            });
+                        }
+                    });
+
+                    this.currentUser = this.currentUserService.getUser();
+                    this._updateRatings();
+
+                    this.description = api.description;
+
+                    this.linkedApp = this.apiService.getSubscriberApplicationsByApiId({ apiId })
+                        .toPromise()
+                        .then((response) => {
+                            return response.data.map((app) => ({
+                                name: app.name,
+                                description: app.description,
+                                picture: (app._links ? app._links.picture : '')
+                            }));
+                        })
+                        .catch(() => []);
+
+                    this.translateService.get([i18n('api.miscellaneous.version'), i18n('api.miscellaneous.lastUpdate'), i18n('api.miscellaneous.publisher')])
+                        .subscribe(
+                            ({
+                                 'api.miscellaneous.version': version,
+                                 'api.miscellaneous.lastUpdate': lastUpdate,
+                                 'api.miscellaneous.publisher': publisher
+                             }) => {
+                                this.miscellaneous = [
+                                    { key: version, value: api.version },
+                                    {
+                                        key: lastUpdate,
+                                        value: new Date(api.updated_at),
+                                        date: 'relative'
+                                    },
+                                    { key: publisher, value: api.owner.display_name }
+                                ];
+                            });
+                    return api;
+                });
+            }
         });
-        this.ratingPageSize = 3;
-        this.currentOrder = 'date';
-      }
 
-      this.apiId = apiId;
-
-      this.apiService.getPagesByApiId({
-        apiId,
-        homepage: true
-      }).subscribe(response => this.homepage = response.data[0]);
-      this.currentApiMetrics = this.apiService.getApiMetricsByApiId({ apiId }).toPromise();
-      this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise().then((api) => {
-        this.apiService.getApiLinks({ apiId }).subscribe(apiLinks => {
-          if (apiLinks.slots && apiLinks.slots.aside) {
-            apiLinks.slots.aside.forEach((catLinks) => {
-              if (catLinks.root) {
-                this.resources = this._buildLinks(apiId, catLinks.links);
-              }
-            });
-          }
-        });
-
-        this.currentUser = this.currentUserService.getUser();
-        this._updateRatings();
-
-        this.description = api.description;
-
-        this.linkedApp = this.apiService.getSubscriberApplicationsByApiId({ apiId })
-          .toPromise()
-          .then((response) => {
-            return response.data.map((app) => ({
-              name: app.name,
-              description: app.description,
-              picture: (app._links ? app._links.picture : '')
-            }));
-          })
-          .catch(() => []);
-
-        this.translateService.get([i18n('api.miscellaneous.version'), i18n('api.miscellaneous.lastUpdate'), i18n('api.miscellaneous.publisher')])
-          .subscribe(
-            ({
-               'api.miscellaneous.version': version,
-               'api.miscellaneous.lastUpdate': lastUpdate,
-               'api.miscellaneous.publisher': publisher
-             }) => {
-              this.miscellaneous = [
-                { key: version, value: api.version },
-                {
-                  key: lastUpdate,
-                  value: new Date(api.updated_at),
-                  date: 'relative'
-                },
-                { key: publisher, value: api.owner.display_name }
-              ];
-            });
-        return api;
-      });
     }
-  }
 
-  _updateRatings() {
-    if (this.hasRatingFeature()) {
-      this.ratingForm = this.formBuilder.group({
-        comment: new FormControl(''),
-        title: new FormControl(''),
-        value: new FormControl(null, [Validators.required]),
-      });
+    _updateRatings() {
+        if (this.hasRatingFeature()) {
+            this.ratingForm = this.formBuilder.group({
+                comment: new FormControl(''),
+                title: new FormControl(''),
+                value: new FormControl(null, [Validators.required]),
+            });
 
-      const apiId = this.apiId;
+            const apiId = this.apiId;
 
-      this.permissionsService.getCurrentUserPermissions({ apiId }).toPromise()
+            this.permissionsService.getCurrentUserPermissions({ apiId }).toPromise()
         .then((permissions) => {
           if (permissions) {
             this.ratingListPermissions.edit = permissions.RATING && permissions.RATING.includes('U');
@@ -187,17 +189,17 @@ export class ApiGeneralComponent implements OnInit {
         .catch(() => (this.permissions = {}))
         .finally(() => {
 
-          if (this.currentUser) {
-            const requestParameters: GetApiRatingsByApiIdRequestParams = { apiId, mine: true };
-            this.apiService.getApiRatingsByApiId(requestParameters).toPromise()
-              .then((mineRatingsResponse) => {
-                this.userRating = mineRatingsResponse.data.find((rating) => rating.author.id === this.currentUser.id);
-                this.canRate = this.permissions.RATING && this.permissions.RATING.includes('C') && this.userRating == null;
-                this._updateRatingForm();
-              });
-          }
+                    if (this.currentUser) {
+                        const requestParameters: GetApiRatingsByApiIdRequestParams = { apiId, mine: true };
+                        this.apiService.getApiRatingsByApiId(requestParameters).toPromise()
+                            .then((mineRatingsResponse) => {
+                                this.userRating = mineRatingsResponse.data.find((rating) => rating.author.id === this.currentUser.id);
+                                this.canRate = this.permissions.RATING && this.permissions.RATING.includes('C') && this.userRating == null;
+                                this._updateRatingForm();
+                            });
+                    }
 
-          this.apiService.getApiRatingsByApiId({
+                    this.apiService.getApiRatingsByApiId({
             apiId,
             page: 1,
             size: this.ratingPageSize,
@@ -211,94 +213,94 @@ export class ApiGeneralComponent implements OnInit {
     }
   }
 
-  _buildLinks(apiId: string, links: Link[]) {
-    return links.map(element => {
-      let path: string;
-      let target: string;
-      switch (element.resourceType) {
-        case Link.ResourceTypeEnum.External:
-          path = element.resourceRef;
-          if (path.toLowerCase().startsWith('http')) {
-            target = '_blank';
-          }
-          break;
-        case Link.ResourceTypeEnum.Page:
-          path = '/catalog/api/' + apiId + '/doc';
-          if (element.folder && element.resourceRef !== 'root') {
-            path += '?folder=' + element.resourceRef;
-          } else if (!element.folder) {
-            path += '?page=' + element.resourceRef;
-          }
-          target = '_self';
-          break;
-        case Link.ResourceTypeEnum.View:
-          path = '/catalog/categories/' + element.resourceRef;
-          target = '_self';
-          break;
-      }
-      return { title: element.name, path, target };
-    });
-  }
-
-  @HostListener(':gv-info:click-view', ['$event.detail.tagValue'])
-  onClickView(tagValue: string) {
-    this.router.navigate(['catalog/categories', tagValue]);
-  }
-
-  @HostListener(':gv-info:click-label', ['$event.detail.tagValue'])
-  onClickLabel(tagValue: string) {
-    this.router.navigate(['catalog/search'], { queryParams: { q: tagValue } });
-  }
-
-  @HostListener(':gv-info:click-resource', ['$event.detail'])
-  onNavChange(route: INavRoute) {
-    if (route.target && route.target === '_blank') {
-      window.open(route.path, route.target);
-    } else {
-      const urlTree = this.router.parseUrl(route.path);
-      const path = urlTree.root.children[PRIMARY_OUTLET].segments.join('/');
-      this.router.navigate([path], { queryParams: urlTree.queryParams });
+    _buildLinks(apiId: string, links: Link[]) {
+        return links.map(element => {
+            let path: string;
+            let target: string;
+            switch (element.resourceType) {
+                case Link.ResourceTypeEnum.External:
+                    path = element.resourceRef;
+                    if (path.toLowerCase().startsWith('http')) {
+                        target = '_blank';
+                    }
+                    break;
+                case Link.ResourceTypeEnum.Page:
+                    path = '/catalog/api/' + apiId + '/doc';
+                    if (element.folder && element.resourceRef !== 'root') {
+                        path += '?folder=' + element.resourceRef;
+                    } else if (!element.folder) {
+                        path += '?page=' + element.resourceRef;
+                    }
+                    target = '_self';
+                    break;
+                case Link.ResourceTypeEnum.View:
+                    path = '/catalog/categories/' + element.resourceRef;
+                    target = '_self';
+                    break;
+            }
+            return { title: element.name, path, target };
+        });
     }
-  }
 
-  @HostListener(':gv-rating-list:update', ['$event.detail'])
-  onUpdate({ rating }) {
-    const apiId = this.apiId;
-    const RatingInput = { title: rating.title, value: rating.value, comment: rating.comment };
-    this.apiService.updateApiRating({ apiId, ratingId: rating.id, RatingInput }).toPromise().then((res) => {
-      this.ratingForm = null;
-      this._updateRatings();
-      this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise();
-    }).then((response) => {
-      this.notificationService.info(i18n('apiGeneral.ratingUpdated'));
-    });
-  }
+    @HostListener(':gv-info:click-view', ['$event.detail.tagValue'])
+    onClickView(tagValue: string) {
+        this.router.navigate(['catalog/categories', tagValue]);
+    }
 
-  @HostListener(':gv-rating-list:delete', ['$event.detail'])
-  onDeleteRating({ rating }) {
-    const apiId = this.apiId;
-    this.apiService.deleteApiRating({ apiId, ratingId: rating.id })
-      .toPromise()
-      .then(() => {
-        this.notificationService.info(i18n('apiGeneral.ratingDeleted'));
-      })
-      .finally(() => {
-        this._updateRatings();
-        this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise();
-      });
-  }
+    @HostListener(':gv-info:click-label', ['$event.detail.tagValue'])
+    onClickLabel(tagValue: string) {
+        this.router.navigate(['catalog/search'], { queryParams: { q: tagValue } });
+    }
 
-  @HostListener(':gv-rating-list:delete-answer', ['$event.detail'])
-  onDeleteRatingAnswer({ rating, answer }) {
-    this.apiService.deleteApiRatingAnswer({ apiId: this.apiId, ratingId: rating.id, answerId: answer.id })
-      .toPromise()
-      .then(() => {
-        this.notificationService.info(i18n('apiGeneral.ratingAnswerDeleted'));
-      })
-      .finally(() => {
-        this._updateRatings();
-      });
-  }
+    @HostListener(':gv-info:click-resource', ['$event.detail'])
+    onNavChange(route: INavRoute) {
+        if (route.target && route.target === '_blank') {
+            window.open(route.path, route.target);
+        } else {
+            const urlTree = this.router.parseUrl(route.path);
+            const path = urlTree.root.children[PRIMARY_OUTLET].segments.join('/');
+            this.router.navigate([path], { queryParams: urlTree.queryParams });
+        }
+    }
+
+    @HostListener(':gv-rating-list:update', ['$event.detail'])
+    onUpdate({ rating }) {
+        const apiId = this.apiId;
+        const RatingInput = { title: rating.title, value: rating.value, comment: rating.comment };
+        this.apiService.updateApiRating({ apiId, ratingId: rating.id, RatingInput }).toPromise().then((res) => {
+            this.ratingForm = null;
+            this._updateRatings();
+            this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise();
+        }).then((response) => {
+            this.notificationService.info(i18n('apiGeneral.ratingUpdated'));
+        });
+    }
+
+    @HostListener(':gv-rating-list:delete', ['$event.detail'])
+    onDeleteRating({ rating }) {
+        const apiId = this.apiId;
+        this.apiService.deleteApiRating({ apiId, ratingId: rating.id })
+            .toPromise()
+            .then(() => {
+                this.notificationService.info(i18n('apiGeneral.ratingDeleted'));
+            })
+            .finally(() => {
+                this._updateRatings();
+                this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise();
+            });
+    }
+
+    @HostListener(':gv-rating-list:delete-answer', ['$event.detail'])
+    onDeleteRatingAnswer({ rating, answer }) {
+        this.apiService.deleteApiRatingAnswer({ apiId: this.apiId, ratingId: rating.id, answerId: answer.id })
+            .toPromise()
+            .then(() => {
+                this.notificationService.info(i18n('apiGeneral.ratingAnswerDeleted'));
+            })
+            .finally(() => {
+                this._updateRatings();
+            });
+    }
 
   @HostListener(':gv-rating-list:add-answer', ['$event.detail'])
   onAnswer({ rating, answer }) {
@@ -313,70 +315,70 @@ export class ApiGeneralComponent implements OnInit {
       });
   }
 
-  hasRatings() {
-    return this.ratings && this.ratings.length > 0;
-  }
-
-  hasRatingForm() {
-    return this.ratingForm != null;
-  }
-
-  hasValidRatingForm() {
-    return this.hasRatingForm() && this.ratingForm.valid;
-  }
-
-  hasRatingFeature() {
-    return this.configService.get('portal.rating').enabled === true;
-  }
-
-  rate() {
-    const apiId = this.apiId;
-    const RatingInput = this.ratingForm.getRawValue();
-    this.apiService.createApiRating({ apiId, RatingInput }).toPromise().then((res) => {
-      this.ratingForm = null;
-      this.notificationService.info(i18n('apiGeneral.ratingCreated'));
-      this._updateRatings();
-      this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise();
-    });
-  }
-
-  private _updateRatingForm() {
-    if (this.userRating) {
-      this.ratingForm.controls.comment.setValue(this.userRating.comment);
-      this.ratingForm.controls.title.setValue(this.userRating.title);
-      this.ratingForm.controls.value.setValue(this.userRating.value);
+    hasRatings() {
+        return this.ratings && this.ratings.length > 0;
     }
-  }
 
-  @HostListener(':gv-info:rating')
-  onInfoRating() {
-    let element = document.querySelector('.rating-form');
-    if (element == null) {
-      element = document.querySelector('gv-rating-list');
+    hasRatingForm() {
+        return this.ratingForm != null;
     }
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
 
-  hasMoreRatings() {
-    return this.ratingsMetadata && this.ratingsMetadata.pagination.total > this.ratingPageSize;
-  }
+    hasValidRatingForm() {
+        return this.hasRatingForm() && this.ratingForm.valid;
+    }
 
-  getRatingsLength() {
-    return this.ratingsMetadata && this.ratingsMetadata.pagination.total ? this.ratingsMetadata.pagination.total : 0;
-  }
+    hasRatingFeature() {
+        return this.configService.get('portal.rating').enabled === true;
+    }
 
-  getShowMoreLength() {
-    return this.getRatingsLength() - this.ratingPageSize;
-  }
+    rate() {
+        const apiId = this.apiId;
+        const RatingInput = this.ratingForm.getRawValue();
+        this.apiService.createApiRating({ apiId, RatingInput }).toPromise().then((res) => {
+            this.ratingForm = null;
+            this.notificationService.info(i18n('apiGeneral.ratingCreated'));
+            this._updateRatings();
+            this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise();
+        });
+    }
 
-  onShowMoreRatings() {
-    this.ratingPageSize = this.getRatingsLength();
-    this._updateRatings();
-  }
+    private _updateRatingForm() {
+        if (this.userRating) {
+            this.ratingForm.controls.comment.setValue(this.userRating.comment);
+            this.ratingForm.controls.title.setValue(this.userRating.title);
+            this.ratingForm.controls.value.setValue(this.userRating.value);
+        }
+    }
 
-  onSortRatings({ target }) {
-    this.currentOrder = target.value;
-    this._updateRatings();
-  }
+    @HostListener(':gv-info:rating')
+    onInfoRating() {
+        let element = document.querySelector('.rating-form');
+        if (element == null) {
+            element = document.querySelector('gv-rating-list');
+        }
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    hasMoreRatings() {
+        return this.ratingsMetadata && this.ratingsMetadata.pagination.total > this.ratingPageSize;
+    }
+
+    getRatingsLength() {
+        return this.ratingsMetadata && this.ratingsMetadata.pagination.total ? this.ratingsMetadata.pagination.total : 0;
+    }
+
+    getShowMoreLength() {
+        return this.getRatingsLength() - this.ratingPageSize;
+    }
+
+    onShowMoreRatings() {
+        this.ratingPageSize = this.getRatingsLength();
+        this._updateRatings();
+    }
+
+    onSortRatings({ target }) {
+        this.currentOrder = target.value;
+        this._updateRatings();
+    }
 
 }
