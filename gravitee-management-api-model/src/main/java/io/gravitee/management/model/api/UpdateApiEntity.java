@@ -86,9 +86,7 @@ public class UpdateApiEntity {
     private Visibility visibility;
 
     @ApiModelProperty(
-            value = "the list of sharding tags associated with this API.",
-            dataType = "List",
-            example = "public, private")
+            value = "the list of sharding tags associated with this API.")
     private Set<String> tags;
     
     @ApiModelProperty(
@@ -96,28 +94,20 @@ public class UpdateApiEntity {
     private String picture;
 
     @ApiModelProperty(
-            value = "the list of views associated with this API",
-            dataType = "List",
-            example = "Product, Customer, Misc")
+            value = "the list of views associated with this API")
     private Set<String> views;
 
     @ApiModelProperty(
-            value = "the free list of labels associated with this API",
-            dataType = "List",
-            example = "json, read_only, awesome")
+            value = "the free list of labels associated with this API")
     private List<String> labels;
 
     @ApiModelProperty(
-            value = "API's groups. Used to add team in your API.",
-            dataType = "List",
-            example = "MY_GROUP1, MY_GROUP2")
+            value = "API's groups. Used to add team in your API.")
     private Set<String> groups;
 
     @JsonProperty(value = "path_mappings")
     @ApiModelProperty(
-            value = "A list of paths used to aggregate data in analytics",
-            dataType = "List",
-            example = "/products/:productId, /products/:productId/media")
+            value = "A list of paths used to aggregate data in analytics")
     private Set<String> pathMappings;
 
     @JsonProperty(value = "response_templates")

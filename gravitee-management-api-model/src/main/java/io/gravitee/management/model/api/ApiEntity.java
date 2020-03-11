@@ -69,9 +69,7 @@ public class ApiEntity implements Indexable {
     private String description;
 
     @ApiModelProperty(
-            value = "API's groups. Used to add team in your API.",
-            dataType = "List",
-            example = "MY_GROUP1, MY_GROUP2")
+            value = "API's groups. Used to add team in your API.")
     private Set<String> groups;
 
     @JsonProperty(value = "context_path")
@@ -142,9 +140,7 @@ public class ApiEntity implements Indexable {
 
     @DeploymentRequired
     @ApiModelProperty(
-            value = "the list of sharding tags associated with this API.",
-            dataType = "List",
-            example = "public, private")
+            value = "the list of sharding tags associated with this API.")
     private Set<String> tags;
 
     @ApiModelProperty(
@@ -164,23 +160,17 @@ public class ApiEntity implements Indexable {
     private List<Resource> resources = new ArrayList<>();
 
     @ApiModelProperty(
-            value = "the list of views associated with this API",
-            dataType = "List",
-            example = "Product, Customer, Misc")
+            value = "the list of views associated with this API")
     private Set<String> views;
 
     @ApiModelProperty(
-            value = "the free list of labels associated with this API",
-            dataType = "List",
-            example = "json, read_only, awesome")
+            value = "the free list of labels associated with this API")
     private List<String> labels;
 
     @DeploymentRequired
     @JsonProperty(value = "path_mappings")
     @ApiModelProperty(
-            value = "A list of paths used to aggregate data in analytics",
-            dataType = "List",
-            example = "/products/:productId, /products/:productId/media")
+            value = "A list of paths used to aggregate data in analytics")
     private Set<String> pathMappings = new HashSet<>();
 
     @JsonIgnore

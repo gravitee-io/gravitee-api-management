@@ -61,9 +61,7 @@ public class NewApiEntity {
     private String endpoint;
 
     @ApiModelProperty(
-            value = "API's groups. Used to add team in your API.",
-            dataType = "List",
-            example = "MY_GROUP1, MY_GROUP2")
+            value = "API's groups. Used to add team in your API.")
     private Set<String> groups;
 
     @ApiModelProperty(

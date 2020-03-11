@@ -62,9 +62,7 @@ public class NewApplicationEntity {
     private String clientId;
 
     @ApiModelProperty(
-            value = "Application's groups. Used to add team in your App.",
-            dataType = "List",
-            example = "MY_GROUP1, MY_GROUP2")
+            value = "Application's groups. Used to add team in your App.")
     private Set<String> groups;
 
     public String getDescription() {

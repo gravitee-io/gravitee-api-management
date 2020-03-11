@@ -96,15 +96,11 @@ public class ApiListItem {
     private String contextPath;
 
     @ApiModelProperty(
-            value = "the list of views associated with this API",
-            dataType = "List",
-            example = "Product, Customer, Misc")
+            value = "the list of views associated with this API")
     private Set<String> views;
 
     @ApiModelProperty(
-            value = "the free list of labels associated with this API",
-            dataType = "List",
-            example = "json, read_only, awesome")
+            value = "the free list of labels associated with this API")
     private List<String> labels;
 
     @ApiModelProperty(
@@ -123,9 +119,7 @@ public class ApiListItem {
     private int numberOfRatings;
 
     @ApiModelProperty(
-            value = "the list of sharding tags associated with this API.",
-            dataType = "List",
-            example = "public, private")
+            value = "the list of sharding tags associated with this API.")
     private Set<String> tags;
 
     public String getId() {
