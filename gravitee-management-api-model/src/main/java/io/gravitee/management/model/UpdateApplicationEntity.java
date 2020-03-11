@@ -50,7 +50,9 @@ public class UpdateApplicationEntity {
     private ApplicationSettings settings;
 
     @ApiModelProperty(
-            value = "Application's groups. Used to add team in your App.")
+            value = "Application's groups. Used to add team in your App.",
+            dataType = "java.util.List",
+            example = "MY_GROUP1, MY_GROUP2")
     private Set<String> groups;
 
     /**
