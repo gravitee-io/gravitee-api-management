@@ -101,7 +101,6 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
         double score = 0;
         double maxScore = 0;
         if (weights.isEmpty()) {
-            score = 1;
             result.setScore(1);
         } else {
             Map<String, ApiQualityMetric> apiMetrics = getApiMetricsMap();
