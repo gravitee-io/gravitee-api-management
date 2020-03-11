@@ -1,6 +1,6 @@
 {
   "name": "gravitee-management-webui",
-  "version": "1.25.22",
+  "version": "1.25.23",
   "description": "Gravitee.io APIM - Portal",
   "dependencies": {
     "amdefine": "^1.0.1",
