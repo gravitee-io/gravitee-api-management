@@ -287,7 +287,10 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 provider);
 
         ClientRegistrationRequest clientRegistrationRequest = convert(application);
-        clientRegistrationRequest.setSoftwareId(provider.getSoftwareId());
+
+        if (provider.getSoftwareId() != null && ! provider.getSoftwareId().isEmpty()) {
+            clientRegistrationRequest.setSoftwareId(provider.getSoftwareId());
+        }
 
         return registrationProviderClient.register(clientRegistrationRequest);
     }
@@ -363,7 +366,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             return registrationProviderClient.update(
                     registrationResponse.getRegistrationAccessToken(),
                     registrationResponse.getRegistrationClientUri(),
-                    convert(registrationRequest, application));
+                    convert(registrationRequest, application),
+                    application.getSettings().getoAuthClient().getClientId());
         } catch (Exception ex) {
             LOGGER.error("Unexpected error while updating a client", ex);
             return null;
