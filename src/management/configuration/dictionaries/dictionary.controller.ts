@@ -252,6 +252,21 @@ class DictionaryController {
   hasSelectedProperties() {
     return _.filter(this.selectedProperties, (p) => p).length > 0;
   }
+
+  addHTTPHeader() {
+    if (this.dictionary.provider.configuration.headers === undefined) {
+      this.dictionary.provider.configuration.headers = [];
+    }
+
+    this.dictionary.provider.configuration.headers.push({name: '', value: ''});
+  }
+
+  removeHTTPHeader(idx) {
+    if (this.dictionary.provider.configuration.headers !== undefined) {
+      this.dictionary.provider.configuration.headers.splice(idx, 1);
+      this.formDictionary.$setDirty();
+    }
+  }
 }
 
 export default DictionaryController;
