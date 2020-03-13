@@ -160,18 +160,13 @@ public class CurrentUserResource extends AbstractResource {
         String userId = userService.findById(getAuthenticatedUser()).getId();
         PictureEntity picture = userService.getPicture(userId);
 
-        if (picture == null) {
-            throw new NotFoundException();
-        }
-
         if (picture instanceof UrlPictureEntity) {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
         }
 
         InlinePictureEntity image = (InlinePictureEntity) picture;
-
-        if (image.getContent() == null) {
-            throw new NotFoundException();
+        if (image == null || image.getContent() == null) {
+            return Response.ok().build();
         }
         
         EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));

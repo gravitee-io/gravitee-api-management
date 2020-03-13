@@ -144,12 +144,13 @@ public class UserResource extends AbstractResource {
     public Response getUserAvatar(@PathParam("id") String id, @Context Request request) {
         PictureEntity picture = userService.getPicture(id);
 
-        if (picture == null) {
-            throw new NotFoundException();
-        }
-
         if (picture instanceof UrlPictureEntity) {
-            return Response.temporaryRedirect(URI.create(((UrlPictureEntity)picture).getUrl())).build();
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
+        }
+        
+        InlinePictureEntity image = (InlinePictureEntity) picture;
+        if (image == null || image.getContent() == null) {
+            return Response.ok().build();
         }
 
         CacheControl cc = new CacheControl();
@@ -158,7 +159,6 @@ public class UserResource extends AbstractResource {
         cc.setNoCache(false);
         cc.setMaxAge(86400);
 
-        InlinePictureEntity image = (InlinePictureEntity) picture;
 
         EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
         Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
