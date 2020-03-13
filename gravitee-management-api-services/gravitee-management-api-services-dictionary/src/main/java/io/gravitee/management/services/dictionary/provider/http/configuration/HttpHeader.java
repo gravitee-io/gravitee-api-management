@@ -15,39 +15,44 @@
  */
 package io.gravitee.management.services.dictionary.provider.http.configuration;
 
-import java.util.List;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpProviderConfiguration {
+public class HttpHeader {
 
-    private String url;
-    private String specification;
-    private List<HttpHeader> headers;
+    private String name;
 
-    public String getUrl() {
-        return url;
+    private String value;
+
+    public String getName() {
+        return name;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getSpecification() {
-        return specification;
+    public String getValue() {
+        return value;
     }
 
-    public void setSpecification(String specification) {
-        this.specification = specification;
+    public void setValue(String value) {
+        this.value = value;
     }
 
-    public List<HttpHeader> getHeaders() {
-        return headers;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HttpHeader that = (HttpHeader) o;
+        return Objects.equals(name, that.name);
     }
 
-    public void setHeaders(List<HttpHeader> headers) {
-        this.headers = headers;
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

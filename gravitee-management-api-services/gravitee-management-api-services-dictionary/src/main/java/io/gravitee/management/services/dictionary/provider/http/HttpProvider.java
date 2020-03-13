@@ -94,6 +94,11 @@ public class HttpProvider implements Provider {
             request.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
             request.putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
 
+            if (configuration.getHeaders() != null) {
+                configuration.getHeaders().forEach(httpHeader ->
+                        request.putHeader(httpHeader.getName(), httpHeader.getValue()));
+            }
+
             request.handler(response -> {
                 if (response.statusCode() == HttpStatusCode.OK_200) {
                     response.bodyHandler(buffer -> {

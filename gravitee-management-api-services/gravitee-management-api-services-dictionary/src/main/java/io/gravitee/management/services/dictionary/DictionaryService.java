@@ -98,7 +98,7 @@ public class DictionaryService extends AbstractService implements EventListener<
     }
 
     private void startDynamicDictionary(DictionaryEntity dictionary) {
-        if (! timers.containsKey(dictionary)) {
+        if (! timers.containsKey(dictionary.getId())) {
             DictionaryProviderEntity providerConf = dictionary.getProvider();
 
             if (DICTIONARY_HTTP_PROVIDER.equals(providerConf.getType())) {
