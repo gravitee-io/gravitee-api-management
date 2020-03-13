@@ -47,7 +47,7 @@ class LoginController {
   }
 
   authenticate(identityProvider: string) {
-    let nonce = this.nonce(32);
+    let nonce = this.AuthenticationService.nonce(32);
 
     this.$window.localStorage[nonce] = JSON.stringify({ redirectUri: this.$stateParams.redirectUri });
 
@@ -79,15 +79,6 @@ class LoginController {
         this.$state.go('portal.home');
       }
     }
-  }
-
-  nonce(length: number) {
-    let text = "";
-    let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for(let i = 0; i < length; i++) {
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
   }
 }
 

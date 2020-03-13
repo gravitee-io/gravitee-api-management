@@ -53,7 +53,7 @@ class AuthenticationService {
     }
 
     this.SatellizerConfig.providers[provider.id] = _.merge(satellizerProvider, {
-      state: state,
+      state: state || this.nonce(32),
       url: this.Constants.baseURL + 'auth/oauth2/' + provider.id,
       redirectUri: window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname),
     });
@@ -85,6 +85,15 @@ class AuthenticationService {
         });
       })
       .catch( () => {});
+  }
+
+  nonce(length: number) {
+    let text = "";
+    let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for(let i = 0; i < length; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
   }
 }
 
