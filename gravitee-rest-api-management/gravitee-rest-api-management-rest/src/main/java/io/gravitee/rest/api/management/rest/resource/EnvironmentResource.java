@@ -18,14 +18,14 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
+import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -44,6 +44,28 @@ public class EnvironmentResource extends AbstractResource {
     @Inject
     private EnvironmentService environmentService;
 
+    /**
+     * Create a new Environment.
+     * @param environmentEntity
+     * @return
+     */
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create an Environment", tags = {"Environment"})
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Environment successfully created"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response createEnvironment(
+            @ApiParam(name = "environmentId", required = true) @PathParam("envId") String environmentId,
+            @ApiParam(name = "environmentEntity", required = true) @Valid @NotNull final UpdateEnvironmentEntity environmentEntity) {
+        environmentEntity.setId(environmentId);
+        return Response
+                .status(Status.CREATED)
+                .entity(environmentService.createOrUpdate(environmentEntity))
+                .build();
+    }
+    
     /**
      * Delete an existing Environment.
      * @param environmentId

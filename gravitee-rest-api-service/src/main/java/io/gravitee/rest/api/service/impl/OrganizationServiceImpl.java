@@ -15,17 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
-import io.gravitee.rest.api.model.NewOrganizationEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.OrganizationAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import org.slf4j.Logger;
@@ -83,38 +80,20 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
-    public OrganizationEntity create(final NewOrganizationEntity organizationEntity) {
+    public OrganizationEntity createOrUpdate(final UpdateOrganizationEntity organizationEntity) {
         try {
-            String id = UUID.toString(UUID.random());
-            Optional<Organization> checkOrganization = organizationRepository.findById(id);
-            if (checkOrganization.isPresent()) {
-                throw new OrganizationAlreadyExistsException(id);
-            }
-
-            Organization organization = convert(id, organizationEntity);
-            OrganizationEntity createdOrganization = convert(organizationRepository.create(organization));
-            
-            //create Default role for organization
-            roleService.initialize(createdOrganization.getId());
-            roleService.createOrUpdateSystemRoles(createdOrganization.getId());
-            
-            return createdOrganization;
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create organization {}", organizationEntity.getName(), ex);
-            throw new TechnicalManagementException("An error occurs while trying to create organization " + organizationEntity.getName(), ex);
-        }
-    }
-
-    @Override
-    public OrganizationEntity update(final UpdateOrganizationEntity organizationEntity) {
-        try {
+            Optional<Organization> organizationOptional = organizationRepository.findById(organizationEntity.getId());
             Organization organization = convert(organizationEntity);
-            Optional<Organization> organizationOptional = organizationRepository.findById(organization.getId());
             if (organizationOptional.isPresent()) {
                 return convert(organizationRepository.update(organization));
             } else {
-                LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName());
-                throw new OrganizationNotFoundException(organizationEntity.getId());
+                OrganizationEntity createdOrganization = convert(organizationRepository.create(organization));
+                
+                //create Default role for organization
+                roleService.initialize(createdOrganization.getId());
+                roleService.createOrUpdateSystemRoles(createdOrganization.getId());
+                
+                return createdOrganization;
             }
             
         } catch (TechnicalException ex) {
@@ -135,15 +114,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             LOGGER.error("An error occurs while trying to delete organization {}", organizationId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete organization " + organizationId, ex);
         }
-    }
-
-    private Organization convert(final String id, final NewOrganizationEntity organizationEntity) {
-        final Organization organization = new Organization();
-        organization.setId(id);
-        organization.setName(organizationEntity.getName());
-        organization.setDescription(organizationEntity.getDescription());
-        organization.setDomainRestrictions(organizationEntity.getDomainRestrictions());
-        return organization;
     }
 
     private Organization convert(final UpdateOrganizationEntity organizationEntity) {

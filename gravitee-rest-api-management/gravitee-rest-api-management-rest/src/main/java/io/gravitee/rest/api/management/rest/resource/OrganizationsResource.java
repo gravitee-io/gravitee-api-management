@@ -15,19 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.NewOrganizationEntity;
-import io.gravitee.rest.api.service.OrganizationService;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
 
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Path;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -39,29 +31,6 @@ public class OrganizationsResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-
-    @Inject
-    OrganizationService organizationService;
-
-    /**
-     * Create a new Organization for the authenticated user.
-     * 
-     * @param newOrganizationEntity
-     * @return
-     */
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create an Organization", tags = {"Organization"})
-    @ApiResponses({ @ApiResponse(code = 201, message = "Organization successfully created"),
-            @ApiResponse(code = 500, message = "Internal server error") })
-    public Response createOrganization(
-            @ApiParam(name = "newOrganizationEntity", required = true) @Valid @NotNull final NewOrganizationEntity newOrganizationEntity) {
-        return Response
-                .status(Status.CREATED)
-                .entity(organizationService.create(newOrganizationEntity))
-                .build();
-    }
 
     @Path("/{orgId}")
     public OrganizationResource getOrganizationResource() {

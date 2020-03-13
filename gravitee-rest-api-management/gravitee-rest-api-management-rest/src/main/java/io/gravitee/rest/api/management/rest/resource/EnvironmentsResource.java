@@ -15,19 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.NewEnvironmentEntity;
-import io.gravitee.rest.api.service.EnvironmentService;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
 
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Path;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -39,30 +31,6 @@ public class EnvironmentsResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Inject
-    private EnvironmentService environmentService;
-
-    /**
-     * Create a new Environment.
-     * @param newEnvironmentEntity
-     * @return
-     */
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create an Environment", tags = {"Environment"})
-    @ApiResponses({
-            @ApiResponse(code = 201, message = "Environment successfully created"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public Response createEnvironment(
-            @ApiParam(name = "newEnvironmentEntity", required = true)
-            @Valid @NotNull final NewEnvironmentEntity newEnvironmentEntity) {
-        return Response
-                .status(Status.CREATED)
-                .entity(environmentService.create(newEnvironmentEntity))
-                .build();
-    }
-    
     @Path("{envId}")
     public EnvironmentResource getEnvironmentResource() {
         return resourceContext.getResource(EnvironmentResource.class);

@@ -16,14 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -43,6 +43,27 @@ public class OrganizationResource extends AbstractResource {
     private OrganizationService organizationService;
 
     /**
+     * Create or update an Organization for the authenticated user.
+     * 
+     * @param organizationEntity
+     * @return
+     */
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create an Organization", tags = {"Organization"})
+    @ApiResponses({ @ApiResponse(code = 201, message = "Organization successfully created"),
+            @ApiResponse(code = 500, message = "Internal server error") })
+    public Response createOrganization(
+            @ApiParam(name = "organizationId", required = true) @PathParam("orgId") String organizationId,
+            @ApiParam(name = "organizationEntity", required = true) @Valid @NotNull final UpdateOrganizationEntity organizationEntity) {
+        organizationEntity.setId(organizationId);
+        return Response
+                .ok(organizationService.createOrUpdate(organizationEntity))
+                .build();
+    }
+    
+    /**
      * Delete an existing Organization.
      * @param organizationId
      * @return
@@ -53,9 +74,7 @@ public class OrganizationResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 204, message = "Organization successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response deleteOrganization(
-            @ApiParam(name = "organizationId", required = true)
-            @PathParam("orgId") String organizationId) {
+    public Response deleteOrganization(@ApiParam(name = "organizationId", required = true) @PathParam("orgId") String organizationId) {
         organizationService.delete(organizationId);
         //TODO: should delete all items that refers to this organization
         return Response

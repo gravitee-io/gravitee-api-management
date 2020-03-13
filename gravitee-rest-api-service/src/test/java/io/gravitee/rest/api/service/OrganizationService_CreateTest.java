@@ -18,8 +18,8 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
-import io.gravitee.rest.api.model.NewOrganizationEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
+import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.impl.OrganizationServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,17 +57,18 @@ public class OrganizationService_CreateTest {
     public void shouldCreateOrganization() throws TechnicalException {
         when(mockOrganizationRepository.findById(any())).thenReturn(Optional.empty());
 
-        NewOrganizationEntity org1 = new NewOrganizationEntity();
+        UpdateOrganizationEntity org1 = new UpdateOrganizationEntity();
+        org1.setId("org_id");
         org1.setName("org_name");
         org1.setDescription("org_desc");
         List<String> domainRestrictions = Arrays.asList("domain", "restriction");
         org1.setDomainRestrictions(domainRestrictions);
         
         Organization createdOrganization = new Organization();
-        createdOrganization.setId("created_org");
+        createdOrganization.setId("org_id");
         when(mockOrganizationRepository.create(any())).thenReturn(createdOrganization);
 
-        OrganizationEntity organization = organizationService.create(org1);
+        OrganizationEntity organization = organizationService.createOrUpdate(org1);
 
         assertNotNull("result is null", organization);
         verify(mockOrganizationRepository, times(1))
@@ -77,7 +78,37 @@ public class OrganizationService_CreateTest {
                 && arg.getDescription().equals("org_desc")
                 && arg.getDomainRestrictions().equals(domainRestrictions)
             ));
-        verify(mockRoleService, times(1)).initialize("created_org");
-        verify(mockRoleService, times(1)).createOrUpdateSystemRoles("created_org");
+        verify(mockOrganizationRepository, never()).update(any());
+        verify(mockRoleService, times(1)).initialize("org_id");
+        verify(mockRoleService, times(1)).createOrUpdateSystemRoles("org_id");
+    }
+
+    @Test
+    public void shouldUpdateOrganization() throws TechnicalException {
+        when(mockOrganizationRepository.findById(any())).thenReturn(Optional.of(new Organization()));
+
+        UpdateOrganizationEntity org1 = new UpdateOrganizationEntity();
+        org1.setId("org_id");
+        org1.setName("org_name");
+        org1.setDescription("org_desc");
+        List<String> domainRestrictions = Arrays.asList("domain", "restriction");
+        org1.setDomainRestrictions(domainRestrictions);
+        
+        Organization createdOrganization = new Organization();
+        when(mockOrganizationRepository.update(any())).thenReturn(createdOrganization);
+
+        OrganizationEntity organization = organizationService.createOrUpdate(org1);
+
+        assertNotNull("result is null", organization);
+        verify(mockOrganizationRepository, times(1))
+            .update(argThat(arg -> 
+                arg != null 
+                && arg.getName().equals("org_name")
+                && arg.getDescription().equals("org_desc")
+                && arg.getDomainRestrictions().equals(domainRestrictions)
+            ));
+        verify(mockOrganizationRepository, never()).create(any());
+        verify(mockRoleService, never()).initialize("org_id");
+        verify(mockRoleService, never()).createOrUpdateSystemRoles("org_id");
     }
 }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.rest.api.model.NewOrganizationEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 
@@ -31,10 +30,8 @@ public interface OrganizationService {
 
     OrganizationEntity findById(String organizationId);
 
-    OrganizationEntity create(NewOrganizationEntity organizationEntity);
+    OrganizationEntity createOrUpdate(UpdateOrganizationEntity organizationEntity);
     
-    OrganizationEntity update(UpdateOrganizationEntity organizationEntity);
-
     void delete(String organizationId);
     
     void initialize();

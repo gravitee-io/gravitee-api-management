@@ -24,12 +24,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.NewEnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -90,44 +88,28 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     }
 
     @Override
-    public EnvironmentEntity create(final NewEnvironmentEntity environmentEntity) {
+    public EnvironmentEntity createOrUpdate(final UpdateEnvironmentEntity environmentEntity) {
         String organizationId = GraviteeContext.getCurrentOrganization();
-        // First we check that organization exist
-        this.organizationService.findById(organizationId);
-        
-        try {
-            String id = UUID.toString(UUID.random());
-            Optional<Environment> checkEnvironment = environmentRepository.findById(id);
-            if (checkEnvironment.isPresent()) {
-                throw new EnvironmentAlreadyExistsException(id);
-            }
-            
-            Environment environment = convert(id, organizationId, environmentEntity);
-            EnvironmentEntity createdEnvironment = convert(environmentRepository.create(environment));
-            
-            //create Default items for environment
-            apiHeaderService.initialize(createdEnvironment.getId());
-            viewService.initialize(createdEnvironment.getId());
-            pageService.initialize(createdEnvironment.getId());
-            
-            return createdEnvironment;
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create environment {}", environmentEntity.getName(), ex);
-            throw new TechnicalManagementException("An error occurs while trying to create environment " + environmentEntity.getName(), ex);
+        if (environmentEntity.getOrganizationId() == null || !environmentEntity.getOrganizationId().equals(organizationId)) {
+            throw new BadOrganizationException();
         }
-    }
-
-    @Override
-    public EnvironmentEntity update(final UpdateEnvironmentEntity environmentEntity) {
         try {
+            // First we check that organization exists
+            this.organizationService.findById(organizationId);
+
+            Optional<Environment> environmentOptional = environmentRepository.findById(environmentEntity.getId());
             Environment environment = convert(environmentEntity);
-            Optional<Environment> environmentOptional = environmentRepository.findById(environment.getId());
             if (environmentOptional.isPresent()) {
-                EnvironmentEntity updatedEnvironmentEntity = convert(environmentRepository.update(environment));
-                return updatedEnvironmentEntity;
+                return convert(environmentRepository.update(environment));
             } else {
-                LOGGER.error("An error occurs while trying to update environment {}", environmentEntity.getName());
-                throw new EnvironmentNotFoundException(environmentEntity.getId());
+                EnvironmentEntity createdEnvironment = convert(environmentRepository.create(environment));
+                
+                //create Default items for environment
+                apiHeaderService.initialize(createdEnvironment.getId());
+                viewService.initialize(createdEnvironment.getId());
+                pageService.initialize(createdEnvironment.getId());
+                
+                return createdEnvironment;
             }
             
         } catch (TechnicalException ex) {
@@ -150,16 +132,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             LOGGER.error("An error occurs while trying to delete environment {}", environmentId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete environment " + environmentId, ex);
         }
-    }
-
-    private Environment convert(final String id, final String organizationId, final NewEnvironmentEntity environmentEntity) {
-        final Environment environment = new Environment();
-        environment.setId(id);
-        environment.setName(environmentEntity.getName());
-        environment.setDescription(environmentEntity.getDescription());
-        environment.setOrganization(organizationId);
-        environment.setDomainRestrictions(environmentEntity.getDomainRestrictions());
-        return environment;
     }
 
     private Environment convert(final UpdateEnvironmentEntity environmentEntity) {
