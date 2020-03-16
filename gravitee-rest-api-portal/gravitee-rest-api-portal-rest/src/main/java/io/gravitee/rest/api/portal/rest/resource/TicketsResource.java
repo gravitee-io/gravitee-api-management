@@ -30,7 +30,7 @@ import java.net.URI;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class TicketsResource extends AbstractResource  {

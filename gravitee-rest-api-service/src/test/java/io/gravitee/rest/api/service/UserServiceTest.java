@@ -57,7 +57,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
 @RunWith(MockitoJUnitRunner.class)
 public class UserServiceTest {

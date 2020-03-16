@@ -1,5 +1,0 @@
-title: |
-  [${application.name}] Subscription Transferred
-message: |
-  The subscription to the plan "${plan.name}"
-  of the api "${api.name}" was transferred.

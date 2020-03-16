@@ -1,3 +1,0 @@
-title: New user registration!
-message: |
-  "${user.firstname} ${user.lastname}" is now registered.

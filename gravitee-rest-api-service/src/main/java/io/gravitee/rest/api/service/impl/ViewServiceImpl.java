@@ -22,11 +22,7 @@ import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_UPDAT
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.DatatypeConverter;
@@ -46,6 +42,7 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewViewEntity;
 import io.gravitee.rest.api.model.UpdateViewEntity;
 import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -326,5 +323,13 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         viewEntity.setUpdatedAt(view.getUpdatedAt());
         viewEntity.setCreatedAt(view.getCreatedAt());
         return viewEntity;
+    }
+
+    @Override
+    public long getTotalApisByView(Set<ApiEntity> apis, ViewEntity view) {
+        return apis.stream()
+                .filter(api -> View.ALL_ID.equals(view.getId())
+                        || (api.getViews() != null && api.getViews().contains(view.getId())))
+                .count();
     }
 }

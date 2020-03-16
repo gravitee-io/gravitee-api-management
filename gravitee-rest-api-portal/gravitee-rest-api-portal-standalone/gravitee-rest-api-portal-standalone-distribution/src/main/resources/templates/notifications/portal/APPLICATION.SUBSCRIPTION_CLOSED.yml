@@ -1,5 +1,0 @@
-title: |
-  [${application.name}] Subscription Closed
-message: |
-  The subscription request to the plan "${plan.name}" 
-  of the api "${api.name}" was closed.

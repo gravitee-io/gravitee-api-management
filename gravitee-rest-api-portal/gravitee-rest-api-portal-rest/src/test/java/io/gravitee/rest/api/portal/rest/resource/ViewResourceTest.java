@@ -38,7 +38,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.*;
@@ -75,9 +74,6 @@ public class ViewResourceTest extends AbstractResourceTest {
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
         
-        Function<ViewEntity, ViewEntity> identity = (v) -> v;
-        doReturn(identity).when(viewEnhancer).enhance(any());
-        
         Mockito.when(viewMapper.convert(any(), any())).thenCallRealMethod();
 
         mockImage = new InlinePictureEntity();
@@ -95,7 +91,7 @@ public class ViewResourceTest extends AbstractResourceTest {
 
         Mockito.verify(viewService).findNotHiddenById(VIEW_ID);
         Mockito.verify(apiService).findPublishedByUser(USER_NAME);
-        Mockito.verify(viewEnhancer).enhance(any());
+        Mockito.verify(viewService).getTotalApisByView(any(), any());
         Mockito.verify(viewMapper).convert(any(), any());
 
         final View responseView = response.readEntity(View.class);

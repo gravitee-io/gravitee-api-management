@@ -34,6 +34,5 @@
   <modules>
       <module>gravitee-rest-api-management-rest</module>
       <module>gravitee-rest-api-management-security</module>
-      <module>gravitee-rest-api-management-standalone</module>
   </modules>
 </project>

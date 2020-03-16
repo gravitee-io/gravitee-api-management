@@ -28,7 +28,6 @@ import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response;
 import java.util.*;
-import java.util.function.Function;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,9 +69,6 @@ public class ViewsResourceTest extends AbstractResourceTest {
         List<ViewEntity> mockViews = Arrays.asList(view1, view2, view3);
         doReturn(mockViews).when(viewService).findAll();
 
-        Function<ViewEntity, ViewEntity> identity = (v) -> v;
-        doReturn(identity).when(viewEnhancer).enhance(any());
-        
         Mockito.when(viewMapper.convert(any(), any())).thenCallRealMethod();
         
     }

@@ -121,7 +121,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
          
         }
         LOGGER.info("--------------------------------------------------------------");
-
     }
 
     @Bean
@@ -201,12 +200,12 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
-        String uriPrefix = "/portal/environments/**";
+        String uriPrefix = "/environments/**";
         return security.authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
 
                 // OpenApi
-                .antMatchers(HttpMethod.GET, "/portal/openapi").permitAll()
+                .antMatchers(HttpMethod.GET, "/openapi").permitAll()
 
                 //  Auth request
                 .antMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**").permitAll()

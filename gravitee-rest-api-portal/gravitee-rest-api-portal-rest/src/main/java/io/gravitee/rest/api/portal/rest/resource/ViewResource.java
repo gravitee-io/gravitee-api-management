@@ -18,7 +18,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.ViewEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.enhancer.ViewEnhancer;
 import io.gravitee.rest.api.portal.rest.mapper.ViewMapper;
 import io.gravitee.rest.api.service.ViewService;
 
@@ -37,7 +36,7 @@ import java.util.Set;
 import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ViewResource extends AbstractResource {
@@ -48,17 +47,13 @@ public class ViewResource extends AbstractResource {
     @Autowired
     private ViewMapper viewMapper;
 
-    @Autowired
-    private ViewEnhancer viewEnhancer;
-
     @GET
     @Produces(APPLICATION_JSON)
     public Response get(@PathParam("viewId") String viewId) {
         ViewEntity view = viewService.findNotHiddenById(viewId);
 
         Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-
-        view = viewEnhancer.enhance(apis).apply(view);
+        view.setTotalApis(viewService.getTotalApisByView(apis, view));
 
         return Response
                 .ok(viewMapper.convert(view, uriInfo.getBaseUriBuilder()))

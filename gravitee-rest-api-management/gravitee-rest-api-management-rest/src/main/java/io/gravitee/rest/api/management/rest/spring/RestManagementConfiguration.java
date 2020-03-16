@@ -35,7 +35,6 @@ import java.util.Properties;
  * @author GraviteeSource Team
  */
 @Configuration
-@ComponentScan({"io.gravitee.rest.api.management.rest.enhancer"})
 @Import({
         PropertiesConfiguration.class, PluginConfiguration.class, ServiceConfiguration.class,
         SecurityManagementConfiguration.class, EmailConfiguration.class, IdentityProviderPluginConfiguration.class

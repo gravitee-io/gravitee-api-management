@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class InfoResource extends AbstractResource {

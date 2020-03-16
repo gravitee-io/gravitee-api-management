@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.model;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * Managed keys for page documentation configuration
  *
  */

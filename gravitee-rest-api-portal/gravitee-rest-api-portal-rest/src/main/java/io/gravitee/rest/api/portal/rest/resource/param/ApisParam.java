@@ -20,7 +20,7 @@ import io.gravitee.rest.api.portal.rest.model.CategoryApiQuery;
 import javax.ws.rs.QueryParam;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApisParam {

@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -44,7 +43,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.ViewsResponse;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
 public class ViewsResourceNotAuthenticatedTest extends AbstractResourceTest {
 
@@ -105,9 +104,6 @@ public class ViewsResourceNotAuthenticatedTest extends AbstractResourceTest {
         List<ViewEntity> mockViews = Arrays.asList(view1, view2, view3);
         doReturn(mockViews).when(viewService).findAll();
 
-        Function<ViewEntity, ViewEntity> identity = (v) -> v;
-        doReturn(identity).when(viewEnhancer).enhance(any());
-        
         doReturn(false).when(ratingService).isEnabled();
 
         Mockito.when(viewMapper.convert(any(), any())).thenCallRealMethod();

@@ -30,7 +30,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PortalPagesResourceAdminTest extends AbstractResourceTest {

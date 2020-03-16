@@ -22,7 +22,7 @@ import java.util.Map;
 import static java.util.Collections.singletonMap;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class OrganizationAlreadyExistsException extends AbstractManagementException {

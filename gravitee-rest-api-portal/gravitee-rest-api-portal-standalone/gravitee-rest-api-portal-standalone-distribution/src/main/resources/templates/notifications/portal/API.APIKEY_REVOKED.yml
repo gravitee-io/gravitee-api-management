@@ -1,5 +1,0 @@
-title: |
-  [${api.name}] Apikey Revoked
-message: |
-  An apikey has been revoked for plan "${plan.name}" 
-  and application "${application.name}".

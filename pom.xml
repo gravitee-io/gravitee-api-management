@@ -70,6 +70,7 @@
         <module>gravitee-rest-api-services</module>
         <module>gravitee-rest-api-management</module>
         <module>gravitee-rest-api-portal</module>
+        <module>gravitee-rest-api-standalone</module>
     </modules>
 
     <dependencyManagement>

@@ -28,7 +28,7 @@ import io.gravitee.plugin.fetcher.spring.FetcherPluginConfiguration;
 import io.gravitee.plugin.notifier.spring.NotifierPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
-import io.gravitee.rest.api.management.fetcher.spring.FetcherConfigurationConfiguration;
+import io.gravitee.rest.api.fetcher.spring.FetcherConfigurationConfiguration;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.impl.search.configuration.SearchEngineConfiguration;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;

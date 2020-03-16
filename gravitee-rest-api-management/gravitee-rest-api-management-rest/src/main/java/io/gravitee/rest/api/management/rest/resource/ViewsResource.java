@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.enhancer.ViewEnhancer;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApiService;
@@ -55,9 +54,6 @@ public class ViewsResource extends AbstractViewResource  {
     private ViewService viewService;
 
     @Autowired
-    private ViewEnhancer viewEnhancer;
-
-    @Autowired
     private ApiService apiService;
 
     @GET
@@ -80,7 +76,10 @@ public class ViewsResource extends AbstractViewResource  {
                 .sorted(Comparator.comparingInt(ViewEntity::getOrder))
                 // set picture
                 .map(v -> setPicture(v, true))
-                .map(v -> viewEnhancer.enhance(apis).apply(v))
+                .map(v -> {
+                    v.setTotalApis(viewService.getTotalApisByView(apis, v));
+                    return v;
+                })
                 .collect(Collectors.toList());
     }
 

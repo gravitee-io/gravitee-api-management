@@ -49,7 +49,7 @@ import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
 public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
 

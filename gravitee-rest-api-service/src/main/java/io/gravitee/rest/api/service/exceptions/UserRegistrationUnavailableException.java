@@ -20,7 +20,7 @@ import java.util.Map;
 import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class UserRegistrationUnavailableException extends AbstractManagementException {

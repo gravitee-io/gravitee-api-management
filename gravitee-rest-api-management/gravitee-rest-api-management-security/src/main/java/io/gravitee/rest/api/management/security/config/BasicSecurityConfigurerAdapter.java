@@ -77,6 +77,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        LOGGER.info("--------------------------------------------------------------");
+        LOGGER.info("Management API BasicSecurity Config");
         LOGGER.info("Loading authentication identity providers for Basic authentication");
 
         List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers =
@@ -113,6 +115,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 LOGGER.error("No authentication provider found for type: {}", provider.type());
             }
         }
+        LOGGER.info("--------------------------------------------------------------");
     }
 
     @Bean
@@ -192,11 +195,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
-        String uriPrefix = "/management/organizations/**/environments/**";
+        String uriPrefix = "/organizations/**/environments/**";
 
         return security.authorizeRequests()
                 // Swagger
-                .antMatchers(HttpMethod.GET, "/management/swagger.json").permitAll()
+                .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
 
                 .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/user/login").permitAll()

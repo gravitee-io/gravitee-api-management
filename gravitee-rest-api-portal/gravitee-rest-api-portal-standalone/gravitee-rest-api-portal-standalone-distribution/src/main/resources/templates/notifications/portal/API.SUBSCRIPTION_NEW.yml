@@ -1,5 +1,0 @@
-title: |
-  [${api.name}] Subscription Created
-message: |
-  The application "${application.name}" request a subscription
-  to the plan "${plan.name}".

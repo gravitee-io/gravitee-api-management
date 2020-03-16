@@ -26,7 +26,6 @@ import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Function;
 
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -44,7 +43,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.View;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
 public class ViewResourceNotAuthenticatedTest extends AbstractResourceTest {
 
@@ -94,9 +93,6 @@ public class ViewResourceNotAuthenticatedTest extends AbstractResourceTest {
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
         
-        Function<ViewEntity, ViewEntity> identity = (v) -> v;
-        doReturn(identity).when(viewEnhancer).enhance(any());
-        
         Mockito.when(viewMapper.convert(any(), any())).thenCallRealMethod();
 
     }
@@ -108,7 +104,7 @@ public class ViewResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         Mockito.verify(viewService).findNotHiddenById(VIEW_ID);
         Mockito.verify(apiService).findPublishedByUser(null);
-        Mockito.verify(viewEnhancer).enhance(any());
+        Mockito.verify(viewService).getTotalApisByView(any(), any());
         Mockito.verify(viewMapper).convert(any(), any());
 
         final View responseView = response.readEntity(View.class);

@@ -1,5 +1,0 @@
-title: New Support Ticket
-message: >
-  "${user.displayName}" has created a ticket.
-  <#if api??> The selected API is ${api.name}.</#if>
-  <#if application??> The selected application is ${application.name}.</#if>

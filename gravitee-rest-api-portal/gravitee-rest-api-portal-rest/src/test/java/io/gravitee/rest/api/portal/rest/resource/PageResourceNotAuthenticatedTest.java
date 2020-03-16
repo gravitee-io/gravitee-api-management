@@ -41,7 +41,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.model.Page;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
 public class PageResourceNotAuthenticatedTest extends AbstractResourceTest {
 

@@ -1,5 +1,0 @@
-title: |
-  [${application.name}] New Subscription
-message: |
-  A new subscription was requested to the plan "${plan.name}"
-  of the api "${api.name}".

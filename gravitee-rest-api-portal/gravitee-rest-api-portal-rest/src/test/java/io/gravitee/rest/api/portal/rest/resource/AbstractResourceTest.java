@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
-import io.gravitee.rest.api.portal.rest.enhancer.ViewEnhancer;
 import io.gravitee.rest.api.portal.rest.mapper.*;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
@@ -101,7 +100,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(ticketMapper);
         reset(configMapper);
         reset(identityProviderMapper);
-        reset(viewEnhancer);
         reset(healthCheckService);
     }
 
@@ -270,9 +268,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ConfigurationMapper configMapper;
-
-    @Autowired
-    protected ViewEnhancer viewEnhancer;
 
     @Autowired
     protected PortalNotificationMapper portalNotificationMapper;
@@ -545,11 +540,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public IdentityProviderMapper identityProviderMapper() {
             return mock(IdentityProviderMapper.class);
-        }
-
-        @Bean
-        public ViewEnhancer viewEnhancer() {
-            return mock(ViewEnhancer.class);
         }
 
         @Bean

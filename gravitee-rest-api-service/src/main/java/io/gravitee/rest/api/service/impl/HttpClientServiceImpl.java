@@ -43,7 +43,7 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component

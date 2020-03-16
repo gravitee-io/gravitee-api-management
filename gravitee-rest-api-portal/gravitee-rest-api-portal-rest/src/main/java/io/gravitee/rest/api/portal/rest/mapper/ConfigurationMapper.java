@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.PortalConfigEntity;
 import io.gravitee.rest.api.model.PortalConfigEntity.*;
+import io.gravitee.rest.api.model.PortalConfigEntity.Analytics;
 import io.gravitee.rest.api.model.PortalConfigEntity.Application;
 import io.gravitee.rest.api.model.PortalConfigEntity.Application.ApplicationTypes;
 import io.gravitee.rest.api.model.PortalConfigEntity.Plan;

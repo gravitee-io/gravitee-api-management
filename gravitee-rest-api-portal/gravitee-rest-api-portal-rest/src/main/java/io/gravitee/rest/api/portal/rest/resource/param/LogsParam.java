@@ -19,7 +19,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.QueryParam;
 
 /**
- * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class LogsParam {

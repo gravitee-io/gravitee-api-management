@@ -16,11 +16,13 @@
 package io.gravitee.rest.api.service;
 
 import java.util.List;
+import java.util.Set;
 
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewViewEntity;
 import io.gravitee.rest.api.model.UpdateViewEntity;
 import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -44,6 +46,8 @@ public interface ViewService {
     void delete(String viewId);
 
     void initialize(String environmentId);
+    
+    long getTotalApisByView(Set<ApiEntity> apis, ViewEntity view);
 
     InlinePictureEntity getPicture(String viewId);
 }

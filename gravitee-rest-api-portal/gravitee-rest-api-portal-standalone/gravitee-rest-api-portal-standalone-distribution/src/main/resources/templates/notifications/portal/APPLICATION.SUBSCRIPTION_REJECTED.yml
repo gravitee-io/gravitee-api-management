@@ -1,5 +1,0 @@
-title: |
-  [${application.name}] Subscription Rejected
-message: |
-  The subscription request to the plan "${plan.name}" 
-  of the api "${api.name}" was rejected.
