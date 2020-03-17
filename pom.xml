@@ -222,7 +222,7 @@
         <gravitee-plugin-alert.version>1.10.0</gravitee-plugin-alert.version>
         <gravitee-plugin-service-discovery.version>1.10.0</gravitee-plugin-service-discovery.version>
         <gravitee-gateway-api.version>1.20.0</gravitee-gateway-api.version>
-        <gravitee-policy-api.version>1.6.0</gravitee-policy-api.version>
+        <gravitee-policy-api.version>1.7.0-SNAPSHOT</gravitee-policy-api.version>
         <gravitee-alert-api.version>1.2.1</gravitee-alert-api.version>
         <gravitee-reporter-api.version>1.17.1</gravitee-reporter-api.version>
         <gravitee-service-discovery-api.version>1.1.1-SNAPSHOT</gravitee-service-discovery-api.version>
