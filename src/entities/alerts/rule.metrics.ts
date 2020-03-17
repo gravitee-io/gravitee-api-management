@@ -31,7 +31,7 @@ export class Rule {
     'REQUEST',
     'METRICS_SIMPLE_CONDITION',
     'Alert when a metric of the request validates a condition',
-    [Scope.API],
+    [Scope.API, Scope.PLATFORM],
     'API metrics',
     ApiMetrics.METRICS);
 
@@ -39,7 +39,7 @@ export class Rule {
     'REQUEST',
     'METRICS_AGGREGATION',
     'Alert when the aggregated value of a request metric rises a threshold',
-    [Scope.API],
+    [Scope.API, Scope.PLATFORM],
     'API metrics',
     [ApiMetrics.RESPONSE_TIME, ApiMetrics.UPSTREAM_RESPONSE_TIME, ApiMetrics.REQUEST_CONTENT_LENGTH, ApiMetrics.RESPONSE_CONTENT_LENGTH]);
 
@@ -47,12 +47,12 @@ export class Rule {
     'REQUEST',
     'METRICS_RATE',
     'Alert when the rate of a given condition rises a threshold',
-    [Scope.API],
+    [Scope.API, Scope.PLATFORM],
     'API metrics',
     ApiMetrics.METRICS);
 
   static API_HC_ENDPOINT_STATUS_CHANGED: Rule = new Rule(
-    'ENDPOINT_HEALTH_CHECK',
+      'ENDPOINT_HEALTH_CHECK',
     'API_HC_ENDPOINT_STATUS_CHANGED',
     'Alert when the health status of an endpoint has changed',
     [Scope.API],
@@ -66,7 +66,7 @@ export class Rule {
     'Application');
 
   static NODE_LIFECYCLE_CHANGED: Rule = new Rule(
-    'NODE_LIFECYCLE',
+      'NODE_LIFECYCLE',
     'NODE_LIFECYCLE_CHANGED',
     'Alert when the lifecycle status of a node has changed',
     [Scope.PLATFORM],
@@ -131,6 +131,9 @@ export class Rule {
   }
 
   static findByScopeAndType(scope: Scope, type: string): Rule {
+    if (type.includes('@')) {
+      type = type.split('@')[1];
+    }
     return Rule.RULES.find(rule => rule.type === type && rule.scopes.indexOf(scope) != -1);
   }
 }

@@ -40,10 +40,10 @@ export class ApiMetrics extends Metrics {
     [ThresholdCondition.TYPE, ThresholdRangeCondition.TYPE, CompareCondition.TYPE]);
 
   static RESPONSE_STATUS: ApiMetrics = new ApiMetrics('response.status', 'Status Code',
-    [ThresholdCondition.TYPE, ThresholdRangeCondition.TYPE]);
+    [ThresholdCondition.TYPE, ThresholdRangeCondition.TYPE], true);
 
   static ERROR_KEY: ApiMetrics = new ApiMetrics('error.key', 'Error Key',
-    [StringCondition.TYPE], undefined, () => {
+    [StringCondition.TYPE], true, undefined, () => {
 
       let keys: Tuple[] = [];
           [
@@ -91,7 +91,7 @@ export class ApiMetrics extends Metrics {
   static RESPONSE_CONTENT_LENGTH: ApiMetrics = new ApiMetrics('response.content_length', 'Response Content-Length',
     [ThresholdCondition.TYPE, ThresholdRangeCondition.TYPE, CompareCondition.TYPE]);
 
-  static TENANT: ApiMetrics = new ApiMetrics('tenant', 'Tenant', [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+  static TENANT: ApiMetrics = new ApiMetrics('tenant', 'Tenant', [StringCondition.TYPE],true, undefined, (type: number, id: string, $injector: any) => {
     let tenants: Tuple[] = [];
 
     // PLATFORM: Search for all registered tenants
@@ -106,7 +106,7 @@ export class ApiMetrics extends Metrics {
   });
 
   static API: ApiMetrics = new ApiMetrics('api', 'API',
-    [StringCondition.TYPE], [Scope.APPLICATION, Scope.PLATFORM], (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], true, [Scope.APPLICATION, Scope.PLATFORM], (type: number, id: string, $injector: any) => {
       let apis: Tuple[] = [];
 
       if (type === 2) {
@@ -131,7 +131,7 @@ export class ApiMetrics extends Metrics {
     });
 
   static APPLICATION: ApiMetrics = new ApiMetrics('application', 'Application',
-    [StringCondition.TYPE], [Scope.API, Scope.PLATFORM], (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], true, [Scope.API, Scope.PLATFORM], (type: number, id: string, $injector: any) => {
       let applications: Tuple[] = [];
 
       if (type === 0) {
@@ -148,7 +148,7 @@ export class ApiMetrics extends Metrics {
     });
 
   static PLAN: ApiMetrics = new ApiMetrics('plan', 'Plan',
-    [StringCondition.TYPE], undefined, (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], true, undefined, (type: number, id: string, $injector: any) => {
       let plans: Tuple[] = [];
 
       if (type === 0) {

@@ -1,0 +1,36 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="gv-form-content" layout="row" style="margin-bottom: 3px">
+  <div flex="5" layout="row" layout-align="center center" style="border-right: 1px solid lightgrey; margin-right: 10px">
+    <ng-md-icon icon="close" style="fill: grey;" size="20px" ng-click="$ctrl.deleteProjection()"></ng-md-icon>
+  </div>
+
+  <div layout-gt-sm="row" flex="30">
+    <md-input-container class="md-block" flex-gt-sm flex="50">
+      <label>Property</label>
+      <md-select ng-model="$ctrl.projection.property" required>
+        <md-option
+          ng-value="type.key"
+          ng-repeat="type in $ctrl.metrics">
+          {{::type.name}}
+        </md-option>
+      </md-select>
+    </md-input-container>
+  </div>
+</div>

@@ -57,6 +57,7 @@ class AlertService {
         conditions: alert.conditions,
         notifications: alert.notifications,
         filters: alert.filters,
+        projections: alert.projections,
         dampening: alert.dampening
       });
   }
@@ -75,6 +76,7 @@ class AlertService {
       conditions: alert.conditions,
       notifications: alert.notifications,
       filters: alert.filters,
+      projections: alert.projections,
       dampening: alert.dampening
     });
   }

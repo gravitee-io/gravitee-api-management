@@ -39,10 +39,10 @@ export class NodeType {
 
 export class NodeMetrics extends Metrics {
   static NODE_HOSTNAME: NodeMetrics = new NodeMetrics('node.hostname', 'Hostname',
-    [StringCondition.TYPE]);
+    [StringCondition.TYPE], true);
 
   static NODE_APPLICATION: NodeMetrics = new NodeMetrics('node.application', 'Type',
-    [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE],true, undefined, (type: number, id: string, $injector: any) => {
       let applications: Tuple[] = [];
 
       NodeType.TYPES.forEach(app => {
@@ -84,10 +84,10 @@ export class NodeMetrics extends Metrics {
 
 export class NodeLifecycleMetrics extends Metrics {
   static NODE_HOSTNAME: NodeLifecycleMetrics = new NodeLifecycleMetrics('node.hostname', 'Hostname',
-    [StringCondition.TYPE]);
+    [StringCondition.TYPE], true);
 
   static NODE_APPLICATION: NodeLifecycleMetrics = new NodeLifecycleMetrics('node.application', 'Type',
-    [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], true,undefined, (type: number, id: string, $injector: any) => {
       let applications: Tuple[] = [];
 
       NodeType.TYPES.forEach(app => {
@@ -98,7 +98,7 @@ export class NodeLifecycleMetrics extends Metrics {
     });
 
   static NODE_EVENT: NodeLifecycleMetrics = new NodeLifecycleMetrics('node.event', 'Event',
-    [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], true,undefined, (type: number, id: string, $injector: any) => {
       let events: Tuple[] = [];
       events.push(new Tuple("NODE_START", "Start"));
       events.push(new Tuple("NODE_STOP", "Stop"));
