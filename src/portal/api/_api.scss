@@ -297,6 +297,14 @@ div#api-navbar:before{
   opacity: 0;
 }
 
+#header-entry-points {
+  input {
+    width: 100%;
+    border: none;
+    background: transparent;
+  }
+}
+
 .api-header-detail {
   margin-top: 18px;
 }
