@@ -137,26 +137,8 @@ public class ApiPagesResource extends AbstractResource {
     public Response fetchAllPages(
             @PathParam("api") String api
     ) {
-        List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(api).build());
         String contributor = getAuthenticatedUser();
-
-        pages.stream()
-                .filter(pageListItem -> pageListItem.getSource() != null)
-                .forEach(pageListItem -> {
-                    if (pageListItem.getType().equals("ROOT")) {
-                        final ImportPageEntity pageEntity = new ImportPageEntity();
-                        pageEntity.setType(PageType.valueOf(pageListItem.getType()));
-                        pageEntity.setSource(pageListItem.getSource());
-                        pageEntity.setConfiguration(pageListItem.getConfiguration());
-                        pageEntity.setPublished(pageListItem.isPublished());
-                        pageEntity.setExcludedGroups(pageListItem.getExcludedGroups());
-                        pageEntity.setLastContributor(contributor);
-                        pageService.importFiles(api, pageEntity);
-                    } else {
-                        pageService.fetch(pageListItem.getId(), contributor);
-                    }
-                });
-
+        pageService.fetchAll(new PageQuery.Builder().api(api).build(), contributor);
         return Response.noContent().build();
     }
 

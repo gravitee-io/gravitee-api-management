@@ -27,6 +27,7 @@ import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -95,8 +97,12 @@ public class PageService_ImportDirectoryTest {
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         Page newPage = mock(Page.class);
+        PageSource ps = new PageSource();
+        ps.setType(pageSource.getType());
+        ps.setConfiguration(pageSource.getConfiguration());
         when(newPage.getId()).thenReturn(UUID.toString(UUID.random()));
         when(newPage.isPublished()).thenReturn(Boolean.TRUE);
+        when(newPage.getSource()).thenReturn(ps);
         when(pageRepository.create(any())).thenReturn(newPage);
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
 

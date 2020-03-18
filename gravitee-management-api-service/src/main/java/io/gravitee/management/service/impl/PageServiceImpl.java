@@ -465,11 +465,150 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Override
 	public List<PageEntity> importFiles(String apiId, ImportPageEntity pageEntity) {
-		upsertRootPage(apiId, pageEntity);
+		Page page = upsertRootPage(apiId, pageEntity);
+		pageEntity.setSource(convert(page.getSource(), false));
+		return fetchPages(apiId, pageEntity);
+	}
 
+	@Override
+	public void delete(String pageId) {
 		try {
-			Page page = convert(pageEntity);
-			Fetcher _fetcher = this.getFetcher(page.getSource());
+			logger.debug("Delete Page : {}", pageId);
+			Optional<Page> optPage = pageRepository.findById(pageId);
+			if ( !optPage.isPresent()) {
+				throw new PageNotFoundException(pageId);
+			}
+
+			Page page = optPage.get();
+
+			// if the folder is not empty, throw exception
+			if (io.gravitee.repository.management.model.PageType.FOLDER.equals(page.getType()) &&
+					pageRepository.search(new PageCriteria.Builder()
+							.api(page.getApi())
+							.parent(page.getId()).build()).size() > 0 ) {
+				throw new TechnicalManagementException("Unable to remove the folder. It must be empty before being removed.");
+			}
+
+			pageRepository.delete(pageId);
+			createAuditLog(page.getApi(), PAGE_DELETED, new Date(), page, null);
+
+			// remove from search engine
+			searchEngineService.delete(convert(page), false);
+		} catch (TechnicalException ex) {
+			logger.error("An error occurs while trying to delete Page {}", pageId, ex);
+			throw new TechnicalManagementException("An error occurs while trying to delete Page " + pageId, ex);
+		}
+	}
+
+	@Override
+	public int findMaxApiPageOrderByApi(String apiName) {
+		try {
+			logger.debug("Find Max Order Page for api name : {}", apiName);
+			final Integer maxPageOrder = pageRepository.findMaxApiPageOrderByApiId(apiName);
+			return maxPageOrder == null ? 0 : maxPageOrder;
+		} catch (TechnicalException ex) {
+			logger.error("An error occured when searching max order page for api name [{}]", apiName, ex);
+			throw new TechnicalManagementException("An error occured when searching max order page for api name " + apiName, ex);
+		}
+	}
+
+	@Override
+	public int findMaxPortalPageOrder() {
+		try {
+			logger.debug("Find Max Order Portal Page");
+			final Integer maxPageOrder = pageRepository.findMaxPortalPageOrder();
+			return maxPageOrder == null ? 0 : maxPageOrder;
+		} catch (TechnicalException ex) {
+			logger.error("An error occured when searching max order portal page", ex);
+			throw new TechnicalManagementException("An error occured when searching max order portal ", ex);
+		}
+	}
+
+	@Override
+	public boolean isDisplayable(ApiEntity api, boolean pageIsPublished, String username) {
+		boolean isDisplayable = false;
+		if (api.getVisibility() == Visibility.PUBLIC && pageIsPublished) {
+			isDisplayable = true;
+		} else if (username != null) {
+			MemberEntity member = membershipService.getMember(MembershipReferenceType.API, api.getId(), username, io.gravitee.repository.management.model.RoleScope.API);
+			if (member == null && api.getGroups() != null) {
+				Iterator<String> groupIdIterator = api.getGroups().iterator();
+				while (!isDisplayable && groupIdIterator.hasNext()) {
+					String groupId = groupIdIterator.next();
+					member = membershipService.getMember(MembershipReferenceType.GROUP, groupId, username, io.gravitee.repository.management.model.RoleScope.API);
+					isDisplayable = isDisplayableForMember(member, pageIsPublished);
+				}
+			} else {
+				isDisplayable = isDisplayableForMember(member, pageIsPublished);
+			}
+		}
+		return isDisplayable;
+	}
+
+	@Override
+	public void fetchAll(PageQuery query, String contributor) {
+		try {
+			pageRepository.search(queryToCriteria(query))
+					.stream()
+					.filter(pageListItem ->
+							pageListItem.getSource() != null)
+					.forEach(pageListItem -> {
+						if (pageListItem.getType() != null && pageListItem.getType().toString().equals("ROOT")) {
+							final ImportPageEntity pageEntity = new ImportPageEntity();
+							pageEntity.setType(PageType.valueOf(pageListItem.getType().toString()));
+							pageEntity.setSource(convert(pageListItem.getSource(), false));
+							pageEntity.setConfiguration(pageListItem.getConfiguration());
+							pageEntity.setPublished(pageListItem.isPublished());
+							pageEntity.setExcludedGroups(pageListItem.getExcludedGroups());
+							pageEntity.setLastContributor(contributor);
+							fetchPages(query.getApi(), pageEntity);
+						} else {
+							fetch(pageListItem.getId(), contributor);
+						}
+					});
+		} catch (TechnicalException ex) {
+			logger.error("An error occurs while trying to fetch pages", ex);
+			throw new TechnicalManagementException(
+					"An error occurs while trying to fetch pages", ex);
+		}
+	}
+
+	@Override
+	public PageEntity fetch(String pageId, String contributor) {
+		try {
+			logger.debug("Fetch page {}", pageId);
+
+			Optional<Page> optPageToUpdate = pageRepository.findById(pageId);
+			if (!optPageToUpdate.isPresent()) {
+				throw new PageNotFoundException(pageId);
+			}
+
+			Page page = optPageToUpdate.get();
+
+			if (page.getSource() == null) {
+				throw new NoFetcherDefinedException(pageId);
+			}
+
+			try {
+				fetchPage(page);
+			} catch (FetcherException e) {
+				throw onUpdateFail(pageId, e);
+			}
+
+			page.setUpdatedAt(new Date());
+			page.setLastContributor(contributor);
+
+			Page updatedPage = pageRepository.update(page);
+			createAuditLog(page.getApi(), PAGE_UPDATED, page.getUpdatedAt(), page, page);
+			return convert(updatedPage);
+		} catch (TechnicalException ex) {
+			throw onUpdateFail(pageId, ex);
+		}
+	}
+
+	private List<PageEntity> fetchPages(final String apiId, ImportPageEntity pageEntity) {
+		try {
+			Fetcher _fetcher = this.getFetcher(convert(pageEntity.getSource()));
 			if (_fetcher == null) {
 				return emptyList();
 			}
@@ -701,7 +840,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return createdPages;
 	}
 
-	private void upsertRootPage(String apiId, ImportPageEntity rootPage) {
+	private Page upsertRootPage(String apiId, ImportPageEntity rootPage) {
 		try {
 			// root page exists ?
 			List<Page> searchResult = pageRepository.search(new PageCriteria.Builder()
@@ -713,12 +852,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			page.setApi(apiId);
 			if (searchResult.isEmpty()) {
 				page.setId(UUID.toString(UUID.random()));
-				pageRepository.create(page);
+				return pageRepository.create(page);
 			} else {
 				page.setId(searchResult.get(0).getId());
-				pageRepository.update(page);
+				mergeSensitiveData(this.getFetcher(searchResult.get(0).getSource()).getConfiguration(), page);
+				return pageRepository.update(page);
 			}
-		} catch (TechnicalException ex) {
+		} catch (TechnicalException | FetcherException ex) {
 			logger.error("An error occurs while trying to save the configuration",ex);
 			throw new TechnicalManagementException("An error occurs while trying to save the configuration" , ex);
 		}
@@ -776,114 +916,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	private TechnicalManagementException onUpdateFail(String pageId, FetcherException ex) {
 		logger.error("An error occurs while trying to update page {}", pageId, ex);
 		return new TechnicalManagementException("An error occurs while trying to fetch content. " + ex.getMessage(), ex);
-	}
-
-    @Override
-	public void delete(String pageId) {
-		try {
-			logger.debug("Delete Page : {}", pageId);
-			Optional<Page> optPage = pageRepository.findById(pageId);
-			if ( !optPage.isPresent()) {
-				throw new PageNotFoundException(pageId);
-			}
-
-			Page page = optPage.get();
-
-			// if the folder is not empty, throw exception
-			if (io.gravitee.repository.management.model.PageType.FOLDER.equals(page.getType()) &&
-					pageRepository.search(new PageCriteria.Builder()
-							.api(page.getApi())
-							.parent(page.getId()).build()).size() > 0 ) {
-				throw new TechnicalManagementException("Unable to remove the folder. It must be empty before being removed.");
-			}
-
-			pageRepository.delete(pageId);
-            createAuditLog(page.getApi(), PAGE_DELETED, new Date(), page, null);
-
-            // remove from search engine
-			searchEngineService.delete(convert(page), false);
-		} catch (TechnicalException ex) {
-			logger.error("An error occurs while trying to delete Page {}", pageId, ex);
-			throw new TechnicalManagementException("An error occurs while trying to delete Page " + pageId, ex);
-		}
-	}
-
-	@Override
-	public int findMaxApiPageOrderByApi(String apiName) {
-		try {
-			logger.debug("Find Max Order Page for api name : {}", apiName);
-			final Integer maxPageOrder = pageRepository.findMaxApiPageOrderByApiId(apiName);
-			return maxPageOrder == null ? 0 : maxPageOrder;
-		} catch (TechnicalException ex) {
-			logger.error("An error occured when searching max order page for api name [{}]", apiName, ex);
-			throw new TechnicalManagementException("An error occured when searching max order page for api name " + apiName, ex);
-		}
-	}
-
-	@Override
-	public int findMaxPortalPageOrder() {
-		try {
-			logger.debug("Find Max Order Portal Page");
-			final Integer maxPageOrder = pageRepository.findMaxPortalPageOrder();
-			return maxPageOrder == null ? 0 : maxPageOrder;
-		} catch (TechnicalException ex) {
-			logger.error("An error occured when searching max order portal page", ex);
-			throw new TechnicalManagementException("An error occured when searching max order portal ", ex);
-		}
-	}
-
-	@Override
-	public boolean isDisplayable(ApiEntity api, boolean pageIsPublished, String username) {
-		boolean isDisplayable = false;
-		if (api.getVisibility() == Visibility.PUBLIC && pageIsPublished) {
-			isDisplayable = true;
-		} else if (username != null) {
-			MemberEntity member = membershipService.getMember(MembershipReferenceType.API, api.getId(), username, io.gravitee.repository.management.model.RoleScope.API);
-			if (member == null && api.getGroups() != null) {
-				Iterator<String> groupIdIterator = api.getGroups().iterator();
-				while (!isDisplayable && groupIdIterator.hasNext()) {
-					String groupId = groupIdIterator.next();
-					member = membershipService.getMember(MembershipReferenceType.GROUP, groupId, username, io.gravitee.repository.management.model.RoleScope.API);
-					isDisplayable = isDisplayableForMember(member, pageIsPublished);
-				}
-			} else {
-				isDisplayable = isDisplayableForMember(member, pageIsPublished);
-			}
-		}
-		return isDisplayable;
-	}
-
-	@Override
-	public PageEntity fetch(String pageId, String contributor) {
-		try {
-			logger.debug("Fetch page {}", pageId);
-
-			Optional<Page> optPageToUpdate = pageRepository.findById(pageId);
-			if (!optPageToUpdate.isPresent()) {
-				throw new PageNotFoundException(pageId);
-			}
-
-			Page page = optPageToUpdate.get();
-
-			if (page.getSource() == null) {
-				throw new NoFetcherDefinedException(pageId);
-			}
-
-			try {
-				fetchPage(page);
-			} catch (FetcherException e) {
-				throw onUpdateFail(pageId, e);
-			}
-
-			page.setUpdatedAt(new Date());
-			page.setLastContributor(contributor);
-
-			Page updatedPage = pageRepository.update(page);
-			createAuditLog(page.getApi(), PAGE_UPDATED, page.getUpdatedAt(), page, page);
-			return convert(updatedPage);
-		} catch (TechnicalException ex) {
-			throw onUpdateFail(pageId, ex);
-		}
 	}
 
 	private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {
@@ -1096,16 +1128,22 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	}
 
 	private PageSourceEntity convert(PageSource pageSource) {
+		return convert(pageSource, true);
+	}
+
+	private PageSourceEntity convert(PageSource pageSource, boolean removeSensitiveData) {
 		PageSourceEntity entity = null;
 		if (pageSource != null) {
 			entity = new PageSourceEntity();
 			entity.setType(pageSource.getType());
 			try {
 				FetcherConfiguration fetcherConfiguration = this.getFetcher(pageSource).getConfiguration();
-				removeSensitiveData(fetcherConfiguration);
+				if (removeSensitiveData) {
+					removeSensitiveData(fetcherConfiguration);
+				}
 				entity.setConfiguration((new ObjectMapper()).valueToTree(fetcherConfiguration));
 			} catch (FetcherException e) {
-			    logger.error(e.getMessage(), e);
+				logger.error(e.getMessage(), e);
 			}
 		}
 		return entity;

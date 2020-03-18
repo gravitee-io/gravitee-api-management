@@ -40,18 +40,20 @@ public interface PageService {
 	PageEntity createPage(String apiId, NewPageEntity page);
 
 	PageEntity createPage(NewPageEntity page);
-	
+
 	PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
 
 	PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial);
 
 	void delete(String pageId);
-	
+
 	int findMaxApiPageOrderByApi(String apiId);
 
 	int findMaxPortalPageOrder();
 
 	boolean isDisplayable(ApiEntity api, boolean isPagePublished, String username);
+
+	void fetchAll(PageQuery query, String contributor);
 
 	PageEntity fetch(String pageId, String contributor);
 
