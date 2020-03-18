@@ -20,11 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.management.idp.api.identity.SearchableUser;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.NewPlanEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.impl.ApiServiceImpl;
@@ -344,37 +340,37 @@ public class ApiService_CreateWithDefinitionTest {
         verify(genericNotificationConfigService, times(1)).create(any());
     }
 
-    private static class IdOnlySearchableUser implements SearchableUser {
+    @Test
+    public void shouldCreateImportApiWithMetadata() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+metadata.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
+        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
+        Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
+        owner.setRoles(Collections.singletonMap(RoleScope.API.getId(), "OWNER"));
+        UserEntity admin = new UserEntity();
+        admin.setId(po.getUserId());
+        admin.setSource(SOURCE);
+        admin.setSourceId(po.getReferenceId());
+        UserEntity user = new UserEntity();
+        user.setId(owner.getUserId());
+        user.setSource(SOURCE);
+        user.setSourceId(owner.getReferenceId());
+        when(userService.findById(admin.getId())).thenReturn(admin);
 
-        private final String id;
+        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
-        IdOnlySearchableUser(String id) {
-            this.id = id;
-        }
-
-        @Override
-        public String getId() {
-            return id;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return null;
-        }
-
-        @Override
-        public String getFirstname() {
-            return null;
-        }
-
-        @Override
-        public String getLastname() {
-            return null;
-        }
-
-        @Override
-        public String getEmail() {
-            return null;
-        }
+        // 3 times (with default api owner mail metadata)
+        verify(apiMetadataService, times(3)).create(any(NewApiMetadataEntity.class));
+        verify(membershipRepository, times(1)).create(po);
+        verify(apiRepository, never()).update(any());
+        verify(apiRepository, times(1)).create(any());
+        verify(genericNotificationConfigService, times(1)).create(any());
     }
 }

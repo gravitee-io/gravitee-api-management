@@ -36,6 +36,16 @@
     "comment_required" : false
   } ],
   "path_mappings":[],
+  "metadata":[
+    {
+      "key":"metadata-key",
+      "name":"metadata-name",
+      "format":"STRING",
+      "value":"metadata-value",
+      "defaultValue":"metadata-default-value",
+      "apiId":"id-api"
+    }
+  ],
   "proxy": {
     "context_path": "/test",
     "strip_context_path": false,

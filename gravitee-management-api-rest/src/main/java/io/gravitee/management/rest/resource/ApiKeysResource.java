@@ -22,10 +22,7 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiKeyService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -52,12 +49,14 @@ public class ApiKeysResource extends AbstractResource {
     @DELETE
     @Path("{key}")
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Revoke an API key",
+            notes = "User must have the API_SUBSCRIPTION:DELETE permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
     })
     public Response revokeApiKey(
-            @PathParam("api") String api,
-            @PathParam("key") String apiKey) {
+            @PathParam("api") @ApiParam("The API id") String api,
+            @PathParam("key") @ApiParam("The API key") String apiKey) {
         apiKeyService.revoke(apiKey, true);
 
         return Response
@@ -70,7 +69,7 @@ public class ApiKeysResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update an API Key",
-            notes = "User must have the MANAGE_API_KEYS permission to use this service")
+            notes = "User must have the API_SUBSCRIPTION:UPDATE permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "API Key successfully updated", response = ApiKeyEntity.class),
             @ApiResponse(code = 400, message = "Bad plan format"),
@@ -79,8 +78,8 @@ public class ApiKeysResource extends AbstractResource {
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
     })
     public Response updateApiKey(
-            @PathParam("api") String api,
-            @PathParam("key") String apiKey,
+            @PathParam("api") @ApiParam("The API id") String api,
+            @PathParam("key") @ApiParam("The API key") String apiKey,
             @Valid @NotNull ApiKeyEntity apiKeyEntity) {
         if (apiKeyEntity.getKey() != null && ! apiKey.equals(apiKeyEntity.getKey())) {
             return Response

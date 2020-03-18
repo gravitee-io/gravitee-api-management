@@ -120,7 +120,7 @@ public class ApiRatingResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("rating") String rating) {
+    public void deleteRating(@PathParam("api") String api, @PathParam("rating") String rating) {
         ratingService.delete(rating);
     }
 
@@ -142,7 +142,7 @@ public class ApiRatingResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("rating") String rating, @PathParam("answer") String answer) {
+    public void deleteAnswer(@PathParam("api") String api, @PathParam("rating") String rating, @PathParam("answer") String answer) {
         ratingService.deleteAnswer(rating, answer);
     }
 

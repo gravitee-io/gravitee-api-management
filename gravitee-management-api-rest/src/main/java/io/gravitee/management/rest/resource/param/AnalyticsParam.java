@@ -29,21 +29,24 @@ import java.util.List;
 public class AnalyticsParam {
 
     @QueryParam("from")
-    @ApiParam(value = "Used to define the start date of the time window to query")
+    @ApiParam(value = "Timestamp used to define the start date of the time window to query")
     private long from;
 
     @QueryParam("to")
-    @ApiParam(value = "Used to define the end date of the time window to query")
+    @ApiParam(value = "Timestamp used to define the end date of the time window to query")
     private long to;
 
     @QueryParam("interval")
-    @ApiParam(value = "The time interval when getting histogram data")
+    @ApiParam(
+            value = "The time interval when getting histogram data (in milliseconds)",
+            example = "600000"
+    )
     private long interval;
 
     @QueryParam("query")
     @ApiParam(
             value = "The Lucene query used to filter data",
-            example = "api:xxxx-xxxx-xxxx-xxxx AND plan:yyyy-yyyy-yyyy-yyyy"
+            example = "api:xxxx-xxxx-xxxx-xxxx AND plan:yyyy-yyyy-yyyy-yyyy AND host:\"demo.gravitee.io\" AND path:/test"
     )
     private String query;
 

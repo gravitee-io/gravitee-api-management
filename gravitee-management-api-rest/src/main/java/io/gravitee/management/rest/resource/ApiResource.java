@@ -30,6 +30,7 @@ import io.gravitee.management.rest.resource.param.ReviewActionParam;
 import io.gravitee.management.rest.resource.param.ReviewActionParam.ReviewAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.service.ApiMetadataService;
 import io.gravitee.management.service.MessageService;
 import io.gravitee.management.service.NotifierService;
 import io.gravitee.management.service.ParameterService;
@@ -85,10 +86,13 @@ public class ApiResource extends AbstractResource {
     @Inject
     private SwaggerService swaggerService;
 
+    @Autowired
+    private ApiMetadataService apiMetadataService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get the API definition",
-            notes = "User must have the READ permission to use this service")
+    @ApiOperation(value = "Get the API's definition",
+            notes = "User must have the READ permission on the API_DEFINITION to use this service on a private API.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -433,10 +437,10 @@ public class ApiResource extends AbstractResource {
             @PathParam("api") String api,
             @QueryParam("version") @DefaultValue("default") String version,
             @QueryParam("exclude") @DefaultValue("") String exclude) {
-        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
-        filterSensitiveData(apiEntity);
+        final ApiEntity apiEntity = apiService.findById(api);
+        final String apiDefinition = apiService.exportAsJson(api, version, exclude.split(","));
         return Response
-                .ok(apiService.exportAsJson(api, version, exclude.split(",")))
+                .ok(apiDefinition)
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity)))
                 .build();
     }

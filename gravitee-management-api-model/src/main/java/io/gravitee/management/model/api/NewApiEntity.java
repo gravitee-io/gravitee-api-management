@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.model.api;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -29,22 +31,43 @@ public class NewApiEntity {
 
     @NotNull
     @NotEmpty(message = "Api's name must not be empty")
+    @ApiModelProperty(
+            value = "Api's name. Duplicate names can exists.",
+            example = "My Api")
     private String name;
 
     @NotNull
+    @ApiModelProperty(
+            value = "Api's version. It's a simple string only used in the portal.",
+            example = "v1.0")
     private String version;
 
     @NotNull
+    @ApiModelProperty(
+            value = "API's description. A short description of your API.",
+            example = "I can use a hundred characters to describe this API.")
     private String description;
 
     @NotNull
+    @ApiModelProperty(
+            value = "API's context path.",
+            example = "/my-awesome-api")
     private String contextPath;
 
     @NotNull
+    @ApiModelProperty(
+            value = "API's first endpoint (target url).",
+            example = "https://local-dc:8081/api")
     private String endpoint;
 
+    @ApiModelProperty(
+            value = "API's groups. Used to add team in your API.",
+            dataType = "java.util.List",
+            example = "MY_GROUP1, MY_GROUP2")
     private Set<String> groups;
 
+    @ApiModelProperty(
+            value = "API's paths. A json representation of the design of each path.")
     private List<String> paths;
 
     public String getName() {

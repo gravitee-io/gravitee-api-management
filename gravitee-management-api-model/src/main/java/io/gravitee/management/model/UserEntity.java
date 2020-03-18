@@ -40,12 +40,12 @@ public class UserEntity implements Indexable {
 	 * The user first name
 	 */
 	private String firstname;
-	
+
 	/**
 	 * The user last name
 	 */
 	private String lastname;
-    
+
     /**
      * The user password
      */
@@ -55,7 +55,7 @@ public class UserEntity implements Indexable {
      * The user email
      */
     private String email;
-    
+
     /**
      * The user roles
      */
@@ -145,7 +145,7 @@ public class UserEntity implements Indexable {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
-    
+
     public String getPassword() {
 		return password;
 	}
@@ -205,9 +205,13 @@ public class UserEntity implements Indexable {
     public String getDisplayName() {
         String displayName;
 
-        if (firstname != null || lastname != null) {
-            displayName = firstname + ' ' + lastname;
-        } else if (email != null){
+        if ((firstname != null && !firstname.isEmpty()) || (lastname != null && !lastname.isEmpty())) {
+            if (firstname != null && !firstname.isEmpty()) {
+                displayName = firstname + ((lastname != null && !lastname.isEmpty()) ? ' ' + lastname : "");
+            } else {
+                displayName = lastname;
+            }
+        } else if (email != null && !email.isEmpty()){
             displayName = email;
         } else {
             displayName = sourceId;

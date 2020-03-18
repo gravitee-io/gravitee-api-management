@@ -17,6 +17,16 @@
     "homepage" : false
   } ],
   "path_mappings":[],
+  "metadata":[
+    {
+      "key":"metadata-key",
+      "name":"metadata-name",
+      "format":"STRING",
+      "value":"metadata-value",
+      "defaultValue":"metadata-default-value",
+      "apiId":"id-api"
+    }
+  ],
   "proxy": {
     "virtual_hosts": [{
       "path": "/test"

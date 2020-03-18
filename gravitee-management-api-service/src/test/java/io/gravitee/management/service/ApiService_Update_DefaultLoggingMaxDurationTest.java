@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -308,7 +309,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                 JsonNode condition = logging1.get("condition");
 
                 return "CLIENT_PROXY".equals(mode.asText())
-                        && "#request.timestamp <= 1l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2".equals(condition.asText());
+                        && "#request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2)".equals(condition.asText());
             } catch (IOException e) {
                 e.printStackTrace();
                 return false;
@@ -336,7 +337,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                 JsonNode condition = logging1.get("condition");
 
                 return "CLIENT_PROXY".equals(mode.asText())
-                        && "#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 1l".equals(condition.asText());
+                        && "(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l".equals(condition.asText());
             } catch (IOException e) {
                 e.printStackTrace();
                 return false;
@@ -364,7 +365,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                 JsonNode condition = logging1.get("condition");
 
                 return "CLIENT_PROXY".equals(mode.asText())
-                        && "#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 1l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2'".equals(condition.asText());
+                        && "(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')".equals(condition.asText());
             } catch (IOException e) {
                 e.printStackTrace();
                 return false;
@@ -477,6 +478,44 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                 return "CLIENT_PROXY".equals(mode.asText())
                         && "#request.timestamp <= 1l && #request.timestamp >= 0l".equals(condition.asText());
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }));
+    }
+
+    @Test
+    public void shouldOverrideTimestampCaseGreaterOrEqualsInThePastWithOrCondition() throws TechnicalException {
+        final Logging logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT_PROXY);
+        existingApi.getProxy().setLogging(logging);
+        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any())).thenReturn(singletonList(1L));
+
+        checkCondition(logging, "true || #request.timestamp <= 2l", "(true) && #request.timestamp <= 1l");
+        checkCondition(logging, "#request.timestamp <= 2l || true", "#request.timestamp <= 1l && (true)");
+        checkCondition(logging, "#request.timestamp <= 2l || #request.timestamp >= 1l", "#request.timestamp <= 1l && (#request.timestamp >= 1l)");
+        checkCondition(logging, "#request.timestamp <= 1234l  || #request.timestamp > 2l", "#request.timestamp <= 1l && (#request.timestamp > 2l)");
+        checkCondition(logging, "#request.timestamp <= 1l || true", "#request.timestamp <= 1l && (true)");
+        checkCondition(logging, "#request.timestamp <= 0l", "#request.timestamp <= 0l");
+    }
+
+    private void checkCondition(final Logging logging, final String condition, final String expectedCondition) throws TechnicalException {
+        reset(apiRepository);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.update(any())).thenReturn(api);
+
+        logging.setCondition(condition);
+        apiService.update(API_ID, existingApi);
+        verify(apiRepository, times(1)).update(argThat(api -> {
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                JsonNode json = objectMapper.readTree(api.getDefinition());
+                JsonNode proxy = json.get("proxy");
+                JsonNode logging1 = proxy.get("logging");
+                JsonNode mode = logging1.get("mode");
+                JsonNode cond = logging1.get("condition");
+                return "CLIENT_PROXY".equals(mode.asText()) && expectedCondition.equals(cond.asText());
             } catch (IOException e) {
                 e.printStackTrace();
                 return false;

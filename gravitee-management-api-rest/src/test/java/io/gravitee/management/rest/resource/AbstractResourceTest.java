@@ -119,6 +119,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected TagService tagService;
 
     @Autowired
+    private ApiMetadataService apiMetadataService;
+
+    @Autowired
     protected ParameterService parameterService;
 
     @Autowired
@@ -247,6 +250,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ParameterService parameterService() {
             return mock(ParameterService.class);
+        }
+
+        @Bean
+        public ApiMetadataService apiMetadataService() {
+    	    return mock(ApiMetadataService.class);
         }
 
         @Bean

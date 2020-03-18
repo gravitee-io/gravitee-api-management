@@ -149,11 +149,13 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             jsonGenerator.writeObjectField("members", members);
         }
 
+        // pages
         if (!filteredFieldsList.contains("pages")) {
             List<PageEntity> pages = applicationContext.getBean(PageService.class).search(new PageQuery.Builder().api(apiEntity.getId()).build());
             jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
         }
 
+        // plans
         if (!filteredFieldsList.contains("plans")) {
             Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());
             Set<PlanEntity> plansToAdd = plans == null
@@ -162,6 +164,14 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                     .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
                     .collect(Collectors.toSet());
             jsonGenerator.writeObjectField("plans", plansToAdd);
+        }
+
+        // metadata
+        if (!filteredFieldsList.contains("metadata")) {
+            List<ApiMetadataEntity> apiMetadata = applicationContext.getBean(ApiMetadataService.class).findAllByApi(apiEntity.getId());
+            if (apiMetadata != null && !apiMetadata.isEmpty()) {
+                jsonGenerator.writeObjectField("metadata", apiMetadata);
+            }
         }
     }
 

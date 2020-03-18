@@ -89,6 +89,8 @@ public class ApiService_UpdateWithDefinitionTest {
     @Mock
     private ParameterService parameterService;
     @Mock
+    private ApiMetadataService apiMetadataService;
+    @Mock
     private VirtualHostService virtualHostService;
 
     @Before
@@ -356,6 +358,26 @@ public class ApiService_UpdateWithDefinitionTest {
 
         verify(planService, times(1)).create(any(NewPlanEntity.class));
         verify(planService, times(1)).update(any(UpdatePlanEntity.class));
+        verify(apiRepository, times(1)).update(any());
+        verify(apiRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldUpdateImportApiWithMetadata() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+metadata.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        UserEntity admin = new UserEntity();
+        UserEntity user = new UserEntity();
+        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
+
+        ApiMetadataEntity apiMetadataEntity = new ApiMetadataEntity();
+        apiMetadataEntity.setName("metadata-name");
+        when(apiMetadataService.findAllByApi(anyString())).thenReturn(Collections.singletonList(apiMetadataEntity));
+
+        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
+
+        verify(apiMetadataService, times(1)).create(any(NewApiMetadataEntity.class));
+        verify(apiMetadataService, times(1)).update(any(UpdateApiMetadataEntity.class));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
     }
