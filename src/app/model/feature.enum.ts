@@ -20,4 +20,5 @@ export enum FeatureEnum {
   userRegistration = 'portal.userCreation.enabled',
   viewMode = 'portal.apis.viewMode.enabled',
   applications = 'portal.applications.enabled',
+  googleAnalytics = 'portal.analytics.enabled',
 }

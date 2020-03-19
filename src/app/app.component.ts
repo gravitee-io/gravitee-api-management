@@ -44,6 +44,9 @@ import { FeatureEnum } from './model/feature.enum';
 import { GvMenuButtonSlotDirective } from './directives/gv-menu-button-slot.directive';
 import { GvSlot } from './directives/gv-slot';
 
+// for google analytics
+declare var gtag;
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -78,6 +81,22 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private configurationService: ConfigurationService,
     private portalService: PortalService,
   ) {
+    // google analytics
+    const gaEnabled = this.configurationService.hasFeature(FeatureEnum.googleAnalytics);
+    const gaTrackingId = this.configurationService.get('portal.analytics.trackingId');
+    if (gaEnabled && gaTrackingId) {
+      const scriptGA = document.createElement('script');
+      scriptGA.async = true;
+      scriptGA.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaTrackingId;
+
+      const scriptGtag = document.createElement('script');
+      scriptGtag.async = true;
+      scriptGtag.innerHTML = 'function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date);';
+
+      document.head.append(scriptGA);
+      document.head.append(scriptGtag);
+    }
+
     this.activatedRoute.queryParamMap.subscribe(params => {
       if (params.has('preview') && params.get('preview') === 'on') {
         sessionStorage.setItem('gvPreview', 'true');
@@ -88,6 +107,11 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       if (event instanceof NavigationStart) {
         this.notificationService.reset();
       } else if (event instanceof NavigationEnd) {
+        // google analytics
+        if (gaEnabled && gaTrackingId) {
+          gtag('config', gaTrackingId, { page_path: event.urlAfterRedirects, cookieDomain: 'none' });
+        }
+
         const currentRoute: ActivatedRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
         this._setBrowserTitle(currentRoute);
         const gvPreview = sessionStorage.getItem('gvPreview');
