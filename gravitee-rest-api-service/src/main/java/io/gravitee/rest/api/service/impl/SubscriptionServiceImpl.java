@@ -283,7 +283,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 if (portalUrl.endsWith("/")) {
                     portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
                 }
-                subscriptionsUrl = portalUrl + "/#!/management/apis/" + api.getId() + "/subscriptions/" + subscription.getId();
+                subscriptionsUrl = portalUrl + "/#!/apis/" + api.getId() + "/subscriptions/" + subscription.getId();
             }
 
             final Map<String, Object> params = new NotificationParamsBuilder()
