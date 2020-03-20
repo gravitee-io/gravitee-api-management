@@ -25,7 +25,7 @@
     </thead>
     <tbody md-body>
       <tr ng-if="$ctrl.results.length > 0" md-row
-          ng-repeat="result in $ctrl.results | limitTo: $ctrl.widget.chart.paging: ($ctrl.paging - 1) * $ctrl.widget.chart.paging"
+          ng-repeat="result in $ctrl.results | limitTo: $ctrl.widget.chart.paging: ($ctrl.paging - 1) * $ctrl.widget.chart.paging | orderBy:'metadata.order'"
           md-select="result" md-select-id="key" style="height: 25px;"
           md-on-select="$ctrl.selectItem" md-on-deselect="$ctrl.deselectItem">
         <td md-cell>
