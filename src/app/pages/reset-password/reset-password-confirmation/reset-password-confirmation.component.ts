@@ -18,17 +18,17 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from '../../../services/notification.service';
-import { TokenService } from '../../../services/token.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { TokenService } from '../../../services/token.service';
 
 @Component({
-  selector: 'app-registration-confirmation',
-  templateUrl: './registration-confirmation.component.html',
-  styleUrls: ['./registration-confirmation.component.css']
+  selector: 'app-reset-password-confirmation',
+  templateUrl: './reset-password-confirmation.component.html',
+  styleUrls: ['./reset-password-confirmation.component.css']
 })
-export class RegistrationConfirmationComponent implements OnInit {
+export class ResetPasswordConfirmationComponent implements OnInit {
 
-  registrationConfirmationForm: FormGroup;
+  resetPasswordConfirmationForm: FormGroup;
   isSubmitted: boolean;
   token: string;
   userFromToken: any;
@@ -50,7 +50,7 @@ export class RegistrationConfirmationComponent implements OnInit {
     this.isTokenExpired = this.tokenService.isParsedTokenExpired(this.userFromToken);
 
     if (!this.isTokenExpired) {
-      this.registrationConfirmationForm = this.formBuilder.group({
+      this.resetPasswordConfirmationForm = this.formBuilder.group({
         firstname: this.userFromToken.firstname,
         lastname: this.userFromToken.lastname,
         email: this.userFromToken.email,
@@ -58,28 +58,28 @@ export class RegistrationConfirmationComponent implements OnInit {
         confirmedPassword: ''
       });
     } else {
-      this.notificationService.info(i18n('registrationConfirmation.tokenExpired'));
+      this.notificationService.info(i18n('resetPasswordConfirmation.tokenExpired'));
     }
   }
 
   isFormValid() {
-    return this.registrationConfirmationForm.valid.valueOf() &&
-      (this.registrationConfirmationForm.value.password === this.registrationConfirmationForm.value.confirmedPassword);
+    return this.resetPasswordConfirmationForm.valid.valueOf() &&
+      (this.resetPasswordConfirmationForm.value.password === this.resetPasswordConfirmationForm.value.confirmedPassword);
   }
 
-  onSubmitRegistrationConfirmationForm() {
+  onSubmitResetPasswordConfirmationForm() {
     if (this.isFormValid() && !this.isSubmitted) {
 
       const input: FinalizeRegistrationInput = {
         token: this.token,
-        password: this.registrationConfirmationForm.value.password,
-        firstname: this.registrationConfirmationForm.value.firstname,
-        lastname: this.registrationConfirmationForm.value.lastname
+        password: this.resetPasswordConfirmationForm.value.password,
+        firstname: this.resetPasswordConfirmationForm.value.firstname,
+        lastname: this.resetPasswordConfirmationForm.value.lastname
       };
       // call the register resource from the API.
       this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input }).subscribe(
         () => {
-          this.notificationService.success(i18n('registrationConfirmation.notification.success'));
+          this.notificationService.success(i18n('resetPasswordConfirmation.notification.success'));
           this.isSubmitted = true;
         }
       );

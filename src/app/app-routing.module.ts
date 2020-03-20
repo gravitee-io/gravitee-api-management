@@ -38,6 +38,8 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NgModule } from '@angular/core';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
+import { ResetPasswordConfirmationComponent } from './pages/reset-password/reset-password-confirmation/reset-password-confirmation.component';
 import { Role } from './model/role.enum';
 import { RouterModule, Routes } from '@angular/router';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
@@ -224,7 +226,9 @@ export const routes: Routes = [
         }
       },
       { path: 'registration', component: RegistrationComponent },
-      { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent }
+      { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent },
+      { path: 'resetPassword', component: ResetPasswordComponent },
+      { path: 'resetPassword/confirm/:token', component: ResetPasswordConfirmationComponent }
     ]
   },
   { path: 'documentation', redirectTo: 'documentation/root', pathMatch: 'full' },

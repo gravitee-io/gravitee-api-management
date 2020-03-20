@@ -168,7 +168,11 @@
     "unexpected": "An unexpected error occurred",
     "user": {
       "exists": "There is already a user with the email: {user}",
-      "finalized": "The account has already been finalized"
+      "finalized": "The account has already been finalized",
+      "notActive": "User {user} status is not active",
+      "resetPassword": {
+        "notFound" : "User {user} not found"
+      }
     }
   },
   "footer": {
@@ -329,6 +333,7 @@
       "error": "Invalid username or password"
     },
     "password": "Password",
+    "resetPassword": "Reset your password",
     "signup": {
       "link": "Sign up !",
       "text": "Don't have an account yet ?"
@@ -369,6 +374,32 @@
     "password": "Choose a password",
     "title": "Confirm the registration",
     "tokenExpired": "Your account creation request has expired"
+  },
+  "resetPassword": {
+    "backHome": "Back to portal",
+    "backLogin": "Back to Sign in",
+    "button": "Reset your password",
+    "notification": {
+      "success": "Password reset confirmed! An email has been sent to: {email}"
+    },
+    "title": "Reset your password",
+    "username": "Username"
+  },
+  "resetPasswordConfirmation": {
+    "backHome": "Back to portal",
+    "backLogin": "Back to Sign in",
+    "backResetPassword": "Back to password reset",
+    "button": "Confirm",
+    "confirmedPassword": "Confirm your password",
+    "email": "Email",
+    "firstname": "First name",
+    "lastname": "Last name",
+    "notification": {
+      "success": "Your password has been modified"
+    },
+    "password": "Choose a password",
+    "title": "Choose a password",
+    "tokenExpired": "Your password reset request has expired"
   },
   "route": {
     "applications": "Applications",

@@ -59,6 +59,9 @@
     <p *ngIf="loginForm && registrationEnabled" class="text-center">
       {{ 'login.signup.text' | translate }} <a routerLink="/user/registration">{{ 'login.signup.link' | translate }}</a>
     </p>
+    <p *ngIf="loginForm" class="text-center">
+      <a routerLink="/user/resetPassword">{{ 'login.resetPassword' | translate }}</a>
+    </p>
   </div>
 
 </div>

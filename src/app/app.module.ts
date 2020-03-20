@@ -60,6 +60,8 @@ import { OAuthModule } from 'angular-oauth2-oidc';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
+import { ResetPasswordConfirmationComponent } from './pages/reset-password/reset-password-confirmation/reset-password-confirmation.component';
 import { SafePipe } from './pipes/safe.pipe';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
@@ -113,6 +115,8 @@ import { GvMenuButtonSlotDirective } from './directives/gv-menu-button-slot.dire
     LogoutComponent,
     RegistrationComponent,
     RegistrationConfirmationComponent,
+    ResetPasswordComponent,
+    ResetPasswordConfirmationComponent,
     SafePipe,
     SinglePageComponent,
     SubscriptionsComponent,

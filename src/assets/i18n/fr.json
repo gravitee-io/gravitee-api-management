@@ -168,7 +168,11 @@
     "unexpected": "Une erreur inattendue est survenue",
     "user": {
       "exists": "Il existe déjà un utilisateur avec l'email : {user}",
-      "finalized": "Le compte a déjà été finalisé"
+      "finalized": "Le compte a déjà été finalisé",
+      "notActive": "L'utilisateur {user} n'est pas actif",
+      "resetPassword": {
+        "notFound" : "L'utilisateur {user} n'existe pas"
+      }
     }
   },
   "footer": {
@@ -329,6 +333,7 @@
       "error": "Identifiant ou mot de passe invalide"
     },
     "password": "Mot de passe",
+    "resetPassword": "Réinitialisez votre mot de passe",
     "signup": {
       "link": "Enregistrez-vous",
       "text": "Pas encore de compte ?"
@@ -369,6 +374,32 @@
     "password": "Choisissez un mot de passe",
     "title": "Finaliser son inscription",
     "tokenExpired": "Votre demande de création de compte a expiré"
+  },
+  "resetPassword": {
+    "backHome": "Retour au portail",
+    "backLogin": "Retour à la page d'identification",
+    "button": "Réinitialisez votre mot de passe",
+    "notification": {
+      "success": "Réinitilisation du mot de passe confirmée! Un email a été envoyé à : {email}"
+    },
+    "title": "Réinitialisez votre mot de passe",
+    "username": "Identifiant"
+  },
+  "resetPasswordConfirmation": {
+    "backHome": "Retour au portail",
+    "backLogin": "Retour à la page d'identification",
+    "backResetPassword": "Retour à la page de demande de réinitialisation de mot de passe",
+    "button": "Confirmer",
+    "confirmedPassword": "Confirmez le mot de passe",
+    "email": "Email",
+    "firstname": "Prénom",
+    "lastname": "Nom",
+    "notification": {
+      "success": "Votre mot de passe a bien été modifié"
+    },
+    "password": "Choisissez un mot de passe",
+    "title": "Modification de mot de passe",
+    "tokenExpired": "Votre demande de réinitialisation de mot de passe a expiré"
   },
   "route": {
     "applications": "Applications",

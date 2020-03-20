@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.page__content__login, .page__content__registration, .page__content__registration-confirmation {
+.page__content__login, .page__content__registration, .page__content__registration-confirmation, .page__content__reset-password, .page__content__reset-password-confirmation {
 }
 
-.login, .registration, .registration-confirmation {
+.login, .registration, .registration-confirmation, .reset-password, .reset-password-confirmation {
   align-content: center;
   background-color: white;
   color: var(--gv-theme-color-darker);
@@ -27,7 +27,7 @@
   padding: 0.75rem 3.5rem;
 }
 
-.login__form__input, .registration__form__input, .registration-confirmation__form__input {
+.login__form__input, .registration__form__input, .registration-confirmation__form__input, .reset-password__form__input, .reset-password-confirmation__form__input {
   --gv-button--p: 0.7rem 0.5rem;
   margin: 0.5rem 0;
   width: 100%;

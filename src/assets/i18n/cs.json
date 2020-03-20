@@ -168,7 +168,11 @@
     "unexpected": "Vyskytla se neočekávaná chyba",
     "user": {
       "exists": "E-mail již existuje uživatel: {user}",
-      "finalized": "Účet již byl dokončen"
+      "finalized": "Účet již byl dokončen",
+      "notActive": "Status {user} není aktivní",
+      "resetPassword": {
+        "notFound": "Uživatel {user} nebyl nalezen"
+      }
     }
   },
   "footer": {
@@ -329,6 +333,7 @@
       "error": "Neplatné uživatelské jméno nebo heslo"
     },
     "password": "Heslo",
+    "resetPassword": "Obnovit heslo",
     "signup": {
       "link": "Registrovat !",
       "text": "Nemáte prozatím účet ?"
@@ -369,6 +374,32 @@
     "password": "Vyberte heslo",
     "title": "Potvrdit registraci",
     "tokenExpired": "Platnost vašeho požadavku na vytvoření účtu vypršela"
+  },
+  "resetPassword": {
+    "backHome": "Zpátky na portal",
+    "backLogin": "Zpátky na přihlášení",
+    "button": "Obnovit heslo",
+    "notification": {
+      "success": "Obnovení hesla bylo potvrzeno! E-mail byl odeslán na adresu: {email}"
+    },
+    "title": "Obnovit heslo",
+    "username": "Uživatelské jméno"
+  },
+  "resetPasswordConfirmation": {
+    "backHome": "Zpátky na portal",
+    "backLogin": "Zpátky na přihlášení",
+    "backResetPassword": "Zpátky na obnovení hesla",
+    "button": "Potvrdit",
+    "confirmedPassword": "Potvrdit vaše heslo",
+    "email": "Email",
+    "firstname": "Křestní jméno",
+    "lastname": "Přijmení",
+    "notification": {
+      "success": "Vaše heslo bylo obnoveno"
+    },
+    "password": "Vyberte heslo",
+    "title": "Vyberte heslo",
+    "tokenExpired": "Platnost vašeho požadavku na resetování hesla vypršela"
   },
   "route": {
     "applications": "Aplikace",
