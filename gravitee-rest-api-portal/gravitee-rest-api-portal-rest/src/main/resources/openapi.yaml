@@ -1558,6 +1558,36 @@ paths:
                 $ref: '#/components/schemas/User'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /users/_reset_password:
+    post:
+      tags:
+        - Users
+      summary: Reset a user's password
+      description: |
+        Send an email with a link so the user with this email can provide a new password.
+        The user must be internally managed and active.
+      operationId: resetUserPassword
+      requestBody:
+        description: Use to reset a user's password.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetUserPasswordInput'
+      responses:
+        200:
+          description: The user whose password has been reset.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Input must not be null or no active and internally managed user has been found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /user:
     get:
       tags:
@@ -1677,7 +1707,6 @@ paths:
           $ref: '#/components/responses/PictureSuccess'
         500:
           $ref: '#/components/responses/InternalServerError'
-
   /permissions:
     get:
       tags:
@@ -3702,6 +3731,16 @@ components:
           description: Avatar of the user.
           type: string
           writeOnly: true
+    ResetUserPasswordInput:
+      required:
+        - username
+      properties:
+        username:
+          description: Username of the user.
+          type: string
+        reset_page_url:
+          description: URL of the password reset page to be used in the 'Password reset' email.
+          type: string
     #######################
     # Composition Objects #
     #######################

@@ -241,7 +241,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 return convert(optionalUser.get(), loadRoles);
             }
 
-            // Should never happen
             throw new UserNotFoundException(sourceId);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find user using source[{}], user[{}]", source, sourceId, ex);
@@ -541,7 +540,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     
     @Override
     public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri,
-                                                          final ACTION action, final String confirmationPageUrl) {
+                                                          final ACTION action, final String targetPageUrl) {
         // generate a JWT to store user's information and for security purpose
         final Map<String, Object> claims = new HashMap<>();
         claims.put(Claims.ISSUER, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER));
@@ -568,9 +567,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
         
         
         String registrationUrl= "";
-        if (confirmationPageUrl != null && !confirmationPageUrl.isEmpty()) {
-            registrationUrl += confirmationPageUrl;
-            if(!confirmationPageUrl.endsWith("/")) {
+        if (targetPageUrl != null && !targetPageUrl.isEmpty()) {
+            registrationUrl += targetPageUrl;
+            if(!targetPageUrl.endsWith("/")) {
                 registrationUrl += "/";
             }
             registrationUrl += token;
@@ -756,6 +755,28 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public void resetPassword(final String id) {
+        this.resetPassword(id, null);
+    }
+            
+    @Override
+    public UserEntity resetPasswordFromSourceId(String sourceId, String resetPageUrl) {
+        try {
+            if (sourceId.startsWith("deleted")) {
+                throw new UserNotActiveException(sourceId);
+            }
+            UserEntity foundUser = this.findBySource(IDP_SOURCE_GRAVITEE, sourceId, false);
+            if ("ACTIVE".equals(foundUser.getStatus())) {
+                this.resetPassword(foundUser.getId(), resetPageUrl);
+                return foundUser;
+            } else {
+                throw new UserNotActiveException(foundUser.getSourceId());
+            }
+        } catch(UserNotFoundException ex) {
+            throw new UserNotFoundForPasswordResetException(sourceId);
+        }
+    }
+    
+    private void resetPassword(final String id, final String resetPageUrl) {
         try {
             LOGGER.debug("Resetting password of user id {}", id);
 
@@ -773,7 +794,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             userRepository.update(user);
 
             final Map<String, Object> params = getTokenRegistrationParams(convert(user, false),
-                    RESET_PASSWORD_PATH, RESET_PASSWORD);
+                    RESET_PASSWORD_PATH, RESET_PASSWORD, resetPageUrl);
 
             notifierService.trigger(PortalHook.PASSWORD_RESET, params);
 

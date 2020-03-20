@@ -21,9 +21,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
-import io.gravitee.rest.api.portal.rest.model.FinalizeRegistrationInput;
-import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
-import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
@@ -93,5 +91,12 @@ public class UsersResource extends AbstractResource {
         }
 
         return Response.serverError().build();
+    }
+
+    @POST
+    @Path("_reset_password")
+    public Response resetUserPassword(@NotNull(message = "Input must not be null.") @Valid ResetUserPasswordInput resetUserPasswordInput) {
+        UserEntity user = userService.resetPasswordFromSourceId(resetUserPasswordInput.getUsername(), resetUserPasswordInput.getResetPageUrl());
+        return Response.ok(userMapper.convert(user)).build();
     }
 }

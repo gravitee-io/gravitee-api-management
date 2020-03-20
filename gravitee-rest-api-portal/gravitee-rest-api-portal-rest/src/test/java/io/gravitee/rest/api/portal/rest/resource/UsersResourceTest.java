@@ -206,4 +206,17 @@ public class UsersResourceTest extends AbstractResourceTest {
         Mockito.verify(userMapper).convert(input);
         Mockito.verify(userService).finalizeRegistration(registerUserEntity);
     }
+
+    @Test
+    public void shouldResetPassword() {
+        ResetUserPasswordInput input = new ResetUserPasswordInput().username("my@email.com").resetPageUrl("HTTP://MY-RESET-PAGE");
+        final Response response = target().path("_reset_password").request().post(Entity.json(input));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldHaveBadRequestWhileResettingPasswordWithoutInput() {
+        final Response response = target().path("_reset_password").request().post(Entity.json(null));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
 }

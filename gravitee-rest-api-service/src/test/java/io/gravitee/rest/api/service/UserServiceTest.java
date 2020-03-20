@@ -356,6 +356,36 @@ public class UserServiceTest {
         userService.resetPassword(USER_NAME);
     }
 
+
+    @Test(expected = UserNotFoundForPasswordResetException.class)
+    public void shouldFailWhileResettingPassword() throws TechnicalException {
+        when(userRepository.findBySource(any(), any(), any(), any())).thenReturn(Optional.empty());
+        userService.resetPasswordFromSourceId("my@email.com", "HTTP://MY-RESET-PAGE");
+    }
+    
+    @Test(expected = UserNotActiveException.class)
+    public void shouldFailWhileResettingPasswordWhenUserFoundIsNotActive() throws TechnicalException {
+        User user = new User();
+        user.setId(USER_NAME);
+        user.setSource("gravitee");
+        user.setStatus(UserStatus.ARCHIVED);
+        when(userRepository.findBySource(any(), any(), any(), any())).thenReturn(Optional.of(user));
+
+        userService.resetPasswordFromSourceId("my@email.com", "HTTP://MY-RESET-PAGE");
+    }
+    
+    @Test(expected = UserNotInternallyManagedException.class)
+    public void shouldFailWhileResettingPasswordWhenUserFoundIsNotInternallyManaged() throws TechnicalException {
+        User user = new User();
+        user.setId(USER_NAME);
+        user.setSource("not gravitee");
+        user.setStatus(UserStatus.ACTIVE);
+        when(userRepository.findBySource(any(), any(), any(), any())).thenReturn(Optional.of(user));
+        when(userRepository.findById(any())).thenReturn(Optional.of(user));
+
+        userService.resetPasswordFromSourceId("my@email.com", "HTTP://MY-RESET-PAGE");
+    }
+    
     @Test(expected = UserNotInternallyManagedException.class)
     public void shouldNotResetPasswordCauseUserNotInternallyManaged() throws TechnicalException {
         when(user.getSource()).thenReturn("external");
