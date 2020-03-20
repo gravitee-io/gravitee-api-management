@@ -141,6 +141,20 @@ class LogsFiltersController {
         this.displayMode = this.displayModes[0];
       }
     }
+
+    if (this.context === 'platform' || this.context === 'api') {
+      this.metadata.applications.push({
+        id: '1',
+        name: 'Unknown application'
+      });
+    }
+
+    if (this.context === 'platform' || this.context === 'application') {
+      this.metadata.apis.push({
+        id: '1',
+        name: 'Unknown API'
+      });
+    }
   }
 
   private decodeQueryFilters(query) {
