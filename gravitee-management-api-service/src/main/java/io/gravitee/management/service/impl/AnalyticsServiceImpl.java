@@ -309,6 +309,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
             if (topHitsAnalytics.getValues() != null) {
+                int i = 0;
                 for (String key : topHitsAnalytics.getValues().keySet()) {
                     switch(fieldName) {
                         case FIELD_API: metadata.put(key, getAPIMetadata(key)); break;
@@ -319,6 +320,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                         default:
                             metadata.put(key, getGenericMetadata(key)); break;
                     }
+                    metadata.get(key).put("order", String.valueOf(i));
+                    i++;
                 }
             }
 
