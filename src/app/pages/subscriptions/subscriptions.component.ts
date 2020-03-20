@@ -29,8 +29,8 @@ export class SubscriptionsComponent implements OnInit {
   subscriptions: Array<Subscription>;
   apis: Array<Api>;
   format: (key) => Promise<any>;
-  options: Array<any>;
-  optionsSubscriptions: Array<any>;
+  options: object;
+  optionsSubscriptions: object;
   subs: Array<any>;
   subsByApplication: any;
   emptyKeyApplications: string;
@@ -45,37 +45,43 @@ export class SubscriptionsComponent implements OnInit {
 
   ngOnInit() {
     this.subsByApplication = {};
+    this.subs = [];
     this.emptyKeyApplications = i18n('subscriptions.applications.init');
     this.emptyKeySubscriptions = i18n('subscriptions.subscriptions.init');
-    this.options = [
-      { data: '_links.picture', type: 'image', alt: 'name' },
-      {
-        data: 'name',
-        label: i18n('subscriptions.applications.name'),
-        icon: (item) => {
-          switch (item.applicationType.toLowerCase()) {
-            case 'browser':
-            case 'web':
-              return 'devices:laptop';
-            case 'native':
-              return 'devices:android';
-            case 'backend_to_backend':
-              return 'devices:server';
-            default:
-              return 'layout:layout-top-panel-2';
+    this.options = {
+      selectable: true,
+      data: [
+        { field: '_links.picture', type: 'image', alt: 'name' },
+        {
+          field: 'name',
+          label: i18n('subscriptions.applications.name'),
+          icon: (item) => {
+            switch (item.applicationType.toLowerCase()) {
+              case 'browser':
+              case 'web':
+                return 'devices:laptop';
+              case 'native':
+                return 'devices:android';
+              case 'backend_to_backend':
+                return 'devices:server';
+              default:
+                return 'layout:layout-top-panel-2';
+            }
           }
-        }
-      },
-      { data: 'owner.display_name', label: i18n('subscriptions.applications.owner') },
-      { data: 'updated_at', type: 'date', label: i18n('subscriptions.applications.last_update') },
-    ];
-    this.optionsSubscriptions = [
-      { data: 'api._links.picture', type: 'image', alt: 'name' },
-      { data: 'api.name', tag: 'api.version', label: i18n('subscriptions.subscriptions.api') },
-      { data: 'plan.name', label: i18n('subscriptions.subscriptions.plan') },
-      { data: 'subscription.start_at', type: 'date', label: i18n('subscriptions.subscriptions.start_date') },
-      { data: 'subscription.end_at', type: 'date', label: i18n('subscriptions.subscriptions.end_date') },
-    ];
+        },
+        { field: 'owner.display_name', label: i18n('subscriptions.applications.owner') },
+        { field: 'updated_at', type: 'date', label: i18n('subscriptions.applications.last_update') },
+      ]
+    };
+    this.optionsSubscriptions = {
+      data: [
+        { field: 'api._links.picture', type: 'image', alt: 'name' },
+        { field: 'api.name', tag: 'api.version', label: i18n('subscriptions.subscriptions.api') },
+        { field: 'plan.name', label: i18n('subscriptions.subscriptions.plan') },
+        { field: 'subscription.start_at', type: 'date', label: i18n('subscriptions.subscriptions.start_date') },
+        { field: 'subscription.end_at', type: 'date', label: i18n('subscriptions.subscriptions.end_date') },
+      ]
+    };
     this.format = (key) => this.translateService.get(key).toPromise();
 
     this.applicationService.getApplications({ size: -1 }).toPromise().then((response) => {

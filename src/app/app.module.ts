@@ -73,10 +73,13 @@ import '@gravitee/ui-components/wc/gv-spinner';
 import { Router, Scroll } from '@angular/router';
 import { ViewportScroller } from '@angular/common';
 import { filter } from 'rxjs/operators';
+import { ApplicationAnalyticsComponent } from './pages/application/application-analytics/application-analytics.component';
 import { ApplicationGeneralComponent } from './pages/application/application-general/application-general.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { GvCreateApplicationComponent } from './components/gv-create-application/gv-create-application.component';
 import { GvMenuButtonSlotDirective } from './directives/gv-menu-button-slot.directive';
+import { GvAnalyticsDashboardComponent } from './components/gv-analytics-dashboard/gv-analytics-dashboard.component';
+import { GvAnalyticsFiltersComponent } from './components/gv-analytics-filters/gv-analytics-filters.component';
 
 @NgModule({
   declarations: [
@@ -89,6 +92,7 @@ import { GvMenuButtonSlotDirective } from './directives/gv-menu-button-slot.dire
     ApiSubscribeComponent,
     AppComponent,
     ApplicationsComponent,
+    ApplicationAnalyticsComponent,
     ApplicationGeneralComponent,
     CatalogSearchComponent,
     CatalogSearchComponent,
@@ -123,6 +127,8 @@ import { GvMenuButtonSlotDirective } from './directives/gv-menu-button-slot.dire
     GvFileUploadComponent,
     NotFoundComponent,
     GvCreateApplicationComponent,
+    GvAnalyticsDashboardComponent,
+    GvAnalyticsFiltersComponent,
   ],
   entryComponents: [GvSearchInputComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
   imports: [

@@ -68,7 +68,7 @@
           </gv-button>
 
           <gv-button (click)="reset()" primary outlined>
-            {{ 'application.reset' | translate }}
+            {{ 'common.reset' | translate }}
           </gv-button>
 
           <gv-confirm *ngIf="canDelete" [message]="'application.delete.message' | translate" (:gv-confirm:ok)="delete()"

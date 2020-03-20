@@ -41,13 +41,16 @@ import { RegistrationConfirmationComponent } from './pages/registration/registra
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { ResetPasswordConfirmationComponent } from './pages/reset-password/reset-password-confirmation/reset-password-confirmation.component';
 import { Role } from './model/role.enum';
-import { RouterModule, Routes } from '@angular/router';
+import { ActivatedRoute, RouterModule, Routes } from '@angular/router';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
 import { SubscribeGuardService } from './services/subscribe-guard.service';
 import { ApplicationGeneralComponent } from './pages/application/application-general/application-general.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { GvCreateApplicationComponent } from './components/gv-create-application/gv-create-application.component';
+import { ApplicationAnalyticsComponent } from './pages/application/application-analytics/application-analytics.component';
+import { ApplicationResolver } from './resolver/application.resolver';
+import { DashboardsResolver } from './resolver/dashboards.resolver';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
@@ -279,6 +282,9 @@ export const routes: Routes = [
         data: {
           menu: { slots: { top: GvHeaderItemComponent }, animation: { type: 'fade' } },
         },
+        resolve: {
+          application: ApplicationResolver
+        },
         children: [
           {
             path: '',
@@ -287,6 +293,19 @@ export const routes: Routes = [
               icon: 'general:clipboard',
               title: i18n('route.catalogApi'),
               animation: { type: 'fade' }
+            }
+          },
+          {
+            path: 'analytics',
+            pathMatch: 'full',
+            component: ApplicationAnalyticsComponent,
+            data: {
+              icon: 'shopping:chart-line#1',
+              title: i18n('route.analyticsApplication'),
+              animation: { type: 'fade' }
+            },
+            resolve: {
+              dashboards: DashboardsResolver
             }
           },
         ]

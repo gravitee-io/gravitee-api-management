@@ -52,7 +52,7 @@
       <gv-row *ngFor="let api of allApis" [item]="api.item" (click)="goToApi(api.item)"></gv-row>
     </div>
     <div class="catalog__section__content__pagination" [id]="fragments.pagination">
-      <gv-pagination [data]="paginationData" hideEmpty="true"></gv-pagination>
+      <gv-pagination [data]="paginationData" hide-empty="true"></gv-pagination>
     </div>
   </section>
 </div>

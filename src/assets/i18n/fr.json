@@ -1,4 +1,12 @@
 {
+  "analytics": {
+    "empty": "Aucun résultat à afficher",
+    "timeframes": {
+      "days": "Jours",
+      "hours": "Heures",
+      "minutes": "Minutes"
+    }
+  },
   "api": {
     "list": {
       "connectedApp": "Applications liées"
@@ -77,6 +85,10 @@
     }
   },
   "application": {
+    "analytics": {
+      "search": "Rechercher",
+      "selectDashboard": "Sélectionner un dashboard"
+    },
     "change_picture": "Changer l'image",
     "client_id": {
       "label": "Client ID",
@@ -111,7 +123,6 @@
       "title": "Nom de l'application"
     },
     "oauth2": "Intégration OAuth2",
-    "reset": "Réinitialiser",
     "save": "Sauvegarder",
     "success": {
       "delete": "Votre application a été supprimée avec succès",
@@ -141,6 +152,19 @@
   },
   "categories": {
     "title": "Catégories"
+  },
+  "common": {
+    "date": {
+      "from": {
+        "label": "Date de début",
+        "title": "Séléctionner une date de début"
+      },
+      "to": {
+        "label": "Date de fin",
+        "title": "Séléctionner une date de fin"
+      }
+    },
+    "reset": "Réinitialiser"
   },
   "dashboard": {
     "welcome": "Bienvenue {username},"
@@ -192,6 +216,10 @@
   "gv-category": {
     "empty": "Aucune categorie à afficher ici",
     "error": "Une erreur est survenue pendant de le chargement de la catégorie"
+  },
+  "gv-chart": {
+    "empty": "Aucun résultat à afficher",
+    "error": "Une erreur est survenue pendant de le chargement des données"
   },
   "gv-code": {
     "copy": "Copier dans le presse papier"
@@ -315,8 +343,14 @@
     "empty": "Aucun résultat à afficher",
     "error": "Une erreur est survenue pendant de le chargement de l'API"
   },
+  "gv-stats": {
+    "empty": "Aucun résultat à afficher",
+    "error": "Une erreur est survenue pendant de le chargement des données"
+  },
   "gv-table": {
     "accepted": "Accepté",
+    "empty": "Aucun résultat à afficher",
+    "error": "Une erreur est survenue pendant de le chargement des données",
     "paused": "En pause",
     "pending": "En attente",
     "rejected": "Rejeté"
@@ -402,6 +436,7 @@
     "tokenExpired": "Votre demande de réinitialisation de mot de passe a expiré"
   },
   "route": {
+    "analyticsApplication": "Analytics",
     "applications": "Applications",
     "catalog": "Catalogue",
     "catalogApi": "Informations générales",

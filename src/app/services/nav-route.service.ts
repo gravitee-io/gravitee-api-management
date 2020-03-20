@@ -103,7 +103,7 @@ export class NavRouteService {
             if (path.endsWith('/')) {
               path = path.substring(0, path.length - 1);
             }
-            const active = this.router.isActive(path, false);
+            const active = this.router.isActive(path, false) || this.isActive(path, this.router.url);
             return this.translateService.get(child.data.title).toPromise().then((_title) => {
               const routeNav: INavRoute = {
                 path,
@@ -122,6 +122,11 @@ export class NavRouteService {
     return null;
   }
 
+  private isActive(path, url) {
+    const regexp = '^' + path.replace(/\/:([^/])+/, '\/([^\/])+') + '$';
+    return new RegExp(regexp).test(url.substring(1).split('?')[0]);
+  }
+
   private isVisiblePath(_hiddenPaths) {
     return (child) => !_hiddenPaths.includes(child.path);
   }
@@ -136,8 +141,8 @@ export class NavRouteService {
         return childrenNav.then((navRoutes) => {
           return navRoutes.map((navRoute) => {
             for (const key of Object.keys(params)) {
-              navRoute.path = navRoute.path.replace(`:${key}`, params[key]);
-              navRoute.active = this.router.isActive(navRoute.path, true);
+              navRoute.active = this.isActive(navRoute.path, this.router.url);
+              navRoute.path = navRoute.path.replace(`:${ key }`, params[key]);
             }
             return navRoute;
           });

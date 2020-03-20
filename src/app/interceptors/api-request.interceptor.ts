@@ -25,7 +25,7 @@ import { LoaderService } from '../services/loader.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ConfigurationService } from '../services/configuration.service';
 
-export const SILENT_CODES = ['errors.rating.disabled'];
+export const SILENT_CODES = ['errors.rating.disabled', 'errors.analytics.calculate'];
 
 @Injectable()
 export class ApiRequestInterceptor implements HttpInterceptor {

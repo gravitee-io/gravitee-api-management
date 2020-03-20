@@ -1,4 +1,12 @@
 {
+  "analytics": {
+    "empty": "analytics.empty",
+    "timeframes": {
+      "days": "analytics.timeframes.days",
+      "hours": "analytics.timeframes.hours",
+      "minutes": "analytics.timeframes.minutes"
+    }
+  },
   "api": {
     "list": {
       "connectedApp": "Connected App"
@@ -77,6 +85,10 @@
     }
   },
   "application": {
+    "analytics": {
+      "search": "application.analytics.search",
+      "selectDashboard": "application.analytics.selectDashboard"
+    },
     "change_picture": "Change picture",
     "client_id": {
       "label": "Client ID",
@@ -111,7 +123,6 @@
       "title": "Name of the application"
     },
     "oauth2": "OAuth2 integration",
-    "reset": "application.reset",
     "save": "Save",
     "success": {
       "delete": "application.success.delete",
@@ -141,6 +152,19 @@
   },
   "categories": {
     "title": "Categories"
+  },
+  "common": {
+    "date": {
+      "from": {
+        "label": "common.date.from.label",
+        "title": "common.date.from.title"
+      },
+      "to": {
+        "label": "common.date.to.label",
+        "title": "common.date.to.title"
+      }
+    },
+    "reset": "common.reset"
   },
   "dashboard": {
     "welcome": "Welcome {username},"
@@ -192,6 +216,10 @@
   "gv-category": {
     "empty": "No category to display here",
     "error": "An error occurred while loading the category"
+  },
+  "gv-chart": {
+    "empty": "gv-chart.empty",
+    "error": "gv-chart.error"
   },
   "gv-code": {
     "copy": "Copy to clipboard"
@@ -315,8 +343,14 @@
     "empty": "No results to display",
     "error": "An error occurred while loading the API"
   },
+  "gv-stats": {
+    "empty": "gv-stats.empty",
+    "error": "gv-stats.error"
+  },
   "gv-table": {
     "accepted": "Accepted",
+    "empty": "gv-table.empty",
+    "error": "gv-table.error",
     "paused": "Paused",
     "pending": "Pending",
     "rejected": "Rejected"
@@ -402,6 +436,7 @@
     "tokenExpired": "Your password reset request has expired"
   },
   "route": {
+    "analyticsApplication": "route.analyticsApplication",
     "applications": "Applications",
     "catalog": "Catalog",
     "catalogApi": "General informations",

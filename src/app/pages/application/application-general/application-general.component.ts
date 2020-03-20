@@ -63,9 +63,9 @@ export class ApplicationGeneralComponent implements OnInit {
   }
 
   ngOnInit() {
-    const applicationId = this.route.snapshot.params.applicationId;
-    if (applicationId) {
-      this.permissionsService.getCurrentUserPermissions({ applicationId }).toPromise()
+    this.application = this.route.snapshot.data.application;
+    if (this.application) {
+      this.permissionsService.getCurrentUserPermissions({ applicationId: this.application.id }).toPromise()
         .then((permissions) => (this.permissions = permissions))
         .catch(() => (this.permissions = {}))
         .finally(() => {
@@ -73,38 +73,36 @@ export class ApplicationGeneralComponent implements OnInit {
           this.canUpdate = this.permissions.DEFINITION && this.permissions.DEFINITION.includes('U');
         });
 
-      this.applicationService.getApplicationByApplicationId({ applicationId }).toPromise().then((application) => {
-        this.application = application;
-        this.reset();
-        this.translateService.get([i18n('application.miscellaneous.owner'), i18n('application.miscellaneous.type'),
-          i18n('application.miscellaneous.createdDate'), i18n('application.miscellaneous.lastUpdate')])
-          .subscribe(
-            ({
-               'application.miscellaneous.owner': owner,
-               'application.miscellaneous.type': type,
-               'application.miscellaneous.createdDate': createdDate,
-               'application.miscellaneous.lastUpdate': lastUpdate,
-             }) => {
-              this.translateService.get('application.types', { type: application.applicationType }).toPromise().then((applicationType => {
-                this.miscellaneous = [
-                  { key: owner, value: application.owner.display_name },
-                  { key: type, value: applicationType },
-                  {
-                    key: createdDate,
-                    value: new Date(application.created_at),
-                    date: 'short'
-                  },
-                  {
-                    key: lastUpdate,
-                    value: new Date(application.updated_at),
-                    date: 'relative'
-                  },
-                ];
-              }));
-            });
-      });
+      this.reset();
+      this.translateService.get([i18n('application.miscellaneous.owner'), i18n('application.miscellaneous.type'),
+        i18n('application.miscellaneous.createdDate'), i18n('application.miscellaneous.lastUpdate')])
+        .subscribe(
+          ({
+             'application.miscellaneous.owner': owner,
+             'application.miscellaneous.type': type,
+             'application.miscellaneous.createdDate': createdDate,
+             'application.miscellaneous.lastUpdate': lastUpdate,
+           }) => {
+            this.translateService.get('application.types', { type: this.application.applicationType })
+              .toPromise().then((applicationType => {
+              this.miscellaneous = [
+                { key: owner, value: this.application.owner.display_name },
+                { key: type, value: applicationType },
+                {
+                  key: createdDate,
+                  value: new Date(this.application.created_at),
+                  date: 'short'
+                },
+                {
+                  key: lastUpdate,
+                  value: new Date(this.application.updated_at),
+                  date: 'relative'
+                },
+              ];
+            }));
+          });
 
-      this.linkedApis = this.applicationService.getSubscriberApisByApplicationId({ applicationId })
+      this.linkedApis = this.applicationService.getSubscriberApisByApplicationId({ applicationId: this.application.id })
         .toPromise()
         .then((response) => {
           return response.data.map((api) => ({
