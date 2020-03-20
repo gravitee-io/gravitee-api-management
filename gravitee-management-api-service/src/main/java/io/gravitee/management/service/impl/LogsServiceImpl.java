@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.analytics.query.LogQuery;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.ApiLifecycleState;
 import io.gravitee.management.model.log.*;
 import io.gravitee.management.model.log.extended.Request;
 import io.gravitee.management.model.log.extended.Response;
@@ -56,7 +57,19 @@ public class LogsServiceImpl implements LogsService {
 
     private final Logger logger = LoggerFactory.getLogger(LogsServiceImpl.class);
 
-    private static final String APPLICATION_KEYLESS = "1";
+    private static final String UNKNOWN_SERVICE = "1";
+    private static final String UNKNOWN_SERVICE_MAPPED = "?";
+
+    private static final String METADATA_NAME = "name";
+    private static final String METADATA_DELETED = "deleted";
+    private static final String METADATA_UNKNOWN = "unknown";
+    private static final String METADATA_VERSION = "version";
+    private static final String METADATA_UNKNOWN_API_NAME = "Unknown API (not found)";
+    private static final String METADATA_UNKNOWN_APPLICATION_NAME = "Unknown application (keyless)";
+    private static final String METADATA_DELETED_API_NAME = "Deleted API";
+    private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
+    private static final String METADATA_DELETED_PLAN_NAME = "Deleted plan";
+
     private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
     private static final char separator = ';';
@@ -267,12 +280,20 @@ public class LogsServiceImpl implements LogsService {
             Map<String, String> metadata = new HashMap<>();
 
             try {
-                ApiEntity apiEntity = apiService.findById(api);
-                metadata.put("name", apiEntity.getName());
-                metadata.put("version", apiEntity.getVersion());
+                if (api.equals(UNKNOWN_SERVICE) || api.equals(UNKNOWN_SERVICE_MAPPED)) {
+                    metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
+                    metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
+                } else {
+                    ApiEntity apiEntity = apiService.findById(api);
+                    metadata.put(METADATA_NAME, apiEntity.getName());
+                    metadata.put(METADATA_VERSION, apiEntity.getVersion());
+                    if (ApiLifecycleState.ARCHIVED.equals(apiEntity.getLifecycleState())) {
+                        metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                    }
+                }
             } catch (ApiNotFoundException anfe) {
-                metadata.put("name", "Deleted API");
-                metadata.put("deleted", "true");
+                metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                metadata.put(METADATA_NAME, METADATA_DELETED_API_NAME);
             }
 
             return metadata;
@@ -284,18 +305,19 @@ public class LogsServiceImpl implements LogsService {
             Map<String, String> metadata = new HashMap<>();
 
             try {
-                ApplicationEntity applicationEntity = applicationService.findById(application);
-                metadata.put("name", applicationEntity.getName());
-                if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
-                    metadata.put("deleted", "true");
+                if (application.equals(UNKNOWN_SERVICE) || application.equals(UNKNOWN_SERVICE_MAPPED)) {
+                    metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
+                    metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
+                } else {
+                    ApplicationEntity applicationEntity = applicationService.findById(application);
+                    metadata.put(METADATA_NAME, applicationEntity.getName());
+                    if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
+                        metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                    }
                 }
             } catch (ApplicationNotFoundException anfe) {
-                metadata.put("deleted", "true");
-                if (application.equals(APPLICATION_KEYLESS)) {
-                    metadata.put("name", "Unknown application (keyless)");
-                } else {
-                    metadata.put("name", "Deleted application");
-                }
+                metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                metadata.put(METADATA_NAME, METADATA_DELETED_APPLICATION_NAME);
             }
 
             return metadata;
@@ -308,9 +330,10 @@ public class LogsServiceImpl implements LogsService {
 
             try {
                 PlanEntity planEntity = planService.findById(plan);
-                metadata.put("name", planEntity.getName());
+                metadata.put(METADATA_NAME, planEntity.getName());
             } catch (PlanNotFoundException anfe) {
-                metadata.put("deleted", "true");
+                metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                metadata.put(METADATA_NAME, METADATA_DELETED_PLAN_NAME);
             }
 
             return metadata;
