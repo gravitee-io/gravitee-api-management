@@ -41,7 +41,10 @@ class LogsFiltersController {
     '[200 TO 300]': '200 to 300ms',
     '[300 TO 400]': '300 to 400ms',
     '[400 TO 500]': '400 to 500ms',
-    '[500 TO *]': '> 500ms'
+    '[500 TO 1000]': '500 to 1000ms',
+    '[1000 TO 2000]': '1000 to 2000ms',
+    '[2000 TO 5000]': '2000 to 5000ms',
+    '[5000 TO *]': '> 5000ms'
   };
   public httpStatus = {
     100: 'CONTINUE',
