@@ -2009,6 +2009,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
+
+                // Issue https://github.com/gravitee-io/issues/issues/3356
+                if (apiDefinition.getProxy().getVirtualHosts() != null &&
+                        !apiDefinition.getProxy().getVirtualHosts().isEmpty()) {
+                    apiEntity.setContextPath(apiDefinition.getProxy().getVirtualHosts().get(0).getPath());
+                }
+
                 if (apiDefinition.getPathMappings() != null) {
                     apiEntity.setPathMappings(new HashSet<>(apiDefinition.getPathMappings().keySet()));
                 }

@@ -76,6 +76,12 @@ public class ApiEntity implements Indexable {
             example = "MY_GROUP1, MY_GROUP2")
     private Set<String> groups;
 
+    @JsonProperty(value = "context_path")
+    @ApiModelProperty(
+            value = "API's context path.",
+            example = "/my-awesome-api")
+    private String contextPath;
+
     @NotNull
     @DeploymentRequired
     @JsonProperty(value = "proxy", required = true)
@@ -410,6 +416,14 @@ public class ApiEntity implements Indexable {
 
     public void setEntrypoints(List<ApiEntrypointEntity> entrypoints) {
         this.entrypoints = entrypoints;
+    }
+
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
     }
 
     @Override
