@@ -139,8 +139,11 @@
                                 <input type="text" ng-model="$ctrl.page.configuration.tryItURL" ng-disabled="$ctrl.page.configuration.tryIt === 'false'">
                                 <div class="hint">Base URL used to try the API</div>
                             </md-input-container>
-                            <md-checkbox ng-model="$ctrl.page.configuration.entrypointsAsServers" ng-true-value="'true'" ng-false-value="'false'">
-                              Servers are based on the entrypoints of the API (in that case, the base URL is no more used).
+                            <md-checkbox ng-model="$ctrl.page.configuration.entrypointsAsServers" ng-true-value="'true'" ng-false-value="'false'" ng-click="$ctrl.toggleEntrypointAsServer()">
+                              Swagger servers URL are based on the entrypoints of the API (in that case, the base URL is no more used).
+                            </md-checkbox>
+                            <md-checkbox ng-model="$ctrl.page.configuration.entrypointAsBasePath" ng-true-value="'true'" ng-false-value="'false'" ng-disabled="$ctrl.page.configuration.entrypointsAsServers === undefined || $ctrl.page.configuration.entrypointsAsServers === 'false'">
+                              Swagger servers URL contains the context-path of the API as the base path
                             </md-checkbox>
                             <md-checkbox ng-model="$ctrl.page.configuration.showURL" ng-true-value="'true'" ng-false-value="'false'">
                                 Show the URL to download the content

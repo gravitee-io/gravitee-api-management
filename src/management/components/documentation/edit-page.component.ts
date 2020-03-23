@@ -187,6 +187,12 @@ const EditPageComponent: ng.IComponentOptions = {
         this.reset();
       });
     };
+
+    this.toggleEntrypointAsServer = () => {
+      if (this.page.configuration.entrypointsAsServers === 'false') {
+        this.page.configuration.entrypointAsBasePath = this.page.configuration.entrypointsAsServers;
+      }
+    }
   }
 };
 
