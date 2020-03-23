@@ -39,14 +39,19 @@ public class ManagementContainer extends SpringBasedContainer {
         return "Gravitee.io - Management API";
     }
 
+    @Override
+    protected void initializeLogging() {
+        super.initializeLogging();
+        
+        // Move all java util logging logs to SLF4j
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+    }
+
     public static void main(String[] args) throws Exception {
         // If you want to run Gravitee standalone from your IDE, please do not forget
         // to specify -Dgravitee.home=/path/to/gravitee/home in order to make it works.
         ManagementContainer container = new ManagementContainer();
-
-        // Move all java util logging logs to SLF4j
-        SLF4JBridgeHandler.removeHandlersForRootLogger();
-        SLF4JBridgeHandler.install();
 
         container.start();
     }
