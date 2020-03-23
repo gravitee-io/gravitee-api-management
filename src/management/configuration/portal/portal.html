@@ -43,6 +43,10 @@
                 <label>Title</label>
                 <input ng-model="$ctrl.settings.management.title">
             </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Management URL</label>
+                <input type="text" ng-model="$ctrl.settings.management.url">
+            </md-input-container>
             <h6>Security plans type available</h6>
             <md-input-container class="gv-input-container-dense">
                 <md-checkbox ng-model="$ctrl.settings.plan.security.keyless.enabled" aria-label="A">
@@ -130,10 +134,10 @@
                 <label>Max size upload file (bytes)</label>
                 <input type="number" min="0" ng-model="$ctrl.settings.portal.uploadMedia.maxSizeInOctet">
             </md-input-container>
-          <md-input-container class="md-block" flex-gt-xs>
-            <label>Portal URL</label>
-            <input type="text" ng-model="$ctrl.settings.portal.url">
-          </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Portal URL</label>
+                <input type="text" ng-model="$ctrl.settings.portal.url">
+            </md-input-container>
         </div></div>
 
     <div class="gv-form">
