@@ -418,6 +418,7 @@
     "homepage": "Home page",
     "login": "Sign in",
     "logout": "Sign out",
+    "management": "Administration",
     "myApplications": "My applications",
     "mySubscriptions": "My subscriptions",
     "notFound": "Page not found",

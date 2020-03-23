@@ -18,6 +18,7 @@ import { ActivatedRoute, PRIMARY_OUTLET, Route, Router, Routes } from '@angular/
 import { TranslateService } from '@ngx-translate/core';
 import { FeatureGuardService } from './feature-guard.service';
 import { AuthGuardService } from './auth-guard.service';
+import { CurrentUserService } from './current-user.service';
 
 export interface INavRoute {
   path: string;
@@ -36,13 +37,43 @@ export class NavRouteService {
   constructor(private router: Router,
               private translateService: TranslateService,
               private featureGuardService: FeatureGuardService,
+              private currentUserService: CurrentUserService,
               private authGuardService: AuthGuardService) {
   }
 
   async getUserNav(): Promise<INavRoute[]> {
     const parentPath = 'user';
     const userRoute = this.getRouteByPath(parentPath);
-    return this.getChildrenNav(userRoute, parentPath, []);
+    const managementRoute: Promise<INavRoute> = this.getManagementNav();
+    const userRoutes: Promise<INavRoute[]> = this.getChildrenNav(userRoute, parentPath, []);
+
+    return Promise.all([managementRoute, userRoutes]).then((values) => {
+      const routesArray = values[1];
+
+      if (routesArray.length > 1 && values[0]) {
+        const logoutRoute = routesArray.pop();
+        routesArray.push(values[0]);
+        routesArray.push(logoutRoute);
+      }
+
+      return routesArray;
+    });
+  }
+
+  async getManagementNav(): Promise<INavRoute> {
+    if (this.currentUserService.getUser()
+    && this.currentUserService.getUser().config
+    && this.currentUserService.getUser().config.management_url) {
+      return this.translateService.get('route.management').toPromise().then((_title) => {
+          const routeNav: INavRoute = {
+            path: this.currentUserService.getUser().config.management_url,
+            icon: 'code:settings',
+            title: _title,
+            target: '_blank'
+          };
+          return routeNav;
+        });
+    }
   }
 
   async getChildrenNav(aRoute: ActivatedRoute | Route, parentPath?: string, hiddenPaths?: Array<string>): Promise<INavRoute[]> {
