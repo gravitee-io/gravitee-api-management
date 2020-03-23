@@ -24,4 +24,6 @@ public interface SwaggerProperties {
     String TRY_IT = "tryItURL";
 
     String ENTRYPOINTS_AS_SERVERS = "entrypointsAsServers";
+
+    String ENTRYPOINT_AS_BASEPATH = "entrypointAsBasePath";
 }

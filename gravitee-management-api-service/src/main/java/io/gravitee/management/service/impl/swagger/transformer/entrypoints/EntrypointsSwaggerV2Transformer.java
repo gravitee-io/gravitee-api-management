@@ -52,7 +52,12 @@ public class EntrypointsSwaggerV2Transformer extends AbstractPageConfigurationSw
             URI target = URI.create(first.getTarget());
             swagger.setSchemes(Collections.singletonList(Scheme.forValue(target.getScheme())));
             swagger.setHost(target.getHost());
-            swagger.setBasePath(target.getPath());
+
+            if (getProperty(SwaggerProperties.ENTRYPOINT_AS_BASEPATH) == null
+                    || getProperty(SwaggerProperties.ENTRYPOINT_AS_BASEPATH).isEmpty()
+                    || asBoolean(SwaggerProperties.ENTRYPOINT_AS_BASEPATH)) {
+                swagger.setBasePath(target.getPath());
+            }
         }
     }
 }

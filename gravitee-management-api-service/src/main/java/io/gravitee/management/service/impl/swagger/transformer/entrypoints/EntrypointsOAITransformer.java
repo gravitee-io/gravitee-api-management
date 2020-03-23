@@ -22,6 +22,7 @@ import io.gravitee.management.service.impl.swagger.transformer.page.AbstractPage
 import io.gravitee.management.service.swagger.OAIDescriptor;
 import io.swagger.v3.oas.models.servers.Server;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +48,14 @@ public class EntrypointsOAITransformer extends AbstractPageConfigurationSwaggerT
             entrypoints.forEach(entrypoint -> {
                 Server server = new Server();
 
-                server.setUrl(entrypoint.getTarget());
+                if (getProperty(SwaggerProperties.ENTRYPOINT_AS_BASEPATH) == null
+                        || getProperty(SwaggerProperties.ENTRYPOINT_AS_BASEPATH).isEmpty()
+                        || asBoolean(SwaggerProperties.ENTRYPOINT_AS_BASEPATH)) {
+                    server.setUrl(entrypoint.getTarget());
+                } else {
+                    URI target = URI.create(entrypoint.getTarget());
+                    server.setUrl(entrypoint.getTarget().substring(0, entrypoint.getTarget().indexOf(target.getRawPath())));
+                }
 
                 servers.add(server);
 
