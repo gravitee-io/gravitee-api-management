@@ -74,9 +74,24 @@ public class ApplicationAnalyticsResource extends AbstractResource {
             case COUNT:
                 analytics = executeCount(application, analyticsParam);
                 break;
+            case STATS:
+                analytics = executeStats(application, analyticsParam);
+                break;
         }
 
         return Response.ok(analytics).build();
+    }
+
+    private Analytics executeStats(String application, AnalyticsParam analyticsParam) {
+        final StatsQuery query = new StatsQuery();
+        query.setFrom(analyticsParam.getFrom());
+        query.setTo(analyticsParam.getTo());
+        query.setInterval(analyticsParam.getInterval());
+        query.setQuery(analyticsParam.getQuery());
+        query.setField(analyticsParam.getField());
+        query.setRootField("application");
+        query.setRootIdentifier(application);
+        return analyticsService.execute(query);
     }
 
     private Analytics executeCount(String application, AnalyticsParam analyticsParam) {

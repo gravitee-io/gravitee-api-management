@@ -44,8 +44,7 @@ import io.gravitee.rest.api.model.healthcheck.*;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.InstanceService;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
+import io.gravitee.rest.api.service.exceptions.AnalyticsCalculateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +97,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             return convert(healthCheckRepository.query(queryBuilder.build()));
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
-            throw new TechnicalManagementException("Unable to calculate analytics", ae);
+            throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }
 

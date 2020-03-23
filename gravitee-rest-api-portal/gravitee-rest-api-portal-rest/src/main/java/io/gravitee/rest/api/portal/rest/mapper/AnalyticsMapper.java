@@ -36,14 +36,16 @@ import java.util.stream.Collectors;
 public class AnalyticsMapper {
     public DateHistoAnalytics convert(HistogramAnalytics analytics) {
        DateHistoAnalytics analyticsItem = new DateHistoAnalytics();
-       analyticsItem.setTimestamp(new Timerange()
-               .from(analytics.getTimestamp().getFrom())
-               .to(analytics.getTimestamp().getTo())
-               .interval(analytics.getTimestamp().getInterval())
-               );
-       List<Bucket> buckets = convertBucketList(analytics.getValues());
-       analyticsItem.setValues(buckets);
-       
+       if (analytics != null && analytics.getTimestamp() != null) {
+           analyticsItem.setTimestamp(new Timerange()
+                   .from(analytics.getTimestamp().getFrom())
+                   .to(analytics.getTimestamp().getTo())
+                   .interval(analytics.getTimestamp().getInterval())
+                   );
+           List<Bucket> buckets = convertBucketList(analytics.getValues());
+           analyticsItem.setValues(buckets);
+       }
+
        return analyticsItem;
     }
 
@@ -51,7 +53,7 @@ public class AnalyticsMapper {
         if(buckets != null && !buckets.isEmpty()) {
             return buckets.stream()
                     .map(b-> new Bucket()
-                            .data(Arrays.asList(b.getData()))
+                            .data(b.getData() == null? null : Arrays.asList(b.getData()))
                             .field(b.getField())
                             .metadata(b.getMetadata() == null ? null : new HashMap(b.getMetadata()))
                             .name(b.getName())

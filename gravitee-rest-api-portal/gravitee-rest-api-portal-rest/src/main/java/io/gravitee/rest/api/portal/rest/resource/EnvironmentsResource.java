@@ -94,4 +94,9 @@ public class EnvironmentsResource extends AbstractResource {
     public ViewsResource getViewsResource() {
         return resourceContext.getResource(ViewsResource.class);
     }
+
+    @Path("dashboards")
+    public DashboardsResource getDashboardsResource() {
+        return resourceContext.getResource(DashboardsResource.class);
+    }
 }

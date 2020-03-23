@@ -13,37 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.portal.rest.resource.param;
+package io.gravitee.rest.api.service.exceptions;
 
-import javax.ws.rs.WebApplicationException;
+import io.gravitee.common.http.HttpStatusCode;
+
+import java.util.Map;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.AnalyticsType> {
+public class AnalyticsCalculateException extends AbstractManagementException {
 
-    public enum AnalyticsType {
-        GROUP_BY,
-        DATE_HISTO,
-        COUNT,
-        STATS
-    }
+    private final String message;
 
-    public AnalyticsTypeParam(String param) throws WebApplicationException {
-        super(param);
+    public AnalyticsCalculateException(String message) {
+        this.message = message;
     }
 
     @Override
-    protected AnalyticsType parse(String param) {
-        try {
-            if (param != null) {
-                return AnalyticsType.valueOf(param.toUpperCase());
-            }
-        } catch (IllegalArgumentException iae) {
-        }
-
-        return null;
+    public int getHttpStatusCode() {
+        return HttpStatusCode.INTERNAL_SERVER_ERROR_500;
     }
 
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "analytics.calculate";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
+    }
 }

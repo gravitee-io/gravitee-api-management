@@ -1939,7 +1939,26 @@ paths:
                 $ref: '#/components/schemas/Info'
         500:
           $ref: '#/components/responses/InternalServerError'
-
+  /dashboards:
+    get:
+      tags:
+        - Portal
+      summary: Get a Dashboards list
+      description: |
+        Get all dashboards of the platform.
+      operationId: getDashboards
+      security: []
+      responses:
+        200:
+          description: List of Dashboards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dashboard'
+        500:
+          $ref: '#/components/responses/InternalServerError'
 
   /auth/login:
     post:
@@ -2404,7 +2423,7 @@ components:
           - DATE_HISTO
           - COUNT
     analyticRangeQueryParam:
-      name: range
+      name: ranges
       in: query
       required: false
       description: |
@@ -3300,6 +3319,15 @@ components:
           format: int64
         _links:
           $ref: '#/components/schemas/ViewLinks'
+    Dashboard:
+      properties:
+        id:
+          description: Unique identifier of a dashboard.
+          type: string
+        name:
+          type: string
+        definition:
+          type: string
     Info:
       properties:
         name:

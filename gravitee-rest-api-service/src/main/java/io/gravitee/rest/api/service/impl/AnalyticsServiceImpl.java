@@ -92,7 +92,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             return convert(response, query);
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
-            throw new TechnicalManagementException("Unable to calculate analytics", ae);
+            throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }
 
@@ -112,7 +112,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             return convert(response);
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
-            throw new TechnicalManagementException("Unable to calculate analytics", ae);
+            throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }
 
@@ -138,7 +138,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             return convert(response);
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
-            throw new TechnicalManagementException("Unable to calculate analytics", ae);
+            throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }
 
@@ -170,7 +170,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             return convert(response);
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
-            throw new TechnicalManagementException("Unable to calculate analytics", ae);
+            throw new AnalyticsCalculateException("Unable to calculate analytics");
         }
     }
 

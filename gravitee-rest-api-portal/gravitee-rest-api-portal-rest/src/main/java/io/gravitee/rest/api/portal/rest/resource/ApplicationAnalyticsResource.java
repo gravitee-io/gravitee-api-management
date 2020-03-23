@@ -15,27 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
 import io.gravitee.rest.api.model.analytics.HitsAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
-import io.gravitee.rest.api.model.analytics.query.AggregationType;
-import io.gravitee.rest.api.model.analytics.query.CountQuery;
-import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
-import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
+import io.gravitee.rest.api.model.analytics.query.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
@@ -46,6 +31,17 @@ import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
+
+import javax.inject.Inject;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -88,6 +84,8 @@ public class ApplicationAnalyticsResource extends AbstractResource {
             case COUNT:
                 analytics = analyticsMapper.convert((HitsAnalytics) executeCount(applicationId, analyticsParam));
                 break;
+            case STATS:
+                analytics = executeStats(applicationId, analyticsParam);
             default:
                 break;
         }
@@ -95,6 +93,18 @@ public class ApplicationAnalyticsResource extends AbstractResource {
         return Response
                 .ok(analytics)
                 .build();
+    }
+
+    private Analytics executeStats(String application, AnalyticsParam analyticsParam) {
+        final StatsQuery query = new StatsQuery();
+        query.setFrom(analyticsParam.getFrom());
+        query.setTo(analyticsParam.getTo());
+        query.setInterval(analyticsParam.getInterval());
+        query.setQuery(analyticsParam.getQuery());
+        query.setField(analyticsParam.getField());
+        query.setRootField(ANALYTICS_ROOT_FIELD);
+        query.setRootIdentifier(application);
+        return analyticsService.execute(query);
     }
 
     private Analytics executeCount(String application, AnalyticsParam analyticsParam) {
