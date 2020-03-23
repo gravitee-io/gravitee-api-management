@@ -17,7 +17,11 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.UserMembership;
+import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
@@ -26,9 +30,8 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD(nicolas.geraud at graviteesource.com)
@@ -48,6 +51,9 @@ public class PermissionServiceImpl extends AbstractService implements Permission
 
     @Autowired
     RoleService roleService;
+
+    @Autowired
+    UserService userService;
 
     @Override
     public boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
@@ -100,5 +106,32 @@ public class PermissionServiceImpl extends AbstractService implements Permission
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean hasManagementRights(String userId) {
+        UserEntity user = userService.findByIdWithRoles(userId);
+        boolean hasManagementRights = (user.getRoles() != null && !user.getRoles().isEmpty());
+        
+        if (!hasManagementRights) {
+            Set<String> userApisId = membershipService.findUserMembership(userId, MembershipReferenceType.API).stream().map(UserMembership::getReference).collect(Collectors.toSet());
+            Set<RoleEntity> userApisRole = membershipService.getRoles(MembershipReferenceType.API, userApisId, userId, RoleScope.API);
+            hasManagementRights = userApisRole.stream().anyMatch(roleEntity -> {
+                
+                boolean hasCreateUpdateOrDeletePermission = false;
+                Map<String, char[]> rolePermissions = roleEntity.getPermissions();
+                Iterator<String> iterator = rolePermissions.keySet().iterator();
+                while(iterator.hasNext() && !hasCreateUpdateOrDeletePermission) {
+                    String permissionName = iterator.next();
+                    if (!ApiPermission.RATING.name().equals(permissionName) && !ApiPermission.RATING_ANSWER.name().equals(permissionName)) {
+                        String permissionString = new String(rolePermissions.get(permissionName));
+                        hasCreateUpdateOrDeletePermission = permissionString != null && !permissionString.isEmpty() && 
+                                (permissionString.contains("C") || permissionString.contains("U") || permissionString.contains("D"));
+                    }
+                }
+                return hasCreateUpdateOrDeletePermission;
+            });
+        }
+        return hasManagementRights;
     }
 }

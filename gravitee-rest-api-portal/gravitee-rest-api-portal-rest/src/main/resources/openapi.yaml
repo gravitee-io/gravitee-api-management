@@ -3265,8 +3265,15 @@ components:
           type: string
         email:
           type: string
+        config:
+          $ref: '#/components/schemas/UserConfig'
         _links:
           $ref: '#/components/schemas/UserLinks'
+    UserConfig:
+      properties:
+        management_url:
+          description: The URL of the Gravitee management UI
+          type: string
     Token:
       properties:
         token_type:

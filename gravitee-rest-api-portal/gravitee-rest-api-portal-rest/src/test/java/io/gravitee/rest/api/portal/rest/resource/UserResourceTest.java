@@ -16,18 +16,15 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.UpdateUserEntity;
-import io.gravitee.rest.api.model.UrlPictureEntity;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.portal.rest.model.User;
-import io.gravitee.rest.api.portal.rest.model.UserInput;
-import io.gravitee.rest.api.portal.rest.model.UserLinks;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.PortalConfigEntity.Management;
+import io.gravitee.rest.api.portal.rest.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import javax.validation.Valid;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -68,9 +65,10 @@ public class UserResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetCurrentUser() {
+    public void shouldGetCurrentUserWithoutConfig() {
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
-
+        when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.FALSE);
+        
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -81,7 +79,75 @@ public class UserResourceTest extends AbstractResourceTest {
 
         User user = response.readEntity(User.class);
         assertNotNull(user);
+        assertNull(user.getConfig());
+        assertNotNull(user.getLinks());
+    }
 
+    @Test
+    public void shouldGetCurrentUserWithEmptyManagementConfig() {
+        when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
+        when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
+        when(configService.getPortalConfig()).thenReturn(new PortalConfigEntity());
+        
+        final Response response = target().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(userService).findById(userId.capture());
+
+        assertEquals(USER_NAME, userId.getValue());
+
+        User user = response.readEntity(User.class);
+        assertNotNull(user);
+        assertNull(user.getConfig());
+        assertNotNull(user.getLinks());
+    }
+
+    @Test
+    public void shouldGetCurrentUserWithManagementConfigWithoutUrl() {
+        when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
+        when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
+        PortalConfigEntity portalConfigEntity = new PortalConfigEntity();
+        portalConfigEntity.setManagement(portalConfigEntity.new Management());
+        when(configService.getPortalConfig()).thenReturn(portalConfigEntity);
+        
+        final Response response = target().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(userService).findById(userId.capture());
+
+        assertEquals(USER_NAME, userId.getValue());
+
+        User user = response.readEntity(User.class);
+        assertNotNull(user);
+        assertNull(user.getConfig());
+        assertNotNull(user.getLinks());
+    }
+
+    @Test
+    public void shouldGetCurrentUserWithManagementConfigWithUrl() {
+        when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
+        when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
+        PortalConfigEntity portalConfigEntity = new PortalConfigEntity();
+        Management managementConfig = portalConfigEntity.new Management();
+        managementConfig.setUrl("URL");
+        portalConfigEntity.setManagement(managementConfig);
+        when(configService.getPortalConfig()).thenReturn(portalConfigEntity);
+        
+        final Response response = target().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(userService).findById(userId.capture());
+
+        assertEquals(USER_NAME, userId.getValue());
+
+        User user = response.readEntity(User.class);
+        assertNotNull(user);
+        UserConfig config = user.getConfig();
+        assertNotNull(config);
+        assertEquals("URL", config.getManagementUrl());
         assertNotNull(user.getLinks());
     }
 

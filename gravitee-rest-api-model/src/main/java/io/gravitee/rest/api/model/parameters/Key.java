@@ -43,6 +43,7 @@ public enum Key {
     PORTAL_URL("portal.url", ""),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management"),
+    MANAGEMENT_URL("management.url", ""),
 
     THEME_NAME("theme.name", "default"),
     THEME_LOGO("theme.logo", "themes/assets/GRAVITEE_LOGO1-01.png"),

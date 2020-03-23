@@ -17,10 +17,13 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.PortalConfigEntity.Management;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.UserConfig;
 import io.gravitee.rest.api.portal.rest.model.UserInput;
 import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
+import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -49,6 +52,8 @@ public class UserResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
     @Inject
+    private ConfigService configService;
+    @Inject
     private UserService userService;
     @Inject
     private UserMapper userMapper;
@@ -64,6 +69,17 @@ public class UserResource extends AbstractResource {
         try {
             UserEntity userEntity = userService.findById(authenticatedUser);
             User currentUser = userMapper.convert(userEntity);
+
+            boolean withManagement = (authenticatedUser != null && permissionService.hasManagementRights(authenticatedUser));
+            if (withManagement) {
+                Management managementConfig = this.configService.getPortalConfig().getManagement();
+                if (managementConfig != null && managementConfig.getUrl() != null) {
+                    UserConfig userConfig = new UserConfig();
+                    userConfig.setManagementUrl(managementConfig.getUrl());
+                    currentUser.setConfig(userConfig);
+                }
+            }
+
             currentUser.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), userEntity.getUpdatedAt()));
             return Response
                     .ok(currentUser)
