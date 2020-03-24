@@ -287,7 +287,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             key.setPaused(apiKeyEntity.isPaused());
             key.setPlan(apiKeyEntity.getPlan());
-            setExpiration(apiKeyEntity.getExpireAt(), key);
+            if (apiKeyEntity.getExpireAt() != null) {
+                setExpiration(apiKeyEntity.getExpireAt(), key);
+            }
 
             return convert(key);
         } catch (TechnicalException ex) {
