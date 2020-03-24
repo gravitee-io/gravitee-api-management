@@ -701,53 +701,22 @@ paths:
     get:
       tags:
         - Application
-      summary: Get application notifications settings
+      summary: Get application notifications
       description: |
-        Get application notifications settings.
+        Get application notifications.
 
-        User must **at least** have APPLICATION_NOTIFICATION[READ] permission to get **portal** notification settings.
-
-        User must **also** have APPLICATION_NOTIFICATION[CREATE | UPDATE | DELETE] permission to get **generic** notification settings.
+        User must have APPLICATION_NOTIFICATION[READ] permission to get notifications.
       operationId: getNotificationsByApplicationId
       responses:
         200:
-          description: List of notification configs
+          description: List of notifications configured
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NotificationConfigsResponse'
-        403:
-          $ref: '#/components/responses/PermissionError'
-        404:
-          $ref: '#/components/responses/ApplicationNotFoundError'
-        500:
-          $ref: '#/components/responses/InternalServerError'
-    post:
-      tags:
-        - Application
-      requestBody:
-        description: Use to create an notification
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GenericNotificationConfig'
-      summary: Create notification settings.
-      description: |
-        Create notification settings.
-
-        User must have APPLICATION_NOTIFICATION[READ] permission to create a **portal** notification.
-
-        User must have APPLICATION_NOTIFICATION[CREATE] permission to create a **generic** notification.
-      operationId: createApplicationNotification
-      responses:
-        200:
-          description: Created notification config.
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/PortalNotificationConfig'
-                  - $ref: '#/components/schemas/GenericNotificationConfig'
+                description: List of notifications configured on the application.
+                type: array
+                items:
+                  type: string
         403:
           $ref: '#/components/responses/PermissionError'
         404:
@@ -758,86 +727,31 @@ paths:
       tags:
         - Application
       requestBody:
-        description: Use to update a portal notification config.
+        description: Use to update application notifications.
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PortalNotificationConfig'
-      summary: Update a portal notification for an application.
+              description: List of notifications configured on the application.
+              $ref: '#/components/schemas/NotificationInput'
+      summary: Update notifications for an application.
       description: |
-        Update a portal notification for an application.
+        Update notifications for an application.
 
-        User must have APPLICATION_NOTIFICATION[READ] permission to update a **portal** notification.
-      operationId: updatePortalApplicationNotification
+        User must have APPLICATION_NOTIFICATION[UPDATE] permission to update notifications.
+      operationId: updateApplicationNotifications
       responses:
         200:
-          description: Updated portal notification config.
+          description: Updated application notifications.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PortalNotificationConfig'
+                type: array
+                items:
+                  type: string
         403:
           $ref: '#/components/responses/PermissionError'
         404:
           $ref: '#/components/responses/ApplicationNotFoundError'
-        500:
-          $ref: '#/components/responses/InternalServerError'
-  /applications/{applicationId}/notifications/{notificationId}:
-    parameters:
-      - $ref: '#/components/parameters/applicationIdParam'
-      - $ref: '#/components/parameters/notificationIdParam'
-    put:
-      tags:
-        - Application
-      requestBody:
-        description: Use to update a generic notification.
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GenericNotificationConfig'
-      summary: Update a generic notification for an application.
-      description: |
-        Update a generic notification for an application.
-
-        User must have APPLICATION_NOTIFICATION[UPDATE] permission to update a **generic** notification.
-      operationId: updateGenericApplicationNotification
-      responses:
-        200:
-          description: Updated generic notification config.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericNotificationConfig'
-        403:
-          $ref: '#/components/responses/PermissionError'
-        404:
-          description: Application or Notification not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        500:
-          $ref: '#/components/responses/InternalServerError'
-    delete:
-      tags:
-        - Application
-      summary: Delete a notification
-      description: |
-        Delete a notification.
-
-        User must have APPLICATION_NOTIFICATION[DELETE] permission to delete a **generic** notification.
-      operationId: deleteApplicationNotificationByNotificationId
-      responses:
-        204:
-          description: No-Content
-        403:
-          $ref: '#/components/responses/PermissionError'
-        404:
-          description: Application or Notification not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/members:
@@ -1289,6 +1203,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /applications/hooks:
+    get:
+      tags:
+        - Application
+      summary: Get the application's hooks list.
+      operationId: getHooks
+      description: |
+        Get application's hooks that can be used in the portal.
+      security: []
+      responses:
+        200:
+          description: List of hooks
+          content:
+            application/json:
+              schema:
+                description: List of hooks
+                type: array
+                items:
+                  $ref: '#/components/schemas/Hook'
         500:
           $ref: '#/components/responses/InternalServerError'
 
@@ -2056,24 +1991,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
-  /configuration/hooks:
-    get:
-      tags:
-        - Portal
-      summary: Get the hook list.
-      operationId: getPortalHooks
-      description: |
-        Get all the hooks that can be used in the portal.
-      security: []
-      responses:
-        200:
-          description: List of hooks
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConfigurationHooksResponse'
-        500:
-          $ref: '#/components/responses/InternalServerError'
 
 components:
   requestBodies:
@@ -2638,13 +2555,6 @@ components:
             $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
-    NotificationConfigsResponse:
-      properties:
-        data:
-          description: List of NotificationConfig. It can be either GenericNotificationConfig or PersonalNotificationConfig
-          type: array
-          items:
-            $ref: '#/components/schemas/NotificationConfig'
     ConfigurationIdentitiesResponse:
       properties:
         data:
@@ -2656,13 +2566,6 @@ components:
             $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
-    ConfigurationHooksResponse:
-      properties:
-        data:
-          description: List of hooks
-          type: array
-          items:
-            $ref: '#/components/schemas/PortalHook'
     LinksResponse:
       properties:
         slots:
@@ -3045,57 +2948,6 @@ components:
           $ref: '#/components/schemas/ApplicationSettings'
         _links:
           $ref: '#/components/schemas/ApplicationLinks'
-    NotificationConfig:
-      description: A notificationConfig is a generic object that can represent either a GenericNotificationConfig or a PortalNotificationConfig.
-      properties:
-        configType:
-          description: Configuration type. Can be GENERIC, or PORTAL. Used for inheritance.
-          type: string
-        name:
-          description: Name of the notification config.
-          type: string
-        reference_type:
-          description: Type of the subject of the notification configuration. For this API, it's always APPLICATION.
-          type: string
-        reference_id:
-          description: Id of the subject of the notification configuration aka application identifier.
-          type: string
-        hooks:
-          description: List of event that can be notified.
-          type: array
-          items:
-            type: string
-      discriminator:
-        propertyName: configType
-        mapping:
-          GENERIC: '#/components/schemas/GenericNotificationConfig'
-          PORTAL: '#/components/schemas/PortalNotificationConfig'
-    GenericNotificationConfig:
-      allOf:
-        - $ref: "#/components/schemas/NotificationConfig"
-        - type: object
-          properties:
-            id:
-              description: Unique identifier of the generic notification config.
-              type: string
-            notifier:
-              description: Type of notification system (Email, WebHook, ...).
-              type: string
-            config:
-              description: Configuration of the notifier.
-              type: string
-            use_system_proxy:
-              description: True if the notifier should use system proxy.
-              type: boolean
-              default: false
-    PortalNotificationConfig:
-      allOf:
-        - $ref: "#/components/schemas/NotificationConfig"
-        - type: object
-          properties:
-            user:
-              description: User id of the creator of the notification config.
-              type: string
     PortalNotification:
         properties:
           id:
@@ -3388,7 +3240,7 @@ components:
         icon:
           description: Icon name to display for this provider.
           type: string
-    PortalHook:
+    Hook:
       properties:
         id:
           description: Unique identifier of an identity provider.
@@ -3776,6 +3628,13 @@ components:
         reset_page_url:
           description: URL of the password reset page to be used in the 'Password reset' email.
           type: string
+    NotificationInput:
+      properties:
+        hooks:
+          type: array
+          items:
+            type: string
+
     #######################
     # Composition Objects #
     #######################

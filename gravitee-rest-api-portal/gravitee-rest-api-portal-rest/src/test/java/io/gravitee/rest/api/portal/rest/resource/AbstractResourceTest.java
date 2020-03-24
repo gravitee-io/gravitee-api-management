@@ -96,7 +96,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(userMapper);
         reset(logMapper);
         reset(analyticsMapper);
-        reset(notificationConfigMapper);
         reset(portalNotificationMapper);
         reset(viewMapper);
         reset(ticketMapper);
@@ -262,9 +261,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected AnalyticsMapper analyticsMapper;
-
-    @Autowired
-    protected NotificationConfigMapper notificationConfigMapper;
 
     @Autowired
     protected ViewMapper viewMapper;
@@ -524,11 +520,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public AnalyticsMapper analyticsMapper() {
             return mock(AnalyticsMapper.class);
-        }
-
-        @Bean
-        public NotificationConfigMapper notificationConfigMapper() {
-            return mock(NotificationConfigMapper.class);
         }
 
         @Bean

@@ -30,6 +30,8 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.notification.ApplicationHook;
+import io.gravitee.rest.api.service.notification.Hook;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -38,6 +40,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -139,9 +142,15 @@ public class ApplicationsResource extends AbstractResource {
         return application.links(applicationMapper.computeApplicationLinks(basePath, application.getUpdatedAt()));
     }
 
+    @GET
+    @Path("/hooks")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getHooks() {
+        return Response.ok(Arrays.stream(ApplicationHook.values()).toArray(Hook[]::new)).build();
+    }
+
     @Path("{applicationId}")
     public ApplicationResource getApplicationResource() {
         return resourceContext.getResource(ApplicationResource.class);
     }
-
 }

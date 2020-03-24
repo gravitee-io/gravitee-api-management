@@ -184,8 +184,8 @@ public class ApplicationResource extends AbstractResource {
     }
 
     @Path("notifications")
-    public ApplicationNotificationSettingsResource getApplicationNotificationSettingsResource() {
-        return resourceContext.getResource(ApplicationNotificationSettingsResource.class);
+    public ApplicationNotificationResource getApplicationNotificationResource() {
+        return resourceContext.getResource(ApplicationNotificationResource.class);
     }
 
     @Path("logs")
