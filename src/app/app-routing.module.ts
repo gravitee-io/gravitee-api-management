@@ -41,7 +41,7 @@ import { RegistrationConfirmationComponent } from './pages/registration/registra
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { ResetPasswordConfirmationComponent } from './pages/reset-password/reset-password-confirmation/reset-password-confirmation.component';
 import { Role } from './model/role.enum';
-import { ActivatedRoute, RouterModule, Routes } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { SubscriptionsComponent } from './pages/subscriptions/subscriptions.component';
 import { SubscribeGuardService } from './services/subscribe-guard.service';
@@ -51,6 +51,7 @@ import { GvCreateApplicationComponent } from './components/gv-create-application
 import { ApplicationAnalyticsComponent } from './pages/application/application-analytics/application-analytics.component';
 import { ApplicationResolver } from './resolver/application.resolver';
 import { DashboardsResolver } from './resolver/dashboards.resolver';
+import { ApplicationNotificationsComponent } from './pages/application/application-notifications/application-notifications.component';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
@@ -263,7 +264,7 @@ export const routes: Routes = [
         data: {
           title: i18n('route.myApplications'),
           icon: 'devices:server',
-          animation: { type: 'slide', group: 'app', index: 1 },
+          animation: { type: 'slide', group: 'apps', index: 1 },
           menu: { slots: { button: GvCreateApplicationComponent } }
         }
       },
@@ -273,7 +274,7 @@ export const routes: Routes = [
         data: {
           title: i18n('route.mySubscriptions'),
           icon: 'finance:share',
-          animation: { type: 'slide', group: 'app', index: 2 },
+          animation: { type: 'slide', group: 'apps', index: 2 },
           menu: { slots: { button: GvCreateApplicationComponent } }
         }
       },
@@ -292,7 +293,16 @@ export const routes: Routes = [
             data: {
               icon: 'general:clipboard',
               title: i18n('route.catalogApi'),
-              animation: { type: 'fade' }
+              animation: { type: 'slide', group: 'apps', index: 1 }
+            }
+          },
+          {
+            path: 'notifications',
+            component: ApplicationNotificationsComponent,
+            data: {
+              icon: 'general:notifications#2',
+              title: i18n('route.notifications'),
+              animation: { type: 'slide', group: 'apps', index: 2 }
             }
           },
           {

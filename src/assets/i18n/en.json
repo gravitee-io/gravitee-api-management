@@ -122,6 +122,49 @@
       "label": "Name of the app",
       "title": "Name of the application"
     },
+    "notifications": {
+      "NEW_SUPPORT_TICKET": {
+        "description": "application.notifications.NEW_SUPPORT_TICKET.description",
+        "label": "application.notifications.NEW_SUPPORT_TICKET.label"
+      },
+      "SUBSCRIPTION": {
+        "title": "application.notifications.SUBSCRIPTION.title"
+      },
+      "SUBSCRIPTION_ACCEPTED": {
+        "description": "application.notifications.SUBSCRIPTION_ACCEPTED.description",
+        "label": "application.notifications.SUBSCRIPTION_ACCEPTED.label"
+      },
+      "SUBSCRIPTION_CLOSED": {
+        "description": "application.notifications.SUBSCRIPTION_CLOSED.description",
+        "label": "application.notifications.SUBSCRIPTION_CLOSED.label"
+      },
+      "SUBSCRIPTION_NEW": {
+        "description": "application.notifications.SUBSCRIPTION_NEW.description",
+        "label": "application.notifications.SUBSCRIPTION_NEW.label"
+      },
+      "SUBSCRIPTION_PAUSED": {
+        "description": "application.notifications.SUBSCRIPTION_PAUSED.description",
+        "label": "application.notifications.SUBSCRIPTION_PAUSED.label"
+      },
+      "SUBSCRIPTION_REJECTED": {
+        "description": "application.notifications.SUBSCRIPTION_REJECTED.description",
+        "label": "application.notifications.SUBSCRIPTION_REJECTED.label"
+      },
+      "SUBSCRIPTION_RESUMED": {
+        "description": "application.notifications.SUBSCRIPTION_RESUMED.description",
+        "label": "application.notifications.SUBSCRIPTION_RESUMED.label"
+      },
+      "SUBSCRIPTION_TRANSFERRED": {
+        "description": "application.notifications.SUBSCRIPTION_TRANSFERRED.description",
+        "label": "application.notifications.SUBSCRIPTION_TRANSFERRED.label"
+      },
+      "SUPPORT": {
+        "title": "application.notifications.SUPPORT.title"
+      },
+      "header": "application.notifications.header",
+      "saveSuccess": "application.notifications.saveSuccess",
+      "title": "application.notifications.title"
+    },
     "oauth2": "OAuth2 integration",
     "save": "Save",
     "success": {
@@ -173,15 +216,11 @@
     "email": {
       "required": "Please configure an e-mail to use the contact form"
     },
-    "forbidden": "You do not have sufficient rights to access this resource",
     "picture_format_forbidden": "SVG format is not allowed",
     "picture_too_big": "Image size must be less than 500KB",
     "plan": {
       "notSubscribable": "A client_id is required to subscribe to an OAuth2 or JWT plan.",
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."
-    },
-    "rating": {
-      "exists": "Rating already exists for api [{api}] and user [{user}]."
     },
     "server": {
       "unavailable": "Server unavailable"
@@ -457,6 +496,7 @@
     "myApplications": "My applications",
     "mySubscriptions": "My subscriptions",
     "notFound": "Page not found",
+    "notifications": "route.notifications",
     "user": "My account"
   },
   "search": {
@@ -494,10 +534,6 @@
     "change_picture": "user.change_picture",
     "display_name": "Name:",
     "email": "Email:",
-    "notifications": {
-      "header": "What events do you want to subscribe to?",
-      "title": "Notifications"
-    },
     "title": "My account",
     "update": "Update"
   }

@@ -122,6 +122,49 @@
       "label": "Název aplikace",
       "title": "Název aplikace"
     },
+    "notifications": {
+      "NEW_SUPPORT_TICKET": {
+        "description": "application.notifications.NEW_SUPPORT_TICKET.description",
+        "label": "application.notifications.NEW_SUPPORT_TICKET.label"
+      },
+      "SUBSCRIPTION": {
+        "title": "application.notifications.SUBSCRIPTION.title"
+      },
+      "SUBSCRIPTION_ACCEPTED": {
+        "description": "application.notifications.SUBSCRIPTION_ACCEPTED.description",
+        "label": "application.notifications.SUBSCRIPTION_ACCEPTED.label"
+      },
+      "SUBSCRIPTION_CLOSED": {
+        "description": "application.notifications.SUBSCRIPTION_CLOSED.description",
+        "label": "application.notifications.SUBSCRIPTION_CLOSED.label"
+      },
+      "SUBSCRIPTION_NEW": {
+        "description": "application.notifications.SUBSCRIPTION_NEW.description",
+        "label": "application.notifications.SUBSCRIPTION_NEW.label"
+      },
+      "SUBSCRIPTION_PAUSED": {
+        "description": "application.notifications.SUBSCRIPTION_PAUSED.description",
+        "label": "application.notifications.SUBSCRIPTION_PAUSED.label"
+      },
+      "SUBSCRIPTION_REJECTED": {
+        "description": "application.notifications.SUBSCRIPTION_REJECTED.description",
+        "label": "application.notifications.SUBSCRIPTION_REJECTED.label"
+      },
+      "SUBSCRIPTION_RESUMED": {
+        "description": "application.notifications.SUBSCRIPTION_RESUMED.description",
+        "label": "application.notifications.SUBSCRIPTION_RESUMED.label"
+      },
+      "SUBSCRIPTION_TRANSFERRED": {
+        "description": "application.notifications.SUBSCRIPTION_TRANSFERRED.description",
+        "label": "application.notifications.SUBSCRIPTION_TRANSFERRED.label"
+      },
+      "SUPPORT": {
+        "title": "application.notifications.SUPPORT.title"
+      },
+      "header": "application.notifications.header",
+      "saveSuccess": "application.notifications.saveSuccess",
+      "title": "application.notifications.title"
+    },
     "oauth2": "integrace OAuth2",
     "save": "Save",
     "success": {
@@ -173,15 +216,11 @@
     "email": {
       "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
     },
-    "forbidden": "Nemáte dostatečná práva pro přístup k tomuto prostředku",
     "picture_format_forbidden": "Formát SVG není povolen",
     "picture_too_big": "Velikost obrázku musí být menší než 500 kB",
     "plan": {
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
-    },
-    "rating": {
-      "exists": "errors.rating.exists"
     },
     "server": {
       "unavailable": "Server není k dispozici"
@@ -457,6 +496,7 @@
     "myApplications": "Moje aplikace",
     "mySubscriptions": "Moje předplatné",
     "notFound": "Stránka nebyla nalezena",
+    "notifications": "route.notifications",
     "user": "Můj účet"
   },
   "search": {
@@ -494,10 +534,6 @@
     "change_picture": "user.change_picture",
     "display_name": "Jméno:",
     "email": "Email:",
-    "notifications": {
-      "header": "Na které události se chcete přihlásit?",
-      "title": "Oznámení"
-    },
     "title": "Můj účet",
     "update": "Aktualizace"
   }

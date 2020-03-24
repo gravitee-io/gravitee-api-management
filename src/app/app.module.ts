@@ -80,6 +80,7 @@ import { GvCreateApplicationComponent } from './components/gv-create-application
 import { GvMenuButtonSlotDirective } from './directives/gv-menu-button-slot.directive';
 import { GvAnalyticsDashboardComponent } from './components/gv-analytics-dashboard/gv-analytics-dashboard.component';
 import { GvAnalyticsFiltersComponent } from './components/gv-analytics-filters/gv-analytics-filters.component';
+import { ApplicationNotificationsComponent } from './pages/application/application-notifications/application-notifications.component';
 
 @NgModule({
   declarations: [
@@ -94,6 +95,7 @@ import { GvAnalyticsFiltersComponent } from './components/gv-analytics-filters/g
     ApplicationsComponent,
     ApplicationAnalyticsComponent,
     ApplicationGeneralComponent,
+    ApplicationNotificationsComponent,
     CatalogSearchComponent,
     CatalogSearchComponent,
     CategoriesComponent,

@@ -26,7 +26,8 @@ export class AnalyticsService {
   timeframes: any;
 
   constructor(private translateService: TranslateService) {
-    translateService.get([i18n('analytics.timeframes.minutes'), i18n('analytics.timeframes.hours'), i18n('analytics.timeframes.days')]).toPromise()
+    translateService.get([i18n('analytics.timeframes.minutes'), i18n('analytics.timeframes.hours'),
+      i18n('analytics.timeframes.days')]).toPromise()
       .then(translatedTimeframes => {
         const values = Object.values(translatedTimeframes);
         const minutes = values[0];

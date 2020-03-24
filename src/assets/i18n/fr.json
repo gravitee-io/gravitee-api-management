@@ -122,6 +122,49 @@
       "label": "Nom de l'app",
       "title": "Nom de l'application"
     },
+    "notifications": {
+      "NEW_SUPPORT_TICKET": {
+        "description": "Vous recevrez une notification lorsqu'un ticket relatif à votre application sera créé",
+        "label": "Nouveau ticket de support"
+      },
+      "SUBSCRIPTION": {
+        "title": "Souscription"
+      },
+      "SUBSCRIPTION_ACCEPTED": {
+        "description": "Vous recevrez une notification lorsqu'une souscription sera acceptée",
+        "label": "Souscription acceptée"
+      },
+      "SUBSCRIPTION_CLOSED": {
+        "description": "Vous recevrez une notification lorsqu'une souscription sera clôturée",
+        "label": "Souscription clôturée"
+      },
+      "SUBSCRIPTION_NEW": {
+        "description": "Vous recevrez une notification lorsqu'une nouvelle souscription sera demandée",
+        "label": "Nouvelle souscription"
+      },
+      "SUBSCRIPTION_PAUSED": {
+        "description": "Vous recevrez une notification lorsqu'une souscription sera mise en pause",
+        "label": "Souscription en pause"
+      },
+      "SUBSCRIPTION_REJECTED": {
+        "description": "Vous recevrez une notification lorsqu'une souscription sera rejetée",
+        "label": "Souscription rejetée"
+      },
+      "SUBSCRIPTION_RESUMED": {
+        "description": "Vous recevrez une notification lorsqu'une souscription sera réactivée suite à une mise en pause",
+        "label": "Souscription réactivée"
+      },
+      "SUBSCRIPTION_TRANSFERRED": {
+        "description": "Vous recevrez une notification lorsqu'une souscription sera transférée",
+        "label": "Souscription transférée"
+      },
+      "SUPPORT": {
+        "title": "Support"
+      },
+      "header": "À quels événements souhaitez-vous vous abonner ?",
+      "saveSuccess": "Vos abonnements aux notifications de cette application ont bien été enregistrés",
+      "title": "Abonnements"
+    },
     "oauth2": "Intégration OAuth2",
     "save": "Sauvegarder",
     "success": {
@@ -173,15 +216,11 @@
     "email": {
       "required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
     },
-    "forbidden": "Vous ne disposez pas des droits suffisants pour accéder à cette ressource",
     "picture_format_forbidden": "Le format SVG n'est pas autorisé",
     "picture_too_big": "La taille de l'image doit être inférieure à 500Ko",
     "plan": {
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
-    },
-    "rating": {
-      "exists": "Un avis existe déjà pour l'api [{api}] et l'utilisateur [{user}]."
     },
     "server": {
       "unavailable": "Serveur indisponible"
@@ -457,6 +496,7 @@
     "myApplications": "Mes applications",
     "mySubscriptions": "Mes souscriptions",
     "notFound": "Page introuvable",
+    "notifications": "Notifications",
     "user": "Mon compte"
   },
   "search": {
@@ -494,10 +534,6 @@
     "change_picture": "Changer la photo",
     "display_name": "Nom :",
     "email": "Email :",
-    "notifications": {
-      "header": "À quels événements souhaitez-vous vous abonner ?",
-      "title": "Notifications"
-    },
     "title": "Mon compte",
     "update": "Mettre à jour"
   }
