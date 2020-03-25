@@ -27,7 +27,7 @@
 
       <div class="layout__nav__container" [ngClass]="{'layout__nav': displayShadowNav()}">
         <gv-user-menu [routes]="userRoutes" [ngClass]="{'layout__user-menu': isHomepage()}" [username]="this.getUserName()">
-          <gv-user-avatar *ngIf="currentUser" [user]="currentUser"></gv-user-avatar>
+          <gv-identity-picture *ngIf="currentUser" [display_name]="currentUser.display_name" [picture]="currentUser._links.avatar"></gv-identity-picture>
         </gv-user-menu>
       </div>
     </div>

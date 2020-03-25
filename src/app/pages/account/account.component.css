@@ -46,6 +46,11 @@
   flex-direction: row;
 }
 
+.account__user-info__avatar gv-identity-picture {
+  height: 50px;
+  width: 50px;
+}
+
 .account__user-info__avatar gv-button {
   --gv-button--fz: 12px;
   --gv-button--p: 5px 10px;

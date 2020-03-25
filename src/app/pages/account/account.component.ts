@@ -41,6 +41,7 @@ export class AccountComponent implements OnInit {
   ngOnInit() {
     this.currentUserService.get().subscribe((user) => {
       this.currentUser = user;
+      this.avatar = this.currentUser._links ? this.currentUser._links.avatar : null;
     });
   }
 
@@ -70,7 +71,7 @@ export class AccountComponent implements OnInit {
           this.currentUserService.set(user);
           this.notificationService.success(i18n('user.account.success'));
           // @ts-ignore
-          document.querySelector('gv-user-avatar').avatar = this.avatar;
+          document.querySelector('gv-identity-picture').picture = this.avatar;
           delete this.avatar;
         });
     }

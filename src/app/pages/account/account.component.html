@@ -22,7 +22,7 @@
       <h2>{{'user.account.title' | translate}}</h2>
       <div class="account__user-info">
         <div class="account__user-info__avatar">
-          <gv-user-avatar [user]="currentUser" [avatar]="avatar" [size]="50"></gv-user-avatar>
+          <gv-identity-picture [display_name]="currentUser.display_name" [picture]="avatar"></gv-identity-picture>
           <app-gv-file-upload [label]="'user.change_picture' | translate" (fileLoad)="onFileLoad($event)"></app-gv-file-upload>
           <gv-button primary (click)="update()" [disabled]="!avatar">{{ "user.update" | translate}}</gv-button>
         </div>
