@@ -56,17 +56,24 @@ class DashboardFilterController {
       let k = kv[0].trim();
       let v = kv[1].replace(/[\\\"]/g, "").split('OR').map(x => x.trim());
 
-      let filter: any = {};
-      filter.key = v;
-      filter.name = v
-      filter.field = k;
-      filter.fieldLabel = k;
+      let lastFilter;
 
-      this.addFieldFilter(filter);
+      v.forEach(value => {
+        let filter: any = {};
+        filter.key = value;
+        filter.name = value;
+        filter.field = k;
+        filter.fieldLabel = k;
+
+        this.addFieldFilter(filter, false);
+        lastFilter = filter;
+      });
+
+      this.createAndSendQuery(lastFilter.silent);
     }
   }
 
-  addFieldFilter(filter) {
+  addFieldFilter(filter, run:boolean = true) {
     let field = this.fields[filter.field] || {filters: {}};
 
     field.filters[filter.key] = {
@@ -74,10 +81,8 @@ class DashboardFilterController {
       onRemove: (filter.events !== undefined) && filter.events.remove
     };
 
-    let label = (filter.fieldLabel ? filter.fieldLabel : filter.field)
-      + " = '" + filter.name + "'";
-
-    let query = '(' + filter.field + ":" + _.map(_.keys(field.filters), (key) => (key.includes('TO') || filter.field !== 'path') ? key : "\\\"" + key + "\\\"").join(' OR ') + ')';
+    let label = (filter.fieldLabel ? filter.fieldLabel : filter.field) + " = '" + filter.name + "'";
+    let query =  filter.field + ":(" + _.map(_.keys(field.filters), (key) => (key.includes('TO') || filter.field !== 'path' || filter.field !== 'mapped-path') ? key : "\\\"" + key + "\\\"").join(' OR ') + ')';
 
     this.filters.push({
       source: filter.widget,
@@ -91,7 +96,10 @@ class DashboardFilterController {
 
     this.fields[filter.field] = field;
     this.lastSource = filter.widget;
-    this.createAndSendQuery(filter.silent);
+
+    if (run) {
+      this.createAndSendQuery(filter.silent);
+    }
   }
 
   removeFieldFilter(filter) {
@@ -129,7 +137,7 @@ class DashboardFilterController {
     }
 
     if (! _.isEmpty(fieldObject.filters)) {
-      fieldObject.query = '(' + field + ":" + _.map(_.keys(fieldObject.filters), (key) => (key.includes('TO') || field !== 'path') ? key:"\\\"" + key + "\\\"").join(' OR ') + ')';
+      fieldObject.query = field + ":(" + _.map(_.keys(fieldObject.filters), (key) => (key.includes('TO') || field !== 'path' || field !== 'mapped-path') ? key:"\\\"" + key + "\\\"").join(' OR ') + ')';
       this.fields[field] = fieldObject;
     } else {
       delete this.fields[field];
