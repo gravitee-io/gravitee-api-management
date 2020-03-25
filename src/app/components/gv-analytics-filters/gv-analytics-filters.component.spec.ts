@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { GvAnalyticsFiltersComponent } from './gv-analytics-filters.component';
-import { MarkdownModule } from 'ngx-markdown';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from '../../test/helper.spec';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
