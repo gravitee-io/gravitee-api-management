@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../test/translate-testing-module';
 
 import { AnalyticsService } from './analytics.service';
 
 describe('AnalyticsService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
+  beforeEach(() => TestBed.configureTestingModule({
+    imports: [
+      TranslateTestingModule,
+    ]
+  }));
 
   it('should be created', () => {
     const service: AnalyticsService = TestBed.get(AnalyticsService);
