@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ConfigurationMapper {
-    
+
     public ConfigurationResponse convert(PortalConfigEntity configEntity) {
         ConfigurationResponse configuration = new ConfigurationResponse();
         configuration.setAnalytics(convert(configEntity.getAnalytics()));
@@ -44,7 +44,7 @@ public class ConfigurationMapper {
         configuration.setCompany(convert(configEntity.getCompany()));
         configuration.setDocumentation(convert(configEntity.getDocumentation()));
         configuration.setPlan(convert(configEntity.getPlan()));
-        configuration.setPortal(convert(configEntity.getPortal()));
+        configuration.setPortal(convert(configEntity.getPortal(), configEntity.getApplication()));
         configuration.setScheduler(convert(configEntity.getScheduler()));
         return configuration;
     }
@@ -56,7 +56,7 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationPortal convert(Portal portal) {
+    private ConfigurationPortal convert(Portal portal, Application application) {
         ConfigurationPortal configuration = new ConfigurationPortal();
         configuration.setAnalytics(convert(portal.getAnalytics()));
         configuration.setApikeyHeader(portal.getApikeyHeader());
@@ -68,6 +68,20 @@ public class ConfigurationMapper {
         configuration.setSupport(convert(portal.getSupport()));
         configuration.setTitle(portal.getTitle());
         configuration.setUserCreation(convert(portal.getUserCreation()));
+
+        ApplicationTypes types = application.getTypes();
+        if (!application.getRegistration().getEnabled() && !types.getSimpleType().isEnabled()
+                || !types.getSimpleType().isEnabled() &&
+                !types.getWebType().isEnabled() &&
+                !types.getNativeType().isEnabled() &&
+                !types.getBackendToBackendType().isEnabled() &&
+                !types.getBrowserType().isEnabled()
+        ) {
+            configuration.setApplicationCreation(convert(false));
+        } else {
+            configuration.setApplicationCreation(convert(true));
+        }
+
         return configuration;
     }
 
@@ -181,7 +195,7 @@ public class ConfigurationMapper {
         configuration.setNative(convert(types.getNativeType()));
         configuration.setSimple(convert(types.getSimpleType()));
         configuration.setWeb(convert(types.getWebType()));
-        
+
         return configuration;
     }
 
@@ -194,6 +208,7 @@ public class ConfigurationMapper {
     private Enabled convert(Boolean enabled) {
         return new Enabled().enabled(enabled);
     }
+
     private Enabled convert(PortalConfigEntity.Enabled enabledEntity) {
         return new Enabled().enabled(enabledEntity.isEnabled());
     }

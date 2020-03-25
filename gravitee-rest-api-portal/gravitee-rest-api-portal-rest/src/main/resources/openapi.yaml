@@ -1856,6 +1856,24 @@ paths:
                 $ref: '#/components/schemas/LinksResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /configuration/applications:
+    get:
+      tags:
+        - Portal
+      summary: Get the application types list.
+      operationId: getEnabledApplicationTypes
+      description: |
+        Get enabled application types.
+      security: []
+      responses:
+        200:
+          description: List of enabled application types
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationApplicationsResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /info:
     get:
       tags:
@@ -2566,6 +2584,13 @@ components:
             $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
+    ConfigurationApplicationsResponse:
+      properties:
+        data:
+          description: List of application types
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationType'
     LinksResponse:
       properties:
         slots:
@@ -3240,6 +3265,51 @@ components:
         icon:
           description: Icon name to display for this provider.
           type: string
+    ApplicationType:
+      properties:
+        id:
+          description: Unique identifier of an application type.
+          type: string
+        name:
+          description: Name of an application type.
+          type: string
+        description:
+          description: description of an application type.
+          type: string
+        requires_redirect_uris:
+          description: if true, application type require redirect uri
+          type: boolean
+        allowed_grant_types:
+          description: List of allowed grant types
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationGrantType'
+        mandatory_grant_types:
+          description: List of mandatory grant types
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationGrantType'
+        default_grant_types:
+          description: List of default grant types
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationGrantType'
+    ApplicationGrantType:
+      properties:
+        code:
+          description: code of grant type
+          type: string
+        type:
+          description: type of grant type
+          type: string
+        name:
+          description: name of grant type
+          type: string
+        responses_types:
+          description: List of response types
+          type: array
+          items:
+            type: string
     Hook:
       properties:
         id:
@@ -3300,6 +3370,8 @@ components:
         support:
           $ref: '#/components/schemas/Enabled'
         devMode:
+          $ref: '#/components/schemas/Enabled'
+        applicationCreation:
           $ref: '#/components/schemas/Enabled'
         userCreation:
           $ref: '#/components/schemas/Enabled'
@@ -3498,6 +3570,8 @@ components:
         name:
           type: string
         description:
+          type: string
+        picture:
           type: string
         groups:
           type: array

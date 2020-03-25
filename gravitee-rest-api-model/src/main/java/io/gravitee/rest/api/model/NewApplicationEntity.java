@@ -53,6 +53,8 @@ public class NewApplicationEntity {
 
     private Set<String> groups;
 
+    private String Picture;
+
     public String getDescription() {
         return description;
     }
@@ -99,6 +101,14 @@ public class NewApplicationEntity {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    public String getPicture() {
+        return Picture;
+    }
+
+    public void setPicture(String picture) {
+        Picture = picture;
     }
 
     @Override

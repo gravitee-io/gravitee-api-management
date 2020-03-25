@@ -12,6 +12,9 @@
     "devMode" : {
       "enabled" : false
     },
+    "applicationCreation" : {
+      "enabled" : true
+    },
     "userCreation" : {
       "enabled" : true
     },

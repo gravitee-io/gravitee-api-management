@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import io.gravitee.rest.api.model.RatingAnswerEntity;
+import io.gravitee.rest.api.portal.rest.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +30,10 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingAnswer;
 import io.gravitee.rest.api.service.UserService;
+
+import javax.ws.rs.core.UriInfo;
+
+import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.userURL;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -43,11 +48,12 @@ public class RatingMapper {
     @Autowired
     UserMapper userMapper;
 
-    public Rating convert(RatingEntity ratingEntity) {
+    public Rating convert(RatingEntity ratingEntity, UriInfo uriInfo) {
         final Rating rating = new Rating();
-
-        UserEntity author = userService.findById(ratingEntity.getUser());
-        rating.setAuthor(userMapper.convert(author));
+        UserEntity authorEntity = userService.findById(ratingEntity.getUser());
+        User author = userMapper.convert(authorEntity);
+        author.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), authorEntity.getUpdatedAt()));
+        rating.setAuthor(author);
         rating.setTitle(ratingEntity.getTitle());
         rating.setComment(ratingEntity.getComment());
         if (ratingEntity.getCreatedAt() != null) {

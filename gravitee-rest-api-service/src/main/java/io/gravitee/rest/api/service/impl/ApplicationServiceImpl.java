@@ -97,7 +97,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Value("${configuration.default-icon:${gravitee.home}/assets/default_application_logo.png}")
     private String defaultIcon;
-    
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
@@ -274,7 +274,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setId( UUID.toString(UUID.random()));
             application.setStatus(ApplicationStatus.ACTIVE);
             application.setEnvironment(GraviteeContext.getCurrentEnvironment());
-            
             metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
             // Add Default groups
@@ -726,7 +725,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         } else {
             application.setType(ApplicationType.valueOf(newApplicationEntity.getSettings().getoAuthClient().getApplicationType().toUpperCase()));
         }
-
+        application.setPicture(newApplicationEntity.getPicture());
         application.setMetadata(metadata);
 
         return application;
@@ -754,7 +753,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         return application;
     }
-    
+
     @Override
     public InlinePictureEntity getPicture(String applicationId) {
         ApplicationEntity applicationEntity = findById(applicationId);

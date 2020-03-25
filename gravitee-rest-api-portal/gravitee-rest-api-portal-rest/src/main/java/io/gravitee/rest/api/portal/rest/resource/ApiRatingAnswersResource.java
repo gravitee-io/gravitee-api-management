@@ -77,7 +77,7 @@ public class ApiRatingAnswersResource extends AbstractResource {
                 RatingEntity updatedRating = ratingService.createAnswer(ratingAnswerEntity);
                 return Response
                         .status(Status.CREATED)
-                        .entity(ratingMapper.convert(updatedRating))
+                        .entity(ratingMapper.convert(updatedRating, uriInfo))
                         .build();
 
             }

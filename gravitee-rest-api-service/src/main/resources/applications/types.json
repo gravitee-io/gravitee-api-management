@@ -1,0 +1,176 @@
+{
+  "data": [
+    {
+      "id": "simple",
+      "name": "Simple",
+      "description": "A hands-free application. Using this type, you will be able to define the client_id by your own.",
+      "requires_redirect_uris": false,
+      "allowed_grant_types": [],
+      "default_grant_types": [],
+      "mandatory_grant_types": []
+    },
+    {
+      "id": "browser",
+      "name": "SPA",
+      "description": "Angular, React, Ember, ...",
+      "requires_redirect_uris": true,
+      "allowed_grant_types": [
+        {
+          "code": "authorization_code",
+          "type": "authorization_code",
+          "name": "Authorization Code",
+          "responses_types": [
+            "code"
+          ]
+        },
+        {
+          "code": "implicit",
+          "type": "implicit",
+          "name": "Implicit",
+          "responses_types": [
+            "token",
+            "id_token"
+          ]
+        }
+      ],
+      "default_grant_types": [
+        {
+          "code": "implicit",
+          "type": "implicit",
+          "name": "Implicit",
+          "responses_types": [
+            "token",
+            "id_token"
+          ]
+        }
+      ],
+      "mandatory_grant_types": []
+    },
+    {
+      "id": "web",
+      "name": "Web",
+      "description": "Java, .Net, ...",
+      "requires_redirect_uris": true,
+      "allowed_grant_types": [
+        {
+          "code": "authorization_code",
+          "type": "authorization_code",
+          "name": "Authorization Code",
+          "responses_types": [
+            "code"
+          ]
+        },
+        {
+          "code": "refresh_token",
+          "type": "refresh_token",
+          "name": "Refresh Token",
+          "responses_types": []
+        },
+        {
+          "code": "implicit_hybrid",
+          "type": "implicit_hybrid",
+          "name": "Implicit (Hybrid)",
+          "responses_types": [
+            "token",
+            "id_token"
+          ]
+        }
+      ],
+      "default_grant_types": [
+        {
+          "code": "authorization_code",
+          "type": "authorization_code",
+          "name": "Authorization Code",
+          "responses_types": [
+            "code"
+          ]
+        }
+      ],
+      "mandatory_grant_types": [
+        {
+          "code": "authorization_code",
+          "type": "authorization_code",
+          "name": "Authorization Code",
+          "responses_types": [
+            "code"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "native",
+      "name": "Native",
+      "description": "iOS, Android, ...",
+      "requires_redirect_uris": true,
+      "allowed_grant_types": [
+        {
+          "code": "authorization_code",
+          "type": "authorization_code",
+          "name": "Authorization Code",
+          "responses_types": [
+            "code"
+          ]
+        },
+        {
+          "code": "refresh_token",
+          "type": "refresh_token",
+          "name": "Refresh Token",
+          "responses_types": []
+        },
+        {
+          "code": "password",
+          "type": "password",
+          "name": "Resource Owner Password",
+          "responses_types": []
+        },
+        {
+          "code": "implicit_hybrid",
+          "type": "implicit_hybrid",
+          "name": "Implicit (Hybrid)",
+          "responses_types": [
+            "token",
+            "id_token"
+          ]
+        }
+      ],
+      "default_grant_types": [],
+      "mandatory_grant_types": []
+    },
+    {
+      "id": "backend_to_backend",
+      "name": "Backend to backend",
+      "description": "Machine to machine",
+      "requires_redirect_uris": false,
+      "allowed_grant_types": [
+        {
+          "code": "client_credentials",
+          "type": "client_credentials",
+          "name": "Client Credentials",
+          "responses_types": []
+        },
+        {
+          "code": "refresh_token",
+          "type": "refresh_token",
+          "name": "Refresh Token",
+          "responses_types": []
+        }
+      ],
+      "default_grant_types": [
+        {
+          "code": "client_credentials",
+          "type": "client_credentials",
+          "name": "Client Credentials",
+          "responses_types": []
+        }
+      ],
+      "mandatory_grant_types": [
+        {
+          "code": "client_credentials",
+          "type": "client_credentials",
+          "name": "Client Credentials",
+          "responses_types": []
+        }
+      ]
+    }
+  ]
+}

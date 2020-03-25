@@ -75,7 +75,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         doReturn(api).when(apiMapper).convert(any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new Plan()).when(planMapper).convert(any(), eq(USER_NAME));
-        doReturn(new Rating()).when(ratingMapper).convert(any());
+        doReturn(new Rating()).when(ratingMapper).convert(any(), any());
     }
 
     @Test
@@ -167,7 +167,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
         assertEquals("Api ["+API+"] can not be found.", error.getMessage());
-        
+
     }
 
     @Test
@@ -207,19 +207,19 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
         assertEquals("Api ["+API+"] can not be found.", error.getMessage());
-        
+
     }
-    
+
     @Test
     public void shouldGetApiLinks() {
         resetAllMocks();
-        
+
         PageEntity sysFolder = new PageEntity();
         sysFolder.setId("SYS_FOLDER");
         sysFolder.setType("SYSTEM_FOLDER");
         sysFolder.setName("SYSTEM_FOLDER");
         sysFolder.setPublished(true);
-        
+
         PageEntity linkSysFolder = new PageEntity();
         linkSysFolder.setId("LINK_SYS_FOLDER");
         linkSysFolder.setParentId("SYS_FOLDER");
@@ -230,28 +230,28 @@ public class ApiResourceTest extends AbstractResourceTest {
         Map<String, String> linkConf = new HashMap<>();
         linkConf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, "external");
         linkSysFolder.setConfiguration(linkConf);
-        
+
         PageEntity swaggerSysFolder = new PageEntity();
         swaggerSysFolder.setId("SWAGGER_SYS_FOLDER");
         swaggerSysFolder.setParentId("SYS_FOLDER");
         swaggerSysFolder.setType("SWAGGER");
         swaggerSysFolder.setName("SWAGGER");
         swaggerSysFolder.setPublished(true);
-        
+
         PageEntity folderSysFolder = new PageEntity();
         folderSysFolder.setId("FOLDER_SYS_FOLDER");
         folderSysFolder.setParentId("SYS_FOLDER");
         folderSysFolder.setType("FOLDER");
         folderSysFolder.setName("FOLDER");
         folderSysFolder.setPublished(true);
-        
+
         PageEntity markdownFolderSysFolder = new PageEntity();
         markdownFolderSysFolder.setId("MARKDOWN_FOLDER_SYS_FOLDER");
         markdownFolderSysFolder.setParentId("FOLDER_SYS_FOLDER");
         markdownFolderSysFolder.setType("MARKDOWN");
         markdownFolderSysFolder.setName("MARKDOWN");
         markdownFolderSysFolder.setPublished(true);
-        
+
         when(pageService.search(any(PageQuery.class), isNull())).thenAnswer(new Answer<List<PageEntity>>() {
 
             @Override
@@ -267,20 +267,20 @@ public class ApiResourceTest extends AbstractResourceTest {
                 return null;
             }
         });
-        
+
         final Response response = target(API).path("links").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         final LinksResponse links = response.readEntity(LinksResponse.class);
         assertNotNull(links);
         Map<String, List<CategorizedLinks>> slots = links.getSlots();
         assertNotNull(slots);
         assertEquals(1, slots.size());
-        
+
         List<CategorizedLinks> sysFolderList = slots.get("system_folder");
         assertNotNull(sysFolderList);
         assertEquals(2, sysFolderList.size());
-        
+
         CategorizedLinks rootCat = sysFolderList.get(0);
         assertNotNull(rootCat);
         assertTrue(rootCat.getRoot());
@@ -299,7 +299,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals("SWAGGER", rootCatSwagger.getName());
         assertEquals("SWAGGER_SYS_FOLDER", rootCatSwagger.getResourceRef());
         assertEquals(ResourceTypeEnum.PAGE, rootCatSwagger.getResourceType());
-        
+
         CategorizedLinks folderCat = sysFolderList.get(1);
         assertNotNull(folderCat);
         assertFalse(folderCat.getRoot());

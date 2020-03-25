@@ -18,14 +18,17 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -39,6 +42,9 @@ import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingAnswer;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.UserService;
+
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -64,28 +70,40 @@ public class RatingMapperTest {
 
     @Mock
     private UserMapper userMapper;
-    
+
+    @Mock
+    private UriInfo uriInfo;
+
+    @Mock
+    private UriBuilder uriBuilder;
+
     @InjectMocks
     private RatingMapper ratingMapper;
-    
-    @Test
-    public void testConvert() {
+
+    @Before
+    public void setup() throws URISyntaxException {
         reset(userService);
         reset(userMapper);
-        
+        when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
+        when(uriBuilder.build()).thenReturn(new URI(""));
+        when(uriInfo.getBaseUriBuilder()).thenReturn(uriBuilder);
+    }
+
+    @Test
+    public void testConvert() {
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
 
         //init
         RatingEntity ratingEntity = new RatingEntity();
-       
+
         RatingAnswerEntity ratingAnswerEntity = new RatingAnswerEntity();
         ratingAnswerEntity.setComment(RATING_RESPONSE_COMMENT);
         ratingAnswerEntity.setCreatedAt(nowDate);
         ratingAnswerEntity.setId(RATING_RESPONSE_ID);
         ratingAnswerEntity.setUser(RATING_RESPONSE_AUTHOR);
         ratingAnswerEntity.setUserDisplayName(RATING_RESPONSE_AUTHOR_DISPLAY_NAME);
-        
+
         ratingEntity.setAnswers(Arrays.asList(ratingAnswerEntity));
         ratingEntity.setApi(RATING_API);
         ratingEntity.setComment(RATING_COMMENT);
@@ -96,25 +114,25 @@ public class RatingMapperTest {
         ratingEntity.setUpdatedAt(nowDate);
         ratingEntity.setUser(RATING_AUTHOR);
         ratingEntity.setUserDisplayName(RATING_AUTHOR_DISPLAY_NAME);
-        
+
         UserEntity authorEntity = new UserEntity();
         authorEntity.setId(RATING_AUTHOR);
         UserEntity responseAuthorEntity = new UserEntity();
         responseAuthorEntity.setId(RATING_RESPONSE_AUTHOR);
-        
+
         User author = new User();
         author.setId(RATING_AUTHOR);
         User responseAuthor = new User();
         responseAuthor.setId(RATING_RESPONSE_AUTHOR);
-        
+
         doReturn(authorEntity).when(userService).findById(RATING_AUTHOR);
         doReturn(responseAuthorEntity).when(userService).findById(RATING_RESPONSE_AUTHOR);
         doReturn(author).when(userMapper).convert(authorEntity);
         doReturn(responseAuthor).when(userMapper).convert(responseAuthorEntity);
-        
-        Rating responseRating = ratingMapper.convert(ratingEntity);
+
+        Rating responseRating = ratingMapper.convert(ratingEntity, uriInfo);
         assertNotNull(responseRating);
-        
+
         List<RatingAnswer> answers = responseRating.getAnswers();
         assertNotNull(answers);
         assertEquals(1, answers.size());
@@ -123,7 +141,7 @@ public class RatingMapperTest {
         assertEquals(RATING_RESPONSE_COMMENT, ratingAnswer.getComment());
         assertEquals(now.toEpochMilli(), ratingAnswer.getDate().toInstant().toEpochMilli());
         assertEquals(responseAuthor, ratingAnswer.getAuthor());
-        
+
         assertEquals(author, responseRating.getAuthor());
         assertEquals(RATING_COMMENT, responseRating.getComment());
         assertEquals(RATING_TITLE, responseRating.getTitle());
@@ -131,12 +149,5 @@ public class RatingMapperTest {
         assertEquals(RATING_ID, responseRating.getId());
         assertEquals(Integer.valueOf(1), responseRating.getValue());
     }
- 
-    @Test
-    public void testMinimalConvert() {
-        Rating responseRating = ratingMapper.convert(new RatingEntity());
-        assertNotNull(responseRating);
-        assertNull(responseRating.getAnswers());
-        assertNull(responseRating.getDate());
-    }
+
 }

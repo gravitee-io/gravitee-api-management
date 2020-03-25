@@ -16,23 +16,23 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
+import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
+import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
-import io.gravitee.rest.api.portal.rest.model.CategorizedLinks;
-import io.gravitee.rest.api.portal.rest.model.Link;
-import io.gravitee.rest.api.portal.rest.model.LinksResponse;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import javax.validation.Valid;
 import javax.ws.rs.core.Response;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,31 +49,31 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
     protected String contextPath() {
         return "configuration";
     }
-    
+
     @Test
     public void shouldGetConfiguration() {
         resetAllMocks();
-        
+
         PortalConfigEntity configEntity = new PortalConfigEntity();
         doReturn(configEntity).when(configService).getPortalConfig();
-        
+
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         Mockito.verify(configMapper).convert(configEntity);
         Mockito.verify(configService).getPortalConfig();
     }
-    
+
     @Test
     public void shouldGetPortalLinks() {
         resetAllMocks();
-        
+
         PageEntity sysFolder = new PageEntity();
         sysFolder.setId("SYS_FOLDER");
         sysFolder.setType("SYSTEM_FOLDER");
         sysFolder.setName("SYSTEM_FOLDER");
         sysFolder.setPublished(true);
-        
+
         PageEntity linkSysFolder = new PageEntity();
         linkSysFolder.setId("LINK_SYS_FOLDER");
         linkSysFolder.setParentId("SYS_FOLDER");
@@ -84,28 +84,28 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         Map<String, String> linkConf = new HashMap<>();
         linkConf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, "external");
         linkSysFolder.setConfiguration(linkConf);
-        
+
         PageEntity swaggerSysFolder = new PageEntity();
         swaggerSysFolder.setId("SWAGGER_SYS_FOLDER");
         swaggerSysFolder.setParentId("SYS_FOLDER");
         swaggerSysFolder.setType("SWAGGER");
         swaggerSysFolder.setName("SWAGGER");
         swaggerSysFolder.setPublished(true);
-        
+
         PageEntity folderSysFolder = new PageEntity();
         folderSysFolder.setId("FOLDER_SYS_FOLDER");
         folderSysFolder.setParentId("SYS_FOLDER");
         folderSysFolder.setType("FOLDER");
         folderSysFolder.setName("FOLDER");
         folderSysFolder.setPublished(true);
-        
+
         PageEntity markdownFolderSysFolder = new PageEntity();
         markdownFolderSysFolder.setId("MARKDOWN_FOLDER_SYS_FOLDER");
         markdownFolderSysFolder.setParentId("FOLDER_SYS_FOLDER");
         markdownFolderSysFolder.setType("MARKDOWN");
         markdownFolderSysFolder.setName("MARKDOWN");
         markdownFolderSysFolder.setPublished(true);
-        
+
         when(pageService.search(any(PageQuery.class), isNull())).thenAnswer(new Answer<List<PageEntity>>() {
 
             @Override
@@ -121,20 +121,20 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
                 return null;
             }
         });
-        
+
         final Response response = target("/links").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         final LinksResponse links = response.readEntity(LinksResponse.class);
         assertNotNull(links);
         Map<String, List<CategorizedLinks>> slots = links.getSlots();
         assertNotNull(slots);
         assertEquals(1, slots.size());
-        
+
         List<CategorizedLinks> sysFolderList = slots.get("system_folder");
         assertNotNull(sysFolderList);
         assertEquals(2, sysFolderList.size());
-        
+
         CategorizedLinks rootCat = sysFolderList.get(0);
         assertNotNull(rootCat);
         assertTrue(rootCat.getRoot());
@@ -154,7 +154,7 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         assertEquals("SWAGGER", rootCatSwagger.getName());
         assertEquals("SWAGGER_SYS_FOLDER", rootCatSwagger.getResourceRef());
         assertEquals(ResourceTypeEnum.PAGE, rootCatSwagger.getResourceType());
-        
+
         CategorizedLinks folderCat = sysFolderList.get(1);
         assertNotNull(folderCat);
         assertFalse(folderCat.getRoot());
@@ -168,4 +168,54 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         assertEquals("MARKDOWN_FOLDER_SYS_FOLDER", folderCatMarkdown.getResourceRef());
         assertEquals(ResourceTypeEnum.PAGE, folderCatMarkdown.getResourceType());
     }
+
+    @Test
+    public void shouldGetApplicationTypes() throws TechnicalException {
+        resetAllMocks();
+
+        ApplicationTypesEntity typesEntity = new ApplicationTypesEntity();
+        List<ApplicationTypeEntity> data = new ArrayList<>();
+
+        ApplicationTypeEntity simple = new ApplicationTypeEntity();
+        simple.setId("simple");
+        simple.setAllowed_grant_types(new ArrayList<>());
+        simple.setDefault_grant_types(new ArrayList<>());
+        simple.setMandatory_grant_types(new ArrayList<>());
+        simple.setName("Simple");
+        simple.setDescription("Simple type");
+        data.add(simple);
+
+        ApplicationTypeEntity web = new ApplicationTypeEntity();
+        web.setId("web");
+        List<ApplicationGrantTypeEntity> grantTypes = new ArrayList<>();
+        ApplicationGrantTypeEntity grantType = new ApplicationGrantTypeEntity();
+        grantType.setCode("code");
+        grantType.setName("name");
+        List<String> responses_types = new ArrayList<>();
+        responses_types.add("token");
+        grantType.setResponses_types(responses_types);
+        grantTypes.add(grantType);
+        web.setAllowed_grant_types(grantTypes);
+        web.setDefault_grant_types(new ArrayList<>());
+        web.setMandatory_grant_types(new ArrayList<>());
+        web.setName("Web");
+        web.setDescription("Web type");
+        data.add(web);
+
+        typesEntity.setData(data);
+        when(applicationTypeService.getEnabledApplicationTypes()).thenReturn(typesEntity);
+
+        final Response response = target("/applications").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        final ConfigurationApplicationsResponse apps = response.readEntity(ConfigurationApplicationsResponse.class);
+        assertNotNull(apps);
+        @Valid List<ApplicationType> types = apps.getData();
+        assertNotNull(types);
+        assertEquals(2, types.size());
+
+        assertEquals("web", types.get(1).getId());
+        assertEquals(1, types.get(1).getAllowedGrantTypes().size());
+        assertEquals("code", types.get(1).getAllowedGrantTypes().get(0).getCode());
+        assertEquals("token", types.get(1).getAllowedGrantTypes().get(0).getResponsesTypes().get(0));
+    };
 }

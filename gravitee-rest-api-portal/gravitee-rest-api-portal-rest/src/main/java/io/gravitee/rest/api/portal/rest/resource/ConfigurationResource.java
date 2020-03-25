@@ -16,17 +16,17 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
+import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.ConfigurationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.IdentityProviderMapper;
-import io.gravitee.rest.api.portal.rest.model.CategorizedLinks;
-import io.gravitee.rest.api.portal.rest.model.IdentityProvider;
-import io.gravitee.rest.api.portal.rest.model.Link;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
-import io.gravitee.rest.api.portal.rest.model.LinksResponse;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.ConfigService;
@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.swagger.annotations.ApiOperation;
+import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
@@ -58,6 +59,8 @@ public class ConfigurationResource extends AbstractResource {
     private ConfigurationMapper configMapper;
     @Autowired
     private IdentityProviderMapper identityProviderMapper;
+    @Autowired
+    private ApplicationTypeService applicationTypeService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -94,7 +97,7 @@ public class ConfigurationResource extends AbstractResource {
                 .forEach(sysPage -> {
                     List<CategorizedLinks> catLinksList = new ArrayList<>();
 
-                    // for pages under sysFolder                    
+                    // for pages under sysFolder
                     List<Link> links = getLinksFromFolder(sysPage, acceptedLocale);
                     if (!links.isEmpty()) {
                         CategorizedLinks catLinks = new CategorizedLinks();
@@ -150,10 +153,55 @@ public class ConfigurationResource extends AbstractResource {
                         return new Link()
                                 .name(p.getName())
                                 .resourceRef(p.getId())
-                                .resourceType(ResourceTypeEnum.PAGE)
-                                ;
+                                .resourceType(ResourceTypeEnum.PAGE);
                     }
                 })
                 .collect(Collectors.toList());
     }
+
+    @GET
+    @Path("applications")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getEnabledApplicationTypes() {
+        try {
+            ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes();
+            return Response
+                    .ok(convert(enabledApplicationTypes))
+                    .build();
+        } catch (TechnicalException e) {
+            return Response.ok().build();
+        }
+    }
+
+    private ConfigurationApplicationsResponse convert(ApplicationTypesEntity enabledApplicationTypes) {
+        ConfigurationApplicationsResponse configurationApplicationsResponse = new ConfigurationApplicationsResponse();
+        List<ApplicationType> types = enabledApplicationTypes.getData().stream().map(applicationTypeEntity -> {
+
+            ApplicationType applicationType = new ApplicationType();
+            applicationType.setAllowedGrantTypes(convert(applicationTypeEntity.getAllowed_grant_types()));
+            applicationType.setDefaultGrantTypes(convert(applicationTypeEntity.getDefault_grant_types()));
+            applicationType.setMandatoryGrantTypes(convert(applicationTypeEntity.getMandatory_grant_types()));
+            applicationType.setId(applicationTypeEntity.getId());
+            applicationType.setName(applicationTypeEntity.getName());
+            applicationType.setDescription(applicationTypeEntity.getDescription());
+            applicationType.setRequiresRedirectUris(applicationTypeEntity.getRequires_redirect_uris());
+            return applicationType;
+        }).collect(Collectors.toList());
+
+        configurationApplicationsResponse.setData(types);
+        return configurationApplicationsResponse;
+    }
+
+    private List<ApplicationGrantType> convert(List<ApplicationGrantTypeEntity> allowedGrantTypes) {
+
+        return allowedGrantTypes.stream().map(applicationGrantTypeEntity -> {
+            ApplicationGrantType applicationGrantType = new ApplicationGrantType();
+            applicationGrantType.setCode(applicationGrantTypeEntity.getCode());
+            applicationGrantType.setName(applicationGrantTypeEntity.getName());
+            applicationGrantType.setType(applicationGrantTypeEntity.getType());
+            applicationGrantType.setResponsesTypes(applicationGrantTypeEntity.getResponses_types());
+            return applicationGrantType;
+        }).collect(Collectors.toList());
+    }
+
 }

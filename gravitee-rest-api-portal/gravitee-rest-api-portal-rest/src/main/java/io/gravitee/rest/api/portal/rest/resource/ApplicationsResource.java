@@ -70,8 +70,9 @@ public class ApplicationsResource extends AbstractResource {
     public Response createApplication(@Valid @NotNull(message = "Input must not be null.") ApplicationInput applicationInput) {
         NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
         newApplicationEntity.setDescription(applicationInput.getDescription());
-        newApplicationEntity.setGroups(new HashSet<String>(applicationInput.getGroups()));
+        newApplicationEntity.setGroups(applicationInput.getGroups() != null ? new HashSet<>(applicationInput.getGroups()) : new HashSet<>());
         newApplicationEntity.setName(applicationInput.getName());
+        newApplicationEntity.setPicture(applicationInput.getPicture());
 
         final io.gravitee.rest.api.portal.rest.model.ApplicationSettings settings = applicationInput.getSettings();
         ApplicationSettings newApplicationEntitySettings = new ApplicationSettings();

@@ -72,13 +72,14 @@ public class ApiRatingsResource extends AbstractResource {
             if (mine != null && mine == true) {
                 RatingEntity ratingEntity = ratingService.findByApiForConnectedUser(apiId);
                 if (ratingEntity != null) {
-                    ratings = Arrays.asList(ratingMapper.convert(ratingEntity));
+                    ratings = Arrays.asList(ratingMapper.convert(ratingEntity, uriInfo));
                 } else {
                     ratings = Collections.emptyList();
                 }
             } else {
                 final List<RatingEntity> ratingEntities = ratingService.findByApi(apiId);
-                Stream<Rating> ratingStream = ratingEntities.stream().map(ratingMapper::convert);
+                Stream<Rating> ratingStream = ratingEntities.stream()
+                        .map((RatingEntity ratingEntity) -> ratingMapper.convert(ratingEntity, uriInfo));
                 if (order != null) {
                     ratingStream = ratingStream.sorted(new RatingComparator(order));
                 }
@@ -111,7 +112,7 @@ public class ApiRatingsResource extends AbstractResource {
 
             return Response
                     .status(Status.CREATED)
-                    .entity(ratingMapper.convert(createdRating))
+                    .entity(ratingMapper.convert(createdRating, uriInfo))
                     .build();
         }
         throw new ApiNotFoundException(apiId);

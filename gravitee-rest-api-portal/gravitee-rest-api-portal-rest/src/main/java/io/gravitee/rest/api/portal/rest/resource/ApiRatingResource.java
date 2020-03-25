@@ -103,7 +103,7 @@ public class ApiRatingResource extends AbstractResource {
 
                 return Response
                         .status(Status.OK)
-                        .entity(ratingMapper.convert(updatedRating))
+                        .entity(ratingMapper.convert(updatedRating, uriInfo))
                         .build();
             }
             throw new RatingNotFoundException(ratingId, apiId);

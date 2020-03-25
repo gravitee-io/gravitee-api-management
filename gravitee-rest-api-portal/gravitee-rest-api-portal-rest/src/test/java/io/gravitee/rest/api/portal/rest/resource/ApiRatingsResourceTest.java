@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
@@ -78,7 +77,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         rating.setComment(RATING);
         rating.setValue(1);
 
-        doReturn(rating).when(ratingMapper).convert(any());
+        doReturn(rating).when(ratingMapper).convert(any(), any());
 
         RatingEntity createdRating = new RatingEntity();
         createdRating.setId(RATING);
