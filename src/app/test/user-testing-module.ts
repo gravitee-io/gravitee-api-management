@@ -13,19 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../test/translate-testing-module';
-import { TranslationService } from './translation.service';
+import { Injectable, NgModule, Pipe, PipeTransform } from '@angular/core';
+import { User, UserService } from '@gravitee/ng-portal-webclient';
+import { Observable, of } from 'rxjs';
+import { CurrentUserService } from '../services/current-user.service';
 
-describe('TranslationService', () => {
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [
-      TranslateTestingModule,
-    ]
-  }));
+@Injectable()
+export class UserServiceStub {
+}
 
-  it('should be created', () => {
-    const service: TranslationService = TestBed.get(TranslationService);
-    expect(service).toBeTruthy();
-  });
-});
+@Injectable()
+export class CurrentUserServiceStub {
+  get(): Observable<User> {
+    return of({});
+  }
+}
+
+@NgModule({
+  declarations: [
+  ],
+  providers: [
+    { provide: UserService, useClass: UserServiceStub },
+    { provide: CurrentUserService, useClass: CurrentUserServiceStub },
+  ],
+})
+export class UserTestingModule {
+
+}

@@ -135,7 +135,10 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    document.querySelector('#loader').remove();
+    const loader = document.querySelector('#loader');
+    if (loader) {
+      loader.remove();
+    }
     this.slots = [this.appGvMenuButtonSlot, this.appGvMenuRightSlot, this.appGvMenuTopSlot];
   }
 
@@ -285,10 +288,10 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   private _injectMenuSlots(slots) {
     this.slots.forEach((directive) => {
-        const name = directive.getName();
-        const slot = slots ? slots[name] : null;
-        this._updateSlot(slot, directive);
-      });
+      const name = directive.getName();
+      const slot = slots ? slots[name] : null;
+      this._updateSlot(slot, directive);
+    });
   }
 
   private _updateSlot(slot, directive) {

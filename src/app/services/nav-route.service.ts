@@ -61,18 +61,17 @@ export class NavRouteService {
   }
 
   async getManagementNav(): Promise<INavRoute> {
-    if (this.currentUserService.getUser()
-    && this.currentUserService.getUser().config
-    && this.currentUserService.getUser().config.management_url) {
+    const user = this.currentUserService.getUser();
+    if (user && user.config && user.config.management_url) {
       return this.translateService.get('route.management').toPromise().then((_title) => {
-          const routeNav: INavRoute = {
-            path: this.currentUserService.getUser().config.management_url,
-            icon: 'code:settings',
-            title: _title,
-            target: '_blank'
-          };
-          return routeNav;
-        });
+        const routeNav: INavRoute = {
+          path: user.config.management_url,
+          icon: 'code:settings',
+          title: _title,
+          target: '_blank'
+        };
+        return routeNav;
+      });
     }
   }
 
@@ -99,7 +98,7 @@ export class NavRouteService {
         .map(async (child) => {
           const hasAuth = await this.authGuardService.canActivate(child);
           if (hasAuth === true) {
-            let path = `${ _parentPath }/${ child.path }`;
+            let path = `${_parentPath}/${child.path}`;
             // remove trailing slash to allow empty path
             if (path.endsWith('/')) {
               path = path.substring(0, path.length - 1);
@@ -137,7 +136,7 @@ export class NavRouteService {
         return childrenNav.then((navRoutes) => {
           return navRoutes.map((navRoute) => {
             for (const key of Object.keys(params)) {
-              navRoute.path = navRoute.path.replace(`:${ key }`, params[key]);
+              navRoute.path = navRoute.path.replace(`:${key}`, params[key]);
               navRoute.active = this.router.isActive(navRoute.path, true);
             }
             return navRoute;
@@ -201,7 +200,7 @@ export class NavRouteService {
 
       if (child.snapshot.data[ROUTE_DATA_BREADCRUMB] === true) {
         const routeURL: string = child.snapshot.url.map(segment => segment.path).join('/');
-        url += `/${ routeURL }`;
+        url += `/${routeURL}`;
 
         const breadcrumb = this.translateService.get(child.snapshot.data.title)
           .toPromise()

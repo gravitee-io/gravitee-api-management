@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
 import { FilteredCatalogComponent } from './filtered-catalog.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { TranslateTestingModule } from '../../../test/helper.spec';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
@@ -46,15 +46,13 @@ describe('FilteredCatalogComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(FilteredCatalogComponent);
     component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
   });
 
-  it('should create', () => {
+  it('should create', (done) => {
     fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
+      done();
     });
   });
 });

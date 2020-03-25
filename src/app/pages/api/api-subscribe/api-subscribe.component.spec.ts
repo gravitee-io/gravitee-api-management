@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
 import { ApiSubscribeComponent } from './api-subscribe.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from '../../../test/helper.spec';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -50,15 +50,13 @@ describe('ApiSubscribeComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ApiSubscribeComponent);
     component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
   });
 
-  it('should create', () => {
+  it('should create', (done) => {
     fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
+      done();
     });
   });
 });

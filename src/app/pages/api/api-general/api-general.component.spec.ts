@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
 import { ApiGeneralComponent } from './api-general.component';
 import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
@@ -21,7 +22,6 @@ import { MarkdownModule } from 'ngx-markdown';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { TranslateTestingModule } from 'src/app/test/helper.spec';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('ApiGeneralComponent', () => {

@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
+import { UserTestingModule } from '../../test/user-testing-module';
 
 import { GvHeaderItemComponent } from './gv-header-item.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { provideMock } from '../../test/mock.helper.spec';
-import { CurrentUserService } from '../../services/current-user.service';
-import { TranslateTestingModule } from '../../test/helper.spec';
-import { TranslateService } from '@ngx-translate/core';
 import { ApiService } from '@gravitee/ng-portal-webclient';
 
 describe('GvHeaderItemComponent', () => {
@@ -35,6 +34,7 @@ describe('GvHeaderItemComponent', () => {
         RouterTestingModule,
         TranslateTestingModule,
         HttpClientTestingModule,
+        UserTestingModule
       ],
       declarations: [
         GvHeaderItemComponent
@@ -44,8 +44,6 @@ describe('GvHeaderItemComponent', () => {
       ],
       providers: [
         GvHeaderItemComponent,
-        provideMock(TranslateService),
-        provideMock(CurrentUserService),
         provideMock(ApiService)
       ]
     }).compileComponents();
@@ -54,9 +52,6 @@ describe('GvHeaderItemComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(GvHeaderItemComponent);
     component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
   });
 
 

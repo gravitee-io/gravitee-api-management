@@ -48,15 +48,31 @@ export class AccountComponent implements OnInit {
     this.avatar = picture;
   }
 
+  get displayName() {
+    if (this.currentUser) {
+      return this.currentUser.first_name ? `${this.currentUser.first_name} ${this.currentUser.last_name}` : this.currentUser.display_name;
+    }
+    return '';
+  }
+
+  get email() {
+    if (this.currentUser) {
+      return this.currentUser.email;
+    }
+    return '';
+  }
+
   update() {
     if (this.avatar) {
-      this.userService.updateCurrentUser({ UserInput: { id: this.currentUser.id, avatar: this.avatar } }).toPromise().then((user) => {
-        this.currentUserService.set(user);
-        this.notificationService.success(i18n('user.account.success'));
-        // @ts-ignore
-        document.querySelector('gv-user-avatar').avatar = this.avatar;
-        delete this.avatar;
-      });
+      this.userService.updateCurrentUser({ UserInput: { id: this.currentUser.id, avatar: this.avatar } })
+        .toPromise()
+        .then((user) => {
+          this.currentUserService.set(user);
+          this.notificationService.success(i18n('user.account.success'));
+          // @ts-ignore
+          document.querySelector('gv-user-avatar').avatar = this.avatar;
+          delete this.avatar;
+        });
     }
   }
 }

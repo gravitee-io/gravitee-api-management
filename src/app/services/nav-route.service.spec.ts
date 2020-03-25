@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
+import { UserTestingModule } from '../test/user-testing-module';
 
 import { NavRouteService } from './nav-route.service';
 import { provideMock } from '../test/mock.helper.spec';
 import { TranslateService } from '@ngx-translate/core';
 import { RouterTestingModule } from '@angular/router/testing';
-import { getTranslateServiceMock, TranslateTestingModule } from '../test/helper.spec';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FeatureGuardService } from './feature-guard.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthGuardService } from './auth-guard.service';
+import { CurrentUserService } from './current-user.service';
+import { TranslateTestingModule } from '../test/translate-testing-module';
 
 describe('NavRouteService', () => {
 
@@ -31,14 +33,15 @@ describe('NavRouteService', () => {
   let translateService: jasmine.SpyObj<TranslateService>;
   let featureGuardService: jasmine.SpyObj<FeatureGuardService>;
   let authGuardService: jasmine.SpyObj<AuthGuardService>;
-
   let routeService: NavRouteService;
+  let currentUserService: CurrentUserService;
 
   beforeEach(() => {
 
     TestBed.configureTestingModule({
       imports: [
         TranslateTestingModule,
+        UserTestingModule,
         HttpClientTestingModule,
         RouterTestingModule.withRoutes([
           { path: 'foobar', redirectTo: '', children: [{ path: 'bar', redirectTo: '', children: [{ path: 'foo', redirectTo: '' }] }] },
@@ -54,18 +57,18 @@ describe('NavRouteService', () => {
         ]),
       ],
       providers: [
-        provideMock(TranslateService),
         provideMock(FeatureGuardService),
-        provideMock(ActivatedRoute)
+        provideMock(ActivatedRoute),
       ]
     });
 
     router = TestBed.get(Router);
-    translateService = getTranslateServiceMock();
+    currentUserService = TestBed.get(CurrentUserService);
     featureGuardService = TestBed.get(FeatureGuardService);
     authGuardService = TestBed.get(AuthGuardService);
+    translateService = TestBed.get(TranslateService);
 
-    routeService = new NavRouteService(router, translateService, featureGuardService, authGuardService);
+    routeService = new NavRouteService(router, translateService, featureGuardService, currentUserService, authGuardService);
   });
 
   it('should be created', () => {

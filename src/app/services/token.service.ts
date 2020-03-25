@@ -20,19 +20,23 @@ import { Injectable } from '@angular/core';
 })
 export class TokenService {
 
-  constructor() {}
+  constructor() {
+  }
 
   isParsedTokenExpired(parsedToken: any) {
-    return parsedToken.exp * 1000 <= Date.now();
+    return parsedToken ? parsedToken.exp * 1000 <= Date.now() : false;
   }
 
   parseToken(token: string) {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+    if (token) {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
 
-    return JSON.parse(jsonPayload);
+      return JSON.parse(jsonPayload);
+    }
+    return null;
   }
 }

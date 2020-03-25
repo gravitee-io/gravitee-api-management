@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
+import { UserTestingModule } from '../../test/user-testing-module';
 
 import { AccountComponent } from './account.component';
-import { provideMock } from '../../test/mock.helper.spec';
-import { CurrentUserService } from '../../services/current-user.service';
-import { UserService } from '@gravitee/ng-portal-webclient';
-import { TranslateTestingModule } from '../../test/helper.spec';
 import { SafePipe } from '../../pipes/safe.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
@@ -27,13 +25,10 @@ describe('AccountComponent', () => {
   let component: AccountComponent;
   let fixture: ComponentFixture<AccountComponent>;
 
-  let userServiceMock: jasmine.SpyObj<UserService>;
-
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [AccountComponent, SafePipe],
-      imports: [TranslateTestingModule],
-      providers: [provideMock(UserService), provideMock(CurrentUserService)],
+      imports: [TranslateTestingModule, UserTestingModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ]
@@ -42,19 +37,15 @@ describe('AccountComponent', () => {
   }));
 
   beforeEach(() => {
-    userServiceMock = TestBed.get(UserService);
-
     fixture = TestBed.createComponent(AccountComponent);
     component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
   });
 
-  it('should create', () => {
+  it('should create', (done) => {
     fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
+      done();
     });
   });
 });

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { ContactComponent } from './contact.component';
-import { TranslateTestingModule } from '../../test/helper.spec';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -32,8 +32,8 @@ describe('ContactComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ContactComponent ],
-      imports: [ FormsModule, ReactiveFormsModule, TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
+      declarations: [ContactComponent],
+      imports: [FormsModule, ReactiveFormsModule, TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
@@ -43,21 +43,19 @@ describe('ContactComponent', () => {
         provideMock(CurrentUserService),
       ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ContactComponent);
     component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
   });
 
-  it('should create', () => {
+  it('should create', (done) => {
     fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
+      done();
     });
   });
 });

@@ -15,10 +15,10 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
 import { CategoriesComponent } from './categories.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { TranslateTestingModule } from 'src/app/test/helper.spec';
 import { SafePipe } from '../../../pipes/safe.pipe';
 import { RouterTestingModule } from '@angular/router/testing';
 
@@ -50,10 +50,11 @@ describe('CategoriesComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should create', (done) => {
     fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
+      done();
     });
   });
 });

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { GvFileUploadComponent } from './gv-file-upload.component';
-import { TranslateTestingModule } from '../../test/helper.spec';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('GvFileUploadComponent', () => {
@@ -25,13 +25,13 @@ describe('GvFileUploadComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [ TranslateTestingModule],
-      declarations: [ GvFileUploadComponent ],
+      imports: [TranslateTestingModule],
+      declarations: [GvFileUploadComponent],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

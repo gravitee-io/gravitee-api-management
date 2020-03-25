@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { GvCreateApplicationComponent } from './gv-create-application.component';
-import { TranslateTestingModule } from '../../test/helper.spec';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 

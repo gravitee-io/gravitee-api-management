@@ -29,7 +29,6 @@ export class HomepageComponent implements OnInit {
 
   public homepage: Page;
   public topApis: { item: Api; metric: Promise<ApiMetrics> }[];
-  public allApisMetrics: Promise<ApiMetrics>[] = [];
 
   constructor(
     private portalService: PortalService,

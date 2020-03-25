@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { GvDocumentationComponent } from './gv-documentation.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { TranslateTestingModule } from '../../test/helper.spec';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('GvDocumentationComponent', () => {
@@ -39,10 +39,14 @@ describe('GvDocumentationComponent', () => {
     fixture = TestBed.createComponent(GvDocumentationComponent);
     component = fixture.componentInstance;
     component.pages = [];
-    fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should create', (done) => {
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component).toBeTruthy();
+      done();
+    });
   });
+
 });

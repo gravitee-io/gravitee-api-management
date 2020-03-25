@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { HomepageComponent } from './homepage.component';
 import { GvPageComponent } from '../../components/gv-page/gv-page.component';
@@ -23,7 +24,6 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { ApiStatesPipe } from '../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { TranslateTestingModule } from '../../test/helper.spec';
 
 describe('HomepageComponent', () => {
   let component: HomepageComponent;
@@ -44,15 +44,13 @@ describe('HomepageComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(HomepageComponent);
     component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
   });
 
-  it('should create', () => {
+  it('should create', (done) => {
     fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
+      done();
     });
   });
 });

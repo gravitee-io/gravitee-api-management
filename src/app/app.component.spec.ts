@@ -18,21 +18,22 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { TranslateService } from '@ngx-translate/core';
 import { provideMock } from './test/mock.helper.spec';
 import { CurrentUserService } from './services/current-user.service';
-import { TranslateTestingModule } from './test/helper.spec';
 import { UserService } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from './services/notification.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { TranslateTestingModule } from './test/translate-testing-module';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       imports: [
         RouterTestingModule,
-        TranslateTestingModule,
         HttpClientTestingModule,
+        TranslateTestingModule,
+        BrowserAnimationsModule
       ],
       declarations: [
         AppComponent
@@ -43,9 +44,6 @@ describe('AppComponent', () => {
       providers: [
         AppComponent,
         provideMock(Title),
-        provideMock(UserService),
-        provideMock(CurrentUserService),
-        provideMock(TranslateService),
         provideMock(NotificationService),
       ]
     }).compileComponents();
@@ -59,15 +57,13 @@ describe('AppComponent', () => {
     titleMock = TestBed.get(Title);
     fixture = TestBed.createComponent(AppComponent);
     app = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
   });
 
-  it('should create the app', () => {
+  it('should create the app', (done) => {
     fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(app).toBeTruthy();
+      done();
     });
   });
 

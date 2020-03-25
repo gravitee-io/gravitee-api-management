@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { ApplicationsComponent } from './applications.component';
-import { TranslateTestingModule } from '../../test/helper.spec';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { MarkdownModule } from 'ngx-markdown';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('ApplicationsComponent', () => {

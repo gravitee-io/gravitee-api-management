@@ -28,11 +28,11 @@
         </div>
         <p>
           <b>{{'user.display_name' | translate}} </b>
-          <span>{{ currentUser.first_name ? (currentUser.first_name + ' ' + currentUser.last_name) : currentUser.display_name }}</span>
+          <span>{{ displayName }}</span>
         </p>
         <p>
           <b>{{'user.email' | translate}} </b>
-          <span>{{ currentUser.email }}</span>
+          <span>{{ email }}</span>
         </p>
       </div>
     </section>

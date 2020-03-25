@@ -39,15 +39,13 @@ describe('DocumentationComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(DocumentationComponent);
     component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
   });
 
-  it('should create', () => {
+  it('should create', (done) => {
     fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
+      done();
     });
   });
 });

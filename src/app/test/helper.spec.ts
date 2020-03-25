@@ -13,38 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
-import { CurrentUserService } from '../services/current-user.service';
-import { User } from '@gravitee/ng-portal-webclient';
+import { TokenService } from '../services/token.service';
 
-const translations: any = { CARDS_TITLE: 'This is a test' };
 
-class FakeLoader implements TranslateLoader {
-  getTranslation(lang: string): Observable<any> {
-    return of(translations);
-  }
-}
-
-export const TranslateTestingModule = TranslateModule.forRoot({
-  loader: { provide: TranslateLoader, useClass: FakeLoader },
-});
-
-export function getTranslateServiceMock() {
-  let translateService: jasmine.SpyObj<TranslateService>;
-  translateService = TestBed.get(TranslateService);
-  translateService.getBrowserLang.and.returnValue('fr');
-  translateService.get.and.returnValue(of(''));
-  return translateService;
-}
-
-export function getCurrentUserServiceMock(user?: User) {
-  const subject = new BehaviorSubject<User>(user);
-  let currentUserService: jasmine.SpyObj<CurrentUserService>;
-  currentUserService = TestBed.get(CurrentUserService);
+export function getTokenServiceMock() {
+  let tokenService: jasmine.SpyObj<TokenService>;
+  tokenService = TestBed.get(TokenService);
   // @ts-ignore
-  currentUserService.get.and.returnValue(subject);
-  return currentUserService;
+  tokenService.isParsedTokenExpired.and.returnValue(true);
+  tokenService.parseToken.and.returnValue({
+    firstname: 'foobar'
+  });
+  return tokenService;
 }
 

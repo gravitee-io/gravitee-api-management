@@ -19,11 +19,11 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TranslateTestingModule } from '../../test/helper.spec';
 import { provideMock } from '../../test/mock.helper.spec';
 import { NotificationService } from '../../services/notification.service';
 import { LoaderService } from '../../services/loader.service';
-import { CurrentUserService } from '../../services/current-user.service';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
+import { UserTestingModule } from '../../test/user-testing-module';
 import { GvContactComponent } from './gv-contact.component';
 
 describe('GvContactComponent', () => {
@@ -32,15 +32,21 @@ describe('GvContactComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ GvContactComponent ],
-      imports: [ FormsModule, ReactiveFormsModule, TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
+      declarations: [GvContactComponent],
+      imports: [
+        FormsModule,
+        ReactiveFormsModule,
+        TranslateTestingModule,
+        HttpClientTestingModule,
+        RouterTestingModule,
+        UserTestingModule
+      ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
       providers: [
         provideMock(NotificationService),
         provideMock(LoaderService),
-        provideMock(CurrentUserService),
       ]
     })
       .compileComponents();
@@ -49,15 +55,13 @@ describe('GvContactComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(GvContactComponent);
     component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
   });
 
-  it('should create', () => {
+  it('should create', (done) => {
     fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
+      done();
     });
   });
 });

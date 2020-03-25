@@ -18,10 +18,10 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideMock } from '../../../test/mock.helper.spec';
 import { PortalService } from '@gravitee/ng-portal-webclient';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { TranslateTestingModule } from '../../../test/helper.spec';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ApiContactComponent } from './api-contact.component';
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
 describe('ApiContactComponent', () => {
   let component: ApiContactComponent;
