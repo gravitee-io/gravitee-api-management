@@ -132,7 +132,8 @@ import { ApplicationNotificationsComponent } from './pages/application/applicati
     GvAnalyticsDashboardComponent,
     GvAnalyticsFiltersComponent,
   ],
-  entryComponents: [GvSearchInputComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
+  entryComponents: [GvSearchInputComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent,
+    GvCreateApplicationComponent],
   imports: [
     ApiModule,
     AppRoutingModule,
