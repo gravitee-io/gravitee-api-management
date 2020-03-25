@@ -63,16 +63,13 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.vertx.core.buffer.Buffer;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -131,8 +128,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private PlanService planService;
     @Autowired
     private ApiSynchronizationProcessor apiSynchronizationProcessor;
-    @Value("${configuration.default-icon:${gravitee.home}/assets/default_api_logo.png}")
-    private String defaultIcon;
     @Autowired
     private ApiMetadataService apiMetadataService;
     @Autowired
@@ -1424,10 +1419,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public InlinePictureEntity getPicture(String apiId) {
         ApiEntity apiEntity = findById(apiId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
-        if (apiEntity.getPicture() == null) {
-            imageEntity.setType("image/png");
-            imageEntity.setContent(getDefaultPicture());
-        } else {
+        if (apiEntity.getPicture() != null) {
             String[] parts = apiEntity.getPicture().split(";", 2);
             imageEntity.setType(parts[0].split(":")[1]);
             String base64Content = apiEntity.getPicture().split(",", 2)[1];
@@ -1435,16 +1427,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return imageEntity;
-    }
-
-    @Override
-    public byte[] getDefaultPicture() {
-        try {
-            return IOUtils.toByteArray(new FileInputStream(defaultIcon));
-        } catch (IOException ioe) {
-            LOGGER.error("Default icon for API does not exist", ioe);
-        }
-        return null;
     }
 
     @Override

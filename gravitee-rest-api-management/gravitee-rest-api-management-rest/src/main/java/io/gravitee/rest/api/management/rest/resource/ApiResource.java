@@ -114,14 +114,14 @@ public class ApiResource extends AbstractResource {
     }
 
     private void setPicture(final ApiEntity apiEntity) {
-        final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-        final UriBuilder uriBuilder = ub.path("picture");
         if (apiEntity.getPicture() != null) {
+            final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
+            final UriBuilder uriBuilder = ub.path("picture");
             // force browser to get if updated
             uriBuilder.queryParam("hash", apiEntity.getPicture().hashCode());
+            apiEntity.setPictureUrl(uriBuilder.build().toString());
+            apiEntity.setPicture(null);
         }
-        apiEntity.setPictureUrl(uriBuilder.build().toString());
-        apiEntity.setPicture(null);
     }
 
     @GET
@@ -145,7 +145,9 @@ public class ApiResource extends AbstractResource {
             cc.setMaxAge(86400);
 
             InlinePictureEntity image = apiService.getPicture(api);
-
+            if (image == null || image.getContent() == null) {
+                return Response.ok().build();
+            }
             EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
             Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
 

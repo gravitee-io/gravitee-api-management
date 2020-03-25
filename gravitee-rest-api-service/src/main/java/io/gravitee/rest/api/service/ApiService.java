@@ -75,8 +75,6 @@ public interface ApiService {
 
     InlinePictureEntity getPicture(String apiId);
 
-    byte[] getDefaultPicture();
-
     void deleteViewFromAPIs(String viewId);
 
     void deleteTagFromAPIs(String tagId);

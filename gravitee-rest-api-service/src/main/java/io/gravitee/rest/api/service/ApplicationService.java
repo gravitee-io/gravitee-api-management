@@ -50,6 +50,4 @@ public interface ApplicationService {
     void archive(String applicationId);
     
     InlinePictureEntity getPicture(String apiId);
-
-    byte[] getDefaultPicture();
 }

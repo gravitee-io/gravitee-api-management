@@ -46,10 +46,9 @@ public class ApiQualityMetricLogoTest {
     private static final String API_ID = "123";
 
     @Test
-    public void shouldNotBeValidWith2Null() {
+    public void shouldNotBeValidIfNull() {
         InlinePictureEntity apiPicture = mock(InlinePictureEntity.class);
         when(mockApiService.getPicture(API_ID)).thenReturn(apiPicture);
-        when(mockApiService.getDefaultPicture()).thenReturn(null);
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
@@ -59,52 +58,10 @@ public class ApiQualityMetricLogoTest {
     }
 
     @Test
-    public void shouldBeValidWithOnlyDefaultNull() {
+    public void shouldBeValidIfNotNull() {
         InlinePictureEntity apiPicture = mock(InlinePictureEntity.class);
         when(apiPicture.getContent()).thenReturn("abcd".getBytes());
         when(mockApiService.getPicture(API_ID)).thenReturn(apiPicture);
-        when(mockApiService.getDefaultPicture()).thenReturn(null);
-        ApiEntity api = mock(ApiEntity.class);
-        when(api.getId()).thenReturn(API_ID);
-
-        boolean valid = srv.isValid(api);
-
-        assertTrue(valid);
-    }
-
-    @Test
-    public void shouldBeValidWithOnlyApiPictureNull() {
-        InlinePictureEntity apiPicture = mock(InlinePictureEntity.class);
-        when(mockApiService.getPicture(API_ID)).thenReturn(apiPicture);
-        when(mockApiService.getDefaultPicture()).thenReturn("abcd".getBytes());
-        ApiEntity api = mock(ApiEntity.class);
-        when(api.getId()).thenReturn(API_ID);
-
-        boolean valid = srv.isValid(api);
-
-        assertTrue(valid);
-    }
-
-    @Test
-    public void shouldNotBeValidWithSamePicture() {
-        InlinePictureEntity apiPicture = mock(InlinePictureEntity.class);
-        when(apiPicture.getContent()).thenReturn("abcd".getBytes());
-        when(mockApiService.getPicture(API_ID)).thenReturn(apiPicture);
-        when(mockApiService.getDefaultPicture()).thenReturn("abcd".getBytes());
-        ApiEntity api = mock(ApiEntity.class);
-        when(api.getId()).thenReturn(API_ID);
-
-        boolean valid = srv.isValid(api);
-
-        assertFalse(valid);
-    }
-
-    @Test
-    public void shouldBeValidWithDifferentPictures() {
-        InlinePictureEntity apiPicture = mock(InlinePictureEntity.class);
-        when(apiPicture.getContent()).thenReturn("abcd".getBytes());
-        when(mockApiService.getPicture(API_ID)).thenReturn(apiPicture);
-        when(mockApiService.getDefaultPicture()).thenReturn("efgh".getBytes());
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 

@@ -21,8 +21,6 @@ import io.gravitee.rest.api.service.ApiService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
-
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
@@ -38,11 +36,6 @@ public class ApiQualityMetricLogo implements ApiQualityMetric {
 
     @Override
     public boolean isValid(ApiEntity api) {
-        byte[] apiPicture = apiService.getPicture(api.getId()).getContent();
-        byte[] defaultPicture = apiService.getDefaultPicture();
-        if (defaultPicture == null) {
-            return apiPicture != null;
-        }
-        return !Arrays.equals(defaultPicture, apiPicture);
+        return apiService.getPicture(api.getId()).getContent() != null;
     }
 }

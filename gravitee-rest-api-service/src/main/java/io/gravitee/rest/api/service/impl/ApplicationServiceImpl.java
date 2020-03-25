@@ -36,15 +36,12 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -94,9 +91,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private ParameterService parameterService;
-
-    @Value("${configuration.default-icon:${gravitee.home}/assets/default_application_logo.png}")
-    private String defaultIcon;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -758,10 +752,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     public InlinePictureEntity getPicture(String applicationId) {
         ApplicationEntity applicationEntity = findById(applicationId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
-        if (applicationEntity.getPicture() == null) {
-            imageEntity.setType("image/png");
-            imageEntity.setContent(getDefaultPicture());
-        } else {
+        if (applicationEntity.getPicture() != null) {
             String[] parts = applicationEntity.getPicture().split(";", 2);
             imageEntity.setType(parts[0].split(":")[1]);
             String base64Content = applicationEntity.getPicture().split(",", 2)[1];
@@ -769,15 +760,5 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         return imageEntity;
-    }
-
-    @Override
-    public byte[] getDefaultPicture() {
-        try {
-            return IOUtils.toByteArray(new FileInputStream(defaultIcon));
-        } catch (IOException ioe) {
-            LOGGER.error("Default icon for API does not exist", ioe);
-        }
-        return null;
     }
 }
