@@ -262,7 +262,7 @@ function apisProxyRouterConfig($stateProvider) {
       component: 'gvResponseTemplate',
       data: {
         perms: {
-          only: ['api-response_templates-u']
+          only: ['api-response_templates-r', 'api-response_templates-u']
         },
         docs: {
           page: 'management-api-proxy-response-template'

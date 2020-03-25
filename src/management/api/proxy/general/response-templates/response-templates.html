@@ -39,7 +39,7 @@
             <tbody md-body ng-repeat="(key, templates) in ctrl.api.response_templates">
               <tr md-row ng-repeat="(type, template) in ctrl.api.response_templates[key]">
                 <td ng-if="$first" md-cell rowspan="{{ctrl.countTypes(templates)}}">
-                  <a ui-sref="management.apis.detail.proxy.responsetemplates.edit({key: key})" permission permission-only="'api-response_templates-u'">{{key}}</a>
+                  <a ui-sref="management.apis.detail.proxy.responsetemplates.edit({key: key})" permission permission-only="['api-response_templates-u','api-response_templates-r']">{{key}}</a>
                 </td>
                 <td md-cell>{{type}}</td>
                 <td md-cell>{{template.status}}</td>
