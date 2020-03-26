@@ -24,10 +24,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.PermissionService;
-import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
@@ -82,13 +79,10 @@ public abstract class AbstractResource {
 
     @Inject
     MembershipService membershipService;
-
     @Inject
     PermissionService permissionService;
-
     @Inject
     RoleService roleService;
-
     @Inject
     ApiService apiService;
 

@@ -3112,6 +3112,9 @@ components:
         request:
           description: Comment of the user when asking for a subscription.
           type: string
+        reason:
+          description: Reason of the user when processing (accepting/rejecting) a subscription.
+          type: string
         created_at:
           description: Creation date and time of the subscription.
           type: string
@@ -3128,12 +3131,24 @@ components:
           description: Expiration date and time of the subscription.
           type: string
           format: date-time
+        paused_at:
+          description: Paused date and time of the subscription.
+          type: string
+          format: date-time
+        closed_at:
+          description: Closed date and time of the subscription.
+          type: string
+          format: date-time
+        subscribed_by:
+          description: The user who subscribed.
+          type: string
         status:
           description: Status of the subscription.
           type: string
           enum:
             - PENDING
             - ACCEPTED
+            - CLOSED
             - REJECTED
             - PAUSED
         ###################
@@ -3863,10 +3878,15 @@ components:
           type: boolean
         revoked:
           type: boolean
+        expired:
+          type: boolean
         created_at:
           type: string
           format: date-time
         revoked_at:
+          type: string
+          format: date-time
+        expire_at:
           type: string
           format: date-time
     HttpMethod:

@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import java.time.ZoneOffset;
-import java.util.Date;
-
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
+import org.springframework.stereotype.Component;
+
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -33,31 +33,28 @@ public class SubscriptionMapper {
     
     public Subscription convert(SubscriptionEntity subscriptionEntity) {
         final Subscription subscriptionItem = new Subscription();
-
         subscriptionItem.setId(subscriptionEntity.getId());
         subscriptionItem.setApi(subscriptionEntity.getApi());
         subscriptionItem.setApplication(subscriptionEntity.getApplication());
-        Date createdAt = subscriptionEntity.getCreatedAt();
-        if(createdAt != null) {
-            subscriptionItem.setCreatedAt(createdAt.toInstant().atOffset( ZoneOffset.UTC ));
-        }
-        Date endingAt = subscriptionEntity.getEndingAt();
-        if(endingAt != null) {
-            subscriptionItem.setEndAt(endingAt.toInstant().atOffset( ZoneOffset.UTC ));
-        }
+        subscriptionItem.setCreatedAt(getDate(subscriptionEntity.getCreatedAt()));
+        subscriptionItem.setEndAt(getDate(subscriptionEntity.getEndingAt()));
+        subscriptionItem.setProcessedAt(getDate(subscriptionEntity.getProcessedAt()));
+        subscriptionItem.setStartAt(getDate(subscriptionEntity.getStartingAt()));
+        subscriptionItem.setPausedAt(getDate(subscriptionEntity.getPausedAt()));
+        subscriptionItem.setClosedAt(getDate(subscriptionEntity.getClosedAt()));
+        subscriptionItem.setPausedAt(getDate(subscriptionEntity.getPausedAt()));
         subscriptionItem.setPlan(subscriptionEntity.getPlan());
-        Date processedAt = subscriptionEntity.getProcessedAt();
-        if(processedAt != null) {
-            subscriptionItem.setProcessedAt(processedAt.toInstant().atOffset( ZoneOffset.UTC ));
-        }
         subscriptionItem.setRequest(subscriptionEntity.getRequest());
-        Date startingAt = subscriptionEntity.getStartingAt();
-        if(startingAt != null) {
-            subscriptionItem.setStartAt(startingAt.toInstant().atOffset( ZoneOffset.UTC ));
-        }
+        subscriptionItem.setReason(subscriptionEntity.getReason());
         subscriptionItem.setStatus(Subscription.StatusEnum.fromValue(subscriptionEntity.getStatus().name()));
-        
+        subscriptionItem.setSubscribedBy(subscriptionEntity.getSubscribedBy());
         return subscriptionItem;
     }
 
+    private OffsetDateTime getDate(final Date date) {
+        if (date != null) {
+            return date.toInstant().atOffset(ZoneOffset.UTC);
+        }
+        return null;
+    }
 }

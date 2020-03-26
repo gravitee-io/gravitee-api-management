@@ -15,18 +15,17 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import java.time.ZoneOffset;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.time.ZoneOffset;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -61,7 +60,10 @@ public class KeyMapper {
         if (apiKeyEntity.isRevoked()) {
             keyItem.setRevokedAt(apiKeyEntity.getRevokedAt().toInstant().atOffset(ZoneOffset.UTC));
         }
-
+        keyItem.setExpired(apiKeyEntity.isExpired());
+        if (apiKeyEntity.getExpireAt() != null) {
+            keyItem.setExpireAt(apiKeyEntity.getExpireAt().toInstant().atOffset(ZoneOffset.UTC));
+        }
         return keyItem;
     }
 

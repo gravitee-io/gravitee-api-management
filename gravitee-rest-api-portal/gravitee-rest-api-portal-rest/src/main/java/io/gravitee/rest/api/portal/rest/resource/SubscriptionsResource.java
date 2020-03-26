@@ -17,9 +17,8 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.NewSubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -30,7 +29,9 @@ import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 
 import javax.inject.Inject;
@@ -40,9 +41,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -63,6 +62,10 @@ public class SubscriptionsResource extends AbstractResource {
     private SubscriptionMapper subscriptionMapper;
     @Inject
     private ApplicationService applicationService;
+    @Inject
+    private PlanService planService;
+    @Inject
+    private UserService userService;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -93,12 +96,14 @@ public class SubscriptionsResource extends AbstractResource {
         query.setApi(apiId);
         query.setApplication(applicationId);
 
+        final HashMap<String, Object> names = new HashMap<>();
         if (applicationId == null) {
             final Set<ApplicationListItem> applications = applicationService.findByUser(getAuthenticatedUser());
             if (applications == null || applications.isEmpty()) {
                 return createListResponse(emptyList(), paginationParam, !withoutPagination);
             }
             query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toSet()));
+            applications.forEach(application -> names.put(application.getId(), application.getName()));
         } else if (!hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ)) {
             throw new ForbiddenAccessException();
         }
@@ -123,7 +128,19 @@ public class SubscriptionsResource extends AbstractResource {
                 .stream()
                 .map(subscriptionMapper::convert)
                 .collect(Collectors.toList());
-        return createListResponse(subscriptionList, paginationParam, !withoutPagination);
+
+        subscriptionList.forEach(subscription -> {
+            final ApiEntity api = apiService.findById(subscription.getApi());
+            names.put(api.getId(), api.getName());
+            final PlanEntity plan = planService.findById(subscription.getPlan());
+            names.put(plan.getId(), plan.getName());
+            final UserEntity user = userService.findById(subscription.getSubscribedBy());
+            names.put(user.getId(), user.getDisplayName());
+        });
+
+        final Map<String, Map<String, Object>> metadata = new HashMap<>();
+        metadata.put("names", names);
+        return createListResponse(subscriptionList, paginationParam, metadata, !withoutPagination);
     }
 
     @Path("{subscriptionId}")

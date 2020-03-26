@@ -15,20 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -40,6 +26,14 @@ import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -73,9 +67,9 @@ public class SubscriptionResource extends AbstractResource {
             Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
             if(include.contains(INCLUDE_KEYS)) {
                 List<Key> keys = apiKeyService.findBySubscription(subscriptionId).stream()
-                    .map(keyMapper::convert)
-                    .collect(Collectors.toList())
-                ;
+                        .sorted((o1, o2) -> Boolean.compare(o1.isRevoked(), o2.isRevoked()) + Boolean.compare(o1.isExpired(), o2.isExpired()))
+                        .map(keyMapper::convert)
+                        .collect(Collectors.toList());
                 subscription.setKeys(keys);
             }
             return Response.ok(subscription).build();
