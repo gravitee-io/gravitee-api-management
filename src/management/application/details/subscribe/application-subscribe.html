@@ -65,7 +65,7 @@
                 <tbody md-body>
                 <tr md-row ng-repeat="api in $ctrl.subscribedAPIs track by api.id">
                   <td md-cell nowrap>
-                    <img style="max-height:40px; max-width: 40px;margin-right: 8px;" ng-src="{{::api.picture_url}}"/>
+                    <img style="max-height:40px; max-width: 40px;margin-right: 8px;" ng-src="{{::api.picture_url}}" onerror="this.src='assets/default_api_logo.png'"/>
                     {{api.name}}
                   </td>
                   <td md-cell>{{api.plans}}</td>

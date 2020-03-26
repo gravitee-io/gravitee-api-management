@@ -84,7 +84,7 @@ class ImageController {
     if (this.$scope.image) {
       return this.$scope.image;
     }
-    return this.$scope.imageDefault || this.$scope.imageUrl;
+    return this.$scope.imageUrl || this.$scope.imageDefault;
   }
 
   onDelete() {

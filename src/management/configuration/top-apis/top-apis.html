@@ -34,7 +34,7 @@
           <tbody md-body>
           <tr md-row ng-repeat="topApi in $ctrl.topApis | orderBy:'order'">
             <td md-cell width="1%" nowrap>
-              <img height="40" ng-src="{{::topApi.picture_url}}"/>
+              <img height="40" ng-src="{{::topApi.picture_url}}" onerror="this.src='assets/default_api_logo.png'"/>
               {{::topApi.name}}
             </td>
             <td md-cell width="1%" nowrap>{{::topApi.version}}</td>

@@ -52,7 +52,7 @@
               <tr md-row
                   ng-repeat="api in $ctrl.apis track by api.id">
                 <td md-cell nowrap>
-                  <img style="max-height:40px; width: 40px;margin-right: 8px;" ng-src="{{::api.picture_url}}"/>
+                  <img style="max-height:40px; width: 40px;margin-right: 8px;" ng-src="{{::api.picture_url}}" onerror="this.src='assets/default_api_logo.png'"/>
                   <a ui-sref="management.apis.detail.portal.general({apiId: api.id})">
                     {{api.name}}
                     ({{api.version}})
