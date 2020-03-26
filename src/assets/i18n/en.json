@@ -167,6 +167,38 @@
     },
     "oauth2": "OAuth2 integration",
     "save": "Save",
+    "subscriptions": {
+      "api": "application.subscriptions.api",
+      "apiKeys": "application.subscriptions.apiKeys",
+      "close": {
+        "message": "application.subscriptions.close.message",
+        "title": "application.subscriptions.close.title"
+      },
+      "closedSuccess": "application.subscriptions.closedSuccess",
+      "created_at": "application.subscriptions.created_at",
+      "detail": {
+        "title": "application.subscriptions.detail.title"
+      },
+      "end_at": "application.subscriptions.end_at",
+      "filters": {
+        "api": {
+          "label": "application.subscriptions.filters.api.label",
+          "title": "application.subscriptions.filters.api.title"
+        },
+        "status": {
+          "label": "application.subscriptions.filters.status.label",
+          "title": "application.subscriptions.filters.status.title"
+        }
+      },
+      "paused_at": "application.subscriptions.paused_at",
+      "plan": "application.subscriptions.plan",
+      "processed_at": "application.subscriptions.processed_at",
+      "reason": "application.subscriptions.reason",
+      "start_at": "application.subscriptions.start_at",
+      "status": "application.subscriptions.status",
+      "subscribed_by": "application.subscriptions.subscribed_by",
+      "title": "application.subscriptions.title"
+    },
     "success": {
       "delete": "application.success.delete",
       "save": "application.success.save"
@@ -325,7 +357,16 @@
         "title": "common.date.to.title"
       }
     },
-    "reset": "common.reset"
+    "filters": "common.filters",
+    "reset": "common.reset",
+    "search": "common.search",
+    "status": {
+      "ACCEPTED": "common.status.ACCEPTED",
+      "CLOSED": "common.status.CLOSED",
+      "PAUSED": "common.status.PAUSED",
+      "PENDING": "common.status.PENDING",
+      "REJECTED": "common.status.REJECTED"
+    }
   },
   "dashboard": {
     "welcome": "Welcome {username},"
@@ -624,6 +665,7 @@
     "mySubscriptions": "My subscriptions",
     "notFound": "Page not found",
     "notifications": "route.notifications",
+    "subscriptions": "route.subscriptions",
     "user": "My account"
   },
   "search": {

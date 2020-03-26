@@ -56,4 +56,9 @@ i18n([
   'applicationType.simple.title',
   'applicationType.web.description',
   'applicationType.web.title',
+  'common.status.ACCEPTED',
+  'common.status.CLOSED',
+  'common.status.PAUSED',
+  'common.status.PENDING',
+  'common.status.REJECTED',
 ]);

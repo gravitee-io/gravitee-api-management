@@ -14,30 +14,33 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
-import { SubscriptionsComponent } from './subscriptions.component';
+import { ApplicationSubscriptionsComponent } from './application-subscriptions.component';
+import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
+import { MarkdownModule } from 'ngx-markdown';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-describe('SubscriptionsComponent', () => {
-  let component: SubscriptionsComponent;
-  let fixture: ComponentFixture<SubscriptionsComponent>;
+describe('ApplicationSubscriptionsComponent', () => {
+  let component: ApplicationSubscriptionsComponent;
+  let fixture: ComponentFixture<ApplicationSubscriptionsComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [SubscriptionsComponent],
-      imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
+      declarations: [ApplicationSubscriptionsComponent, GvPageComponent],
+      imports: [MarkdownModule, HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
-      ],
+      ]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SubscriptionsComponent);
+    fixture = TestBed.createComponent(ApplicationSubscriptionsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

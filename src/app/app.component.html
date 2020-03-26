@@ -45,7 +45,7 @@
         <ng-template appGvMenuRightTransitionSlot></ng-template>
         <ng-template appGvMenuRightSlot></ng-template>
     </gv-menu>
-    <gv-message *ngIf="notification" type="{{ notification.type }}">{{ notification.message }}</gv-message>
+    <gv-message *ngIf="notification" [type]="notification.type">{{ notification.message }}</gv-message>
     <div [@routeAnimations]="prepareRoute(outlet)" >
       <router-outlet #outlet="outlet"></router-outlet>
     </div>

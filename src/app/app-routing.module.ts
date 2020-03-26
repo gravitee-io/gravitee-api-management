@@ -53,6 +53,7 @@ import { ApplicationAnalyticsComponent } from './pages/application/application-a
 import { ApplicationResolver } from './resolver/application.resolver';
 import { DashboardsResolver } from './resolver/dashboards.resolver';
 import { ApplicationNotificationsComponent } from './pages/application/application-notifications/application-notifications.component';
+import { ApplicationSubscriptionsComponent } from './pages/application/application-subscriptions/application-subscriptions.component';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
@@ -304,7 +305,28 @@ export const routes: Routes = [
             data: {
               icon: 'general:clipboard',
               title: i18n('route.catalogApi'),
-              animation: { type: 'slide', group: 'apps', index: 1 }
+              animation: { type: 'slide', group: 'app', index: 1 }
+            }
+          },
+          {
+            path: 'subscriptions',
+            component: ApplicationSubscriptionsComponent,
+            data: {
+              icon: 'home:key',
+              title: i18n('route.subscriptions'),
+              animation: { type: 'slide', group: 'app', index: 2 }
+            }
+          },
+          {
+            path: 'analytics',
+            component: ApplicationAnalyticsComponent,
+            data: {
+              icon: 'shopping:chart-line#1',
+              title: i18n('route.analyticsApplication'),
+              animation: { type: 'slide', group: 'app', index: 3 }
+            },
+            resolve: {
+              dashboards: DashboardsResolver
             }
           },
           {
@@ -313,23 +335,10 @@ export const routes: Routes = [
             data: {
               icon: 'general:notifications#2',
               title: i18n('route.notifications'),
-              animation: { type: 'slide', group: 'apps', index: 2 }
+              animation: { type: 'slide', group: 'app', index: 4 }
             }
           },
-          {
-            path: 'analytics',
-            pathMatch: 'full',
-            component: ApplicationAnalyticsComponent,
-            data: {
-              icon: 'shopping:chart-line#1',
-              title: i18n('route.analyticsApplication'),
-              animation: { type: 'fade' }
-            },
-            resolve: {
-              dashboards: DashboardsResolver
-            }
-          },
-        ]
+        ],
       },
     ]
   },

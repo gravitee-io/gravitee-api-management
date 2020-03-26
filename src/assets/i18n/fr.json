@@ -167,6 +167,38 @@
     },
     "oauth2": "Intégration OAuth2",
     "save": "Sauvegarder",
+    "subscriptions": {
+      "api": "API",
+      "apiKeys": "Clés d'API :",
+      "close": {
+        "message": "Êtes-vous sûr de vouloir clôturer cette souscription ?",
+        "title": "Clôturer souscription"
+      },
+      "closedSuccess": "Votre Souscription a été clôturée avec succès",
+      "created_at": "Date de création :",
+      "detail": {
+        "title": "Informations sur la souscription"
+      },
+      "end_at": "Fin :",
+      "filters": {
+        "api": {
+          "label": "Sélectionner une API",
+          "title": "API"
+        },
+        "status": {
+          "label": "Sélectionner un status",
+          "title": "Status"
+        }
+      },
+      "paused_at": "Date de mise en pause :",
+      "plan": "Plan",
+      "processed_at": "Traitée le",
+      "reason": "Motif :",
+      "start_at": "Début :",
+      "status": "Status",
+      "subscribed_by": "Souscrit par",
+      "title": "Souscriptions"
+    },
     "success": {
       "delete": "Votre application a été supprimée avec succès",
       "save": "Votre application a été mise à jour avec succès"
@@ -325,7 +357,16 @@
         "title": "Séléctionner une date de fin"
       }
     },
-    "reset": "Réinitialiser"
+    "filters": "Filtres",
+    "reset": "Réinitialiser",
+    "search": "Rechercher",
+    "status": {
+      "ACCEPTED": "Acceptée",
+      "CLOSED": "Clôturée",
+      "PAUSED": "En pause",
+      "PENDING": "En attente",
+      "REJECTED": "Rejetée"
+    }
   },
   "dashboard": {
     "welcome": "Bienvenue {username},"
@@ -624,6 +665,7 @@
     "mySubscriptions": "Mes souscriptions",
     "notFound": "Page introuvable",
     "notifications": "Notifications",
+    "subscriptions": "Souscriptions",
     "user": "Mon compte"
   },
   "search": {

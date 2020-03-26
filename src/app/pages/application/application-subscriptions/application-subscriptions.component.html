@@ -1,0 +1,63 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="page__content application">
+  <section class="application__section">
+    <div class="application__section__block">
+      <h2 class="title">{{ "application.subscriptions.title" | translate}}</h2>
+
+
+      <div class="application__subscriptions-filter__block">
+        <div class="application__subscriptions-filter__header__block">
+          <h1>{{ 'common.filters' | translate }}</h1>
+
+          <gv-button class="application__subscriptions-filter__reset" link (click)="reset()">
+            {{ 'common.reset' | translate }}
+          </gv-button>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="search()">
+          <div class="application__subscriptions__inputs">
+            <gv-select class="application__subscriptions__input" label="{{ 'application.subscriptions.filters.api.title' | translate }}"
+                       placeholder="{{ 'application.subscriptions.filters.api.label' | translate }}"
+                       [options]="apisOptions"
+                       formControlName="api" name="api" ngDefaultControl></gv-select>
+
+            <gv-select class="application__subscriptions__input" label="{{ 'application.subscriptions.filters.status.title' | translate }}"
+                       placeholder="{{ 'application.subscriptions.filters.status.label' | translate }}"
+                       [options]="statusOptions" multiple
+                       formControlName="status" name="status" ngDefaultControl></gv-select>
+          </div>
+
+          <div class="application__subscriptions-filter__inputs">
+            <gv-button type="submit" class="application__subscriptions-filter__input" primary [loading]="loaderService.isLoading | async">
+              {{ 'common.search' | translate }}
+            </gv-button>
+          </div>
+        </form>
+      </div>
+
+      <gv-table order="api" [items]="subscriptions" [options]="options" [format]="format"
+                [selected]="selectedSubscription"></gv-table>
+    </div>
+  </section>
+  <aside class="api__aside">
+    <gv-info [miscellaneous]="miscellaneous"></gv-info>
+    <gv-info *ngIf="apiKeys && apiKeys.length" [miscellaneous]="apiKeys" [title]="'application.subscriptions.detail.title' | translate"></gv-info>
+  </aside>
+</div>
+

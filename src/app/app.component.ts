@@ -168,7 +168,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
           if (notification.code !== translatedMessage || !notification.message) {
             notification.message = translatedMessage;
           }
-          setTimeout(() => this.notification = notification);
+          this.notification = notification;
         });
       } else {
         delete this.notification;

@@ -26,8 +26,9 @@
     <div class="table-between"></div>
     <div class="table-container">
       <gv-table *ngIf="applications && applications.length" title="{{'subscriptions.subscriptions.title' | translate}}"
-                [format]="format" [emptykey]="emptyKeySubscriptions"
-                order="api.name" [items]="subs" [options]="optionsSubscriptions" nosort rowsheight="40vh"></gv-table>
+                [format]="format" [emptykey]="emptyKeySubscriptions" order="api.name"
+                (:gv-table:select)="onSubscriptionClick($event)"
+                [items]="subs" [options]="optionsSubscriptions" nosort rowsheight="40vh"></gv-table>
     </div>
   </section>
 </div>

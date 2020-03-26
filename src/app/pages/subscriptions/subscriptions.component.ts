@@ -18,6 +18,8 @@ import { Api, ApiService, Application, ApplicationService, Subscription, Subscri
 import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { Router } from '@angular/router';
+import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 
 @Component({
   selector: 'app-subscriptions',
@@ -35,13 +37,16 @@ export class SubscriptionsComponent implements OnInit {
   subsByApplication: any;
   emptyKeyApplications: string;
   emptyKeySubscriptions: string;
+  selectedApplication: string;
 
   constructor(
     private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
     private apiService: ApiService,
     private translateService: TranslateService,
-  ) {}
+    private router: Router,
+  ) {
+  }
 
   ngOnInit() {
     this.subsByApplication = {};
@@ -55,19 +60,7 @@ export class SubscriptionsComponent implements OnInit {
         {
           field: 'name',
           label: i18n('subscriptions.applications.name'),
-          icon: (item) => {
-            switch (item.applicationType.toLowerCase()) {
-              case 'browser':
-              case 'web':
-                return 'devices:laptop';
-              case 'native':
-                return 'devices:android';
-              case 'backend_to_backend':
-                return 'devices:server';
-              default:
-                return 'layout:layout-top-panel-2';
-            }
-          }
+          icon: (item) => getApplicationTypeIcon(item.applicationType)
         },
         { field: 'owner.display_name', label: i18n('subscriptions.applications.owner') },
         { field: 'updated_at', type: 'date', label: i18n('subscriptions.applications.last_update') },
@@ -86,7 +79,7 @@ export class SubscriptionsComponent implements OnInit {
 
     this.applicationService.getApplications({ size: -1 }).toPromise().then((response) => {
       this.applications = response.data;
-      this.subscriptionService.getSubscriptions({ size: -1, statuses: [ 'ACCEPTED' ] }).toPromise().then((responseSubscriptions) => {
+      this.subscriptionService.getSubscriptions({ size: -1, statuses: ['ACCEPTED'] }).toPromise().then((responseSubscriptions) => {
         this.subscriptions = responseSubscriptions.data;
         this.apiService.getApis({ size: -1 }).toPromise().then((responseApis) => {
           this.apis = responseApis.data;
@@ -103,6 +96,11 @@ export class SubscriptionsComponent implements OnInit {
     this.selectSubscriptions(event);
   }
 
+  onSubscriptionClick(event) {
+    this.router.navigate(['/applications', this.selectedApplication, 'subscriptions'],
+      { queryParams: { subscription: event.detail.subscription.id } });
+  }
+
   onFocusOut() {
     this.emptyKeySubscriptions = i18n('subscriptions.subscriptions.init');
     this.subs = [];
@@ -110,12 +108,12 @@ export class SubscriptionsComponent implements OnInit {
 
   async selectSubscriptions(event?) {
     if (this.apis) {
-      const applicationId = event ? event.detail.item.id : '';
-      if (this.subsByApplication[applicationId]) {
-        this.subs = this.subsByApplication[applicationId];
+      this.selectedApplication = event ? event.detail.item.id : '';
+      if (this.subsByApplication[this.selectedApplication]) {
+        this.subs = this.subsByApplication[this.selectedApplication];
       } else {
-        const applicationSubscriptions = applicationId ?
-          this.subscriptions.filter((subscription) => applicationId === subscription.application) : this.subscriptions;
+        const applicationSubscriptions = this.selectedApplication ?
+          this.subscriptions.filter((subscription) => this.selectedApplication === subscription.application) : this.subscriptions;
         const promises = applicationSubscriptions.map(applicationSubscription => {
           return this.apiService.getApiPlansByApiId({ apiId: applicationSubscription.api, size: -1 }).toPromise().then((response) => {
             return {
@@ -125,7 +123,7 @@ export class SubscriptionsComponent implements OnInit {
             };
           });
         });
-        this.subs = this.subsByApplication[applicationId] = await Promise.all(promises);
+        this.subs = this.subsByApplication[this.selectedApplication] = await Promise.all(promises);
       }
       if (!this.subs || !this.subs.length) {
         this.emptyKeySubscriptions = i18n('subscriptions.subscriptions.empty');
