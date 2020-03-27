@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { Application, ApplicationService, SubscriptionService } from '@gravitee/ng-portal-webclient';
+import { Application, ApplicationService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-table';
 import { Router } from '@angular/router';
+import StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-applications',
@@ -47,7 +48,7 @@ export class ApplicationsComponent implements OnInit {
   ​
   private _getMetrics(application: Application) {
     return this.subscriptionService
-      .getSubscriptions({ size: -1, applicationId: application.id, statuses: [ 'ACCEPTED' ] })
+      .getSubscriptions({ size: -1, applicationId: application.id, statuses: [ StatusEnum.ACCEPTED ] })
       .toPromise()
       .then((r) => ({ subscribers: r.data.length }));
   }

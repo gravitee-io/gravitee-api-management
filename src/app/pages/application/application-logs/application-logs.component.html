@@ -1,0 +1,100 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="page__content">
+  <section class="application__section">
+    <app-gv-analytics-filters (refreshDashboard)="refresh()" withURI></app-gv-analytics-filters>
+
+    <div class="application__logs__block">
+      <div class="application__logs__header__block">
+        <h2>{{ 'application.logs.title' | translate }}</h2>
+      </div>
+      <gv-table *ngIf="logs" [options]="options" [items]="logs" [format]="format" [order]="getOrder()"
+                [selected]="selectedLog" rowheight="40px"></gv-table>
+      <div *ngIf="logs && logs.length" class="application__logs__pagination__block">
+        <gv-select class="application__logs__pagination__size__block" [options]="pageSizes" [value]="size"
+                   (:gv-select:select)="onSelectSize($event.detail)"></gv-select>
+        <gv-pagination class="application__logs__pagination__pagination__block" [data]="paginationData"></gv-pagination>
+      </div>
+    </div>
+  </section>
+
+  <section id="log" *ngIf="log" class="application__section">
+    <div class="application__log__block {{'application__log__block-' + getCodeByStatus(log.status)}}">
+
+      <section class="application__log__infos__section">
+        <h3 class="title">{{'application.log.request' | translate}}</h3>
+        <h3 class="title">{{'application.log.response' | translate}}</h3>
+        <div>
+          <div class="application__log__infos__block">
+            <label>{{'application.log.requestId' | translate}}</label>
+            <div>{{log.id}}</div>
+          </div>
+          <div class="application__log__infos__block">
+            <label>{{'application.log.request' | translate}}</label>
+            <div><span [ngStyle]="{color: getMethodColor(log.method)}">{{log.method.toUpperCase()}}</span> sur {{log.path}}</div>
+          </div>
+          <div class="application__log__infos__block">
+            <label>{{'application.log.requestContentLength' | translate}}</label>
+            <div>{{log.requestContentLength}}</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="application__log__infos__block">
+            <label>{{'application.log.transactionId' | translate}}</label>
+            <div>{{log.transactionId}}</div>
+          </div>
+          <div class="application__log__infos__block">
+            <label>{{'application.log.responseTime' | translate}}</label>
+            <div>{{log.responseTime + ' ms'}}</div>
+          </div>
+          <div class="application__log__infos__block">
+            <label>{{'application.log.responseContentLength' | translate}}</label>
+            <div>{{log.responseContentLength}}</div>
+          </div>
+        </div>
+
+        <h3 class="title" *ngIf="requestHeaders">{{'application.log.requestHeaders' | translate}}</h3>
+        <h3 class="title" *ngIf="responseHeaders">{{'application.log.responseHeaders' | translate}}</h3>
+
+        <div>
+          <div class="application__log__infos__block" *ngFor="let header of requestHeaders">
+            <label>{{header[0]}}</label>
+            <div>{{header[1]}}</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="application__log__infos__block" *ngFor="let header of responseHeaders">
+            <label>{{header[0]}}</label>
+            <div>{{header[1]}}</div>
+          </div>
+        </div>
+
+        <h3 *ngIf="log.request" class="title">{{'application.log.requestBody' | translate}}</h3>
+        <h3 *ngIf="log.response"  class="title">{{'application.log.responseBody' | translate}}</h3>
+
+        <div *ngIf="log.request && !log.request.body"></div>
+        <gv-code *ngIf="log.request && log.request.body" [lang]="getLang(log.request.headers)">{{log.request.body}}</gv-code>
+        <div *ngIf="log.response && !log.response.body"></div>
+        <gv-code *ngIf="log.response && log.response.body" [lang]="getLang(log.response.headers)">{{log.response.body}}</gv-code>
+      </section>
+
+    </div>
+  </section>
+</div>

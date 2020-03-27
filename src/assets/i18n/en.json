@@ -1,10 +1,12 @@
 {
   "analytics": {
-    "empty": "analytics.empty",
+    "empty": "No results to display",
     "timeframes": {
-      "days": "analytics.timeframes.days",
-      "hours": "analytics.timeframes.hours",
-      "minutes": "analytics.timeframes.minutes"
+      "day": "Day",
+      "days": "days",
+      "hour": "Hour",
+      "hours": "hours",
+      "minutes": "Minutes"
     }
   },
   "api": {
@@ -21,11 +23,11 @@
     "description": "Description",
     "giveRating": "Share your opinion",
     "rate": "Note",
-    "ratingAnswerCreated": "Your answer has been created.",
-    "ratingAnswerDeleted": "Your answer has been deleted.",
-    "ratingCreated": "Your review has been created.",
-    "ratingDeleted": "Your review has been deleted.",
-    "ratingUpdated": "Thank you for updating your review.",
+    "ratingAnswerCreated": "Your response has been sent",
+    "ratingAnswerDeleted": "Your answer has been deleted",
+    "ratingCreated": "Your opinion has been sent",
+    "ratingDeleted": "Your review has been deleted",
+    "ratingUpdated": "Thank you for giving your advise",
     "ratingsSortOptions": {
       "answers": "Most commented",
       "best": "Best rated",
@@ -86,8 +88,41 @@
   },
   "application": {
     "analytics": {
-      "search": "application.analytics.search",
-      "selectDashboard": "application.analytics.selectDashboard"
+      "filters": {
+        "api": {
+          "label": "API",
+          "title": "Select an API"
+        },
+        "methods": {
+          "label": "HTTP methods",
+          "title": "Select an HTTP method"
+        },
+        "path": {
+          "label": "Path",
+          "title": "Select path"
+        },
+        "payloads": {
+          "label": "Message Body",
+          "title": "Text to search for in message bodies"
+        },
+        "requestId": {
+          "label": "Request ID",
+          "title": "Enter a request ID"
+        },
+        "responseTimes": {
+          "label": "Response time",
+          "title": "Select a response time interval"
+        },
+        "status": {
+          "label": "http status",
+          "title": "Select HTTP status"
+        },
+        "transactionId": {
+          "label": "Transaction Id",
+          "title": "Select a transaction ID"
+        }
+      },
+      "search": "Search"
     },
     "change_picture": "Change picture",
     "client_id": {
@@ -99,10 +134,10 @@
       "title": "Client secret"
     },
     "delete": {
-      "cancel": "application.delete.cancel",
-      "label": "application.delete.label",
-      "message": "application.delete.message",
-      "ok": "application.delete.ok"
+      "cancel": "Cancel",
+      "label": "Remove",
+      "message": "Are you sure you want to delete this application?",
+      "ok": "Validate"
     },
     "description": {
       "label": "Describe the goal of this application",
@@ -110,7 +145,30 @@
     },
     "general": "Général",
     "list": {
-      "connectedApis": "Connected APIs"
+      "connectedApis": "Subscribed APIs"
+    },
+    "log": {
+      "request": "Request",
+      "requestBody": "Request body",
+      "requestContentLength": "Size of content sent",
+      "requestHeaders": "HTTP request headers",
+      "requestId": "Request ID",
+      "response": "Response",
+      "responseBody": "Response body",
+      "responseContentLength": "Size of content received",
+      "responseHeaders": "HTTP response headers",
+      "responseTime": "Response time",
+      "transactionId": "Transaction Id"
+    },
+    "logs": {
+      "api": "API",
+      "date": "Date",
+      "method": "Method",
+      "path": "Path",
+      "plan": "Plan",
+      "responseTime": "Response time",
+      "status": "Status",
+      "title": "Logs"
     },
     "miscellaneous": {
       "createdDate": "Creation date:",
@@ -124,84 +182,87 @@
     },
     "notifications": {
       "NEW_SUPPORT_TICKET": {
-        "description": "application.notifications.NEW_SUPPORT_TICKET.description",
-        "label": "application.notifications.NEW_SUPPORT_TICKET.label"
+        "description": "You will receive a notification when a ticket relating to your application is created",
+        "label": "New Support Ticket"
       },
       "SUBSCRIPTION": {
-        "title": "application.notifications.SUBSCRIPTION.title"
+        "title": "Subscription"
       },
       "SUBSCRIPTION_ACCEPTED": {
-        "description": "application.notifications.SUBSCRIPTION_ACCEPTED.description",
-        "label": "application.notifications.SUBSCRIPTION_ACCEPTED.label"
+        "description": "You will receive a notification when a subscription is accepted",
+        "label": "Subscription accepted"
       },
       "SUBSCRIPTION_CLOSED": {
-        "description": "application.notifications.SUBSCRIPTION_CLOSED.description",
-        "label": "application.notifications.SUBSCRIPTION_CLOSED.label"
+        "description": "You will receive a notification when a subscription is closed",
+        "label": "Subscription closed"
       },
       "SUBSCRIPTION_NEW": {
-        "description": "application.notifications.SUBSCRIPTION_NEW.description",
-        "label": "application.notifications.SUBSCRIPTION_NEW.label"
+        "description": "You will receive a notification when a new subscription is requested",
+        "label": "New Subscription"
       },
       "SUBSCRIPTION_PAUSED": {
-        "description": "application.notifications.SUBSCRIPTION_PAUSED.description",
-        "label": "application.notifications.SUBSCRIPTION_PAUSED.label"
+        "description": "You will receive a notification when a subscription is paused",
+        "label": "Pause subscription"
       },
       "SUBSCRIPTION_REJECTED": {
-        "description": "application.notifications.SUBSCRIPTION_REJECTED.description",
-        "label": "application.notifications.SUBSCRIPTION_REJECTED.label"
+        "description": "You will receive a notification when a subscription is rejected",
+        "label": "Subscription rejected"
       },
       "SUBSCRIPTION_RESUMED": {
-        "description": "application.notifications.SUBSCRIPTION_RESUMED.description",
-        "label": "application.notifications.SUBSCRIPTION_RESUMED.label"
+        "description": "You will receive a notification when a subscription is reactivated following a pause",
+        "label": "Subscription reactivated"
       },
       "SUBSCRIPTION_TRANSFERRED": {
-        "description": "application.notifications.SUBSCRIPTION_TRANSFERRED.description",
-        "label": "application.notifications.SUBSCRIPTION_TRANSFERRED.label"
+        "description": "You will receive a notification when a subscription is transferred",
+        "label": "Subscription transferred"
       },
       "SUPPORT": {
-        "title": "application.notifications.SUPPORT.title"
+        "title": "Support"
       },
-      "header": "application.notifications.header",
-      "saveSuccess": "application.notifications.saveSuccess",
-      "title": "application.notifications.title"
+      "header": "What events do you want to subscribe to?",
+      "saveSuccess": "Your notifications subscriptions for this app have been saved",
+      "title": "Subscriptions"
     },
     "oauth2": "OAuth2 integration",
     "save": "Save",
     "subscriptions": {
-      "api": "application.subscriptions.api",
-      "apiKeys": "application.subscriptions.apiKeys",
+      "api": "API",
+      "apiKey": {
+        "created_at": "Subscribe on",
+        "end_at": "Ends on",
+        "paused_at": "Pause on",
+        "reason": "reason:",
+        "title": "API keys:"
+      },
       "close": {
-        "message": "application.subscriptions.close.message",
-        "title": "application.subscriptions.close.title"
+        "message": "Are you sure you want to close this subscription?",
+        "title": "Close subscription"
       },
-      "closedSuccess": "application.subscriptions.closedSuccess",
-      "created_at": "application.subscriptions.created_at",
+      "closedSuccess": "Your Subscription has been successfully closed",
+      "created_at": "Subscription date",
       "detail": {
-        "title": "application.subscriptions.detail.title"
+        "title": "Subscription information"
       },
-      "end_at": "application.subscriptions.end_at",
       "filters": {
         "api": {
-          "label": "application.subscriptions.filters.api.label",
-          "title": "application.subscriptions.filters.api.title"
+          "label": "Select an API",
+          "title": "API"
         },
         "status": {
-          "label": "application.subscriptions.filters.status.label",
-          "title": "application.subscriptions.filters.status.title"
+          "label": "select a status",
+          "title": "status"
         }
       },
-      "paused_at": "application.subscriptions.paused_at",
-      "plan": "application.subscriptions.plan",
-      "processed_at": "application.subscriptions.processed_at",
-      "reason": "application.subscriptions.reason",
-      "start_at": "application.subscriptions.start_at",
-      "status": "application.subscriptions.status",
-      "subscribed_by": "application.subscriptions.subscribed_by",
-      "title": "application.subscriptions.title"
+      "plan": "Plan",
+      "processed_at": "Processing Date",
+      "start_at": "Starting date",
+      "status": "status",
+      "subscribed_by": "Subscribed by",
+      "title": "Subscriptions"
     },
     "success": {
-      "delete": "application.success.delete",
-      "save": "application.success.save"
+      "delete": "Your application has been successfully deleted",
+      "save": "Your application has been successfully updated"
     },
     "type": {
       "label": "Application type",
@@ -236,7 +297,6 @@
       "validate": "Validation"
     },
     "subscription": {
-      "add": "Add",
       "api": {
         "description": "Find an API for your application"
       },
@@ -248,6 +308,7 @@
         "description": "Find the APIs for your application and add the plans you want to subscribe to"
       },
       "remove": "Remove",
+      "subscribe": "Subscribe",
       "validation": {
         "auto": "Automatic",
         "manual": "Manual",
@@ -349,23 +410,25 @@
   "common": {
     "date": {
       "from": {
-        "label": "common.date.from.label",
-        "title": "common.date.from.title"
+        "label": "Start date",
+        "title": "Select a start date"
       },
       "to": {
-        "label": "common.date.to.label",
-        "title": "common.date.to.title"
+        "label": "End date",
+        "title": "Select an end date"
       }
     },
-    "filters": "common.filters",
-    "reset": "common.reset",
-    "search": "common.search",
+    "filters": {
+      "title": "Filters"
+    },
+    "reset": "Reset",
+    "search": "Search",
     "status": {
-      "ACCEPTED": "common.status.ACCEPTED",
-      "CLOSED": "common.status.CLOSED",
-      "PAUSED": "common.status.PAUSED",
-      "PENDING": "common.status.PENDING",
-      "REJECTED": "common.status.REJECTED"
+      "ACCEPTED": "Accepted",
+      "CLOSED": "Closed",
+      "PAUSED": "ON BREAK",
+      "PENDING": "Waiting",
+      "REJECTED": "Rejected"
     }
   },
   "dashboard": {
@@ -412,8 +475,8 @@
     "error": "An error occurred while loading the category"
   },
   "gv-chart": {
-    "empty": "gv-chart.empty",
-    "error": "gv-chart.error"
+    "empty": "No results to display",
+    "error": "An error occurred while loading data"
   },
   "gv-code": {
     "copy": "Copy to clipboard"
@@ -547,16 +610,16 @@
     "error": "An error occurred while loading the API"
   },
   "gv-stats": {
-    "empty": "gv-stats.empty",
-    "error": "gv-stats.error"
+    "empty": "No results to display",
+    "error": "An error occurred while loading data"
   },
   "gv-stepper": {
     "error": "An error occurred while loading the steps"
   },
   "gv-table": {
     "accepted": "Accepted",
-    "empty": "gv-table.empty",
-    "error": "gv-table.error",
+    "empty": "No results to display",
+    "error": "An error occurred while loading data",
     "paused": "Paused",
     "pending": "Pending",
     "rejected": "Rejected"
@@ -642,7 +705,7 @@
     "tokenExpired": "Your password reset request has expired"
   },
   "route": {
-    "analyticsApplication": "route.analyticsApplication",
+    "analyticsApplication": "Analytics",
     "applicationCreation": "Create an application",
     "applications": "Applications",
     "catalog": "Catalog",
@@ -660,12 +723,13 @@
     "homepage": "Home page",
     "login": "Sign in",
     "logout": "Sign out",
+    "logsApplication": "Logs",
     "management": "Administration",
     "myApplications": "My applications",
     "mySubscriptions": "My subscriptions",
     "notFound": "Page not found",
-    "notifications": "route.notifications",
-    "subscriptions": "route.subscriptions",
+    "notifications": "Notifications",
+    "subscriptions": "Subscriptions",
     "user": "My account"
   },
   "search": {
@@ -700,7 +764,7 @@
       "success": "Your account has been successfully updated",
       "title": "Personal informations"
     },
-    "change_picture": "user.change_picture",
+    "change_picture": "Change photo",
     "display_name": "Name:",
     "email": "Email:",
     "title": "My account",

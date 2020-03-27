@@ -1,10 +1,12 @@
 {
   "analytics": {
-    "empty": "analytics.empty",
+    "empty": "Žádné výsledky k zobrazení",
     "timeframes": {
-      "days": "analytics.timeframes.days",
-      "hours": "analytics.timeframes.hours",
-      "minutes": "analytics.timeframes.minutes"
+      "day": "den",
+      "days": "Dny",
+      "hour": "Čas",
+      "hours": "Hodiny",
+      "minutes": "minuty"
     }
   },
   "api": {
@@ -21,11 +23,11 @@
     "description": "Popis",
     "giveRating": "Vyjádřete svůj názor",
     "rate": "Poznámka",
-    "ratingAnswerCreated": "Vaše odpověď byla vytvořena.",
-    "ratingAnswerDeleted": "Vaše odpověď byla smazána.",
-    "ratingCreated": "Vaše recenze byla vytvořena.",
-    "ratingDeleted": "Vaše recenze byla smazána.",
-    "ratingUpdated": "Děkujeme za aktualizaci vaší recenze.",
+    "ratingAnswerCreated": "Vaše odpověď byla odeslána",
+    "ratingAnswerDeleted": "Vaše odpověď byla smazána",
+    "ratingCreated": "Váš názor byl odeslán",
+    "ratingDeleted": "Vaše recenze byla smazána",
+    "ratingUpdated": "Děkujeme za váš názor",
     "ratingsSortOptions": {
       "answers": "Nejvíce komentované",
       "best": "Nejlépe hodnocené",
@@ -86,8 +88,41 @@
   },
   "application": {
     "analytics": {
-      "search": "application.analytics.search",
-      "selectDashboard": "application.analytics.selectDashboard"
+      "filters": {
+        "api": {
+          "label": "Api",
+          "title": "Vyberte API"
+        },
+        "methods": {
+          "label": "HTTP metody",
+          "title": "Vyberte metodu HTTP"
+        },
+        "path": {
+          "label": "Cesta",
+          "title": "Vyberte cestu"
+        },
+        "payloads": {
+          "label": "Text zprávy",
+          "title": "Text pro vyhledávání v tělech zpráv"
+        },
+        "requestId": {
+          "label": "ID požadavku",
+          "title": "Zadejte ID požadavku"
+        },
+        "responseTimes": {
+          "label": "Doba odezvy",
+          "title": "Vyberte časový interval odezvy"
+        },
+        "status": {
+          "label": "Stav HTTP",
+          "title": "Vyberte stav HTTP"
+        },
+        "transactionId": {
+          "label": "ID transakce",
+          "title": "Vyberte ID transakce"
+        }
+      },
+      "search": "vyhledávat"
     },
     "change_picture": "Změnit obrázek",
     "client_id": {
@@ -99,10 +134,10 @@
       "title": "Secret client"
     },
     "delete": {
-      "cancel": "application.delete.cancel",
-      "label": "application.delete.label",
-      "message": "application.delete.message",
-      "ok": "application.delete.ok"
+      "cancel": "Zrušit",
+      "label": "Odstranit",
+      "message": "Opravdu chcete tuto aplikaci smazat?",
+      "ok": "Potvrdit"
     },
     "description": {
       "label": "Popište účel této aplikace",
@@ -110,7 +145,30 @@
     },
     "general": "General",
     "list": {
-      "connectedApis": "application.list.connectedApis"
+      "connectedApis": "Předplacená rozhraní API"
+    },
+    "log": {
+      "request": "žádost",
+      "requestBody": "Tělo žádosti",
+      "requestContentLength": "Velikost odeslaného obsahu",
+      "requestHeaders": "Hlavičky požadavků HTTP",
+      "requestId": "ID požadavku",
+      "response": "odpověď",
+      "responseBody": "Odezva těla",
+      "responseContentLength": "Velikost přijatého obsahu",
+      "responseHeaders": "Záhlaví HTTP odpovědí",
+      "responseTime": "Doba odezvy",
+      "transactionId": "ID transakce"
+    },
+    "logs": {
+      "api": "Api",
+      "date": "Datum",
+      "method": "Metoda",
+      "path": "Cesta",
+      "plan": "Plán",
+      "responseTime": "Doba odezvy",
+      "status": "Stav",
+      "title": "Protokoly"
     },
     "miscellaneous": {
       "createdDate": "Datum vytvoření:",
@@ -124,84 +182,87 @@
     },
     "notifications": {
       "NEW_SUPPORT_TICKET": {
-        "description": "application.notifications.NEW_SUPPORT_TICKET.description",
-        "label": "application.notifications.NEW_SUPPORT_TICKET.label"
+        "description": "Po vytvoření vstupenky vztahující se k vaší aplikaci obdržíte upozornění",
+        "label": "Nová podpora"
       },
       "SUBSCRIPTION": {
-        "title": "application.notifications.SUBSCRIPTION.title"
+        "title": "Předplatné"
       },
       "SUBSCRIPTION_ACCEPTED": {
-        "description": "application.notifications.SUBSCRIPTION_ACCEPTED.description",
-        "label": "application.notifications.SUBSCRIPTION_ACCEPTED.label"
+        "description": "Po přijetí předplatného obdržíte upozornění",
+        "label": "Předplatné bylo přijato"
       },
       "SUBSCRIPTION_CLOSED": {
-        "description": "application.notifications.SUBSCRIPTION_CLOSED.description",
-        "label": "application.notifications.SUBSCRIPTION_CLOSED.label"
+        "description": "Po uzavření předplatného obdržíte upozornění",
+        "label": "Předplatné bylo uzavřeno"
       },
       "SUBSCRIPTION_NEW": {
-        "description": "application.notifications.SUBSCRIPTION_NEW.description",
-        "label": "application.notifications.SUBSCRIPTION_NEW.label"
+        "description": "Jakmile bude požadováno nové předplatné, obdržíte upozornění",
+        "label": "Nové předplatné"
       },
       "SUBSCRIPTION_PAUSED": {
-        "description": "application.notifications.SUBSCRIPTION_PAUSED.description",
-        "label": "application.notifications.SUBSCRIPTION_PAUSED.label"
+        "description": "Po pozastavení předplatného obdržíte upozornění",
+        "label": "Předplatné na přestávku"
       },
       "SUBSCRIPTION_REJECTED": {
-        "description": "application.notifications.SUBSCRIPTION_REJECTED.description",
-        "label": "application.notifications.SUBSCRIPTION_REJECTED.label"
+        "description": "Jakmile bude předplatné odmítnuto, obdržíte upozornění",
+        "label": "Předplatné bylo odmítnuto"
       },
       "SUBSCRIPTION_RESUMED": {
-        "description": "application.notifications.SUBSCRIPTION_RESUMED.description",
-        "label": "application.notifications.SUBSCRIPTION_RESUMED.label"
+        "description": "Když je předplatné po pauze znovu aktivováno, obdržíte upozornění",
+        "label": "Odběr byl znovu aktivován"
       },
       "SUBSCRIPTION_TRANSFERRED": {
-        "description": "application.notifications.SUBSCRIPTION_TRANSFERRED.description",
-        "label": "application.notifications.SUBSCRIPTION_TRANSFERRED.label"
+        "description": "Po převodu předplatného obdržíte upozornění",
+        "label": "Předplatné bylo převedeno"
       },
       "SUPPORT": {
-        "title": "application.notifications.SUPPORT.title"
+        "title": "Podpora"
       },
-      "header": "application.notifications.header",
-      "saveSuccess": "application.notifications.saveSuccess",
-      "title": "application.notifications.title"
+      "header": "Na které události se chcete přihlásit?",
+      "saveSuccess": "Vaše předplatné oznámení pro tuto aplikaci byly uloženy",
+      "title": "Předplatné"
     },
-    "oauth2": "integrace OAuth2",
+    "oauth2": "Integrace OAuth2",
     "save": "Save",
     "subscriptions": {
-      "api": "application.subscriptions.api",
-      "apiKeys": "application.subscriptions.apiKeys",
+      "api": "Api",
+      "apiKey": {
+        "created_at": "Přihlásit se k odběru",
+        "end_at": "Končí dál",
+        "paused_at": "Pauza na",
+        "reason": "Důvod:",
+        "title": "Klíče API:"
+      },
       "close": {
-        "message": "application.subscriptions.close.message",
-        "title": "application.subscriptions.close.title"
+        "message": "Opravdu chcete zrušit tento odběr?",
+        "title": "Zavřít odběr"
       },
-      "closedSuccess": "application.subscriptions.closedSuccess",
-      "created_at": "application.subscriptions.created_at",
+      "closedSuccess": "Váš odběr byl úspěšně ukončen",
+      "created_at": "Datum předplatného",
       "detail": {
-        "title": "application.subscriptions.detail.title"
+        "title": "Informace o předplatném"
       },
-      "end_at": "application.subscriptions.end_at",
       "filters": {
         "api": {
-          "label": "application.subscriptions.filters.api.label",
-          "title": "application.subscriptions.filters.api.title"
+          "label": "Vyberte API",
+          "title": "Api"
         },
         "status": {
-          "label": "application.subscriptions.filters.status.label",
-          "title": "application.subscriptions.filters.status.title"
+          "label": "Vyberte stav",
+          "title": "Stav"
         }
       },
-      "paused_at": "application.subscriptions.paused_at",
-      "plan": "application.subscriptions.plan",
-      "processed_at": "application.subscriptions.processed_at",
-      "reason": "application.subscriptions.reason",
-      "start_at": "application.subscriptions.start_at",
-      "status": "application.subscriptions.status",
-      "subscribed_by": "application.subscriptions.subscribed_by",
-      "title": "application.subscriptions.title"
+      "plan": "Plán",
+      "processed_at": "Datum zpracování",
+      "start_at": "Datum zahájení",
+      "status": "Stav",
+      "subscribed_by": "Přihlásit se k odběru",
+      "title": "Předplatné"
     },
     "success": {
-      "delete": "application.success.delete",
-      "save": "application.success.save"
+      "delete": "Vaše aplikace byla úspěšně smazána",
+      "save": "Vaše aplikace byla úspěšně aktualizována"
     },
     "type": {
       "label": "Typ aplikace",
@@ -236,7 +297,6 @@
       "validate": "Validace"
     },
     "subscription": {
-      "add": "Přidat",
       "api": {
         "description": "Najděte API pro vaši aplikaci"
       },
@@ -248,6 +308,7 @@
         "description": "Najděte API pro vaši aplikaci a přidejte plány, které chcete přihlásit k odběru"
       },
       "remove": "Odstranit",
+      "subscribe": "Předplatit",
       "validation": {
         "auto": "Automatické",
         "manual": "Manuální",
@@ -349,23 +410,25 @@
   "common": {
     "date": {
       "from": {
-        "label": "common.date.from.label",
-        "title": "common.date.from.title"
+        "label": "Datum zahájení",
+        "title": "Vyberte počáteční datum"
       },
       "to": {
-        "label": "common.date.to.label",
-        "title": "common.date.to.title"
+        "label": "Datum ukončení",
+        "title": "Vyberte datum ukončení"
       }
     },
-    "filters": "common.filters",
-    "reset": "common.reset",
-    "search": "common.search",
+    "filters": {
+      "title": "Filtry"
+    },
+    "reset": "Resetovat",
+    "search": "vyhledávat",
     "status": {
-      "ACCEPTED": "common.status.ACCEPTED",
-      "CLOSED": "common.status.CLOSED",
-      "PAUSED": "common.status.PAUSED",
-      "PENDING": "common.status.PENDING",
-      "REJECTED": "common.status.REJECTED"
+      "ACCEPTED": "přijato",
+      "CLOSED": "Oplocený",
+      "PAUSED": "Přestávka",
+      "PENDING": "Čekání",
+      "REJECTED": "Odmítnuto"
     }
   },
   "dashboard": {
@@ -412,8 +475,8 @@
     "error": "Při načítání kategorie došlo k chybě"
   },
   "gv-chart": {
-    "empty": "gv-chart.empty",
-    "error": "gv-chart.error"
+    "empty": "Žádné výsledky k zobrazení",
+    "error": "Při načítání dat došlo k chybě"
   },
   "gv-code": {
     "copy": "Kopírovat do schránky"
@@ -520,7 +583,7 @@
   },
   "gv-promote": {
     "empty": "Žádné rozhraní API k zobrazení zde",
-    "error": "Při načítání API došlo k chybě\"",
+    "error": "Při načítání API došlo k chybě",
     "view": "Podívejte se na API"
   },
   "gv-rating-list": {
@@ -547,16 +610,16 @@
     "error": "Při načítání API došlo k chybě"
   },
   "gv-stats": {
-    "empty": "gv-stats.empty",
-    "error": "gv-stats.error"
+    "empty": "Žádné výsledky k zobrazení",
+    "error": "Při načítání dat došlo k chybě"
   },
   "gv-stepper": {
     "error": "Při načítání kroků došlo k chybě"
   },
   "gv-table": {
     "accepted": "Přijatý",
-    "empty": "gv-table.empty",
-    "error": "gv-table.error",
+    "empty": "Žádné výsledky k zobrazení",
+    "error": "Při načítání dat došlo k chybě",
     "paused": "Přestávka",
     "pending": "Čekání",
     "rejected": "Odmítnuto"
@@ -642,7 +705,7 @@
     "tokenExpired": "Platnost vašeho požadavku na resetování hesla vypršela"
   },
   "route": {
-    "analyticsApplication": "route.analyticsApplication",
+    "analyticsApplication": "Analytics",
     "applicationCreation": "Vytvořte aplikaci",
     "applications": "Aplikace",
     "catalog": "Katalog",
@@ -660,12 +723,13 @@
     "homepage": "Domovská stránka",
     "login": "Přihlásit",
     "logout": "Odhlásit",
+    "logsApplication": "Protokoly",
     "management": "Administrace",
     "myApplications": "Moje aplikace",
     "mySubscriptions": "Moje předplatné",
     "notFound": "Stránka nebyla nalezena",
-    "notifications": "route.notifications",
-    "subscriptions": "route.subscriptions",
+    "notifications": "Oznámení",
+    "subscriptions": "Předplatné",
     "user": "Můj účet"
   },
   "search": {
@@ -700,7 +764,7 @@
       "success": "Váš účet byl úspěšně aktualizován",
       "title": "Osobní údaje"
     },
-    "change_picture": "user.change_picture",
+    "change_picture": "Změnit fotografii",
     "display_name": "Jméno:",
     "email": "Email:",
     "title": "Můj účet",

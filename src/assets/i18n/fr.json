@@ -2,7 +2,9 @@
   "analytics": {
     "empty": "Aucun résultat à afficher",
     "timeframes": {
+      "day": "Jour",
       "days": "Jours",
+      "hour": "Heure",
       "hours": "Heures",
       "minutes": "Minutes"
     }
@@ -21,11 +23,11 @@
     "description": "Description",
     "giveRating": "Donnez-nous votre avis",
     "rate": "Noter",
-    "ratingAnswerCreated": "Votre réponse a bien été créée.",
-    "ratingAnswerDeleted": "Votre réponse a bien été supprimée.",
-    "ratingCreated": "Votre avis a bien été créée.",
-    "ratingDeleted": "Votre avis a bien été supprimé.",
-    "ratingUpdated": "Merci pour la mise à jour de votre avis.",
+    "ratingAnswerCreated": "Votre réponse a bien été envoyée",
+    "ratingAnswerDeleted": "Votre réponse a bien été supprimée",
+    "ratingCreated": "Votre avis a bien été envoyée",
+    "ratingDeleted": "Votre avis a bien été supprimé",
+    "ratingUpdated": "Merci d'avoir donné votre avis",
     "ratingsSortOptions": {
       "answers": "Le plus commenté",
       "best": "Le mieux noté",
@@ -86,8 +88,41 @@
   },
   "application": {
     "analytics": {
-      "search": "Rechercher",
-      "selectDashboard": "Sélectionner un dashboard"
+      "filters": {
+        "api": {
+          "label": "API",
+          "title": "Sélectionner une API"
+        },
+        "methods": {
+          "label": "Méthodes HTTP",
+          "title": "Sélectionner une méthode HTTP"
+        },
+        "path": {
+          "label": "Chemin",
+          "title": "Sélectionner un chemin"
+        },
+        "payloads": {
+          "label": "Corps de message",
+          "title": "Texte à rechercher dans les corps de message"
+        },
+        "requestId": {
+          "label": "Identifiant de requête",
+          "title": "Saisir un identifiant de requête"
+        },
+        "responseTimes": {
+          "label": "Temps de réponse",
+          "title": "Sélectionner un interval de temps de réponse"
+        },
+        "status": {
+          "label": "Status HTTP",
+          "title": "Sélectionner un status HTTP"
+        },
+        "transactionId": {
+          "label": "Identifiant de transaction",
+          "title": "Sélectionner un identifiant de transaction"
+        }
+      },
+      "search": "Rechercher"
     },
     "change_picture": "Changer l'image",
     "client_id": {
@@ -110,7 +145,30 @@
     },
     "general": "Général",
     "list": {
-      "connectedApis": "APIs connectées"
+      "connectedApis": "APIs souscrites"
+    },
+    "log": {
+      "request": "Requête",
+      "requestBody": "Corps de la requête",
+      "requestContentLength": "Taille du contenu envoyé",
+      "requestHeaders": "En-têtes HTTP de requête",
+      "requestId": "Identifiant de requête",
+      "response": "Réponse",
+      "responseBody": "Corps de la réponse",
+      "responseContentLength": "Taille du contenu reçu",
+      "responseHeaders": "En-têtes HTTP de réponse",
+      "responseTime": "Temps de réponse",
+      "transactionId": "Identifiant de transaction"
+    },
+    "logs": {
+      "api": "API",
+      "date": "Date",
+      "method": "Méthode",
+      "path": "Chemin",
+      "plan": "Plan",
+      "responseTime": "Temps de réponse",
+      "status": "Status",
+      "title": "Logs"
     },
     "miscellaneous": {
       "createdDate": "Date de création :",
@@ -169,17 +227,22 @@
     "save": "Sauvegarder",
     "subscriptions": {
       "api": "API",
-      "apiKeys": "Clés d'API :",
+      "apiKey": {
+        "created_at": "Souscrit le",
+        "end_at": "Se termine le",
+        "paused_at": "Mise en pause le",
+        "reason": "Motif :",
+        "title": "Clés d'API :"
+      },
       "close": {
         "message": "Êtes-vous sûr de vouloir clôturer cette souscription ?",
         "title": "Clôturer souscription"
       },
       "closedSuccess": "Votre Souscription a été clôturée avec succès",
-      "created_at": "Date de création :",
+      "created_at": "Date de souscription",
       "detail": {
         "title": "Informations sur la souscription"
       },
-      "end_at": "Fin :",
       "filters": {
         "api": {
           "label": "Sélectionner une API",
@@ -190,11 +253,9 @@
           "title": "Status"
         }
       },
-      "paused_at": "Date de mise en pause :",
       "plan": "Plan",
-      "processed_at": "Traitée le",
-      "reason": "Motif :",
-      "start_at": "Début :",
+      "processed_at": "Date de traitement",
+      "start_at": "Date de démarrage",
       "status": "Status",
       "subscribed_by": "Souscrit par",
       "title": "Souscriptions"
@@ -236,7 +297,6 @@
       "validate": "Validation"
     },
     "subscription": {
-      "add": "Ajouter",
       "api": {
         "description": "Chercher une API pour votre application"
       },
@@ -248,6 +308,7 @@
         "description": "Recherchez les APIs votre application et ajouter les plans auxquels vous souhaitez souscrire"
       },
       "remove": "Supprimer",
+      "subscribe": "Souscrire",
       "validation": {
         "auto": "Automatique",
         "manual": "Manuel",
@@ -357,7 +418,9 @@
         "title": "Séléctionner une date de fin"
       }
     },
-    "filters": "Filtres",
+    "filters": {
+      "title": "Filtres"
+    },
     "reset": "Réinitialiser",
     "search": "Rechercher",
     "status": {
@@ -660,6 +723,7 @@
     "homepage": "Page d'accueil",
     "login": "Se connecter",
     "logout": "Se déconnecter",
+    "logsApplication": "Logs",
     "management": "Administration",
     "myApplications": "Mes applications",
     "mySubscriptions": "Mes souscriptions",

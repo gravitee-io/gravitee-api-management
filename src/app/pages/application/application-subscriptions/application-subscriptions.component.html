@@ -23,7 +23,7 @@
 
       <div class="application__subscriptions-filter__block">
         <div class="application__subscriptions-filter__header__block">
-          <h1>{{ 'common.filters' | translate }}</h1>
+          <h1>{{ 'common.filters.title' | translate }}</h1>
 
           <gv-button class="application__subscriptions-filter__reset" link (click)="reset()">
             {{ 'common.reset' | translate }}
@@ -55,7 +55,7 @@
                 [selected]="selectedSubscription"></gv-table>
     </div>
   </section>
-  <aside class="api__aside">
+  <aside class="application__aside">
     <gv-info [miscellaneous]="miscellaneous"></gv-info>
     <gv-info *ngIf="apiKeys && apiKeys.length" [miscellaneous]="apiKeys" [title]="'application.subscriptions.detail.title' | translate"></gv-info>
   </aside>

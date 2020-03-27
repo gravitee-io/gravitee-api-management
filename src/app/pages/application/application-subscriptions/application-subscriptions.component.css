@@ -69,11 +69,11 @@
   width: 50%;
 }
 
-.api__aside {
+.application__aside {
   display: flex;
   flex-direction: column;
 }
 
-.api__section > *, .api__aside > * {
+.application__section > *, .application__aside > * {
   margin-bottom: 32px;
 }

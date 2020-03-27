@@ -48,7 +48,7 @@ import { GvPageContentSlotDirective } from './directives/gv-page-content-slot.di
 import { GvPageMarkdownComponent } from './components/gv-page-markdown/gv-page-markdown.component';
 import { GvPageRedocComponent } from './components/gv-page-redoc/gv-page-redoc.component';
 import { GvPageSwaggerUIComponent } from './components/gv-page-swaggerui/gv-page-swaggerui.component';
-import { GvSearchInputComponent } from './components/gv-search-input/gv-search-input.component';
+import { GvSearchApiComponent } from './components/gv-search-api/gv-search-api.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { LoginComponent } from './pages/login/login.component';
@@ -78,11 +78,13 @@ import { ApplicationGeneralComponent } from './pages/application/application-gen
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { ApplicationCreationComponent } from './pages/application/application-creation/application-creation.component';
-import { GvCreateApplicationButtonComponent } from './components/gv-create-application-button/gv-create-application-button.component';
+import { GvButtonCreateApplicationComponent } from './components/gv-button-create-application/gv-button-create-application.component';
 import { GvAnalyticsDashboardComponent } from './components/gv-analytics-dashboard/gv-analytics-dashboard.component';
 import { GvAnalyticsFiltersComponent } from './components/gv-analytics-filters/gv-analytics-filters.component';
 import { ApplicationNotificationsComponent } from './pages/application/application-notifications/application-notifications.component';
 import { ApplicationSubscriptionsComponent } from './pages/application/application-subscriptions/application-subscriptions.component';
+import { ApplicationLogsComponent } from './pages/application/application-logs/application-logs.component';
+import { GvSelectDashboardComponent } from './components/gv-select-dashboard/gv-select-dashboard.component';
 
 @NgModule({
   declarations: [
@@ -118,7 +120,7 @@ import { ApplicationSubscriptionsComponent } from './pages/application/applicati
     GvPageMarkdownComponent,
     GvPageRedocComponent,
     GvPageSwaggerUIComponent,
-    GvSearchInputComponent,
+    GvSearchApiComponent,
     HomepageComponent,
     LoginComponent,
     LogoutComponent,
@@ -132,12 +134,14 @@ import { ApplicationSubscriptionsComponent } from './pages/application/applicati
     GvFileUploadComponent,
     NotFoundComponent,
     ApplicationCreationComponent,
-    GvCreateApplicationButtonComponent,
+    GvButtonCreateApplicationComponent,
     GvAnalyticsDashboardComponent,
     GvAnalyticsFiltersComponent,
+    ApplicationLogsComponent,
+    GvSelectDashboardComponent,
   ],
-  entryComponents: [GvSearchInputComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent,
-    GvCreateApplicationButtonComponent],
+  entryComponents: [GvSearchApiComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent,
+    GvButtonCreateApplicationComponent, GvSelectDashboardComponent],
   imports: [
     ApiModule,
     AppRoutingModule,

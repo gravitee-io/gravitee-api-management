@@ -18,7 +18,9 @@ import { SearchApisRequestParams } from '@gravitee/ng-portal-webclient';
 export enum SearchQueryParam {
   PAGE = 'page',
   SIZE = 'size',
-  QUERY = 'q'
+  QUERY = 'q',
+  FIELD = 'field',
+  ORDER = 'order',
 }
 
 export class SearchRequestParams implements SearchApisRequestParams {

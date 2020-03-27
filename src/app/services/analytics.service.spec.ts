@@ -17,11 +17,14 @@ import { TestBed } from '@angular/core/testing';
 import { TranslateTestingModule } from '../test/translate-testing-module';
 
 import { AnalyticsService } from './analytics.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('AnalyticsService', () => {
   beforeEach(() => TestBed.configureTestingModule({
     imports: [
       TranslateTestingModule,
+      RouterTestingModule,
     ]
   }));
 

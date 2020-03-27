@@ -21,10 +21,10 @@ import { SearchQueryParam, SearchRequestParams } from '../../utils/search-query-
 import { ApiService, ApisResponse } from '@gravitee/ng-portal-webclient';
 
 @Component({
-  selector: 'app-gv-search-input',
-  templateUrl: './gv-search-input.component.html',
+  selector: 'app-gv-search-api',
+  templateUrl: './gv-search-api.component.html',
 })
-export class GvSearchInputComponent implements OnInit {
+export class GvSearchApiComponent implements OnInit {
 
   @ViewChild('searchAutocomplete', { static: true }) searchAutocomplete;
   query: string;

@@ -16,23 +16,114 @@
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { ActivatedRoute } from '@angular/router';
+import { SearchQueryParam } from '../utils/search-query-param.enum';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AnalyticsService {
 
-  queryParams = ['timeframe', 'from', 'to', 'dashboard'];
+  queryParams = [
+   'dashboard', 'timeframe', 'from', 'to', 'log', 'timestamp',
+    ...Object.values(SearchQueryParam),
+  ];
+  advancedQueryParams = [
+   '_id', 'transaction', 'method', 'uri', 'response-time', 'status', 'api', 'body',
+  ];
   timeframes: any;
+  fragment = 'h';
+  methods = [
+    { value: '3', label: 'GET' },
+    { value: '7', label: 'POST' },
+    { value: '8', label: 'PUT' },
+    { value: '2', label: 'DELETE' },
+    { value: '6', label: 'PATCH' },
+    { value: '5', label: 'OPTIONS' },
+    { value: '4', label: 'HEAD' },
+    { value: '9', label: 'TRACE' },
+    { value: '1', label: 'CONNECT' },
+    { value: '0', label: 'OTHER' },
+  ];
+  responseTimes = [
+    { value: '[0 TO 100]', label: '0 to 100ms' },
+    { value: '[100 TO 200]', label: '100 to 200ms' },
+    { value: '[200 TO 300]', label: '200 to 300ms' },
+    { value: '[300 TO 400]', label: '300 to 400ms' },
+    { value: '[400 TO 500]', label: '400 to 500ms' },
+    { value: '[500 TO 1000]', label: '500 to 1000ms' },
+    { value: '[1000 TO 2000]', label: '1000 to 2000ms' },
+    { value: '[2000 TO 5000]', label: '2000 to 5000ms' },
+    { value: '[5000 TO *]', label: '> 5000ms' },
+  ];
+  httpStatus = [
+    { value: '100', label: '100 - CONTINUE' },
+    { value: '101', label: '101 - SWITCHING PROTOCOLS' },
+    { value: '102', label: '102 - PROCESSING' },
+    { value: '200', label: '200 - OK' },
+    { value: '201', label: '201 - CREATED' },
+    { value: '202', label: '202 - ACCEPTED' },
+    { value: '203', label: '203 - NON AUTHORITATIVE INFORMATION' },
+    { value: '204', label: '204 - NO CONTENT' },
+    { value: '205', label: '205 - RESET CONTENT' },
+    { value: '206', label: '206 - PARTIAL CONTENT' },
+    { value: '207', label: '207 - MULTI STATUS' },
+    { value: '300', label: '300 - MULTIPLE CHOICES' },
+    { value: '301', label: '301 - MOVED PERMANENTLY' },
+    { value: '302', label: '302 - FOUND' },
+    { value: '303', label: '303 - SEE OTHER' },
+    { value: '304', label: '304 - NOT MODIFIED' },
+    { value: '305', label: '305 - USE PROXY' },
+    { value: '307', label: '307 - TEMPORARY REDIRECT' },
+    { value: '400', label: '400 - BAD REQUEST' },
+    { value: '401', label: '401 - UNAUTHORIZED' },
+    { value: '402', label: '402 - PAYMENT REQUIRED' },
+    { value: '403', label: '403 - FORBIDDEN' },
+    { value: '404', label: '404 - NOT FOUND' },
+    { value: '405', label: '405 - METHOD NOT ALLOWED' },
+    { value: '406', label: '406 - NOT ACCEPTABLE' },
+    { value: '407', label: '407 - PROXY AUTHENTICATION REQUIRED' },
+    { value: '408', label: '408 - REQUEST TIMEOUT' },
+    { value: '409', label: '409 - CONFLICT' },
+    { value: '410', label: '410 - GONE' },
+    { value: '411', label: '411 - LENGTH REQUIRED' },
+    { value: '412', label: '412 - PRECONDITION FAILED' },
+    { value: '413', label: '413 - REQUEST ENTITY TOO LARGE' },
+    { value: '414', label: '414 - REQUEST URI TOO LONG' },
+    { value: '415', label: '415 - UNSUPPORTED MEDIA TYPE' },
+    { value: '416', label: '416 - REQUESTED RANGE NOT SATISFIABLE' },
+    { value: '417', label: '417 - EXPECTATION FAILED' },
+    { value: '422', label: '422 - UNPROCESSABLE ENTITY' },
+    { value: '423', label: '423 - LOCKED' },
+    { value: '424', label: '424 - FAILED DEPENDENCY' },
+    { value: '429', label: '429 - TOO MANY REQUESTS' },
+    { value: '500', label: '500 - INTERNAL SERVER ERROR' },
+    { value: '501', label: '501 - NOT IMPLEMENTED' },
+    { value: '502', label: '502 - BAD GATEWAY' },
+    { value: '503', label: '503 - SERVICE UNAVAILABLE' },
+    { value: '504', label: '504 - GATEWAY TIMEOUT' },
+    { value: '505', label: '505 - HTTP VERSION NOT SUPPORTED' },
+    { value: '507', label: '507 - INSUFFICIENT STORAGE' },
+  ];
 
-  constructor(private translateService: TranslateService) {
-    translateService.get([i18n('analytics.timeframes.minutes'), i18n('analytics.timeframes.hours'),
-      i18n('analytics.timeframes.days')]).toPromise()
+  constructor(
+    private translateService: TranslateService,
+    private route: ActivatedRoute,
+  ) {
+    translateService.get([
+      i18n('analytics.timeframes.minutes'),
+      i18n('analytics.timeframes.hour'),
+      i18n('analytics.timeframes.hours'),
+      i18n('analytics.timeframes.day'),
+      i18n('analytics.timeframes.days'),
+    ]).toPromise()
       .then(translatedTimeframes => {
         const values = Object.values(translatedTimeframes);
         const minutes = values[0];
-        const hours = values[1];
-        const days = values[2];
+        const hour = values[1];
+        const hours = values[2];
+        const day = values[3];
+        const days = values[4];
         this.timeframes = [
           {
             id: '5m',
@@ -49,7 +140,7 @@ export class AnalyticsService {
           }, {
             id: '1h',
             title: '1',
-            description: hours,
+            description: hour,
             range: 1000 * 60 * 60,
             interval: 1000 * 30,
           }, {
@@ -73,7 +164,7 @@ export class AnalyticsService {
           }, {
             id: '1d',
             title: '1',
-            description: days,
+            description: day,
             range: 1000 * 60 * 60 * 24,
             interval: 1000 * 60 * 10,
           }, {
@@ -109,5 +200,61 @@ export class AnalyticsService {
           }
         ];
     });
+  }
+
+  private static buildQueryParam(queryParam, q: string) {
+    queryParam = (q === 'body') ? ('*' + queryParam + '*') : queryParam;
+    queryParam = (q === 'uri') ? (queryParam + '*') : queryParam;
+    queryParam = (q.includes('path')) ? ('\\"' + queryParam + '\\"') : queryParam;
+    queryParam = queryParam.replace(/\//g, '\\\\/');
+    return queryParam;
+  }
+
+  getQueryFromPath() {
+    const params = Object.keys(this.route.snapshot.queryParams)
+      .filter((q) => !this.queryParams.includes(q))
+      .filter(q => this.route.snapshot.queryParams[q].length)
+      .map((q) => {
+        const queryParam = this.route.snapshot.queryParams[q];
+        if (typeof queryParam === 'string') {
+          return q + ':' + AnalyticsService.buildQueryParam(queryParam, q);
+        }
+        return '(' + q + ':' + queryParam.map(qp => AnalyticsService.buildQueryParam(qp, q)).join(' OR ') + ')';
+      });
+    if (params && params.length) {
+      return { query: params.join(' AND ') };
+    }
+    return {};
+  }
+
+  getTimeSlotFromQueryParams() {
+    const timeframe = this.route.snapshot.queryParams.timeframe;
+    let from = parseInt(this.route.snapshot.queryParams.from, 10);
+    let to = parseInt(this.route.snapshot.queryParams.to, 10);
+
+    let interval;
+    const now = Date.now();
+    if (from && to) {
+      const diff = to - from;
+      let selectedTimeframe;
+      this.timeframes.forEach((t) => {
+        if (t.range < diff) {
+          selectedTimeframe = t;
+        }
+      });
+      if (!selectedTimeframe) {
+        selectedTimeframe = this.timeframes[0];
+      }
+      interval = selectedTimeframe.interval;
+    } else {
+      let currentTimeframe = this.timeframes.find((t) => t.id === timeframe);
+      if (!currentTimeframe) {
+        currentTimeframe = this.timeframes.find((t) => t.id === '1d');
+      }
+      from = now - currentTimeframe.range;
+      to = now;
+      interval = currentTimeframe.interval;
+    }
+    return { from, to, interval };
   }
 }

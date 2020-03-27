@@ -57,3 +57,13 @@
   max-width: 250px;
   align-self: flex-end;
 }
+
+.gv-analytics-filters {
+  margin: 20px 0;
+}
+
+.gv-analytics-filters__advanced {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 20px;
+}

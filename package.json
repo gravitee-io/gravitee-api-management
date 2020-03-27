@@ -13,7 +13,7 @@
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "e2e": "ng e2e",
-    "generate:i18n": "ngx-translate-extract -i ./src -o ./src/assets/i18n/*.json -c -s --fi '  ' -f namespaced-json -k -m i18n",
+    "generate:i18n": "ngx-translate-extract -i ./src -o ./src/assets/i18n/*.json -c -s --fi '  ' -f namespaced-json -m i18n",
     "install:sdk": "npm i --save /tmp/gravitee-ng-portal-webclient.tgz"
   },
   "private": true,
@@ -27,7 +27,7 @@
     "@angular/platform-browser-dynamic": "^8.2.9",
     "@angular/router": "^8.2.9",
     "@formatjs/intl-relativetimeformat": "^4.5.9",
-    "@gravitee/ng-portal-webclient": "1.0.0-SNAPSHOT.202003261300",
+    "@gravitee/ng-portal-webclient": "1.0.0-SNAPSHOT.202003292229",
     "@gravitee/ui-components": "github:gravitee-io/gravitee-ui-components",
     "@ibm/plex": "^4.0.2",
     "@ngx-translate/core": "^11.0.1",

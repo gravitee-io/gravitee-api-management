@@ -26,8 +26,8 @@
       </div>
       <div class="gv-analytics-dashboard__widget__content" [ngSwitch]="widget.chart.type">
         <gv-table *ngSwitchCase="'table'" [emptymessage]="'analytics.empty' | translate"
-                  [items]="widget.items" [options]="widget.chart" [selectedKeys]="widget.selectedKeys"
-                  (:gv-table:select)="onTableSelect($event)"></gv-table>
+                  [items]="widget.items" [options]="widget.chart" [selected]="widget.selected"
+                  (:gv-table:select)="onTableSelect($event)" rowheight="30px"></gv-table>
         <gv-chart-pie *ngSwitchCase="'pie'" [series]="widget.items" [options]="widget.chart"></gv-chart-pie>
         <gv-chart-line *ngSwitchCase="'line'" [series]="widget.items" [options]="widget.chart"></gv-chart-line>
         <gv-chart-map *ngSwitchCase="'map'" [series]="widget.items" [options]="widget.chart"></gv-chart-map>

@@ -24,7 +24,7 @@ import {
   ApiService,
   SubscriptionService,
   PermissionsService,
-  PermissionsResponse
+  PermissionsResponse, Subscription
 } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -32,6 +32,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { LoaderService } from '../../../services/loader.service';
 import { NotificationService } from '../../../services/notification.service';
+import StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-application-general',
@@ -102,7 +103,10 @@ export class ApplicationGeneralComponent implements OnInit {
             }));
           });
 
-      this.linkedApis = this.applicationService.getSubscriberApisByApplicationId({ applicationId: this.application.id })
+      this.linkedApis = this.applicationService.getSubscriberApisByApplicationId({
+        applicationId: this.application.id,
+        statuses: [StatusEnum.ACCEPTED, StatusEnum.PAUSED],
+      })
         .toPromise()
         .then((response) => {
           return response.data.map((api) => ({

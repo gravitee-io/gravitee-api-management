@@ -14,46 +14,38 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
-import { GvCreateApplicationButtonComponent } from './gv-create-application-button.component';
-import { RouterTestingModule } from '@angular/router/testing';
+import { ApplicationLogsComponent } from './application-logs.component';
+import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
+import { MarkdownModule } from 'ngx-markdown';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-describe('GvCreateApplicationButtonComponent', () => {
-  let component: GvCreateApplicationButtonComponent;
-  let fixture: ComponentFixture<GvCreateApplicationButtonComponent>;
+describe('ApplicationLogsComponent', () => {
+  let component: ApplicationLogsComponent;
+  let fixture: ComponentFixture<ApplicationLogsComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
-        TranslateTestingModule,
-        HttpClientTestingModule,
-      ],
-      declarations: [
-        GvCreateApplicationButtonComponent
-      ],
+      declarations: [ApplicationLogsComponent, GvPageComponent],
+      imports: [MarkdownModule, HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        GvCreateApplicationButtonComponent,
       ]
-    }).compileComponents();
+    })
+      .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvCreateApplicationButtonComponent);
+    fixture = TestBed.createComponent(ApplicationLogsComponent);
     component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
+    fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

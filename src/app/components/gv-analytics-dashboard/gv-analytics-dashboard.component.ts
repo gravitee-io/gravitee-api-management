@@ -40,35 +40,8 @@ export class GvAnalyticsDashboardComponent {
 
   refresh() {
     this.application = this.route.snapshot.data.application;
-
-    const timeframe = this.route.snapshot.queryParams.timeframe;
-    let from = parseInt(this.route.snapshot.queryParams.from, 10);
-    let to = parseInt(this.route.snapshot.queryParams.to, 10);
     this.definition = JSON.parse(this.dashboard.definition);
-
-    let interval;
-    const now = Date.now();
-    if (timeframe && !(from && to)) {
-      let currentTimeframe = this.analyticsService.timeframes.find((t) => t.id === timeframe);
-      if (!currentTimeframe) {
-        currentTimeframe = '1d';
-      }
-      from = now - currentTimeframe.range;
-      to = now;
-      interval = currentTimeframe.interval;
-    } else {
-      const diff = to - from;
-      let selectedTimeframe;
-      this.analyticsService.timeframes.forEach((t) => {
-        if (t.range < diff) {
-          selectedTimeframe = t;
-        }
-      });
-      if (!selectedTimeframe) {
-        selectedTimeframe = this.analyticsService.timeframes[0];
-      }
-      interval = selectedTimeframe.interval;
-    }
+    const timeSlot = this.analyticsService.getTimeSlotFromQueryParams();
 
     this.definition.forEach((widget) => {
       if (widget.chart.request.ranges) {
@@ -83,11 +56,11 @@ export class GvAnalyticsDashboardComponent {
         if (widget.chart.percent) {
           widget.chart.data.push({ label: '%' });
         }
-        const selectedKeys = this.route.snapshot.queryParams[widget.chart.request.field];
-        if (typeof selectedKeys === 'string') {
-          widget.selectedKeys = [selectedKeys];
+        const selected = this.route.snapshot.queryParams[widget.chart.request.field];
+        if (typeof selected === 'string') {
+          widget.selected = [selected];
         } else {
-          widget.selectedKeys = selectedKeys;
+          widget.selected = selected;
         }
       } else {
         if (!widget.chart.data) {
@@ -99,41 +72,24 @@ export class GvAnalyticsDashboardComponent {
                 name: label,
                 color: widget.chart.colors ? widget.chart.colors[i] : '',
                 labelPrefix: label,
-                pointStart: from,
-                pointInterval: interval,
+                pointStart: timeSlot.from,
+                pointInterval: timeSlot.interval,
               });
             });
           } else {
             widget.chart.data.push({
-              pointStart: from,
-              pointInterval: interval,
+              pointStart: timeSlot.from,
+              pointInterval: timeSlot.interval,
             });
           }
         }
       }
       widget.items = this.applicationService.getApplicationAnalytics({
-        ...{ applicationId: this.application.id, from, to, interval },
+        ...{ applicationId: this.application.id, from: timeSlot.from, to: timeSlot.to, interval: timeSlot.interval },
         ...widget.chart.request,
-        ...this.getQueryFromPath(widget.chart.request.field)
+        ...this.analyticsService.getQueryFromPath()
       }).toPromise();
     });
-  }
-
-  getQueryFromPath(field) {
-    const params = Object.keys(this.route.snapshot.queryParams)
-      .filter((q) => q !== field && !this.analyticsService.queryParams.includes(q))
-      .filter(q => this.route.snapshot.queryParams[q].length)
-      .map((q) => {
-        const queryParam = this.route.snapshot.queryParams[q];
-        if (typeof queryParam === 'string') {
-          return q + ':' + queryParam;
-        }
-        return '(' + q + ':\\"' + queryParam.join('\\" OR \\"') + '\\")';
-    });
-    if (params && params.length) {
-      return { query: params.join(' AND ') };
-    }
-    return {};
   }
 
   onTableSelect(e) {
@@ -142,7 +98,7 @@ export class GvAnalyticsDashboardComponent {
     this.router.navigate([], {
       queryParams,
       queryParamsHandling: 'merge',
-      fragment: 'dashboard'
+      fragment: this.analyticsService.fragment
     }).then(() => {
       this.refreshFilters.emit();
       this.refresh();
@@ -155,10 +111,30 @@ export class GvAnalyticsDashboardComponent {
     this.router.navigate([], {
       queryParams: e,
       queryParamsHandling: 'merge',
-      fragment: 'dashboard'
+      fragment: this.analyticsService.fragment
     }).then(() => {
       this.refreshFilters.emit();
       this.refresh();
     });
+  }
+
+  @HostListener(':gv-chart-line:select', ['$event.detail'])
+  onChartLineSelect(e) {
+    const aggs = e.request.aggs;
+    if (aggs && e.value) {
+      const fields = aggs.split('field:');
+      if (fields && fields[1]) {
+        const queryParams = {};
+        queryParams[fields[1]] = e.value;
+        this.router.navigate([], {
+          queryParams,
+          queryParamsHandling: 'merge',
+          fragment: this.analyticsService.fragment
+        }).then(() => {
+          this.refreshFilters.emit();
+          this.refresh();
+        });
+      }
+    }
   }
 }

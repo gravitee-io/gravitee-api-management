@@ -16,7 +16,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 
-import { GvSearchInputComponent } from './gv-search-input.component';
+import { GvSearchApiComponent } from './gv-search-api.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -25,8 +25,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { CurrentUserService } from '../../services/current-user.service';
 
 describe('GvSearchInputComponent', () => {
-  let component: GvSearchInputComponent;
-  let fixture: ComponentFixture<GvSearchInputComponent>;
+  let component: GvSearchApiComponent;
+  let fixture: ComponentFixture<GvSearchApiComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -36,13 +36,13 @@ describe('GvSearchInputComponent', () => {
         HttpClientTestingModule,
       ],
       declarations: [
-        GvSearchInputComponent
+        GvSearchApiComponent
       ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
       providers: [
-        GvSearchInputComponent,
+        GvSearchApiComponent,
         provideMock(TranslateService),
         provideMock(CurrentUserService),
       ]
@@ -50,7 +50,7 @@ describe('GvSearchInputComponent', () => {
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvSearchInputComponent);
+    fixture = TestBed.createComponent(GvSearchApiComponent);
     component = fixture.componentInstance;
     fixture.whenStable().then(() => {
       fixture.detectChanges();

@@ -17,11 +17,11 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-gv-create-application-button',
-  templateUrl: './gv-create-application-button.component.html',
-  styleUrls: ['./gv-create-application-button.component.css']
+  selector: 'app-gv-button-create-application',
+  templateUrl: './gv-button-create-application.component.html',
+  styleUrls: ['./gv-button-create-application.component.css']
 })
-export class GvCreateApplicationButtonComponent implements OnInit {
+export class GvButtonCreateApplicationComponent implements OnInit {
 
   constructor(private router: Router) { }
 

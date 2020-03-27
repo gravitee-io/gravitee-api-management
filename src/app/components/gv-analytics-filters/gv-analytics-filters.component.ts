@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
-import { Dashboard } from '@gravitee/ng-portal-webclient';
+import { Api, ApplicationService, Dashboard } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { LoaderService } from '../../services/loader.service';
 import { AnalyticsService } from '../../services/analytics.service';
 
@@ -29,9 +29,11 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
 
   @Input() dashboard: Dashboard;
   @Output() refreshDashboard: EventEmitter<any> = new EventEmitter();
+  @Input() withURI: boolean;
 
   analyticsForm: FormGroup;
   tags: Array<any>;
+  apisOptions: Array<any>;
 
   constructor(
     private router: Router,
@@ -39,6 +41,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
     private formBuilder: FormBuilder,
     public loaderService: LoaderService,
     public analyticsService: AnalyticsService,
+    public applicationService: ApplicationService,
   ) { }
 
   ngOnInit(): void {
@@ -47,7 +50,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
       this.router.navigate([], {
         queryParams: { timeframe: '1d' },
         queryParamsHandling: 'merge',
-        fragment: 'dashboard'
+        fragment: this.analyticsService.fragment
       }).then(() => {
         this.initFilters();
       });
@@ -60,13 +63,29 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
     this.analyticsForm = this.formBuilder.group({
       from: this.route.snapshot.queryParams.from,
       to: this.route.snapshot.queryParams.to,
+      requestId: this.route.snapshot.queryParams._id,
+      transactionId: this.route.snapshot.queryParams.transaction,
+      methods: new FormControl(this.route.snapshot.queryParams.method),
+      path: this.route.snapshot.queryParams.uri,
+      responseTimes: new FormControl(this.route.snapshot.queryParams['response-time']),
+      status: new FormControl(this.route.snapshot.queryParams.status),
+      api: new FormControl(this.route.snapshot.queryParams.api),
+      payloads: this.route.snapshot.queryParams.body,
     });
   }
 
   ngAfterViewInit() {
-    setTimeout(() => {
-      this.refreshDashboard.emit();
-    });
+    if (this.route.snapshot.params.applicationId) {
+      this.applicationService.getSubscriberApisByApplicationId({ applicationId: this.route.snapshot.params.applicationId, size: -1 })
+        .toPromise().then(apis => {
+        this.apisOptions = apis.data.map(api => {
+          return { label: api.name + ' (' + api.version + ')', value: api.id };
+        });
+      });
+      setTimeout(() => {
+        this.refreshDashboard.emit();
+      });
+    }
   }
 
   initFilters() {
@@ -76,6 +95,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
     this.tags = [];
     Object.keys(this.route.snapshot.queryParams)
       .filter((q) => !this.analyticsService.queryParams.includes(q))
+      .filter((q) => !this.analyticsService.advancedQueryParams.includes(q))
       .forEach((q) => {
         const queryParam = this.route.snapshot.queryParams[q];
         if (typeof queryParam === 'string') {
@@ -94,11 +114,11 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
     this.router.navigate([], {
       queryParams,
       queryParamsHandling: 'merge',
-      fragment: 'dashboard'
+      fragment: this.analyticsService.fragment
     }).then(() => {
-      this.initForm();
-      this.initFilters();
-      this.refreshDashboard.emit();
+      this.analyticsForm.patchValue({ from: null });
+      this.analyticsForm.patchValue({ to: null });
+      this.search();
     });
   }
 
@@ -127,7 +147,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
     this.router.navigate([], {
       queryParams,
       queryParamsHandling: 'merge',
-      fragment: 'dashboard'
+      fragment: this.analyticsService.fragment
     }).then(() => {
       this.initFilters();
       this.refreshDashboard.emit();
@@ -141,7 +161,16 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
 
   search() {
     if (this.formValid()) {
-      const queryParams: any = {};
+      const queryParams: any = {
+        _id: this.analyticsForm.value.requestId || null,
+        transaction: this.analyticsForm.value.transactionId || null,
+        method: this.analyticsForm.value.methods || null,
+        uri: this.analyticsForm.value.path || null,
+        'response-time': this.analyticsForm.value.responseTimes || null,
+        status: this.analyticsForm.value.status || null,
+        api: this.analyticsForm.value.api || null,
+        body: this.analyticsForm.value.payloads || null,
+      };
       if (this.analyticsForm.value.from && this.analyticsForm.value.to) {
         queryParams.from = this.analyticsForm.value.from;
         queryParams.to = this.analyticsForm.value.to;
@@ -150,7 +179,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
       this.router.navigate([], {
         queryParams,
         queryParamsHandling: 'merge',
-        fragment: 'dashboard'
+        fragment: this.analyticsService.fragment
       }).then(() => {
         this.initFilters();
         this.refreshDashboard.emit();
@@ -174,9 +203,8 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
       });
     this.router.navigate([], {
       queryParams,
-      fragment: 'dashboard'
+      fragment: this.analyticsService.fragment
     }).then(() => {
-      this.initForm();
       this.initFilters();
       this.refreshDashboard.emit();
     });

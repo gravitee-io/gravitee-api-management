@@ -20,6 +20,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { Router } from '@angular/router';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
+import StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-subscriptions',
@@ -79,7 +80,7 @@ export class SubscriptionsComponent implements OnInit {
 
     this.applicationService.getApplications({ size: -1 }).toPromise().then((response) => {
       this.applications = response.data;
-      this.subscriptionService.getSubscriptions({ size: -1, statuses: ['ACCEPTED'] }).toPromise().then((responseSubscriptions) => {
+      this.subscriptionService.getSubscriptions({ size: -1, statuses: [StatusEnum.ACCEPTED] }).toPromise().then((responseSubscriptions) => {
         this.subscriptions = responseSubscriptions.data;
         this.apiService.getApis({ size: -1 }).toPromise().then((responseApis) => {
           this.apis = responseApis.data;

@@ -16,38 +16,44 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 
-import { GvAnalyticsFiltersComponent } from './gv-analytics-filters.component';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { GvButtonCreateApplicationComponent } from './gv-button-create-application.component';
 import { RouterTestingModule } from '@angular/router/testing';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
-describe('GvAnalyticsFiltersComponent', () => {
-  let component: GvAnalyticsFiltersComponent;
-  let fixture: ComponentFixture<GvAnalyticsFiltersComponent>;
+describe('GvCreateApplicationButtonComponent', () => {
+  let component: GvButtonCreateApplicationComponent;
+  let fixture: ComponentFixture<GvButtonCreateApplicationComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ GvAnalyticsFiltersComponent ],
-      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
+      imports: [
+        RouterTestingModule,
+        TranslateTestingModule,
+        HttpClientTestingModule,
+      ],
+      declarations: [
+        GvButtonCreateApplicationComponent
+      ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
+      ],
+      providers: [
+        GvButtonCreateApplicationComponent,
       ]
-    })
-    .compileComponents();
+    }).compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvAnalyticsFiltersComponent);
+    fixture = TestBed.createComponent(GvButtonCreateApplicationComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', (done) => {
     fixture.whenStable().then(() => {
       fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
     });
   });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
 });

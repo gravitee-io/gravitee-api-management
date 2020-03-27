@@ -30,7 +30,7 @@ import { FeatureEnum } from './model/feature.enum';
 import { FeatureGuardService } from './services/feature-guard.service';
 import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
 import { GvHeaderItemComponent } from './components/gv-header-item/gv-header-item.component';
-import { GvSearchInputComponent } from './components/gv-search-input/gv-search-input.component';
+import { GvSearchApiComponent } from './components/gv-search-api/gv-search-api.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { LoginComponent } from './pages/login/login.component';
 import { LogoutComponent } from './pages/logout/logout.component';
@@ -48,12 +48,14 @@ import { SubscribeGuardService } from './services/subscribe-guard.service';
 import { ApplicationGeneralComponent } from './pages/application/application-general/application-general.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { ApplicationCreationComponent } from './pages/application/application-creation/application-creation.component';
-import { GvCreateApplicationButtonComponent } from './components/gv-create-application-button/gv-create-application-button.component';
+import { GvButtonCreateApplicationComponent } from './components/gv-button-create-application/gv-button-create-application.component';
 import { ApplicationAnalyticsComponent } from './pages/application/application-analytics/application-analytics.component';
-import { ApplicationResolver } from './resolver/application.resolver';
-import { DashboardsResolver } from './resolver/dashboards.resolver';
+import { ApplicationLogsComponent } from './pages/application/application-logs/application-logs.component';
+import { ApplicationResolver } from './resolvers/application.resolver';
+import { DashboardsResolver } from './resolvers/dashboards.resolver';
 import { ApplicationNotificationsComponent } from './pages/application/application-notifications/application-notifications.component';
 import { ApplicationSubscriptionsComponent } from './pages/application/application-subscriptions/application-subscriptions.component';
+import { GvSelectDashboardComponent } from './components/gv-select-dashboard/gv-select-dashboard.component';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
@@ -85,7 +87,7 @@ export const routes: Routes = [
             path: ':apiId',
             component: ApiGeneralComponent,
             data: {
-              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchInputComponent } },
+              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
               breadcrumb: true,
               icon: 'general:clipboard',
               title: i18n('route.catalogApi'),
@@ -96,7 +98,7 @@ export const routes: Routes = [
             path: ':apiId/doc',
             component: ApiDocumentationComponent,
             data: {
-              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchInputComponent } },
+              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
               breadcrumb: true,
               icon: 'home:library',
               title: i18n('route.catalogApiDocumentation'),
@@ -108,7 +110,7 @@ export const routes: Routes = [
             component: ApiContactComponent,
             canActivate: [AuthGuardService, FeatureGuardService],
             data: {
-              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchInputComponent } },
+              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
               breadcrumb: true,
               icon: 'communication:contact#1',
               title: i18n('route.catalogApiContact'),
@@ -137,7 +139,7 @@ export const routes: Routes = [
           expectedFeature: FeatureEnum.viewMode,
           title: i18n('route.catalogCategories'),
           icon: 'layout:layout-arrange',
-          menu: { slots: { 'right-transition': GvSearchInputComponent } },
+          menu: { slots: { 'right-transition': GvSearchApiComponent } },
           animation: { type: 'slide', group: 'catalog', index: 1 }
         }
       },
@@ -148,7 +150,7 @@ export const routes: Routes = [
         data: {
           expectedFeature: FeatureEnum.viewMode,
           title: i18n('route.catalogCategory'),
-          menu: { slots: { 'right-transition': GvSearchInputComponent } },
+          menu: { slots: { 'right-transition': GvSearchApiComponent } },
         },
       },
       {
@@ -157,7 +159,7 @@ export const routes: Routes = [
         data: {
           title: i18n('route.catalogFeatured'),
           icon: 'home:flower#2',
-          menu: { slots: { 'right-transition': GvSearchInputComponent } },
+          menu: { slots: { 'right-transition': GvSearchApiComponent } },
           categoryApiQuery: CategoryApiQuery.FEATURED,
           animation: { type: 'slide', group: 'catalog', index: 2 }
         }
@@ -169,7 +171,7 @@ export const routes: Routes = [
         data: {
           title: i18n('route.catalogStarred'),
           icon: 'general:star',
-          menu: { slots: { 'right-transition': GvSearchInputComponent } },
+          menu: { slots: { 'right-transition': GvSearchApiComponent } },
           categoryApiQuery: CategoryApiQuery.STARRED,
           expectedFeature: FeatureEnum.rating,
           animation: { type: 'slide', group: 'catalog', index: 3 }
@@ -181,7 +183,7 @@ export const routes: Routes = [
         data: {
           title: i18n('route.catalogTrending'),
           icon: 'home:fireplace',
-          menu: { slots: { 'right-transition': GvSearchInputComponent } },
+          menu: { slots: { 'right-transition': GvSearchApiComponent } },
           categoryApiQuery: CategoryApiQuery.TRENDINGS,
           animation: { type: 'slide', group: 'catalog', index: 4 }
         }
@@ -267,7 +269,7 @@ export const routes: Routes = [
           title: i18n('route.myApplications'),
           icon: 'devices:server',
           animation: { type: 'slide', group: 'apps', index: 1 },
-          menu: { slots: { right: GvCreateApplicationButtonComponent, expectedFeature: FeatureEnum.applicationCreation } }
+          menu: { slots: { right: GvButtonCreateApplicationComponent, expectedFeature: FeatureEnum.applicationCreation } }
         }
       },
       {
@@ -277,7 +279,7 @@ export const routes: Routes = [
           title: i18n('route.mySubscriptions'),
           icon: 'finance:share',
           animation: { type: 'slide', group: 'apps', index: 2 },
-          menu: { slots: { right: GvCreateApplicationButtonComponent, expectedFeature: FeatureEnum.applicationCreation } }
+          menu: { slots: { right: GvButtonCreateApplicationComponent, expectedFeature: FeatureEnum.applicationCreation } }
         }
       },
       {
@@ -293,7 +295,7 @@ export const routes: Routes = [
       {
         path: ':applicationId',
         data: {
-          menu: { slots: { top: GvHeaderItemComponent }, animation: { type: 'fade' } },
+            menu: { slots: { top: GvHeaderItemComponent }, animation: { type: 'fade' } },
         },
         resolve: {
           application: ApplicationResolver
@@ -322,6 +324,7 @@ export const routes: Routes = [
             component: ApplicationAnalyticsComponent,
             data: {
               icon: 'shopping:chart-line#1',
+              menu: { slots: { right: GvSelectDashboardComponent } },
               title: i18n('route.analyticsApplication'),
               animation: { type: 'slide', group: 'app', index: 3 }
             },
@@ -330,15 +333,24 @@ export const routes: Routes = [
             }
           },
           {
+            path: 'logs',
+            component: ApplicationLogsComponent,
+            data: {
+              icon: 'communication:clipboard-list',
+              title: i18n('route.logsApplication'),
+              animation: { type: 'slide', group: 'app', index: 4 }
+            }
+          },
+          {
             path: 'notifications',
             component: ApplicationNotificationsComponent,
             data: {
               icon: 'general:notifications#2',
               title: i18n('route.notifications'),
-              animation: { type: 'slide', group: 'app', index: 4 }
+              animation: { type: 'slide', group: 'app', index: 5 }
             }
           },
-        ],
+        ]
       },
     ]
   },

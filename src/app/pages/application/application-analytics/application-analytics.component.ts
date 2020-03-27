@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Application, Dashboard } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-chart-line';
@@ -31,8 +31,6 @@ import { GvAnalyticsFiltersComponent } from '../../../components/gv-analytics-fi
 export class ApplicationAnalyticsComponent implements OnInit {
 
   application: Application;
-  dashboards: Array<any>;
-  dashboardsSelect: Array<any>;
   dashboard: Dashboard;
 
   @ViewChild(GvAnalyticsFiltersComponent, { static: false })
@@ -40,37 +38,25 @@ export class ApplicationAnalyticsComponent implements OnInit {
   @ViewChild(GvAnalyticsDashboardComponent, { static: false })
   dashboardComponent: GvAnalyticsDashboardComponent;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    ) {
-  }
+  constructor(private route: ActivatedRoute) {}
 
   ngOnInit() {
     this.application = this.route.snapshot.data.application;
-    this.dashboards = this.route.snapshot.data.dashboards;
-    if (this.dashboards) {
-      if (this.route.snapshot.queryParams.dashboard) {
-        this.dashboard = this.dashboards.find((dashboard) => dashboard.id === this.route.snapshot.queryParams.dashboard);
+    const dashboards = this.route.snapshot.data.dashboards;
+    const dashboardParam = this.route.snapshot.queryParams.dashboard;
+    if (dashboards) {
+      if (dashboardParam) {
+        this.dashboard = dashboards.find((dashboard) => dashboard.id === dashboardParam);
       } else {
-        this.dashboard = this.dashboards[0];
+        this.dashboard = dashboards[0];
       }
-      this.dashboardsSelect = this.dashboards.map((dashboard) => {
-        return { label: dashboard.name, value: dashboard.id };
+      this.route.queryParams.subscribe(param => {
+        if (param.dashboard && this.filtersComponent && this.dashboardComponent && param.dashboard !== this.dashboard.id) {
+          this.dashboardComponent.dashboard = this.dashboard = dashboards.find((dashboard) => dashboard.id === param.dashboard);
+          this.filtersComponent.reset();
+          this.dashboardComponent.refresh();
+        }
       });
     }
-  }
-
-  @HostListener(':gv-select:select', ['$event.detail'])
-  _onChangDisplay({ id }) {
-    this.router.navigate([], {
-      queryParams: { dashboard: id },
-      queryParamsHandling: 'merge',
-      fragment: 'dashboard'
-    }).then(() => {
-      this.dashboardComponent.dashboard = this.dashboards.find((dashboard) => dashboard.id === id);
-      this.filtersComponent.reset();
-      this.dashboardComponent.refresh();
-    });
   }
 }

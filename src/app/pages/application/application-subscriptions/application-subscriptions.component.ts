@@ -21,7 +21,7 @@ import '@gravitee/ui-components/wc/gv-confirm';
 import {
   ApiService,
   SubscriptionService,
-  Subscription, GetSubscriptionsRequestParams
+  Subscription, GetSubscriptionsRequestParams, ApplicationService
 } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -49,13 +49,14 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   apisOptions: any;
   statusOptions: any;
   miscellaneous: Array<any>;
-  metadataNames: any;
+  metadata: any;
   selectedSubscription: Subscription;
   apiKeys: Array<any>;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
     private notificationService: NotificationService,
     private translateService: TranslateService,
@@ -99,14 +100,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
             }));
         });
 
-      const statusKeys = Object.keys(StatusEnum).map(s => 'common.status.' + s);
-      this.translateService.get(statusKeys).toPromise().then(translatedKeys => {
-        this.statusOptions = Object.keys(StatusEnum).map((s, i) => {
-          return { label: Object.values(translatedKeys)[i], value: s };
-        });
-        this.form.patchValue({ status: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING] });
-      });
-      this.apiService.getApis({ size: -1 }).toPromise().then(apis => {
+      this.applicationService.getSubscriberApisByApplicationId({ applicationId: application.id, size: -1 }).toPromise().then(apis => {
         this.apisOptions = [];
         apis.data.forEach(api => {
           this.apisOptions.push({ label: api.name + ' (' + api.version + ')', value: api.id });
@@ -115,12 +109,13 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       this.format = (key) => this.translateService.get(key).toPromise();
       this.apisOptions = [];
       this.options = {
-        selectable: 'single',
+        selectable: true,
         data: [
           { field: 'api', label: i18n('application.subscriptions.api') },
           { field: 'plan', label: i18n('application.subscriptions.plan') },
           { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at') },
-          { field: 'subscribed_by', label: i18n('application.subscriptions.subscribed_by'), format: (item) => this.metadataNames[item] },
+          { field: 'subscribed_by', label: i18n('application.subscriptions.subscribed_by'),
+            format: (item) => this.metadata[item] && this.metadata[item].name },
           { field: 'processed_at', type: 'date', label: i18n('application.subscriptions.processed_at') },
           { field: 'start_at', type: 'date', label: i18n('application.subscriptions.start_at') },
           {
@@ -130,13 +125,13 @@ export class ApplicationSubscriptionsComponent implements OnInit {
               return this.translateService.get(statusKey).toPromise();
             },
             style: (item) => {
-              switch (item.status) {
-                case 'accepted':
+              switch (item.status.toUpperCase()) {
+                case StatusEnum.ACCEPTED:
                   return 'color: #009B5B';
-                case 'paused':
-                case 'pending':
+                case StatusEnum.PAUSED:
+                case StatusEnum.PENDING:
                   return 'color: #FA8C16';
-                case 'rejected':
+                case StatusEnum.REJECTED:
                   return 'color: #F5222D';
               }
             },
@@ -154,7 +149,15 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           },
         ]
       };
-      this.search();
+
+      const statusKeys = Object.keys(StatusEnum).map(s => 'common.status.' + s);
+      this.translateService.get(statusKeys).toPromise().then(translatedKeys => {
+        this.statusOptions = Object.keys(StatusEnum).map((s, i) => {
+          return { label: Object.values(translatedKeys)[i], value: s };
+        });
+        this.form.patchValue({ status: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING] });
+        this.search();
+      });
     }
   }
 
@@ -169,10 +172,10 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     }
     this.subscriptionService.getSubscriptions(requestParameters).toPromise().then(response => {
       this.subscriptions = response.data;
+      this.metadata = response.metadata;
       this.subscriptions.forEach(subscription => {
-        this.metadataNames = response.metadata.names;
-        subscription.api = this.metadataNames[subscription.api];
-        subscription.plan = this.metadataNames[subscription.plan];
+        subscription.api = this.metadata[subscription.api] && this.metadata[subscription.api].name;
+        subscription.plan = this.metadata[subscription.plan] && this.metadata[subscription.plan].name;
       });
       if (this.route.snapshot.queryParams.subscription) {
         this.selectedSubscription = this.subscriptions.find(s => s.id === this.route.snapshot.queryParams.subscription);
@@ -198,39 +201,41 @@ export class ApplicationSubscriptionsComponent implements OnInit {
 
   @HostListener(':gv-table:select', ['$event.detail.item'])
   onSelectSubscription(subscription: Subscription) {
-    this.router.navigate([], { queryParams: { subscription: subscription.id }, fragment: 'sub' });
-    this.subscriptionService.getSubscriptionById({ subscriptionId: subscription.id, include: ['keys'] }).toPromise().then(sub => {
-      this.translateService.get([
-        'application.subscriptions.created_at',
-        'application.subscriptions.end_at',
-        'application.subscriptions.paused_at',
-        'application.subscriptions.reason',
-        'application.subscriptions.apiKeys'], translatedObject => {
-        const translatedValues = Object.values(translatedObject);
-        this.apiKeys = [];
-        if (subscription.end_at) {
-          this.apiKeys.push({ key: translatedValues[1], value: new Date(subscription.end_at), date: 'short' });
-        }
-        if (subscription.paused_at) {
-          this.apiKeys.push({ key: translatedValues[2], value: new Date(subscription.paused_at), date: 'relative' });
-        }
-        if (subscription.reason) {
-          this.apiKeys.push({ key: translatedValues[3], value: subscription.reason });
-        }
-        if (sub.keys && sub.keys.length) {
-          this.apiKeys.push({ key: translatedValues[4] });
-          sub.keys.forEach(key => {
-            this.apiKeys.push({});
-            const ended = key.revoked || key.expired;
-            this.apiKeys.push({ key: ended, value: key.id, type: 'clipboard' });
-            this.apiKeys.push({ key: translatedValues[0], value: new Date(key.created_at), date: 'short' });
-            const endAt = key.revoked_at || key.expire_at;
-            if (endAt) {
-              this.apiKeys.push({ key: translatedValues[1], value: new Date(endAt), date: 'short' });
-            }
-          });
-        }
+    this.apiKeys = [];
+    this.router.navigate([], { queryParams: { subscription: subscription ? subscription.id : null }, fragment: 's' });
+    if (subscription) {
+      this.subscriptionService.getSubscriptionById({ subscriptionId: subscription.id, include: ['keys'] }).toPromise().then(sub => {
+        this.translateService.get([
+          'application.subscriptions.apiKey.created_at',
+          'application.subscriptions.apiKey.end_at',
+          'application.subscriptions.apiKey.paused_at',
+          'application.subscriptions.apiKey.reason',
+          'application.subscriptions.apiKey.title']).toPromise().then(translatedObject => {
+          const translatedValues = Object.values(translatedObject);
+          if (subscription.end_at) {
+            this.apiKeys.push({ key: translatedValues[1], value: new Date(subscription.end_at), date: 'short' });
+          }
+          if (subscription.paused_at) {
+            this.apiKeys.push({ key: translatedValues[2], value: new Date(subscription.paused_at), date: 'relative' });
+          }
+          if (subscription.reason) {
+            this.apiKeys.push({ key: translatedValues[3], value: subscription.reason });
+          }
+          if (sub.keys && sub.keys.length) {
+            this.apiKeys.push({ key: translatedValues[4] });
+            sub.keys.forEach(key => {
+              this.apiKeys.push({});
+              const ended = key.revoked || key.expired;
+              this.apiKeys.push({ key: ended, value: key.id, type: 'clipboard' });
+              this.apiKeys.push({ key: translatedValues[0], value: new Date(key.created_at), date: 'short' });
+              const endAt = key.revoked_at || key.expire_at;
+              if (endAt) {
+                this.apiKeys.push({ key: translatedValues[1], value: new Date(endAt), date: 'short' });
+              }
+            });
+          }
+        });
       });
-    });
+    }
   }
 }

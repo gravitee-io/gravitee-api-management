@@ -15,10 +15,5 @@
     limitations under the License.
 
 -->
-<div class="page__content">
-  <section class="application__section">
-    <app-gv-analytics-filters (refreshDashboard)="dashboardComponent.refresh()"></app-gv-analytics-filters>
-
-    <app-gv-analytics-dashboard (refreshFilters)="filtersComponent.initFilters()" [dashboard]="dashboard"></app-gv-analytics-dashboard>
-  </section>
-</div>
+<gv-select class="application__analytics__filter__dashboard"
+           [options]="dashboardsSelect" [value]="dashboard && dashboard.id"></gv-select>

@@ -411,7 +411,7 @@ export class ApiSubscribeComponent implements OnInit {
     return this.subscriptionService.getSubscriptions({
       apiId: this.apiId,
       size: -1,
-      statuses: ['ACCEPTED', 'PENDING', 'PAUSED']
+      statuses: [StatusEnum.ACCEPTED, StatusEnum.PENDING, StatusEnum.PAUSED]
     })
       .toPromise()
       .then(response => {
