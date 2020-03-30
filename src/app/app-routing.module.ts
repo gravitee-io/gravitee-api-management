@@ -54,6 +54,7 @@ import { ApplicationLogsComponent } from './pages/application/application-logs/a
 import { ApplicationResolver } from './resolvers/application.resolver';
 import { DashboardsResolver } from './resolvers/dashboards.resolver';
 import { ApplicationNotificationsComponent } from './pages/application/application-notifications/application-notifications.component';
+import { ApplicationMembersComponent } from './pages/application/application-members/application-members.component';
 import { ApplicationSubscriptionsComponent } from './pages/application/application-subscriptions/application-subscriptions.component';
 import { GvSelectDashboardComponent } from './components/gv-select-dashboard/gv-select-dashboard.component';
 
@@ -308,6 +309,15 @@ export const routes: Routes = [
               icon: 'general:clipboard',
               title: i18n('route.catalogApi'),
               animation: { type: 'slide', group: 'app', index: 1 }
+            }
+          },
+          {
+            path: 'members',
+            component: ApplicationMembersComponent,
+            data: {
+              icon: 'communication:group',
+              title: i18n('route.members'),
+              animation: { type: 'slide', group: 'apps', index: 2 }
             }
           },
           {

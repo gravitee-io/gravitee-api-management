@@ -25,7 +25,7 @@ import {
   HostListener,
   OnInit,
   ViewChild,
-  OnDestroy,
+  OnDestroy, ChangeDetectorRef,
 } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
@@ -80,6 +80,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private componentFactoryResolver: ComponentFactoryResolver,
     private configurationService: ConfigurationService,
     private portalService: PortalService,
+    private ref: ChangeDetectorRef,
   ) {
     // google analytics
     const gaEnabled = this.configurationService.hasFeature(FeatureEnum.googleAnalytics);
@@ -173,6 +174,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       } else {
         delete this.notification;
       }
+      this.ref.detectChanges();
     });
   }
 

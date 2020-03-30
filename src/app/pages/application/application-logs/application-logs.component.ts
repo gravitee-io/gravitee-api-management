@@ -211,7 +211,7 @@ export class ApplicationLogsComponent implements OnInit {
     });
   }
 
-  @HostListener(':gv-table:select', ['$event.detail.item'])
+  @HostListener(':gv-table:select', ['$event.detail.items[0]'])
   onSelectLog(log: Log) {
     this.router.navigate([], {
       queryParams: { log: log ? log.id : null,  timestamp: log ? log.timestamp : null },

@@ -20,7 +20,7 @@
   <section>
     <div class="table-container">
       <gv-table title="{{'subscriptions.applications.title' | translate}}" [format]="format" [emptykey]="emptyKeyApplications"
-                (:gv-table:select)="onApplicationClick($event)" (:gv-table:mouseenter)="onApplicationFocus($event)" (:gv-table:mouseleave)="onFocusOut()"
+                (:gv-table:select)="onApplicationClick($event)" (:gv-table:mouseenter)="onApplicationMouseEnter($event)" (:gv-table:mouseleave)="onFocusOut()"
                 order="name" [items]="applications" [options]="options" nosort rowsheight="40vh"></gv-table>
     </div>
     <div class="table-between"></div>

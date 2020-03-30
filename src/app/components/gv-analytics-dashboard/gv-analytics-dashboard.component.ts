@@ -36,14 +36,14 @@ export class GvAnalyticsDashboardComponent {
     private router: Router,
     private applicationService: ApplicationService,
     private analyticsService: AnalyticsService,
-    ) { }
+  ) {
+  }
 
   refresh() {
     this.application = this.route.snapshot.data.application;
-    this.definition = JSON.parse(this.dashboard.definition);
     const timeSlot = this.analyticsService.getTimeSlotFromQueryParams();
 
-    this.definition.forEach((widget) => {
+    this.definition = JSON.parse(this.dashboard.definition).map((widget) => {
       if (widget.chart.request.ranges) {
         widget.chart.request.ranges = widget.chart.request.ranges.replace(/%3B/g, ';');
       }
@@ -57,10 +57,10 @@ export class GvAnalyticsDashboardComponent {
           widget.chart.data.push({ label: '%' });
         }
         const selected = this.route.snapshot.queryParams[widget.chart.request.field];
-        if (typeof selected === 'string') {
-          widget.selected = [selected];
-        } else {
+        if (Array.isArray(selected)) {
           widget.selected = selected;
+        } else {
+          widget.selected = [selected];
         }
       } else {
         if (!widget.chart.data) {
@@ -84,17 +84,57 @@ export class GvAnalyticsDashboardComponent {
           }
         }
       }
-      widget.items = this.applicationService.getApplicationAnalytics({
+      const itemsPromise = this.applicationService.getApplicationAnalytics({
         ...{ applicationId: this.application.id, from: timeSlot.from, to: timeSlot.to, interval: timeSlot.interval },
         ...widget.chart.request,
         ...this.analyticsService.getQueryFromPath()
       }).toPromise();
+
+      if (widget.chart.type === 'table') {
+
+        const style = () => 'justify-content: flex-end; text-align: right;';
+        widget.chart.data[0].field = 'key';
+        widget.chart.data[1].field = 'value';
+        widget.chart.data[1].headerStyle = style;
+        widget.chart.data[1].style = style;
+        if (widget.chart.percent) {
+          widget.chart.data[2].field = 'percent';
+          widget.chart.data[2].headerStyle = style;
+          widget.chart.data[2].style = style;
+        }
+
+        widget.items = itemsPromise.then((items) => {
+          let total = 0;
+          if (widget.chart.percent) {
+            // @ts-ignore
+            if (items.values && items.values.length) {
+              // @ts-ignore
+              total = items.values.reduce((p, n) => p + n);
+            }
+          }
+          // @ts-ignore
+          return Object.keys(items.values).map((key) => {
+            // @ts-ignore
+            const item = { id: key, key: items.metadata[key].name, value: items.values[key], percent: undefined };
+            if (widget.chart.percent) {
+              // @ts-ignore
+              item.percent = `${parseFloat(item.value / total * 100).toFixed(2)}%`;
+            }
+            return item;
+          });
+        });
+      } else {
+        widget.items = itemsPromise;
+      }
+      return widget;
     });
+
   }
 
-  onTableSelect(e) {
+
+  onTableSelect({ detail }) {
     const queryParams: any = {};
-    queryParams[e.detail.options.request.field] = e.detail.items.map((item) => item.id || item.key);
+    queryParams[detail.options.request.field] = detail.items.map((item) => item.id || item.key);
     this.router.navigate([], {
       queryParams,
       queryParamsHandling: 'merge',

@@ -21,7 +21,7 @@
         <h2 class="title">{{ "application.general" | translate}}</h2>
 
         <div class="application__image">
-          <gv-image alt="{{application.name}}" src="{{applicationForm.value.picture || application.picture || application._links.picture}}"></gv-image>
+          <gv-identity-picture [picture]="applicationForm.value.picture || application.picture || application._links.picture" [display_name]="application.name"></gv-identity-picture>
           <app-gv-file-upload *ngIf="canUpdate" [label]="'application.change_picture' | translate" (fileLoad)="onFileLoad($event)"></app-gv-file-upload>
         </div>
 
@@ -111,6 +111,6 @@
 
   <aside class="application__aside">
     <gv-info [item]="application" [miscellaneous]="miscellaneous"></gv-info>
-    <gv-list [items]="linkedApis" title="{{ 'application.list.connectedApis' | translate }}"></gv-list>
+    <gv-list [items]="connectedApis" title="{{ 'application.list.connectedApis' | translate }}"></gv-list>
   </aside>
 </form>

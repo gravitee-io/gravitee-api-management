@@ -170,6 +170,59 @@
       "status": "Status",
       "title": "Logs"
     },
+    "members": {
+      "add": {
+        "add": "Ajouter",
+        "reset": "Réinitialiser",
+        "role": {
+          "name": "Rôle",
+          "placeholder": "Sélectionner un rôle"
+        },
+        "success": "Nouveau membre ajouté",
+        "title": "Ajouter un membre",
+        "user": {
+          "name": "Utilisateur",
+          "placeholder": "Entrer le nom d'un utilisateur..."
+        }
+      },
+      "inherited": {
+        "groupTitle": "{nbMembers} membres hérités du groupe \"{groupName}\"",
+        "hide": "Masquer",
+        "show": "Afficher",
+        "title": "Membres hérités"
+      },
+      "list": {
+        "member": "Membre",
+        "remove": {
+          "message": "Êtes-vous sûr de vouloir supprimer ce membre ?",
+          "success": "Membre supprimé",
+          "title": "Suppression"
+        },
+        "role": "Rôle",
+        "success": "Rôle mis à jour",
+        "title": "Liste des membres"
+      },
+      "transferOwnership": {
+        "confirm": {
+          "cancel": "Annuler",
+          "message": "Cette action est irréversible. <br/> Le nouveau propriétaire sera <b>{name}</b>.<br/> Vous allez être redirigé vers la liste des applications.",
+          "ok": "J'ai compris, transférer cette Application"
+        },
+        "currentPrimaryOwnerNewRole": {
+          "name": "Nouveau rôle",
+          "placeholder": "Sélectionner le nouveau rôle du propriétaire actuel"
+        },
+        "information": "Donnez les pleins droits de cette application à un autre utilisateur",
+        "newPrimaryOwner": {
+          "name": "Nouveau propriétaire",
+          "placeholder": "Entrer le nom du nouveau propriétaire..."
+        },
+        "reset": "Réinitialiser",
+        "success": "Propriétaire mis à jour",
+        "title": "Changer de propritétaire",
+        "transfer": "Transférer"
+      }
+    },
     "miscellaneous": {
       "createdDate": "Crée le",
       "lastUpdate": "Modifié",
@@ -477,7 +530,8 @@
     "copy": "Copier dans le presse papier"
   },
   "gv-confirm": {
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "ok": "Ok"
   },
   "gv-contact": {
     "apis": {
@@ -727,6 +781,7 @@
     "logout": "Se déconnecter",
     "logsApplication": "Logs",
     "management": "Administration",
+    "members": "Membres",
     "myApplications": "Mes applications",
     "mySubscriptions": "Mes souscriptions",
     "notFound": "Page introuvable",

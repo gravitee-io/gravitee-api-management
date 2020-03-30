@@ -18,6 +18,7 @@ import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
+import '@gravitee/ui-components/wc/gv-identity-picture';
 import {
   Application,
   ApplicationService,
@@ -43,7 +44,7 @@ export class ApplicationGeneralComponent implements OnInit {
 
   applicationForm: FormGroup;
   application: Application;
-  linkedApis: Promise<any[]>;
+  connectedApis: Promise<any[]>;
   miscellaneous: any[];
   permissions: PermissionsResponse;
   canUpdate: boolean;
@@ -101,7 +102,7 @@ export class ApplicationGeneralComponent implements OnInit {
           ];
         });
 
-      this.linkedApis = this.applicationService.getSubscriberApisByApplicationId({
+      this.connectedApis = this.applicationService.getSubscriberApisByApplicationId({
         applicationId: this.application.id,
         statuses: [StatusEnum.ACCEPTED, StatusEnum.PAUSED],
       })

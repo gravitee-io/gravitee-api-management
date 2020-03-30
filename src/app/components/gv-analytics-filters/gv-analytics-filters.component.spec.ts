@@ -28,26 +28,24 @@ describe('GvAnalyticsFiltersComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ GvAnalyticsFiltersComponent ],
+      declarations: [GvAnalyticsFiltersComponent],
       imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(GvAnalyticsFiltersComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', (done) => {
     fixture.whenStable().then(() => {
       fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
     });
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 });

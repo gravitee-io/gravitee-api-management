@@ -38,7 +38,7 @@ export class SubscriptionsComponent implements OnInit {
   subsByApplication: any;
   emptyKeyApplications: string;
   emptyKeySubscriptions: string;
-  selectedApplication: string;
+  selectedApplicationId: string;
 
   constructor(
     private applicationService: ApplicationService,
@@ -89,17 +89,17 @@ export class SubscriptionsComponent implements OnInit {
     });
   }
 
-  onApplicationFocus(event?) {
-    this.selectSubscriptions(event);
+  onApplicationMouseEnter({ detail }) {
+    this.selectSubscriptions(detail.item);
   }
 
-  onApplicationClick(event) {
-    this.selectSubscriptions(event);
+  onApplicationClick({ detail }) {
+    this.selectSubscriptions(detail.items[0]);
   }
 
-  onSubscriptionClick(event) {
-    this.router.navigate(['/applications', this.selectedApplication, 'subscriptions'],
-      { queryParams: { subscription: event.detail.subscription.id } });
+  onSubscriptionClick({ detail }) {
+    this.router.navigate(['/applications', this.selectedApplicationId, 'subscriptions'],
+      { queryParams: { subscription: detail.items[0].id } });
   }
 
   onFocusOut() {
@@ -107,14 +107,12 @@ export class SubscriptionsComponent implements OnInit {
     this.subs = [];
   }
 
-  async selectSubscriptions(event?) {
-    if (this.apis) {
-      this.selectedApplication = event ? event.detail.item.id : '';
-      if (this.subsByApplication[this.selectedApplication]) {
-        this.subs = this.subsByApplication[this.selectedApplication];
-      } else {
-        const applicationSubscriptions = this.selectedApplication ?
-          this.subscriptions.filter((subscription) => this.selectedApplication === subscription.application) : this.subscriptions;
+  async selectSubscriptions(application) {
+    this.selectedApplicationId = application ? application.id : null;
+    if (this.apis && this.selectedApplicationId) {
+      if (this.subsByApplication[this.selectedApplicationId] == null) {
+        const applicationSubscriptions = this.selectedApplicationId ?
+          this.subscriptions.filter((subscription) => this.selectedApplicationId === subscription.application) : this.subscriptions;
         const promises = applicationSubscriptions.map(applicationSubscription => {
           return this.apiService.getApiPlansByApiId({ apiId: applicationSubscription.api, size: -1 }).toPromise().then((response) => {
             return {
@@ -124,11 +122,16 @@ export class SubscriptionsComponent implements OnInit {
             };
           });
         });
-        this.subs = this.subsByApplication[this.selectedApplication] = await Promise.all(promises);
+        this.subsByApplication[this.selectedApplicationId] = await Promise.all(promises);
       }
-      if (!this.subs || !this.subs.length) {
-        this.emptyKeySubscriptions = i18n('subscriptions.subscriptions.empty');
-      }
+
+      this.subs = this.subsByApplication[this.selectedApplicationId];
+
+    } else {
+      this.subs = [];
+    }
+    if (!this.subs || !this.subs.length) {
+      this.emptyKeySubscriptions = 'yeah' + i18n('subscriptions.subscriptions.empty');
     }
   }
 }

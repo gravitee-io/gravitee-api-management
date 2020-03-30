@@ -15,23 +15,21 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ApplicationNotificationsComponent } from './application-notifications.component';
-import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
-import { MarkdownModule } from 'ngx-markdown';
+import { ApplicationMembersComponent } from './application-members.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TranslateTestingModule } from '../../../test/translate-testing-module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-describe('ApplicationNotificationsComponent', () => {
-  let component: ApplicationNotificationsComponent;
-  let fixture: ComponentFixture<ApplicationNotificationsComponent>;
+describe('ApplicationMembersComponent', () => {
+  let component: ApplicationMembersComponent;
+  let fixture: ComponentFixture<ApplicationMembersComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ApplicationNotificationsComponent, GvPageComponent],
-      imports: [MarkdownModule, HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
+      declarations: [ApplicationMembersComponent],
+      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ]
@@ -40,7 +38,7 @@ describe('ApplicationNotificationsComponent', () => {
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationNotificationsComponent);
+    fixture = TestBed.createComponent(ApplicationMembersComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

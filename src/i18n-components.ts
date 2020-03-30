@@ -27,6 +27,7 @@ i18n([
   'gv-chart.error',
   'gv-code.copy',
   'gv-confirm.cancel',
+  'gv-confirm.ok',
   'gv-date-picker.endDate',
   'gv-date-picker.format',
   'gv-date-picker.now',

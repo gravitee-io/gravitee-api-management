@@ -170,6 +170,59 @@
       "status": "Status",
       "title": "Logs"
     },
+    "members": {
+      "add": {
+        "add": "Add",
+        "reset": "Reset",
+        "role": {
+          "name": "Role",
+          "placeholder": "Select a role"
+        },
+        "success": "New member added",
+        "title": "Add a member",
+        "user": {
+          "name": "User",
+          "placeholder": "Search a user..."
+        }
+      },
+      "inherited": {
+        "groupTitle": "{nbMembers} members inherited from \"{groupName}\" group",
+        "hide": "Hide",
+        "show": "Show",
+        "title": "Inherited members"
+      },
+      "list": {
+        "member": "Member",
+        "remove": {
+          "message": "Are you sure to remove this member ?",
+          "success": "Member removed",
+          "title": "Remove member"
+        },
+        "role": "Role",
+        "success": "Role updated",
+        "title": "Members list"
+      },
+      "transferOwnership": {
+        "confirm": {
+          "cancel": "Cancel",
+          "message": "This action cannot be undone.<br/> The new owner will be <b>{name}</b>.<br/> You will be redirected to the list of applications.",
+          "ok": "I understand, transfer this Application"
+        },
+        "currentPrimaryOwnerNewRole": {
+          "name": "New role",
+          "placeholder": "Select the new role for the current primary owner"
+        },
+        "information": "Give full access to this application to an other user.",
+        "newPrimaryOwner": {
+          "name": "New primary owner",
+          "placeholder": "Search a new primary owner..."
+        },
+        "reset": "Reset",
+        "success": "Primary owner updated",
+        "title": "Transfer Ownership",
+        "transfer": "Transfer"
+      }
+    },
     "miscellaneous": {
       "createdDate": "Created",
       "lastUpdate": "Updated",
@@ -477,7 +530,8 @@
     "copy": "Copy to clipboard"
   },
   "gv-confirm": {
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "ok": "Ok"
   },
   "gv-contact": {
     "apis": {
@@ -727,6 +781,7 @@
     "logout": "Sign out",
     "logsApplication": "Logs",
     "management": "Administration",
+    "members": "Members",
     "myApplications": "My applications",
     "mySubscriptions": "My subscriptions",
     "notFound": "Page not found",

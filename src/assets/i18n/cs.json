@@ -170,6 +170,59 @@
       "status": "Stav",
       "title": "Protokoly"
     },
+    "members": {
+      "add": {
+        "add": "",
+        "reset": "",
+        "role": {
+          "name": "",
+          "placeholder": ""
+        },
+        "success": "",
+        "title": "",
+        "user": {
+          "name": "",
+          "placeholder": ""
+        }
+      },
+      "inherited": {
+        "groupTitle": "",
+        "hide": "",
+        "show": "",
+        "title": ""
+      },
+      "list": {
+        "member": "",
+        "remove": {
+          "message": "",
+          "success": "",
+          "title": ""
+        },
+        "role": "",
+        "success": "",
+        "title": ""
+      },
+      "transferOwnership": {
+        "confirm": {
+          "cancel": "Zrušit",
+          "message": "Tato akce je nevratná.<br/> Nový vlastník bude <b>{name}</b>.<br/> Budete přesměrováni na seznam aplikací.",
+          "ok": ""
+        },
+        "currentPrimaryOwnerNewRole": {
+          "name": "",
+          "placeholder": ""
+        },
+        "information": "",
+        "newPrimaryOwner": {
+          "name": "",
+          "placeholder": ""
+        },
+        "reset": "",
+        "success": "",
+        "title": "",
+        "transfer": ""
+      }
+    },
     "miscellaneous": {
       "createdDate": "Vytvořit",
       "lastUpdate": "Upraveno",
@@ -477,7 +530,8 @@
     "copy": "Kopírovat do schránky"
   },
   "gv-confirm": {
-    "cancel": "Zrušit"
+    "cancel": "Zrušit",
+    "ok": "Ok"
   },
   "gv-contact": {
     "apis": {
@@ -727,6 +781,7 @@
     "logout": "Odhlásit",
     "logsApplication": "Protokoly",
     "management": "Administrace",
+    "members": "Členové",
     "myApplications": "Moje aplikace",
     "mySubscriptions": "Moje předplatné",
     "notFound": "Stránka nebyla nalezena",

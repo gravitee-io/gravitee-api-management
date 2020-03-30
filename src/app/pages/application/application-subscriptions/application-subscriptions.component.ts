@@ -199,7 +199,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     });
   }
 
-  @HostListener(':gv-table:select', ['$event.detail.item'])
+  @HostListener(':gv-table:select', ['$event.detail.items[0]'])
   onSelectSubscription(subscription: Subscription) {
     this.apiKeys = [];
     this.router.navigate([], { queryParams: { subscription: subscription ? subscription.id : null }, fragment: 's' });

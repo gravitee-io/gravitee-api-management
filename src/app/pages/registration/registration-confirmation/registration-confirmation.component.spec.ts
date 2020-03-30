@@ -52,9 +52,13 @@ describe('RegistrationConfirmationComponent', () => {
     tokenService = getTokenServiceMock();
   });
 
-  it('should create', () => {
-    fixture.detectChanges();
-    expect(component).toBeTruthy();
+  it('should create', (done) => {
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component).toBeTruthy();
+      done();
+    });
+
   });
 
 });

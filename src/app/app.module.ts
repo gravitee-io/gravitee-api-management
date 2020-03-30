@@ -82,6 +82,7 @@ import { GvButtonCreateApplicationComponent } from './components/gv-button-creat
 import { GvAnalyticsDashboardComponent } from './components/gv-analytics-dashboard/gv-analytics-dashboard.component';
 import { GvAnalyticsFiltersComponent } from './components/gv-analytics-filters/gv-analytics-filters.component';
 import { ApplicationNotificationsComponent } from './pages/application/application-notifications/application-notifications.component';
+import { ApplicationMembersComponent } from './pages/application/application-members/application-members.component';
 import { ApplicationSubscriptionsComponent } from './pages/application/application-subscriptions/application-subscriptions.component';
 import { ApplicationLogsComponent } from './pages/application/application-logs/application-logs.component';
 import { GvSelectDashboardComponent } from './components/gv-select-dashboard/gv-select-dashboard.component';
@@ -99,6 +100,7 @@ import { GvSelectDashboardComponent } from './components/gv-select-dashboard/gv-
     ApplicationsComponent,
     ApplicationAnalyticsComponent,
     ApplicationGeneralComponent,
+    ApplicationMembersComponent,
     ApplicationNotificationsComponent,
     ApplicationSubscriptionsComponent,
     CatalogSearchComponent,
