@@ -39,6 +39,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -52,7 +53,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     protected String contextPath() {
         return "applications/";
     }
-    
+
     private static final String APPLICATION = "my-application";
     private static final String UNKNOWN_APPLICATION = "unknown-application";
     private static final String MEMBER_1 = "my-member";
@@ -62,119 +63,119 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     @Before
     public void init() {
         resetAllMocks();
-        
+
         MemberEntity memberEntity1 = new MemberEntity();
         memberEntity1.setId(MEMBER_1);
 
         MemberEntity memberEntity2 = new MemberEntity();
         memberEntity2.setId(MEMBER_2);
-        
+
         doReturn(new HashSet<>(Arrays.asList(memberEntity1, memberEntity2))).when(membershipService).getMembers(MembershipReferenceType.APPLICATION, APPLICATION, RoleScope.APPLICATION);
         doReturn(memberEntity1).when(membershipService).getMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_1, RoleScope.APPLICATION);
         doReturn(null).when(membershipService).getMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_2, RoleScope.APPLICATION);
-        doReturn(new Member().id(MEMBER_1)).when(memberMapper).convert(memberEntity1);
-        doReturn(new Member().id(MEMBER_2)).when(memberMapper).convert(memberEntity2);
+        doReturn(new Member().id(MEMBER_1)).when(memberMapper).convert(eq(memberEntity1), any());
+        doReturn(new Member().id(MEMBER_2)).when(memberMapper).convert(eq(memberEntity2), any());
 
         doThrow(ApplicationNotFoundException.class).when(applicationService).findById(UNKNOWN_APPLICATION);
         doThrow(UserNotFoundException.class).when(userService).findById(UNKNOWN_MEMBER);
 
     }
-    
+
     @Test
     public void shouldGetMembers() {
         final Response response = target(APPLICATION).path("members").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         MembersResponse membersResponse = response.readEntity(MembersResponse.class);
         assertEquals(2, membersResponse.getData().size());
         assertEquals(MEMBER_1, membersResponse.getData().get(0).getId());
         assertEquals(MEMBER_2, membersResponse.getData().get(1).getId());
-        
+
         Links links = membersResponse.getLinks();
         assertNotNull(links);
     }
-    
+
     @Test
     public void shouldGetMembersWithPaginatedLink() {
         final Response response = target(APPLICATION).path("members").queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         MembersResponse membersResponse = response.readEntity(MembersResponse.class);
         assertEquals(1, membersResponse.getData().size());
         assertEquals(MEMBER_2, membersResponse.getData().get(0).getId());
-    
+
         Links links = membersResponse.getLinks();
         assertNotNull(links);
-        
+
     }
-    
+
     @Test
     public void shouldNotGetMember() {
         final Response response = target(APPLICATION).path("members").queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertEquals("errors.pagination.invalid", error.getCode());
         assertEquals("400", error.getStatus());
         assertEquals("Pagination is not valid", error.getMessage());
     }
-    
+
     @Test
     public void shouldGetNoMemberAndNoLink() {
 
         doReturn(new HashSet<>()).when(membershipService).getMembers(any(), any(), any());
-        
+
         //Test with default limit
         final Response response = target(APPLICATION).path("members").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         MembersResponse membersResponse = response.readEntity(MembersResponse.class);
         assertEquals(0, membersResponse.getData().size());
-        
+
         Links links = membersResponse.getLinks();
         assertNull(links);
-        
+
         //Test with small limit
         final Response anotherResponse = target(APPLICATION).path("members").queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
-        
+
         membersResponse = anotherResponse.readEntity(MembersResponse.class);
         assertEquals(0, membersResponse.getData().size());
-        
+
         links = membersResponse.getLinks();
         assertNull(links);
 
     }
-    
+
     @Test
     public void shouldGetMember() {
         final Response response = target(APPLICATION).path("members").path(MEMBER_1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         Member responseMember = response.readEntity(Member.class);
         assertNotNull(responseMember);
         assertEquals(MEMBER_1, responseMember.getId());
     }
-    
+
     @Test
     public void shouldDeleteMember() {
         final Response response = target(APPLICATION).path("members").path(MEMBER_1).request().delete();
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        
+
         Mockito.verify(membershipService).deleteMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_1);
     }
-    
+
     @Test
     public void shouldCreateMember() {
         MemberInput memberInput = new MemberInput().role("USER").user(MEMBER_1);
         final Response response = target(APPLICATION).path("members").request().post(Entity.json(memberInput));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        
+
         ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor = ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
         ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(MembershipService.MembershipRole.class);
         ArgumentCaptor<MembershipService.MembershipUser> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipUser.class);
@@ -184,13 +185,13 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         assertEquals("USER", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getId());
     }
-    
+
     @Test
     public void shouldUpdateMember() {
         MemberInput memberInput = new MemberInput().role("USER");
         final Response response = target(APPLICATION).path("members").path(MEMBER_2).request().put(Entity.json(memberInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor = ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
         ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(MembershipService.MembershipRole.class);
         ArgumentCaptor<MembershipService.MembershipUser> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipUser.class);
@@ -200,16 +201,16 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         assertEquals("USER", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_2, memberShipUserCaptor.getValue().getId());
     }
-    
+
     @Test
     public void shouldTransferOwnerShip() {
         RoleEntity mockRoleEntity = new RoleEntity();
         doReturn(mockRoleEntity).when(roleService).findById(any(), any());
-        
-        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(MEMBER_1).primaryOwnerNewrole("OWNER");
+
+        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwnerId(MEMBER_1).primaryOwnerNewrole("OWNER");
         final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        
+
         ArgumentCaptor<String> applicationCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<RoleEntity> roleCaptor = ArgumentCaptor.forClass(RoleEntity.class);
         ArgumentCaptor<MembershipService.MembershipUser> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipUser.class);
@@ -219,15 +220,15 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         assertEquals(mockRoleEntity, roleCaptor.getValue());
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getId());
     }
-    
+
     @Test
     public void shouldTransferOwnerShipWithWrongRole() {
         doThrow(new RoleNotFoundException(RoleScope.APPLICATION, "OWNER")).when(roleService).findById(any(), any());
-        
-        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(MEMBER_1).primaryOwnerNewrole("OWNER");
+
+        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwnerId(MEMBER_1).primaryOwnerNewrole("OWNER");
         final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        
+
         ArgumentCaptor<String> applicationCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<RoleEntity> roleCaptor = ArgumentCaptor.forClass(RoleEntity.class);
         ArgumentCaptor<MembershipService.MembershipUser> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipUser.class);
@@ -237,14 +238,14 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         assertEquals(null, roleCaptor.getValue());
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getId());
     }
-    
+
     //404 GET /members
     @Test
     public void shouldHaveNotFoundWhileGettingMembers() {
         final Response response = target(UNKNOWN_APPLICATION).path("members").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
-    
+
     //404 POST /members
     @Test
     public void shouldHaveNotFoundWhileCreatingNewMemberUnknonwnApplication() {
@@ -252,30 +253,23 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(UNKNOWN_APPLICATION).path("members").request().post(Entity.json(memberInput));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
-    
-    @Test
-    public void shouldHaveNotFoundWhileCreatingNewMemberUnknownMember() {
-        MemberInput memberInput = new MemberInput().role("USER").user(UNKNOWN_MEMBER);
-        final Response response = target(APPLICATION).path("members").request().post(Entity.json(memberInput));
-        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
-    }
-  
+
     //400 POST /members
     @Test
     public void shouldHaveBadRequestWhileCreatingNewMemberAsPrimaryOwner() {
         MemberInput memberInput = new MemberInput().role("PRIMARY_OWNER").user(MEMBER_1);
         final Response response = target(APPLICATION).path("members").request().post(Entity.json(memberInput));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getMessage());
     }
-    
+
     //404 PUT /members/{memberId}
     @Test
     public void shouldHaveNotFoundWhileUpdatingNewMemberUnknonwnApplication() {
@@ -283,14 +277,14 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(UNKNOWN_APPLICATION).path("members").path(MEMBER_1).request().put(Entity.json(memberInput));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
-    
+
     @Test
     public void shouldHaveNotFoundWhileUpdatingNewMemberUnknownMember() {
         MemberInput memberInput = new MemberInput().role("USER").user(UNKNOWN_MEMBER);
         final Response response = target(APPLICATION).path("members").path(UNKNOWN_MEMBER).request().put(Entity.json(memberInput));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
-    
+
     //400 PUT /members/{memberId}
     @Test
     public void shouldHaveBadRequestWhileUpdatingWrongMember() {
@@ -303,29 +297,29 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         MemberInput memberInput = new MemberInput().role("PRIMARY_OWNER").user(MEMBER_1);
         final Response response = target(APPLICATION).path("members").path(MEMBER_1).request().put(Entity.json(memberInput));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getMessage());
     }
-    
+
     //404 DELETE /members/{memberId}
     @Test
     public void shouldHaveNotFoundWhileDeletingMemberUnknonwnApplication() {
         final Response response = target(UNKNOWN_APPLICATION).path("members").path(MEMBER_1).request().delete();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
-    
+
     @Test
     public void shouldHaveNotFoundWhileDeletingMemberUnknownMember() {
         final Response response = target(APPLICATION).path("members").path(UNKNOWN_MEMBER).request().delete();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
-    
+
     //404 GET /members/{memberId}
     @Test
     public void shouldHaveNotFoundWhileGettingMemberUnknownApplication() {
@@ -337,37 +331,32 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").path(UNKNOWN_MEMBER).request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
-    
+
     @Test
     public void shouldHaveNotFoundWhileGettingMemberWithExistingUserAndNullMembership() {
         final Response response = target(APPLICATION).path("members").path(MEMBER_2).request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
-    
+
     //404 POST /members/_transfer_ownership
     @Test
     public void shouldHaveNotFoundWhileTransferingOwnerShipUnknownApplication() {
-        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(MEMBER_1);
+        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwnerId(MEMBER_1);
         final Response response = target(UNKNOWN_APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
-    @Test
-    public void shouldHaveNotFoundWhileTransferingOwnerShipUnknownMember() {
-        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(UNKNOWN_MEMBER);
-        final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
-        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
-    }
+
     //400 POST /members/_transfer_ownership
     @Test
     public void shouldHaveBadRequestWhileTransferingOwnerShipToPrimaryOwner() {
-        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwner(MEMBER_1).primaryOwnerNewrole("PRIMARY_OWNER");
+        TransferOwnershipInput input = new TransferOwnershipInput().newPrimaryOwnerId(MEMBER_1).primaryOwnerNewrole("PRIMARY_OWNER");
         final Response response = target(APPLICATION).path("members").path("_transfer_ownership").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertEquals("An APPLICATION must always have only one PRIMARY_OWNER !", error.getMessage());
     }

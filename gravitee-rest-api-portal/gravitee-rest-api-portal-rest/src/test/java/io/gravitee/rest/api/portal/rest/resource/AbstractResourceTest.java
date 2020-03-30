@@ -103,6 +103,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(identityProviderMapper);
         reset(healthCheckService);
         reset(applicationTypeService);
+        reset(identityService);
     }
 
     public AbstractResourceTest() {
@@ -282,6 +283,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected HealthCheckService healthCheckService;
+
+    @Autowired
+    protected IdentityService identityService;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/portal/rest/resource/jwt.properties")
@@ -555,6 +559,10 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public HealthCheckService healthCheckService() {
             return mock(HealthCheckService.class);
+        }
+        @Bean
+        public IdentityService identityService() {
+            return mock(IdentityService.class);
         }
     }
 }

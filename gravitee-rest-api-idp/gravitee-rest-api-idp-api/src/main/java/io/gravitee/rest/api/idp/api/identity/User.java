@@ -34,4 +34,6 @@ public interface User {
     String getDisplayName();
 
     String getSource();
+    
+    String getPicture();
 }

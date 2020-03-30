@@ -86,7 +86,7 @@ public class ApplicationMembersResource extends AbstractResource {
         applicationService.findById(applicationId);
         
         List<Member> membersList = membershipService.getMembers(MembershipReferenceType.APPLICATION, applicationId, RoleScope.APPLICATION).stream()
-                .map(memberMapper::convert)
+                .map(membership -> memberMapper.convert(membership, uriInfo))
                 .collect(Collectors.toList());
         
         return createListResponse(membersList, paginationParam);
@@ -102,9 +102,6 @@ public class ApplicationMembersResource extends AbstractResource {
         //Does application exist ?
         applicationService.findById(applicationId);
         
-        //Does user exist ?
-        userService.findById(memberInput.getUser());
-        
         //There can be only one
         if (SystemRole.PRIMARY_OWNER.name().equals(memberInput.getRole())) {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
@@ -117,7 +114,7 @@ public class ApplicationMembersResource extends AbstractResource {
 
         return Response
                 .status(Status.CREATED)
-                .entity(memberMapper.convert(membership))
+                .entity(memberMapper.convert(membership, uriInfo))
                 .build();
     }
 
@@ -138,7 +135,7 @@ public class ApplicationMembersResource extends AbstractResource {
         MemberEntity memberEntity = membershipService.getMember(MembershipReferenceType.APPLICATION, applicationId, memberId, RoleScope.APPLICATION);
         if(memberEntity != null) {
             return Response
-                    .ok(memberMapper.convert(memberEntity))
+                    .ok(memberMapper.convert(memberEntity, uriInfo))
                     .build();
         }
         throw new NotFoundException();
@@ -190,7 +187,7 @@ public class ApplicationMembersResource extends AbstractResource {
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole()));
 
         return Response
-                .ok(memberMapper.convert(membership))
+                .ok(memberMapper.convert(membership, uriInfo))
                 .build();
     }
 
@@ -204,9 +201,6 @@ public class ApplicationMembersResource extends AbstractResource {
     public Response transferMemberOwnership(@PathParam("applicationId") String applicationId, @NotNull(message="Input must not be null.") TransferOwnershipInput transferOwnershipInput) {
         //Does application exist ?
         applicationService.findById(applicationId);
-        
-        //Does user exist ?
-        userService.findById(transferOwnershipInput.getNewPrimaryOwner());
         
         //There can be only one
         if (SystemRole.PRIMARY_OWNER.name().equals(transferOwnershipInput.getPrimaryOwnerNewrole())) {
@@ -222,7 +216,7 @@ public class ApplicationMembersResource extends AbstractResource {
         }
         
         membershipService.transferApplicationOwnership(applicationId, 
-                new MembershipService.MembershipUser( transferOwnershipInput.getNewPrimaryOwner(), null), newPORole);
+                new MembershipService.MembershipUser( transferOwnershipInput.getNewPrimaryOwnerId(), transferOwnershipInput.getNewPrimaryOwnerReference()), newPORole);
         return Response
                 .noContent()
                 .build();

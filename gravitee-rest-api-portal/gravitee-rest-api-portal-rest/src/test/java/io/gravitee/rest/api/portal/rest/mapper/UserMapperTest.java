@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -27,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.time.Instant;
@@ -52,6 +54,9 @@ public class UserMapperTest {
     private static final String USER_SOURCE = "my-user-source";
     private static final String USER_SOURCE_ID = "my-user-source-id";
     private static final String USER_STATUS = "my-user-status";
+
+    private static final String SEARCHABLE_USER_DISPLAY_NAME = "my-searchable-user-display-name";
+    private static final String SEARCHABLE_USER_REFERENCE = "my-searchable-user-reference";
 
     @InjectMocks
     private UserMapper userMapper;
@@ -88,6 +93,29 @@ public class UserMapperTest {
         assertEquals(StringUtils.capitalize(USER_FIRSTNAME) + ' ' + USER_LASTNAME.toUpperCase().charAt(0) + '.', responseUser.getDisplayName());
     }
 
+    @Test
+    public void testConvertSearchableUser() {
+        // init
+        SearchableUser searchableUser = Mockito.mock(SearchableUser.class);
+
+        Mockito.when(searchableUser.getDisplayName()).thenReturn(SEARCHABLE_USER_DISPLAY_NAME);
+        Mockito.when(searchableUser.getEmail()).thenReturn(USER_EMAIL);
+        Mockito.when(searchableUser.getFirstname()).thenReturn(USER_FIRSTNAME);
+        Mockito.when(searchableUser.getId()).thenReturn(USER_ID);
+        Mockito.when(searchableUser.getLastname()).thenReturn(USER_LASTNAME);
+        Mockito.when(searchableUser.getReference()).thenReturn(SEARCHABLE_USER_REFERENCE);
+
+        // Test
+        User responseUser = userMapper.convert(searchableUser);
+        assertNotNull(responseUser);
+        assertEquals(USER_ID, responseUser.getId());
+        assertEquals(USER_EMAIL, responseUser.getEmail());
+        assertEquals(USER_FIRSTNAME, responseUser.getFirstName());
+        assertEquals(USER_LASTNAME, responseUser.getLastName());
+        assertEquals(SEARCHABLE_USER_DISPLAY_NAME, responseUser.getDisplayName());
+        assertEquals(SEARCHABLE_USER_REFERENCE, responseUser.getReference());
+    }
+    
     @Test
     public void testConvertRegisterUserInput() {
         // init

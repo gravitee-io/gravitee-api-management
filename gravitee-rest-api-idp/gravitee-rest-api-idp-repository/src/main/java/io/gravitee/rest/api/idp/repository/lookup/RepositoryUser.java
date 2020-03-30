@@ -58,6 +58,16 @@ public class RepositoryUser implements User {
 
     @Override
     public String getSource() {
-        return RepositoryIdentityProvider.PROVIDER_TYPE;
+        return userEntity.getSource();
+    }
+
+    @Override
+    public String getPicture() {
+        return userEntity.getPicture();
+    }
+
+    @Override
+    public String getReference() {
+       return userEntity.getSourceId();
     }
 }

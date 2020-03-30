@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -50,6 +51,17 @@ public class UserMapper {
             userItem.setDisplayName(sb.toString());
         }
         userItem.setId(user.getId());
+        return userItem;
+    }
+
+    public User convert(SearchableUser user) {
+        final User userItem = new User();
+        userItem.setEmail(user.getEmail());
+        userItem.setFirstName(user.getFirstname());
+        userItem.setLastName(user.getLastname());
+        userItem.setDisplayName(user.getDisplayName());
+        userItem.setId(user.getId());
+        userItem.setReference(user.getReference());
         return userItem;
     }
 

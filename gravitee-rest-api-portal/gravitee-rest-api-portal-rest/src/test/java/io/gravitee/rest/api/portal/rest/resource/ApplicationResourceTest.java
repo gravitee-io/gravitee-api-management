@@ -58,8 +58,11 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         return "applications/";
     }
     
-    private static final String APPLICATION = "my-application";
-    private static final String UNKNOWN_APPLICATION = "my-unknown-application";
+    private static final String APPLICATION_ID = "my-application-id";
+    private static final String APPLICATION_PICTURE = "my-application-picture";
+    private static final String APPLICATION_GROUP_ID = "my-application-group-id";
+    private static final String APPLICATION_GROUP_NAME = "my-application-group-name";
+    private static final String UNKNOWN_APPLICATION_ID = "my-unknown-application-id";
 
     private InlinePictureEntity mockImage;
     private byte[] applicationLogoContent;
@@ -69,55 +72,55 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         resetAllMocks();
         
         ApplicationEntity applicationEntity = new ApplicationEntity();
-        applicationEntity.setId(APPLICATION);
+        applicationEntity.setId(APPLICATION_ID);
         
-        doReturn(applicationEntity).when(applicationService).findById(APPLICATION);
-        doReturn(new Application().id(APPLICATION)).when(applicationMapper).convert(applicationEntity);
+        doReturn(applicationEntity).when(applicationService).findById(APPLICATION_ID);
+        doReturn(new Application().id(APPLICATION_ID)).when(applicationMapper).convert(eq(applicationEntity), any());
         
         mockImage = new InlinePictureEntity();
         applicationLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(applicationLogoContent);
         mockImage.setType("image/svg");
-        doReturn(mockImage).when(applicationService).getPicture(APPLICATION);
+        doReturn(mockImage).when(applicationService).getPicture(APPLICATION_PICTURE);
     }
     
     @Test
     public void shouldDeleteApplication() {
-        doNothing().when(applicationService).archive(APPLICATION);
+        doNothing().when(applicationService).archive(APPLICATION_ID);
 
-        final Response response = target(APPLICATION).request().delete();
+        final Response response = target(APPLICATION_ID).request().delete();
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
         
-        Mockito.verify(applicationService).archive(APPLICATION);
+        Mockito.verify(applicationService).archive(APPLICATION_ID);
     }
     
     @Test
     public void shouldHaveNotFoundWhileDeletingApplication() {
-        doThrow(ApplicationNotFoundException.class).when(applicationService).archive(UNKNOWN_APPLICATION);
+        doThrow(ApplicationNotFoundException.class).when(applicationService).archive(UNKNOWN_APPLICATION_ID);
         
-        final Response response = target(UNKNOWN_APPLICATION).request().delete();
+        final Response response = target(UNKNOWN_APPLICATION_ID).request().delete();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
     
     @Test
     public void shouldHaveNotFoundWhileGettingApplication() {
-        doThrow(ApplicationNotFoundException.class).when(applicationService).findById(UNKNOWN_APPLICATION);
+        doThrow(ApplicationNotFoundException.class).when(applicationService).findById(UNKNOWN_APPLICATION_ID);
         
-        final Response response = target(UNKNOWN_APPLICATION).request().get();
+        final Response response = target(UNKNOWN_APPLICATION_ID).request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
     
     @Test
     public void shouldHaveNotFoundWhileUpdatingApplication() {
-        doThrow(ApplicationNotFoundException.class).when(applicationService).findById(UNKNOWN_APPLICATION);
+        doThrow(ApplicationNotFoundException.class).when(applicationService).findById(UNKNOWN_APPLICATION_ID);
         
-        final Response response = target(UNKNOWN_APPLICATION).request().put(Entity.json(new Application().id(UNKNOWN_APPLICATION)));
+        final Response response = target(UNKNOWN_APPLICATION_ID).request().put(Entity.json(new Application().id(UNKNOWN_APPLICATION_ID)));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
     
     @Test
     public void shouldHaveBadRequestWhileUpdatingApplication() {
-        final Response response = target(APPLICATION).request().put(Entity.json(new Application().id(UNKNOWN_APPLICATION)));
+        final Response response = target(APPLICATION_ID).request().put(Entity.json(new Application().id(UNKNOWN_APPLICATION_ID)));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         assertEquals("'applicationId' is not the same that the application in payload", errorResponse.getErrors().get(0).getMessage());
@@ -130,9 +133,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         userEntity.setId("my-user");
         PrimaryOwnerEntity owner = new PrimaryOwnerEntity(userEntity);
         appEntity.setPrimaryOwner(owner);
-        doReturn(appEntity).when(applicationService).findById(APPLICATION);
+        doReturn(appEntity).when(applicationService).findById(APPLICATION_ID);
         
-        final Response response = target(APPLICATION).request().put(Entity.json(new Application().id(APPLICATION)));
+        final Response response = target(APPLICATION_ID).request().put(Entity.json(new Application().id(APPLICATION_ID)));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
     
@@ -143,18 +146,18 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         userEntity.setId(USER_NAME);
         PrimaryOwnerEntity owner = new PrimaryOwnerEntity(userEntity);
         appEntity.setPrimaryOwner(owner);
-        doReturn(appEntity).when(applicationService).findById(APPLICATION);
+        doReturn(appEntity).when(applicationService).findById(APPLICATION_ID);
         
         ApplicationEntity updatedEntity = new ApplicationEntity();
-        updatedEntity.setId(APPLICATION);
-        doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION), any());
+        updatedEntity.setId(APPLICATION_ID);
+        doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION_ID), any());
 
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
         Application updatedApp = new Application();
-        updatedApp.setId(APPLICATION);
+        updatedApp.setId(APPLICATION_ID);
         updatedApp.setUpdatedAt(now.atOffset(ZoneOffset.UTC));
-        doReturn(updatedApp).when(applicationMapper).convert(updatedEntity);
+        doReturn(updatedApp).when(applicationMapper).convert(eq(updatedEntity), any());
         
         String newPicture = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
         String scaledPicture = "data:image/gif;base64,R0lGODlhyADIAPAAAAAAAP///ywAAAAAyADIAEAC/4SPqcvtD6OctNqL"
@@ -163,36 +166,36 @@ public class ApplicationResourceTest extends AbstractResourceTest {
                 + "+wscLDxMXGx8jJysvMzc7PwMHS09TV1tfY2drb3N3e39DR4uPk5ebn6Onq6+zt7u/g4fLz9PX29/j5+vv8/f7/8PMKDAgQQLGj"
                 + "yIMKHChQwbOnwIMaLEiRQrWryIMaPGjQYcO3osUwAAOw==";
         Application appInput = new Application()
-                .description(APPLICATION)
-                .name(APPLICATION)
-                .groups(Arrays.asList(APPLICATION))
+                .description(APPLICATION_ID)
+                .name(APPLICATION_ID)
+                .groups(Arrays.asList(new Group().id(APPLICATION_GROUP_ID).name(APPLICATION_GROUP_NAME)))
                 .picture(newPicture)
                 ;
-        appInput.setId(APPLICATION);
+        appInput.setId(APPLICATION_ID);
         
-        final Response response = target(APPLICATION).request().put(Entity.json(appInput));
+        final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        Mockito.verify(applicationService).findById(APPLICATION);
+        Mockito.verify(applicationService).findById(APPLICATION_ID);
         
         ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito.verify(applicationService).update(eq(APPLICATION), captor.capture());
+        Mockito.verify(applicationService).update(eq(APPLICATION_ID), captor.capture());
         UpdateApplicationEntity updateAppEntity = captor.getValue();
-        assertEquals(APPLICATION, updateAppEntity.getName());
-        assertEquals(APPLICATION, updateAppEntity.getDescription());
+        assertEquals(APPLICATION_ID, updateAppEntity.getName());
+        assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
         assertEquals(scaledPicture, updateAppEntity.getPicture());
         final Set<String> groups = updateAppEntity.getGroups();
         assertNotNull(groups);
         assertFalse(groups.isEmpty());
-        assertTrue(groups.contains(APPLICATION));
+        assertTrue(groups.contains(APPLICATION_GROUP_ID));
         assertNull(updateAppEntity.getSettings());
         
         
-        String expectedBasePath = target(APPLICATION).getUri().toString();
+        String expectedBasePath = target(APPLICATION_ID).getUri().toString();
         Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
         
         Application applicationResponse = response.readEntity(Application.class);
-        assertEquals(APPLICATION, applicationResponse.getId());
+        assertEquals(APPLICATION_ID, applicationResponse.getId());
         
         final MultivaluedMap<String, Object> headers = response.getHeaders();
         String lastModified = (String) headers.getFirst(HttpHeader.LAST_MODIFIED.asString());
@@ -212,49 +215,49 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         userEntity.setId(USER_NAME);
         PrimaryOwnerEntity owner = new PrimaryOwnerEntity(userEntity);
         appEntity.setPrimaryOwner(owner);
-        doReturn(appEntity).when(applicationService).findById(APPLICATION);
+        doReturn(appEntity).when(applicationService).findById(APPLICATION_ID);
         
         ApplicationEntity updatedEntity = new ApplicationEntity();
-        updatedEntity.setId(APPLICATION);
-        doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION), any());
+        updatedEntity.setId(APPLICATION_ID);
+        doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION_ID), any());
 
         Instant now = Instant.now();
         Application updatedApp = new Application();
-        updatedApp.setId(APPLICATION);
+        updatedApp.setId(APPLICATION_ID);
         updatedApp.setUpdatedAt(now.atOffset(ZoneOffset.UTC));
-        doReturn(updatedApp).when(applicationMapper).convert(updatedEntity);
+        doReturn(updatedApp).when(applicationMapper).convert(eq(updatedEntity), any());
         
         Application appInput = new Application()
-                .description(APPLICATION)
-                .name(APPLICATION)
-                .groups(Arrays.asList(APPLICATION))
+                .description(APPLICATION_ID)
+                .name(APPLICATION_ID)
+                .groups(Arrays.asList(new Group().id(APPLICATION_GROUP_ID).name(APPLICATION_GROUP_NAME)))
                 .settings(new ApplicationSettings())
                 ;
-        appInput.setId(APPLICATION);
-        final Response response = target(APPLICATION).request().put(Entity.json(appInput));
+        appInput.setId(APPLICATION_ID);
+        final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        Mockito.verify(applicationService).findById(APPLICATION);
+        Mockito.verify(applicationService).findById(APPLICATION_ID);
         
         ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito.verify(applicationService).update(eq(APPLICATION), captor.capture());
+        Mockito.verify(applicationService).update(eq(APPLICATION_ID), captor.capture());
         UpdateApplicationEntity updateAppEntity = captor.getValue();
-        assertEquals(APPLICATION, updateAppEntity.getName());
-        assertEquals(APPLICATION, updateAppEntity.getDescription());
+        assertEquals(APPLICATION_ID, updateAppEntity.getName());
+        assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
         final Set<String> groups = updateAppEntity.getGroups();
         assertNotNull(groups);
         assertFalse(groups.isEmpty());
-        assertTrue(groups.contains(APPLICATION));
+        assertTrue(groups.contains(APPLICATION_GROUP_ID));
         final io.gravitee.rest.api.model.application.ApplicationSettings settings = updateAppEntity.getSettings();
         assertNotNull(settings);
         assertNull(settings.getApp());
         assertNull(settings.getoAuthClient());
         
-        String expectedBasePath = target(APPLICATION).getUri().toString();
+        String expectedBasePath = target(APPLICATION_ID).getUri().toString();
         Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
         
         Application applicationResponse = response.readEntity(Application.class);
-        assertEquals(APPLICATION, applicationResponse.getId());
+        assertEquals(APPLICATION_ID, applicationResponse.getId());
         
     }
     
@@ -265,59 +268,59 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         userEntity.setId(USER_NAME);
         PrimaryOwnerEntity owner = new PrimaryOwnerEntity(userEntity);
         appEntity.setPrimaryOwner(owner);
-        doReturn(appEntity).when(applicationService).findById(APPLICATION);
+        doReturn(appEntity).when(applicationService).findById(APPLICATION_ID);
         
         ApplicationEntity updatedEntity = new ApplicationEntity();
-        updatedEntity.setId(APPLICATION);
-        doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION), any());
+        updatedEntity.setId(APPLICATION_ID);
+        doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION_ID), any());
 
         Instant now = Instant.now();
         Application updatedApp = new Application();
-        updatedApp.setId(APPLICATION);
+        updatedApp.setId(APPLICATION_ID);
         updatedApp.setUpdatedAt(now.atOffset(ZoneOffset.UTC));
-        doReturn(updatedApp).when(applicationMapper).convert(updatedEntity);
+        doReturn(updatedApp).when(applicationMapper).convert(eq(updatedEntity), any());
         
         Application appInput = new Application()
-                .description(APPLICATION)
-                .name(APPLICATION)
-                .groups(Arrays.asList(APPLICATION))
+                .description(APPLICATION_ID)
+                .name(APPLICATION_ID)
+                .groups(Arrays.asList(new Group().id(APPLICATION_GROUP_ID).name(APPLICATION_GROUP_NAME)))
                 .settings(
                         new ApplicationSettings()
                             .app(
                                     new SimpleApplicationSettings()
-                                        .clientId(APPLICATION)
-                                        .type(APPLICATION)
+                                        .clientId(APPLICATION_ID)
+                                        .type(APPLICATION_ID)
                             )
                 )
                 ;
-        appInput.setId(APPLICATION);
-        final Response response = target(APPLICATION).request().put(Entity.json(appInput));
+        appInput.setId(APPLICATION_ID);
+        final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        Mockito.verify(applicationService).findById(APPLICATION);
+        Mockito.verify(applicationService).findById(APPLICATION_ID);
         
         ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito.verify(applicationService).update(eq(APPLICATION), captor.capture());
+        Mockito.verify(applicationService).update(eq(APPLICATION_ID), captor.capture());
         UpdateApplicationEntity updateAppEntity = captor.getValue();
-        assertEquals(APPLICATION, updateAppEntity.getName());
-        assertEquals(APPLICATION, updateAppEntity.getDescription());
+        assertEquals(APPLICATION_ID, updateAppEntity.getName());
+        assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
         final Set<String> groups = updateAppEntity.getGroups();
         assertNotNull(groups);
         assertFalse(groups.isEmpty());
-        assertTrue(groups.contains(APPLICATION));
+        assertTrue(groups.contains(APPLICATION_GROUP_ID));
         final io.gravitee.rest.api.model.application.ApplicationSettings settings = updateAppEntity.getSettings();
         assertNotNull(settings);
         final io.gravitee.rest.api.model.application.SimpleApplicationSettings app = settings.getApp();
         assertNotNull(app);
-        assertEquals(APPLICATION, app.getClientId());
-        assertEquals(APPLICATION, app.getType());
+        assertEquals(APPLICATION_ID, app.getClientId());
+        assertEquals(APPLICATION_ID, app.getType());
         assertNull(settings.getoAuthClient());
         
-        String expectedBasePath = target(APPLICATION).getUri().toString();
+        String expectedBasePath = target(APPLICATION_ID).getUri().toString();
         Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
         
         Application applicationResponse = response.readEntity(Application.class);
-        assertEquals(APPLICATION, applicationResponse.getId());
+        assertEquals(APPLICATION_ID, applicationResponse.getId());
         
     }
     
@@ -328,119 +331,119 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         userEntity.setId(USER_NAME);
         PrimaryOwnerEntity owner = new PrimaryOwnerEntity(userEntity);
         appEntity.setPrimaryOwner(owner);
-        doReturn(appEntity).when(applicationService).findById(APPLICATION);
+        doReturn(appEntity).when(applicationService).findById(APPLICATION_ID);
         
         ApplicationEntity updatedEntity = new ApplicationEntity();
-        updatedEntity.setId(APPLICATION);
-        doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION), any());
+        updatedEntity.setId(APPLICATION_ID);
+        doReturn(updatedEntity).when(applicationService).update(eq(APPLICATION_ID), any());
 
         Instant now = Instant.now();
         Application updatedApp = new Application();
-        updatedApp.setId(APPLICATION);
+        updatedApp.setId(APPLICATION_ID);
         updatedApp.setUpdatedAt(now.atOffset(ZoneOffset.UTC));
-        doReturn(updatedApp).when(applicationMapper).convert(updatedEntity);
+        doReturn(updatedApp).when(applicationMapper).convert(eq(updatedEntity), any());
         
         
         Application appInput = new Application()
-                .description(APPLICATION)
-                .name(APPLICATION)
-                .groups(Arrays.asList(APPLICATION))
+                .description(APPLICATION_ID)
+                .name(APPLICATION_ID)
+                .groups(Arrays.asList(new Group().id(APPLICATION_GROUP_ID).name(APPLICATION_GROUP_NAME)))
                 .settings(
                         new ApplicationSettings()
                             .oauth(
                                     new OAuthClientSettings()
-                                        .applicationType(APPLICATION)
-                                        .clientId(APPLICATION)
-                                        .clientSecret(APPLICATION)
-                                        .clientUri(APPLICATION)
-                                        .logoUri(APPLICATION)
-                                        .grantTypes(Arrays.asList(APPLICATION))
-                                        .redirectUris(Arrays.asList(APPLICATION))
-                                        .responseTypes(Arrays.asList(APPLICATION))
+                                        .applicationType(APPLICATION_ID)
+                                        .clientId(APPLICATION_ID)
+                                        .clientSecret(APPLICATION_ID)
+                                        .clientUri(APPLICATION_ID)
+                                        .logoUri(APPLICATION_ID)
+                                        .grantTypes(Arrays.asList(APPLICATION_ID))
+                                        .redirectUris(Arrays.asList(APPLICATION_ID))
+                                        .responseTypes(Arrays.asList(APPLICATION_ID))
                                         .renewClientSecretSupported(Boolean.TRUE)
                             )
                 )
                 ;
-        appInput.setId(APPLICATION);
+        appInput.setId(APPLICATION_ID);
         
-        final Response response = target(APPLICATION).request().put(Entity.json(appInput));
+        final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        Mockito.verify(applicationService).findById(APPLICATION);
+        Mockito.verify(applicationService).findById(APPLICATION_ID);
         
         ArgumentCaptor<UpdateApplicationEntity> captor = ArgumentCaptor.forClass(UpdateApplicationEntity.class);
-        Mockito.verify(applicationService).update(eq(APPLICATION), captor.capture());
+        Mockito.verify(applicationService).update(eq(APPLICATION_ID), captor.capture());
         UpdateApplicationEntity updateAppEntity = captor.getValue();
-        assertEquals(APPLICATION, updateAppEntity.getName());
-        assertEquals(APPLICATION, updateAppEntity.getDescription());
+        assertEquals(APPLICATION_ID, updateAppEntity.getName());
+        assertEquals(APPLICATION_ID, updateAppEntity.getDescription());
         final Set<String> groups = updateAppEntity.getGroups();
         assertNotNull(groups);
         assertFalse(groups.isEmpty());
-        assertTrue(groups.contains(APPLICATION));
+        assertTrue(groups.contains(APPLICATION_GROUP_ID));
         final io.gravitee.rest.api.model.application.ApplicationSettings settings = updateAppEntity.getSettings();
         assertNotNull(settings);
         assertNull(settings.getApp());
         final io.gravitee.rest.api.model.application.OAuthClientSettings oAuthClientSettings = settings.getoAuthClient();
         assertNotNull(oAuthClientSettings);
-        assertEquals(APPLICATION, oAuthClientSettings.getApplicationType());
-        assertEquals(APPLICATION, oAuthClientSettings.getClientId());
-        assertEquals(APPLICATION, oAuthClientSettings.getClientSecret());
-        assertEquals(APPLICATION, oAuthClientSettings.getClientUri());
-        assertEquals(APPLICATION, oAuthClientSettings.getLogoUri());
+        assertEquals(APPLICATION_ID, oAuthClientSettings.getApplicationType());
+        assertEquals(APPLICATION_ID, oAuthClientSettings.getClientId());
+        assertEquals(APPLICATION_ID, oAuthClientSettings.getClientSecret());
+        assertEquals(APPLICATION_ID, oAuthClientSettings.getClientUri());
+        assertEquals(APPLICATION_ID, oAuthClientSettings.getLogoUri());
         
         final List<String> grantTypes = oAuthClientSettings.getGrantTypes();
         assertNotNull(grantTypes);
         assertFalse(grantTypes.isEmpty());
-        assertEquals(APPLICATION, grantTypes.get(0));
+        assertEquals(APPLICATION_ID, grantTypes.get(0));
         
         final List<String> redirectUris = oAuthClientSettings.getRedirectUris();
         assertNotNull(redirectUris);
         assertFalse(redirectUris.isEmpty());
-        assertEquals(APPLICATION, redirectUris.get(0));
+        assertEquals(APPLICATION_ID, redirectUris.get(0));
         
         final List<String> responseTypes = oAuthClientSettings.getResponseTypes();
         assertNotNull(responseTypes);
         assertFalse(responseTypes.isEmpty());
-        assertEquals(APPLICATION, responseTypes.get(0));
+        assertEquals(APPLICATION_ID, responseTypes.get(0));
         
         assertTrue(oAuthClientSettings.isRenewClientSecretSupported());
         
-        String expectedBasePath = target(APPLICATION).getUri().toString();
+        String expectedBasePath = target(APPLICATION_ID).getUri().toString();
         Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
         
         Application applicationResponse = response.readEntity(Application.class);
-        assertEquals(APPLICATION, applicationResponse.getId());
+        assertEquals(APPLICATION_ID, applicationResponse.getId());
         
     }
     
     @Test
     public void shouldGetApplication() {
-        final Response response = target(APPLICATION).request().get();
+        final Response response = target(APPLICATION_ID).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        Mockito.verify(applicationService).findById(APPLICATION);
+        Mockito.verify(applicationService).findById(APPLICATION_ID);
         
-        String expectedBasePath = target(APPLICATION).getUri().toString();
+        String expectedBasePath = target(APPLICATION_ID).getUri().toString();
         Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, null);
         
         Application applicationResponse = response.readEntity(Application.class);
-        assertEquals(APPLICATION, applicationResponse.getId());
+        assertEquals(APPLICATION_ID, applicationResponse.getId());
         
     }
     
     @Test
     public void shouldRenewApplication() {
         ApplicationEntity renewedApplicationEntity = new ApplicationEntity();
-        renewedApplicationEntity.setId(APPLICATION);
-        doReturn(renewedApplicationEntity).when(applicationService).renewClientSecret(APPLICATION);
+        renewedApplicationEntity.setId(APPLICATION_ID);
+        doReturn(renewedApplicationEntity).when(applicationService).renewClientSecret(APPLICATION_ID);
 
-        final Response response = target(APPLICATION).path("_renew_secret").request().post(null);
+        final Response response = target(APPLICATION_ID).path("_renew_secret").request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        Mockito.verify(applicationService).renewClientSecret(APPLICATION);
-        Mockito.verify(applicationMapper).convert(renewedApplicationEntity);
+        Mockito.verify(applicationService).renewClientSecret(APPLICATION_ID);
+        Mockito.verify(applicationMapper).convert(eq(renewedApplicationEntity), any());
 
-        String expectedBasePath = target(APPLICATION).getUri().toString();
+        String expectedBasePath = target(APPLICATION_ID).getUri().toString();
         Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, null);
         
         Application applicationResponse = response.readEntity(Application.class);
@@ -449,7 +452,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
     
     @Test
     public void shouldGetApplicationPicture() throws IOException {
-        final Response response = target(APPLICATION).path("picture").request().get();
+        final Response response = target(APPLICATION_ID).path("picture").request().get();
         assertEquals(OK_200, response.getStatus());
     }
 }

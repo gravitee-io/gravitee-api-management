@@ -112,7 +112,7 @@ public class ApplicationsResource extends AbstractResource {
 
         return Response
                 .status(Response.Status.CREATED)
-                .entity(applicationMapper.convert(createdApplicationEntity))
+                .entity(applicationMapper.convert(createdApplicationEntity, uriInfo))
                 .build();
     }
 
@@ -127,7 +127,7 @@ public class ApplicationsResource extends AbstractResource {
 
         Stream<Application> applicationStream = applicationService.findByUser(getAuthenticatedUser())
                 .stream()
-                .map(applicationMapper::convert)
+                .map(application ->applicationMapper.convert(application, uriInfo))
                 .map(this::addApplicationLinks);
 
         if (forSubscription) {

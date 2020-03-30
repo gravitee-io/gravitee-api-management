@@ -42,7 +42,7 @@ public class CompositeIdentityManager implements IdentityManager {
     @Autowired
     private ReferenceSerializer referenceSerializer;
 
-    private Collection<IdentityLookup> identityLookups = new ArrayList<>();
+    private List<IdentityLookup> identityLookups = new ArrayList<>();
 
     @Override
     public Optional<User> lookup(final String reference) {
@@ -68,6 +68,7 @@ public class CompositeIdentityManager implements IdentityManager {
     @Override
     public Collection<SearchableUser> search(String query) {
         Set<SearchableUser> users = new HashSet<>();
+        Collections.sort(identityLookups);
         for (IdentityLookup identityLookup : identityLookups) {
             if (identityLookup.searchable()) {
                 Collection<User> lookupUsers = identityLookup.search(query);
@@ -91,12 +92,35 @@ public class CompositeIdentityManager implements IdentityManager {
     }
 
     private class DefaultSearchableUser implements SearchableUser {
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + identityReference.hashCode();
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+
+            DefaultSearchableUser other = (DefaultSearchableUser) obj;
+            return identityReference.equals(other.identityReference);
+        }
+
         private final User user;
         private final boolean allowEmail;
-
+        private final IdentityReference identityReference;
+        
         DefaultSearchableUser(User user, boolean allowEmail) {
             this.user = user;
             this.allowEmail = allowEmail;
+            this.identityReference = new IdentityReference(user.getSource(), user.getReference());
         }
 
         @Override
@@ -136,6 +160,11 @@ public class CompositeIdentityManager implements IdentityManager {
             } else {
                 return null;
             }
+        }
+
+        @Override
+        public String getPicture() {
+            return user.getPicture();
         }
     }
 }

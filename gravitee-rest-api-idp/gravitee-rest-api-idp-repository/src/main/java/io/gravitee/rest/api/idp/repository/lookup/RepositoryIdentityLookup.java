@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.idp.repository.lookup;
 
 import java.util.Collection;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -29,7 +28,6 @@ import io.gravitee.rest.api.idp.api.identity.IdentityReference;
 import io.gravitee.rest.api.idp.api.identity.User;
 import io.gravitee.rest.api.idp.repository.RepositoryIdentityProvider;
 import io.gravitee.rest.api.idp.repository.lookup.spring.RepositoryIdentityLookupConfiguration;
-import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -85,9 +83,12 @@ public class RepositoryIdentityLookup implements IdentityLookup {
                 .search(query, new PageableImpl(1, 20))
                 .getContent()
                 .stream()
-                .filter(userEntity -> !userEntity.getSource().equalsIgnoreCase("ldap")
-                        && !userEntity.getSource().equalsIgnoreCase("memory"))
-                .map((Function<UserEntity, User>) RepositoryUser::new)
+                .map(RepositoryUser::new)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public int getOrder() {
+        return 10;
+    }   
 }

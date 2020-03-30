@@ -25,6 +25,8 @@ tags:
     description: All about APIs
   - name: Application
     description: All about applications
+  - name: Group
+    description: All about groups
   - name: Portal
     description: All about portal configurations
   - name: Subscription
@@ -1136,7 +1138,56 @@ paths:
           $ref: '#/components/responses/ApplicationNotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /groups:
+    get:
+      tags:
+        - Group
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      summary: List groups
+      description: |
+        List all groups
+        
+        User must have the MANAGEMENT_GROUP[READ] permission.
+      operationId: getGroups
+      responses:
+        200:
+          description: List of groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupsResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /groups/{groupId}/members:
+    parameters:
+      - $ref: '#/components/parameters/groupIdParam'
+    get:
+      tags:
+        - Group
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      summary: List group members
+      description: |
+        List group members that have a Application role.
 
+        User must have the MANAGEMENT_GROUP[READ] permission.
+      operationId: getMembersByGroupId
+      responses:
+        200:
+          description: List of members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MembersResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/GroupNotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /pages:
     get:
       tags:
@@ -1419,30 +1470,6 @@ paths:
         500:
           $ref: '#/components/responses/InternalServerError'
 
-  /users:
-    get:
-      tags:
-        - Users
-      parameters:
-        - $ref: '#/components/parameters/pageNumberParam'
-        - $ref: '#/components/parameters/pageSizeParam'
-      summary: List platform users.
-      description: |
-        List platform users.
-
-        User must have the MANAGEMENT_USERS[READ] permission.
-      operationId: getUsers
-      responses:
-        200:
-          description: List of platform users
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersResponse'
-        403:
-          $ref: '#/components/responses/PermissionError'
-        500:
-          $ref: '#/components/responses/InternalServerError'
   /users/registration:
     post:
       tags:
@@ -1522,6 +1549,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /users/_search:
+    post:
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/usersQueryParam'
+      summary: List platform users.
+      description: |
+        List platform users from identity providers.
+
+        User must have the MANAGEMENT_USERS[READ] permission.
+      operationId: getUsers
+      responses:
+        200:
+          description: List of platform users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /users/{userId}/avatar:
+    parameters:
+      - $ref: '#/components/parameters/userIdParam'
+    get:
+      tags:
+        - Users
+      summary: Retrieve a user's avatar
+      description: |
+        Retrieve a user's avatar.
+      operationId: getUserAvatar
+      responses:
+        200:
+          $ref: '#/components/responses/PictureSuccess'
         500:
           $ref: '#/components/responses/InternalServerError'
   /user:
@@ -1857,7 +1924,7 @@ paths:
                 $ref: '#/components/schemas/LinksResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
-  /configuration/applications:
+  /configuration/applications/types:
     get:
       tags:
         - Portal
@@ -1872,7 +1939,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConfigurationApplicationsResponse'
+                $ref: '#/components/schemas/ConfigurationApplicationTypesResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /configuration/applications/roles:
+    get:
+      tags:
+        - Portal
+      summary: Get the application roles list.
+      operationId: getApplicationRoles
+      description: |
+        Get application roles.
+      security: []
+      responses:
+        200:
+          description: List of application roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationApplicationRolesResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
   /info:
@@ -2038,6 +2123,13 @@ components:
       description: Id of an application.
       schema:
         type: string
+    groupIdParam:
+      name: groupId
+      in: path
+      required: true
+      description: Id of a group.
+      schema:
+        type: string
     logIdParam:
       name: logId
       in: path
@@ -2105,6 +2197,13 @@ components:
       in: path
       required: true
       description: Id of an rating answer
+      schema:
+        type: string
+    userIdParam:
+      name: userId
+      in: path
+      required: true
+      description: Id of a user
       schema:
         type: string
     ###############
@@ -2441,6 +2540,15 @@ components:
           type: string
           enum:
             - keys
+    
+    #Users filtering
+    usersQueryParam:
+      name: q
+      in: query
+      required: false
+      description: query string to be used in the search engine
+      schema:
+        type: string
   schemas:
     #####################
     # Responses Objects #
@@ -2471,6 +2579,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Application'
+        metadata:
+            $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
+    GroupsResponse:
+      properties:
+        data:
+          description: List of groups.
+          type: array
+          items:
+            $ref: '#/components/schemas/Group'
         metadata:
             $ref: '#/components/schemas/MetadataMap'
         links:
@@ -2585,13 +2704,20 @@ components:
             $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
-    ConfigurationApplicationsResponse:
+    ConfigurationApplicationTypesResponse:
       properties:
         data:
           description: List of application types
           type: array
           items:
             $ref: '#/components/schemas/ApplicationType'
+    ConfigurationApplicationRolesResponse:
+      properties:
+        data:
+          description: List of application roles
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationRole'
     LinksResponse:
       properties:
         slots:
@@ -2798,6 +2924,17 @@ components:
            type: number
            description: Healthcheck ratio over the last 7 days. It's a decimal number between 0 and 1.
            example: 0.9876
+    Group:
+      required:
+        - id
+        - name
+      properties:
+        id:
+          description: Unique identifier of a group.
+          type: string
+        name:
+          description: Name of the group.
+          type: string
     Page:
       required:
         - id
@@ -2963,7 +3100,7 @@ components:
           description: Array of groups associated to the application.
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/Group'
         picture:
           description: |
             Picture of the application. This attribute is only used to update a picture.\
@@ -3169,6 +3306,9 @@ components:
         id:
           description: Unique identifier of a user.
           type: string
+        reference:
+          description: Unique reference if user comes from external source. Use for search only.
+          type: string
         first_name:
           type: string
         last_name:
@@ -3281,6 +3421,20 @@ components:
         icon:
           description: Icon name to display for this provider.
           type: string
+    ApplicationRole:
+      properties:
+        id:
+          description: Unique identifier of an application role.
+          type: string
+        name:
+          description: Name of an application role.
+          type: string
+        default:
+          description: is default role ?
+          type: boolean
+        system:
+          description: is system role ?
+          type: boolean
     ApplicationType:
       properties:
         id:
@@ -3619,8 +3773,11 @@ components:
           type: string
     TransferOwnershipInput:
       properties:
-        new_primary_owner:
+        new_primary_owner_id:
           description: User identifier of the new Primary Owner of the application.
+          type: string
+        new_primary_owner_reference:
+          description: User reference of the new Primary Owner of the application.
           type: string
         primary_owner_newrole:
           description: New role to be affected to the current PrimaryOwner.
@@ -4088,6 +4245,12 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     ApplicationNotFoundError:
       description: Application not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    GroupNotFoundError:
+      description: Group not found
       content:
         application/json:
           schema:

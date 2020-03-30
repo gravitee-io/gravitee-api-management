@@ -17,11 +17,18 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import java.time.ZoneOffset;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.ws.rs.core.UriInfo;
+
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.Member;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.service.UserService;
+
+import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.usersURL;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -30,19 +37,24 @@ import io.gravitee.rest.api.portal.rest.model.User;
 @Component
 public class MemberMapper {
     
-    public Member convert(MemberEntity member) {
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    private UserService userService;
+    
+    public Member convert(MemberEntity member, UriInfo uriInfo) {
         final Member memberItem = new Member();
         
         memberItem.setCreatedAt(member.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
         
-        User memberUser = new User();
-        memberUser.setId(member.getId());
-        memberUser.setEmail(member.getEmail());
-        memberUser.setDisplayName(member.getDisplayName());
+        UserEntity userEntity = userService.findById(member.getId());
+        User memberUser = userMapper.convert(userEntity);
+        memberUser.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt()));
+        
         memberItem.setUser(memberUser);
         memberItem.setRole(member.getRole());
         memberItem.setUpdatedAt(member.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        
         return memberItem;
     }
 

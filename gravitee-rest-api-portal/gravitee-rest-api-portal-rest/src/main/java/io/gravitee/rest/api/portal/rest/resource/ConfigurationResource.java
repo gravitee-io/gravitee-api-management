@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
@@ -32,9 +33,6 @@ import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
-import io.gravitee.rest.api.service.notification.ApplicationHook;
-import io.gravitee.rest.api.service.notification.Hook;
-import io.swagger.annotations.ApiOperation;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -160,7 +158,7 @@ public class ConfigurationResource extends AbstractResource {
     }
 
     @GET
-    @Path("applications")
+    @Path("applications/types")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getEnabledApplicationTypes() {
         try {
@@ -173,8 +171,27 @@ public class ConfigurationResource extends AbstractResource {
         }
     }
 
-    private ConfigurationApplicationsResponse convert(ApplicationTypesEntity enabledApplicationTypes) {
-        ConfigurationApplicationsResponse configurationApplicationsResponse = new ConfigurationApplicationsResponse();
+    @GET
+    @Path("applications/roles")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getApplicationRoles() {
+        return Response
+                .ok(new ConfigurationApplicationRolesResponse()
+                        .data(roleService.findByScope(RoleScope.APPLICATION).stream()
+                                .map(roleEntity -> new ApplicationRole()
+                                        ._default(roleEntity.isDefaultRole())
+                                        .id(roleEntity.getName())
+                                        .name(roleEntity.getName())
+                                        .system(roleEntity.isSystem())
+                                        )
+                                .collect(Collectors.toList())
+                                )
+                        )
+                .build();
+    }
+
+    private ConfigurationApplicationTypesResponse convert(ApplicationTypesEntity enabledApplicationTypes) {
+        ConfigurationApplicationTypesResponse configurationApplicationsTypesResponse = new ConfigurationApplicationTypesResponse();
         List<ApplicationType> types = enabledApplicationTypes.getData().stream().map(applicationTypeEntity -> {
 
             ApplicationType applicationType = new ApplicationType();
@@ -188,8 +205,8 @@ public class ConfigurationResource extends AbstractResource {
             return applicationType;
         }).collect(Collectors.toList());
 
-        configurationApplicationsResponse.setData(types);
-        return configurationApplicationsResponse;
+        configurationApplicationsTypesResponse.setData(types);
+        return configurationApplicationsTypesResponse;
     }
 
     private List<ApplicationGrantType> convert(List<ApplicationGrantTypeEntity> allowedGrantTypes) {

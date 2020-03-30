@@ -65,13 +65,13 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2));
         doReturn(mockApplications).when(applicationService).findByUser(any());
 
-        doReturn(new Application().id("A")).when(applicationMapper).convert(applicationListItem1);
-        doReturn(new Application().id("B")).when(applicationMapper).convert(applicationListItem2);
+        doReturn(new Application().id("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
+        doReturn(new Application().id("B")).when(applicationMapper).convert(eq(applicationListItem2), any());
 
 
         ApplicationEntity createdEntity = new ApplicationEntity();
         doReturn(createdEntity).when(applicationService).create(any(),  any());
-        doReturn(new Application().id("NEW")).when(applicationMapper).convert(createdEntity);
+        doReturn(new Application().id("NEW")).when(applicationMapper).convert(eq(createdEntity), any());
 
     }
 

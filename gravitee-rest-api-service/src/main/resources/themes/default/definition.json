@@ -32,6 +32,13 @@
           "value": "#D5FDCB"
         },
         {
+          "name": "--gv-theme-color-danger",
+          "description": "Primary danger color",
+          "type": "color",
+          "default": "#FF5722",
+          "value": "#FF5722"
+        },
+        {
           "name": "--gv-theme-neutral-color-darkest",
           "description": "Neutral darkest color",
           "type": "color",
@@ -1654,6 +1661,20 @@
           "description": "Primary background color",
           "type": "color",
           "default": "var(--gv-theme-color, #009B5B)",
+          "value": ""
+        },
+        {
+          "name": "--gv-button-danger--c",
+          "description": "Danger color",
+          "type": "color",
+          "default": "var(--gv-theme-font-color-light, #FFFFFF)",
+          "value": ""
+        },
+        {
+          "name": "--gv-button-danger--bgc",
+          "description": "Danger background color",
+          "type": "color",
+          "default": "var(--gv-theme-danger-color, #FF5722)",
           "value": ""
         },
         {

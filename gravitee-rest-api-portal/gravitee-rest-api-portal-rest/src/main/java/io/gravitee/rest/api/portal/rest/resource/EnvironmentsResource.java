@@ -49,6 +49,11 @@ public class EnvironmentsResource extends AbstractResource {
         return resourceContext.getResource(ConfigurationResource.class);
     }
 
+    @Path("groups")
+    public GroupsResource getGroupsResource() {
+        return resourceContext.getResource(GroupsResource.class);
+    }
+
     @Path("info")
     public InfoResource getInfoResource() {
         return resourceContext.getResource(InfoResource.class);

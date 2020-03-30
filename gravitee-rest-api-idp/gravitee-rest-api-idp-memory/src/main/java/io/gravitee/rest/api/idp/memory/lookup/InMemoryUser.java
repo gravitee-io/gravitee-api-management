@@ -25,7 +25,7 @@ import io.gravitee.rest.api.idp.memory.InMemoryIdentityProvider;
 public class InMemoryUser implements User {
 
     private final String reference;
-    private String firstname, lastname, email;
+    private String firstname, lastname, email, picture;
 
     InMemoryUser(String reference) {
         this.reference = reference;
@@ -75,5 +75,14 @@ public class InMemoryUser implements User {
     @Override
     public String getSource() {
         return InMemoryIdentityProvider.PROVIDER_TYPE;
+    }
+    
+    @Override
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 }

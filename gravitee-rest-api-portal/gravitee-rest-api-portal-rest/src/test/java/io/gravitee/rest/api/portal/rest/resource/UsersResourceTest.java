@@ -17,9 +17,10 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
+import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import org.junit.Before;
@@ -29,12 +30,16 @@ import org.mockito.Mockito;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.Collections;
 
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doCallRealMethod;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -47,47 +52,45 @@ public class UsersResourceTest extends AbstractResourceTest {
         return "users/";
     }
 
-    private static final String USER = "my-user";
-    private static final String ANOTHER_USER = "my-another-user";
-
-    private Page<UserEntity> userEntityPage;
+    private SearchableUser searchableUser;
 
     @Before
     public void init() {
         resetAllMocks();
+      
+        searchableUser = Mockito.mock(SearchableUser.class);
+        doReturn("my-user-display-name").when(searchableUser).getDisplayName();
+        doReturn("my-user-email").when(searchableUser).getEmail();
+        doReturn("my-user-firstname").when(searchableUser).getFirstname();
+        doReturn("my-user-id").when(searchableUser).getId();
+        doReturn("my-user-lastname").when(searchableUser).getLastname();
+        doReturn("my-user-picture").when(searchableUser).getPicture();
+        doReturn("my-user-reference").when(searchableUser).getReference();
+        doReturn(Collections.singletonList(searchableUser)).when(identityService).search(anyString());
 
-        UserEntity userEntity1 = new UserEntity();
-        userEntity1.setId(USER);
-        UserEntity userEntity2 = new UserEntity();
-        userEntity2.setId(ANOTHER_USER);
-        userEntityPage = new Page<UserEntity>(Arrays.asList(userEntity1, userEntity2), 1, 2, 2);
-        doReturn(userEntityPage).when(userService).search(any(UserCriteria.class), any());
-
-        doReturn(new User().id(USER)).when(userMapper).convert(userEntity1);
-        doReturn(new User().id(ANOTHER_USER)).when(userMapper).convert(userEntity2);
-
+        doCallRealMethod().when(userMapper).convert(searchableUser);
     }
 
     @Test
     public void shouldGetUsers() {
-        final Response response = target().request().get();
+        final Response response = target("_search").queryParam("q", "tests").request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         UsersResponse usersResponse = response.readEntity(UsersResponse.class);
-        assertEquals(2, usersResponse.getData().size());
+        assertEquals(1, usersResponse.getData().size());
 
         Links links = usersResponse.getLinks();
         assertNotNull(links);
+        Mockito.verify(identityService).search("tests");
     }
 
     @Test
     public void shouldGetNoUserAndNoLink() {
 
-        doReturn(new Page<UserEntity>(Collections.emptyList(), 1, 0, 0)).when(userService)
-                .search(any(UserCriteria.class), any());
+        doReturn(Collections.emptyList()).when(identityService).search(anyString());
 
         // Test with default limit
-        final Response response = target().request().get();
+        final Response response = target("_search").queryParam("q", "q").request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         UsersResponse usersResponse = response.readEntity(UsersResponse.class);
@@ -97,7 +100,7 @@ public class UsersResourceTest extends AbstractResourceTest {
         assertNull(links);
 
         // Test with small limit
-        final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
+        final Response anotherResponse = target("_search").queryParam("q", "q").queryParam("page", 2).queryParam("size", 1).request().post(null);
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
 
         usersResponse = anotherResponse.readEntity(UsersResponse.class);
@@ -218,5 +221,18 @@ public class UsersResourceTest extends AbstractResourceTest {
     public void shouldHaveBadRequestWhileResettingPasswordWithoutInput() {
         final Response response = target().path("_reset_password").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+    
+    @Test
+    public void shouldGetUserAvatar() throws IOException {
+        final Response response = target().path("userId").path("avatar").request().get();
+        assertEquals(OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldGetUserAvatarRedirectUrl() throws IOException {
+        doReturn(new UrlPictureEntity(root().path("openapi").getUri().toURL().toString())).when(userService).getPicture(any());
+        final Response response = target().path("userId").path("avatar").request().get();
+        assertEquals(OK_200, response.getStatus());
     }
 }

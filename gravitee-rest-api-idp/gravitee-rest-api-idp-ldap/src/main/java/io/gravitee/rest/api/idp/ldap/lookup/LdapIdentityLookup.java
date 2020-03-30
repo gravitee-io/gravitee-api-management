@@ -178,4 +178,9 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
             return user;
         }
     };
+
+    @Override
+    public int getOrder() {
+        return 30;
+    }
 }

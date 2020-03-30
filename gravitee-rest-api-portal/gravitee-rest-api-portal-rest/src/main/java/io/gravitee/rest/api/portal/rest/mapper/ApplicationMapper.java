@@ -16,17 +16,26 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.application.*;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationLinks;
+import io.gravitee.rest.api.portal.rest.model.Group;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.ws.rs.core.UriInfo;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.usersURL;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -36,22 +45,36 @@ import java.util.Set;
 @Component
 public class ApplicationMapper {
 
-    public Application convert(ApplicationListItem applicationListItem) {
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private GroupService groupService;
+    
+    public Application convert(ApplicationListItem applicationListItem, UriInfo uriInfo) {
         final Application application = new Application();
         application.setApplicationType(applicationListItem.getType());
         application.setCreatedAt(applicationListItem.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
         application.setDescription(applicationListItem.getDescription());
-        Set<String> groups = applicationListItem.getGroups();
-        if(groups != null) {
-            application.setGroups(new ArrayList<>(groups));
+        Set<String> groupEntities = applicationListItem.getGroups();
+        if (groupEntities != null && !groupEntities.isEmpty()) {
+            List<Group> groups = groupEntities.stream()
+                    .map(groupService::findById)
+                    .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
+                    .collect(Collectors.toList());
+            application.setGroups(groups);
         }
         application.setId(applicationListItem.getId());
         application.setName(applicationListItem.getName());
-        User owner = new User();
-        final PrimaryOwnerEntity primaryOwner = applicationListItem.getPrimaryOwner();
-        owner.id(primaryOwner.getId());
-        owner.setDisplayName(primaryOwner.getDisplayName());
+        
+        UserEntity primaryOwnerUserEntity = userService.findById(applicationListItem.getPrimaryOwner().getId());
+        User owner = userMapper.convert(primaryOwnerUserEntity);
+        owner.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()), primaryOwnerUserEntity.getUpdatedAt()));
         application.setOwner(owner);
+        
         application.setUpdatedAt(applicationListItem.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         ApplicationListItemSettings settings = applicationListItem.getSettings();
         application.setHasClientId(settings != null && settings.getClientId() != null);
@@ -68,22 +91,29 @@ public class ApplicationMapper {
         return applicationLinks;
     }
 
-    public Application convert(ApplicationEntity applicationEntity) {
+    public Application convert(ApplicationEntity applicationEntity, UriInfo uriInfo) {
         final Application application = new Application();
 
         application.setApplicationType(applicationEntity.getType());
         application.setCreatedAt(applicationEntity.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
         application.setDescription(applicationEntity.getDescription());
-        Set<String> groups = applicationEntity.getGroups();
-        if(groups != null) {
-            application.setGroups(new ArrayList<>(groups));
+        Set<String> groupEntities = applicationEntity.getGroups();
+        if (groupEntities != null && !groupEntities.isEmpty()) {
+            List<Group> groups = groupEntities.stream()
+                    .map(groupService::findById)
+                    .map(groupEntity -> new Group().id(groupEntity.getId()).name(groupEntity.getName()))
+                    .collect(Collectors.toList());
+            application.setGroups(groups);
         }
+
         application.setId(applicationEntity.getId());
         application.setName(applicationEntity.getName());
-        User owner = new User();
-        owner.id(applicationEntity.getPrimaryOwner().getId());
-        owner.setDisplayName(applicationEntity.getPrimaryOwner().getDisplayName());
+        
+        UserEntity primaryOwnerUserEntity = userService.findById(applicationEntity.getPrimaryOwner().getId());
+        User owner = userMapper.convert(primaryOwnerUserEntity);
+        owner.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()), primaryOwnerUserEntity.getUpdatedAt()));
         application.setOwner(owner);
+        
         application.setUpdatedAt(applicationEntity.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         application.setPicture(applicationEntity.getPicture());
 

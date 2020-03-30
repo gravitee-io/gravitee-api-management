@@ -33,7 +33,7 @@ import io.gravitee.rest.api.service.UserService;
 
 import javax.ws.rs.core.UriInfo;
 
-import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.userURL;
+import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.usersURL;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -52,7 +52,7 @@ public class RatingMapper {
         final Rating rating = new Rating();
         UserEntity authorEntity = userService.findById(ratingEntity.getUser());
         User author = userMapper.convert(authorEntity);
-        author.setLinks(userMapper.computeUserLinks(userURL(uriInfo.getBaseUriBuilder()), authorEntity.getUpdatedAt()));
+        author.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), authorEntity.getId()), authorEntity.getUpdatedAt()));
         rating.setAuthor(author);
         rating.setTitle(ratingEntity.getTitle());
         rating.setComment(ratingEntity.getComment());

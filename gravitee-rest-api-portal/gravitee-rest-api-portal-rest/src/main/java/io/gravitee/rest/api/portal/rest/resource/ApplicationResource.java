@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
+import io.gravitee.rest.api.portal.rest.model.Group;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
@@ -41,7 +42,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -76,7 +77,7 @@ public class ApplicationResource extends AbstractResource {
         @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
     })
     public Response getApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
-        Application application = applicationMapper.convert(applicationService.findById(applicationId));
+        Application application = applicationMapper.convert(applicationService.findById(applicationId), uriInfo);
 
         return Response
                 .ok(addApplicationLinks(application))
@@ -105,7 +106,7 @@ public class ApplicationResource extends AbstractResource {
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
         updateApplicationEntity.setDescription(application.getDescription());
         if (application.getGroups() != null) {
-            updateApplicationEntity.setGroups(new HashSet<>(application.getGroups()));
+            updateApplicationEntity.setGroups(application.getGroups().stream().map(Group::getId).collect(Collectors.toSet()));
         }
         updateApplicationEntity.setName(application.getName());
         updateApplicationEntity.setPicture(checkAndScaleImage(application.getPicture()));
@@ -133,7 +134,7 @@ public class ApplicationResource extends AbstractResource {
             updateApplicationEntity.setSettings(settings);
         }
 
-        Application updatedApp = applicationMapper.convert(applicationService.update(applicationId, updateApplicationEntity));
+        Application updatedApp = applicationMapper.convert(applicationService.update(applicationId, updateApplicationEntity), uriInfo);
         return Response
                 .ok(addApplicationLinks(updatedApp))
                 .tag(Long.toString(updatedApp.getUpdatedAt().toInstant().toEpochMilli()))
@@ -164,7 +165,7 @@ public class ApplicationResource extends AbstractResource {
     })
     public Response renewApplicationSecret(@PathParam("applicationId") String applicationId) {
 
-        Application renwedApplication = applicationMapper.convert(applicationService.renewClientSecret(applicationId));
+        Application renwedApplication = applicationMapper.convert(applicationService.renewClientSecret(applicationId), uriInfo);
 
         return Response
                 .ok(addApplicationLinks(renwedApplication))

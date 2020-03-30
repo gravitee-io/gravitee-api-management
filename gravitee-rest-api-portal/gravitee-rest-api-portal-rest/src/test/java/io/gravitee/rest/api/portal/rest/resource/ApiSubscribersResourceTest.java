@@ -42,6 +42,7 @@ import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 /**
@@ -117,17 +118,17 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         ApplicationEntity appA = new ApplicationEntity();
         appA.setId("A");
         doReturn(appA).when(applicationService).findById("A");
-        doReturn(new Application().id("A")).when(applicationMapper).convert(appA);
+        doReturn(new Application().id("A")).when(applicationMapper).convert(eq(appA), any());
 
         ApplicationEntity appB = new ApplicationEntity();
         appB.setId("B");
         doReturn(appB).when(applicationService).findById("B");
-        doReturn(new Application().id("B")).when(applicationMapper).convert(appB);
+        doReturn(new Application().id("B")).when(applicationMapper).convert(eq(appB), any());
 
         ApplicationEntity appC = new ApplicationEntity();
         appC.setId("C");
         doReturn(appC).when(applicationService).findById("C");
-        doReturn(new Application().id("C")).when(applicationMapper).convert(appC);
+        doReturn(new Application().id("C")).when(applicationMapper).convert(eq(appC), any());
 
         final Response response = target(API).path("subscribers").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -165,19 +166,19 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         appA.setId("A");
         appA.setName("A");
         doReturn(appA).when(applicationService).findById("A");
-        doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(appA);
+        doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(appA), any());
 
         ApplicationEntity appB = new ApplicationEntity();
         appB.setId("B");
         appB.setName("B");
         doReturn(appB).when(applicationService).findById("B");
-        doReturn(new Application().id("B").name("B")).when(applicationMapper).convert(appB);
+        doReturn(new Application().id("B").name("B")).when(applicationMapper).convert(eq(appB), any());
 
         ApplicationEntity appC = new ApplicationEntity();
         appC.setId("C");
         appC.setName("C");
         doReturn(appC).when(applicationService).findById("C");
-        doReturn(new Application().id("C").name("C")).when(applicationMapper).convert(appC);
+        doReturn(new Application().id("C").name("C")).when(applicationMapper).convert(eq(appC), any());
 
         final Response response = target(API).path("subscribers").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -220,12 +221,12 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         ApplicationEntity appA = new ApplicationEntity();
         appA.setId("A");
         doReturn(appA).when(applicationService).findById("A");
-        doReturn(new Application().id("A")).when(applicationMapper).convert(appA);
+        doReturn(new Application().id("A")).when(applicationMapper).convert(eq(appA), any());
 
         ApplicationEntity appC = new ApplicationEntity();
         appC.setId("C");
         doReturn(appC).when(applicationService).findById("C");
-        doReturn(new Application().id("C")).when(applicationMapper).convert(appC);
+        doReturn(new Application().id("C")).when(applicationMapper).convert(eq(appC), any());
 
         ApplicationListItem appLIA = new ApplicationListItem();
         appLIA.setId("A");

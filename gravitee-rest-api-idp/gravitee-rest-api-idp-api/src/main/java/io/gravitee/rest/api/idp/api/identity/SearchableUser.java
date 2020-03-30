@@ -32,4 +32,6 @@ public interface SearchableUser {
     String getLastname();
 
     String getEmail();
+    
+    String getPicture();
 }

@@ -25,7 +25,7 @@ import io.gravitee.rest.api.idp.ldap.LdapIdentityProvider;
 public class LdapUser implements User {
 
     private final String reference;
-    private String firstname, lastname, email, displayName;
+    private String firstname, lastname, email, displayName, picture;
 
     LdapUser(String reference) {
         this.reference = reference;
@@ -75,4 +75,14 @@ public class LdapUser implements User {
     public String getSource() {
         return LdapIdentityProvider.PROVIDER_TYPE;
     }
+
+    @Override
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+    
 }

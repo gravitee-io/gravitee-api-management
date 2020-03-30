@@ -15,21 +15,28 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.time.Instant;
-import java.util.Date;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.portal.rest.model.Member;
+import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.service.UserService;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.portal.rest.model.Member;
-import io.gravitee.rest.api.portal.rest.model.User;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import java.time.Instant;
+import java.util.Date;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -47,6 +54,15 @@ public class MemberMapperTest {
     @InjectMocks
     private MemberMapper memberMapper;
     
+    @Mock
+    private UriInfo uriInfo;
+
+    @Mock
+    private UserService userService;
+    
+    @Mock
+    private UserMapper userMapper;
+    
     @Test
     public void testConvert() {
         Instant now = Instant.now();
@@ -62,8 +78,19 @@ public class MemberMapperTest {
         memberEntity.setRole("OWNER");
         memberEntity.setUpdatedAt(nowDate);
         
+        UserEntity userEntity = Mockito.mock(UserEntity.class);
+        when(userEntity.getDisplayName()).thenReturn(MEMBER_DISPLAYNAME);
+        when(userEntity.getEmail()).thenReturn(MEMBER_EMAIL);
+        when(userEntity.getId()).thenReturn(MEMBER_ID);
+        
+        when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromPath(""));
+
+        when(userService.findById(MEMBER_ID)).thenReturn(userEntity);
+        when(userMapper.convert(userEntity)).thenCallRealMethod();
+        when(userMapper.computeUserLinks(anyString(), any())).thenCallRealMethod();
+        
         //Test
-        Member responseMember = memberMapper.convert(memberEntity);
+        Member responseMember = memberMapper.convert(memberEntity, uriInfo);
         assertNotNull(responseMember);
         assertEquals(now.toEpochMilli(), responseMember.getCreatedAt().toInstant().toEpochMilli());
         assertNull(responseMember.getId());
@@ -75,7 +102,7 @@ public class MemberMapperTest {
         assertEquals(MEMBER_DISPLAYNAME, user.getDisplayName());
         assertEquals(MEMBER_EMAIL, user.getEmail());
         assertEquals(MEMBER_ID, user.getId());
-
+        assertEquals("environments/DEFAULT/users/" + MEMBER_ID + "/avatar", user.getLinks().getAvatar());
     }
     
 }

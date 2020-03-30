@@ -37,6 +37,8 @@ public class User {
 
     private String sourceId;
 
+    private String picture;
+
     public String getId() {
         return id;
     }
@@ -91,6 +93,14 @@ public class User {
 
     public void setSourceId(String sourceId) {
         this.sourceId = sourceId;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     @Override

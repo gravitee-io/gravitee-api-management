@@ -124,4 +124,9 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
         user.setEmail(userDetails.getEmail());
         return user;
     }
+
+    @Override
+    public int getOrder() {
+        return 20;
+    }
 }

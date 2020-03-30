@@ -89,7 +89,7 @@ public class ApiSubscribersResource extends AbstractResource {
             List<Application> subscribersApplication = subscriptions.stream().map(SubscriptionEntity::getApplication)
                     .distinct()
                     .map(application -> applicationService.findById(application))
-                    .map(applicationMapper::convert)
+                    .map(application -> applicationMapper.convert(application, uriInfo))
                     .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
                     .collect(Collectors.toList());
             return createListResponse(subscribersApplication, paginationParam);

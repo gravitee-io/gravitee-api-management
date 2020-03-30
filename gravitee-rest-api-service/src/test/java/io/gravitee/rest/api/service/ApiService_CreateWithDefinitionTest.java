@@ -338,5 +338,11 @@ public class ApiService_CreateWithDefinitionTest {
         public String getEmail() {
             return null;
         }
+
+        @Override
+        public String getPicture() {
+            // TODO Auto-generated method stub
+            return null;
+        }
     }
 }

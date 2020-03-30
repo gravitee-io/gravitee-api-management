@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
@@ -205,11 +206,11 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         typesEntity.setData(data);
         when(applicationTypeService.getEnabledApplicationTypes()).thenReturn(typesEntity);
 
-        final Response response = target("/applications").request().get();
+        final Response response = target().path("applications").path("types").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        final ConfigurationApplicationsResponse apps = response.readEntity(ConfigurationApplicationsResponse.class);
-        assertNotNull(apps);
-        @Valid List<ApplicationType> types = apps.getData();
+        final ConfigurationApplicationTypesResponse appTypes = response.readEntity(ConfigurationApplicationTypesResponse.class);
+        assertNotNull(appTypes);
+        @Valid List<ApplicationType> types = appTypes.getData();
         assertNotNull(types);
         assertEquals(2, types.size());
 
@@ -217,5 +218,29 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         assertEquals(1, types.get(1).getAllowedGrantTypes().size());
         assertEquals("code", types.get(1).getAllowedGrantTypes().get(0).getCode());
         assertEquals("token", types.get(1).getAllowedGrantTypes().get(0).getResponsesTypes().get(0));
+    };
+    
+    @Test
+    public void shouldGetApplicationRoles() throws TechnicalException {
+        resetAllMocks();
+
+        RoleEntity appRoleEntity = new RoleEntity();
+        appRoleEntity.setDefaultRole(true);
+        appRoleEntity.setName("appRole");
+        appRoleEntity.setSystem(false);
+        when(roleService.findByScope(RoleScope.APPLICATION)).thenReturn(Collections.singletonList(appRoleEntity));
+
+        final Response response = target().path("applications").path("roles").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        final ConfigurationApplicationRolesResponse appRoles = response.readEntity(ConfigurationApplicationRolesResponse.class);
+        assertNotNull(appRoles);
+        @Valid List<ApplicationRole> roles = appRoles.getData();
+        assertNotNull(roles);
+        assertEquals(1, roles.size());
+
+        assertEquals("appRole", roles.get(0).getId());
+        assertEquals(true, roles.get(0).getDefault());
+        assertEquals("appRole", roles.get(0).getName());
+        assertEquals(false, roles.get(0).getSystem());
     };
 }

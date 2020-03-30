@@ -257,7 +257,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         newUser.setSource(identityUser.getSource());
                         newUser.setEmail(identityUser.getEmail());
                         newUser.setSourceId(identityUser.getSourceId());
-
+                        newUser.setPicture(identityUser.getPicture());
                         userEntity = userService.create(newUser, true);
                     }
                 } else {
