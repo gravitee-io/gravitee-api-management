@@ -51,11 +51,11 @@ public class LoggableRequestProcessor extends AbstractProcessor<ExecutionContext
                 int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context);
 
                 ((MutableExecutionContext) context).request(maxSizeLogMessage == - 1 ?
-                        new LoggableClientRequest(context.request()) :
-                        new LimitedLoggableClientRequest(context.request(), maxSizeLogMessage));
+                        new LoggableClientRequest(context.request(), context) :
+                        new LimitedLoggableClientRequest(context.request(), context, maxSizeLogMessage));
                 ((MutableExecutionContext) context).response(maxSizeLogMessage == - 1 ?
-                        new LoggableClientResponse(context.request(), context.response()) :
-                        new LimitedLoggableClientResponse(context.request(), context.response(), maxSizeLogMessage));
+                            new LoggableClientResponse(context.request(), context.response(), context) :
+                        new LimitedLoggableClientResponse(context.request(), context.response(), context, maxSizeLogMessage));
             }
         } catch (Exception ex) {
             logger.warn("Unexpected error while evaluating logging condition for the API {} and context path {} : {}", context.getAttribute(ExecutionContext.ATTR_API), context.getAttribute(ExecutionContext.ATTR_CONTEXT_PATH), ex.getMessage());

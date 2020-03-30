@@ -15,9 +15,12 @@
  */
 package io.gravitee.gateway.core.logging;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.appendBuffer;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -27,13 +30,13 @@ public class LimitedLoggableClientResponse extends LoggableClientResponse {
 
     private final int maxSizeLogMessage;
 
-    public LimitedLoggableClientResponse(Request request, Response response, int maxSizeLogMessage) {
-        super(request, response);
+    public LimitedLoggableClientResponse(Request request, Response response, final ExecutionContext context, int maxSizeLogMessage) {
+        super(request, response, context);
         this.maxSizeLogMessage = maxSizeLogMessage;
     }
 
     @Override
     protected void appendLog(Buffer buffer, Buffer chunk) {
-        buffer.appendBuffer(chunk, maxSizeLogMessage);
+        appendBuffer(buffer, chunk, maxSizeLogMessage);
     }
 }

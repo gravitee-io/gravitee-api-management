@@ -25,11 +25,13 @@
 #  secured: false
 #  alpn: false
 #  ssl:
-#    clientAuth: false
+#    clientAuth: none # Supports none, request, requires
 #    keystore:
+#      type: jks # Supports jks, pem, pkcs12
 #      path: ${gravitee.home}/security/keystore.jks
 #      password: secret
 #    truststore:
+#      type: jks # Supports jks, pem, pkcs12
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
 #  websocket:
@@ -117,8 +119,9 @@ cache:
 # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
 reporters:
   # logging configuration
-  #logging:
-  #  max_size: -1 # max size per API log content respectively : client-request, client-response, proxy-request and proxy-response in MB (-1 means no limit)
+#  logging:
+#    max_size: -1 # max size per API log content respectively : client-request, client-response, proxy-request and proxy-response in MB (-1 means no limit)
+#    excluded_response_types: video.*|audio.*|image.*|application\/octet-stream|application\/pdf # Response content types to exclude in logging (must be a regular expression)
   # Elasticsearch reporter
   elasticsearch:
     enabled: true # Is the reporter enabled or not (default to true)
@@ -240,16 +243,3 @@ ds:
 #  api-key:
 #    header: X-Gravitee-Api-Key
 #    param: api-key
-
-# Gravitee Alert Engine is only available with support
-alerts:
-  enabled: false
-  default:
-    enabled: false
-    # must be reachable by other nodes
-    cluster:
-      host: localhost
-      port: 0
-      hazelcast:
-        config:
-          path: ${gravitee.home}/config/hazelcast.xml

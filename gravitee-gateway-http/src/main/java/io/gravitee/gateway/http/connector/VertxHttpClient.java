@@ -279,9 +279,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         clientResponse.exceptionHandler(throwable -> {
             LOGGER.error("Unexpected error while handling backend response for request {} {} - {}",
                     clientRequest.method(), clientRequest.absoluteURI(), throwable.getMessage());
-            ProxyResponse clientResponse1 = new EmptyProxyResponse(HttpStatusCode.BAD_GATEWAY_502);
-
-            proxyConnection.handleResponse(clientResponse1);
+            proxyClientResponse.endHandler().handle(null);
         });
 
         proxyConnection.handleResponse(proxyClientResponse);
@@ -298,7 +296,6 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         httpClientOptions.setUsePooledBuffers(true);
         httpClientOptions.setMaxPoolSize(endpoint.getHttpClientOptions().getMaxConcurrentConnections());
         httpClientOptions.setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
-        httpClientOptions.setLogActivity(true);
 
         // Configure proxy
         HttpProxy proxy = endpoint.getHttpProxy();

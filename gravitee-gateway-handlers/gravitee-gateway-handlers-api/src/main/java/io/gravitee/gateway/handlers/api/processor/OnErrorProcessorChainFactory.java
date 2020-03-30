@@ -26,6 +26,7 @@ import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderCh
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.error.SimpleFailureProcessor;
 import io.gravitee.gateway.handlers.api.processor.error.templates.ResponseTemplateBasedFailureProcessor;
+import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,11 @@ public class OnErrorProcessorChainFactory extends ApiProcessorChainFactory {
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
             providers.add(new ProcessorSupplier<>(() ->
                     new StreamableProcessorDecorator<>(new CorsSimpleRequestProcessor(api.getProxy().getCors()))));
+        }
+
+        if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
+            providers.add(new ProcessorSupplier<>(() ->
+                    new StreamableProcessorDecorator<>(new PathMappingProcessor(api.getPathMappings()))));
         }
 
         if (api.getResponseTemplates() != null && ! api.getResponseTemplates().isEmpty()) {
