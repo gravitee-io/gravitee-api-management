@@ -1115,6 +1115,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/subscriptionStatusesQueryParam'
 
       summary: List APIs that subscribed with an application
       description: |

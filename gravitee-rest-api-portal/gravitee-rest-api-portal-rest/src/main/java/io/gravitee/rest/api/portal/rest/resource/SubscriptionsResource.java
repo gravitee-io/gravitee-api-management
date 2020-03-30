@@ -96,14 +96,18 @@ public class SubscriptionsResource extends AbstractResource {
         query.setApi(apiId);
         query.setApplication(applicationId);
 
-        final HashMap<String, Object> names = new HashMap<>();
+        final Map<String, Map<String, Object>> metadata = new HashMap<>();
         if (applicationId == null) {
             final Set<ApplicationListItem> applications = applicationService.findByUser(getAuthenticatedUser());
             if (applications == null || applications.isEmpty()) {
                 return createListResponse(emptyList(), paginationParam, !withoutPagination);
             }
             query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toSet()));
-            applications.forEach(application -> names.put(application.getId(), application.getName()));
+            applications.forEach(application -> {
+                final Map<String, Object> m = new HashMap<>();
+                m.put("name", application.getName());
+                metadata.put(application.getId(), m);
+            });
         } else if (!hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ)) {
             throw new ForbiddenAccessException();
         }
@@ -131,15 +135,25 @@ public class SubscriptionsResource extends AbstractResource {
 
         subscriptionList.forEach(subscription -> {
             final ApiEntity api = apiService.findById(subscription.getApi());
-            names.put(api.getId(), api.getName());
+            if (api != null) {
+                final Map<String, Object> m = new HashMap<>();
+                m.put("name", api.getName());
+                metadata.put(api.getId(), m);
+            }
             final PlanEntity plan = planService.findById(subscription.getPlan());
-            names.put(plan.getId(), plan.getName());
+            if (plan != null) {
+                final Map<String, Object> m = new HashMap<>();
+                m.put("name", plan.getName());
+                metadata.put(plan.getId(), m);
+            }
             final UserEntity user = userService.findById(subscription.getSubscribedBy());
-            names.put(user.getId(), user.getDisplayName());
+            if (user != null) {
+                final Map<String, Object> m = new HashMap<>();
+                m.put("name", user.getDisplayName());
+                metadata.put(user.getId(), m);
+            }
         });
 
-        final Map<String, Map<String, Object>> metadata = new HashMap<>();
-        metadata.put("names", names);
         return createListResponse(subscriptionList, paginationParam, metadata, !withoutPagination);
     }
 

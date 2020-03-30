@@ -37,6 +37,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -74,9 +75,14 @@ public class ApplicationLogsResource extends AbstractResource {
         List<Log> logs = searchLogResponse.getLogs().stream()
                 .map(logMapper::convert)
                 .collect(Collectors.toList());
-        
+
+        final Map<String, Object> metadataTotal = new HashMap<>();
+        metadataTotal.put(METADATA_DATA_TOTAL_KEY, searchLogResponse.getTotal());
+
+        final Map<String, Map<String, Object>> metadata = searchLogResponse.getMetadata() == null ? new HashMap() : new HashMap(searchLogResponse.getMetadata());
+        metadata.put(METADATA_DATA_KEY, metadataTotal);
         //No pagination, because logsService did it already
-        return createListResponse(logs, paginationParam, (searchLogResponse.getMetadata() == null ? null : new HashMap(searchLogResponse.getMetadata())), false);
+        return createListResponse(logs, paginationParam, metadata, false);
     }
 
     @SuppressWarnings("unchecked")

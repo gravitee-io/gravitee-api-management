@@ -293,7 +293,11 @@ public abstract class AbstractResource {
             paginatedList = dataList;
         }
 
-        dataMetadata.put(METADATA_DATA_TOTAL_KEY, paginatedList.size());
+        if (metadata != null && metadata.containsKey(METADATA_DATA_KEY)) {
+            dataMetadata.put(METADATA_DATA_TOTAL_KEY, metadata.get(METADATA_DATA_KEY).get(METADATA_DATA_TOTAL_KEY));
+        } else {
+            dataMetadata.put(METADATA_DATA_TOTAL_KEY, paginatedList.size());
+        }
 
         if (withPagination && paginationParam.getSize() == 0) {
             paginatedList = new ArrayList();

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -31,17 +32,12 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 
 import javax.inject.Inject;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.SubscriptionStatus.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -62,7 +58,7 @@ public class ApplicationSubscribersResource extends AbstractResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getSubscriberApisByApplicationId(@BeanParam PaginationParam paginationParam,
-            @PathParam("applicationId") String applicationId) {
+            @PathParam("applicationId") String applicationId, @QueryParam("statuses") List<SubscriptionStatus> statuses) {
         String currentUser = getAuthenticatedUserOrNull();
         Collection<ApplicationListItem> userApplications = applicationService.findByUser(currentUser);
         Optional<ApplicationListItem> optionalApplication = userApplications.stream().filter(a -> a.getId().equals(applicationId)).findFirst();
@@ -71,7 +67,7 @@ public class ApplicationSubscribersResource extends AbstractResource {
             SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
             subscriptionQuery.setApplication(applicationId);
 
-            subscriptionQuery.setStatuses(Arrays.asList(ACCEPTED, PENDING, PAUSED));
+            subscriptionQuery.setStatuses(statuses);
 
             ApplicationListItem application = optionalApplication.get();
             if(!application.getPrimaryOwner().getId().equals(currentUser) ) {

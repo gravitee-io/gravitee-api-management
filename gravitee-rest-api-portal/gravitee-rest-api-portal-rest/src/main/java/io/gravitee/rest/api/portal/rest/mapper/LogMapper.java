@@ -42,18 +42,22 @@ public class LogMapper {
         logItem.setMethod(HttpMethod.fromValue(applicationRequest.getMethod().name()));
         logItem.setPath(applicationRequest.getPath());
         logItem.setPlan(applicationRequest.getPlan());
-        logItem.setRequest(new Request()
-                .body(applicationRequest.getRequest().getBody())
-                .headers(applicationRequest.getRequest().getHeaders())
-                .method(HttpMethod.fromValue(applicationRequest.getRequest().getMethod().name()))
-                .uri(applicationRequest.getRequest().getUri())
-                );
+        if (applicationRequest.getRequest() != null) {
+            logItem.setRequest(new Request()
+                    .body(applicationRequest.getRequest().getBody())
+                    .headers(applicationRequest.getRequest().getHeaders())
+                    .method(HttpMethod.fromValue(applicationRequest.getRequest().getMethod().name()))
+                    .uri(applicationRequest.getRequest().getUri())
+                    );
+        }
         logItem.setRequestContentLength(applicationRequest.getRequestContentLength());
-        logItem.setResponse(new Response()
-                .body(applicationRequest.getResponse().getBody())
-                .status(applicationRequest.getResponse().getStatus())
-                .headers(applicationRequest.getResponse().getHeaders())
-                );
+        if (applicationRequest.getResponse() != null) {
+            logItem.setResponse(new Response()
+                    .body(applicationRequest.getResponse().getBody())
+                    .status(applicationRequest.getResponse().getStatus())
+                    .headers(applicationRequest.getResponse().getHeaders())
+                    );
+        }
         logItem.setResponseContentLength(applicationRequest.getResponseContentLength());
         logItem.setResponseTime(applicationRequest.getResponseTime());
         logItem.setSecurityToken(applicationRequest.getSecurityToken());
