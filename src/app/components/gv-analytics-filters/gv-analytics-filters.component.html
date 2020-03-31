@@ -31,11 +31,15 @@
     </div>
 
     <div class="gv-analytics-filters">
-      <gv-input label="{{ 'common.date.from.title' | translate }}" placeholder="{{ 'common.date.from.label' | translate }}"
-        formControlName="from" name="from" ngDefaultControl [attr.required]="analyticsForm.value.to"></gv-input>
-
-      <gv-input label="{{ 'common.date.to.title' | translate }}" placeholder="{{ 'common.date.to.label' | translate }}"
-        formControlName="to" name="to" ngDefaultControl [attr.required]="analyticsForm.value.from"></gv-input>
+      <gv-date-picker label="{{ 'common.date.range.title' | translate }}"
+                      time
+                      range
+                      formControlName="range"
+                      name="range"
+                      ngDefaultControl
+                      [max]="maxDate"
+                      [invalid]="this.invalidDates"
+      ></gv-date-picker>
     </div>
 
     <div class="gv-analytics-filters__advanced">

@@ -171,10 +171,10 @@
       "title": "Protokoly"
     },
     "miscellaneous": {
-      "createdDate": "Datum vytvoření:",
-      "lastUpdate": "Poslední změna:",
-      "owner": "Owner:",
-      "type": "Type:"
+      "createdDate": "Vytvořit",
+      "lastUpdate": "Upraveno",
+      "owner": "Owner",
+      "type": "Type"
     },
     "name": {
       "label": "Název aplikace",
@@ -409,13 +409,8 @@
   },
   "common": {
     "date": {
-      "from": {
-        "label": "Datum zahájení",
-        "title": "Vyberte počáteční datum"
-      },
-      "to": {
-        "label": "Datum ukončení",
-        "title": "Vyberte datum ukončení"
+      "range": {
+        "title": "Vyberte časový interval"
       }
     },
     "filters": {
@@ -482,8 +477,7 @@
     "copy": "Kopírovat do schránky"
   },
   "gv-confirm": {
-    "cancel": "Zrušit",
-    "ok": "Ok"
+    "cancel": "Zrušit"
   },
   "gv-contact": {
     "apis": {
@@ -509,6 +503,14 @@
   },
   "gv-create-application": {
     "createApplication": "Vytvořte aplikaci"
+  },
+  "gv-date-picker": {
+    "endDate": "Datum ukončení",
+    "format": "dd/MM/yyyy",
+    "now": "Teď",
+    "ok": "Ok",
+    "startDate": "Datum zahájení",
+    "today": "Dnes"
   },
   "gv-documentation": {
     "empty": "Momentálně žádná dokumentace"

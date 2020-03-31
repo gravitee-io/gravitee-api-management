@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
-import { Api, Application, ApplicationService, Dashboard } from '@gravitee/ng-portal-webclient';
+import { Application, ApplicationService, Dashboard } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
 

@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
-import { Api, ApplicationService, Dashboard } from '@gravitee/ng-portal-webclient';
+import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ApplicationService, Dashboard } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { LoaderService } from '../../services/loader.service';
 import { AnalyticsService } from '../../services/analytics.service';
+import '@gravitee/ui-components/wc/gv-date-picker';
 
 @Component({
   selector: 'app-gv-analytics-filters',
   templateUrl: './gv-analytics-filters.component.html',
   styleUrls: ['./gv-analytics-filters.component.css']
 })
-export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
+export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input() dashboard: Dashboard;
   @Output() refreshDashboard: EventEmitter<any> = new EventEmitter();
@@ -34,6 +35,9 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
   analyticsForm: FormGroup;
   tags: Array<any>;
   apisOptions: Array<any>;
+  invalidDates: boolean;
+  maxDate: number;
+  private maxDateTimer: any;
 
   constructor(
     private router: Router,
@@ -42,7 +46,8 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
     public loaderService: LoaderService,
     public analyticsService: AnalyticsService,
     public applicationService: ApplicationService,
-  ) { }
+  ) {
+  }
 
   ngOnInit(): void {
     this.initForm();
@@ -57,20 +62,28 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
     } else {
       this.initFilters();
     }
+    this.maxDate = new Date().getTime();
+    this.maxDateTimer = setInterval(() => {
+      this.maxDate = new Date().getTime();
+    }, 30000);
+
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.maxDateTimer);
   }
 
   private initForm() {
     this.analyticsForm = this.formBuilder.group({
-      from: this.route.snapshot.queryParams.from,
-      to: this.route.snapshot.queryParams.to,
-      requestId: this.route.snapshot.queryParams._id,
-      transactionId: this.route.snapshot.queryParams.transaction,
+      range: new FormControl([this.route.snapshot.queryParams.from, this.route.snapshot.queryParams.to]),
+      requestId: new FormControl(this.route.snapshot.queryParams._id),
+      transactionId: new FormControl(this.route.snapshot.queryParams.transaction),
       methods: new FormControl(this.route.snapshot.queryParams.method),
-      path: this.route.snapshot.queryParams.uri,
+      path: new FormControl(this.route.snapshot.queryParams.uri),
       responseTimes: new FormControl(this.route.snapshot.queryParams['response-time']),
       status: new FormControl(this.route.snapshot.queryParams.status),
       api: new FormControl(this.route.snapshot.queryParams.api),
-      payloads: this.route.snapshot.queryParams.body,
+      payloads: new FormControl(this.route.snapshot.queryParams.body),
     });
   }
 
@@ -105,7 +118,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
             this.tags.push(q + ': ' + qp);
           });
         }
-    });
+      });
   }
 
   @HostListener(':gv-option:select', ['$event.detail'])
@@ -116,8 +129,8 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
       queryParamsHandling: 'merge',
       fragment: this.analyticsService.fragment
     }).then(() => {
-      this.analyticsForm.patchValue({ from: null });
-      this.analyticsForm.patchValue({ to: null });
+      this.analyticsForm.patchValue({ range: null });
+      // this.analyticsForm.patchValue({to: null});
       this.search();
     });
   }
@@ -155,8 +168,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
   }
 
   formValid() {
-    return (!this.analyticsForm.value.from && !this.analyticsForm.value.to)
-      || (this.analyticsForm.value.from && this.analyticsForm.value.to);
+    return !this.invalidDates;
   }
 
   search() {
@@ -171,9 +183,10 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
         api: this.analyticsForm.value.api || null,
         body: this.analyticsForm.value.payloads || null,
       };
-      if (this.analyticsForm.value.from && this.analyticsForm.value.to) {
-        queryParams.from = this.analyticsForm.value.from;
-        queryParams.to = this.analyticsForm.value.to;
+
+      if (this.analyticsForm.value.range) {
+        queryParams.from = this.analyticsForm.value.range[0];
+        queryParams.to = this.analyticsForm.value.range[1];
         queryParams.timeframe = null;
       }
       this.router.navigate([], {
@@ -189,10 +202,10 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit {
 
   reset() {
     const queryParams: any = {
-      from: this.analyticsForm.value.from,
-      to: this.analyticsForm.value.to,
+      from: this.analyticsForm.value.range[0],
+      to: this.analyticsForm.value.range[1],
     };
-    if (!this.analyticsForm.value.from && !this.analyticsForm.value.to) {
+    if (this.analyticsForm.value.range == null || this.analyticsForm.value.range.length === 0) {
       queryParams.timeframe = this.route.snapshot.queryParams.timeframe || '1d';
     }
     // keep analytics params

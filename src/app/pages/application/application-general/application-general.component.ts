@@ -75,33 +75,31 @@ export class ApplicationGeneralComponent implements OnInit {
         });
 
       this.reset();
-      this.translateService.get([i18n('application.miscellaneous.owner'), i18n('application.miscellaneous.type'),
-        i18n('application.miscellaneous.createdDate'), i18n('application.miscellaneous.lastUpdate')])
-        .subscribe(
-          ({
-             'application.miscellaneous.owner': owner,
-             'application.miscellaneous.type': type,
-             'application.miscellaneous.createdDate': createdDate,
-             'application.miscellaneous.lastUpdate': lastUpdate,
-           }) => {
-            this.translateService.get('application.types', { type: this.application.applicationType })
-              .toPromise().then((applicationType => {
-              this.miscellaneous = [
-                { key: owner, value: this.application.owner.display_name },
-                { key: type, value: applicationType },
-                {
-                  key: createdDate,
-                  value: new Date(this.application.created_at),
-                  date: 'short'
-                },
-                {
-                  key: lastUpdate,
-                  value: new Date(this.application.updated_at),
-                  date: 'relative'
-                },
-              ];
-            }));
-          });
+      this.translateService.get([
+        i18n('application.miscellaneous.owner'),
+        i18n('application.miscellaneous.type'),
+        i18n('application.miscellaneous.createdDate'),
+        i18n('application.miscellaneous.lastUpdate'),
+        'application.types'
+      ], { type: this.application.applicationType })
+        .toPromise()
+        .then(translations => {
+          const _translations = Object.values(translations);
+          this.miscellaneous = [
+            { key: _translations[0], value: this.application.owner.display_name },
+            { key: _translations[1], value: _translations[4] },
+            {
+              key: _translations[2],
+              value: new Date(this.application.created_at),
+              date: 'short'
+            },
+            {
+              key: _translations[3],
+              value: new Date(this.application.updated_at),
+              date: 'relative'
+            },
+          ];
+        });
 
       this.linkedApis = this.applicationService.getSubscriberApisByApplicationId({
         applicationId: this.application.id,

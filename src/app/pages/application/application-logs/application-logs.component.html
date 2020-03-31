@@ -27,7 +27,7 @@
                 [selected]="selectedLog" rowheight="40px"></gv-table>
       <div *ngIf="logs && logs.length" class="application__logs__pagination__block">
         <gv-select class="application__logs__pagination__size__block" [options]="pageSizes" [value]="size"
-                   (:gv-select:select)="onSelectSize($event.detail)"></gv-select>
+                   small (:gv-select:select)="onSelectSize($event.detail)"></gv-select>
         <gv-pagination class="application__logs__pagination__pagination__block" [data]="paginationData"></gv-pagination>
       </div>
     </div>

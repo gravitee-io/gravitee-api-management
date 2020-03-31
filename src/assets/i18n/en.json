@@ -171,10 +171,10 @@
       "title": "Logs"
     },
     "miscellaneous": {
-      "createdDate": "Creation date:",
-      "lastUpdate": "Last update:",
-      "owner": "Owner:",
-      "type": "Type:"
+      "createdDate": "Created",
+      "lastUpdate": "Updated",
+      "owner": "Owner",
+      "type": "Type"
     },
     "name": {
       "label": "Name of the app",
@@ -409,13 +409,8 @@
   },
   "common": {
     "date": {
-      "from": {
-        "label": "Start date",
-        "title": "Select a start date"
-      },
-      "to": {
-        "label": "End date",
-        "title": "Select an end date"
+      "range": {
+        "title": "Select a time interval"
       }
     },
     "filters": {
@@ -482,8 +477,7 @@
     "copy": "Copy to clipboard"
   },
   "gv-confirm": {
-    "cancel": "Cancel",
-    "ok": "Ok"
+    "cancel": "Cancel"
   },
   "gv-contact": {
     "apis": {
@@ -509,6 +503,14 @@
   },
   "gv-create-application": {
     "createApplication": "Create an app"
+  },
+  "gv-date-picker": {
+    "endDate": "End date",
+    "format": "MM/dd/yyyy",
+    "now": "Now",
+    "ok": "Ok",
+    "startDate": "Start date",
+    "today": "Today"
   },
   "gv-documentation": {
     "empty": "No documentation for the moment"
