@@ -1267,16 +1267,16 @@
         },
         {
           "name": "--gv-select-hover--bgc",
-          "description": "Active background color",
+          "description": "Hover background color",
           "type": "color",
           "default": "var(--gv-theme-color-light, #D5FDCB)",
           "value": ""
         },
         {
           "name": "--gv-select-selected--bgc",
-          "description": "Hover background color",
+          "description": "Selected background color",
           "type": "color",
-          "default": "var(--gv-theme-neutral-color-lighter, #FAFAFA)",
+          "default": "var(--gv-theme-neutral-color-light, #EFEFEF)",
           "value": ""
         }
       ]
@@ -1463,6 +1463,20 @@
         {
           "name": "--gv-input--bdc",
           "description": "Border color",
+          "type": "string",
+          "default": "var(--gv-theme-neutral-color, #F5F5F5)",
+          "value": ""
+        },
+        {
+          "name": "--gv-input--bds",
+          "description": "Border style",
+          "type": "color",
+          "default": "solid",
+          "value": "solid"
+        },
+        {
+          "name": "--gv-input-icon--bgc",
+          "description": "Icon background color",
           "type": "color",
           "default": "var(--gv-theme-neutral-color, #F5F5F5)",
           "value": ""
@@ -1497,6 +1511,105 @@
           "type": "length",
           "default": "32px",
           "value": "32px"
+        }
+      ]
+    },
+    {
+      "name": "gv-date-picker",
+      "css": [
+        {
+          "name": "--gv-date-picker-hover--bgc",
+          "description": "Hover background color",
+          "type": "color",
+          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "value": ""
+        },
+        {
+          "name": "--gv-date-picker-hover--c",
+          "description": "Hover color",
+          "type": "color",
+          "default": "var(--gv-theme-font-color-dark, #262626)",
+          "value": ""
+        },
+        {
+          "name": "--gv-date-picker-selected--bgc",
+          "description": "Selected background color",
+          "type": "color",
+          "default": "var(--gv-theme-color, #009B5B)",
+          "value": ""
+        },
+        {
+          "name": "--gv-date-picker-selected--c",
+          "description": "Selected color",
+          "type": "color",
+          "default": "var(--gv-theme-font-color-light, #FFFFFF)",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "gv-date-picker-cell",
+      "css": [
+        {
+          "name": "--gv-date-picker-hover--bgc",
+          "description": "Hover background color",
+          "type": "color",
+          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "value": ""
+        },
+        {
+          "name": "--gv-date-picker-hover--c",
+          "description": "Hover color",
+          "type": "color",
+          "default": "var(--gv-theme-font-color-dark, #262626)",
+          "value": ""
+        },
+        {
+          "name": "--gv-date-picker-selected--bgc",
+          "description": "Selected background color",
+          "type": "color",
+          "default": "var(--gv-theme-color, #009B5B)",
+          "value": ""
+        },
+        {
+          "name": "--gv-date-picker-selected--c",
+          "description": "Selected color",
+          "type": "color",
+          "default": "var(--gv-theme-font-color-light, #FFFFFF)",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "gv-date-picker-calendar",
+      "css": [
+        {
+          "name": "--gv-date-picker-hover--bgc",
+          "description": "Hover background color",
+          "type": "color",
+          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "value": ""
+        },
+        {
+          "name": "--gv-date-picker-hover--c",
+          "description": "Hover color",
+          "type": "color",
+          "default": "var(--gv-theme-font-color-dark, #262626)",
+          "value": ""
+        },
+        {
+          "name": "--gv-date-picker-selected--bgc",
+          "description": "Selected background color",
+          "type": "color",
+          "default": "var(--gv-theme-color, #009B5B)",
+          "value": ""
+        },
+        {
+          "name": "--gv-date-picker-selected--c",
+          "description": "Selected color",
+          "type": "color",
+          "default": "var(--gv-theme-font-color-light, #FFFFFF)",
+          "value": ""
         }
       ]
     },
