@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.impl;
 
+import freemarker.core.HTMLOutputFormat;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import io.gravitee.management.service.EmailNotification;
@@ -74,7 +75,8 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                 final MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
 
                 final Template template = freemarkerConfiguration.getTemplate(emailNotification.getTemplate());
-                final String content = processTemplateIntoString(template, emailNotification.getParams());
+                String content = processTemplateIntoString(template, emailNotification.getParams());
+                content = content.replaceAll("&lt;br /&gt;", "<br />");
 
                 final String from = isNull(emailNotification.getFrom()) || emailNotification.getFrom().isEmpty()
                         ? defaultFrom
