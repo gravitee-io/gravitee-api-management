@@ -1393,7 +1393,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     PlanQuery query = new PlanQuery.Builder().
                             api(createdOrUpdatedApiEntity.getId()).
                             name(planNode.get("name").asText()).
-                            security(PlanSecurityType.valueOf(planNode.get("security").asText())).
+                            security(PlanSecurityType.valueOf(planNode.get("security").asText().toUpperCase())).
                             build();
                     List<PlanEntity> planEntities = planService.search(query);
                     if (planEntities == null || planEntities.isEmpty()) {

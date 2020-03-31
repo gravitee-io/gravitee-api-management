@@ -103,5 +103,31 @@
         "body": "{\"bad\":\"news\"}"
       }
     }
-  }
+  },
+  "plans" : [
+    {
+      "id" : "plan-id",
+      "name": "free plan",
+      "description" : "free plan",
+      "validation" : "AUTO",
+      "security" : "api_key",
+      "type" : "API",
+      "status" : "PUBLISHED",
+      "apis" : [ "id-api" ],
+      "order" : 0,
+      "paths" : {
+        "/" : [ {
+          "methods" : [ "GET" ],
+          "rate-limit" : {
+            "rate": {
+              "limit": 1,
+              "periodTime": 1,
+              "periodTimeUnit": "SECONDS"
+            }
+          },
+          "enabled" : true
+        } ]
+      }
+    }
+  ]
 }
