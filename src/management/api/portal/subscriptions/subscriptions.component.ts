@@ -18,6 +18,7 @@ import ApiService from "../../../../services/api.service";
 import NotificationService from "../../../../services/notification.service";
 import { PagedResult } from "../../../../entities/pagedResult";
 import { StateService } from '@uirouter/core';
+import {IScope} from "angular";
 
 export class SubscriptionQuery {
   status?: string[] = ['ACCEPTED', 'PENDING', 'PAUSED'];
@@ -56,7 +57,8 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       private ApiService: ApiService,
       private NotificationService: NotificationService,
       private $mdDialog: angular.material.IDialogService,
-      private $state: StateService
+      private $state: StateService,
+      public $rootScope: IScope,
     ) {
       'ngInject';
 
