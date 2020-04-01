@@ -601,10 +601,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
                                 @Override
                                 public void accept(VirtualHost virtualHost) {
+                                    final String targetHost = virtualHost.getHost() == null ? entrypoint.getValue() : virtualHost.getHost();
                                     apiEntrypoints.add(new ApiEntrypointEntity(
                                             tagEntrypoints,
                                             DUPLICATE_SLASH_REMOVER
-                                                    .matcher(entrypoint.getValue() + URI_PATH_SEPARATOR + virtualHost.getPath())
+                                                    .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
                                                     .replaceAll(URI_PATH_SEPARATOR),
                                             virtualHost.getHost())
                                     );
@@ -622,9 +623,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
                     @Override
                     public void accept(VirtualHost virtualHost) {
+                        final String targetHost = virtualHost.getHost() == null ? defaultEntrypoint : virtualHost.getHost();
                         apiEntrypoints.add(new ApiEntrypointEntity(
                                 DUPLICATE_SLASH_REMOVER
-                                        .matcher(defaultEntrypoint + URI_PATH_SEPARATOR + virtualHost.getPath())
+                                        .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
                                         .replaceAll(URI_PATH_SEPARATOR), virtualHost.getHost())
                         );
                     }
