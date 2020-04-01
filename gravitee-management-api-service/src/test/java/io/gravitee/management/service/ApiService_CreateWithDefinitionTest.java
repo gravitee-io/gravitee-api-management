@@ -366,8 +366,8 @@ public class ApiService_CreateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
-        // 3 times (with default api owner mail metadata)
-        verify(apiMetadataService, times(3)).create(any(NewApiMetadataEntity.class));
+        verify(apiMetadataService, times(1)).create(any(NewApiMetadataEntity.class));
+        verify(apiMetadataService, times(2)).update(any(UpdateApiMetadataEntity.class));
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());

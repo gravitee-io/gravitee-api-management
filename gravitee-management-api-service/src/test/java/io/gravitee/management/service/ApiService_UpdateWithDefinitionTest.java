@@ -372,12 +372,10 @@ public class ApiService_UpdateWithDefinitionTest {
 
         ApiMetadataEntity apiMetadataEntity = new ApiMetadataEntity();
         apiMetadataEntity.setName("metadata-name");
-        when(apiMetadataService.findAllByApi(anyString())).thenReturn(Collections.singletonList(apiMetadataEntity));
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
 
-        verify(apiMetadataService, times(1)).create(any(NewApiMetadataEntity.class));
-        verify(apiMetadataService, times(1)).update(any(UpdateApiMetadataEntity.class));
+        verify(apiMetadataService, times(2)).update(any(UpdateApiMetadataEntity.class));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
     }

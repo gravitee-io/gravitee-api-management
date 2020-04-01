@@ -1391,25 +1391,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             final JsonNode metadataDefinition = jsonNode.path("metadata");
             if (metadataDefinition != null && metadataDefinition.isArray()) {
                 try {
-                    List<ApiMetadataEntity> apiMetadata = apiMetadataService.findAllByApi(createdOrUpdatedApiEntity.getId());
-                    List<ApiMetadataEntity> metadata = objectMapper.readValue(metadataDefinition.toString(),
-                            objectMapper.getTypeFactory().constructCollectionType(List.class, ApiMetadataEntity.class));
                     for (JsonNode metadataNode : metadataDefinition) {
-                        // First we prevent the duplicate metadata name
-                        final String name = metadataNode.get("name").asText();
-                        final Optional<ApiMetadataEntity> optionalMetadata = apiMetadata.stream()
-                                .filter(m -> name.equalsIgnoreCase(m.getName()))
-                                .findAny();
-
-                        if (optionalMetadata.isPresent()) {
-                            UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(metadataNode.toString(), UpdateApiMetadataEntity.class);
-                            updateApiMetadataEntity.setKey(optionalMetadata.get().getKey());
-                            apiMetadataService.update(updateApiMetadataEntity);
-                        } else {
-                            NewApiMetadataEntity newApiMetadataEntity = objectMapper.readValue(metadataNode.toString(), NewApiMetadataEntity.class);
-                            newApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
-                            apiMetadataService.create(newApiMetadataEntity);
-                        }
+                        UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(metadataNode.toString(), UpdateApiMetadataEntity.class);
+                        updateApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
+                        apiMetadataService.update(updateApiMetadataEntity);
                     }
                 } catch (Exception ex) {
                     LOGGER.error("An error occurs while creating API metadata", ex);
