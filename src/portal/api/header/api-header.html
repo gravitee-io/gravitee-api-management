@@ -56,7 +56,7 @@
         </span>
         <span flex style="overflow-x: auto; white-space: nowrap;">
           <small ng-if="!entrypoint.value"><i>{{ 'api.header.noEntryPoint' | translate }}</i></small>
-          <input flex type="text" readonly="true" ng-if="entrypoint.value" ng-value="entrypoint.value + '' + $ctrl.api.context_path">
+          <input flex type="text" readonly="true" ng-if="entrypoint.value" ng-value="entrypoint.value">
         </span>
       </div>
     </div>

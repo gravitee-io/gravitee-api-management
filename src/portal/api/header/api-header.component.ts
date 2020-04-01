@@ -46,15 +46,6 @@ const ApiHeaderComponent: ng.IComponentOptions = {
     });
 
     this.$onInit = () => {
-      // override api entrypoint
-      if (Constants.portal.entrypoint && this.api.entrypoints.length <= 1) {
-        let ctxtpath = "";
-        if (this.api.proxy.virtual_hosts.length > 0) {
-          ctxtpath = this.api.proxy.virtual_hosts[0].path;
-        }
-        this.api.entrypoints[0].target = Constants.portal.entrypoint + ctxtpath;
-      }
-
       // resolve entry points
       this.resolvedEntrypoints = [];
       if (this.Constants.portal.apis.apiHeaderShowTags.enabled) {
