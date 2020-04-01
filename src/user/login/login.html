@@ -29,7 +29,7 @@
             <ng-md-icon icon="person" style="fill: #555"></ng-md-icon>
             <md-input-container class="md-icon-float md-block" flex>
               <label>Username</label>
-              <input ng-model="$ctrl.user.username" type="text" required autofocus>
+              <input ng-model="$ctrl.user.username" type="text" placeholder="" required autofocus>
             </md-input-container>
           </div>
 
@@ -37,12 +37,12 @@
             <ng-md-icon icon="vpn_key" style="fill: #555"></ng-md-icon>
             <md-input-container class="md-icon-float md-block" flex>
               <label>Password</label>
-              <input ng-model="$ctrl.user.password" type="password" required>
+              <input ng-model="$ctrl.user.password" placeholder="" type="password" required>
             </md-input-container>
           </div>
 
           <md-button type="submit" class="md-raised md-primary"
-                     ng-disabled="formUser.$invalid || formUser.$pristine">Log in</md-button>
+                     ng-disabled="canBeDisabled && (formUser.$invalid || formUser.$pristine)">Log in</md-button>
 
 
           <br>

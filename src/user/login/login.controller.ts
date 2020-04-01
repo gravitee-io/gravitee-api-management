@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 import UserService from '../../services/user.service';
-import {IScope} from 'angular';
 import {StateParams, StateService} from '@uirouter/core';
-import { User } from "../../entities/user";
-import RouterService from "../../services/router.service";
+import { IScope } from 'angular';
+import { StateService } from '@uirouter/core';
+import { User } from '../../entities/user';
+import RouterService from '../../services/router.service';
 import * as _ from 'lodash';
-import { IdentityProvider } from "../../entities/identityProvider";
-import AuthenticationService from "../../services/authentication.service";
-import {log} from "util";
+import { IdentityProvider } from '../../entities/identityProvider';
+import AuthenticationService from '../../services/authentication.service';
 
 class LoginController {
   user: any = {};
@@ -37,14 +37,26 @@ class LoginController {
     private RouterService: RouterService,
     private identityProviders,
     private $window,
-    private $stateParams: StateParams
+    private $stateParams: StateParams,
+    private $scope,
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.portal.userCreation.enabled;
     this.localLoginDisabled = (!Constants.authentication.localLogin.enabled) || false;
     this.$state = $state;
     this.$rootScope = $rootScope;
+    this.$scope = $scope;
+    $scope.canBeDisabled = false;
   }
+
+  $onInit() {
+    document.addEventListener('click', this._toDisabledMode);
+  }
+
+  $onDestroy() {
+    document.removeEventListener('click', this._toDisabledMode);
+  }
+
 
   authenticate(identityProvider: string) {
     let nonce = this.AuthenticationService.nonce(32);
@@ -53,11 +65,17 @@ class LoginController {
 
     let provider = _.find(this.identityProviders, {'id': identityProvider}) as IdentityProvider;
     this.AuthenticationService.authenticate(provider, nonce);
-  };
+  }
+
+  _toDisabledMode = () => {
+    this.$scope.canBeDisabled = true;
+    this.$scope.$apply();
+    document.removeEventListener('click', this._toDisabledMode);
+  }
 
   login() {
     this.UserService.login(this.user).then(() => {
-      this.UserService.current().then( (user) => {
+      this.UserService.current().then((user) => {
         this.loginSuccess(user);
       });
     }).catch(() => {
@@ -67,7 +85,7 @@ class LoginController {
   }
 
   loginSuccess(user: User) {
-    this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : user});
+    this.$rootScope.$broadcast('graviteeUserRefresh', {'user': user});
 
     if (this.$state.params.redirectUri) {
       this.$window.location.href = '#!' + this.$state.params.redirectUri;
