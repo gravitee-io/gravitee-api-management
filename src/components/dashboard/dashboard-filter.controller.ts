@@ -82,7 +82,8 @@ class DashboardFilterController {
     };
 
     let label = (filter.fieldLabel ? filter.fieldLabel : filter.field) + " = '" + filter.name + "'";
-    let query =  filter.field + ":(" + _.map(_.keys(field.filters), (key) => (key.includes('TO') || filter.field !== 'path' || filter.field !== 'mapped-path') ? key : "\\\"" + key + "\\\"").join(' OR ') + ')';
+    let query = '(' + _.map(_.keys(field.filters), (key) => filter.field.includes('path') ?
+      filter.field + ":" + "\\\"" + key + "\\\"" : filter.field + ":" + key).join(' OR ') + ')';
 
     this.filters.push({
       source: filter.widget,
@@ -137,7 +138,8 @@ class DashboardFilterController {
     }
 
     if (! _.isEmpty(fieldObject.filters)) {
-      fieldObject.query = field + ":(" + _.map(_.keys(fieldObject.filters), (key) => (key.includes('TO') || field !== 'path' || field !== 'mapped-path') ? key:"\\\"" + key + "\\\"").join(' OR ') + ')';
+      fieldObject.query = '(' + _.map(_.keys(fieldObject.filters), (key) => field.includes('path') ?
+        field + ":" + "\\\"" + key + "\\\"" : field + ":" + key).join(' OR ') + ')';
       this.fields[field] = fieldObject;
     } else {
       delete this.fields[field];
