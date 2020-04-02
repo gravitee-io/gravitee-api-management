@@ -10,7 +10,7 @@
       "type": "table",
       "selectable": true,
       "columns": [
-        "Mapped path",
+        "Path",
         "Hits"
       ],
       "paging": 5,
