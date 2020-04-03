@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder } from '@angular/forms';
-import { UsersService, RegisterUserInput } from '@gravitee/ng-portal-webclient';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { RegisterUserInput, UsersService } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from '../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
@@ -38,9 +38,8 @@ export class RegistrationComponent implements OnInit {
     this.registrationForm = this.formBuilder.group({
       firstname: '',
       lastname: '',
-      email: ''
+      email: '',
     });
-
     this.isSubmitted = false;
   }
 

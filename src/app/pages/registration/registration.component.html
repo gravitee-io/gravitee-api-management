@@ -27,6 +27,7 @@
         formControlName="firstname"
         name="firstname"
         autocomplete="on"
+        autofocus
         ngDefaultControl
         class="registration__form__input"
       >
@@ -55,6 +56,7 @@
         class="registration__form__input"
       >
       </gv-input>
+
       <gv-button
         [disabled]="!isFormValid() || isSubmitted"
         primary
