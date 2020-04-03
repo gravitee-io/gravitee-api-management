@@ -17,7 +17,7 @@
 -->
 <div class="page__content">
   <h1 class="title" *ngIf="!inCategory()">{{getRouteTitle() | translate}}</h1>
-  <h1 class="title" *ngIf="inCategory()">{{title}} <span>({{total}})</span></h1>
+  <h3 class="title" *ngIf="inCategory()">{{description}}</h3>
 
   <section class="catalog__section__top">
 

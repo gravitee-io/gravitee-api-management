@@ -59,8 +59,7 @@ export class FilteredCatalogComponent implements OnInit {
   options: any[];
   currentDisplay: string;
   category: View;
-  title: any;
-  total: any;
+  description: any;
   fragments: any = {
     pagination: 'pagination',
     filter: 'filter'
@@ -78,7 +77,7 @@ export class FilteredCatalogComponent implements OnInit {
     this.randomList = [];
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     this.currentDisplay = this.activatedRoute.snapshot.queryParamMap.get('display') ||
       localStorage.getItem('user-display-mode') || FilteredCatalogComponent.DEFAULT_DISPLAY;
     this._initDisplayOptions();
@@ -181,23 +180,17 @@ export class FilteredCatalogComponent implements OnInit {
       .catch((err) => Promise.reject(err));
   }
 
-  async _loadCategory() {
-    this.title = '';
+  _loadCategory() {
+    this.description = '';
     const _categoryPromise = this.portalService.getViewByViewId({ viewId: this.currentView })
       .toPromise()
       .then((response) => {
         this.category = response;
-        this.title = this.category.name;
-      });
-    const _metaPromise = this.apiService.getApis({ page: this.page, size: 0, view: this.currentView })
-      .toPromise()
-      .then((_meta) => {
-        this.total = _meta.metadata.data.total;
+        this.description = this.category.description;
       });
 
     return Promise.all([
       _categoryPromise,
-      _metaPromise,
       this._loadCards(this._loadPromotedApi({ size: 1, view: this.currentView }))]);
   }
 

@@ -15,7 +15,7 @@
  */
 import '@gravitee/ui-components/wc/gv-header';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { Api, ApiService, Application, ApplicationService, User } from '@gravitee/ng-portal-webclient';
+import { Api, ApiService, Application, ApplicationService, User, PortalService } from '@gravitee/ng-portal-webclient';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { CurrentUserService } from '../../services/current-user.service';
 import { NavRouteService } from '../../services/nav-route.service';
@@ -37,6 +37,7 @@ export class GvHeaderItemComponent implements OnInit {
               public currentUserService: CurrentUserService,
               public apiService: ApiService,
               public applicationService: ApplicationService,
+              public portalService: PortalService,
   ) {
   }
 
@@ -65,6 +66,11 @@ export class GvHeaderItemComponent implements OnInit {
         this.itemId = params.applicationId;
         this.item = this.applicationService
           .getApplicationByApplicationId({ applicationId: this.itemId })
+          .toPromise()
+          .catch((err) => Promise.reject(err));
+      } else if (params.categoryId && params.categoryId !== this.itemId) {
+        this.itemId = params.categoryId;
+        this.item = this.portalService.getViewByViewId({ viewId: this.itemId })
           .toPromise()
           .catch((err) => Promise.reject(err));
       }
