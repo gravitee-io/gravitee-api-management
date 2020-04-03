@@ -84,6 +84,6 @@
 
   <aside class="api__aside">
     <gv-info [item]="currentApi" [metrics]="currentApiMetrics" [resources]="resources" [miscellaneous]="miscellaneous"></gv-info>
-    <gv-list [items]="linkedApp" title="{{ 'api.list.connectedApp' | translate }}"></gv-list>
+    <gv-list *ngIf="linkedApp" [items]="linkedApp" title="{{ 'api.list.connectedApp' | translate }}"></gv-list>
   </aside>
 </div>

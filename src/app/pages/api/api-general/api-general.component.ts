@@ -127,11 +127,9 @@ export class ApiGeneralComponent implements OnInit {
           });
 
           this.currentUser = this.currentUserService.getUser();
-          this._updateRatings();
-
-          this.description = api.description;
-
-          this.linkedApp = this.apiService.getSubscriberApplicationsByApiId({ apiId })
+          if (this.currentUser) {
+            this._updateRatings();
+            this.linkedApp = this.apiService.getSubscriberApplicationsByApiId({ apiId })
             .toPromise()
             .then((response) => {
               return response.data.map((app) => ({
@@ -141,6 +139,9 @@ export class ApiGeneralComponent implements OnInit {
               }));
             })
             .catch(() => []);
+          }
+
+          this.description = api.description;
 
           this.translateService.get([i18n('api.miscellaneous.version'), i18n('api.miscellaneous.lastUpdate'), i18n('api.miscellaneous.publisher')])
             .subscribe(
@@ -360,11 +361,13 @@ export class ApiGeneralComponent implements OnInit {
 
   @HostListener(':gv-info:rating')
   onInfoRating() {
-    let element = document.querySelector('.rating-form');
-    if (element == null) {
-      element = document.querySelector('gv-rating-list');
+    if (this.hasRatingForm()) {
+      let element = document.querySelector('.rating-form');
+      if (element == null) {
+        element = document.querySelector('gv-rating-list');
+      }
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   hasMoreRatings() {
