@@ -96,6 +96,8 @@ public class UserEntity implements Indexable {
 
     private String status;
 
+    private long loginCount;
+
     public String getId() {
         return id;
     }
@@ -200,6 +202,14 @@ public class UserEntity implements Indexable {
         this.status = status;
     }
 
+    public long getLoginCount() {
+        return loginCount;
+    }
+
+    public void setLoginCount(long loginCount) {
+        this.loginCount = loginCount;
+    }
+
     public String getDisplayName() {
         String displayName;
 
@@ -238,6 +248,7 @@ public class UserEntity implements Indexable {
         sb.append(", mail='").append(email).append('\'');
         sb.append(", roles='").append(roles).append('\'');
         sb.append(", status='").append(status).append('\'');
+        sb.append(", loginCount='").append(loginCount).append('\'');
         sb.append('}');
         return sb.toString();
     }

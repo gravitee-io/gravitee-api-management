@@ -51,9 +51,10 @@ public class ConfigServiceTest {
 
     @Mock
     private ParameterService mockParameterService;
-
     @Mock
     private ConfigurableEnvironment environment;
+    @Mock
+    private NewsletterService newsletterService;
 
     @Test
     public void shouldGetPortalConfig() {

@@ -44,6 +44,7 @@ public class PortalConfigEntity {
     private Analytics analytics;
     private Application application;
     private Alert alert;
+    private Newsletter newsletter;
 
     public PortalConfigEntity() {
         company = new Company();
@@ -60,6 +61,7 @@ public class PortalConfigEntity {
         analytics = new Analytics();
         application = new Application();
         alert = new Alert();
+        newsletter = new Newsletter();
     }
 
     public Company getCompany() {
@@ -162,6 +164,14 @@ public class PortalConfigEntity {
 
     public void setAlert(Alert alert) {
         this.alert = alert;
+    }
+
+    public Newsletter getNewsletter() {
+        return newsletter;
+    }
+
+    public void setNewsletter(Newsletter newsletter) {
+        this.newsletter = newsletter;
     }
 
     public class Company {
@@ -1072,6 +1082,19 @@ public class PortalConfigEntity {
             public void setEnabled(Boolean enabled) {
                 this.enabled = enabled;
             }
+        }
+    }
+
+    public static class Newsletter {
+        @ParameterKey(Key.NEWSLETTER_ENABLED)
+        private Boolean enabled;
+
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
         }
     }
 }

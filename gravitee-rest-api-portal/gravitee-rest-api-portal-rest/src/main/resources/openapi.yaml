@@ -3686,6 +3686,7 @@ components:
           $ref: '#/components/schemas/Enabled'
         backend_to_backend:
           $ref: '#/components/schemas/Enabled'
+
     CategorizedLinks:
       properties:
         root:

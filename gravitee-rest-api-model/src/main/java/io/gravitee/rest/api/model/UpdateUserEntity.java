@@ -17,8 +17,6 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import javax.validation.constraints.NotNull;
-
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -33,10 +31,11 @@ public class UpdateUserEntity {
 	@JsonIgnore
 	private String email;
 
-	@NotNull
 	private String picture;
 
 	private String status;
+
+	private boolean newsletter;
 
 	public String getStatus() {
 		return status;
@@ -88,6 +87,14 @@ public class UpdateUserEntity {
 		this.picture = picture;
 	}
 
+	public boolean isNewsletter() {
+		return newsletter;
+	}
+
+	public void setNewsletter(boolean newsletter) {
+		this.newsletter = newsletter;
+	}
+
 	@Override
 	public String toString() {
 		return "UpdateUserEntity{" +
@@ -96,6 +103,7 @@ public class UpdateUserEntity {
 				", email='" + email + '\'' +
 				", picture='" + picture + '\'' +
 				", status='" + status + '\'' +
+				", newsletter='" + newsletter + '\'' +
 				'}';
 	}
 }

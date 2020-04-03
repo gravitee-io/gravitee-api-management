@@ -48,11 +48,13 @@ public class NewExternalUserEntity {
      * The user picture
      */
     private String picture;
-	
-	/**
-	 * The user source reference
-	 */
-	private String sourceId;
+
+    /**
+     * The user source reference
+     */
+    private String sourceId;
+
+    private boolean newsletter;
 
     public String getSource() {
         return source;
@@ -102,15 +104,24 @@ public class NewExternalUserEntity {
         this.email = email;
     }
 
+    public boolean isNewsletter() {
+        return newsletter;
+    }
+
+    public void setNewsletter(boolean newsletter) {
+        this.newsletter = newsletter;
+    }
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("NewExternalUserEntity{");
-        sb.append(", source='").append(source).append('\'');
-        sb.append(", source_id='").append(sourceId).append('\'');
-        sb.append(", firstname='").append(firstname).append('\'');
-        sb.append(", lastname='").append(lastname).append('\'');
-        sb.append(", mail='").append(email).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return "NewExternalUserEntity{" +
+                "firstname='" + firstname + '\'' +
+                ", lastname='" + lastname + '\'' +
+                ", email='" + email + '\'' +
+                ", source='" + source + '\'' +
+                ", picture='" + picture + '\'' +
+                ", sourceId='" + sourceId + '\'' +
+                ", newsletter=" + newsletter +
+                '}';
     }
 }

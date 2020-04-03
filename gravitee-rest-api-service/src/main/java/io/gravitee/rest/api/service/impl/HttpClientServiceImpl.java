@@ -15,20 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import java.net.URI;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.common.RandomString;
@@ -41,6 +29,16 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.net.URI;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -148,7 +146,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
         request.putHeader("X-Gravitee-Request-Id", RandomString.generate());
 
         request.handler(response -> {
-            if (response.statusCode() == HttpStatusCode.OK_200) {
+            if (response.statusCode() >= 200 && response.statusCode() <= 299) {
                 response.bodyHandler(buffer -> {
                     future.complete(buffer);
 

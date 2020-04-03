@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.PortalConfigEntity.Enabled;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
 
 import org.slf4j.Logger;
@@ -50,6 +51,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private ParameterService parameterService;
     @Autowired
     private ConfigurableEnvironment environment;
+    @Autowired
+    private NewsletterService newsletterService;
 
     @Override
     public PortalConfigEntity getPortalConfig() {
@@ -155,6 +158,10 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             }
             idx++;
         }
+
+        final PortalConfigEntity.Newsletter newsletter = new PortalConfigEntity.Newsletter();
+        newsletter.setEnabled(newsletterService.isEnabled());
+        portalConfigEntity.setNewsletter(newsletter);
     }
 
     @Override

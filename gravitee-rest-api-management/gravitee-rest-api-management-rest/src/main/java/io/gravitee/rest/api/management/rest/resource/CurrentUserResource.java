@@ -130,6 +130,8 @@ public class CurrentUserResource extends AbstractResource {
                         return userDetailRole;
                     }).collect(Collectors.toList()));
 
+            userDetails.setFirstLogin(1 == userEntity.getLoginCount());
+
             return ok(userDetails, MediaType.APPLICATION_JSON).build();
         } else {
             return ok().build();
@@ -140,13 +142,6 @@ public class CurrentUserResource extends AbstractResource {
     @ApiOperation(value = "Update user")
     public Response updateCurrentUser(@Valid @NotNull final UpdateUserEntity user) {
         UserEntity userEntity = userService.findById(getAuthenticatedUser());
-
-        // TODO: how to ensure that we can update the user profile?
-/*
-        if (!userEntity.get.equals(userService.findById(getAuthenticatedUser()).getUsername())) {
-            throw new ForbiddenAccessException();
-        }
-*/
         user.setPicture(checkAndScaleImage(user.getPicture()));
         return ok(userService.update(userEntity.getId(), user)).build();
     }

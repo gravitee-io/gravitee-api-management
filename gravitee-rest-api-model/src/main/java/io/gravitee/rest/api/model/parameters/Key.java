@@ -97,7 +97,8 @@ public enum Key {
     APPLICATION_TYPE_BACKEND_TO_BACKEND_ENABLED("application.types.backend_to_backend.enabled", "true"),
     APPLICATION_REGISTRATION_ENABLED("application.registration.enabled", "false"),
 
-    API_REVIEW_ENABLED("api.review.enabled", "false");
+    API_REVIEW_ENABLED("api.review.enabled", "false"),
+    NEWSLETTER_ENABLED("newsletter.enabled", "true");
 
     String key;
     String defaultValue;

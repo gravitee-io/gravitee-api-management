@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.idp.api.authentication;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.gravitee.rest.api.idp.api.authentication.UserDetailRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -39,7 +38,7 @@ public class UserDetails extends User implements org.springframework.security.co
     private List<UserDetailRole> roles;
     private String username;
     private byte[] picture;
-
+    private boolean firstLogin;
 
     public UserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
@@ -158,6 +157,14 @@ public class UserDetails extends User implements org.springframework.security.co
 
     public void setRoles(List<UserDetailRole> roles) {
         this.roles = roles;
+    }
+
+    public boolean isFirstLogin() {
+        return firstLogin;
+    }
+
+    public void setFirstLogin(boolean firstLogin) {
+        this.firstLogin = firstLogin;
     }
 
     @Override
