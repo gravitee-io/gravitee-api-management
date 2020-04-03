@@ -312,15 +312,6 @@ export const routes: Routes = [
             }
           },
           {
-            path: 'members',
-            component: ApplicationMembersComponent,
-            data: {
-              icon: 'communication:group',
-              title: i18n('route.members'),
-              animation: { type: 'slide', group: 'apps', index: 2 }
-            }
-          },
-          {
             path: 'subscriptions',
             component: ApplicationSubscriptionsComponent,
             data: {
@@ -330,13 +321,22 @@ export const routes: Routes = [
             }
           },
           {
+            path: 'members',
+            component: ApplicationMembersComponent,
+            data: {
+              icon: 'communication:group',
+              title: i18n('route.members'),
+              animation: { type: 'slide', group: 'apps', index: 3 }
+            }
+          },
+          {
             path: 'analytics',
             component: ApplicationAnalyticsComponent,
             data: {
               icon: 'shopping:chart-line#1',
               menu: { slots: { right: GvSelectDashboardComponent } },
               title: i18n('route.analyticsApplication'),
-              animation: { type: 'slide', group: 'app', index: 3 }
+              animation: { type: 'slide', group: 'app', index: 4 }
             },
             resolve: {
               dashboards: DashboardsResolver
@@ -348,7 +348,7 @@ export const routes: Routes = [
             data: {
               icon: 'communication:clipboard-list',
               title: i18n('route.logsApplication'),
-              animation: { type: 'slide', group: 'app', index: 4 }
+              animation: { type: 'slide', group: 'app', index: 5 }
             }
           },
           {
@@ -357,7 +357,7 @@ export const routes: Routes = [
             data: {
               icon: 'general:notifications#2',
               title: i18n('route.notifications'),
-              animation: { type: 'slide', group: 'app', index: 5 }
+              animation: { type: 'slide', group: 'app', index: 6 }
             }
           },
         ]
