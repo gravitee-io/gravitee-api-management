@@ -20,18 +20,14 @@ import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_CREAT
 import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_DELETED;
 import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_UPDATED;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.DatatypeConverter;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.gravitee.common.utils.IdGenerator;
@@ -61,9 +57,6 @@ import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
 public class ViewServiceImpl extends TransactionalService implements ViewService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ViewServiceImpl.class);
-
-    @Value("${configuration.default-icon:${gravitee.home}/assets/default_api_logo.png}")
-    private String defaultIcon;
 
     @Autowired
     private ViewRepository viewRepository;
@@ -262,10 +255,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     public InlinePictureEntity getPicture(String viewId) {
         ViewEntity viewEntity = findById(viewId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
-        if (viewEntity.getPicture() == null) {
-            imageEntity.setType("image/png");
-            imageEntity.setContent(getDefaultPicture());
-        } else {
+        if (viewEntity.getPicture() != null) {
             String[] parts = viewEntity.getPicture().split(";", 2);
             imageEntity.setType(parts[0].split(":")[1]);
             String base64Content = viewEntity.getPicture().split(",", 2)[1];
@@ -273,15 +263,6 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         }
 
         return imageEntity;
-    }
-
-    private byte[] getDefaultPicture() {
-        try {
-            return IOUtils.toByteArray(new FileInputStream(defaultIcon));
-        } catch (IOException ioe) {
-            LOGGER.error("Default icon for View does not exist", ioe);
-        }
-        return null;
     }
 
     private View convert(final NewViewEntity viewEntity) {

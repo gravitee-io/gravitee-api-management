@@ -96,6 +96,9 @@ public class ViewResource extends AbstractViewResource {
         cc.setMaxAge(86400);
 
         InlinePictureEntity image = viewService.getPicture(viewId);
+        if (image == null || image.getContent() == null) {
+            return Response.ok().build();
+        }
 
         EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
         Response.ResponseBuilder builder = request.evaluatePreconditions(etag);

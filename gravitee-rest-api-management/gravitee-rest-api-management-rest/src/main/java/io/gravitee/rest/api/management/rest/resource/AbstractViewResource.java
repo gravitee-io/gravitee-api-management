@@ -31,15 +31,15 @@ public abstract class AbstractViewResource extends AbstractResource {
     protected UriInfo uriInfo;
 
     protected ViewEntity setPicture(ViewEntity viewEntity, boolean fromRoot) {
-        final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-        final UriBuilder uriBuilder = ub.path(fromRoot ? viewEntity.getId() + "/picture" : "picture");
         if (viewEntity.getPicture() != null) {
-            // force browser to get if updated
-            uriBuilder.queryParam("hash", viewEntity.getPicture().hashCode());
-        }
-        viewEntity.setPictureUrl(uriBuilder.build().toString());
-        viewEntity.setPicture(null);
+            final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
+            final UriBuilder uriBuilder = ub.path(fromRoot ? viewEntity.getId() + "/picture" : "picture");
+                // force browser to get if updated
+                uriBuilder.queryParam("hash", viewEntity.getPicture().hashCode());
 
+            viewEntity.setPictureUrl(uriBuilder.build().toString());
+            viewEntity.setPicture(null);
+        }
         return viewEntity;
     }
 
