@@ -151,11 +151,25 @@
           "value": "30px"
         },
         {
+          "name": "--gv-theme-homepage-background-height",
+          "description": "Homepage background height",
+          "type": "length",
+          "default": "400px",
+          "value": "400px"
+        },
+        {
           "name": "--gv-theme-skeleton-color",
           "description": "Primary skeleton color",
           "type": "color",
           "default": "#BFBFBF",
           "value": "#BFBFBF"
+        },
+        {
+          "name": "--gv-theme-homepage-background-color",
+          "description": "Homepage background color",
+          "type": "color",
+          "default": "#193E34",
+          "value": "#193E34"
         }
       ]
     },
@@ -342,22 +356,15 @@
           "name": "--gv-header-image--h",
           "description": "Image height",
           "type": "length",
-          "default": "125px",
-          "value": "125px"
+          "default": "100px",
+          "value": "100px"
         },
         {
           "name": "--gv-header-image--w",
           "description": "Image width",
           "type": "length",
-          "default": "125px",
-          "value": "125px"
-        },
-        {
-          "name": "--gv-header--h",
-          "description": "Height",
-          "type": "length",
-          "default": "150px",
-          "value": "150px"
+          "default": "100px",
+          "value": "100px"
         },
         {
           "name": "--gv-header-button--p",

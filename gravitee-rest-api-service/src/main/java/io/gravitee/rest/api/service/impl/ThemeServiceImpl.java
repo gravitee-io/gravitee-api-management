@@ -171,11 +171,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                     theme.setLogo(this.getDefaultLogo());
                 }
 
-                if (updateThemeEntity.getBackgroundImage() != null) {
-                    theme.setBackgroundImage(updateThemeEntity.getBackgroundImage());
-                } else {
-                    theme.setBackgroundImage(this.getDefaultBackgroundImage());
-                }
+                theme.setBackgroundImage(updateThemeEntity.getBackgroundImage());
 
                 if (updateThemeEntity.getOptionalLogo() != null) {
                     theme.setOptionalLogo(updateThemeEntity.getOptionalLogo());
@@ -259,7 +255,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                 theme.setDefinition(definitionMapper.readDefinition(defaultDefinition));
                 theme.setLogo(this.getDefaultLogo());
                 theme.setOptionalLogo(this.getDefaultOptionalLogo());
-                theme.setBackgroundImage(this.getDefaultBackgroundImage());
                 this.create(theme);
             } else {
                 themes.forEach(theme -> {
@@ -324,10 +319,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
         return getImage("logo-light.png");
     }
 
-    public String getDefaultBackgroundImage() {
-        return getImage("background.jpg");
-    }
-
     private String getImage(String filename) {
         String filepath = "/themes/default/" + filename;
         try {
@@ -352,7 +343,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             updateThemeEntity.setDefinition(themeDefinitionMapper.readDefinition(getDefaultDefinition()));
             updateThemeEntity.setLogo(this.getDefaultLogo());
             updateThemeEntity.setOptionalLogo(this.getDefaultOptionalLogo());
-            updateThemeEntity.setBackgroundImage(this.getDefaultBackgroundImage());
+            updateThemeEntity.setBackgroundImage(null);
 
             auditService.createPortalAuditLog(
                     Collections.singletonMap(THEME, themeId),

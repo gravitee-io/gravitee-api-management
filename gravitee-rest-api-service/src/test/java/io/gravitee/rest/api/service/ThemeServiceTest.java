@@ -559,12 +559,10 @@ public class ThemeServiceTest {
         final Theme theme = mock(Theme.class);
         Mockito.lenient().when(theme.getReferenceType()).thenReturn(ENVIRONMENT.name());
         when(theme.getReferenceId()).thenReturn("DEFAULT");
-        when(theme.getBackgroundImage()).thenReturn(themeServiceImpl.getDefaultBackgroundImage());
 
         when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
         PictureEntity backgroundImage = themeService.getBackgroundImage(THEME_ID);
-        assertNotNull(backgroundImage);
-        assertTrue(backgroundImage instanceof InlinePictureEntity);
+        assertNull(backgroundImage);
     }
 
     @Test
