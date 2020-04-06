@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.standalone;
 
+import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
@@ -172,7 +173,8 @@ public class PostContentGatewayTest extends AbstractGatewayTest {
         String responseContent = StringUtils.copy(response.getEntity().getContent());
         assertEquals(0, responseContent.length());
 
-        verify(postRequestedFor(urlEqualTo("/team/my_team")));
+        verify(postRequestedFor(urlEqualTo("/team/my_team"))
+                .withoutHeader(HttpHeaders.TRANSFER_ENCODING));
     }
 
     @Test
@@ -180,6 +182,7 @@ public class PostContentGatewayTest extends AbstractGatewayTest {
         stubFor(post(urlEqualTo("/team/my_team")).willReturn(ok()));
 
         Request request = Request.Post("http://localhost:8082/test/my_team")
+                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .removeHeaders(HttpHeaders.TRANSFER_ENCODING);
 
         Response response = request.execute();
@@ -193,6 +196,54 @@ public class PostContentGatewayTest extends AbstractGatewayTest {
         String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
         assertEquals(0, responseContent.length());
 
-        verify(postRequestedFor(urlEqualTo("/team/my_team")));
+        verify(postRequestedFor(urlEqualTo("/team/my_team"))
+                .withoutHeader(HttpHeaders.TRANSFER_ENCODING)
+                .withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, new EqualToPattern(MediaType.APPLICATION_JSON)));
+    }
+
+    @Test
+    public void get_no_content_with_chunked_encoding_transfer() throws Exception {
+        stubFor(get(urlEqualTo("/team/my_team")).willReturn(ok()));
+
+        Request request = Request.Get("http://localhost:8082/test/my_team")
+                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .removeHeaders(HttpHeaders.TRANSFER_ENCODING);
+
+        Response response = request.execute();
+
+        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+        // Set chunk mode in request but returns raw because of the size of the content
+        assertEquals(null, returnResponse.getFirstHeader("X-Forwarded-Transfer-Encoding"));
+
+        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        assertEquals(0, responseContent.length());
+
+        verify(getRequestedFor(urlEqualTo("/team/my_team"))
+                .withoutHeader(HttpHeaders.TRANSFER_ENCODING)
+                .withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, new EqualToPattern(MediaType.APPLICATION_JSON)));
+    }
+
+    @Test
+    public void get_no_content_with_chunked_encoding_transfer_and_content_type() throws Exception {
+        stubFor(get(urlEqualTo("/team/my_team")).willReturn(ok()));
+
+        Request request = Request.Get("http://localhost:8082/test/my_team")
+                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+
+        Response response = request.execute();
+
+        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+        // Set chunk mode in request but returns raw because of the size of the content
+        assertEquals(null, returnResponse.getFirstHeader("X-Forwarded-Transfer-Encoding"));
+
+        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        assertEquals(0, responseContent.length());
+
+        verify(getRequestedFor(urlEqualTo("/team/my_team"))
+                .withHeader(io.gravitee.common.http.HttpHeaders.CONTENT_TYPE, new EqualToPattern(MediaType.APPLICATION_JSON)));
     }
 }
