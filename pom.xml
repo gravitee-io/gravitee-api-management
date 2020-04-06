@@ -237,6 +237,7 @@
         <wiremock.version>2.21.0</wiremock.version>
         <guava.version>26.0-jre</guava.version>
         <powermock.version>2.0.0</powermock.version>
+        <nimbus-jwt.version>8.12</nimbus-jwt.version>
     </properties>
 
     <!-- allow snapshot only for vertx until the final release -->
