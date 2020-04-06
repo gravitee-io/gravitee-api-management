@@ -63,11 +63,18 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   public currentUser: User;
   public notification: Notification;
   public isPreview = false;
+  public isSticky = false;
+  public isStickyHomepage = false;
   public links: any = {};
   @ViewChild(GvMenuTopSlotDirective, { static: true }) appGvMenuTopSlot: GvMenuTopSlotDirective;
   @ViewChild(GvMenuRightTransitionSlotDirective, { static: true }) appGvMenuRightTransitionSlot: GvMenuRightTransitionSlotDirective;
   @ViewChild(GvMenuRightSlotDirective, { static: true }) appGvMenuRightSlot: GvMenuRightSlotDirective;
+
+  @ViewChild('homepageBackground', { static: true }) homepageBackground;
   private slots: Array<GvSlot>;
+  private homepageBackgroundHeight: number;
+  private gaEnabled: boolean;
+  private gaTrackingId: string;
 
   constructor(
     private titleService: Title,
@@ -82,21 +89,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private portalService: PortalService,
     private ref: ChangeDetectorRef,
   ) {
-    // google analytics
-    const gaEnabled = this.configurationService.hasFeature(FeatureEnum.googleAnalytics);
-    const gaTrackingId = this.configurationService.get('portal.analytics.trackingId');
-    if (gaEnabled && gaTrackingId) {
-      const scriptGA = document.createElement('script');
-      scriptGA.async = true;
-      scriptGA.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaTrackingId;
-
-      const scriptGtag = document.createElement('script');
-      scriptGtag.async = true;
-      scriptGtag.innerHTML = 'function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date);';
-
-      document.head.append(scriptGA);
-      document.head.append(scriptGtag);
-    }
 
     this.activatedRoute.queryParamMap.subscribe(params => {
       if (params.has('preview') && params.get('preview') === 'on') {
@@ -109,8 +101,8 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
         this.notificationService.reset();
       } else if (event instanceof NavigationEnd) {
         // google analytics
-        if (gaEnabled && gaTrackingId) {
-          gtag('config', gaTrackingId, { page_path: event.urlAfterRedirects, cookieDomain: 'none' });
+        if (this.gaEnabled && this.gaTrackingId) {
+          gtag('config', this.gaTrackingId, { page_path: event.urlAfterRedirects, cookieDomain: 'none' });
         }
 
         const currentRoute: ActivatedRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
@@ -125,40 +117,10 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     });
   }
 
-  @HostListener('window:beforeunload')
-  async ngOnDestroy() {
-    sessionStorage.removeItem('gvPreview');
-  }
-
-  @HostListener(':gv-theme:error', ['$event.detail'])
-  onThemeError(detail) {
-    this.notificationService.error(detail.message);
-  }
-
-  ngAfterViewInit() {
-    const loader = document.querySelector('#loader');
-    if (loader) {
-      loader.remove();
-    }
-    this.slots = [this.appGvMenuRightSlot, this.appGvMenuRightTransitionSlot, this.appGvMenuTopSlot];
-  }
-
-  prepareRoute(outlet: RouterOutlet) {
-    return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation;
-  }
-
-  private _setBrowserTitle(currentRoute: ActivatedRoute) {
-    this.translateService.get(i18n('site.title')).subscribe((siteTitle) => {
-      const data = currentRoute.snapshot.data;
-      if (data && data.title) {
-        this.translateService.get(data.title).subscribe((title) => this.titleService.setTitle(`${title} | ${siteTitle}`));
-      } else {
-        this.titleService.setTitle(siteTitle);
-      }
-    });
-  }
 
   async ngOnInit() {
+    this.gaEnabled = this.configurationService.hasFeature(FeatureEnum.googleAnalytics);
+    this.gaTrackingId = this.configurationService.get('portal.analytics.trackingId');
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
       this.userRoutes = this.navRouteService.getUserNav();
@@ -175,6 +137,81 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
         delete this.notification;
       }
       this.ref.detectChanges();
+    });
+  }
+
+  ngAfterViewInit() {
+    const loader = document.querySelector('#loader');
+    if (loader) {
+      loader.remove();
+    }
+    this.slots = [this.appGvMenuRightSlot, this.appGvMenuRightTransitionSlot, this.appGvMenuTopSlot];
+
+    // google analytics
+    if (this.gaEnabled && this.gaTrackingId) {
+      const scriptGA = document.createElement('script');
+      scriptGA.async = true;
+      scriptGA.src = `https://www.googletagmanager.com/gtag/js?id=${this.gaTrackingId}`;
+
+      const scriptGtag = document.createElement('script');
+      scriptGtag.async = true;
+      scriptGtag.innerHTML = 'function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date);';
+
+      document.head.appendChild(scriptGA);
+      document.head.appendChild(scriptGtag);
+    }
+  }
+
+  @HostListener('window:beforeunload')
+  async ngOnDestroy() {
+    sessionStorage.removeItem('gvPreview');
+  }
+
+  @HostListener(':gv-theme:error', ['$event.detail'])
+  onThemeError(detail) {
+    this.notificationService.error(detail.message);
+  }
+
+  @HostListener('window:scroll')
+  onScroll() {
+    const pageYOffset = window.pageYOffset;
+    window.requestAnimationFrame(() => {
+      if (this.isHomepage()) {
+        this.isStickyHomepage = pageYOffset >= this.homepageBackgroundHeight - 70;
+      }
+      if (!this.isSticky) {
+        this.isSticky = pageYOffset > 50;
+      } else {
+        this.isSticky = !(pageYOffset === 0);
+      }
+    });
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.computeHomepageHeight();
+  }
+
+  private computeHomepageHeight() {
+    if (this.isHomepage()) {
+      setTimeout(() => {
+        this.homepageBackgroundHeight = parseInt(window.getComputedStyle(this.homepageBackground.nativeElement).height, 10);
+      }, 0);
+    }
+  }
+
+  prepareRoute(outlet: RouterOutlet) {
+    return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation;
+  }
+
+  private _setBrowserTitle(currentRoute: ActivatedRoute) {
+    this.translateService.get(i18n('site.title')).subscribe((siteTitle) => {
+      const data = currentRoute.snapshot.data;
+      if (data && data.title) {
+        this.translateService.get(data.title).subscribe((title) => this.titleService.setTitle(`${title} | ${siteTitle}`));
+      } else {
+        this.titleService.setTitle(siteTitle);
+      }
     });
   }
 
@@ -235,7 +272,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private _onNavigationEnd() {
-
     this.portalService.getPortalLinks().subscribe((portalLinks) => {
       if (portalLinks.slots) {
 
@@ -281,6 +317,8 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     } else {
       this._clearMenuSlots();
     }
+    this.isSticky = false;
+    this.computeHomepageHeight();
   }
 
   private _clearMenuSlots() {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentRef, ViewContainerRef } from '@angular/core';
+import { ViewContainerRef } from '@angular/core';
 
 export abstract class GvSlot {
 

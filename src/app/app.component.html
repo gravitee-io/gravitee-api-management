@@ -16,65 +16,76 @@
 
 -->
 <gv-theme *ngIf="isPreview"></gv-theme>
-<div class="layout">
-  <header class="layout__header" [ngClass]="{'layout__header__background': isHomepage()}">
-    <div class="layout__header__container">
-      <div class="layout__header__logo" [ngClass]="{'layout__header__homepage__logo': isHomepage()}">
-        <a [routerLink]="'/'" title="{{ 'site.title' | translate }}"></a>
-      </div>
+<div class="layout"
+     [ngClass]="{'sticky': this.isSticky, 'sticky-homepage': this.isStickyHomepage, 'layout__homepage': isHomepage()  }">
 
-      <gv-nav [routes]="mainRoutes" [ngClass]="{'layout__nav': isHomepage()}"></gv-nav>
-
-      <div class="layout__nav__container" [ngClass]="{'layout__nav': displayShadowNav()}">
-        <gv-user-menu [routes]="userRoutes" [ngClass]="{'layout__user-menu': isHomepage()}" [username]="this.getUserName()">
-          <gv-identity-picture *ngIf="currentUser" [display_name]="currentUser.display_name" [picture]="currentUser._links.avatar"></gv-identity-picture>
-        </gv-user-menu>
-      </div>
+    <div #homepageBackground class="layout__header__homepage__background">
+        <div *ngIf="isHomepage()" class="layout__header__homepage__title">
+            <h1>{{'homepage.title' | translate}}</h1>
+            <gv-button (click)="goTo('/catalog')" outlined>{{'homepage.explore' | translate}}</gv-button>
+            <gv-button (click)="goTo('/user/registration')" *ngIf="displaySignUp()"
+                       outlined>{{'homepage.signup' | translate}}</gv-button>
+        </div>
     </div>
 
-    <div *ngIf="isHomepage()">
-      <h1 class="layout__header__homepage__title">{{'homepage.title' | translate}}</h1>
-      <gv-button (click)="goTo('/catalog')" class="layout__header__homepage__link" outlined>{{'homepage.explore' | translate}}</gv-button>
-      <gv-button (click)="goTo('/user/registration')" *ngIf="displaySignUp()" class="layout__header__homepage__link" outlined>{{'homepage.signup' | translate}}</gv-button>
-    </div>
-  </header>
+    <header class="layout__header">
 
-  <div class="layout__content">
-    <gv-menu [routes]="menuRoutes">
-        <ng-template appGvMenuTopSlot></ng-template>
-        <ng-template appGvMenuRightTransitionSlot></ng-template>
-        <ng-template appGvMenuRightSlot></ng-template>
-    </gv-menu>
-    <gv-message *ngIf="notification" [type]="notification.type">{{ notification.message }}</gv-message>
-    <div [@routeAnimations]="prepareRoute(outlet)" >
-      <router-outlet #outlet="outlet"></router-outlet>
-    </div>
-  </div>
+        <div class="layout__header__container">
+            <div class="layout__header__logo" [ngClass]="{'layout__header__homepage__logo': isHomepage()}">
+                <a [routerLink]="'/'" title="{{ 'site.title' | translate }}"></a>
+            </div>
 
-  <footer class="layout__footer">
-    <section class="layout__footer__top">
-      <div class="layout__footer__top__logo">
-        <a [routerLink]="'/'" title="{{ 'site.title' | translate }}"></a>
-      </div>
-      <div class="layout__footer__top__category" *ngFor="let category of links.footer">
-        <span class="layout__footer__top__category__title">{{category.title | translate}}</span>
-        <div class="layout__footer__top__category__title_border"></div>
-        <ul class="layout__footer__top__category__links">
-          <li *ngFor="let link of category.links">
-            <gv-link [path]="link.path" [target]="link.target" title="{{ link.title | translate }}"></gv-link>
-          </li>
-        </ul>
-      </div>
-    </section>
-    <section class="layout__footer__bottom">
-      <ul class="layout__footer__bottom__links">
-        <li *ngFor="let link of links.subfooter">
-          <gv-link [path]="link.path" [target]="link.target" title="{{ link.title | translate }}"></gv-link>
-        </li>
-      </ul>
-      <ul class="layout__footer__bottom__rights">
-        <li>{{ 'footer.rights' | translate }}</li>
-      </ul>
-    </section>
-  </footer>
+            <gv-nav [routes]="mainRoutes" [ngClass]="{'layout__nav': isHomepage()}"></gv-nav>
+
+            <div class="layout__nav__container" [ngClass]="{'layout__nav': displayShadowNav()}">
+                <gv-user-menu [routes]="userRoutes" [ngClass]="{'layout__user-menu': isHomepage()}"
+                              [username]="this.getUserName()">
+                    <gv-identity-picture *ngIf="currentUser" [display_name]="currentUser.display_name"
+                                         [picture]="currentUser._links.avatar"></gv-identity-picture>
+                </gv-user-menu>
+            </div>
+        </div>
+
+        <gv-menu [routes]="menuRoutes" [sticky]="this.isSticky">
+            <ng-template appGvMenuTopSlot></ng-template>
+            <ng-template appGvMenuRightTransitionSlot></ng-template>
+            <ng-template appGvMenuRightSlot></ng-template>
+        </gv-menu>
+        <gv-message *ngIf="notification" [type]="notification.type">{{ notification.message }}</gv-message>
+
+    </header>
+
+    <div class="layout__content" [ngClass]="{'layout__content__homepage': isHomepage() }">
+        <div [@routeAnimations]="prepareRoute(outlet)">
+            <router-outlet #outlet="outlet"></router-outlet>
+        </div>
+    </div>
+
+    <footer class="layout__footer">
+        <section class="layout__footer__top">
+            <div class="layout__footer__top__logo">
+                <a [routerLink]="'/'" title="{{ 'site.title' | translate }}"></a>
+            </div>
+            <div class="layout__footer__top__category" *ngFor="let category of links.footer">
+                <span class="layout__footer__top__category__title">{{category.title | translate}}</span>
+                <div class="layout__footer__top__category__title_border"></div>
+                <ul class="layout__footer__top__category__links">
+                    <li *ngFor="let link of category.links">
+                        <gv-link [path]="link.path" [target]="link.target"
+                                 title="{{ link.title | translate }}"></gv-link>
+                    </li>
+                </ul>
+            </div>
+        </section>
+        <section class="layout__footer__bottom">
+            <ul class="layout__footer__bottom__links">
+                <li *ngFor="let link of links.subfooter">
+                    <gv-link [path]="link.path" [target]="link.target" title="{{ link.title | translate }}"></gv-link>
+                </li>
+            </ul>
+            <ul class="layout__footer__bottom__rights">
+                <li>{{ 'footer.rights' | translate }}</li>
+            </ul>
+        </section>
+    </footer>
 </div>
