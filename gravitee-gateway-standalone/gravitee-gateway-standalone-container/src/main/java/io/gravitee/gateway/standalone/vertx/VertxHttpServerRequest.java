@@ -191,7 +191,12 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public Request endHandler(Handler<Void> endHandler) {
-        httpServerRequest.endHandler(endHandler::handle);
+        httpServerRequest.endHandler(new io.vertx.core.Handler<Void>() {
+            @Override
+            public void handle(Void event) {
+                endHandler.handle(event);
+            }
+        });
         return this;
     }
 
