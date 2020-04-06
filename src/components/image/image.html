@@ -16,8 +16,9 @@
 
 -->
 <div class="gravitee-upload-image">
-  <img ng-class="imageClass" ngf-no-object-url="true" ngf-src="imgCtrl.getSource()"
+  <img ng-if="image" ng-class="imageClass" ngf-no-object-url="true" ngf-src="imgCtrl.getSource()"
        ng-style="imageBorderRadius?{'border-radius': '100px'}:''" />
+  <div ng-if="image == null">No image</div>
 </div>
 <div class="gravitee-upload-image-button">
     <a ngf-select="imgCtrl.selectImage($file,$invalidFiles)" ngf-pattern="'image/*'"

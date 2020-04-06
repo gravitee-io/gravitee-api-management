@@ -86,6 +86,11 @@
                                   delete-label="Use default logo">
                   </gravitee-image>
                 </div>
+              </v-pane-content>
+            </v-pane>
+            <v-pane >
+              <v-pane-header>Homepage</v-pane-header>
+              <v-pane-content>
 
                 <div>
                   <label class="theme-component-label">Homepage background image</label>
@@ -93,9 +98,40 @@
                                   image-url="$ctrl.getBackgroundImageUrl()"
                                   image-form="themeForm"
                                   ng-model="theme.backgroundImage"
+                                  can-delete="true"
                                   change-label="Change">
                   </gravitee-image>
                 </div>
+
+                <label class="theme-component-label">Colors</label>
+                <div class="theme-component-colors">
+                  <div class="theme-component-colors">
+
+                    <div ng-repeat="property in getGlobalHomepageColorVariables()"
+                         title="{{property.description}}: {{property.value}}"
+                         type="text"
+                         class="theme-component-color-picker"
+                         ng-change="$ctrl.onDataChanged()"
+                         md-color-picker
+                         ng-model="property.value"
+                         default="{{property.default}}"
+                         md-color-history="true"
+                         md-color-clear-button="false"></div>
+
+                  </div>
+                </div>
+
+                <div layout="row" ng-repeat="property in getGlobalHomepageVariables()"
+                     ng-if="(property.type.toLowerCase() === 'length' || property.type.toLowerCase()=== 'string') && !property.name.endsWith('--ff')">
+                  <md-input-container class="md-block" flex>
+                    <label>{{property.description}}</label>
+                    <input ng-model="property.value" type="text"
+                           placeholder="{{$ctrl.getPlaceholder(property)}}"
+                           aria-label="{{property.description}}"
+                           ng-change="$ctrl.onDataChanged()">
+                  </md-input-container>
+                </div>
+
               </v-pane-content>
             </v-pane>
             <v-pane>

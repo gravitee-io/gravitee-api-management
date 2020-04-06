@@ -105,9 +105,21 @@ class ThemeController {
       });
     };
 
+    $scope.getGlobalHomepageColorVariables = () => {
+      return this.$scope.getThemeVariables((prop) => {
+        return prop.type === 'color' && prop.description.includes('Homepage');
+      });
+    };
+
     $scope.getGlobalNeutralColorVariables = () => {
       return this.$scope.getThemeVariables((prop) => {
         return prop.type === 'color' && prop.name.startsWith('--gv-theme-neutral-color');
+      });
+    };
+
+    $scope.getGlobalHomepageVariables = () => {
+      return this.$scope.getThemeVariables((prop) => {
+        return  prop.type !== 'color' && prop.description.includes('Homepage');
       });
     };
 
