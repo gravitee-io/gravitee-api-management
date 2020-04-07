@@ -33,7 +33,6 @@ export class ApisController {
   private apisScrollAreaHeight: number;
   private isAPIsHome: boolean;
   private createMode: boolean;
-  private devMode: boolean;
   private syncStatus: any[];
   private qualityScores: any[];
   private NotificationService: any;
@@ -73,7 +72,6 @@ export class ApisController {
     this.apisScrollAreaHeight = this.$state.current.name === 'apis.list' ? 195 : 90;
     this.isAPIsHome = this.$state.includes('apis');
 
-    this.createMode = !Constants.portal.devMode.enabled;
     this.selectedApis = [];
     this.syncStatus = [];
     this.qualityScores = [];

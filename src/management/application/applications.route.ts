@@ -45,7 +45,6 @@ function applicationsConfig($stateProvider) {
         perms: {
           only: ['environment-application-r']
         },
-        devMode: true,
         docs: {
           page: 'management-applications'
         }
@@ -64,7 +63,6 @@ function applicationsConfig($stateProvider) {
         perms: {
           only: ['environment-application-c']
         },
-        devMode: true,
         docs: {
           page: 'management-create-application'
         }
@@ -98,7 +96,6 @@ function applicationsConfig($stateProvider) {
           label: 'Global settings',
           icon: 'blur_on'
         },
-        devMode: true,
         perms: {
           only: ['application-definition-r']
         },
@@ -150,7 +147,6 @@ function applicationsConfig($stateProvider) {
           label: 'Subscriptions',
           icon: 'vpn_key'
         },
-        devMode: true,
         perms: {
           only: ['application-subscription-r']
         },
@@ -232,7 +228,6 @@ function applicationsConfig($stateProvider) {
           ApplicationService.listSubscriptions($stateParams.applicationId).then(response => response.data)
       },
       data: {
-        devMode: true,
         perms: {
           only: ['application-subscription-r']
         }
@@ -255,7 +250,6 @@ function applicationsConfig($stateProvider) {
           label: 'Members',
           icon: 'group'
         },
-        devMode: true,
         perms: {
           only: ['application-member-r']
         },
@@ -275,7 +269,6 @@ function applicationsConfig($stateProvider) {
           label: 'Analytics',
           icon: 'insert_chart'
         },
-        devMode: true,
         perms: {
           only: ['application-analytics-r']
         },
@@ -310,7 +303,6 @@ function applicationsConfig($stateProvider) {
           label: 'Logs',
           icon: 'receipt'
         },
-        devMode: true,
         perms: {
           only: ['application-log-r']
         },
@@ -353,7 +345,6 @@ function applicationsConfig($stateProvider) {
           ApplicationService.getLog($stateParams.applicationId, $stateParams.logId, $stateParams.timestamp).then(response => response.data)
       },
       data: {
-        devMode: true,
         perms: {
           only: ['application-log-r']
         }

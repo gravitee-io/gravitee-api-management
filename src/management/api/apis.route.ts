@@ -127,7 +127,6 @@ function apisRouterConfig($stateProvider: StateProvider) {
         docs: {
           page: 'management-apis'
         },
-        devMode: true,
         ncyBreadcrumb: {
           label: 'APIs'
         }

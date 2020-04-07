@@ -37,10 +37,9 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
     let fromState = trans.from();
     let toState = trans.to();
 
-    let notEligibleForDevMode = Constants.portal.devMode.enabled && toState.data && !toState.data.devMode && !UserService.currentUser.isAdmin();
     let notEligibleForUserCreation = !Constants.portal.userCreation.enabled && (fromState.name === 'registration' || fromState === 'confirm');
 
-    if (notEligibleForDevMode || notEligibleForUserCreation) {
+    if (notEligibleForUserCreation) {
       return trans.router.stateService.target('login');
     } else if (toState.data && toState.data.perms && toState.data.perms.only && !UserService.isUserHasPermissions(toState.data.perms.only)) {
       return trans.router.stateService.target(UserService.isAuthenticated() ? 'management.apis.list' : 'login');

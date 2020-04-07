@@ -63,11 +63,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
                     let isMenuItem = routeMenuItem.data.menu.firstLevel;
                     let isMenuAllowed = !routeMenuItem.data.perms || !routeMenuItem.data.perms.only
                       || graviteeUser.allowedTo(routeMenuItem.data.perms.only);
-                    if (Constants.portal.devMode.enabled && !graviteeUser.isAdmin()) {
-                      return isMenuItem && isMenuAllowed && routeMenuItem.data.devMode;
-                    }  else {
                       return isMenuItem && isMenuAllowed;
-                    }
                   });
           }
         }
@@ -86,9 +82,6 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       template: require('./user/login/login.html'),
       controller: 'LoginController',
       controllerAs: '$ctrl',
-      data: {
-        devMode: true
-      },
       resolve: {
         checkUser : function (UserService, $state) {
           if (UserService.currentUser && UserService.currentUser.id) {
@@ -108,9 +101,6 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       template: require('./user/registration/registration.html'),
       controller: 'RegistrationController',
       controllerAs: 'registrationCtrl',
-      data: {
-        devMode: true
-      },
       resolve: {
         checkUser : function (UserService, $state) {
           if (UserService.currentUser && UserService.currentUser.id) {
@@ -124,18 +114,12 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       template: require('./user/registration/confirm/confirm.html'),
       controller: 'ConfirmController',
       controllerAs: 'confirmCtrl',
-      data: {
-        devMode: true
-      }
     })
     .state('resetPassword', {
       url: '/resetPassword/:token',
       template: require('./user/resetPassword/resetPassword.html'),
       controller: 'ResetPasswordController',
       controllerAs: 'resetPasswordCtrl',
-      data: {
-        devMode: true
-      }
     })
     .state('logout', {
       template: '<div class="gravitee-no-sidenav-container"></div>',
