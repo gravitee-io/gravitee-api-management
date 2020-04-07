@@ -29,19 +29,22 @@ export class DocumentationComponent implements OnInit {
   constructor(
     private portalService: PortalService,
     private activeRoute: ActivatedRoute
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     this.activeRoute.params.subscribe((params) => {
-      if (params.rootDir && params.rootDir !== 'root' ) {
+      if (params.rootDir && params.rootDir !== 'root') {
         this.rootDir = params.rootDir;
-        this.portalService.getPages({ homepage: false, size: -1, parent: this.rootDir })
-          .subscribe(pagesResponse => { this.pages = pagesResponse.data; });
       } else {
         delete this.rootDir;
-        this.portalService.getPages({ homepage: false, size: -1 })
-          .subscribe(pagesResponse => { this.pages = pagesResponse.data; });
       }
+      this.portalService
+        .getPages({ homepage: false, size: -1, parent: this.rootDir })
+        .toPromise()
+        .then(pagesResponse => {
+          this.pages = pagesResponse.data;
+        });
     });
   }
 }

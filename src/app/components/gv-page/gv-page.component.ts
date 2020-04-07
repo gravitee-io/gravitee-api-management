@@ -31,7 +31,6 @@ export class GvPageComponent implements OnChanges {
   @ViewChild(GvPageContentSlotDirective, { static: true }) appGvPageContentSlot: GvPageContentSlotDirective;
   @Input () page: Page;
 
-
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
     ) { }

@@ -18,7 +18,7 @@
   flex-direction: row;
   flex-wrap: nowrap;
   padding: var(--gv-theme-page--pt) 0 var(--gv-theme-page--pb) 0;
-  background-color: var(--gv-theme-color-dark);
+  background-color: var(--gv-theme-neutral-color);
   height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h));
 }
 
@@ -39,15 +39,14 @@
 }
 
 .gv-documentation__content {
-  background-color: var(--gv-theme-neutral-color-lighter);
+  background-color: var(--gv-theme-neutral-color-lightest);
   height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h) - 20px);
-  padding: 10px 50px;
+  margin-right: var(--gv-theme-page--pt);
   flex: 1;
 }
 
 .gv-documentation__content_swagger {
   height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h));
-  padding: 0;
 }
 
 app-gv-page {
@@ -71,7 +70,7 @@ app-gv-page.show {
 }
 
 .gv-documentation__loading gv-icon {
-  --gv-icon--c: var(--gv-theme-neutral-color-lightest);
+  --gv-icon--c: var(--gv-theme-neutral-color-darkest);
   --gv-icon--s: 32px;
   animation: spinner 1.6s linear infinite;
 }

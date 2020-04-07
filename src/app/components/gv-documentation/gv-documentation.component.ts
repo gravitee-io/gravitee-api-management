@@ -20,7 +20,6 @@ import { NotificationService } from '../../services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import '@gravitee/ui-components/wc/gv-tree';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { logger } from 'codelyzer/util/logger';
 
 @Component({
   selector: 'app-gv-documentation',
@@ -36,7 +35,7 @@ import { logger } from 'codelyzer/util/logger';
     ])
   ]
 })
-export class GvDocumentationComponent implements OnInit {
+export class GvDocumentationComponent {
 
   currentPage: Page;
   currentMenuItem: TreeItem;
@@ -44,31 +43,35 @@ export class GvDocumentationComponent implements OnInit {
   isLoaded = false;
 
   @Input() rootDir: string;
+  private _pages: Page[];
 
   @Input() set pages(pages: Page[]) {
     if (pages && pages.length) {
-      let pageToDisplay;
-      const pageId = this.route.snapshot.queryParams.page;
-      const folderId = this.route.snapshot.queryParams.folder;
-      if (pageId) {
-        pageToDisplay = this.getFirstPage(pages, pageId);
-      } else if (folderId) {
-        const folderPages = pages.filter(p => p.parent === folderId);
-        pageToDisplay = this.getFirstPage(folderPages);
-      } else {
-        pageToDisplay = this.getFirstPage(pages);
+      if (this._pages !== pages) {
+        this._pages = pages;
+        let pageToDisplay;
+        const pageId = this.route.snapshot.queryParams.page;
+        const folderId = this.route.snapshot.queryParams.folder;
+        if (pageId) {
+          pageToDisplay = this.getFirstPage(pages, pageId);
+        } else if (folderId) {
+          const folderPages = pages.filter(p => p.parent === folderId);
+          pageToDisplay = this.getFirstPage(folderPages);
+        } else {
+          pageToDisplay = this.getFirstPage(pages);
+        }
+        if (pageToDisplay) {
+          this.onPageChange(pageToDisplay);
+          this.menu = this.initTree(pages, pageToDisplay.id);
+          this.expandMenu(this.menu);
+        } else {
+          this.menu = [];
+        }
       }
-      if (pageToDisplay) {
-        this.onPageChange(pageToDisplay);
-        this.menu = this.initTree(pages, pageToDisplay.id);
-        this.expandMenu(this.menu);
-      } else {
-        this.menu = [];
-      }
+      setTimeout(() => {
+        this.isLoaded = true;
+      }, 700);
     }
-    setTimeout(() => {
-      this.isLoaded = true;
-    }, 700);
   }
 
   constructor(
@@ -76,9 +79,6 @@ export class GvDocumentationComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
   ) {
-  }
-
-  ngOnInit() {
   }
 
   private initTree(pages: Page[], selectedPage?: string) {
