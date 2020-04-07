@@ -15,28 +15,23 @@
  */
 package io.gravitee.repository;
 
-import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserReferenceType;
 import io.gravitee.repository.management.model.UserStatus;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.*;
 
 public class UserRepositoryTest extends AbstractRepositoryTest {
 
@@ -59,6 +54,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         user.setStatus(UserStatus.ACTIVE);
         user.setSource("gravitee");
         user.setSourceId("createuser1");
+        user.setLoginCount(123);
         User userCreated = userRepository.create(user);
 
         assertNotNull("User created is null", userCreated);
@@ -73,6 +69,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid saved user name.", user.getId(), userFound.getId());
         assertEquals("Invalid saved user mail.", user.getEmail(), userFound.getEmail());
         assertEquals("Invalid saved user status.", user.getStatus(), userFound.getStatus());
+        assertEquals("Invalid saved user login count.", user.getLoginCount(), userFound.getLoginCount());
     }
 
     @Test
@@ -94,6 +91,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         user.setCreatedAt(new Date(1439032010883L));
         user.setUpdatedAt(new Date(1439042010883L));
         user.setLastConnectionAt(new Date(1439052010883L));
+        user.setLoginCount(123);
 
         long nbUsersBeforeUpdate = userRepository.search(null,
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
@@ -122,6 +120,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid saved updateDate", new Date(1439042010883L), userUpdated.getUpdatedAt());
         assertEquals("Invalid saved lastConnection", new Date(1439052010883L), userUpdated.getLastConnectionAt());
         assertEquals("Invalid status", UserStatus.ARCHIVED, userUpdated.getStatus());
+        assertEquals("Invalid saved user login count.", 123, userUpdated.getLoginCount());
     }
 
     @Test

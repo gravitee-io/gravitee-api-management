@@ -91,7 +91,8 @@
       "picture":"picture2update",
       "createdAt": 1439022010883,
       "updatedAt": 1439032010883,
-      "lastConnectionAt": 1439042010883
+      "lastConnectionAt": 1439042010883,
+      "loginCount": 122
    },
    {
       "id": "idSpecialChar",

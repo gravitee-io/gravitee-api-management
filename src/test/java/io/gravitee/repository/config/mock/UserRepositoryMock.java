@@ -49,6 +49,7 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
         when(user.getReferenceType()).thenReturn(UserReferenceType.ENVIRONMENT);
         when(user.getPassword()).thenReturn("New pwd");
         when(user.getEmail()).thenReturn("createuser1@gravitee.io");
+        when(user.getLoginCount()).thenReturn(123L);
 
         final User userUpdated = mock(User.class);
         when(userUpdated.getId()).thenReturn("id2update");
@@ -65,6 +66,7 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
         when(userUpdated.getUpdatedAt()).thenReturn(new Date(1439042010883L));
         when(userUpdated.getLastConnectionAt()).thenReturn(new Date(1439052010883L));
         when(userUpdated.getStatus()).thenReturn(UserStatus.ARCHIVED);
+        when(userUpdated.getLoginCount()).thenReturn(123L);
 
         final User user0 = mock(User.class);
         when(user0.getId()).thenReturn("user0");
