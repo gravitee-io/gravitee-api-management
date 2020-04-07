@@ -625,3 +625,10 @@ databaseChangeLog:
               constraintName: pk_themes
               columnNames: id
               tableName: themes
+
+          - addColumn:
+              tableName: users
+              columns:
+                - column:
+                    name: login_count
+                    type: bigint
