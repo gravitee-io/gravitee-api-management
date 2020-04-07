@@ -198,7 +198,8 @@ export class ApplicationMembersComponent implements OnInit {
           return response.data.map((api) => ({
             name: api.name,
             description: api.description,
-            picture: (api._links ? api._links.picture : '')
+            picture: (api._links ? api._links.picture : ''),
+            suffix: api.version
           }));
         });
 

@@ -360,7 +360,8 @@ export class ApiSubscribeComponent implements OnInit {
               name: application.name,
               description: application.description,
               picture: (application._links ? application._links.picture : ''),
-              subscriptions: appPlansSubscriptions
+              subscriptions: appPlansSubscriptions,
+              suffix: application.applicationType,
             });
             if (!this.canSubscribe(appPlansSubscriptions, plan)) {
               return null;

@@ -135,7 +135,8 @@ export class ApiGeneralComponent implements OnInit {
               return response.data.map((app) => ({
                 name: app.name,
                 description: app.description,
-                picture: (app._links ? app._links.picture : '')
+                picture: (app._links ? app._links.picture : ''),
+                suffix: app.applicationType,
               }));
             })
             .catch(() => []);
