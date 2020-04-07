@@ -192,8 +192,8 @@ databaseChangeLog:
         
         # for Postgresql
         - sql:
-          dbms: postgresql
-          sql: create extension "uuid-ossp"
+            dbms: postgresql
+            sql: create extension "uuid-ossp"
         
         - dropNotNullConstraint:
             columnDataType: nvarchar(64)
@@ -232,7 +232,7 @@ databaseChangeLog:
        
         
         - sql:
-           sql: insert into memberships (id, member_id, member_type, reference_id, reference_type, role_id, created_at, updated_at) select ${uuid_function} as id, g.id, 'GROUP', null, gr.role_scope, gr.role_scope||'_'||gr.role_name as role_id, g.created_at, g.updated_at from groups g inner join group_roles gr on gr.group_id = g.id
+            sql: insert into memberships (id, member_id, member_type, reference_id, reference_type, role_id, created_at, updated_at) select ${uuid_function} as id, g.id, 'GROUP', null, gr.role_scope, gr.role_scope||'_'||gr.role_name as role_id, g.created_at, g.updated_at from groups g inner join group_roles gr on gr.group_id = g.id
 
         - dropTable:
             tableName: group_roles
@@ -605,7 +605,6 @@ databaseChangeLog:
             constraintName: pk_organization_domain_restrictions
             columnNames: organization_id, domain_restriction
             tableName: organization_domain_restrictions
-            tableName: organization_domain_restrictions
 
         - createTable:
             tableName: themes
@@ -626,9 +625,9 @@ databaseChangeLog:
               columnNames: id
               tableName: themes
 
-          - addColumn:
-              tableName: users
-              columns:
+        - addColumn:
+            tableName: users
+            columns:
                 - column:
                     name: login_count
                     type: bigint
