@@ -95,6 +95,11 @@ public class User {
 
 	private UserStatus status;
 
+	/**
+	 * The user login count
+	 */
+	private long loginCount;
+
 	public User() {}
 
 	public User(User cloned) {
@@ -112,6 +117,7 @@ public class User {
 		this.lastConnectionAt = cloned.lastConnectionAt;
 		this.picture = cloned.picture;
 		this.status = cloned.status;
+		this.loginCount = cloned.loginCount;
 	}
 
     public String getReferenceId() {
@@ -226,6 +232,14 @@ public class User {
 		this.status = status;
 	}
 
+	public long getLoginCount() {
+		return loginCount;
+	}
+
+	public void setLoginCount(long loginCount) {
+		this.loginCount = loginCount;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -251,6 +265,7 @@ public class User {
 		sb.append(", lastname='").append(lastname).append('\'');
 		sb.append(", mail='").append(email).append('\'');
 		sb.append(", status='").append(status).append('\'');
+		sb.append(", loginCount='").append(loginCount).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}
