@@ -30,7 +30,6 @@ public enum Key {
     PORTAL_SUPPORT_ENABLED("portal.support.enabled", "true"),
     PORTAL_RATING_ENABLED("portal.rating.enabled", "true"),
     PORTAL_RATING_COMMENT_MANDATORY("portal.rating.comment.mandatory", "false"),
-    PORTAL_DEVMODE_ENABLED("portal.devMode.enabled", "false"),
     PORTAL_USERCREATION_ENABLED("portal.userCreation.enabled", "true"),
     PORTAL_ANALYTICS_ENABLED("portal.analytics.enabled", "false"),
     PORTAL_ANALYTICS_TRACKINGID("portal.analytics.trackingId"),

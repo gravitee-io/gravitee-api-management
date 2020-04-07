@@ -12,9 +12,6 @@
     "support" : {
       "enabled" : false
     },
-    "devMode" : {
-      "enabled" : false
-    },
     "userCreation" : {
       "enabled" : true
     },

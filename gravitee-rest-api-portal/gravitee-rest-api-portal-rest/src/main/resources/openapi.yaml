@@ -3539,8 +3539,6 @@ components:
           type: string
         support:
           $ref: '#/components/schemas/Enabled'
-        devMode:
-          $ref: '#/components/schemas/Enabled'
         applicationCreation:
           $ref: '#/components/schemas/Enabled'
         userCreation:

@@ -197,8 +197,6 @@ public class PortalConfigEntity {
         private String apikeyHeader;
         @ParameterKey(Key.PORTAL_SUPPORT_ENABLED)
         private Enabled support;
-        @ParameterKey(Key.PORTAL_DEVMODE_ENABLED)
-        private Enabled devMode;
         @ParameterKey(Key.PORTAL_USERCREATION_ENABLED)
         private Enabled userCreation;
         @ParameterKey(Key.PORTAL_URL)
@@ -215,14 +213,6 @@ public class PortalConfigEntity {
             analytics = new PortalAnalytics();
             rating = new PortalRating();
             media = new PortalUploadMedia();
-        }
-
-        public Enabled isDevMode() {
-            return devMode;
-        }
-
-        public void setDevMode(Enabled devMode) {
-            this.devMode = devMode;
         }
 
         public Enabled isUserCreation() {
@@ -275,10 +265,6 @@ public class PortalConfigEntity {
 
         public void setSupport(Enabled support)  {
             this.support = support;
-        }
-
-        public Enabled getDevMode() {
-            return devMode;
         }
 
         public Enabled getUserCreation() {

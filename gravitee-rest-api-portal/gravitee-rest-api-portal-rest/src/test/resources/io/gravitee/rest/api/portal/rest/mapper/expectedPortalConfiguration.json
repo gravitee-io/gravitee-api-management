@@ -9,9 +9,6 @@
     "support" : {
       "enabled" : false
     },
-    "devMode" : {
-      "enabled" : false
-    },
     "applicationCreation" : {
       "enabled" : true
     },

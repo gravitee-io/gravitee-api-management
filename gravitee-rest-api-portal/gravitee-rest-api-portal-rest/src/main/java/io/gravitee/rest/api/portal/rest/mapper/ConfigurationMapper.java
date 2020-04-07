@@ -61,7 +61,6 @@ public class ConfigurationMapper {
         configuration.setAnalytics(convert(portal.getAnalytics()));
         configuration.setApikeyHeader(portal.getApikeyHeader());
         configuration.setApis(convert(portal.getApis()));
-        configuration.setDevMode(convert(portal.getDevMode()));
         configuration.setEntrypoint(portal.getEntrypoint());
         configuration.setUploadMedia(convert(portal.getUploadMedia()));
         configuration.setRating(convert(portal.getRating()));
