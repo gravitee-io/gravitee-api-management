@@ -456,6 +456,7 @@ import ThemeComponent from './configuration/theme/theme.component';
 import ThemeService from '../services/theme.service';
 
 import authenticationConfig from '../authentication/authentication.config';
+import ConfirmProfileController from '../user/confirmProfile/confirmProfile.controller';
 
 
 (<any>window).traverse = traverse;
@@ -651,6 +652,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('RegistrationController', RegistrationController)
   .controller('ConfirmController', ConfirmController)
   .controller('ResetPasswordController', ResetPasswordController)
+  .controller('ConfirmProfileController', ConfirmProfileController)
   .controller('DialogSubscriptionRejectController', DialogSubscriptionRejectController)
   .controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController)
   .controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController)

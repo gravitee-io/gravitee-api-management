@@ -27,6 +27,8 @@ export class User {
   public tasks: PagedResult;
   public notifications: PagedResult;
   public authenticated: boolean = false;
+  public firstLogin: boolean;
+  public picture: string;
 
   constructor() {
     'ngInject';

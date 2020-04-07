@@ -153,6 +153,12 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
           }
         );
       }
+    })
+    .state('confirmProfile', {
+      url: '/confirmProfile',
+      template: require('./user/confirmProfile/confirmProfile.html'),
+      controller: 'ConfirmProfileController',
+      controllerAs: '$ctrl'
     });
 
   $urlServiceProvider.rules.otherwise('/login');

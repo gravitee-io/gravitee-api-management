@@ -13,18 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class RegistrationController {
+import UserService from '../../services/user.service';
+
+class ConfirmProfileController {
+
   newsletterEnabled: boolean;
 
-  constructor(UserService, $scope, NotificationService) {
+  constructor($state, $scope, public UserService: UserService, NotificationService, Constants, $window, $rootScope) {
     'ngInject';
-    $scope.register = function () {
-      UserService.register($scope.user).then(function () {
-        $scope.formRegistration.$setPristine();
-        NotificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
+
+    $scope.user = UserService.currentUser;
+    this.newsletterEnabled = Constants.newsletter.enabled;
+
+    $scope.save = () => {
+      UserService.save($scope.user).then(() => {
+        $window.localStorage.setItem('profileConfirmed', true);
+        $rootScope.$broadcast('graviteeUserRefresh', { user: $scope.user });
+        NotificationService.show('Your profile has been updated successfully');
+        $state.go('management');
       });
     };
   }
 }
 
-export default RegistrationController;
+export default ConfirmProfileController;

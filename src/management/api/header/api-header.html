@@ -20,7 +20,7 @@
 		<div ng-switch="$ctrl.api.visibility" layout="row" layout-align="start stretch">
 			<div class="gravitee-api-header-image" ng-if="$ctrl.readOnly" ng-style="{'background-image':'url({{$ctrl.api.picture || $ctrl.api.picture_url || 'assets/default_api_logo.png'}})'}" layout="column" layout-align="center center"></div>
 			<gravitee-image ng-if="!$ctrl.readOnly" image="$ctrl.api.picture" image-url="$ctrl.api.picture_url" image-default="'assets/default_api_logo.png'"></gravitee-image>
-			<div flex="70" layout="column"layout-align="start start">
+			<div flex="70" layout="column" layout-align="start start">
 				<div>
 					<h4>{{$ctrl.api.name}}
 						<small>({{$ctrl.api.version}})

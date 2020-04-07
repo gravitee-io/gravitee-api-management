@@ -18,6 +18,7 @@ import NotificationService from '../../../../services/notification.service';
 import PortalConfigService from '../../../../services/portalConfig.service';
 import { ClientRegistrationProvider } from '../../../../entities/clientRegistrationProvider';
 import ClientRegistrationProviderService from '../../../../services/clientRegistrationProvider.service';
+import _ = require('lodash');
 
 const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
   bindings: {

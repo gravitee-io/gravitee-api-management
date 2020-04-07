@@ -35,25 +35,37 @@ export const NavbarComponent: ng.IComponentOptions = {
     $state: StateService,
     $transitions,
     $interval: IIntervalService,
-    AuthenticationService: AuthenticationService
+    AuthenticationService: AuthenticationService,
+    $window
   ) {
     'ngInject';
 
     const vm = this;
+
+    vm.refreshUser = (user) => {
+      vm.profileConfirmed = (user && !user.firstLogin) || $window.localStorage.getItem('profileConfirmed');
+    };
+
     vm.$state = $state;
     vm.tasksScheduler = null;
     vm.$rootScope = $rootScope;
     vm.displayContextualDocumentationButton = false;
     vm.visible = true;
     vm.localLoginDisabled = (!Constants.authentication.localLogin.enabled) || false;
+    vm.refreshUser(UserService.currentUser);
 
     $scope.$on('graviteeUserRefresh', (event, {user, refresh}) => {
+
       if (refresh) {
         UserService.current()
-          .then((user) => vm.startTasks(user))
+          .then((user) => {
+            vm.startTasks(user);
+            vm.refreshUser(user);
+          })
           .catch(() => delete vm.graviteeUser);
       } else if (user && user.authenticated) {
         vm.startTasks(user);
+        vm.refreshUser(user);
       } else {
         delete vm.graviteeUser;
       }

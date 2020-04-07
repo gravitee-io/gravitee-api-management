@@ -210,6 +210,7 @@ class UserService {
     this.isLogout = true;
     this.$window.localStorage.removeItem('satellizer_token');
     this.$cookies.remove('Auth-Graviteeio-APIM');
+    this.$window.localStorage.removeItem('profileConfirmed');
   }
 
   currentUserPicture(): string {
@@ -227,7 +228,7 @@ class UserService {
   }
 
   save(user): ng.IPromise<any> {
-    return this.$http.put(`${this.userURL}`, {username: user.username, picture: user.picture});
+    return this.$http.put(`${this.userURL}`, {username: user.username, picture: user.picture, newsletter: user.newsletter});
   }
 
   resetPassword(id: string): ng.IPromise<any> {

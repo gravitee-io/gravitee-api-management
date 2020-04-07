@@ -99,7 +99,7 @@ class ApiProxyController {
     this.initState();
 
     this.views = resolvedViews;
-    _.remove( this.views, (item) => {
+    _.remove( this.views, (item: any) => {
       return item.id === 'all';
     });
 

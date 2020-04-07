@@ -22,6 +22,9 @@ import {IScope} from 'angular';
 
 class TagsController {
   private tags: any;
+  private groups: Array<any>;
+  private entrypoints: Array<any>;
+  private formSettings: any;
 
   constructor(
     private TagService: TagService,
@@ -98,14 +101,14 @@ class TagsController {
   }
 
   saveSettings = () => {
-    PortalConfigService.save().then( () => {
-      NotificationService.show('Configuration saved!');
+    this.PortalConfigService.save().then( () => {
+      this.NotificationService.show('Configuration saved!');
       this.formSettings.$setPristine();
     });
   }
 
   resetSettings = () => {
-    PortalConfigService.get().then((response) => {
+    this.PortalConfigService.get().then((response) => {
       this.Constants = response.data;
       this.formSettings.$setPristine();
     });

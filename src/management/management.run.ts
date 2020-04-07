@@ -21,11 +21,15 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
                   $timeout, UserService: UserService, Constants, PermissionStrategies) {
   'ngInject';
 
-  $transitions.onStart({ to: (state) => state.name !== 'login' && state.name !== 'registration' && state.name !== 'confirm'}, function(trans) {
+  $transitions.onStart({ to: (state) => state.name !== 'login' && state.name !== 'registration'
+      && state.name !== 'confirm' && state.name !== 'confirmProfile'}, (trans) => {
     let forceLogin = Constants.authentication.forceLogin.enabled;
 
     if (forceLogin && !UserService.isAuthenticated()) {
       return trans.router.stateService.target('login');
+    }
+    if (UserService.isAuthenticated() && UserService.currentUser.firstLogin && !$window.localStorage.getItem('profileConfirmed')) {
+      return trans.router.stateService.target('confirmProfile');
     }
   });
 
