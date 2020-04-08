@@ -332,7 +332,7 @@ export const routes: Routes = [
             data: {
               icon: 'communication:group',
               title: i18n('route.members'),
-              animation: { type: 'slide', group: 'apps', index: 3 }
+              animation: { type: 'slide', group: 'app', index: 3 }
             }
           },
           {
