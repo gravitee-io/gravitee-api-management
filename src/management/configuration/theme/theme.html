@@ -40,18 +40,18 @@
 
         <md-button class="md-primary" type="button" ng-click="$ctrl.update()"
                    ng-disabled="themeForm.$invalid || themeForm.$pristine"
-                   permission permission-only="'portal-theme-u'">
+                   permission permission-only="'environment-theme-u'">
           <ng-md-icon ng-if="themeForm.$dirty" icon="sync_disabled"></ng-md-icon>
           <ng-md-icon ng-if="!themeForm.$dirty" icon="sync"></ng-md-icon>
           Save
         </md-button>
         <md-switch aria-label="Enabled" ng-model="theme.enabled" ng-change="$ctrl.update()"
-                   permission permission-only="'portal-theme-u'">
+                   permission permission-only="'environment-theme-u'">
           ENABLED
         </md-switch>
       </div>
       <md-button class="md-raised md-warn" type="button" ng-click="$ctrl.restoreDefaultTheme()"
-                 permission permission-only="['portal-theme-u', 'portal-theme-d']">
+                 permission permission-only="['environment-theme-u', 'environment-theme-d']">
         Restore default theme
       </md-button>
     </div>

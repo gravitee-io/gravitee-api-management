@@ -524,7 +524,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-portal-theme'
         },
         perms: {
-          only: ['portal-documentation-r']
+          only: ['environment-theme-r']
         }
       },
     })
