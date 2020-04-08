@@ -625,9 +625,13 @@ databaseChangeLog:
               columnNames: id
               tableName: themes
 
+        ## others
         - addColumn:
             tableName: users
             columns:
                 - column:
                     name: login_count
                     type: bigint
+
+        - sql:
+            sql: delete from parameters where key = 'portal.devMode.enabled';
