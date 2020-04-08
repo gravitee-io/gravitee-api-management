@@ -1,3 +1,7 @@
+/***************************************************************************************************
+ * Load `$localize` onto the global scope - used if i18n tags appear in Angular templates.
+ */
+import '@angular/localize/init';
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *

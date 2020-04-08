@@ -25,7 +25,7 @@ describe('TranslationService', () => {
   }));
 
   it('should be created', () => {
-    const service: TranslationService = TestBed.get(TranslationService);
+    const service: TranslationService = TestBed.inject(TranslationService);
     expect(service).toBeTruthy();
   });
 });

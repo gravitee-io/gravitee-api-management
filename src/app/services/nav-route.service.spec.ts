@@ -30,9 +30,9 @@ import { TranslateTestingModule } from '../test/translate-testing-module';
 describe('NavRouteService', () => {
 
   let router: Router;
-  let translateService: jasmine.SpyObj<TranslateService>;
-  let featureGuardService: jasmine.SpyObj<FeatureGuardService>;
-  let authGuardService: jasmine.SpyObj<AuthGuardService>;
+  let translateService: TranslateService;
+  let featureGuardService: FeatureGuardService;
+  let authGuardService: AuthGuardService;
   let routeService: NavRouteService;
   let currentUserService: CurrentUserService;
 
@@ -62,11 +62,11 @@ describe('NavRouteService', () => {
       ]
     });
 
-    router = TestBed.get(Router);
-    currentUserService = TestBed.get(CurrentUserService);
-    featureGuardService = TestBed.get(FeatureGuardService);
-    authGuardService = TestBed.get(AuthGuardService);
-    translateService = TestBed.get(TranslateService);
+    router = TestBed.inject(Router);
+    currentUserService = TestBed.inject(CurrentUserService);
+    featureGuardService = TestBed.inject(FeatureGuardService);
+    authGuardService = TestBed.inject(AuthGuardService);
+    translateService = TestBed.inject(TranslateService);
 
     routeService = new NavRouteService(router, translateService, featureGuardService, currentUserService, authGuardService);
   });
@@ -87,16 +87,16 @@ describe('NavRouteService', () => {
   });
 
   it('should get null children nav if parent does not have data.menu', async () => {
-    featureGuardService.canActivate.and.returnValue(true);
-    const service: NavRouteService = TestBed.get(NavRouteService);
+    featureGuardService.canActivate = jasmine.createSpy().and.returnValue(true);
+    const service: NavRouteService = TestBed.inject(NavRouteService);
     const catalog = routeService.getRouteByPath('catalog');
     const routes = await service.getChildrenNav(catalog);
     expect(routes).toEqual(null);
   });
 
   it('should get children nav if parent have data.menu and child have data.title', async () => {
-    featureGuardService.canActivate.and.returnValue(true);
-    const service: NavRouteService = TestBed.get(NavRouteService);
+    featureGuardService.canActivate = jasmine.createSpy().and.returnValue(true);
+    const service: NavRouteService = TestBed.inject(NavRouteService);
     const catalog = routeService.getRouteByPath('catalogWithChildren');
     const routes = await service.getChildrenNav(catalog);
     expect(routes.length).toEqual(1);

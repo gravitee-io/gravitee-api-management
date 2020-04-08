@@ -33,9 +33,9 @@ export class ApplicationAnalyticsComponent implements OnInit {
   application: Application;
   dashboard: Dashboard;
 
-  @ViewChild(GvAnalyticsFiltersComponent, { static: false })
+  @ViewChild(GvAnalyticsFiltersComponent)
   filtersComponent: GvAnalyticsFiltersComponent;
-  @ViewChild(GvAnalyticsDashboardComponent, { static: false })
+  @ViewChild(GvAnalyticsDashboardComponent)
   dashboardComponent: GvAnalyticsDashboardComponent;
 
   constructor(private route: ActivatedRoute) {}

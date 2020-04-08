@@ -33,8 +33,8 @@ export abstract class GvSlot {
   setComponent(componentFactory) {
     if (this.viewContainerRef.length === 0) {
       this.viewContainerRef.createComponent(componentFactory);
-      if (this.viewContainerRef.element.nativeElement.nextSibling) {
-        this.viewContainerRef.element.nativeElement.nextSibling.slot = this.getName();
+      if (this.viewContainerRef.element.nativeElement.previousSibling) {
+        this.viewContainerRef.element.nativeElement.previousSibling.slot = this.getName();
       }
     }
   }

@@ -32,7 +32,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 describe('CatalogSearchComponent', () => {
   let component: CatalogSearchComponent;
-  let configService: jasmine.SpyObj<ConfigurationService>;
+  let configService: ConfigurationService;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -60,14 +60,14 @@ describe('CatalogSearchComponent', () => {
 
   beforeEach(() => {
 
-    configService = TestBed.get(ConfigurationService);
-    configService.get.and.returnValue([5, 10, 15]);
+    configService = TestBed.inject(ConfigurationService);
+    configService.get = jasmine.createSpy().and.returnValue([5, 10, 15]);
 
     component = new CatalogSearchComponent(
-      TestBed.get(FormBuilder),
-      TestBed.get(ApiService),
-      TestBed.get(ActivatedRoute),
-      TestBed.get(Router),
+      TestBed.inject(FormBuilder),
+      TestBed.inject(ApiService),
+      TestBed.inject(ActivatedRoute),
+      TestBed.inject(Router),
       configService
     );
   });

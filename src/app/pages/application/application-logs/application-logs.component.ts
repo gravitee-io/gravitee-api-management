@@ -45,7 +45,7 @@ export class ApplicationLogsComponent implements OnInit {
   requestHeaders: Array<any>;
   responseHeaders: Array<any>;
 
-  @ViewChild(GvAnalyticsFiltersComponent, { static: false })
+  @ViewChild(GvAnalyticsFiltersComponent)
   filtersComponent: GvAnalyticsFiltersComponent;
 
   constructor(

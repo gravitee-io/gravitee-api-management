@@ -30,7 +30,7 @@ describe('FeatureGuardService', () => {
   }));
 
   it('should be created', () => {
-    const service: FeatureGuardService = TestBed.get(FeatureGuardService);
+    const service: FeatureGuardService = TestBed.inject(FeatureGuardService);
     expect(service).toBeTruthy();
   });
 });

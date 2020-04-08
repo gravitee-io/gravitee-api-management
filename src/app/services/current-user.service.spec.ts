@@ -27,7 +27,7 @@ describe('CurrentUserService', () => {
   }));
 
   it('should be created', () => {
-    const service: CurrentUserService = TestBed.get(CurrentUserService);
+    const service: CurrentUserService = TestBed.inject(CurrentUserService);
     expect(service).toBeTruthy();
   });
 });

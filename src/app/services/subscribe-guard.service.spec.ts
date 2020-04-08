@@ -25,7 +25,7 @@ describe('SubscribeGuardService', () => {
     imports: [HttpClientTestingModule, RouterTestingModule],
   }));
   it('should be created', () => {
-    const service: SubscribeGuardService = TestBed.get(SubscribeGuardService);
+    const service: SubscribeGuardService = TestBed.inject(SubscribeGuardService);
     expect(service).toBeTruthy();
   });
 });

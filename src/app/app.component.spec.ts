@@ -18,6 +18,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Title } from '@angular/platform-browser';
+import { NavRouteService } from './services/nav-route.service';
 import { provideMock } from './test/mock.helper.spec';
 import { CurrentUserService } from './services/current-user.service';
 import { UserService } from '@gravitee/ng-portal-webclient';
@@ -43,18 +44,20 @@ describe('AppComponent', () => {
       ],
       providers: [
         AppComponent,
-        provideMock(Title),
-        provideMock(NotificationService),
       ]
     }).compileComponents();
   }));
 
-
   let fixture;
   let app;
-  let titleMock: jasmine.SpyObj<Title>;
+  let titleMock: Title;
+  let notificationService;
+  let navRouteService;
   beforeEach(() => {
-    titleMock = TestBed.get(Title);
+    titleMock = TestBed.inject(Title);
+    notificationService = TestBed.inject(NotificationService);
+    navRouteService = TestBed.inject(NavRouteService);
+    navRouteService.getUserNav = jasmine.createSpy().and.returnValue([]);
     fixture = TestBed.createComponent(AppComponent);
     app = fixture.componentInstance;
   });

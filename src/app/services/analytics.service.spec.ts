@@ -29,7 +29,7 @@ describe('AnalyticsService', () => {
   }));
 
   it('should be created', () => {
-    const service: AnalyticsService = TestBed.get(AnalyticsService);
+    const service: AnalyticsService = TestBed.inject(AnalyticsService);
     expect(service).toBeTruthy();
   });
 });

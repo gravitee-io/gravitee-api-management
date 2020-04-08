@@ -16,7 +16,7 @@
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { SearchQueryParam, SearchRequestParams } from '../../utils/search-query-param.enum';
 import { ApiService, ApisResponse } from '@gravitee/ng-portal-webclient';
 

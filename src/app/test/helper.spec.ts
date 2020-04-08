@@ -16,13 +16,11 @@
 import { TestBed } from '@angular/core/testing';
 import { TokenService } from '../services/token.service';
 
-
 export function getTokenServiceMock() {
-  let tokenService: jasmine.SpyObj<TokenService>;
-  tokenService = TestBed.get(TokenService);
-  // @ts-ignore
-  tokenService.isParsedTokenExpired.and.returnValue(true);
-  tokenService.parseToken.and.returnValue({
+  let tokenService: TokenService;
+  tokenService = TestBed.inject(TokenService);
+  tokenService.isParsedTokenExpired = jasmine.createSpy().and.returnValue(true);
+  tokenService.parseToken = jasmine.createSpy().and.returnValue({
     firstname: 'foobar'
   });
   return tokenService;

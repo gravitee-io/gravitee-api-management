@@ -53,8 +53,8 @@ import { distinctUntilChanged } from 'rxjs/operators';
 export class ApplicationCreationComponent implements OnInit {
 
 
-  @ViewChild('searchApiAutocomplete', { static: false }) searchApiAutocomplete;
-  @ViewChild('clientId', { static: false }) clientId;
+  @ViewChild('searchApiAutocomplete') searchApiAutocomplete;
+  @ViewChild('clientId') clientId;
 
   private _allSteps: any;
   steps: any;
