@@ -1,6 +1,6 @@
 {
   "analytics": {
-    "empty": "No results to display",
+    "empty": "No result to display",
     "timeframes": {
       "day": "Day",
       "days": "days",
@@ -474,7 +474,7 @@
     "status": {
       "ACCEPTED": "Accepted",
       "CLOSED": "Closed",
-      "PAUSED": "ON BREAK",
+      "PAUSED": "Paused",
       "PENDING": "Waiting",
       "REJECTED": "Rejected"
     }
@@ -523,7 +523,7 @@
     "error": "An error occurred while loading the category"
   },
   "gv-chart": {
-    "empty": "No results to display",
+    "empty": "No result to display",
     "error": "An error occurred while loading data"
   },
   "gv-code": {
@@ -662,11 +662,11 @@
     "notes": "Ratings"
   },
   "gv-row": {
-    "empty": "No results to display",
+    "empty": "No result to display",
     "error": "An error occurred while loading the API"
   },
   "gv-stats": {
-    "empty": "No results to display",
+    "empty": "No result to display",
     "error": "An error occurred while loading data"
   },
   "gv-stepper": {
@@ -674,7 +674,7 @@
   },
   "gv-table": {
     "accepted": "Accepted",
-    "empty": "No results to display",
+    "empty": "No result to display",
     "error": "An error occurred while loading data",
     "paused": "Paused",
     "pending": "Pending",
