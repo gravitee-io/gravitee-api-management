@@ -16,11 +16,11 @@
 import * as moment from 'moment';
 import _ = require('lodash');
 
-function managementI18nConfig($translateProvider, $windowProvider) {
+function i18nConfig($translateProvider, $windowProvider) {
   'ngInject';
 
   $translateProvider.useLoader('i18nCustomLoader', {
-    prefix: 'management/i18n/',
+    prefix: 'assets/i18n/',
     suffix: '.json'
   });
 
@@ -45,4 +45,4 @@ function managementI18nConfig($translateProvider, $windowProvider) {
 
 }
 
-export default managementI18nConfig;
+export default i18nConfig;

@@ -23,6 +23,7 @@ angular.lowercase = _.toLower;
 import './index.scss';
 
 import './management/management.module';
+import './i18n/i18n.module';
 
 let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
 let $http: ng.IHttpService = initInjector.get('$http');
@@ -84,6 +85,6 @@ function initTheme(constants: any) {
 
 function bootstrapApplication() {
   angular.element(document).ready(function () {
-    angular.bootstrap(document, ['gravitee-management']);
+    angular.bootstrap(document, ['gravitee-i18n', 'gravitee-management']);
   });
 }

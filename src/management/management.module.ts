@@ -342,10 +342,6 @@ import managementRouterConfig from './management.route';
 import interceptorConfig from './management.interceptor';
 import delegatorConfig from './management.delegator';
 import runBlock from './management.run';
-import managementI18nConfig from './management.i18n';
-
-// i18n
-import i18nCustomLoader from './i18n/loader';
 
 import uiRouter from '@uirouter/angularjs';
 import {permission, uiPermission} from 'angular-permission';
@@ -567,8 +563,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .config(routerConfig)
   .config(authenticationConfig)
   .config(managementRouterConfig)
-  .config(managementI18nConfig)
-  .factory('i18nCustomLoader', i18nCustomLoader)
   .config(applicationRouterConfig)
   .config(applicationsNotificationsRouterConfig)
   .config(apisRouterConfig)
