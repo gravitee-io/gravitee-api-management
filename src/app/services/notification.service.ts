@@ -24,28 +24,29 @@ export class NotificationService {
   private notificationSource = new BehaviorSubject<Notification>(undefined);
   notification = this.notificationSource.asObservable();
 
-  success(code: string, parameters?: object, fallbackMessage?: string) {
-    this.notify('success', code, parameters, fallbackMessage);
+  success(code: string, parameters?: object, fallbackMessage?: string, closable?: boolean) {
+    this.notify('success', code, parameters, fallbackMessage, closable);
   }
 
-  error(code: string, parameters?: object, fallbackMessage?: string) {
-    this.notify('error', code, parameters, fallbackMessage);
+  error(code: string, parameters?: object, fallbackMessage?: string, closable?: boolean) {
+    this.notify('error', code, parameters, fallbackMessage, closable);
   }
 
-  info(code: string, parameters?: object, fallbackMessage?: string) {
-    this.notify('info', code, parameters, fallbackMessage);
+  info(code: string, parameters?: object, fallbackMessage?: string, closable?: boolean) {
+    this.notify('info', code, parameters, fallbackMessage, closable);
   }
 
-  warning(code: string, parameters?: object, fallbackMessage?: string) {
-    this.notify('warning', code, parameters, fallbackMessage);
+  warning(code: string, parameters?: object, fallbackMessage?: string, closable?: boolean) {
+    this.notify('warning', code, parameters, fallbackMessage, closable);
   }
 
-  private notify(type: string, code: string, parameters: object, message?: string) {
+  private notify(type: string, code: string, parameters: object, message?: string, closable?: boolean) {
     const notif = new Notification();
     notif.type = type;
     notif.code = code;
     notif.parameters = parameters;
     notif.message = message;
+    notif.closable = closable;
     this.notificationSource.next(notif);
   }
 

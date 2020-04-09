@@ -22,7 +22,6 @@ import { IdentityProvider, PortalService } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';
 import '@gravitee/ui-components/wc/gv-input';
-import '@gravitee/ui-components/wc/gv-message';
 import { NotificationService } from '../../services/notification.service';
 import { ConfigurationService } from '../../services/configuration.service';
 import { FeatureEnum } from '../../model/feature.enum';

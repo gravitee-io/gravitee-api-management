@@ -13,11 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class Notification {
-  type: string;
-  code: string;
-  message?: string;
-  parameters?: object;
-  closable?: boolean;
+export enum CookieEnum {
+  googleAnalytics = '_ga.enabled',
 }
-

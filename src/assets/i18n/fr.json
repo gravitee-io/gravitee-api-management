@@ -479,6 +479,24 @@
       "REJECTED": "Rejetée"
     }
   },
+  "cookies": {
+    "actions": {
+      "ok" : "J'ai compris",
+      "decline" : "Je refuse"
+    },
+    "confirmation" : "Si vous refusez, vos informations de navigations ne seront plus collectées en visitant ce site. En plus des cookies nécessaires à la navigation, un seul cookie sera utilisé dans votre navigateur pour se rappeler votre souhait de ne pas être enregistré.",
+    "googleAnalyticsDescription": "Autoriser les cookies pour Google Analytics",
+    "information" : {
+      "common" : "Ce site stocke des cookies sur votre ordinateur. Ces cookies servent à enregistrer vos préférences de navigation et vos informations de connexions. Ces informations servent à améliorer et personnaliser votre navigation.",
+      "withAnalytics" : "Des données statistiques et des métriques sur les visiteurs de ce site peuvent également être collectées (via <a href=\"https://policies.google.com/privacy\" target=\"_blank\">Google Analytics</a>)."
+    },
+    "manage": "Vous pouvez gérer vos préférences en matière de cookies ici.",
+    "success": {
+      "disable": "Cookie {cookieName} désactivé",
+      "enable": "Cookie {cookieName} activé"
+    },
+    "title": "Gestion des cookies"
+  },
   "dashboard": {
     "welcome": "Bienvenue {username},"
   },
@@ -775,6 +793,7 @@
     "catalogStarred": "Les mieux notées",
     "catalogTrending": "Les + tendances",
     "contact": "Contact",
+    "cookies": "Gestion des cookies",
     "dashboard": "Tableau de bord",
     "homepage": "Page d'accueil",
     "login": "Se connecter",

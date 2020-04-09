@@ -1,0 +1,23 @@
+<div class="page__content">
+  <section class="cookies__section">
+    <h1>{{ 'cookies.title' | translate }}</h1>
+    <div class="cookies__section__block">
+      <p class="large">{{ 'cookies.information.common' | translate}}</p>
+    </div>
+    
+    <div class="cookies__section__block" *ngIf="displayGACookie()">
+      <p [innerHTML]="'cookies.information.withAnalytics' | translate"></p>
+    </div>
+    <div class="cookies__section__block" *ngIf="displayGACookie()">
+      <p>{{ 'cookies.manage' | translate}}</p>
+      <div class="cookies__switches">
+        <gv-switch
+          (:gv-switch:input)="toggleGACookie($event)" 
+          label="Google Analytics" 
+          [description]="'cookies.googleAnalyticsDescription' | translate" 
+          [value]="this.gaCookieEnabled"
+        ></gv-switch>
+      </div>
+    </div>
+  </section>
+</div>

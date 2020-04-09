@@ -479,6 +479,24 @@
       "REJECTED": "Odmítnuto"
     }
   },
+  "cookies": {
+    "actions": {
+      "ok" : "Chápu",
+      "decline" : "Odmítám"
+    },
+    "confirmation" : "Pokud odmítnete, nebudou při návštěvě tohoto webu shromažďovány vaše údaje o prohlížení. Kromě požadovaných souborů cookie na webu bude v prohlížeči vytvořen pouze jeden soubor cookie, který si pamatuje, že vaše vůle nebude sledována.",
+    "googleAnalyticsDescription": "Povolit cookies pro analytiku Google",
+    "information" : {
+      "common" : "Tento web ukládá cookies do vašeho počítače. Tyto cookies se používají k ukládání vašich preferencí a informací o připojení. Umožňuje nám to vylepšit vaše prohlížení.",
+      "withAnalytics" : "Lze také shromažďovat analytické údaje a metriky návštěvníků (pomocí <a href=\"https://policies.google.com/privacy\" target=\"_blank\"> Google Analytics </a>)."
+    },
+    "manage": "Zde můžete spravovat předvolby cookies.",
+    "success": {
+      "disable": "Cookie {cookieName} zakázáno",
+      "enable": "Cookie {cookieName} povoleno"
+    },
+    "title": "Nastavení cookies"
+  },
   "dashboard": {
     "welcome": "Vítejte {username},"
   },
@@ -775,6 +793,7 @@
     "catalogStarred": "Označené hvězdičkou",
     "catalogTrending": "Nejmodernější",
     "contact": "Kontakt",
+    "cookies": "Nastavení cookies",
     "dashboard": "Dashboard",
     "homepage": "Domovská stránka",
     "login": "Přihlásit",

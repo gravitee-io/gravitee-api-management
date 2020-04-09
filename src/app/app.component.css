@@ -244,7 +244,7 @@
   padding-right: 30px;
 }
 
-.layout__footer__bottom__links {
+.layout__footer__bottom__links, .layout__footer__bottom__rights {
   --gv-link--c: var(--gv-theme-font-color-light);
   --gv-link-a--pv: 0px;
   --gv-link-a--ph: 0px;

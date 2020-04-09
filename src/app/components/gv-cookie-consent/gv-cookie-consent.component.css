@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,11 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class Notification {
-  type: string;
-  code: string;
-  message?: string;
-  parameters?: object;
-  closable?: boolean;
+.cookie__consent {
+  position: fixed;
+  bottom: 0px;
+  width: 100%;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
 }
 
+.cookie__consent__content {
+  display: flex;
+  flex-direction: column;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.cookie__consent__content p {
+  text-align: left;
+
+}
+
+.cookie__consent__actions {
+  display: flex;
+  justify-content: flex-end;
+}

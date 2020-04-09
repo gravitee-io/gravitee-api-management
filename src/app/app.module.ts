@@ -28,6 +28,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
 import { ConfigurationService } from './services/configuration.service';
+import { CookiesComponent } from './pages/cookies/cookies.component';
+import { CookieService } from 'ngx-cookie-service';
 import { CurrentUserService } from './services/current-user.service';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DocumentationComponent } from './pages/documentation/documentation.component';
@@ -37,6 +39,7 @@ import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filte
 import { GvAnalyticsDashboardComponent } from './components/gv-analytics-dashboard/gv-analytics-dashboard.component';
 import { GvAnalyticsFiltersComponent } from './components/gv-analytics-filters/gv-analytics-filters.component';
 import { GvContactComponent } from './components/gv-contact/gv-contact.component';
+import { GvCookieConsentComponent } from './components/gv-cookie-consent/gv-cookie-consent.component';
 import { GvDocumentationComponent } from './components/gv-documentation/gv-documentation.component';
 import { GvFileUploadComponent } from './components/gv-file-upload/gv-file-upload.component';
 import { GvHeaderItemComponent } from './components/gv-header-item/gv-header-item.component';
@@ -83,12 +86,14 @@ import { ViewportScroller } from '@angular/common';
     CatalogSearchComponent,
     CatalogSearchComponent,
     CategoriesComponent,
+    CookiesComponent,
     DashboardComponent,
     DocumentationComponent,
     FilteredCatalogComponent,
     GvAnalyticsDashboardComponent,
     GvAnalyticsFiltersComponent,
     GvContactComponent,
+    GvCookieConsentComponent,
     GvDocumentationComponent,
     GvFileUploadComponent,
     GvHeaderItemComponent,
@@ -144,6 +149,7 @@ import { ViewportScroller } from '@angular/common';
     { provide: BASE_PATH, useFactory: (config: ConfigurationService) => config.get('baseUrl'), deps: [ConfigurationService] },
     { provide: MESSAGE_FORMAT_CONFIG, useValue: { locales: environment.locales } },
     { provide: HTTP_INTERCEPTORS, useClass: ApiRequestInterceptor, multi: true },
+    CookieService,
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA

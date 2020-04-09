@@ -46,6 +46,7 @@ import { SubscribeGuardService } from './services/subscribe-guard.service';
 import { UserAccountComponent } from './pages/user/user-account/user-account.component';
 import { UserContactComponent } from './pages/user/user-contact/user-contact.component';
 import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
+import { CookiesComponent } from './pages/cookies/cookies.component';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
@@ -255,6 +256,7 @@ export const routes: Routes = [
       animation: {}
     },
   },
+  { path: 'cookies', component: CookiesComponent, data: { title: i18n('route.cookies') } },
   { path: '**', component: NotFoundComponent, data: { title: i18n('route.notFound') } }
 ];
 

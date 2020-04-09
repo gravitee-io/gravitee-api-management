@@ -15,6 +15,7 @@
  */
 import '@gravitee/ui-components/wc/gv-header';
 import '@gravitee/ui-components/wc/gv-menu';
+import '@gravitee/ui-components/wc/gv-message';
 import '@gravitee/ui-components/wc/gv-nav';
 import '@gravitee/ui-components/wc/gv-user-menu';
 import '@gravitee/ui-components/wc/gv-theme';
@@ -43,10 +44,8 @@ import { ConfigurationService } from './services/configuration.service';
 import { FeatureEnum } from './model/feature.enum';
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvSlot } from './directives/gv-slot';
+import { GoogleAnalyticsService } from './services/google-analytics.service';
 import { EventService } from './services/event.service';
-
-// for google analytics
-declare var gtag;
 
 @Component({
   selector: 'app-root',
@@ -74,11 +73,8 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild('homepageBackground', { static: true }) homepageBackground;
   private slots: Array<GvSlot>;
   private homepageBackgroundHeight: number;
-  private gaEnabled: boolean;
-  private gaTrackingId: string;
   private interval: any;
   public numberOfPortalNotifications: any;
-
   constructor(
     private titleService: Title,
     private translateService: TranslateService,
@@ -93,6 +89,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private userService: UserService,
     private eventService: EventService,
     private ref: ChangeDetectorRef,
+    private googleAnalyticsService: GoogleAnalyticsService,
   ) {
 
     this.activatedRoute.queryParamMap.subscribe(params => {
@@ -101,15 +98,12 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       }
     });
 
+    this.googleAnalyticsService.load();
+
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.notificationService.reset();
       } else if (event instanceof NavigationEnd) {
-        // google analytics
-        if (this.gaEnabled && this.gaTrackingId) {
-          gtag('config', this.gaTrackingId, { page_path: event.urlAfterRedirects, cookieDomain: 'none' });
-        }
-
         const currentRoute: ActivatedRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
         this._setBrowserTitle(currentRoute);
         const gvPreview = sessionStorage.getItem('gvPreview');
@@ -123,8 +117,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    this.gaEnabled = this.configurationService.hasFeature(FeatureEnum.googleAnalytics);
-    this.gaTrackingId = this.configurationService.get('portal.analytics.trackingId');
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
       this.userRoutes = this.navRouteService.getUserNav();
@@ -174,20 +166,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     }
     this.slots = [this.appGvMenuRightSlot, this.appGvMenuRightTransitionSlot, this.appGvMenuTopSlot];
 
-    // google analytics
-    if (this.gaEnabled && this.gaTrackingId) {
-      const scriptGA = document.createElement('script');
-      scriptGA.async = true;
-      scriptGA.src = `https://www.googletagmanager.com/gtag/js?id=${this.gaTrackingId}`;
-
-      const scriptGtag = document.createElement('script');
-      scriptGtag.async = true;
-      scriptGtag.innerHTML = 'function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date);';
-
-      document.head.appendChild(scriptGA);
-      document.head.appendChild(scriptGtag);
-    }
-
     this.loadNotifications();
     this.interval = setInterval(() => {
       this.loadNotifications();
@@ -197,6 +175,10 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
         this.loadNotifications();
       }
     });
+  }
+
+  onCloseNotification() {
+    this.notificationService.reset();
   }
 
   @HostListener('window:beforeunload')

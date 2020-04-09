@@ -16,6 +16,8 @@
 
 -->
 <gv-theme *ngIf="isPreview"></gv-theme>
+<app-gv-cookie-consent></app-gv-cookie-consent>
+
 <div class="layout"
      [ngClass]="{'sticky': this.isSticky, 'sticky-homepage': this.isStickyHomepage, 'layout__homepage': isHomepage()  }">
 
@@ -29,7 +31,6 @@
     </div>
 
     <header class="layout__header">
-
         <div class="layout__header__container">
             <div class="layout__header__logo" [ngClass]="{'layout__header__homepage__logo': isHomepage()}">
                 <a [routerLink]="'/'" title="{{ 'site.title' | translate }}"></a>
@@ -51,11 +52,17 @@
             <ng-template appGvMenuRightTransitionSlot></ng-template>
             <ng-template appGvMenuRightSlot></ng-template>
         </gv-menu>
-        <gv-message *ngIf="notification" [type]="notification.type">{{ notification.message }}</gv-message>
+        <gv-message 
+            *ngIf="notification"
+            [type]="notification.type"
+            [innerHtml]="notification.message"
+            [closable]="notification.closable"
+            (:gv-message:close)="onCloseNotification()"
+        ></gv-message>
 
     </header>
 
-    <div class="layout__content" [ngClass]="{'layout__content__homepage': isHomepage() }">
+    <div class="layout__content" [ngClass]="{ 'layout__content__homepage': isHomepage() }">
         <div [@routeAnimations]="prepareRoute(outlet)">
             <router-outlet #outlet="outlet"></router-outlet>
         </div>
@@ -84,6 +91,7 @@
                 </li>
             </ul>
             <ul class="layout__footer__bottom__rights">
+                <li><gv-link path="cookies" title="{{ 'route.cookies' | translate }}"></gv-link></li>
                 <li>{{ 'footer.rights' | translate }}</li>
             </ul>
         </section>
