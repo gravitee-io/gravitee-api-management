@@ -29,6 +29,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -77,6 +78,7 @@ public class SecurityPolicyChainResolverTest {
         PolicyChain policyChain = securityPolicyChainResolver.resolve(StreamType.ON_REQUEST, request, response, executionContext);
 
         assertEquals(DirectPolicyChain.class, policyChain.getClass());
+        assertTrue(((DirectPolicyChain) policyChain).policyResult().key().equals("PLAN_UNRESOLVABLE"));
     }
 
     @Test
