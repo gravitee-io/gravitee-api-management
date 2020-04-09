@@ -131,9 +131,14 @@ export class Rule {
   }
 
   static findByScopeAndType(scope: Scope, type: string): Rule {
+    let source;
     if (type.includes('@')) {
-      type = type.split('@')[1];
+      const arr = type.split('@');
+      source = arr[0];
+      type = arr[1];
     }
-    return Rule.RULES.find(rule => rule.type === type && rule.scopes.indexOf(scope) != -1);
+    return Rule.RULES.find(rule => {
+      return (source ? rule.source === source : true) && rule.type === type && rule.scopes.indexOf(scope) != -1;
+    });
   }
 }
