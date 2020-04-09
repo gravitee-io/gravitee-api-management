@@ -41,4 +41,8 @@ public class DirectPolicyChain extends NoOpPolicyChain {
     public void doNext(Request request, Response response) {
         errorHandler.handle(new PolicyChainProcessorFailure(policyResult));
     }
+
+    public PolicyResult policyResult() {
+        return policyResult;
+    }
 }
