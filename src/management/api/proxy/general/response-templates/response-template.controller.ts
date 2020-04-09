@@ -93,7 +93,7 @@ class ApiResponseTemplateController {
       'GATEWAY_OAUTH2_INVALID_CLIENT',
       'GATEWAY_MISSING_SECURITY_PROVIDER',
       'GATEWAY_POLICY_INTERNAL_ERROR',
-      'GATEWAY_MISSING_SECURED_REQUEST_PLAN'
+      'GATEWAY_PLAN_UNRESOLVABLE'
     ];
 
     // In case of a new response template, initialize with default media type
