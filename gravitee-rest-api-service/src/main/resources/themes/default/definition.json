@@ -389,7 +389,7 @@
           "name": "--gv-tree--bgc",
           "description": "Background color",
           "type": "color",
-          "default": "var(--gv-theme-neutral-color, #F5F5F5)",
+          "default": "var(--gv-theme-neutral-color-lightest, #FFFFF)",
           "value": ""
         },
         {
@@ -410,15 +410,15 @@
           "name": "--gv-tree-active--bgc",
           "description": "Active background color",
           "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "default": "var(--gv-theme-neutral-color, #F5F5F5)",
           "value": ""
         },
         {
           "name": "--gv-tree-link-a--ph",
           "description": "Link horizontal padding",
           "type": "length",
-          "default": "0",
-          "value": "0"
+          "default": "10px",
+          "value": "10px"
         },
         {
           "name": "--gv-tree-link--ta",
