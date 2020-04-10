@@ -300,6 +300,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 final UpdatePageEntity page = new UpdatePageEntity();
                 page.setName(pageToUpdate.getName());
                 page.setOrder(pageToUpdate.getOrder());
+                page.setHomepage(pageToUpdate.isHomepage());
+                page.setPublished(pageToUpdate.isPublished());
+                page.setParentId(pageToUpdate.getParentId());
+                page.setConfiguration(pageToUpdate.getConfiguration());
                 if (INLINE.equals(swaggerDescriptor.getType())) {
                     page.setContent(swaggerDescriptor.getPayload());
                 } else {
