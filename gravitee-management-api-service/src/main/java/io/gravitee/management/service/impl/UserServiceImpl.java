@@ -153,7 +153,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     settings.setApp(simpleAppSettings);
                     defaultApp.setSettings(settings);
 
-                    applicationService.create(defaultApp, userId);
+                    try {
+                        applicationService.create(defaultApp, userId);
+                    } catch (IllegalStateException ex) {
+                        //do not fail to create a user even if we are not able to create its default app
+                    }
                 }
             }
 
