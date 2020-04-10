@@ -208,4 +208,5 @@ export function initApp(configurationService: ConfigurationService, authService:
       return authService.load().then(() => currentUserService.load().then(() => translationService.load()));
     }
   );
+
 }

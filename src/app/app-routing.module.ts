@@ -240,8 +240,14 @@ export const routes: Routes = [
       { path: 'resetPassword/confirm/:token', component: ResetPasswordConfirmationComponent }
     ]
   },
-  { path: 'documentation', redirectTo: 'documentation/root', pathMatch: 'full' },
-  { path: 'documentation/:rootDir', component: DocumentationComponent, data: { animation: { type: 'fade' } } },
+  {
+    path: 'documentation',
+    children: [
+      { path: '', redirectTo: 'root', pathMatch: 'full' },
+      { path: ':rootDir', component: DocumentationComponent, data: { animation: { type: 'fade' } } },
+    ]
+  },
+
   { path: 'pages/:pageId', component: SinglePageComponent },
   {
     path: 'categories/:categoryId',
@@ -296,7 +302,7 @@ export const routes: Routes = [
       {
         path: ':applicationId',
         data: {
-            menu: { slots: { top: GvHeaderItemComponent }, animation: { type: 'fade' } },
+          menu: { slots: { top: GvHeaderItemComponent }, animation: { type: 'fade' } },
         },
         resolve: {
           application: ApplicationResolver

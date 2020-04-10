@@ -15,7 +15,7 @@
  */
 import * as jsyaml from 'js-yaml';
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { ApiService, Page, PortalService, User } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute } from '@angular/router';
 
@@ -49,7 +49,8 @@ export class GvPageSwaggerUIComponent implements OnInit {
     private apiService: ApiService,
     private route: ActivatedRoute,
     private currentUserService: CurrentUserService
-    ) { }
+  ) {
+  }
 
   currentPage: Page;
   currentUser: User;
@@ -58,6 +59,19 @@ export class GvPageSwaggerUIComponent implements OnInit {
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
     });
+    this.loadStyle();
+  }
+
+  loadStyle() {
+    const swaggerUi = document.getElementById('swagger-ui');
+    if (!swaggerUi) {
+      const style = document.createElement('link');
+      style.id = 'swagger-ui';
+      style.rel = 'stylesheet';
+      style.href = 'swagger-ui.css';
+      const head = document.getElementsByTagName('head')[0];
+      head.appendChild(style);
+    }
   }
 
   DisableTryItOutPlugin() {
@@ -74,18 +88,21 @@ export class GvPageSwaggerUIComponent implements OnInit {
 
   refresh(page: Page) {
     const cfg: any = this._prepareConfig(page);
-    SwaggerUIBundle({ ...cfg, ...{ onComplete: () => {
-        this.currentPage = page;
+    SwaggerUIBundle({
+      ...cfg, ...{
+        onComplete: () => {
+          this.currentPage = page;
+        }
       }
-    }});
+    });
   }
 
   _prepareConfig(page: Page) {
     const customPlugins = [];
     if (page.configuration
-        && !page.configuration.try_it
-        && (this.currentUser || !page.configuration.try_it_anonymous)) {
-          customPlugins.push(this.DisableTryItOutPlugin);
+      && !page.configuration.try_it
+      && (this.currentUser || !page.configuration.try_it_anonymous)) {
+      customPlugins.push(this.DisableTryItOutPlugin);
     }
 
     let contentAsJson = {};
@@ -124,7 +141,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
       cfg.showExtensions = page.configuration.show_extensions || false;
       cfg.showCommonExtensions = page.configuration.show_common_extensions || false;
       cfg.maxDisplayedTags = page.configuration.max_displayed_tags < 0
-          ? undefined : page.configuration.max_displayed_tags;
+        ? undefined : page.configuration.max_displayed_tags;
     }
 
     return cfg;

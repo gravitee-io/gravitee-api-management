@@ -25,6 +25,7 @@ export class DocumentationComponent implements OnInit {
 
   pages: Page[];
   rootDir: string;
+  fragment: string;
 
   constructor(
     private portalService: PortalService,
@@ -33,6 +34,7 @@ export class DocumentationComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.fragment = this.activeRoute.snapshot.fragment;
     this.activeRoute.params.subscribe((params) => {
       if (params.rootDir && params.rootDir !== 'root') {
         this.rootDir = params.rootDir;

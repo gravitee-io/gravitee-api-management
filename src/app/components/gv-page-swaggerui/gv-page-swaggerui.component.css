@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 .gv-page-container {
-  display: inline-block;
   width: 100%;
+  min-height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h));
 }

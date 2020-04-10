@@ -16,7 +16,7 @@
 
 -->
 <div [ngClass]="{show: isLoaded}" class="gv-page-container">
-  <div id="redoc"></div>
+  <div #redoc></div>
 </div>
 <div class="gv-documentation__loading" *ngIf="!isLoaded">
   <gv-icon shape="navigation:waiting"></gv-icon>

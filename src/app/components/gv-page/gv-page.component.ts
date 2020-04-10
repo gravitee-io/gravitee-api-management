@@ -15,11 +15,7 @@
  */
 import { Component, ViewChild, ComponentFactoryResolver, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Page, PageConfiguration } from '@gravitee/ng-portal-webclient';
-
 import { GvPageContentSlotDirective } from 'src/app/directives/gv-page-content-slot.directive';
-import { GvPageSwaggerUIComponent } from '../gv-page-swaggerui/gv-page-swaggerui.component';
-import { GvPageRedocComponent } from '../gv-page-redoc/gv-page-redoc.component';
-import { GvPageMarkdownComponent } from '../gv-page-markdown/gv-page-markdown.component';
 
 @Component({
   selector: 'app-gv-page',
@@ -29,11 +25,14 @@ import { GvPageMarkdownComponent } from '../gv-page-markdown/gv-page-markdown.co
 export class GvPageComponent implements OnChanges {
 
   @ViewChild(GvPageContentSlotDirective, { static: true }) appGvPageContentSlot: GvPageContentSlotDirective;
-  @Input () page: Page;
+  @Input() page: Page;
+
+  @Input() fragment: string;
 
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
-    ) { }
+  ) {
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.page) {
@@ -41,20 +40,25 @@ export class GvPageComponent implements OnChanges {
     }
   }
 
-  private _loadViewer() {
+  private async _loadViewer() {
     let componentFactory;
     if (this.page && this.page.type.toUpperCase() === Page.TypeEnum.MARKDOWN) {
+      const { GvPageMarkdownComponent } = await import('../gv-page-markdown/gv-page-markdown.component');
       componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageMarkdownComponent);
     } else {
       const documentationViewer = (this.page.configuration ? this.page.configuration.viewer : '');
       if (documentationViewer && documentationViewer.toUpperCase() === PageConfiguration.ViewerEnum.Redoc.toUpperCase()) {
+        const { GvPageRedocComponent } = await import('../gv-page-redoc/gv-page-redoc.component');
         componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageRedocComponent);
       } else {
+        const { GvPageSwaggerUIComponent } = await import('../gv-page-swaggerui/gv-page-swaggerui.component');
         componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageSwaggerUIComponent);
       }
     }
     this.appGvPageContentSlot.viewContainerRef.clear();
     const viewerPage: any = this.appGvPageContentSlot.viewContainerRef.createComponent(componentFactory);
     viewerPage.instance.page = this.page;
+    viewerPage.instance.fragment = this.fragment;
   }
+
 }

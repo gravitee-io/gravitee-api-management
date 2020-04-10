@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 .markdown {
-  min-height: 400px;
-  max-height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h) - 20px);
-  padding: 10px 50px;
-  overflow: scroll;
+  height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h));
+  padding: 1rem 42px;
+  overflow: auto;
+  width: calc(100% - 84px);
 }

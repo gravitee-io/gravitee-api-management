@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, Input, OnInit } from '@angular/core';
+import { Component, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import { Page } from '@gravitee/ng-portal-webclient';
 import { TreeItem } from '../../model/tree-item';
 import { NotificationService } from '../../services/notification.service';
@@ -35,15 +35,18 @@ import { animate, style, transition, trigger } from '@angular/animations';
     ])
   ]
 })
-export class GvDocumentationComponent {
+export class GvDocumentationComponent{
 
   currentPage: Page;
   currentMenuItem: TreeItem;
   menu: TreeItem[];
   isLoaded = false;
+  hasTreeClosed = false;
 
   @Input() rootDir: string;
   private _pages: Page[];
+
+  @ViewChild('tree', { static: false }) tree;
 
   @Input() set pages(pages: Page[]) {
     if (pages && pages.length) {
@@ -73,6 +76,8 @@ export class GvDocumentationComponent {
       }, 700);
     }
   }
+
+  @Input() fragment: string;
 
   constructor(
     private notificationService: NotificationService,
@@ -141,6 +146,11 @@ export class GvDocumentationComponent {
   onPageChange(page) {
     this.router.navigate([], { queryParams: { page: page.id } });
     this.currentPage = page;
+  }
+
+  @HostListener(':gv-tree:toggle', ['$event.detail.closed'])
+  onToggleTree(closed) {
+    this.hasTreeClosed = closed;
   }
 
   isMarkdown(page: Page) {

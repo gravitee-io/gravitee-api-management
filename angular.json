@@ -19,6 +19,7 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "aot": true,
+            "extractCss": true,
             "assets": [
               "src/favicon.ico",
               "src/favicon.png",
@@ -37,10 +38,19 @@
             "styles": [
               "node_modules/@ibm/plex/scss/ibm-plex.scss",
               "src/styles.scss",
-              "node_modules/swagger-ui-dist/swagger-ui.css"
+              {
+                "input": "node_modules/swagger-ui-dist/swagger-ui.css",
+                "lazy": true,
+                "bundleName": "swagger-ui"
+              }
             ],
             "scripts": [
-              "node_modules/marked/lib/marked.js"
+              "node_modules/marked/lib/marked.js",
+              {
+                "input": "node_modules/redoc/bundles/redoc.standalone.js",
+                "lazy": true,
+                "bundleName": "redoc"
+              }
             ]
           },
           "configurations": {
@@ -117,9 +127,19 @@
             "styles": [
               "node_modules/@ibm/plex/scss/ibm-plex.scss",
               "src/styles.scss",
+              {
+                "input": "node_modules/swagger-ui-dist/swagger-ui.css",
+                "lazy": true,
+                "bundleName": "swagger-ui"
+              }
             ],
             "scripts": [
-              "node_modules/marked/lib/marked.js"
+              "node_modules/marked/lib/marked.js",
+              {
+                "input": "node_modules/redoc/bundles/redoc.standalone.js",
+                "lazy": true,
+                "bundleName": "redoc"
+              }
             ]
           }
         },
@@ -134,7 +154,6 @@
             "exclude": [
               "**/node_modules/**",
               "**/tmp/**"
-
             ]
           }
         },

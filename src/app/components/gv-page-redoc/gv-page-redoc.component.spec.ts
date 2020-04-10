@@ -39,7 +39,6 @@ describe('GvPageComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(GvPageRedocComponent);
     component = fixture.componentInstance;
-    component.currentPage = null;
     component.page = null;
     fixture.detectChanges();
   });
