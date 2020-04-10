@@ -149,3 +149,16 @@ h4.title span {
 body {
   margin: 0;
 }
+
+.pagination__block {
+  display: flex;
+  float: right;
+}
+
+.pagination__size__block {
+  width: 60px;
+}
+
+.pagination__pagination__block {
+  display: flex;
+}

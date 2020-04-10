@@ -493,7 +493,7 @@
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."
     },
     "server": {
-      "unavailable": "Server unavailable"
+      "unavailable": "Server unavailable or connection lost"
     },
     "support": {
       "disabled": "Contact form is not available at this time"
@@ -824,6 +824,11 @@
     "change_picture": "Change photo",
     "display_name": "Name:",
     "email": "Email:",
+    "notifications": {
+      "empty": "",
+      "read": "",
+      "title": ""
+    },
     "title": "My account",
     "update": "Update"
   }

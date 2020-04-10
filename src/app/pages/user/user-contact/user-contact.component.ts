@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.login, .registration, .registration-confirmation, .reset-password, .reset-password-confirmation {
-  align-content: center;
-  background-color: white;
-  color: var(--gv-theme-color-darker);
-  display: flex;
-  flex-direction: column;
-  margin: 0.5rem auto;
-  max-width: 30rem;
-  padding: 0.75rem 3.5rem;
-}
+import { Component } from '@angular/core';
+import '@gravitee/ui-components/wc/gv-select';
+import '@gravitee/ui-components/wc/gv-text';
+import '@gravitee/ui-components/wc/gv-checkbox';
 
-.login__form__input, .registration__form__input, .registration-confirmation__form__input, .reset-password__form__input, .reset-password-confirmation__form__input {
-  --gv-button--p: 0.7rem 0.5rem;
-  margin: 0.5rem 0;
-  width: 100%;
+@Component({
+  selector: 'app-user-contact',
+  templateUrl: './user-contact.component.html',
+})
+export class UserContactComponent {
 }

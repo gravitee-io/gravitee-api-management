@@ -35,7 +35,7 @@ import { NotificationService } from './services/notification.service';
 import { ActivatedRoute, NavigationEnd, NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { INavRoute, NavRouteService } from './services/nav-route.service';
 import { animation } from './route-animation';
-import { Link, PortalService, User } from '@gravitee/ng-portal-webclient';
+import { Link, PortalService, User, UserService } from '@gravitee/ng-portal-webclient';
 import { Notification } from './model/notification';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
 import { GvMenuRightTransitionSlotDirective } from './directives/gv-menu-right-transition-slot.directive';
@@ -43,6 +43,7 @@ import { ConfigurationService } from './services/configuration.service';
 import { FeatureEnum } from './model/feature.enum';
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvSlot } from './directives/gv-slot';
+import { EventService } from './services/event.service';
 
 // for google analytics
 declare var gtag;
@@ -75,6 +76,8 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   private homepageBackgroundHeight: number;
   private gaEnabled: boolean;
   private gaTrackingId: string;
+  private interval: any;
+  public numberOfPortalNotifications: any;
 
   constructor(
     private titleService: Title,
@@ -87,6 +90,8 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private componentFactoryResolver: ComponentFactoryResolver,
     private configurationService: ConfigurationService,
     private portalService: PortalService,
+    private userService: UserService,
+    private eventService: EventService,
     private ref: ChangeDetectorRef,
   ) {
 
@@ -117,7 +122,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     });
   }
 
-
   async ngOnInit() {
     this.gaEnabled = this.configurationService.hasFeature(FeatureEnum.googleAnalytics);
     this.gaTrackingId = this.configurationService.get('portal.analytics.trackingId');
@@ -136,6 +140,29 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       } else {
         delete this.notification;
       }
+      this.ref.detectChanges();
+    });
+  }
+
+  private loadNotifications() {
+    this.userService.getCurrentUserNotifications({ size: 1 }).toPromise().then((response) => {
+      const portalNotification = response.data[0];
+      const total = response.metadata.pagination ? response.metadata.pagination.total : 0;
+      if (this.numberOfPortalNotifications !== null && (total > this.numberOfPortalNotifications)) {
+        this.eventService.set('gv-notifications:onNew');
+        const windowNotification = (window as any).Notification;
+        if (windowNotification) {
+          windowNotification.requestPermission()
+            .then((permission) => {
+              if (permission === 'granted') {
+                const n = new windowNotification(portalNotification.title, {
+                  body: portalNotification.message
+                });
+              }
+            });
+        }
+      }
+      this.numberOfPortalNotifications = total;
       this.ref.detectChanges();
     });
   }
@@ -160,11 +187,22 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       document.head.appendChild(scriptGA);
       document.head.appendChild(scriptGtag);
     }
+
+    this.loadNotifications();
+    this.interval = setInterval(() => {
+      this.loadNotifications();
+    }, this.configurationService.get('scheduler.notificationsInSeconds') * 1000);
+    this.eventService.event.subscribe((type) => {
+      if (type === 'gv-notifications:onRemove') {
+        this.loadNotifications();
+      }
+    });
   }
 
   @HostListener('window:beforeunload')
   async ngOnDestroy() {
     sessionStorage.removeItem('gvPreview');
+    clearInterval(this.interval);
   }
 
   @HostListener(':gv-theme:error', ['$event.detail'])

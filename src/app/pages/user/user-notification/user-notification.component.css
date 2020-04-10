@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.login, .registration, .registration-confirmation, .reset-password, .reset-password-confirmation {
-  align-content: center;
-  background-color: white;
-  color: var(--gv-theme-color-darker);
+.user-notification__section {
   display: flex;
   flex-direction: column;
-  margin: 0.5rem auto;
-  max-width: 30rem;
-  padding: 0.75rem 3.5rem;
+  flex: 1 1 auto;
+  margin: 0 32px;
 }
 
-.login__form__input, .registration__form__input, .registration-confirmation__form__input, .reset-password__form__input, .reset-password-confirmation__form__input {
-  --gv-button--p: 0.7rem 0.5rem;
-  margin: 0.5rem 0;
-  width: 100%;
+.user-notification__block {
+  background-color: white;
+  border-radius: 4px;
+  padding: 10px 34px;
 }

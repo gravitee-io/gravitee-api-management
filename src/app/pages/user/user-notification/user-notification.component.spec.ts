@@ -14,41 +14,44 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
+import { UserTestingModule } from '../../../test/user-testing-module';
 
-import { ContactComponent } from './contact.component';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { UserNotificationComponent } from './user-notification.component';
+import { SafePipe } from '../../../pipes/safe.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideMock } from '../../test/mock.helper.spec';
-import { NotificationService } from '../../services/notification.service';
-import { LoaderService } from '../../services/loader.service';
-import { CurrentUserService } from '../../services/current-user.service';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideMock } from '../../../test/mock.helper.spec';
+import { UserService } from '@gravitee/ng-portal-webclient';
+import { Observable } from 'rxjs';
 
-describe('ContactComponent', () => {
-  let component: ContactComponent;
-  let fixture: ComponentFixture<ContactComponent>;
+describe('UserNotificationComponent', () => {
+  let component: UserNotificationComponent;
+  let fixture: ComponentFixture<UserNotificationComponent>;
+  let userService: jasmine.SpyObj<UserService>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ContactComponent],
-      imports: [FormsModule, ReactiveFormsModule, TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
+      declarations: [UserNotificationComponent, SafePipe],
+      imports: [TranslateTestingModule, UserTestingModule, HttpClientTestingModule, RouterTestingModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
       providers: [
-        provideMock(NotificationService),
-        provideMock(LoaderService),
-        provideMock(CurrentUserService),
+        provideMock(UserService),
       ]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ContactComponent);
+    fixture = TestBed.createComponent(UserNotificationComponent);
     component = fixture.componentInstance;
+
+    userService = TestBed.get(UserService);
+    userService.getCurrentUserNotifications.and.returnValue(new Observable());
+    return userService;
   });
 
   it('should create', (done) => {

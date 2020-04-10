@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import '@gravitee/ui-components/wc/gv-select';
-import '@gravitee/ui-components/wc/gv-text';
-import '@gravitee/ui-components/wc/gv-checkbox';
+import { TestBed } from '@angular/core/testing';
 
-@Component({
-  selector: 'app-contact',
-  templateUrl: './contact.component.html',
-})
-export class ContactComponent {
-}
+import { EventService } from './event.service';
+
+describe('EventService', () => {
+  beforeEach(() => TestBed.configureTestingModule({}));
+
+  it('should be created', () => {
+    const service: EventService = TestBed.get(EventService);
+    expect(service).toBeTruthy();
+  });
+});

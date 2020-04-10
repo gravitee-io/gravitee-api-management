@@ -493,7 +493,7 @@
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
     },
     "server": {
-      "unavailable": "Serveur indisponible"
+      "unavailable": "Serveur indisponible ou connection perdu"
     },
     "support": {
       "disabled": "Le formulaire de contact n'est pas disponible pour le moment"
@@ -824,6 +824,11 @@
     "change_picture": "Changer la photo",
     "display_name": "Nom :",
     "email": "Email :",
+    "notifications": {
+      "empty": "Aucune notification reçu",
+      "read": "Lu",
+      "title": "Notifications"
+    },
     "title": "Mon compte",
     "update": "Mettre à jour"
   }

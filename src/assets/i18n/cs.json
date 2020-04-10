@@ -493,7 +493,7 @@
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
     },
     "server": {
-      "unavailable": "Server není k dispozici"
+      "unavailable": "Server není k dispozici nebo připojení bylo ztraceno"
     },
     "support": {
       "disabled": "Kontaktní formulář zatím není k dispozici"
@@ -824,6 +824,11 @@
     "change_picture": "Změnit fotografii",
     "display_name": "Jméno:",
     "email": "Email:",
+    "notifications": {
+      "empty": "",
+      "read": "",
+      "title": ""
+    },
     "title": "Můj účet",
     "update": "Aktualizace"
   }

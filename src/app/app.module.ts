@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AccountComponent } from './pages/account/account.component';
 import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
 import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
@@ -31,7 +30,6 @@ import { BrowserModule } from '@angular/platform-browser';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
 import { ConfigurationService } from './services/configuration.service';
-import { ContactComponent } from './pages/contact/contact.component';
 import { CurrentUserService } from './services/current-user.service';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DocumentationComponent } from './pages/documentation/documentation.component';
@@ -86,10 +84,12 @@ import { ApplicationMembersComponent } from './pages/application/application-mem
 import { ApplicationSubscriptionsComponent } from './pages/application/application-subscriptions/application-subscriptions.component';
 import { ApplicationLogsComponent } from './pages/application/application-logs/application-logs.component';
 import { GvSelectDashboardComponent } from './components/gv-select-dashboard/gv-select-dashboard.component';
+import { UserAccountComponent } from './pages/user/user-account/user-account.component';
+import { UserContactComponent } from './pages/user/user-contact/user-contact.component';
+import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 
 @NgModule({
   declarations: [
-    AccountComponent,
     ApiContactComponent,
     ApiDocumentationComponent,
     ApiGeneralComponent,
@@ -106,8 +106,6 @@ import { GvSelectDashboardComponent } from './components/gv-select-dashboard/gv-
     CatalogSearchComponent,
     CatalogSearchComponent,
     CategoriesComponent,
-    ContactComponent,
-    ContactComponent,
     DashboardComponent,
     DocumentationComponent,
     FilteredCatalogComponent,
@@ -141,6 +139,9 @@ import { GvSelectDashboardComponent } from './components/gv-select-dashboard/gv-
     GvAnalyticsFiltersComponent,
     ApplicationLogsComponent,
     GvSelectDashboardComponent,
+    UserAccountComponent,
+    UserContactComponent,
+    UserNotificationComponent,
   ],
   entryComponents: [GvSearchApiComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent,
     GvButtonCreateApplicationComponent, GvSelectDashboardComponent],

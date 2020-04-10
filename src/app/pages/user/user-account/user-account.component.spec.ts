@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
-import { UserTestingModule } from '../../test/user-testing-module';
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
+import { UserTestingModule } from '../../../test/user-testing-module';
 
-import { AccountComponent } from './account.component';
-import { SafePipe } from '../../pipes/safe.pipe';
+import { UserAccountComponent } from './user-account.component';
+import { SafePipe } from '../../../pipes/safe.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
-describe('AccountComponent', () => {
-  let component: AccountComponent;
-  let fixture: ComponentFixture<AccountComponent>;
+describe('UserAccountComponent', () => {
+  let component: UserAccountComponent;
+  let fixture: ComponentFixture<UserAccountComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [AccountComponent, SafePipe],
+      declarations: [UserAccountComponent, SafePipe],
       imports: [TranslateTestingModule, UserTestingModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
@@ -37,7 +37,7 @@ describe('AccountComponent', () => {
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(AccountComponent);
+    fixture = TestBed.createComponent(UserAccountComponent);
     component = fixture.componentInstance;
   });
 

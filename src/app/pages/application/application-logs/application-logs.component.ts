@@ -202,7 +202,7 @@ export class ApplicationLogsComponent implements OnInit {
 
   onSelectSize(size) {
     this.router.navigate([], {
-      queryParams: { size, log: null },
+      queryParams: { size, page: null, log: null },
       queryParamsHandling: 'merge',
       fragment: this.analyticsService.fragment
     }).then(() => {

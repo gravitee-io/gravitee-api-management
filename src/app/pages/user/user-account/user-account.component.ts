@@ -15,18 +15,18 @@
  */
 import { Component, OnInit } from '@angular/core';
 
-import { CurrentUserService } from '../../services/current-user.service';
+import { CurrentUserService } from '../../../services/current-user.service';
 import { User, UserService } from '@gravitee/ng-portal-webclient';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { NotificationService } from '../../services/notification.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
-  selector: 'app-user',
-  templateUrl: './account.component.html',
-  styleUrls: ['./account.component.css']
+  selector: 'app-user-account',
+  templateUrl: './user-account.component.html',
+  styleUrls: ['./user-account.component.css']
 })
 
-export class AccountComponent implements OnInit {
+export class UserAccountComponent implements OnInit {
 
   public currentUser: User;
   public avatar: string;

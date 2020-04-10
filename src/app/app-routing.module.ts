@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AccountComponent } from './pages/account/account.component';
 import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
 import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
@@ -23,7 +22,6 @@ import { AuthGuardService } from './services/auth-guard.service';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
 import { CategoryApiQuery } from '@gravitee/ng-portal-webclient';
-import { ContactComponent } from './pages/contact/contact.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DocumentationComponent } from './pages/documentation/documentation.component';
 import { FeatureEnum } from './model/feature.enum';
@@ -57,6 +55,9 @@ import { ApplicationNotificationsComponent } from './pages/application/applicati
 import { ApplicationMembersComponent } from './pages/application/application-members/application-members.component';
 import { ApplicationSubscriptionsComponent } from './pages/application/application-subscriptions/application-subscriptions.component';
 import { GvSelectDashboardComponent } from './components/gv-select-dashboard/gv-select-dashboard.component';
+import { UserAccountComponent } from './pages/user/user-account/user-account.component';
+import { UserContactComponent } from './pages/user/user-contact/user-contact.component';
+import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
@@ -202,7 +203,7 @@ export const routes: Routes = [
       },
       {
         path: 'account',
-        component: AccountComponent,
+        component: UserAccountComponent,
         canActivate: [AuthGuardService],
         data: {
           title: i18n('route.user'),
@@ -213,7 +214,7 @@ export const routes: Routes = [
       },
       {
         path: 'contact',
-        component: ContactComponent,
+        component: UserContactComponent,
         canActivate: [AuthGuardService, FeatureGuardService],
         data: {
           title: i18n('route.contact'),
@@ -221,6 +222,17 @@ export const routes: Routes = [
           expectedFeature: FeatureEnum.contact,
           expectedRole: Role.AUTH_USER,
           animation: { type: 'slide', group: 'user', index: 2 }
+        }
+      },
+      {
+        path: 'notifications',
+        component: UserNotificationComponent,
+        canActivate: [AuthGuardService, FeatureGuardService],
+        data: {
+          title: i18n('route.notifications'),
+          icon: 'general:notifications#2',
+          expectedRole: Role.AUTH_USER,
+          animation: { type: 'slide', group: 'user', index: 3 }
         }
       },
       {
