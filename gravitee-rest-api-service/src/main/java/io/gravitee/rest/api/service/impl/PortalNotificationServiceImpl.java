@@ -23,12 +23,10 @@ import io.gravitee.repository.management.model.PortalNotification;
 import io.gravitee.rest.api.model.notification.NewPortalNotificationEntity;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
 import io.gravitee.rest.api.service.PortalNotificationService;
-import io.gravitee.rest.api.service.exceptions.NotificationConfigNotFoundException;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.PortalNotificationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.Hook;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

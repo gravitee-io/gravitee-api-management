@@ -52,7 +52,6 @@ public class ConfigurationMapper {
     private ConfigurationScheduler convert(Scheduler scheduler) {
         ConfigurationScheduler configuration = new ConfigurationScheduler();
         configuration.setNotificationsInSeconds(scheduler.getNotificationsInSeconds());
-        configuration.setTasksInSeconds(scheduler.getTasksInSeconds());
         return configuration;
     }
 

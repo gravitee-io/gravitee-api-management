@@ -3635,9 +3635,6 @@ components:
             type: string
     ConfigurationScheduler:
       properties:
-        tasksInSeconds:
-          description: Number of seconds for task scheduler.
-          type: integer
         notificationsInSeconds:
           description: Number of seconds for notification scheduler.
           type: integer

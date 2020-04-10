@@ -63,7 +63,6 @@
     }
   },
   "scheduler" : {
-    "tasksInSeconds" : 10,
     "notificationsInSeconds" : 10
   },
   "documentation" : {

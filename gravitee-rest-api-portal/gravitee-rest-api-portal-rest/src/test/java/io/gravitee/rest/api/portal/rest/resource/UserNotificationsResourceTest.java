@@ -15,11 +15,15 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
+import io.gravitee.rest.api.portal.rest.model.PortalNotification;
+import io.gravitee.rest.api.portal.rest.model.PortalNotificationsResponse;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.Instant;
@@ -27,16 +31,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import javax.ws.rs.core.Response;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
-import io.gravitee.rest.api.portal.rest.model.PortalNotification;
-import io.gravitee.rest.api.portal.rest.model.PortalNotificationsResponse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -78,9 +76,9 @@ public class UserNotificationsResourceTest extends AbstractResourceTest {
         assertNotNull(notificationsResponse);
         List<PortalNotification> data = notificationsResponse.getData();
         assertEquals(3, data.size());
-        assertEquals("3", data.get(0).getId());
+        assertEquals("1", data.get(0).getId());
         assertEquals("2", data.get(1).getId());
-        assertEquals("1", data.get(2).getId());
+        assertEquals("3", data.get(2).getId());
     }
     
     @Test

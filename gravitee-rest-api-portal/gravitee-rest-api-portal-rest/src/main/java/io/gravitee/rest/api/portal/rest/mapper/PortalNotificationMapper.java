@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import java.time.ZoneOffset;
-
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
 import io.gravitee.rest.api.portal.rest.model.PortalNotification;
+import org.springframework.stereotype.Component;
+
+import java.time.ZoneOffset;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -36,7 +35,7 @@ public class PortalNotificationMapper {
         portalNotification.setId(portalNotificationEntity.getId());
         portalNotification.setMessage(portalNotificationEntity.getMessage());
         portalNotification.setTitle(portalNotificationEntity.getTitle());
-        
+
         return portalNotification;
     }
 

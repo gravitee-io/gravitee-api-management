@@ -842,6 +842,18 @@
       ]
     },
     {
+      "name": "gv-identity-picture",
+      "css": [
+        {
+          "name": "--gv-identity-picture-notification--bgc",
+          "description": "Notification background color",
+          "type": "color",
+          "default": "var(--gv-theme-color, #009B5B)",
+          "value": ""
+        }
+      ]
+    },
+    {
       "name": "gv-confirm",
       "css": [
         {

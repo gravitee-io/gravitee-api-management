@@ -15,26 +15,19 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
 import io.gravitee.rest.api.portal.rest.mapper.PortalNotificationMapper;
 import io.gravitee.rest.api.portal.rest.model.PortalNotification;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.PortalNotificationService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -44,7 +37,6 @@ public class UserNotificationsResource extends AbstractResource  {
 
     @Autowired
     private PortalNotificationService portalNotificationService;
-
     @Autowired
     private PortalNotificationMapper portalNotificationMapper;
 
@@ -53,7 +45,7 @@ public class UserNotificationsResource extends AbstractResource  {
     public Response getCurrentUserNotifications(@BeanParam PaginationParam paginationParam)  {
         List<PortalNotification> notifications = portalNotificationService.findByUser(getAuthenticatedUser())
                 .stream()
-                .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt))
+                .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt, Comparator.reverseOrder()))
                 .map(portalNotificationMapper::convert)
                 .collect(Collectors.toList());
 
