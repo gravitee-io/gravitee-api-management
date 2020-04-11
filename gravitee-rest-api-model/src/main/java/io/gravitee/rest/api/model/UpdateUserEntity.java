@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -28,7 +26,6 @@ public class UpdateUserEntity {
 
 	private String lastname;
 
-	@JsonIgnore
 	private String email;
 
 	private String picture;

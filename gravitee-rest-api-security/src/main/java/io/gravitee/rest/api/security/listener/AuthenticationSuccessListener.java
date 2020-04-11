@@ -15,12 +15,6 @@
  */
 package io.gravitee.rest.api.security.listener;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.URLConnection;
-import java.util.Collection;
-import java.util.Optional;
-
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -38,6 +32,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URLConnection;
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -66,6 +67,11 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             // Principal username is the technical identifier of the user
             // Dirty hack because spring security is requiring a username...
             details.setUsername(registeredUser.getId());
+            // Allows to override email of in memory users
+            if ("memory".equals(details.getSource()) && registeredUser.getEmail() != null) {
+                details.setEmail(registeredUser.getEmail());
+                SecurityContextHolder.getContext().setAuthentication(event.getAuthentication());
+            }
         } catch (UserNotFoundException unfe) {
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setSource(details.getSource());

@@ -538,6 +538,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         return userEntity;
     }
+
     @Override
     public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri,
                                                           final ACTION action) {

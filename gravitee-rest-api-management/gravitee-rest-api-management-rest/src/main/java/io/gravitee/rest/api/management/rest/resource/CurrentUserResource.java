@@ -113,11 +113,16 @@ public class CurrentUserResource extends AbstractResource {
 
             UserDetails userDetails = new UserDetails(userEntity.getId(), password, authorities);
             userDetails.setId(userEntity.getId());
-            userDetails.setEmail(details.getEmail());
             userDetails.setFirstname(details.getFirstname());
             userDetails.setLastname(details.getLastname());
             userDetails.setSource(userEntity.getSource());
             userDetails.setSourceId(userEntity.getSourceId());
+
+            if (details.getEmail() == null && "memory".equals(userEntity.getSource()) && userEntity.getEmail() != null) {
+                userDetails.setEmail(userEntity.getEmail());
+            } else {
+                userDetails.setEmail(details.getEmail());
+            }
 
             //convert UserEntityRoles to UserDetailsRoles
             userDetails.setRoles(userEntity.getRoles().

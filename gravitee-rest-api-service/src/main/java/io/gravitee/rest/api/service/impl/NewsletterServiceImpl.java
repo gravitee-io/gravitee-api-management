@@ -16,13 +16,13 @@
 package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.NewsletterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import static io.gravitee.common.http.HttpMethod.POST;
@@ -45,6 +45,7 @@ public class NewsletterServiceImpl extends TransactionalService implements Newsl
     private boolean newsletterEnabled;
 
     @Override
+    @Async
     public void subscribe(final Object user) {
         try {
             if (isEnabled()) {
@@ -52,7 +53,7 @@ public class NewsletterServiceImpl extends TransactionalService implements Newsl
                         mapper.writeValueAsString(user), null);
             }
         } catch (final Exception e) {
-            LOGGER.error("Error while subscribing to newsletters", e);
+            LOGGER.error("Error while subscribing to newsletters cause: {}", e.getMessage());
         }
     }
 

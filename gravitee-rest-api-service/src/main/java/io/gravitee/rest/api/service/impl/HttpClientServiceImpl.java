@@ -154,7 +154,12 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                     httpClient.close();
                 });
             } else {
-                future.completeExceptionally(new TechnicalManagementException(" Error on url '" + uri + "'. Status code: " + response.statusCode() + ". Message: " + response.statusMessage(), null));
+                response.bodyHandler(buffer -> {
+                    future.completeExceptionally(new TechnicalManagementException(" Error on url '" + uri + "'. Status code: " + response.statusCode() + ". Message: " + buffer.toString(), null));
+
+                    // Close client
+                    httpClient.close();
+                });
             }
         });
         request.exceptionHandler(event -> {
@@ -173,7 +178,6 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
         try {
             return future.get();
         } catch (InterruptedException | ExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
             throw new TechnicalManagementException(e.getMessage(), e);
         }
     }

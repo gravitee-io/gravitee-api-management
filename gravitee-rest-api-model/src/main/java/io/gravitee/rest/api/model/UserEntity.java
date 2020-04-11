@@ -215,7 +215,7 @@ public class UserEntity implements Indexable {
 
         if (firstname != null || lastname != null) {
             displayName = firstname + ' ' + lastname;
-        } else if (email != null){
+        } else if (email != null && !"memory".equals(source)){
             displayName = email;
         } else {
             displayName = sourceId;
