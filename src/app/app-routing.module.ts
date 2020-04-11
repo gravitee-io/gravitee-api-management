@@ -58,20 +58,20 @@ import { GvSelectDashboardComponent } from './components/gv-select-dashboard/gv-
 import { UserAccountComponent } from './pages/user/user-account/user-account.component';
 import { UserContactComponent } from './pages/user/user-contact/user-contact.component';
 import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
+import { ApiResolver } from './resolvers/api.resolver';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
   {
     path: 'dashboard',
     component: DashboardComponent,
-    data: { title: i18n('route.dashboard'), expectedRole: Role.AUTH_USER, animation: { type: 'fade' } },
+    data: { title: i18n('route.dashboard'), expectedRole: Role.AUTH_USER, animation: { type: 'fade' }, menu: {} },
     canActivate: [AuthGuardService],
   },
   {
     path: 'catalog',
     data: {
       title: i18n('route.catalog'),
-      breadcrumb: true,
       menu: { hiddenPaths: ['categories/:categoryId', 'api/'] },
       fallbackRedirectTo: 'catalog/featured',
     },
@@ -79,41 +79,38 @@ export const routes: Routes = [
       { path: '', redirectTo: 'categories', pathMatch: 'full' },
       { path: 'search', component: CatalogSearchComponent },
       {
-        path: 'api',
+        path: 'api/:apiId',
         data: {
-          breadcrumb: false,
-          menu: { hiddenPaths: [':apiId/subscribe'] }
+          menu: { slots: { top: GvHeaderItemComponent }, hiddenPaths: ['subscribe'] }
         },
+        resolve: { api: ApiResolver },
         children: [
           {
-            path: ':apiId',
+            path: '',
             component: ApiGeneralComponent,
             data: {
-              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
-              breadcrumb: true,
+              menu: { slots: { 'right-transition': GvSearchApiComponent } },
               icon: 'general:clipboard',
               title: i18n('route.catalogApi'),
               animation: { type: 'slide', group: 'api', index: 1 }
             }
           },
           {
-            path: ':apiId/doc',
+            path: 'doc',
             component: ApiDocumentationComponent,
             data: {
-              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
-              breadcrumb: true,
+              menu: { slots: { 'right-transition': GvSearchApiComponent } },
               icon: 'home:library',
               title: i18n('route.catalogApiDocumentation'),
               animation: { type: 'fade' }
             }
           },
           {
-            path: ':apiId/contact',
+            path: 'contact',
             component: ApiContactComponent,
             canActivate: [AuthGuardService, FeatureGuardService],
             data: {
-              menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
-              breadcrumb: true,
+              menu: { slots: { 'right-transition': GvSearchApiComponent } },
               icon: 'communication:contact#1',
               title: i18n('route.catalogApiContact'),
               expectedFeature: FeatureEnum.contact,
@@ -122,13 +119,11 @@ export const routes: Routes = [
             }
           },
           {
-            path: ':apiId/subscribe',
+            path: 'subscribe',
             component: ApiSubscribeComponent,
             canActivate: [SubscribeGuardService],
             data: {
-              breadcrumb: false,
               title: i18n('route.catalogApiSubscribe'),
-              menu: { slots: { top: GvHeaderItemComponent } },
             }
           },
         ]
@@ -262,14 +257,6 @@ export const routes: Routes = [
 
   { path: 'pages/:pageId', component: SinglePageComponent },
   {
-    path: 'categories/:categoryId',
-    component: FilteredCatalogComponent,
-    canActivate: [FeatureGuardService],
-    data: {
-      expectedFeature: FeatureEnum.viewMode,
-    },
-  },
-  {
     path: 'applications',
     canActivate: [AuthGuardService, FeatureGuardService],
     data: {
@@ -316,9 +303,7 @@ export const routes: Routes = [
         data: {
           menu: { slots: { top: GvHeaderItemComponent }, animation: { type: 'fade' } },
         },
-        resolve: {
-          application: ApplicationResolver
-        },
+        resolve: { application: ApplicationResolver },
         children: [
           {
             path: '',

@@ -115,54 +115,54 @@ export class ApiGeneralComponent implements OnInit {
           homepage: true
         }).subscribe(response => this.homepage = response.data[0]);
         this.currentApiMetrics = this.apiService.getApiMetricsByApiId({ apiId }).toPromise();
-        this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise().then((api) => {
-          this.apiService.getApiLinks({ apiId }).subscribe(apiLinks => {
-            if (apiLinks.slots && apiLinks.slots.aside) {
-              apiLinks.slots.aside.forEach((catLinks) => {
-                if (catLinks.root) {
-                  this.resources = this._buildLinks(apiId, catLinks.links);
-                }
-              });
-            }
-          });
-
-          this.currentUser = this.currentUserService.getUser();
-          if (this.currentUser) {
-            this._updateRatings();
-            this.linkedApp = this.apiService.getSubscriberApplicationsByApiId({ apiId })
-            .toPromise()
-            .then((response) => {
-              return response.data.map((app) => ({
-                name: app.name,
-                description: app.description,
-                picture: (app._links ? app._links.picture : ''),
-                suffix: app.applicationType,
-              }));
-            })
-            .catch(() => []);
+        const api = this.route.snapshot.data.api;
+        this.currentApi = Promise.resolve().then(() => api);
+        this.apiService.getApiLinks({ apiId }).subscribe(apiLinks => {
+          if (apiLinks.slots && apiLinks.slots.aside) {
+            apiLinks.slots.aside.forEach((catLinks) => {
+              if (catLinks.root) {
+                this.resources = this._buildLinks(apiId, catLinks.links);
+              }
+            });
           }
-
-          this.description = api.description;
-
-          this.translateService.get([i18n('api.miscellaneous.version'), i18n('api.miscellaneous.lastUpdate'), i18n('api.miscellaneous.publisher')])
-            .subscribe(
-              ({
-                 'api.miscellaneous.version': version,
-                 'api.miscellaneous.lastUpdate': lastUpdate,
-                 'api.miscellaneous.publisher': publisher
-               }) => {
-                this.miscellaneous = [
-                  { key: version, value: api.version },
-                  {
-                    key: lastUpdate,
-                    value: new Date(api.updated_at),
-                    date: 'relative'
-                  },
-                  { key: publisher, value: api.owner.display_name }
-                ];
-              });
-          return api;
         });
+
+        this.currentUser = this.currentUserService.getUser();
+        if (this.currentUser) {
+          this._updateRatings();
+          this.linkedApp = this.apiService.getSubscriberApplicationsByApiId({ apiId })
+          .toPromise()
+          .then((response) => {
+            return response.data.map((app) => ({
+              name: app.name,
+              description: app.description,
+              picture: (app._links ? app._links.picture : ''),
+              suffix: app.applicationType,
+            }));
+          })
+          .catch(() => []);
+        }
+
+        this.description = api.description;
+
+        this.translateService.get([i18n('api.miscellaneous.version'), i18n('api.miscellaneous.lastUpdate'), i18n('api.miscellaneous.publisher')])
+          .subscribe(
+            ({
+               'api.miscellaneous.version': version,
+               'api.miscellaneous.lastUpdate': lastUpdate,
+               'api.miscellaneous.publisher': publisher
+             }) => {
+              this.miscellaneous = [
+                { key: version, value: api.version },
+                {
+                  key: lastUpdate,
+                  value: new Date(api.updated_at),
+                  date: 'relative'
+                },
+                { key: publisher, value: api.owner.display_name }
+              ];
+            });
+        return api;
       }
     });
 

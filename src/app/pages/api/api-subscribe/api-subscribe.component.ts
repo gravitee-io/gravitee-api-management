@@ -106,7 +106,8 @@ export class ApiSubscribeComponent implements OnInit {
       });
 
     this.apiId = this.route.snapshot.params.apiId;
-    this.api = this.apiService.getApiByApiId({ apiId: this.apiId }).toPromise().then(api => {
+    this.api = Promise.resolve().then(() => {
+      const api = this.route.snapshot.data.api;
       this.apiSample = `$ curl "${api.entrypoints[0]}"`;
       this.apiName = api.name;
       return api;

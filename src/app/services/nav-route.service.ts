@@ -139,13 +139,15 @@ export class NavRouteService {
       if (params) {
         // Replace dynamic path param
         return childrenNav.then((navRoutes) => {
-          return navRoutes.map((navRoute) => {
-            for (const key of Object.keys(params)) {
-              navRoute.active = this.isActive(navRoute.path, this.router.url);
-              navRoute.path = navRoute.path.replace(`:${ key }`, params[key]);
-            }
-            return navRoute;
-          });
+          if (navRoutes) {
+            return navRoutes.map((navRoute) => {
+              for (const key of Object.keys(params)) {
+                navRoute.active = this.isActive(navRoute.path, this.router.url);
+                navRoute.path = navRoute.path.replace(`:${ key }`, params[key]);
+              }
+              return navRoute;
+            });
+          }
         });
       }
       return childrenNav;

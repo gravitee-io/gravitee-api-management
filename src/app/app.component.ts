@@ -347,7 +347,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     if (this.menuRoutes) {
       const menuOption = currentRoute.snapshot.data.menu;
       if (typeof menuOption === 'object') {
-        const parentSlots = currentRoute.parent && currentRoute.parent.snapshot.data.menu.slots;
+        const parentSlots = currentRoute.parent && currentRoute.parent.snapshot.data.menu && currentRoute.parent.snapshot.data.menu.slots;
         this._injectMenuSlots({ ...menuOption.slots, ...parentSlots });
       } else {
         this._clearMenuSlots();

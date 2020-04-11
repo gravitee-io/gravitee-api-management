@@ -35,8 +35,6 @@ export class GvHeaderItemComponent implements OnInit {
               public activatedRoute: ActivatedRoute,
               public navRouteService: NavRouteService,
               public currentUserService: CurrentUserService,
-              public apiService: ApiService,
-              public applicationService: ApplicationService,
               public portalService: PortalService,
   ) {
   }
@@ -58,16 +56,10 @@ export class GvHeaderItemComponent implements OnInit {
       if (params.apiId && this.itemId !== params.apiId) {
         this.itemId = params.apiId;
         this._subscribeUrl = `catalog/api/${this.itemId}/subscribe`;
-        this.item = this.apiService
-          .getApiByApiId({ apiId: this.itemId })
-          .toPromise()
-          .catch((err) => Promise.reject(err));
+        this.item = this.currentRoute.snapshot.data.api;
       } else if (params.applicationId && params.applicationId !== this.itemId) {
         this.itemId = params.applicationId;
-        this.item = this.applicationService
-          .getApplicationByApplicationId({ applicationId: this.itemId })
-          .toPromise()
-          .catch((err) => Promise.reject(err));
+        this.item = this.currentRoute.snapshot.data.application;
       } else if (params.categoryId && params.categoryId !== this.itemId) {
         this.itemId = params.categoryId;
         this.item = this.portalService.getViewByViewId({ viewId: this.itemId })
