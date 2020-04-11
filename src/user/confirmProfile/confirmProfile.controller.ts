@@ -18,11 +18,13 @@ import UserService from '../../services/user.service';
 class ConfirmProfileController {
 
   newsletterEnabled: boolean;
+  hasEmail: boolean;
 
   constructor($state, $scope, public UserService: UserService, NotificationService, Constants, $window, $rootScope) {
     'ngInject';
 
     $scope.user = UserService.currentUser;
+    this.hasEmail = !!$scope.user.email;
     this.newsletterEnabled = Constants.newsletter.enabled;
 
     $scope.save = () => {

@@ -27,12 +27,17 @@
                         image-url="$ctrl.UserService.currentUserPicture()"
                         image-form="formConfirm"></gravitee-image>
 
-        <md-checkbox ng-show="$ctrl.newsletterEnabled && user.email" ng-model="user.newsletter"
+        <md-input-container ng-show="!hasEmail" class="md-block" flex-gt-sm flex="20">
+          <label>Email</label>
+          <input ng-model="user.email" type="email" ng-required="user.newsletter">
+        </md-input-container>
+
+        <md-checkbox ng-show="$ctrl.newsletterEnabled" ng-model="user.newsletter"
                      aria-label="Subscribe to newsletter" flex ng-init="user.newsletter = true">
           Subscribe to newsletter and receive information about new versions and updates
         </md-checkbox>
 
-        <md-button type="submit" class="md-raised md-primary" ng-disabled="isLoading">Confirm profile</md-button>
+        <md-button type="submit" class="md-raised md-primary" ng-disabled="isLoading || formConfirm.$invalid">Confirm profile</md-button>
       </form>
     </div>
   </div>

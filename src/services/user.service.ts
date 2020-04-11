@@ -228,7 +228,12 @@ class UserService {
   }
 
   save(user): ng.IPromise<any> {
-    return this.$http.put(`${this.userURL}`, {username: user.username, picture: user.picture, newsletter: user.newsletter});
+    return this.$http.put(`${this.userURL}`, {
+      username: user.username,
+      picture: user.picture,
+      newsletter: user.newsletter,
+      email: user.email,
+    });
   }
 
   resetPassword(id: string): ng.IPromise<any> {
