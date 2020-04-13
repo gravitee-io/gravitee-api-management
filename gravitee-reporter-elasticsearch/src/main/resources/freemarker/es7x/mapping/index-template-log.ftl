@@ -2,6 +2,7 @@
 {
     "index_patterns": ["${indexName}-*"],
     "settings": {
+        <#if indexLifecyclePolicyLog??>"index.lifecycle.name": "${indexLifecyclePolicyLog}",</#if>
         "index.number_of_shards":${numberOfShards},
         "index.number_of_replicas":${numberOfReplicas},
         "index.refresh_interval": "${refreshInterval}"
