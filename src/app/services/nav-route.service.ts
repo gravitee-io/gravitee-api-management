@@ -88,7 +88,11 @@ export class NavRouteService {
         .filter((route) => route.routeConfig)
         .map((route) => route.routeConfig.path).join('/');
 
-      const children = _route.routeConfig ? _route.routeConfig.children : _route.children;
+      let children = _route.routeConfig ? _route.routeConfig.children : _route.children;
+      if(_route.routeConfig && _route.routeConfig.loadChildren){
+        children = _route.routeConfig._loadedConfig.routes;
+      }
+
       // @ts-ignore
       return Promise.all(children
         // @ts-ignore
