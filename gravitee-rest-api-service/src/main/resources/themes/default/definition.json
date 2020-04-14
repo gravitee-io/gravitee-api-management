@@ -954,8 +954,8 @@
           "name": "--gv-category--h",
           "description": "Height",
           "type": "length",
-          "default": "228px",
-          "value": "228px"
+          "default": "200px",
+          "value": "200px"
         }
       ]
     },
