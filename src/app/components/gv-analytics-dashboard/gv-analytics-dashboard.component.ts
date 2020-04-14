@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Application, ApplicationService, Dashboard } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -23,11 +23,12 @@ import { AnalyticsService } from '../../services/analytics.service';
   templateUrl: './gv-analytics-dashboard.component.html',
   styleUrls: ['./gv-analytics-dashboard.component.css']
 })
-export class GvAnalyticsDashboardComponent {
+export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
 
   @Input() dashboard: Dashboard;
   @Output() refreshFilters: EventEmitter<any> = new EventEmitter();
 
+  private subscription: any;
   private application: Application;
   definition: any;
 
@@ -36,101 +37,126 @@ export class GvAnalyticsDashboardComponent {
     private router: Router,
     private applicationService: ApplicationService,
     private analyticsService: AnalyticsService,
-  ) {
+  ) {}
+
+  ngOnInit(): void {
+    this.subscription = this.route.queryParams.subscribe(queryParams => {
+      if (queryParams && !queryParams.skipRefresh) {
+        this.refresh(queryParams);
+      }
+    });
   }
 
-  refresh() {
-    this.application = this.route.snapshot.data.application;
-    const timeSlot = this.analyticsService.getTimeSlotFromQueryParams();
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
 
-    this.definition = JSON.parse(this.dashboard.definition).map((widget) => {
-      if (widget.chart.request.ranges) {
-        widget.chart.request.ranges = widget.chart.request.ranges.replace(/%3B/g, ';');
-      }
-      // table
-      if (widget.chart.columns) {
-        widget.chart.selectable = 'multi';
-        widget.chart.data = widget.chart.columns.map((column) => {
-          return { label: column };
-        });
-        if (widget.chart.percent) {
-          widget.chart.data.push({ label: '%' });
+  refresh(queryParams) {
+    if (this.dashboard) {
+      this.application = this.route.snapshot.data.application;
+      const timeSlot = this.analyticsService.getTimeSlotFromQueryParams();
+
+      this.definition = JSON.parse(this.dashboard.definition).map((widget) => {
+        if (widget.chart.request.ranges) {
+          widget.chart.request.ranges = widget.chart.request.ranges.replace(/%3B/g, ';');
         }
-        const selected = this.route.snapshot.queryParams[widget.chart.request.field];
-        if (Array.isArray(selected)) {
-          widget.selected = selected;
+        // table
+        if (widget.chart.columns) {
+          widget.chart.selectable = 'multi';
+          widget.chart.data = widget.chart.columns.map((column) => {
+            return { label: column };
+          });
+          if (widget.chart.percent) {
+            widget.chart.data.push({ label: '%' });
+          }
+          const selected = queryParams[widget.chart.request.field];
+          if (Array.isArray(selected)) {
+            widget.selected = selected;
+          } else {
+            widget.selected = [selected];
+          }
         } else {
-          widget.selected = [selected];
-        }
-      } else {
-        if (!widget.chart.data) {
-          widget.chart.excludedKeys = ['Unknown'];
-          widget.chart.data = [];
-          if (widget.chart.labels) {
-            widget.chart.labels.forEach((label, i) => {
+          if (!widget.chart.data) {
+            widget.chart.excludedKeys = ['Unknown'];
+            widget.chart.data = [];
+            if (widget.chart.labels) {
+              widget.chart.labels.forEach((label, i) => {
+                widget.chart.data.push({
+                  name: label,
+                  color: widget.chart.colors ? widget.chart.colors[i] : '',
+                  labelPrefix: label,
+                  pointStart: timeSlot.from,
+                  pointInterval: timeSlot.interval,
+                });
+              });
+            } else {
               widget.chart.data.push({
-                name: label,
-                color: widget.chart.colors ? widget.chart.colors[i] : '',
-                labelPrefix: label,
                 pointStart: timeSlot.from,
                 pointInterval: timeSlot.interval,
               });
-            });
-          } else {
-            widget.chart.data.push({
-              pointStart: timeSlot.from,
-              pointInterval: timeSlot.interval,
-            });
-          }
-        }
-      }
-      const itemsPromise = this.applicationService.getApplicationAnalytics({
-        ...{ applicationId: this.application.id, from: timeSlot.from, to: timeSlot.to, interval: timeSlot.interval },
-        ...widget.chart.request,
-        ...this.analyticsService.getQueryFromPath()
-      }).toPromise();
-
-      if (widget.chart.type === 'table') {
-
-        const style = () => 'justify-content: flex-end; text-align: right;';
-        widget.chart.data[0].field = 'key';
-        widget.chart.data[1].field = 'value';
-        widget.chart.data[1].headerStyle = style;
-        widget.chart.data[1].style = style;
-        if (widget.chart.percent) {
-          widget.chart.data[2].field = 'percent';
-          widget.chart.data[2].headerStyle = style;
-          widget.chart.data[2].style = style;
-        }
-
-        widget.items = itemsPromise.then((items) => {
-          let total = 0;
-          if (widget.chart.percent) {
-            // @ts-ignore
-            if (items.values && items.values.length) {
-              // @ts-ignore
-              total = items.values.reduce((p, n) => p + n);
             }
           }
-          // @ts-ignore
-          return Object.keys(items.values).map((key) => {
-            // @ts-ignore
-            const item = { id: key, key: items.metadata[key].name, value: items.values[key], percent: undefined };
+        }
+        const itemsPromise = this.applicationService.getApplicationAnalytics({
+          ...{ applicationId: this.application.id, from: timeSlot.from, to: timeSlot.to, interval: timeSlot.interval },
+          ...widget.chart.request,
+          ...this.analyticsService.getQueryFromPath(widget.chart.request.field, widget.chart.request.ranges)
+        }).toPromise();
+
+        if (widget.chart.type === 'table') {
+
+          const style = () => 'justify-content: flex-end; text-align: right;';
+          widget.chart.data[0].field = 'key';
+          widget.chart.data[1].field = 'value';
+          widget.chart.data[1].headerStyle = style;
+          widget.chart.data[1].style = style;
+          if (widget.chart.percent) {
+            widget.chart.data[2].field = 'percent';
+            widget.chart.data[2].headerStyle = style;
+            widget.chart.data[2].style = style;
+          }
+
+          widget.items = itemsPromise.then((items) => {
+            let total = 0;
             if (widget.chart.percent) {
               // @ts-ignore
-              item.percent = `${parseFloat(item.value / total * 100).toFixed(2)}%`;
+              if (items.values && items.values.length) {
+                // @ts-ignore
+                total = items.values.reduce((p, n) => p + n);
+              }
             }
-            return item;
+            // @ts-ignore
+            return Object.keys(items.values).map((key) => {
+              // @ts-ignore
+              const item = { id: key, key: items.metadata[key].name, value: items.values[key], percent: undefined };
+              if (widget.chart.percent) {
+                // @ts-ignore
+                item.percent = `${parseFloat(item.value / total * 100).toFixed(2)}%`;
+              }
+              return item;
+            });
           });
-        });
-      } else {
-        widget.items = itemsPromise;
-      }
-      return widget;
-    });
-
+        } else {
+          widget.items = itemsPromise.then((items) => {
+            // @ts-ignore
+            const values = items.values;
+            if (Array.isArray(values)) {
+              values.forEach((item) => {
+                const visible = queryParams[item.field];
+                if (visible) {
+                  item.buckets.forEach((bucket) => {
+                    bucket.visible = !visible.length || visible.includes(bucket.name);
+                  });
+                }
+              });
+            }
+            return items;
+          });
+        }
+        return widget;
+      });
+    }
   }
-
 
   onTableSelect({ detail }) {
     const queryParams: any = {};
@@ -141,7 +167,6 @@ export class GvAnalyticsDashboardComponent {
       fragment: this.analyticsService.fragment
     }).then(() => {
       this.refreshFilters.emit();
-      this.refresh();
     });
   }
 
@@ -154,7 +179,6 @@ export class GvAnalyticsDashboardComponent {
       fragment: this.analyticsService.fragment
     }).then(() => {
       this.refreshFilters.emit();
-      this.refresh();
     });
   }
 
@@ -164,15 +188,42 @@ export class GvAnalyticsDashboardComponent {
     if (aggs && e.value) {
       const fields = aggs.split('field:');
       if (fields && fields[1]) {
-        const queryParams = {};
-        queryParams[fields[1]] = e.value;
+        const queryParams = { skipRefresh: null };
+        const fieldValue = this.route.snapshot.queryParams[fields[1]];
+        if (fieldValue) {
+          const visible = !fieldValue.includes(e.value);
+          if (Array.isArray(fieldValue)) {
+            if (visible) {
+              queryParams[fields[1]] = fieldValue.concat(e.value);
+            } else {
+              fieldValue.splice(fieldValue.indexOf(e.value), 1);
+              queryParams[fields[1]] = [ ...[], ...fieldValue ];
+            }
+          } else {
+            if (visible) {
+              queryParams[fields[1]] = [fieldValue, e.value];
+            } else {
+              queryParams[fields[1]] = null;
+            }
+          }
+        } else {
+          queryParams[fields[1]] = e.value;
+        }
+        const qp = { skipRefresh: true };
+        qp[fields[1]] = null;
         this.router.navigate([], {
-          queryParams,
+          queryParams: qp,
           queryParamsHandling: 'merge',
-          fragment: this.analyticsService.fragment
+          fragment: this.analyticsService.fragment,
+          skipLocationChange: true
         }).then(() => {
-          this.refreshFilters.emit();
-          this.refresh();
+          this.router.navigate([], {
+            queryParams,
+            queryParamsHandling: 'merge',
+            fragment: this.analyticsService.fragment
+          }).then(() => {
+            this.refreshFilters.emit();
+          });
         });
       }
     }

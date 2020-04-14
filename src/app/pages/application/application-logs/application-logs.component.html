@@ -17,14 +17,14 @@
 -->
 <div class="page__content">
   <section class="application__section">
-    <app-gv-analytics-filters (refreshDashboard)="refresh()" withURI></app-gv-analytics-filters>
+    <app-gv-analytics-filters withURI></app-gv-analytics-filters>
 
     <div class="application__logs__block">
       <div class="application__logs__header__block">
         <h2>{{ 'application.logs.title' | translate }}</h2>
       </div>
       <gv-table *ngIf="logs" [options]="options" [items]="logs" [format]="format" [order]="getOrder()"
-                [selected]="selectedLog" rowheight="40px"></gv-table>
+                [selected]="selectedLog && selectedLog.id" rowheight="40px"></gv-table>
       <div *ngIf="logs && logs.length" class="pagination__block">
         <gv-select class="pagination__size__block" [options]="pageSizes" [value]="size"
                    small (:gv-select:select)="onSelectSize($event.detail)"></gv-select>
@@ -83,7 +83,7 @@
           <div class="application__log__infos__block" *ngFor="let header of responseHeaders">
             <label>{{header[0]}}</label>
             <div>{{header[1]}}</div>
-          </div>x
+          </div>
         </div>
 
         <h3 *ngIf="log.request" class="title">{{'application.log.requestBody' | translate}}</h3>

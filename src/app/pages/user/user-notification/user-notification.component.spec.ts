@@ -54,11 +54,7 @@ describe('UserNotificationComponent', () => {
     return userService;
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 });

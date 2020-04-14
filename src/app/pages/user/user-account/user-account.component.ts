@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { CurrentUserService } from '../../../services/current-user.service';
 import { User, UserService } from '@gravitee/ng-portal-webclient';
@@ -26,8 +26,9 @@ import { NotificationService } from '../../../services/notification.service';
   styleUrls: ['./user-account.component.css']
 })
 
-export class UserAccountComponent implements OnInit {
+export class UserAccountComponent implements OnInit, OnDestroy {
 
+  private subscription: any;
   public currentUser: User;
   public avatar: string;
 
@@ -39,10 +40,14 @@ export class UserAccountComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.currentUserService.get().subscribe((user) => {
+    this.subscription = this.currentUserService.get().subscribe((user) => {
       this.currentUser = user;
       this.avatar = this.currentUser._links ? this.currentUser._links.avatar : null;
     });
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   onFileLoad(picture) {

@@ -23,10 +23,13 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AnalyticsService } from '../../../services/analytics.service';
+import { provideMock } from '../../../test/mock.helper.spec';
 
 describe('ApplicationLogsComponent', () => {
   let component: ApplicationLogsComponent;
   let fixture: ComponentFixture<ApplicationLogsComponent>;
+  let analyticsService;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -34,12 +37,16 @@ describe('ApplicationLogsComponent', () => {
       imports: [MarkdownModule, HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
+      ],
+      providers: [
+        provideMock(AnalyticsService)
       ]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
+    analyticsService = TestBed.inject(AnalyticsService);
     fixture = TestBed.createComponent(ApplicationLogsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

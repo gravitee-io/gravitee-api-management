@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { AfterViewInit, Component, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
 import { ApplicationService, Dashboard } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
@@ -29,7 +29,6 @@ import '@gravitee/ui-components/wc/gv-date-picker';
 export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input() dashboard: Dashboard;
-  @Output() refreshDashboard: EventEmitter<any> = new EventEmitter();
   @Input() withURI: boolean;
 
   analyticsForm: FormGroup;
@@ -41,11 +40,11 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
 
   constructor(
     private router: Router,
-    public route: ActivatedRoute,
     private formBuilder: FormBuilder,
+    private applicationService: ApplicationService,
+    public route: ActivatedRoute,
     public loaderService: LoaderService,
     public analyticsService: AnalyticsService,
-    public applicationService: ApplicationService,
   ) {
   }
 
@@ -66,7 +65,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     this.maxDateTimer = setInterval(() => {
       this.maxDate = new Date().getTime();
     }, 30000);
-
   }
 
   ngOnDestroy(): void {
@@ -94,9 +92,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
         this.apisOptions = apis.data.map(api => {
           return { label: api.name + ' (' + api.version + ')', value: api.id };
         });
-      });
-      setTimeout(() => {
-        this.refreshDashboard.emit();
       });
     }
   }
@@ -130,7 +125,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
       fragment: this.analyticsService.fragment
     }).then(() => {
       this.analyticsForm.patchValue({ range: null });
-      // this.analyticsForm.patchValue({to: null});
       this.search();
     });
   }
@@ -163,7 +157,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
       fragment: this.analyticsService.fragment
     }).then(() => {
       this.initFilters();
-      this.refreshDashboard.emit();
     });
   }
 
@@ -183,8 +176,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
         api: this.analyticsForm.value.api || null,
         body: this.analyticsForm.value.payloads || null,
       };
-
-      if (this.analyticsForm.value.range) {
+      if (this.analyticsForm.value.range && this.analyticsForm.value.range[0]) {
         queryParams.from = this.analyticsForm.value.range[0];
         queryParams.to = this.analyticsForm.value.range[1];
         queryParams.timeframe = null;
@@ -195,7 +187,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
         fragment: this.analyticsService.fragment
       }).then(() => {
         this.initFilters();
-        this.refreshDashboard.emit();
       });
     }
   }
@@ -219,7 +210,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
       fragment: this.analyticsService.fragment
     }).then(() => {
       this.initFilters();
-      this.refreshDashboard.emit();
     });
   }
 }

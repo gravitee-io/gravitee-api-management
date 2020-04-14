@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Application, Dashboard } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-chart-line';
@@ -28,7 +28,7 @@ import { GvAnalyticsFiltersComponent } from '../../../components/gv-analytics-fi
   templateUrl: './application-analytics.component.html',
   styleUrls: ['./application-analytics.component.css']
 })
-export class ApplicationAnalyticsComponent implements OnInit {
+export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
 
   application: Application;
   dashboard: Dashboard;
@@ -37,6 +37,8 @@ export class ApplicationAnalyticsComponent implements OnInit {
   filtersComponent: GvAnalyticsFiltersComponent;
   @ViewChild(GvAnalyticsDashboardComponent)
   dashboardComponent: GvAnalyticsDashboardComponent;
+
+  private subscription: any;
 
   constructor(private route: ActivatedRoute) {}
 
@@ -50,13 +52,18 @@ export class ApplicationAnalyticsComponent implements OnInit {
       } else {
         this.dashboard = dashboards[0];
       }
-      this.route.queryParams.subscribe(param => {
+      this.subscription = this.route.queryParams.subscribe(param => {
         if (param.dashboard && this.filtersComponent && this.dashboardComponent && param.dashboard !== this.dashboard.id) {
           this.dashboardComponent.dashboard = this.dashboard = dashboards.find((dashboard) => dashboard.id === param.dashboard);
           this.filtersComponent.reset();
-          this.dashboardComponent.refresh();
         }
       });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
     }
   }
 }
