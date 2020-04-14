@@ -34,7 +34,7 @@
     "dragular": "^4.5.0",
     "highcharts": "^6.1.1",
     "@highcharts/map-collection": "^1.1.2",
-    "jquery": "^3.4.0",
+    "jquery": "^3.5.0",
     "js-yaml": "^3.13.1",
     "karma-jasmine": "^1.1.2",
     "marked": "^0.7.0",
