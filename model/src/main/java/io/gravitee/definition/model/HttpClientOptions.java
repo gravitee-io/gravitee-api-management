@@ -29,7 +29,6 @@ public class HttpClientOptions {
     public static boolean DEFAULT_PIPELINING = false;
     public static boolean DEFAULT_USE_COMPRESSION = true;
     public static boolean DEFAULT_FOLLOW_REDIRECTS = false;
-    public static boolean DEFAULT_ENCODE_URI = false;
 
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
@@ -39,7 +38,6 @@ public class HttpClientOptions {
     private int maxConcurrentConnections = DEFAULT_MAX_CONCURRENT_CONNECTIONS;
     private boolean useCompression = DEFAULT_USE_COMPRESSION;
     private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
-    private boolean encodeURI = DEFAULT_ENCODE_URI;
 
     public long getConnectTimeout() {
         return connectTimeout;
@@ -103,13 +101,5 @@ public class HttpClientOptions {
 
     public void setFollowRedirects(boolean followRedirects) {
         this.followRedirects = followRedirects;
-    }
-
-    public boolean isEncodeURI() {
-        return encodeURI;
-    }
-
-    public void setEncodeURI(boolean encodeURI) {
-        this.encodeURI = encodeURI;
     }
 }

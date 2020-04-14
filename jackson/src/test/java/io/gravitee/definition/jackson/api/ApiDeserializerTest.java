@@ -293,7 +293,6 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertEquals(5000L, endpoint.getHttpClientOptions().getConnectTimeout());
         Assert.assertTrue(endpoint.getHttpClientOptions().isFollowRedirects());
         Assert.assertTrue(endpoint.getHttpClientOptions().isKeepAlive());
-        Assert.assertTrue(endpoint.getHttpClientOptions().isEncodeURI());
     }
 
     @Test
@@ -317,7 +316,6 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertEquals(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT, endpoint.getHttpClientOptions().getConnectTimeout());
         Assert.assertEquals(HttpClientOptions.DEFAULT_FOLLOW_REDIRECTS, endpoint.getHttpClientOptions().isFollowRedirects());
         Assert.assertEquals(HttpClientOptions.DEFAULT_KEEP_ALIVE, endpoint.getHttpClientOptions().isKeepAlive());
-        Assert.assertEquals(HttpClientOptions.DEFAULT_ENCODE_URI, endpoint.getHttpClientOptions().isEncodeURI());
     }
 
     @Test

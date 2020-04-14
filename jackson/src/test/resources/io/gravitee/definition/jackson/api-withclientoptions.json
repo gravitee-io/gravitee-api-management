@@ -12,8 +12,7 @@
           "idleTimeout": 5000,
           "connectTimeout": 5000,
           "keepAlive": true,
-          "followRedirects": true,
-          "encodeURI": true
+          "followRedirects": true
         },
         "ssl": {
           "trustAll": true,
