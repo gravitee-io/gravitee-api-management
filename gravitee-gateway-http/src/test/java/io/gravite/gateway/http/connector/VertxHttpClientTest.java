@@ -35,7 +35,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.URI;
-import java.security.URIParameter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,7 +73,6 @@ public class VertxHttpClientTest {
     @Test
     public void testUnencodedWithoutQuery() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(false);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
@@ -90,7 +88,6 @@ public class VertxHttpClientTest {
     @Test
     public void testUnencodedWithQueryUnencoded() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(false);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
@@ -106,7 +103,6 @@ public class VertxHttpClientTest {
     @Test
     public void testUnencodedWithQueryUnencoded2() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(false);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
@@ -122,7 +118,6 @@ public class VertxHttpClientTest {
     @Test
     public void testUnencodedWithQueryEncoded() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(false);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
@@ -138,7 +133,6 @@ public class VertxHttpClientTest {
     @Test
     public void testUnencodedWithEmptyQueryParam() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(false);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
@@ -154,7 +148,6 @@ public class VertxHttpClientTest {
     @Test
     public void testUnencodedWithNullQueryParam() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(false);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
@@ -164,99 +157,6 @@ public class VertxHttpClientTest {
 
         vertxHttpClient.request(proxyRequest);
 
-        assertEquals("http://gravitee.io/test?foo&bar", request.metrics().getEndpoint());
-    }
-
-    @Test
-    public void testEncodedWithoutQuery() throws Exception {
-        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(true);
-        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test"))
-                .headers(new HttpHeaders())
-                .build();
-
-        vertxHttpClient.request(proxyRequest);
-
-        assertEquals("http://gravitee.io/test", request.metrics().getEndpoint());
-    }
-
-    @Test
-    public void testEncodedWithQueryUnencoded() throws Exception {
-        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(true);
-        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test?foo=bar"))
-                .headers(new HttpHeaders())
-                .build();
-
-        vertxHttpClient.request(proxyRequest);
-
-        assertEquals("http://gravitee.io/test?foo=bar", request.metrics().getEndpoint());
-    }
-
-    @Test
-    public void testEncodedWithQueryUnencoded2() throws Exception {
-        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(true);
-        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test?foo==bar"))
-                .headers(new HttpHeaders())
-                .build();
-
-        vertxHttpClient.request(proxyRequest);
-
-        assertEquals("http://gravitee.io/test?foo=%3Dbar", request.metrics().getEndpoint());
-    }
-
-    @Test
-    public void testEncodedWithQueryEncoded() throws Exception {
-        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(true);
-        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test?foo=%3Dbar"))
-                .headers(new HttpHeaders())
-                .build();
-
-        vertxHttpClient.request(proxyRequest);
-        assertEquals("http://gravitee.io/test?foo=%253Dbar", request.metrics().getEndpoint());
-    }
-
-    @Test
-    public void testEncodedWithEmptyQueryParams() throws Exception {
-        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(true);
-        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test?foo=&bar="))
-                .headers(new HttpHeaders())
-                .build();
-
-        vertxHttpClient.request(proxyRequest);
-        assertEquals("http://gravitee.io/test?foo=&bar=", request.metrics().getEndpoint());
-    }
-
-    @Test
-    public void testEncodedWithNullQueryParams() throws Exception {
-        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
-        when(httpOptions.isEncodeURI()).thenReturn(true);
-        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test?foo&bar"))
-                .headers(new HttpHeaders())
-                .build();
-
-        vertxHttpClient.request(proxyRequest);
         assertEquals("http://gravitee.io/test?foo&bar", request.metrics().getEndpoint());
     }
 
