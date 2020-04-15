@@ -720,13 +720,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
             
             MemberEntity memberEntity = new MemberEntity(); 
-            //memberEntity.setCreatedAt(createdAt);
             UserEntity userEntity = userService.findById(userId);
+            memberEntity.setCreatedAt(userEntity.getCreatedAt());
             memberEntity.setDisplayName(userEntity.getDisplayName());
             memberEntity.setEmail(userEntity.getEmail());
             memberEntity.setId(userEntity.getId());
-            
-            ///memberEntity.setUpdatedAt(updatedAt);
+            memberEntity.setUpdatedAt(userEntity.getUpdatedAt());
 
             Set<RoleEntity> userRoles = new HashSet<>();
             
