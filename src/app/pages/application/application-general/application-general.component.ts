@@ -159,6 +159,14 @@ export class ApplicationGeneralComponent implements OnInit {
     });
   }
 
+  renewSecret() {
+    this.applicationService.renewApplicationSecret({ applicationId: this.application.id }).toPromise().then((application) => {
+      this.application = application;
+      this.reset();
+      this.notificationService.success(i18n('application.success.renewSecret'));
+    });
+  }
+
   isLoading() {
     return this.loaderService.isLoading;
   }

@@ -68,3 +68,8 @@
 .application__input__delete {
   --gv-button--bgc: red;
 }
+
+gv-confirm {
+  --gv-confirm--maw: 500px;
+  --gv-button-primary--bgc:var(--gv-theme-danger-color, #FF5722);
+}

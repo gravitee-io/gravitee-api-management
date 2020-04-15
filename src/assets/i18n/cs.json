@@ -139,10 +139,8 @@
       "title": "Secret client"
     },
     "delete": {
-      "cancel": "Zrušit",
       "label": "Odstranit",
-      "message": "Opravdu chcete tuto aplikaci smazat?",
-      "ok": "Potvrdit"
+      "message": "Opravdu chcete tuto aplikaci smazat?"
     },
     "description": {
       "label": "Popište účel této aplikace",
@@ -283,6 +281,10 @@
       "title": "Předplatné"
     },
     "oauth2": "Integrace OAuth2",
+    "renewSecret": {
+      "label": "Obnovte tajemství",
+      "message": "Opravdu chcete obnovit tajemství své aplikace?<br/> Obnovením tajemství již nebudete moci generovat nové přístupové tokeny a volat API."
+    },
     "save": "Save",
     "subscriptions": {
       "api": "Api",
@@ -321,6 +323,7 @@
     },
     "success": {
       "delete": "Vaše aplikace byla úspěšně smazána",
+      "renewSecret": "Tajemství vaší aplikace bylo úspěšně obnoveno",
       "save": "Vaše aplikace byla úspěšně aktualizována"
     },
     "type": {

@@ -139,10 +139,8 @@
       "title": "Client secret"
     },
     "delete": {
-      "cancel": "Cancel",
       "label": "Remove",
-      "message": "Are you sure you want to delete this application?",
-      "ok": "Validate"
+      "message": "Are you sure you want to delete this application?"
     },
     "description": {
       "label": "Describe the goal of this application",
@@ -283,6 +281,10 @@
       "title": "Subscriptions"
     },
     "oauth2": "OAuth2 integration",
+    "renewSecret": {
+      "label": "Renew the secret",
+      "message": "Are you sure you want to renew the secret of your application?<br/> By renewing the secret, you will no longer be able to generate new access tokens and call the API."
+    },
     "save": "Save",
     "subscriptions": {
       "api": "API",
@@ -321,6 +323,7 @@
     },
     "success": {
       "delete": "Your application has been successfully deleted",
+      "renewSecret": "The secret of your application has been successfully renewed",
       "save": "Your application has been successfully updated"
     },
     "type": {

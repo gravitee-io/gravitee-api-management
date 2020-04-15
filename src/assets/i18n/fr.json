@@ -139,10 +139,8 @@
       "title": "Client secret"
     },
     "delete": {
-      "cancel": "Annuler",
       "label": "Supprimer",
-      "message": "Êtes-vous sûr de vouloir supprimer cette application ?",
-      "ok": "Valider"
+      "message": "Êtes-vous sûr de vouloir supprimer cette application ?"
     },
     "description": {
       "label": "Décrire le but de cette application",
@@ -283,6 +281,10 @@
       "title": "Abonnements"
     },
     "oauth2": "Intégration OAuth2",
+    "renewSecret": {
+      "label": "Renouveler le secret",
+      "message": "Êtes-vous sûr de vouloir renouveler le secret de votre application ?<br/> En renouvelant le secret, vous ne pourrez plus générer de nouveaux jetons d'accès et appeler l'API."
+    },
     "save": "Sauvegarder",
     "subscriptions": {
       "api": "API",
@@ -321,6 +323,7 @@
     },
     "success": {
       "delete": "Votre application a été supprimée avec succès",
+      "renewSecret": "Le secret de votre application a été renouvelé avec succès",
       "save": "Votre application a été mise à jour avec succès"
     },
     "type": {

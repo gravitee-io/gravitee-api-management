@@ -98,7 +98,9 @@ export class AuthService {
     this.authenticationService.logout().subscribe(
       () => {
         this.currentUserService.revokeUser();
-        this.oauthService.logOut();
+        if (this.getProviderId()) {
+          this.oauthService.logOut();
+        }
         this.router.navigate(['']);
       },
       () => resolve(false),

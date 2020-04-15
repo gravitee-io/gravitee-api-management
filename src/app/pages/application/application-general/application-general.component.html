@@ -24,7 +24,7 @@
             {{ 'common.reset' | translate }}
           </gv-button>
         </div>
-        
+
         <div class="application__image">
           <gv-identity-picture [picture]="applicationForm.value.picture || application.picture || application._links.picture" [display_name]="application.name"></gv-identity-picture>
           <app-gv-file-upload *ngIf="canUpdate" [label]="'application.change_picture' | translate" (fileLoad)="onFileLoad($event)"></app-gv-file-upload>
@@ -72,8 +72,7 @@
             {{ 'application.save' | translate }}
           </gv-button>
 
-          <gv-confirm *ngIf="canDelete" [message]="'application.delete.message' | translate" (:gv-confirm:ok)="delete()"
-                      [cancelLabel]="'application.delete.cancel' | translate" [okLabel]="'application.delete.ok' | translate">
+          <gv-confirm *ngIf="canDelete" [message]="'application.delete.message' | translate" (:gv-confirm:ok)="delete()">
             <gv-button secondary [loading]="isLoading() | async">
               {{ 'application.delete.label' | translate }}
             </gv-button>
@@ -104,6 +103,13 @@
               name="application.client_secret"
               ngDefaultControl>
             </gv-input>
+
+            <gv-confirm *ngIf="application.settings.oauth.renew_client_secret_supported"
+                        [message]="'application.renewSecret.message' | translate" (:gv-confirm:ok)="renewSecret()">
+              <gv-button secondary [loading]="isLoading() | async">
+                {{ 'application.renewSecret.label' | translate }}
+              </gv-button>
+            </gv-confirm>
           </div>
         </div>
       </div>
