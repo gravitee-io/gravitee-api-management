@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import {
   ApplicationService,
   Member,
@@ -39,6 +39,7 @@ import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { NotificationService } from '../../../services/notification.service';
+import { CurrentUserService } from 'src/app/services/current-user.service';
 
 @Component({
   selector: 'app-application-members',
@@ -56,7 +57,9 @@ export class ApplicationMembersComponent implements OnInit {
     private router: Router,
     private notificationService: NotificationService,
     private permissionService: PermissionsService,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private currentUser: CurrentUserService,
+    private ref: ChangeDetectorRef,
   ) {
     this.resetAddMember();
     this.resetTransferOwnership();
@@ -85,6 +88,7 @@ export class ApplicationMembersComponent implements OnInit {
   members: Array<Member>;
   membersOptions: any;
   roles: Array<{ label: string, value: string }>;
+  tableTranslations: any[];
 
   groups: Array<{ groupId: string, groupName: string, groupMembers: Array<Member>, nbGroupMembers: any }>;
   groupMembersOptions: any;
@@ -97,22 +101,11 @@ export class ApplicationMembersComponent implements OnInit {
   userListForTransferOwnership: Array<User> = [];
   selectedUserForTransferOwnership: User;
 
-  ngOnInit() {
+  async ngOnInit() {
     this.application = this.route.snapshot.data.application;
     if (this.application) {
 
-      let memberPermissions: string[];
-      this.permissionService.getCurrentUserPermissions({ applicationId: this.application.id })
-        .toPromise()
-        .then((permissions) => {
-          if (permissions) {
-            memberPermissions = permissions.MEMBER;
-          }
-        })
-        .catch(() => (memberPermissions = []))
-        .finally(() => {
-          this.readonly = !memberPermissions || memberPermissions.length === 0 || !memberPermissions.includes('U');
-        });
+      this.readonly = await this.isReadOnly();
 
       this.portalService.getApplicationRoles()
         .toPromise()
@@ -152,40 +145,16 @@ export class ApplicationMembersComponent implements OnInit {
       ])
         .toPromise()
         .then(translations => {
-          const tableTranslsations = Object.values(translations);
-          this.membersOptions = {
-            paging: 5,
-            data: [
-              { field: 'user._links.avatar', type: 'image', alt: 'user.display_name' },
-              { field: 'user.display_name', label: tableTranslsations[0] },
-              {
-                field: 'role', label: tableTranslsations[1], type: 'gv-select',
-                attributes: {
-                  options: (item) => item.role === 'PRIMARY_OWNER' ? ['PRIMARY_OWNER'] : this.roles,
-                  disabled: (item) => item.role === 'PRIMARY_OWNER' || this.readonly,
-                  'ongv-select:select': (item) => this.updateMember(item),
-                }
-              },
-              {
-                type: 'gv-icon',
-                width: '25px',
-                confirmMessage: tableTranslsations[2],
-                condition: (item) => item.role !== 'PRIMARY_OWNER',
-                attributes: {
-                  onClick: (item) => this.removeMember(item),
-                  shape: 'general:trash',
-                  title: tableTranslsations[3],
-                },
-              },
-            ],
-          };
+          this.tableTranslations = Object.values(translations);
+          this.membersOptions = this._buildMemberOptions();
+
           if (this.application.groups && this.application.groups.length > 0) {
             this.groupMembersOptions = {
               paging: 5,
               data: [
                 { field: 'user._links.avatar', type: 'image', alt: 'user.display_name' },
-                { field: 'user.display_name', label: tableTranslsations[0] },
-                { field: 'role', label: tableTranslsations[1] },
+                { field: 'user.display_name', label: this.tableTranslations[0] },
+                { field: 'role', label: this.tableTranslations[1] },
               ],
             };
           }
@@ -212,23 +181,78 @@ export class ApplicationMembersComponent implements OnInit {
       ], { type: this.application.applicationType })
         .toPromise()
         .then(translations => {
-          const infoTranslsations = Object.values(translations);
+          const infoTranslations = Object.values(translations);
           this.miscellaneous = [
-            { key: infoTranslsations[0], value: this.application.owner.display_name },
-            { key: infoTranslsations[1], value: infoTranslsations[4] },
+            { key: infoTranslations[0], value: this.application.owner.display_name },
+            { key: infoTranslations[1], value: infoTranslations[4] },
             {
-              key: infoTranslsations[2],
+              key: infoTranslations[2],
               value: new Date(this.application.created_at),
               date: 'short'
             },
             {
-              key: infoTranslsations[3],
+              key: infoTranslations[3],
               value: new Date(this.application.updated_at),
               date: 'relative'
             },
           ];
         });
     }
+  }
+
+  _buildMemberOptions() {
+    const data: any[] = [
+      { field: 'user._links.avatar', type: 'image', alt: 'user.display_name' },
+      { field: 'user.display_name', label: this.tableTranslations[0] }
+    ];
+    if (this.readonly) {
+      data.push({ field: 'role', label: this.tableTranslations[1] });
+    } else {
+      data.push(this._renderRole(this.tableTranslations[1]));
+      data.push(this._renderDelete(this.tableTranslations[2], this.tableTranslations[3]));
+    }
+    return {
+      paging: 5,
+      data,
+    };
+  }
+
+  _renderRole(roleLabel: any) {
+    return {
+      field: 'role', label: roleLabel, type: 'gv-select',
+      attributes: {
+        options: (item) => item.role === 'PRIMARY_OWNER' ? ['PRIMARY_OWNER'] : this.roles,
+        disabled: (item) => item.role === 'PRIMARY_OWNER',
+        'ongv-select:select': (item, e) => this.updateMember(item, e),
+      }
+    };
+  }
+  _renderDelete(confirmMessage: any, iconTitle: any) {
+    return {
+      type: 'gv-icon',
+      width: '25px',
+      confirmMessage ,
+      condition: (item) => item.role !== 'PRIMARY_OWNER',
+      attributes: {
+        onClick: (item) => this.removeMember(item),
+        shape: 'general:trash',
+        title: iconTitle,
+      }
+    };
+  }
+
+  async isReadOnly() {
+    let memberPermissions: string[];
+    return this.permissionService.getCurrentUserPermissions({ applicationId: this.application.id })
+    .toPromise()
+    .then((permissions) => {
+      if (permissions) {
+        memberPermissions = permissions.MEMBER;
+        return !memberPermissions || memberPermissions.length === 0 || !memberPermissions.includes('U');
+      } else {
+        return true;
+      }
+    });
   }
 
   loadMembersTable() {
@@ -240,24 +264,32 @@ export class ApplicationMembersComponent implements OnInit {
 
   resetAddMember() {
     this.selectedUserToAdd = null;
+    this.userListForAddMember = [];
     this.addMemberForm = new FormGroup({
-      newMemberRole: new FormControl('')
+      newMemberRole: new FormControl('USER')
     });
   }
 
   resetTransferOwnership() {
     this.selectedUserForTransferOwnership = null;
+    this.userListForTransferOwnership = [];
     this.transferOwnershipForm = new FormGroup({
       primaryOwnerNewRole: new FormControl('USER')
     });
   }
 
   onSearchUserToAdd({ detail }) {
-    this.searchUser(detail).then(users => this.userListForAddMember = users);
+    this.searchUser(detail).then(users =>
+      this.userListForAddMember = users.filter(user =>
+        this.members.findIndex(member => member.user.id === user.id) === -1
+      )
+    );
   }
 
   onSearchUserForTransferOwnership({ detail }) {
-    this.searchUser(detail).then(users => this.userListForTransferOwnership = users);
+    this.searchUser(detail).then(users =>
+      this.userListForTransferOwnership = users.filter(user => this.application.owner.id !== user.id)
+    );
   }
 
   onSelectUserToAdd({ detail }) {
@@ -331,19 +363,25 @@ export class ApplicationMembersComponent implements OnInit {
       .then(() => this.notificationService.success(i18n('application.members.transferOwnership.success')));
   }
 
-  updateMember(member: Member) {
+  updateMember(member: Member, { detail }) {
     this.applicationService.updateApplicationMemberByApplicationIdAndMemberId({
       applicationId: this.application.id,
       memberId: member.user.id,
       MemberInput: {
         user: member.user.id,
-        role: member.role,
+        role: detail,
       }
-    }).toPromise().then(
-      () => {
-        this.notificationService.success(i18n('application.members.list.success'));
+    }).toPromise().then(() => {
+      this.notificationService.success(i18n('application.members.list.success'));
+      if (this.currentUser.exist() && this.currentUser.getUser().id === member.user.id) {
+        this.isReadOnly()
+          .then(isReadOnly => {
+            this.readonly = isReadOnly;
+            this.membersOptions = this._buildMemberOptions();
+            this.ref.detectChanges();
+          });
       }
-    );
+    });
   }
 
 }

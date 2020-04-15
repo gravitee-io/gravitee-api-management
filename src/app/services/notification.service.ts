@@ -46,7 +46,7 @@ export class NotificationService {
     notif.code = code;
     notif.parameters = parameters;
     notif.message = message;
-    notif.closable = closable;
+    notif.closable = closable !== undefined ? closable : true;
     this.notificationSource.next(notif);
   }
 

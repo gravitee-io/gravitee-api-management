@@ -102,6 +102,14 @@ h2.title {
   opacity: 0.5;
 }
 
+h2.title span {
+  color: var(--gv-theme-neutral-color-dark);
+  font-weight: 600;
+  font-size: var(--gv-theme-font-size-s);
+  line-height: var(--gv-theme-font-size-s);
+  margin-left: 8px;
+}
+
 h3.title {
   margin: 0;
   font-size: var(--gv-theme-font-size-l);

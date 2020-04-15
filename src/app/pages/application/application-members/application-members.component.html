@@ -18,14 +18,15 @@
 <div class="page__content application">
   <section class="application__section">
     <div class="application__section__block">
-      <gv-table [items]="members" [options]="membersOptions" title="{{'application.members.list.title' | translate}}" order="user.display_name"></gv-table>
+      <h2 class="title">{{'application.members.list.title' | translate}} <span *ngIf="members">({{ members.length }})</span></h2>
+      <gv-table [items]="members" [options]="membersOptions"order="user.display_name"></gv-table>
     </div>
 
     <div class="application__section__block"  *ngIf="!readonly">
       <h2 class="title">{{'application.members.add.title' | translate}}</h2>
       <form [formGroup]="addMemberForm" (ngSubmit)="addMember()" class="application__section__block__form">
         <div class="application__section__block__form__title">
-          <gv-button link (click)="resetTransferOwnership()">{{'application.members.add.reset' | translate}}</gv-button>
+          <gv-button link (click)="resetAddMember()">{{'application.members.add.reset' | translate}}</gv-button>
         </div>
         <div class="application__section__block__form__content">
           <gv-autocomplete [options]="userListForAddMember"
