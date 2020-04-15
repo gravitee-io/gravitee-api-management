@@ -28,7 +28,6 @@
     <ng-md-icon icon="live_help" gv-theme-element="portal.navbar.help"></ng-md-icon>
   </md-button>
   <portal-notifications user="$ctrl.graviteeUser" ng-if="$ctrl.graviteeUser.id && $ctrl.profileConfirmed"></portal-notifications>
-  <md-button ng-if="!$ctrl.graviteeUser.id" ui-sref-active="menu-active" ng-click="$ctrl.authenticate()" ng-show="'login' !== $ctrl.$state.current.name">{{'menu.login' | translate}}</md-button>
 
   <md-menu ng-if="$ctrl.graviteeUser.id && $ctrl.profileConfirmed" md-offset="0 54">
     <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" aria-label="Open user menu">

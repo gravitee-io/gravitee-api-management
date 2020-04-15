@@ -303,8 +303,12 @@ gravitee-sidenav {
 }
 
 .gravitee-no-sidenav-header {
-  padding-bottom: 30px;
-  text-align: center;
+  background-image: url('assets/GRAVITEE_LOGOV2_RECT.png');
+  background-repeat: no-repeat;
+  background-size: 200px;
+  background-position: center top;
+  margin-bottom: 40px;
+  padding-top: 100px;
 
   & a {
     margin: 10px auto;
@@ -317,7 +321,12 @@ gravitee-sidenav {
   & label {
     font-size: 28px;
     font-weight: 400;
-    margin: 0 auto;
+    margin: 0px;
+  }
+
+  & label.subtitle {
+    font-size: 14px;
+    font-weight: 200;
   }
 }
 

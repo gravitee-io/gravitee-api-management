@@ -101,8 +101,7 @@ export const NavbarComponent: ng.IComponentOptions = {
         !trans.to().name.startsWith('confirm') &&
         !trans.to().name.startsWith('user');
 
-      let forceLogin = Constants.authentication.forceLogin.enabled || false;
-      vm.visible = ! forceLogin || (forceLogin && trans.to().name !== 'login' &&
+      vm.visible = (trans.to().name !== 'login' &&
         trans.to().name !== 'registration' && trans.to().name !== 'confirm');
     });
 
