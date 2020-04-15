@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-rating-list';
@@ -50,8 +50,8 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   statusOptions: any;
   miscellaneous: Array<any>;
   metadata: any;
-  selectedSubscription: Subscription;
   apiKeys: Array<any>;
+  selectedSubscriptions: Array<string>;
 
   constructor(
     private route: ActivatedRoute,
@@ -114,8 +114,10 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           { field: 'api', label: i18n('application.subscriptions.api') },
           { field: 'plan', label: i18n('application.subscriptions.plan') },
           { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at') },
-          { field: 'subscribed_by', label: i18n('application.subscriptions.subscribed_by'),
-            format: (item) => this.metadata[item] && this.metadata[item].name },
+          {
+            field: 'subscribed_by', label: i18n('application.subscriptions.subscribed_by'),
+            format: (item) => this.metadata[item] && this.metadata[item].name
+          },
           { field: 'processed_at', type: 'date', label: i18n('application.subscriptions.processed_at') },
           { field: 'start_at', type: 'date', label: i18n('application.subscriptions.start_at') },
           {
@@ -156,12 +158,12 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           return { label: Object.values(translatedKeys)[i], value: s };
         });
         this.form.patchValue({ status: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING] });
-        this.search();
+        this.search(true);
       });
     }
   }
 
-  search() {
+  search(displaySubscription?) {
     const applicationId = this.route.snapshot.params.applicationId;
     const requestParameters: GetSubscriptionsRequestParams = { applicationId };
     if (this.form.value.api) {
@@ -177,12 +179,15 @@ export class ApplicationSubscriptionsComponent implements OnInit {
         subscription.api = this.metadata[subscription.api] && this.metadata[subscription.api].name;
         subscription.plan = this.metadata[subscription.plan] && this.metadata[subscription.plan].name;
       });
-      if (this.route.snapshot.queryParams.subscription) {
-        this.selectedSubscription = this.subscriptions.find(s => s.id === this.route.snapshot.queryParams.subscription);
-        if (this.selectedSubscription) {
-          this.onSelectSubscription(this.selectedSubscription);
-        }
+      if (displaySubscription && this.route.snapshot.queryParams.subscription) {
+        const subscription = this.subscriptions.find(s => s.id === this.route.snapshot.queryParams.subscription);
+        this.selectedSubscriptions = [subscription.id];
+        this.onSelectSubscription(subscription);
+      } else {
+        this.selectedSubscriptions = [];
+        this.onSelectSubscription(null);
       }
+
     });
   }
 
