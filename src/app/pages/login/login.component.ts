@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { IdentityProvider, PortalService } from '@gravitee/ng-portal-webclient';
@@ -33,12 +33,13 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./login.component.css']
 })
 
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   loginForm: FormGroup;
   registrationEnabled: boolean;
   providers: IdentityProvider[];
   private redirectUrl: string;
+  firstClickHandler: any;
 
   constructor(
     private portalService: PortalService,
@@ -49,6 +50,7 @@ export class LoginComponent implements OnInit {
     private authService: AuthService,
     private activatedRoute: ActivatedRoute,
   ) {
+
     if (config.hasFeature(FeatureEnum.localLogin)) {
       this.loginForm = this.formBuilder.group({
         username: '',
@@ -56,6 +58,7 @@ export class LoginComponent implements OnInit {
       });
     }
     this.registrationEnabled = config.hasFeature(FeatureEnum.userRegistration);
+    this.firstClickHandler = this.onFirstClick.bind(this);
   }
 
   ngOnInit() {
@@ -69,13 +72,35 @@ export class LoginComponent implements OnInit {
           console.error('something wrong occurred with identity providers: ' + error.statusText);
         }
       );
+
+  }
+
+  private onFirstClick() {
+    document.querySelectorAll('gv-input').forEach((element) => element.setAttribute('required', ''));
+    this.loginForm.get('username').setValidators(Validators.required);
+    this.loginForm.get('password').setValidators(Validators.required);
+    window.removeEventListener('click', this.firstClickHandler);
+  }
+
+  ngAfterViewInit() {
+    if (this.loginForm) {
+      window.addEventListener('click', this.firstClickHandler);
+    }
+
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('click', this.firstClickHandler);
   }
 
   login() {
     if (this.isFormValid()) {
       this.authService.login(this.loginForm.value.username, this.loginForm.value.password, this.redirectUrl).then(
-        () => {},
-        () => { this.loginForm.setValue({ username: this.loginForm.value.username, password: '' }); }
+        () => {
+        },
+        () => {
+          this.loginForm.setValue({ username: this.loginForm.value.username, password: '' });
+        }
       );
     }
   }
@@ -87,4 +112,5 @@ export class LoginComponent implements OnInit {
   isFormValid() {
     return this.loginForm.valid.valueOf();
   }
+
 }
