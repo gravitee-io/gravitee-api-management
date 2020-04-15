@@ -353,20 +353,6 @@
           "value": ""
         },
         {
-          "name": "--gv-header-image--h",
-          "description": "Image height",
-          "type": "length",
-          "default": "100px",
-          "value": "100px"
-        },
-        {
-          "name": "--gv-header-image--w",
-          "description": "Image width",
-          "type": "length",
-          "default": "100px",
-          "value": "100px"
-        },
-        {
           "name": "--gv-header-button--p",
           "description": "Button adding",
           "type": "length",
@@ -1015,20 +1001,6 @@
           "type": "color",
           "default": "var(--gv-theme-neutral-color-lightest, #FFFFFF)",
           "value": ""
-        },
-        {
-          "name": "--gv-card-image--h",
-          "description": "Image height",
-          "type": "length",
-          "default": "65px",
-          "value": "65px"
-        },
-        {
-          "name": "--gv-card-image--w",
-          "description": "Image width",
-          "type": "length",
-          "default": "110px",
-          "value": "110px"
         }
       ]
     },
