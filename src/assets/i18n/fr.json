@@ -844,7 +844,7 @@
     "display_name": "Nom :",
     "email": "Email :",
     "notifications": {
-      "empty": "Aucune notification reçu",
+      "empty": "Aucune notification reçue",
       "read": "Lu",
       "title": "Notifications"
     },
