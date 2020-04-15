@@ -46,7 +46,7 @@
           </div>
           <div class="application__log__infos__block">
             <label>{{'application.log.request' | translate}}</label>
-            <div><span [ngStyle]="{color: getMethodColor(log.method)}">{{log.method.toUpperCase()}}</span> sur {{log.path}}</div>
+            <div><span [ngStyle]="{color: getMethodColor(log.method)}">{{log.method.toUpperCase()}}</span> {{log.path}}</div>
           </div>
           <div class="application__log__infos__block">
             <label>{{'application.log.requestContentLength' | translate}}</label>
