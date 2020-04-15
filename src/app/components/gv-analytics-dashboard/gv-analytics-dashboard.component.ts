@@ -97,11 +97,12 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
             }
           }
         }
-        const itemsPromise = this.applicationService.getApplicationAnalytics({
+        const requestParameters = {
           ...{ applicationId: this.application.id, from: timeSlot.from, to: timeSlot.to, interval: timeSlot.interval },
           ...widget.chart.request,
           ...this.analyticsService.getQueryFromPath(widget.chart.request.field, widget.chart.request.ranges)
-        }).toPromise();
+        };
+        const itemsPromise = this.applicationService.getApplicationAnalytics(requestParameters).toPromise();
 
         if (widget.chart.type === 'table') {
 
@@ -116,24 +117,27 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
             widget.chart.data[2].style = style;
           }
 
-          widget.items = itemsPromise.then((items) => {
-            let total = 0;
-            if (widget.chart.percent) {
-              // @ts-ignore
-              if (items.values && items.values.length) {
-                // @ts-ignore
-                total = items.values.reduce((p, n) => p + n);
-              }
-            }
+          widget.items = itemsPromise.then((items: any) => {
             // @ts-ignore
-            return Object.keys(items.values).map((key) => {
-              // @ts-ignore
-              const item = { id: key, key: items.metadata[key].name, value: items.values[key], percent: undefined };
-              if (widget.chart.percent) {
-                // @ts-ignore
-                item.percent = `${parseFloat(item.value / total * 100).toFixed(2)}%`;
-              }
-              return item;
+            const keys = Object.keys(items.values);
+            if (widget.chart.percent) {
+              delete requestParameters.query;
+              requestParameters.type = 'count';
+              return this.applicationService.getApplicationAnalytics(requestParameters).toPromise().then(responseTotal => {
+                return keys.map((key) => {
+                  const value = items.values[key];
+                  return {
+                    id: key,
+                    key: items.metadata[key].name,
+                    value,
+                    // @ts-ignore
+                    percent: `${parseFloat(value / responseTotal.hits * 100).toFixed(2)}%`
+                  };
+                });
+              });
+            }
+            return keys.map((key) => {
+              return { id: key, key: items.metadata[key].name, value: items.values[key], percent: undefined };
             });
           });
         } else {
