@@ -300,7 +300,7 @@
             <gv-button *ngIf="hasCreate()"
                        [disabled]="!canValidate()"
                        [loading]="creationInProgress"
-                       (click)="createApp()"
+                       (:gv-button:click)="createApp()"
                        primary
                        icon="code:check">{{'applicationCreation.step.createApp' | translate}}</gv-button>
         </div>
