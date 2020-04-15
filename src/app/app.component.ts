@@ -120,6 +120,16 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
       this.userRoutes = this.navRouteService.getUserNav();
+      if (this.currentUser) {
+        this.interval = setInterval(
+          () => {
+            this.loadNotifications();
+          },
+          this.configurationService.get('scheduler.notificationsInSeconds') * 1000
+        );
+      } else {
+        clearInterval(this.interval);
+      }
     });
     this.notificationService.notification.subscribe(notification => {
       if (notification) {
@@ -166,10 +176,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     }
     this.slots = [this.appGvMenuRightSlot, this.appGvMenuRightTransitionSlot, this.appGvMenuTopSlot];
 
-    this.loadNotifications();
-    this.interval = setInterval(() => {
-      this.loadNotifications();
-    }, this.configurationService.get('scheduler.notificationsInSeconds') * 1000);
     this.eventService.event.subscribe((type) => {
       if (type === 'gv-notifications:onRemove') {
         this.loadNotifications();
