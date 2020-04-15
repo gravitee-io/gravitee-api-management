@@ -36,12 +36,9 @@ import { DocumentationComponent } from './pages/documentation/documentation.comp
 import { environment } from '../environments/environment';
 import { filter } from 'rxjs/operators';
 import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
-import { GvAnalyticsDashboardComponent } from './components/gv-analytics-dashboard/gv-analytics-dashboard.component';
-import { GvAnalyticsFiltersComponent } from './components/gv-analytics-filters/gv-analytics-filters.component';
 import { GvContactComponent } from './components/gv-contact/gv-contact.component';
 import { GvCookieConsentComponent } from './components/gv-cookie-consent/gv-cookie-consent.component';
 import { GvDocumentationComponent } from './components/gv-documentation/gv-documentation.component';
-import { GvFileUploadComponent } from './components/gv-file-upload/gv-file-upload.component';
 import { GvHeaderItemComponent } from './components/gv-header-item/gv-header-item.component';
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvMenuRightTransitionSlotDirective } from './directives/gv-menu-right-transition-slot.directive';
@@ -90,12 +87,9 @@ import { ViewportScroller } from '@angular/common';
     DashboardComponent,
     DocumentationComponent,
     FilteredCatalogComponent,
-    GvAnalyticsDashboardComponent,
-    GvAnalyticsFiltersComponent,
     GvContactComponent,
     GvCookieConsentComponent,
     GvDocumentationComponent,
-    GvFileUploadComponent,
     GvHeaderItemComponent,
     GvMenuRightSlotDirective,
     GvMenuRightTransitionSlotDirective,
@@ -157,8 +151,9 @@ import { ViewportScroller } from '@angular/common';
   bootstrap: [
     AppComponent
   ],
-  exports:[
-    TranslateModule
+  exports: [
+    TranslateModule,
+    SharedModule,
   ]
 })
 export class AppModule {

@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { TranslateCompiler, TranslateLoader, TranslateModule, TranslatePipe } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
+import { GvAnalyticsDashboardComponent } from '../../components/gv-analytics-dashboard/gv-analytics-dashboard.component';
+import { GvAnalyticsFiltersComponent } from '../../components/gv-analytics-filters/gv-analytics-filters.component';
 import { GvButtonCreateApplicationComponent } from '../../components/gv-button-create-application/gv-button-create-application.component';
 import { GvSelectDashboardComponent } from '../../components/gv-select-dashboard/gv-select-dashboard.component';
 import { SharedModule } from '../../shared/shared.module';
@@ -31,13 +33,15 @@ import { ApplicationsComponent } from './applications.component';
     SubscriptionsComponent,
     ApplicationCreationComponent,
     GvButtonCreateApplicationComponent,
+    GvAnalyticsDashboardComponent,
+    GvAnalyticsFiltersComponent,
     ApplicationLogsComponent,
     GvSelectDashboardComponent,
   ],
   entryComponents: [GvButtonCreateApplicationComponent, GvSelectDashboardComponent],
   imports: [
-    CommonModule,
     ApplicationsRoutingModule,
+    CommonModule,
     SharedModule,
     TranslateModule.forChild({
       loader: {
@@ -50,6 +54,9 @@ import { ApplicationsComponent } from './applications.component';
         useClass: TranslateMessageFormatCompiler
       }
     }),
+  ],
+  exports: [
+    SharedModule,
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA

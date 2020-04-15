@@ -15,15 +15,15 @@
  */
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 
-import { CurrentUserService } from '../../../services/current-user.service';
-import { PortalNotification, User, UserService } from '@gravitee/ng-portal-webclient';
+import { PortalNotification, UserService } from '@gravitee/ng-portal-webclient';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { NotificationService } from '../../../services/notification.service';
 import { TranslateService } from '@ngx-translate/core';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { EventService } from '../../../services/event.service';
+
+import '@gravitee/ui-components/wc/gv-table';
 
 @Component({
   selector: 'app-user-notification',
