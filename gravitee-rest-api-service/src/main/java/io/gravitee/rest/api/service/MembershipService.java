@@ -60,14 +60,7 @@ public interface MembershipService {
     void                    removeMemberMemberships                     (MembershipMemberType memberType, String memberId);
     void                    transferApiOwnership                        (String apiId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
     void                    transferApplicationOwnership                (String applicationId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
-    
-//    MemberEntity getMember(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope);
-//    RoleEntity getRole(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope);
-//    Set<RoleEntity> getRoles(MembershipReferenceType referenceType, Set<String> referenceIds, String userId, RoleScope roleScope);
-//    Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName);
-//    boolean removeRole(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope);
-//    List<UserMembership> findUserMembership(String userId, MembershipReferenceType type);
-//    Metadata findUserMembershipMetadata(List<UserMembership> memberships, MembershipReferenceType type);
+    MemberEntity            updateRoleToMemberOnReference               (MembershipReference reference, MembershipMember member, MembershipRole role);
 
     class MembershipReference {
         private final MembershipReferenceType type;

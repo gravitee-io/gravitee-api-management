@@ -121,11 +121,24 @@ public class ApiMembersResource extends AbstractResource {
         }
 
         apiService.findById(api);
+        
+        MembershipService.MembershipReference reference = new MembershipService.MembershipReference(MembershipReferenceType.API, api);
+        MembershipService.MembershipMember member = new MembershipService.MembershipMember(apiMembership.getId(), apiMembership.getReference(), MembershipMemberType.USER);
+        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.API, apiMembership.getRole());
 
-        MemberEntity membership = membershipService.addRoleToMemberOnReference(
-                new MembershipService.MembershipReference(MembershipReferenceType.API, api),
-                new MembershipService.MembershipMember(apiMembership.getId(), apiMembership.getReference(), MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, apiMembership.getRole()));
+        MemberEntity membership = null;
+        if (apiMembership.getId() != null) {
+            MemberEntity userMember = membershipService.getUserMember(MembershipReferenceType.API, api, apiMembership.getId());
+            if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
+                membership = membershipService.updateRoleToMemberOnReference(reference, member, role);
+            }
+        }
+        if (membership == null) {
+            membership = membershipService.addRoleToMemberOnReference(
+                    reference,
+                    member,
+                    role);
+        }
 
         return Response.created(URI.create("/apis/" + api + "/members/" + membership.getId())).build();
     }

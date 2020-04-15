@@ -127,10 +127,23 @@ public class ApplicationMembersResource  extends AbstractResource {
 
         applicationService.findById(application);
 
-        MemberEntity membership = membershipService.addRoleToMemberOnReference(
-                new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, application),
-                new MembershipService.MembershipMember(applicationMembership.getId(), applicationMembership.getReference(), MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, applicationMembership.getRole()));
+        MembershipService.MembershipReference reference = new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, application);
+        MembershipService.MembershipMember member = new MembershipService.MembershipMember(applicationMembership.getId(), applicationMembership.getReference(), MembershipMemberType.USER);
+        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.APPLICATION, applicationMembership.getRole());
+
+        MemberEntity membership = null;
+        if (applicationMembership.getId() != null) {
+            MemberEntity userMember = membershipService.getUserMember(MembershipReferenceType.APPLICATION, application, applicationMembership.getId());
+            if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
+                membership = membershipService.updateRoleToMemberOnReference(reference, member, role);
+            }
+        }
+        if (membership == null) {
+            membership = membershipService.addRoleToMemberOnReference(
+                    reference,
+                    member,
+                    role);
+        }
 
         return Response.created(URI.create("/applications/" + application + "/members/" + membership.getId())).build();
     }

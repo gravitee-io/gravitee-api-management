@@ -194,7 +194,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(MembershipService.MembershipRole.class);
         ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
 
-        Mockito.verify(membershipService).addRoleToMemberOnReference(memberShipRefCaptor.capture(), memberShipUserCaptor.capture(), memberShipRoleCaptor.capture());
+        Mockito.verify(membershipService).updateRoleToMemberOnReference(memberShipRefCaptor.capture(), memberShipUserCaptor.capture(), memberShipRoleCaptor.capture());
         assertEquals(APPLICATION, memberShipRefCaptor.getValue().getId());
         assertEquals("USER", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_2, memberShipUserCaptor.getValue().getMemberId());

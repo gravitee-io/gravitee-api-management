@@ -910,4 +910,20 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
         }
     }
+
+    @Override
+    public MemberEntity updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member,
+            MembershipRole role) {
+        try {
+            Set<Membership> existingMemberships = this.membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(member.getMemberId(), convert(member.getMemberType()), convert(reference.getType()), reference.getId());
+            if (existingMemberships != null && !existingMemberships.isEmpty()) {
+                existingMemberships.forEach(membership -> this.deleteMembership(membership.getId()));
+            }
+            return this.addRoleToMemberOnReference(reference, member, role);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to update member for {} {}", reference.getType(), reference.getId(), ex);
+            throw new TechnicalManagementException("An error occurs while trying to update member for " + reference.getType() + " " + reference.getId(), ex);
+        }
+
+    }
 }

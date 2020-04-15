@@ -184,7 +184,7 @@ public class ApplicationMembersResource extends AbstractResource {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
         }
         
-        MemberEntity membership = membershipService.addRoleToMemberOnReference(
+        MemberEntity membership = membershipService.updateRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
                 new MembershipService.MembershipMember(memberId, memberInput.getReference(), MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole()));
