@@ -40,6 +40,14 @@
   flex-direction: column;
 }
 
+.application__title{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 75%;
+}
+
 .application__section > *, .application__aside > * {
  margin-bottom: 32px;
 }

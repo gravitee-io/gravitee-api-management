@@ -18,8 +18,13 @@
 <form [formGroup]="applicationForm" (ngSubmit)="submit()" class="page__content application" *ngIf="application">
     <section class="application__section">
       <div class="application__section__block">
-        <h2 class="title">{{ "application.general" | translate}}</h2>
-
+        <div class="application__title">
+          <h2 class="title">{{ "application.general" | translate}}</h2>
+          <gv-button (click)="reset()" link>
+            {{ 'common.reset' | translate }}
+          </gv-button>
+        </div>
+        
         <div class="application__image">
           <gv-identity-picture [picture]="applicationForm.value.picture || application.picture || application._links.picture" [display_name]="application.name"></gv-identity-picture>
           <app-gv-file-upload *ngIf="canUpdate" [label]="'application.change_picture' | translate" (fileLoad)="onFileLoad($event)"></app-gv-file-upload>
@@ -65,10 +70,6 @@
                      type="submit" [disabled]="applicationForm.invalid || applicationForm.pristine" primary
                      [loading]="isLoading() | async">
             {{ 'application.save' | translate }}
-          </gv-button>
-
-          <gv-button (click)="reset()" primary outlined>
-            {{ 'common.reset' | translate }}
           </gv-button>
 
           <gv-confirm *ngIf="canDelete" [message]="'application.delete.message' | translate" (:gv-confirm:ok)="delete()"
