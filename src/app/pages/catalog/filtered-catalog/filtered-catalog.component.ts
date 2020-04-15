@@ -48,7 +48,7 @@ export class FilteredCatalogComponent implements OnInit {
   private page: number;
   private size: number;
 
-  allApis: Array<Promise<{item: Api, metric: any}>>;
+  allApis: Array<Promise<{ item: Api, metric: any }>>;
   randomList: Promise<any>[];
   promotedApi: Promise<any>;
   promotedMetrics: ApiMetrics;
@@ -114,8 +114,12 @@ export class FilteredCatalogComponent implements OnInit {
     if (err instanceof TimeTooLongError) {
       // @ts-ignore
       this.promotedApi = new Promise(null);
-      this.randomList = new Array(4);
-      this.allApis = new Array(this.size).fill(new Promise(() => ({}) ));
+      if (this.randomList.length === 0) {
+        this.randomList = new Array(4).fill(new Promise(null));
+      }
+      if (this.allApis.length === 0) {
+        this.allApis = new Array(this.size).fill(new Promise(null));
+      }
     } else {
       throw err;
     }
@@ -158,6 +162,7 @@ export class FilteredCatalogComponent implements OnInit {
           a.states = this.apiStates.transform(a);
           return Promise.resolve(a);
         });
+
       })
       .catch((err) => {
         // @ts-ignore

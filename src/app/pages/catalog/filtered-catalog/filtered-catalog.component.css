@@ -44,7 +44,6 @@ gv-promote {
   flex: 1;
   grid-template-columns: repeat(2, 1fr);
   grid-gap: 1rem;
-  align-items: flex-end;
 }
 
 .catalog__list {
