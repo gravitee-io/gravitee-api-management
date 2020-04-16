@@ -565,13 +565,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Optional<Api> api = apiRepository.findById(apiId);
 
             if (api.isPresent()) {
-                MemberEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(io.gravitee.rest.api.model.MembershipReferenceType.API, api.get().getId());
+                MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(io.gravitee.rest.api.model.MembershipReferenceType.API, api.get().getId());
                 if (primaryOwnerMemberEntity == null) {
                     LOGGER.error("The API {} doesn't have any primary owner.", apiId);
                     throw new TechnicalException("The API " + apiId + " doesn't have any primary owner.");
                 }
 
-                ApiEntity apiEntity = convert(api.get(), userService.findById(primaryOwnerMemberEntity.getId()));
+                ApiEntity apiEntity = convert(api.get(), userService.findById(primaryOwnerMemberEntity.getMemberId()));
 
                 // Compute entrypoints
                 calculateEntrypoints(apiEntity);

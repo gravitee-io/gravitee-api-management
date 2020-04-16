@@ -65,11 +65,11 @@ public class PermissionServiceImpl extends AbstractService implements Permission
                 membershipReferenceType = null;
         }
         
-        MemberEntity member = membershipService.getUserMember(membershipReferenceType, referenceId, getAuthenticatedUsername());
-        if (member == null ) {
+        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(membershipReferenceType, referenceId, getAuthenticatedUsername());
+        if (permissions == null ) {
             return false;
         }
-        return roleService.hasPermission(member.getPermissions(), permission.getPermission(), acls);
+        return roleService.hasPermission(permissions, permission.getPermission(), acls);
     }
 
     @Override

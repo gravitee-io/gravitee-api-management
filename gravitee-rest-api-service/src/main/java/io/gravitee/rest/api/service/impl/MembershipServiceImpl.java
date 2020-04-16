@@ -664,7 +664,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public MemberEntity getPrimaryOwner(MembershipReferenceType referenceType, String referenceId) {
+    public MembershipEntity getPrimaryOwner(MembershipReferenceType referenceType, String referenceId) {
         RoleScope poRoleScope;
         if(referenceType == MembershipReferenceType.API) {
             poRoleScope = RoleScope.API;
@@ -680,7 +680,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     .stream()
                     .findFirst();
                 if(poMember.isPresent()) {
-                    return this.getUserMember(referenceType, referenceId, poMember.get().getMemberId());
+                    return convert(poMember.get());
                 } else {
                     throw new MembershipNotFoundException(referenceType.name() + "_PRIMARY_OWNER");
                 }
@@ -713,9 +713,21 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     public MemberEntity getUserMember(MembershipReferenceType referenceType, String referenceId, String userId) {
         try {
             Set<Membership> userMemberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(userId, convert(MembershipMemberType.USER), convert(referenceType), referenceId);
-            List<String> userGroups = groupService.findByUser(userId).stream().map(GroupEntity::getId).collect(Collectors.toList());
             
-            if (userMemberships.isEmpty() && userGroups.isEmpty()) {
+            //Get entity groups
+            Set<String> entityGroups = new HashSet<>();
+            switch(referenceType) {
+                case API:
+                    entityGroups = apiService.findById(referenceId).getGroups();
+                    break;
+                case APPLICATION:
+                    entityGroups = applicationService.findById(referenceId).getGroups();
+                    break;
+                default:
+                    break;
+            }
+        
+            if (userMemberships.isEmpty() && (entityGroups == null || entityGroups.isEmpty())) {
                 return null;
             }
             
@@ -740,12 +752,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
             memberEntity.setRoles(new ArrayList<>(userDirectRoles));
             
-            if(!userGroups.isEmpty()) {
-                for(String group: userGroups) {
-                    userRoles.addAll(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(group, convert(MembershipMemberType.GROUP), convert(referenceType), referenceId)
+            if(entityGroups != null && !entityGroups.isEmpty()) {
+                for(String group: entityGroups) {
+                    userRoles.addAll(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(userId, convert(MembershipMemberType.USER), convert(MembershipReferenceType.GROUP), group)
                             .stream()
                             .map(Membership::getRoleId)
                             .map(roleService::findById)
+                            .filter(role -> role.getScope().name().equals(referenceType.name()))
                             .collect(Collectors.toSet()));
                 }
             }
@@ -882,7 +895,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             newRoles = newPrimaryOwnerRoles;
         }
 
-        MemberEntity primaryOwner = this.getPrimaryOwner(membershipReferenceType, itemId);
+        MembershipEntity primaryOwner = this.getPrimaryOwner(membershipReferenceType, itemId);
         // Set the new primary owner
         MemberEntity newPrimaryOwnerMember = this.addRoleToMemberOnReference(
                 new MembershipReference(membershipReferenceType, itemId),
@@ -900,12 +913,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             });
         
             // Update the role for previous primary_owner
-            this.removeRole(membershipReferenceType, itemId, MembershipMemberType.USER, primaryOwner.getId(), poRoleEntity.getId());
+            this.removeRole(membershipReferenceType, itemId, MembershipMemberType.USER, primaryOwner.getMemberId(), poRoleEntity.getId());
 
             for(RoleEntity newRole : newRoles) {
                 this.addRoleToMemberOnReference(
                         new MembershipReference(membershipReferenceType, itemId),
-                        new MembershipMember(primaryOwner.getId(), null, MembershipMemberType.USER),
+                        new MembershipMember(primaryOwner.getMemberId(), null, MembershipMemberType.USER),
                         new MembershipRole(roleScope, newRole.getName()));
             }
         }

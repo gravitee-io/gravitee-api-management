@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 
@@ -95,8 +96,6 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(Collections.singleton(appMembership));
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).
                 thenReturn(Collections.singleton(application));
-        when(groupService.findByUser(USERNAME)).
-                thenReturn(Collections.emptySet());
         when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(mock(RoleEntity.class)));
         
         MembershipEntity po = new MembershipEntity();
@@ -124,8 +123,6 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(Collections.singleton(appMembership));
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).
                 thenReturn(Collections.singleton(application));
-        when(groupService.findByUser(USERNAME)).
-                thenReturn(Collections.emptySet());
 
         Set<ApplicationListItem> apps = applicationService.findByUser(USERNAME);
 
@@ -139,6 +136,9 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(APPLICATION_ID);
         when(groupAppMembership.getReferenceId()).
                 thenReturn(GROUP_APPLICATION_ID);
+        when(groupAppMembership.getRoleId()).
+            thenReturn("APPLICATION_PRIMARY_OWNER");
+
         when(application.getId()).
                 thenReturn(APPLICATION_ID);
         when(application.getStatus()).
@@ -154,13 +154,14 @@ public class ApplicationService_FindByUserTest {
         
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)).
                 thenReturn(Collections.singleton(appMembership));
-        GroupEntity group = new GroupEntity();
-        group.setId(GROUP_ID);
-        when(groupService.findByUser(USERNAME)).
-                thenReturn(Collections.singleton(group));
-        when(membershipService.getMembershipsByMembersAndReference(MembershipMemberType.GROUP, Arrays.asList(GROUP_ID), MembershipReferenceType.APPLICATION)).
+        
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.GROUP)).
                 thenReturn(Collections.singleton(groupAppMembership));
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(mock(RoleEntity.class)));
+        
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(RoleScope.APPLICATION);
+        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(role));
+        when(roleService.findById(any())).thenReturn(role);
 
         when(applicationRepository.findByIds(any())).
                 thenReturn(new HashSet(Arrays.asList(application, groupApplication)));

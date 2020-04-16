@@ -27,6 +27,7 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -333,8 +334,8 @@ public class SyncManager {
             apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
         }
 
-        MemberEntity optPrimaryOwner = membershipService.getPrimaryOwner(MembershipReferenceType.API, api.getId());
-        final UserEntity user = userService.findById(optPrimaryOwner.getId());
+        MembershipEntity optPrimaryOwner = membershipService.getPrimaryOwner(MembershipReferenceType.API, api.getId());
+        final UserEntity user = userService.findById(optPrimaryOwner.getMemberId());
         apiEntity.setPrimaryOwner(new PrimaryOwnerEntity(user));
             
         return apiEntity;

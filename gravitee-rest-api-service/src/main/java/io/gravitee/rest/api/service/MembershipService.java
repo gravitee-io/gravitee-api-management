@@ -48,7 +48,7 @@ public interface MembershipService {
     Set<MembershipEntity>   getMembershipsByReference                   (MembershipReferenceType referenceType, String referenceId);
     Set<MembershipEntity>   getMembershipsByReferenceAndRole            (MembershipReferenceType referenceType, String referenceId, String role);
     Set<MembershipEntity>   getMembershipsByReferencesAndRole           (MembershipReferenceType referenceType, List<String> referenceIds, String role);
-    MemberEntity            getPrimaryOwner                             (MembershipReferenceType referenceType, String referenceId);
+    MembershipEntity        getPrimaryOwner                             (MembershipReferenceType referenceType, String referenceId);
     Set<RoleEntity>         getRoles                                    (MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
     MemberEntity            getUserMember                               (MembershipReferenceType referenceType, String referenceId, String userId);
     Map<String, char[]>     getUserMemberPermissions                    (MembershipReferenceType referenceType, String referenceId, String userId);

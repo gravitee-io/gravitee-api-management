@@ -167,14 +167,14 @@ public class ApiService_ExportAsJsonTest {
         RoleEntity poRole = new RoleEntity();
         poRole.setName("PRIMARY_OWNER");
         poRole.setId("API_PRIMARY_OWNER");
-        MemberEntity membership = new MemberEntity();
-        membership.setId("johndoe");
-        membership.setRoles(Collections.singletonList(poRole));
+        MembershipEntity membership = new MembershipEntity();
+        membership.setMemberId("johndoe");
+        membership.setRoleId("API_PRIMARY_OWNER");
         when(membershipService.getPrimaryOwner(eq(MembershipReferenceType.API), eq(API_ID)))
                 .thenReturn(membership);
         
         MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setId(membership.getId());
+        memberEntity.setId(membership.getMemberId());
         memberEntity.setRoles(Collections.singletonList(poRole));
         when(membershipService.getMembersByReference(eq(MembershipReferenceType.API), eq(API_ID)))
                 .thenReturn(Collections.singleton(memberEntity));

@@ -112,13 +112,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Optional<Application> application = applicationRepository.findById(applicationId);
 
             if (application.isPresent()) {
-                MemberEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(MembershipReferenceType.APPLICATION, application.get().getId());
+                MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(MembershipReferenceType.APPLICATION, application.get().getId());
                 if (primaryOwnerMemberEntity == null) {
                     LOGGER.error("The Application {} doesn't have any primary owner.", applicationId);
                     return convert(application.get(), null);
                 }
 
-                return convert(application.get(), userService.findById(primaryOwnerMemberEntity.getId()));
+                return convert(application.get(), userService.findById(primaryOwnerMemberEntity.getMemberId()));
             }
 
             throw new ApplicationNotFoundException(applicationId);
@@ -139,15 +139,15 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     .map(MembershipEntity::getReferenceId)
                     .collect(Collectors.toSet());
             //find user groups
-            List<String> groupIds = groupService.findByUser(username)
-                    .stream()
-                    .map(GroupEntity::getId)
+            List<String> groupIds = membershipService
+                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.GROUP).stream()
+                    .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.APPLICATION))
+                    .map(MembershipEntity::getReferenceId)
                     .collect(Collectors.toList());
+            
             appIds.addAll(
-                    //find applications where group is a member
-                    membershipService.getMembershipsByMembersAndReference(MembershipMemberType.GROUP, groupIds, MembershipReferenceType.APPLICATION)
-                        .stream()
-                        .map(MembershipEntity::getReferenceId)
+                    this.findByGroups(groupIds).stream()
+                        .map(ApplicationListItem::getId)
                         .collect(Collectors.toSet())
                     );
             

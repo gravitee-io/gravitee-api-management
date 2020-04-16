@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -82,8 +83,8 @@ public class ApiService_FindByIdTest {
         api.setId(API_ID);
         
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        MemberEntity po = new MemberEntity();
-        po.setId(USER_NAME);
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
         when(membershipService.getPrimaryOwner(MembershipReferenceType.API, API_ID)).thenReturn(po);
 
         final ApiEntity apiEntity = apiService.findById(API_ID);
