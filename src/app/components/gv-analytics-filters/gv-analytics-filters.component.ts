@@ -30,6 +30,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
 
   @Input() dashboard: Dashboard;
   @Input() withURI: boolean;
+  @Input() link: { label: string, relativePath: string };
 
   analyticsForm: FormGroup;
   tags: Array<any>;
@@ -211,5 +212,9 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     }).then(() => {
       this.initFilters();
     });
+  }
+
+  goTo(relativePath: string) {
+    this.router.navigate([relativePath], { relativeTo: this.route, queryParamsHandling: 'merge', queryParams: { log: null } });
   }
 }

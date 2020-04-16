@@ -88,6 +88,7 @@
   },
   "application": {
     "analytics": {
+      "displayLogs": "Zobrazit protokoly",
       "filters": {
         "api": {
           "label": "Api",
@@ -163,6 +164,7 @@
     "logs": {
       "api": "Api",
       "date": "Datum",
+      "displayAnalytics": "Zobrazit analytiku",
       "method": "Metoda",
       "path": "Cesta",
       "plan": "Plán",
@@ -172,55 +174,55 @@
     },
     "members": {
       "add": {
-        "add": "",
-        "reset": "",
+        "add": "Přidat",
+        "reset": "Resetovat",
         "role": {
-          "name": "",
-          "placeholder": ""
+          "name": "Role",
+          "placeholder": "Vyberte roli"
         },
-        "success": "",
-        "title": "",
+        "success": "Byl přidán nový člen",
+        "title": "Přidejte člena",
         "user": {
-          "name": "",
-          "placeholder": ""
+          "name": "Uživatel",
+          "placeholder": "Zadejte uživatelské jméno ..."
         }
       },
       "inherited": {
-        "groupTitle": "",
-        "hide": "",
-        "show": "",
-        "title": ""
+        "groupTitle": "{nbMembers} členů zděděno ze skupiny \"{groupName}\"",
+        "hide": "Skrýt",
+        "show": "Displej",
+        "title": "Starší členové"
       },
       "list": {
-        "member": "",
+        "member": "Člen",
         "remove": {
-          "message": "",
-          "success": "",
-          "title": ""
+          "message": "Opravdu chcete tohoto člena smazat?",
+          "success": "Člen byl smazán",
+          "title": "Odstranění"
         },
-        "role": "",
-        "success": "",
-        "title": ""
+        "role": "Role",
+        "success": "Role byla aktualizována",
+        "title": "seznam členů"
       },
       "transferOwnership": {
         "confirm": {
           "cancel": "Zrušit",
           "message": "Tato akce je nevratná.<br/> Nový vlastník bude <b>{name}</b>.<br/> Budete přesměrováni na seznam aplikací.",
-          "ok": ""
+          "ok": "Rozumím, přenáším tuto aplikaci"
         },
         "currentPrimaryOwnerNewRole": {
-          "name": "",
-          "placeholder": ""
+          "name": "Nová role",
+          "placeholder": "Vyberte novou roli aktuálního vlastníka"
         },
-        "information": "",
+        "information": "Udělte úplná práva této aplikace jinému uživateli",
         "newPrimaryOwner": {
-          "name": "",
-          "placeholder": ""
+          "name": "Nový majitel",
+          "placeholder": "Zadejte jméno nového vlastníka ..."
         },
-        "reset": "",
-        "success": "",
-        "title": "",
-        "transfer": ""
+        "reset": "Resetovat",
+        "success": "Vlastník byl aktualizován",
+        "title": "Změnit vlastníka",
+        "transfer": "Převod"
       }
     },
     "miscellaneous": {
@@ -481,14 +483,14 @@
   },
   "cookies": {
     "actions": {
-      "ok" : "Chápu",
-      "decline" : "Odmítám"
+      "decline": "Odmítám",
+      "ok": "Chápu"
     },
-    "confirmation" : "Pokud odmítnete, nebudou při návštěvě tohoto webu shromažďovány vaše údaje o prohlížení. Kromě požadovaných souborů cookie na webu bude v prohlížeči vytvořen pouze jeden soubor cookie, který si pamatuje, že vaše vůle nebude sledována.",
+    "confirmation": "Pokud odmítnete, nebudou při návštěvě tohoto webu shromažďovány vaše údaje o prohlížení. Kromě požadovaných souborů cookie na webu bude v prohlížeči vytvořen pouze jeden soubor cookie, který si pamatuje, že vaše vůle nebude sledována.",
     "googleAnalyticsDescription": "Povolit cookies pro analytiku Google",
-    "information" : {
-      "common" : "Tento web ukládá cookies do vašeho počítače. Tyto cookies se používají k ukládání vašich preferencí a informací o připojení. Umožňuje nám to vylepšit vaše prohlížení.",
-      "withAnalytics" : "Lze také shromažďovat analytické údaje a metriky návštěvníků (pomocí <a href=\"https://policies.google.com/privacy\" target=\"_blank\"> Google Analytics </a>)."
+    "information": {
+      "common": "Tento web ukládá cookies do vašeho počítače. Tyto cookies se používají k ukládání vašich preferencí a informací o připojení. Umožňuje nám to vylepšit vaše prohlížení.",
+      "withAnalytics": "Lze také shromažďovat analytické údaje a metriky návštěvníků (pomocí <a href=\"https://policies.google.com/privacy\" target=\"_blank\"> Google Analytics </a>)."
     },
     "manage": "Zde můžete spravovat předvolby cookies.",
     "success": {
@@ -844,9 +846,9 @@
     "display_name": "Jméno:",
     "email": "Email:",
     "notifications": {
-      "empty": "",
-      "read": "",
-      "title": ""
+      "empty": "Nebylo přijato žádné oznámení",
+      "read": "Přečtěte si",
+      "title": "Oznámení"
     },
     "title": "Můj účet",
     "update": "Aktualizace"

@@ -88,6 +88,7 @@
   },
   "application": {
     "analytics": {
+      "displayLogs": "View logs",
       "filters": {
         "api": {
           "label": "API",
@@ -163,6 +164,7 @@
     "logs": {
       "api": "API",
       "date": "Date",
+      "displayAnalytics": "View Analytics",
       "method": "Method",
       "path": "Path",
       "plan": "Plan",
@@ -481,14 +483,14 @@
   },
   "cookies": {
     "actions": {
-      "ok" : "I understand",
-      "decline" : "I decline"
+      "decline": "I decline",
+      "ok": "I understand"
     },
-    "confirmation" : "If you decline, your browsing data will not be collected when visiting this website. In addition to the required cookies by the website, only one cookie will be created in your browser to remember your will to not be tracked.",
+    "confirmation": "If you decline, your browsing data will not be collected when visiting this website. In addition to the required cookies by the website, only one cookie will be created in your browser to remember your will to not be tracked.",
     "googleAnalyticsDescription": "Allow cookies for Google analytics",
-    "information" : {
-      "common" : "This website save cookies on your computer. These cookies are used to store your preferences and your connection information. It allows us to improve your browsing experience.",
-      "withAnalytics" : "Analytics and metrics about visitors can also be collected (using <a href=\"https://policies.google.com/privacy\" target=\"_blank\">Google Analytics</a>)."
+    "information": {
+      "common": "This website save cookies on your computer. These cookies are used to store your preferences and your connection information. It allows us to improve your browsing experience.",
+      "withAnalytics": "Analytics and metrics about visitors can also be collected (using <a href=\"https://policies.google.com/privacy\" target=\"_blank\">Google Analytics</a>)."
     },
     "manage": "You can manage your cookie preference here.",
     "success": {
@@ -844,9 +846,9 @@
     "display_name": "Name:",
     "email": "Email:",
     "notifications": {
-      "empty": "",
-      "read": "",
-      "title": ""
+      "empty": "No notification received",
+      "read": "Read",
+      "title": "Notifications"
     },
     "title": "My account",
     "update": "Update"

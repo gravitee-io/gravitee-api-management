@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Application, Dashboard } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-chart-line';
@@ -22,6 +22,7 @@ import '@gravitee/ui-components/wc/gv-chart-map';
 import '@gravitee/ui-components/wc/gv-stats';
 import { GvAnalyticsDashboardComponent } from '../../../components/gv-analytics-dashboard/gv-analytics-dashboard.component';
 import { GvAnalyticsFiltersComponent } from '../../../components/gv-analytics-filters/gv-analytics-filters.component';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-application-analytics',
@@ -30,17 +31,20 @@ import { GvAnalyticsFiltersComponent } from '../../../components/gv-analytics-fi
 })
 export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
 
+  private subscription: any;
   application: Application;
   dashboard: Dashboard;
+  link: { label: string, relativePath: string };
 
   @ViewChild(GvAnalyticsFiltersComponent)
   filtersComponent: GvAnalyticsFiltersComponent;
   @ViewChild(GvAnalyticsDashboardComponent)
   dashboardComponent: GvAnalyticsDashboardComponent;
 
-  private subscription: any;
-
-  constructor(private route: ActivatedRoute) {}
+  constructor(
+    private route: ActivatedRoute,
+    private translateService: TranslateService,
+  ) {}
 
   ngOnInit() {
     this.application = this.route.snapshot.data.application;
@@ -57,6 +61,9 @@ export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
           this.dashboardComponent.dashboard = this.dashboard = dashboards.find((dashboard) => dashboard.id === param.dashboard);
           this.filtersComponent.reset();
         }
+      });
+      this.translateService.get('application.analytics.displayLogs').subscribe(displayAnalytics => {
+        this.link = { label: displayAnalytics, relativePath: '../logs' };
       });
     }
   }

@@ -88,6 +88,7 @@
   },
   "application": {
     "analytics": {
+      "displayLogs": "Afficher les logs",
       "filters": {
         "api": {
           "label": "API",
@@ -163,6 +164,7 @@
     "logs": {
       "api": "API",
       "date": "Date",
+      "displayAnalytics": "Afficher les analytics",
       "method": "Méthode",
       "path": "Chemin",
       "plan": "Plan",
@@ -481,14 +483,14 @@
   },
   "cookies": {
     "actions": {
-      "ok" : "J'ai compris",
-      "decline" : "Je refuse"
+      "decline": "Je refuse",
+      "ok": "J'ai compris"
     },
-    "confirmation" : "Si vous refusez, vos informations de navigations ne seront plus collectées en visitant ce site. En plus des cookies nécessaires à la navigation, un seul cookie sera utilisé dans votre navigateur pour se rappeler votre souhait de ne pas être enregistré.",
+    "confirmation": "Si vous refusez, vos informations de navigations ne seront plus collectées en visitant ce site. En plus des cookies nécessaires à la navigation, un seul cookie sera utilisé dans votre navigateur pour se rappeler votre souhait de ne pas être enregistré.",
     "googleAnalyticsDescription": "Autoriser les cookies pour Google Analytics",
-    "information" : {
-      "common" : "Ce site stocke des cookies sur votre ordinateur. Ces cookies servent à enregistrer vos préférences de navigation et vos informations de connexions. Ces informations servent à améliorer et personnaliser votre navigation.",
-      "withAnalytics" : "Des données statistiques et des métriques sur les visiteurs de ce site peuvent également être collectées (via <a href=\"https://policies.google.com/privacy\" target=\"_blank\">Google Analytics</a>)."
+    "information": {
+      "common": "Ce site stocke des cookies sur votre ordinateur. Ces cookies servent à enregistrer vos préférences de navigation et vos informations de connexions. Ces informations servent à améliorer et personnaliser votre navigation.",
+      "withAnalytics": "Des données statistiques et des métriques sur les visiteurs de ce site peuvent également être collectées (via <a href=\"https://policies.google.com/privacy\" target=\"_blank\">Google Analytics</a>)."
     },
     "manage": "Vous pouvez gérer vos préférences en matière de cookies ici.",
     "success": {

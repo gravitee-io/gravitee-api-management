@@ -47,6 +47,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
   size: number;
   requestHeaders: Array<any>;
   responseHeaders: Array<any>;
+  link: { label: string, relativePath: string };
 
   @ViewChild(GvAnalyticsFiltersComponent)
   filtersComponent: GvAnalyticsFiltersComponent;
@@ -68,6 +69,9 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
       if (queryParams && !queryParams.skipRefresh) {
         this.refresh(queryParams);
       }
+    });
+    this.translateService.get('application.logs.displayAnalytics').subscribe(displayAnalytics => {
+      this.link = { label: displayAnalytics, relativePath: '../analytics' };
     });
   }
 

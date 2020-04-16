@@ -77,6 +77,10 @@
         (click)="onTagRemove(tag)">{{tag}}</gv-tag>
 
       <div class="gv-analytics-filter__inputs">
+        <gv-button *ngIf="link" (click)="goTo(link.relativePath)" type="button" class="gv-analytics-filter__input"
+                   [loading]="loaderService.isLoading | async">
+          {{ link.label }}
+        </gv-button>
         <gv-button type="submit" class="gv-analytics-filter__input"
                    [disabled]="!formValid()" primary [loading]="loaderService.isLoading | async">
           {{ 'application.analytics.search' | translate }}
