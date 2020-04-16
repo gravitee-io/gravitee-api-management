@@ -740,38 +740,50 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Search pageable subscriptions {}", query);
 
-            SubscriptionCriteria.Builder builder = new SubscriptionCriteria.Builder()
-                    .apis(query.getApis())
-                    .applications(query.getApplications())
-                    .plans(query.getPlans())
-                    .from(query.getFrom())
-                    .to(query.getTo());
-
-            if (query.getStatuses() != null) {
-                builder.statuses(
-                        query.getStatuses().stream()
-                                .map(subscriptionStatus -> Subscription.Status.valueOf(subscriptionStatus.name()))
-                                .collect(Collectors.toSet()));
-            }
-
-            Page<Subscription> pageSubscription = subscriptionRepository
-                    .search(builder.build(),
-                            new PageableBuilder()
-                                    .pageNumber(pageable.getPageNumber() - 1)
-                                    .pageSize(pageable.getPageSize())
-                                    .build());
-
-            Stream<SubscriptionEntity> subscriptionsStream = pageSubscription.getContent().stream().map(this::convert);
-
             if (query.getApiKey() != null && !query.getApiKey().isEmpty()) {
-                subscriptionsStream = subscriptionsStream.filter(subscriptionEntity -> {
-                    final Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscriptionEntity.getId());
-                    return apiKeys.stream().anyMatch(apiKeyEntity -> apiKeyEntity.getKey().equals(query.getApiKey()));
-                });
-                final Optional<SubscriptionEntity> sub = subscriptionsStream.findAny();
-                List<SubscriptionEntity> subscriptionEntities = sub.map(Collections::singletonList).orElse(emptyList());
-                return new Page<>(subscriptionEntities, 1, subscriptionEntities.size(), subscriptionEntities.size());
+                try {
+                    ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(query.getApiKey());
+                    SubscriptionEntity subscriptionEntity = findById(apiKeyEntity.getSubscription());
+                    if (query.getApis() != null && !query.getApis().contains(subscriptionEntity.getApi())) {
+                        return new Page<>(emptyList(), 1, 0, 0);
+                    }
+                    if (query.getApplications() != null && !query.getApplications().contains(subscriptionEntity.getApplication())) {
+                        return new Page<>(emptyList(), 1, 0, 0);
+                    }
+                    if (query.getPlans() != null && !query.getPlans().contains(subscriptionEntity.getPlan())) {
+                        return new Page<>(emptyList(), 1, 0, 0);
+                    }
+                    if (query.getStatuses() != null && !query.getStatuses().contains(subscriptionEntity.getStatus())) {
+                        return new Page<>(emptyList(), 1, 0, 0);
+                    }
+                    return new Page<>(Collections.singletonList(subscriptionEntity), 1, 1, 1);
+                } catch (ApiKeyNotFoundException | SubscriptionNotFoundException ex) {
+                    return new Page<>(emptyList(), 1, 0, 0);
+                }
             } else {
+                SubscriptionCriteria.Builder builder = new SubscriptionCriteria.Builder()
+                        .apis(query.getApis())
+                        .applications(query.getApplications())
+                        .plans(query.getPlans())
+                        .from(query.getFrom())
+                        .to(query.getTo());
+
+                if (query.getStatuses() != null) {
+                    builder.statuses(
+                            query.getStatuses().stream()
+                                    .map(subscriptionStatus -> Subscription.Status.valueOf(subscriptionStatus.name()))
+                                    .collect(Collectors.toSet()));
+                }
+
+                Page<Subscription> pageSubscription = subscriptionRepository
+                        .search(builder.build(),
+                                new PageableBuilder()
+                                        .pageNumber(pageable.getPageNumber() - 1)
+                                        .pageSize(pageable.getPageSize())
+                                        .build());
+
+                Stream<SubscriptionEntity> subscriptionsStream = pageSubscription.getContent().stream().map(this::convert);
+
                 return new Page<>(subscriptionsStream.collect(toList()), pageSubscription.getPageNumber() + 1,
                         (int) pageSubscription.getPageElements(), pageSubscription.getTotalElements());
             }
