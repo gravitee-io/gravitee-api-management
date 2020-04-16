@@ -300,7 +300,7 @@ export class FilteredCatalogComponent implements OnInit {
     return this._getCategoryPath() != null;
   }
 
-  canFilter() {
+  get canFilter() {
     return !this.inCategory() && this.hasViewMode() && this.views && this.views.length > 0;
   }
 

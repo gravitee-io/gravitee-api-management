@@ -135,7 +135,7 @@ export const routes: Routes = [
         data: {
           expectedFeature: FeatureEnum.viewMode,
           title: i18n('route.catalogCategory'),
-          menu: { slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
+          menu: { hide: true, slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
         },
       },
       {

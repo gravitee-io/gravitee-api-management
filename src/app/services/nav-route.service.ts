@@ -137,7 +137,7 @@ export class NavRouteService {
 
   async getSiblingsNav(activatedRoute: ActivatedRoute): Promise<INavRoute[]> {
     const data = activatedRoute.snapshot.data;
-    if (data.menu) {
+    if (data.menu && !data.menu.hide) {
       const params = activatedRoute.snapshot.params;
       const childrenNav = this.getChildrenNav(activatedRoute.parent);
       if (params) {
