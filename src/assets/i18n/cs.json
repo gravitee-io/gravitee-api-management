@@ -90,6 +90,10 @@
     "analytics": {
       "displayLogs": "Zobrazit protokoly",
       "filters": {
+        "advanced": {
+          "hide": "Skrýt pokročilé filtry",
+          "show": "Zobrazit pokročilé filtry"
+        },
         "api": {
           "label": "Api",
           "title": "Vyberte API"

@@ -39,6 +39,10 @@
   text-align: center;
 }
 
+.gv-analytics-filter__showhide {
+  float: right;
+}
+
 .gv-analytics-filter__option {
   --gv-option-button--maw: 75px;
   width: 100%;

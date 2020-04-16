@@ -32,12 +32,13 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   @Input() withURI: boolean;
   @Input() link: { label: string, relativePath: string };
 
+  private maxDateTimer: any;
   analyticsForm: FormGroup;
   tags: Array<any>;
   apisOptions: Array<any>;
   invalidDates: boolean;
   maxDate: number;
-  private maxDateTimer: any;
+  advancedFiltersDisplayed;
 
   constructor(
     private router: Router,
@@ -115,6 +116,11 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
           });
         }
       });
+    if (this.route.snapshot.queryParams._id || this.route.snapshot.queryParams.transaction || this.route.snapshot.queryParams.method ||
+      this.route.snapshot.queryParams.uri || this.route.snapshot.queryParams['response-time'] || this.route.snapshot.queryParams.status ||
+      this.route.snapshot.queryParams.api || this.route.snapshot.queryParams.body) {
+      this.advancedFiltersDisplayed = true;
+    }
   }
 
   @HostListener(':gv-option:select', ['$event.detail'])
@@ -216,5 +222,9 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
 
   goTo(relativePath: string) {
     this.router.navigate([relativePath], { relativeTo: this.route, queryParamsHandling: 'merge', queryParams: { log: null } });
+  }
+
+  toggleFilters() {
+    this.advancedFiltersDisplayed = !this.advancedFiltersDisplayed;
   }
 }

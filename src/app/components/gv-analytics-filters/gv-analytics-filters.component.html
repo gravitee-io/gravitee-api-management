@@ -40,9 +40,13 @@
                       [max]="maxDate"
                       [invalid]="this.invalidDates"
       ></gv-date-picker>
+      <gv-button link (click)="toggleFilters()" class="gv-analytics-filter__showhide">
+        <span *ngIf="advancedFiltersDisplayed">{{'application.analytics.filters.advanced.hide' | translate}}</span>
+        <span *ngIf="!advancedFiltersDisplayed">{{'application.analytics.filters.advanced.show' | translate}}</span>
+      </gv-button>
     </div>
 
-    <div class="gv-analytics-filters__advanced">
+    <div *ngIf="advancedFiltersDisplayed" class="gv-analytics-filters__advanced">
       <gv-input label="{{ 'application.analytics.filters.requestId.title' | translate }}" placeholder="{{ 'application.analytics.filters.requestId.label' | translate }}"
                 formControlName="requestId" name="requestId" ngDefaultControl></gv-input>
 

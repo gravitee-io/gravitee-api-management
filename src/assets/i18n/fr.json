@@ -90,6 +90,10 @@
     "analytics": {
       "displayLogs": "Afficher les logs",
       "filters": {
+        "advanced": {
+          "hide": "Cacher les filtres avancés",
+          "show": "Afficher les filtres avancés"
+        },
         "api": {
           "label": "API",
           "title": "Sélectionner une API"
