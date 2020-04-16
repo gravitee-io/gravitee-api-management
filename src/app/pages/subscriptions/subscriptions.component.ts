@@ -99,7 +99,7 @@ export class SubscriptionsComponent implements OnInit {
 
   onSubscriptionClick({ detail }) {
     this.router.navigate(['/applications', this.selectedApplicationId, 'subscriptions'],
-      { queryParams: { subscription: detail.items[0].id } });
+      { queryParams: { subscription: detail.items[0].subscription.id } });
   }
 
   onFocusOut() {
