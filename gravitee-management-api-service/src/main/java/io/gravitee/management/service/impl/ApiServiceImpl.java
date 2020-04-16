@@ -1020,6 +1020,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         new Date(),
                         optApi.get(),
                         null);
+                // remove from search engine
+                searchEngineService.delete(convert(optApi.get()), false);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete API {}", apiId, ex);

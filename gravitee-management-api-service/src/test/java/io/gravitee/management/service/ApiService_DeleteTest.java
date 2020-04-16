@@ -25,6 +25,7 @@ import io.gravitee.management.service.exceptions.ApiNotDeletableException;
 import io.gravitee.management.service.exceptions.ApiRunningStateException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -86,6 +87,12 @@ public class ApiService_DeleteTest {
     private PortalNotificationConfigService portalNotificationConfigService;
     @Mock
     private ApiQualityRuleRepository apiQualityRuleRepository;
+    @Mock
+    private SearchEngineService searchEngineService;
+    @Mock
+    private ViewService viewService;
+    @Mock
+    private ParameterService parameterService;
 
     @Before
     public void setUp() {
