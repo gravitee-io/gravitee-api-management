@@ -128,7 +128,7 @@ export class NavRouteService {
 
   private isActive(path, url) {
     const regexp = '^' + path.replace(/\/:([^/])+/, '\/([^\/])+') + '$';
-    return new RegExp(regexp).test(url.substring(1).split('?')[0]);
+    return new RegExp(regexp).test(url.substring(1).split('?')[0].split('#')[0]);
   }
 
   private isVisiblePath(_hiddenPaths) {
