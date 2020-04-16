@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ActivatedRoute, ActivatedRouteSnapshot, Resolve } from '@angular/router';
-import { Api, ApiService, Application, ApplicationService } from '@gravitee/ng-portal-webclient';
+import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { PortalService, View } from '@gravitee/ng-portal-webclient';
 
 @Injectable({ providedIn: 'root' })
-export class ApiResolver implements Resolve<Api> {
+export class CategoryResolver implements Resolve<View> {
 
   constructor(
-    private apiService: ApiService,
+    private portalService: PortalService,
   ) {}
 
   resolve(route: ActivatedRouteSnapshot) {
-    const apiId = route.params.apiId;
-    return this.apiService.getApiByApiId({ apiId });
+    const viewId = route.params.categoryId;
+    return this.portalService.getViewByViewId({ viewId });
   }
 }

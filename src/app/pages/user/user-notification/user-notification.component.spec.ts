@@ -29,7 +29,7 @@ import { Observable } from 'rxjs';
 describe('UserNotificationComponent', () => {
   let component: UserNotificationComponent;
   let fixture: ComponentFixture<UserNotificationComponent>;
-  let userService: jasmine.SpyObj<UserService>;
+  let userService: UserService;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -49,8 +49,8 @@ describe('UserNotificationComponent', () => {
     fixture = TestBed.createComponent(UserNotificationComponent);
     component = fixture.componentInstance;
 
-    userService = TestBed.get(UserService);
-    userService.getCurrentUserNotifications.and.returnValue(new Observable());
+    userService = TestBed.inject(UserService);
+    userService.getCurrentUserNotifications = jasmine.createSpy().and.returnValue(new Observable());
     return userService;
   });
 

@@ -62,9 +62,7 @@ export class GvHeaderItemComponent implements OnInit {
         this.item = this.currentRoute.snapshot.data.application;
       } else if (params.categoryId && params.categoryId !== this.itemId) {
         this.itemId = params.categoryId;
-        this.item = this.portalService.getViewByViewId({ viewId: this.itemId })
-          .toPromise()
-          .catch((err) => Promise.reject(err));
+        this.item = this.currentRoute.snapshot.data.category;
       }
     }
 

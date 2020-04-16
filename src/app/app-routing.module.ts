@@ -47,6 +47,7 @@ import { UserAccountComponent } from './pages/user/user-account/user-account.com
 import { UserContactComponent } from './pages/user/user-contact/user-contact.component';
 import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 import { CookiesComponent } from './pages/cookies/cookies.component';
+import { CategoryResolver } from './resolvers/category.resolver';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
@@ -132,6 +133,7 @@ export const routes: Routes = [
         path: 'categories/:categoryId',
         component: FilteredCatalogComponent,
         canActivate: [FeatureGuardService],
+        resolve: { category: CategoryResolver },
         data: {
           expectedFeature: FeatureEnum.viewMode,
           title: i18n('route.catalogCategory'),

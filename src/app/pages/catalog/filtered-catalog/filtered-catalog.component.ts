@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Api, ApiService, CategoryApiQuery, PortalService, View, ApiMetrics } from '@gravitee/ng-portal-webclient';
+import { Api, ApiService, CategoryApiQuery, View, ApiMetrics } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-promote';
 import '@gravitee/ui-components/wc/gv-card-list';
 import '@gravitee/ui-components/wc/gv-card-full';
@@ -59,20 +59,19 @@ export class FilteredCatalogComponent implements OnInit {
   options: any[];
   currentDisplay: string;
   category: View;
-  description: any;
   fragments: any = {
     pagination: 'pagination',
     filter: 'filter'
   };
 
   constructor(private apiService: ApiService,
-              private portalService: PortalService,
               private translateService: TranslateService,
               private activatedRoute: ActivatedRoute,
               private router: Router,
               private apiStates: ApiStatesPipe,
               private apiLabels: ApiLabelsPipe,
-              private config: ConfigurationService) {
+              private config: ConfigurationService,
+              ) {
     this.allApis = [];
     this.randomList = [];
   }
@@ -186,17 +185,8 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   _loadCategory() {
-    this.description = '';
-    const _categoryPromise = this.portalService.getViewByViewId({ viewId: this.currentView })
-      .toPromise()
-      .then((response) => {
-        this.category = response;
-        this.description = this.category.description;
-      });
-
-    return Promise.all([
-      _categoryPromise,
-      this._loadCards(this._loadPromotedApi({ size: 1, view: this.currentView }))]);
+    this.category = this.activatedRoute.snapshot.data.category;
+    return this._loadCards(this._loadPromotedApi({ size: 1, view: this.currentView }));
   }
 
   async _loadCards(promotedApiPromise) {
