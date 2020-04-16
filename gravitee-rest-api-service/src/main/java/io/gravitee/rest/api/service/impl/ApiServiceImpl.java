@@ -1291,7 +1291,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .stream()
                         .map(member -> {
                             UserEntity userEntity = userService.findById(member.getId());
-                            return new MemberToImport(userEntity.getSource(), userEntity.getSourceId(), member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
+                            return new MemberToImport(userEntity.getSource(), userEntity.getSourceId(), member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()), null);
                         }).collect(toSet());
                 // get the current PO
                 Optional<RoleEntity> optPoRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
@@ -1309,24 +1309,45 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     // upsert members
                     for (final JsonNode memberNode : membersToImport) {
                         MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
-                        boolean presentWithSameRole = membersAlreadyPresent
+                        String roleToAdd = memberToImport.getRole();
+                        List<String> rolesToImport = memberToImport.getRoles();
+                        if(roleToAdd != null && !roleToAdd.isEmpty()) {
+                            if(rolesToImport == null) {
+                                rolesToImport = new ArrayList<>();
+                                memberToImport.setRoles(rolesToImport);
+                            }
+                            Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(RoleScope.API, roleToAdd);
+                            if (optRoleToAddEntity.isPresent()) {
+                                rolesToImport.add(optRoleToAddEntity.get().getId());
+                            } else {
+                                LOGGER.warn("Role {} does not exist", roleToAdd);
+                            }
+                        }
+                        if(rolesToImport != null) {
+                            rolesToImport.sort(Comparator.naturalOrder());
+                        }
+                        boolean presentWithSameRole = memberToImport.getRoles() != null && !memberToImport.getRoles().isEmpty() && membersAlreadyPresent
                                 .stream()
-                                .anyMatch(m -> m.getRoles().equals(memberToImport.getRoles())
+                                .anyMatch(m -> {
+                                    m.getRoles().sort(Comparator.naturalOrder());
+                                    return 
+                                        m.getRoles().equals(memberToImport.getRoles())
                                         && (m.getSourceId().equals(memberToImport.getSourceId())
-                                            && m.getSource().equals(memberToImport.getSource())));
+                                            && m.getSource().equals(memberToImport.getSource()));
+                                });
     
                         // add/update members if :
                         //  - not already present with the same role
                         //  - not the new PO
                         //  - not the current PO
                         if (!presentWithSameRole
-                                && !memberToImport.getRoles().contains(poRoleId)
+                                && (memberToImport.getRoles() != null && !memberToImport.getRoles().isEmpty() && !memberToImport.getRoles().contains(poRoleId))
                                 && !(memberToImport.getSourceId().equals(currentPo.getSourceId())
                                     && memberToImport.getSource().equals(currentPo.getSource()))) {
                             try {
                                 UserEntity userEntity = userService.findBySource(memberToImport.getSource(), memberToImport.getSourceId(), false);
                                 
-                                memberToImport.getRoles().forEach(role -> 
+                                rolesToImport.forEach(role -> 
                                     membershipService.addRoleToMemberOnReference(
                                             MembershipReferenceType.API,
                                             createdOrUpdatedApiEntity.getId(),
@@ -1342,11 +1363,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         // get the future role of the current PO
                         if (currentPo.getSourceId().equals(memberToImport.getSourceId())
                                 && currentPo.getSource().equals(memberToImport.getSource())
-                                && !memberToImport.getRoles().contains(poRoleId)) {
-                            roleUsedInTransfert = memberToImport.getRoles();
+                                && !rolesToImport.contains(poRoleId)) {
+                            roleUsedInTransfert = rolesToImport;
                         }
     
-                        if (memberToImport.getRoles().contains(poRoleId)) {
+                        if (rolesToImport.contains(poRoleId)) {
                             futurePO = memberToImport;
                         }
                     }
@@ -1987,15 +2008,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static class MemberToImport {
         private String source;
         private String sourceId;
-        private List<String> roles;
+        private List<String> roles; // After v3
+        private String role; // Before v3
 
         public MemberToImport() {
         }
 
-        public MemberToImport(String source, String sourceId, List<String> roles) {
+        public MemberToImport(String source, String sourceId, List<String> roles, String role) {
             this.source = source;
             this.sourceId = sourceId;
             this.roles = roles;
+            this.role = role;
         }
 
         public String getSource() {
@@ -2020,6 +2043,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         public void setRoles(List<String> roles) {
             this.roles = roles;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
         }
 
         @Override
