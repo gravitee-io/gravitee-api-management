@@ -307,6 +307,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         }
         final Role role = new Role();
         role.setName(generateId(roleEntity.getName()));
+        role.setId(roleEntity.getId());
         role.setDescription(roleEntity.getDescription());
         role.setScope(convert(roleEntity.getScope()));
         role.setDefaultRole(roleEntity.isDefaultRole());
