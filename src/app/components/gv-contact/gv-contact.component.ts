@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { ApiService, ApplicationService, PortalService } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from '../../services/notification.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { LoaderService } from '../../services/loader.service';
 import { CurrentUserService } from '../../services/current-user.service';
-import { delay } from 'rxjs/operators';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
@@ -27,7 +26,7 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
   templateUrl: './gv-contact.component.html',
   styleUrls: ['./gv-contact.component.css']
 })
-export class GvContactComponent implements OnInit, AfterViewInit {
+export class GvContactComponent implements OnInit {
 
   @Input() apiId: string;
 
@@ -57,24 +56,23 @@ export class GvContactComponent implements OnInit, AfterViewInit {
     this.applicationService.getApplications({ size: -1 })
       .subscribe((response) => {
         this.applications = response.data.map(application => {
-          return { label: `${ application.name } (${ application.owner.display_name })`, value: application.id };
+          return { label: `${application.name} (${application.owner.display_name})`, value: application.id };
         });
       });
     this.apiService.getApis({ size: -1 })
       .subscribe((response) => {
         this.apis = response.data.map(api => {
-          return { label: `${ api.name } (${ api.version })`, value: api.id };
+          return { label: `${api.name} (${api.version})`, value: api.id };
         });
       });
-  }
 
-  ngAfterViewInit() {
-    this.currentUserService.get().pipe(delay(0)).subscribe(value => {
-      if (value && !value.email) {
-        this.notificationService.warning(i18n('errors.email.required'));
+    const user = this.currentUserService.get().getValue();
+    if (user && !user.email) {
+      this.notificationService.warning(i18n('errors.email.required'));
+      setTimeout(() => {
         this.contactForm.disable();
-      }
-    });
+      }, 0);
+    }
   }
 
   initFormGroup() {

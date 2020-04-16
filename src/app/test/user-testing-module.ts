@@ -15,7 +15,7 @@
  */
 import { Injectable, NgModule, Pipe, PipeTransform } from '@angular/core';
 import { User, UserService } from '@gravitee/ng-portal-webclient';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { CurrentUserService } from '../services/current-user.service';
 
 @Injectable()
@@ -24,8 +24,8 @@ export class UserServiceStub {
 
 @Injectable()
 export class CurrentUserServiceStub {
-  get(): Observable<User> {
-    return of({});
+  get(): BehaviorSubject<User> {
+    return new BehaviorSubject<User>({});
   }
 }
 
