@@ -16,8 +16,11 @@
 package io.gravitee.gateway.report.impl;
 
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.reporter.api.Reportable;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,5 +34,10 @@ public class ReporterServiceImpl implements ReporterService {
     @Override
     public void report(Reportable reportable) {
         reporterService.report(reportable);
+    }
+
+    @Override
+    public CompletableFuture<Result> health() {
+        return reporterService.health();
     }
 }

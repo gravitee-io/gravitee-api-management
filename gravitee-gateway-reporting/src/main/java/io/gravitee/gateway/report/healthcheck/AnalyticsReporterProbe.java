@@ -13,20 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.report;
+package io.gravitee.gateway.report.healthcheck;
 
+import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
-import io.gravitee.reporter.api.Reportable;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReporterService {
+public class AnalyticsReporterProbe implements Probe {
 
-    void report(Reportable reportable);
+    @Autowired
+    private ReporterService reporterService;
 
-    CompletableFuture<Result> health();
+    @Override
+    public String id() {
+        return "reporter-analytics";
+    }
+
+    @Override
+    public CompletableFuture<Result> check() {
+        return reporterService.health();
+    }
 }
