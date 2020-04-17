@@ -26,7 +26,6 @@ import { AnalyticsService } from '../../services/analytics.service';
 export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
 
   @Input() dashboard: Dashboard;
-  @Output() refreshFilters: EventEmitter<any> = new EventEmitter();
 
   private subscription: any;
   private application: Application;
@@ -37,7 +36,8 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
     private router: Router,
     private applicationService: ApplicationService,
     private analyticsService: AnalyticsService,
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
     this.subscription = this.route.queryParams.subscribe(queryParams => {
@@ -169,8 +169,6 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
       queryParams,
       queryParamsHandling: 'merge',
       fragment: this.analyticsService.fragment
-    }).then(() => {
-      this.refreshFilters.emit();
     });
   }
 
@@ -181,8 +179,6 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
       queryParams: e,
       queryParamsHandling: 'merge',
       fragment: this.analyticsService.fragment
-    }).then(() => {
-      this.refreshFilters.emit();
     });
   }
 
@@ -201,7 +197,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
               queryParams[fields[1]] = fieldValue.concat(e.value);
             } else {
               fieldValue.splice(fieldValue.indexOf(e.value), 1);
-              queryParams[fields[1]] = [ ...[], ...fieldValue ];
+              queryParams[fields[1]] = [...[], ...fieldValue];
             }
           } else {
             if (visible) {
@@ -225,8 +221,6 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
             queryParams,
             queryParamsHandling: 'merge',
             fragment: this.analyticsService.fragment
-          }).then(() => {
-            this.refreshFilters.emit();
           });
         });
       }

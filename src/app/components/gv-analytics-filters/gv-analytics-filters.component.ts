@@ -51,29 +51,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   }
 
   ngOnInit(): void {
-    this.initForm();
-    if (!this.route.snapshot.queryParams.timeframe && !(this.route.snapshot.queryParams.from && this.route.snapshot.queryParams.to)) {
-      this.router.navigate([], {
-        queryParams: { timeframe: '1d' },
-        queryParamsHandling: 'merge',
-        fragment: this.analyticsService.fragment
-      }).then(() => {
-        this.initFilters();
-      });
-    } else {
-      this.initFilters();
-    }
-    this.maxDate = new Date().getTime();
-    this.maxDateTimer = setInterval(() => {
-      this.maxDate = new Date().getTime();
-    }, 30000);
-  }
 
-  ngOnDestroy(): void {
-    clearInterval(this.maxDateTimer);
-  }
-
-  private initForm() {
     this.analyticsForm = this.formBuilder.group({
       range: new FormControl([this.route.snapshot.queryParams.from, this.route.snapshot.queryParams.to]),
       requestId: new FormControl(this.route.snapshot.queryParams._id),
@@ -85,6 +63,58 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
       api: new FormControl(this.route.snapshot.queryParams.api),
       payloads: new FormControl(this.route.snapshot.queryParams.body),
     });
+
+    this.route.queryParams.subscribe((queryParams) => {
+      this.analyticsForm.get('range').setValue([queryParams.from, queryParams.to]);
+      this.analyticsForm.get('requestId').setValue(queryParams._id);
+      this.analyticsForm.get('transactionId').setValue(queryParams.transaction);
+      this.analyticsForm.get('methods').setValue(queryParams.method);
+      this.analyticsForm.get('path').setValue(queryParams.uri);
+      this.analyticsForm.get('responseTimes').setValue(queryParams['response-time']);
+      this.analyticsForm.get('api').setValue(queryParams.api);
+      this.analyticsForm.get('payloads').setValue(queryParams.body);
+
+      this.analyticsService.timeframes.forEach((t) => t.active = t.id === queryParams.timeframe);
+
+      this.tags = [];
+      Object.keys(queryParams)
+        .filter((q) => !this.analyticsService.queryParams.includes(q))
+        .filter((q) => !this.analyticsService.advancedQueryParams.includes(q))
+        .forEach((q) => {
+          const queryParam = queryParams[q];
+          if (typeof queryParam === 'string') {
+            this.tags.push(q + ': ' + queryParam);
+          } else {
+            queryParam.forEach(qp => {
+              this.tags.push(q + ': ' + qp);
+            });
+          }
+        });
+      if (queryParams._id || queryParams.transaction || queryParams.method ||
+        queryParams.uri || queryParams['response-time'] || queryParams.status ||
+        queryParams.api || queryParams.body) {
+        this.advancedFiltersDisplayed = true;
+      }
+    });
+
+
+    if (!this.route.snapshot.queryParams.timeframe && !(this.route.snapshot.queryParams.from && this.route.snapshot.queryParams.to)) {
+      this.router.navigate([], {
+        queryParams: { timeframe: '1d' },
+        queryParamsHandling: 'merge',
+        fragment: this.analyticsService.fragment
+      });
+    }
+
+    this.maxDate = new Date().getTime();
+    this.maxDateTimer = setInterval(() => {
+      this.maxDate = new Date().getTime();
+    }, 30000);
+
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.maxDateTimer);
   }
 
   ngAfterViewInit() {
@@ -95,31 +125,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
           return { label: api.name + ' (' + api.version + ')', value: api.id };
         });
       });
-    }
-  }
-
-  initFilters() {
-    this.initForm();
-    this.analyticsService.timeframes.forEach((t) => t.active = t.id === this.route.snapshot.queryParams.timeframe);
-
-    this.tags = [];
-    Object.keys(this.route.snapshot.queryParams)
-      .filter((q) => !this.analyticsService.queryParams.includes(q))
-      .filter((q) => !this.analyticsService.advancedQueryParams.includes(q))
-      .forEach((q) => {
-        const queryParam = this.route.snapshot.queryParams[q];
-        if (typeof queryParam === 'string') {
-          this.tags.push(q + ': ' + queryParam);
-        } else {
-          queryParam.forEach(qp => {
-            this.tags.push(q + ': ' + qp);
-          });
-        }
-      });
-    if (this.route.snapshot.queryParams._id || this.route.snapshot.queryParams.transaction || this.route.snapshot.queryParams.method ||
-      this.route.snapshot.queryParams.uri || this.route.snapshot.queryParams['response-time'] || this.route.snapshot.queryParams.status ||
-      this.route.snapshot.queryParams.api || this.route.snapshot.queryParams.body) {
-      this.advancedFiltersDisplayed = true;
     }
   }
 
@@ -162,8 +167,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
       queryParams,
       queryParamsHandling: 'merge',
       fragment: this.analyticsService.fragment
-    }).then(() => {
-      this.initFilters();
     });
   }
 
@@ -192,8 +195,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
         queryParams,
         queryParamsHandling: 'merge',
         fragment: this.analyticsService.fragment
-      }).then(() => {
-        this.initFilters();
       });
     }
   }
@@ -215,8 +216,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     this.router.navigate([], {
       queryParams,
       fragment: this.analyticsService.fragment
-    }).then(() => {
-      this.initFilters();
     });
   }
 
