@@ -20,14 +20,13 @@ import '@gravitee/ui-components/wc/gv-chart-pie';
 import '@gravitee/ui-components/wc/gv-chart-map';
 import '@gravitee/ui-components/wc/gv-stats';
 import { GvAnalyticsFiltersComponent } from '../../../components/gv-analytics-filters/gv-analytics-filters.component';
-import { ApplicationService, Log, Subscription } from '@gravitee/ng-portal-webclient';
+import { ApplicationService, Log } from '@gravitee/ng-portal-webclient';
 import { AnalyticsService } from '../../../services/analytics.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
-import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-query-param.enum';
+import { ScrollService } from '../../../services/scroll.service';
+import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { ConfigurationService } from '../../../services/configuration.service';
-import { Subscribable } from 'rxjs';
-import { SubjectSubscription } from 'rxjs/internal-compatibility';
 
 @Component({
   selector: 'app-application-logs',
@@ -38,8 +37,9 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
 
   private subscription: any;
   logs: Array<Log>;
-  log: Log;
-  selectedLog: Log;
+  selectedLogIds: string[];
+  selectedLog;
+  Log;
   options: any;
   format: any;
   paginationData: any = {};
@@ -59,7 +59,9 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private config: ConfigurationService,
-    ) {}
+    private scrollService: ScrollService
+  ) {
+  }
 
   ngOnInit(): void {
     this.pageSizes = this.config.get('pagination.size.values');
@@ -79,14 +81,14 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  refresh(queryParams) {
+  async refresh(queryParams) {
     const application = this.route.snapshot.data.application;
     if (application) {
       const timeSlot = this.analyticsService.getTimeSlotFromQueryParams();
       let field = queryParams[SearchQueryParam.FIELD] || '@timestamp';
       field = field === 'timestamp' ? '@timestamp' : field;
       field = field === 'responseTime' ? 'response-time' : field;
-      this.applicationService.getApplicationLogs({
+      const response = await this.applicationService.getApplicationLogs({
         applicationId: application.id,
         from: timeSlot.from, to: timeSlot.to,
         size: this.size,
@@ -94,46 +96,58 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
         field,
         order: queryParams[SearchQueryParam.ORDER] || 'DESC',
         query: this.analyticsService.getQueryFromPath().query
-      }).toPromise().then(response => {
-        this.logs = response.data;
-        this.selectedLog = this.logs.find(l => l.id === queryParams.log);
-        const metadata = response.metadata;
-        this.buildPaginationData(response.metadata.data.total);
-        this.format = (key) => this.translateService.get(key).toPromise();
-        this.options = {
-          selectable: true,
-          data: [
-            { field: 'timestamp', type: 'datetime', label: i18n('application.logs.date'), style: 'color: #40A9FF', width: '200px' },
-            { tag: 'status', label: i18n('application.logs.status'),
-              style: ({ status }) => {
+      }).toPromise();
+
+      this.logs = response.data;
+
+      const metadata = response.metadata;
+      this.buildPaginationData(response.metadata.data.total);
+      this.format = (key) => this.translateService.get(key).toPromise();
+      this.options = {
+        selectable: true,
+        data: [
+          { field: 'timestamp', type: 'datetime', label: i18n('application.logs.date'), style: 'color: #40A9FF', width: '200px' },
+          {
+            tag: 'status', label: i18n('application.logs.status'),
+            style: ({ status }) => {
               const color = this.getStatusColor(status);
               return `--gv-tag--bdc: ${color}; --gv-tag--c: ${color};`;
-              } },
-            { field: 'api', label: i18n('application.logs.api'), format: (item) => metadata[item].name },
-            { field: 'plan', label: i18n('application.logs.plan'), format: (item) => metadata[item].name },
-            { field: 'method', label: i18n('application.logs.method'), format: (item) => item.toUpperCase(),
-              style: ({ method }) => 'color:' + this.getMethodColor(method) },
-            { field: 'path', label: i18n('application.logs.path'), width: '350px' },
-            { field: 'responseTime', label: i18n('application.logs.responseTime'), headerStyle: () => 'justify-content: flex-end',
-              format: (item) => item + ' ms', style: () => 'text-align: right' },
-          ]
-        };
-        if (queryParams.log && queryParams.timestamp) {
-          this.onSelectLog({ id: queryParams.log, timestamp: queryParams.timestamp });
-        } else {
-          delete this.log;
-        }
-      });
+            }
+          },
+          { field: 'api', label: i18n('application.logs.api'), format: (item) => metadata[item].name },
+          { field: 'plan', label: i18n('application.logs.plan'), format: (item) => metadata[item].name },
+          {
+            field: 'method', label: i18n('application.logs.method'), format: (item) => item.toUpperCase(),
+            style: ({ method }) => 'color:' + this.getMethodColor(method)
+          },
+          { field: 'path', label: i18n('application.logs.path'), width: '350px' },
+          {
+            field: 'responseTime', label: i18n('application.logs.responseTime'), headerStyle: () => 'justify-content: flex-end',
+            format: (item) => item + ' ms', style: () => 'text-align: right'
+          },
+        ]
+      };
+      if (queryParams.log && queryParams.timestamp) {
+        this.selectedLogIds = this.logs.filter(l => l.id === queryParams.log).map((log) => log.id);
+        this._loadLog({ id: queryParams.log, timestamp: queryParams.timestamp });
+      } else {
+        this.selectedLogIds = [];
+      }
     }
   }
 
   getStatusColor(status) {
     switch (this.getCodeByStatus(status)) {
-      case 1: return 'black';
-      case 2: return 'green';
-      case 3: return '#dbdb0a';
-      case 4: return 'orange';
-      case 5: return 'red';
+      case 1:
+        return 'black';
+      case 2:
+        return 'green';
+      case 3:
+        return '#dbdb0a';
+      case 4:
+        return 'orange';
+      case 5:
+        return 'red';
     }
   }
 
@@ -227,35 +241,34 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
 
   @HostListener(':gv-table:select', ['$event.detail.items[0]'])
   onSelectLog(log: Log) {
-    this.router.navigate([], {
-      queryParams: { log: log ? log.id : null,  timestamp: log ? log.timestamp : null },
-      queryParamsHandling: 'merge',
-      fragment: this.analyticsService.fragment
-    }).then(() => {
-      if (log) {
-        this.applicationService.getApplicationLogByApplicationIdAndLogId({
-          applicationId: this.route.snapshot.data.application.id,
-          logId: log.id,
-          timestamp: log.timestamp,
-        }).toPromise().then(l => {
-          this.log = l;
-          if (this.log.request) {
-            this.requestHeaders = Object.keys(this.log.request.headers).map((key) => {
-              return [key, this.log.request.headers[key]];
-            });
-          }
-          if (this.log.response) {
-            this.responseHeaders = Object.keys(this.log.response.headers).map((key) => {
-              return [key, this.log.response.headers[key]];
-            });
-          }
-          setTimeout(() => {
-            document.getElementById('log').scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-          });
-        });
-      } else {
-        delete this.log;
-      }
-    });
+    if (log) {
+      this.router.navigate([], {
+        queryParams: { log: log ? log.id : null, timestamp: log ? log.timestamp : null },
+        queryParamsHandling: 'merge',
+        fragment: this.analyticsService.fragment
+      });
+    } else {
+      this.selectedLog = null;
+      this.selectedLogIds = [];
+    }
+
   }
+
+
+  async _loadLog({ id, timestamp }) {
+    this.selectedLog = await this.applicationService.getApplicationLogByApplicationIdAndLogId({
+      applicationId: this.route.snapshot.data.application.id,
+      logId: id,
+      timestamp,
+    }).toPromise();
+
+    if (this.selectedLog.request) {
+      this.requestHeaders = Object.keys(this.selectedLog.request.headers).map((key) => [key, this.selectedLog.request.headers[key]]);
+    }
+    if (this.selectedLog.response) {
+      this.responseHeaders = Object.keys(this.selectedLog.response.headers).map((key) => [key, this.selectedLog.response.headers[key]]);
+    }
+    this.scrollService.scrollToAnchor('log');
+  }
+
 }

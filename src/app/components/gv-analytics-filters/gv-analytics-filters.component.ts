@@ -125,7 +125,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
 
   @HostListener(':gv-option:select', ['$event.detail'])
   _onChangeDisplay({ id }) {
-    const queryParams: any = { timeframe: id, from: null, to: null };
+    const queryParams: any = { timeframe: id, ...this.analyticsService.getRemovableQueryParams() };
     this.router.navigate([], {
       queryParams,
       queryParamsHandling: 'merge',
@@ -221,7 +221,9 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   }
 
   goTo(relativePath: string) {
-    this.router.navigate([relativePath], { relativeTo: this.route, queryParamsHandling: 'merge', queryParams: { log: null } });
+    this.router.navigate([relativePath], {
+      relativeTo: this.route, queryParamsHandling: 'merge', queryParams: this.analyticsService.getRemovableQueryParams()
+    });
   }
 
   toggleFilters() {

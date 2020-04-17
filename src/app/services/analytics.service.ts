@@ -24,12 +24,14 @@ import { SearchQueryParam } from '../utils/search-query-param.enum';
 })
 export class AnalyticsService {
 
+  removableQueryParams = [
+    'from', 'to', 'log', 'timestamp', ...Object.values(SearchQueryParam)
+  ];
   queryParams = [
-   'dashboard', 'timeframe', 'from', 'to', 'log', 'timestamp',
-    ...Object.values(SearchQueryParam),
+    'dashboard', 'timeframe', ...Object.values(this.removableQueryParams)
   ];
   advancedQueryParams = [
-   '_id', 'transaction', 'method', 'uri', 'response-time', 'status', 'api', 'body',
+    '_id', 'transaction', 'method', 'uri', 'response-time', 'status', 'api', 'body',
   ];
   timeframes: any;
   fragment = 'h';
@@ -199,7 +201,7 @@ export class AnalyticsService {
             interval: 1000 * 60 * 60 * 12,
           }
         ];
-    });
+      });
   }
 
   private static buildQueryParam(queryParam, q: string) {
@@ -258,4 +260,12 @@ export class AnalyticsService {
     }
     return { from, to, interval };
   }
+
+  getRemovableQueryParams() {
+    return this.removableQueryParams.reduce(((acc, val) => {
+      acc[val] = null;
+      return acc;
+    }), {});
+  }
+
 }
