@@ -17,3 +17,11 @@
     border: 0;
   }
 }
+
+.inline-multiple-select > .md-select-value > span {
+  max-width: 250px;
+  
+  .md-text {
+    display: inline !important;
+  }
+}

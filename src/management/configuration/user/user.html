@@ -48,13 +48,27 @@
         <tr md-row style="background-color: white; height: 30px;">
             <td md-cell nowrap><span style="font-weight: bold">Organization Role</span></td>
             <td md-cell>
-                <md-select ng-model="selectedOrganizationRole" aria-label="organization Role" ng-change="$ctrl.updateOrganizationsRole(selectedOrganizationRole)" multiple>
+                <md-select
+                    class="inline-multiple-select"
+                    ng-model="selectedOrganizationRole"
+                    aria-label="organization Role"
+                    md-on-open="selectOpened = true"
+                    md-on-close="selectOpened = false"    
+                    ng-change="$ctrl.updateOrganizationsRole(selectOpened, selectedOrganizationRole)"
+                    multiple>
                     <md-option ng-value="role.id" ng-repeat="role in $ctrl.organizationRoles">{{role.name}}</md-option>
                 </md-select>
             </td>
             <td md-cell><span style="font-weight: bold">Environment Role</span></td>
             <td md-cell>
-                <md-select ng-model="selectedEnvironmentRole" aria-label="Environment Role" ng-change="$ctrl.updateEnvironmentsRole(selectedEnvironmentRole)" multiple>
+                <md-select
+                    class="inline-multiple-select"
+                    ng-model="selectedEnvironmentRole"
+                    aria-label="Environment Role"
+                    md-on-open="selectOpened = true"
+                    md-on-close="selectOpened = false"    
+                    ng-change="$ctrl.updateEnvironmentsRole(selectOpened, selectedEnvironmentRole)"
+                    multiple>
                     <md-option ng-value="role.id" ng-repeat="role in $ctrl.environmentRoles">{{role.name}}</md-option>
                 </md-select>
             </td>

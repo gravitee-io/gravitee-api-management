@@ -99,27 +99,31 @@ const UserDetailComponent: ng.IComponentOptions = {
       }
     };
 
-    this.updateOrganizationsRole = (organizationRoles: any[]) => {
-      let newRoles = [];
-      if ($scope.selectedEnvironmentRole && $scope.selectedEnvironmentRole.length > 0) {
-        newRoles = _.concat($scope.selectedEnvironmentRole, organizationRoles);
-      } else {
-        newRoles = organizationRoles;
-      }
+    this.updateOrganizationsRole = (selectOpened: boolean, organizationRoles: any[]) => {
+      if (selectOpened) {
+        let newRoles = [];
+        if ($scope.selectedEnvironmentRole && $scope.selectedEnvironmentRole.length > 0) {
+          newRoles = _.concat($scope.selectedEnvironmentRole, organizationRoles);
+        } else {
+          newRoles = organizationRoles;
+        }
 
-      UserService.updateUserRoles(this.selectedUser.id, newRoles);
-      NotificationService.show('Organization Role updated');
+        UserService.updateUserRoles(this.selectedUser.id, newRoles);
+        NotificationService.show('Organization Role updated');
+      }
     };
 
-    this.updateEnvironmentsRole = (environmentRoles: any[]) => {
-      let newRoles = [];
-      if ($scope.selectedOrganizationRole && $scope.selectedOrganizationRole.length > 0) {
-        newRoles = _.concat($scope.selectedOrganizationRole, environmentRoles);
-      } else {
-        newRoles = environmentRoles;
+    this.updateEnvironmentsRole = (selectOpened: boolean, environmentRoles: any[]) => {
+      if (selectOpened) {
+        let newRoles = [];
+        if ($scope.selectedOrganizationRole && $scope.selectedOrganizationRole.length > 0) {
+          newRoles = _.concat($scope.selectedOrganizationRole, environmentRoles);
+        } else {
+          newRoles = environmentRoles;
+        }
+        UserService.updateUserRoles(this.selectedUser.id, newRoles);
+        NotificationService.show('Environment Role updated');
       }
-      UserService.updateUserRoles(this.selectedUser.id, newRoles);
-      NotificationService.show('Environment Role updated');
     };
 
     this.addGroupDialog = () => {
