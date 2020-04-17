@@ -193,8 +193,10 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
   }
 
   getLang(headers) {
-    if (headers['Content-Type']) {
-      const contentType = headers['Content-Type'][0];
+    const contentTypeHeaderKey = Object.keys(headers).find(header => 'content-type' === header.toLowerCase());
+    const contentTypeHeader = headers[contentTypeHeaderKey];
+    if (contentTypeHeader) {
+      const contentType = contentTypeHeader[0];
       const contentTypes = contentType.split(';', 1);
       return contentTypes[0].split('/')[1];
     }
