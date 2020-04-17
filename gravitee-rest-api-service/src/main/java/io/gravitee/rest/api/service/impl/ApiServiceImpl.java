@@ -39,9 +39,6 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.*;
@@ -395,6 +392,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiEntity create0(UpdateApiEntity api, String userId) throws ApiAlreadyExistsException {
+        return this.create0(api, userId, true);
+    }
+    
+    private ApiEntity create0(UpdateApiEntity api, String userId, boolean createSystemFolder) throws ApiAlreadyExistsException {
         try {
             LOGGER.debug("Create {} for user {}", api, userId);
 
@@ -453,13 +454,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 Api createdApi = apiRepository.create(repoApi);
 
-                //Create SystemFolder
-                NewPageEntity asideSystemFolder = new NewPageEntity();
-                asideSystemFolder.setName(SystemFolderType.ASIDE.folderName());
-                asideSystemFolder.setPublished(true);
-                asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
-                pageService.createPage(createdApi.getId(), asideSystemFolder);
-
+                if (createSystemFolder) {
+                    //Create SystemFolder
+                    NewPageEntity asideSystemFolder = new NewPageEntity();
+                    asideSystemFolder.setName(SystemFolderType.ASIDE.folderName());
+                    asideSystemFolder.setPublished(true);
+                    asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
+                    pageService.createPage(createdApi.getId(), asideSystemFolder);
+                }
+                
                 // Audit
                 auditService.createApiAuditLog(
                         createdApi.getId(),
@@ -1625,7 +1628,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         } else {
             newApiEntity.setGroups(apiEntity.getGroups());
         }
-        final ApiEntity duplicatedApi = create0(newApiEntity, getAuthenticatedUsername());
+        final ApiEntity duplicatedApi = create0(newApiEntity, getAuthenticatedUsername(), false);
 
         if (!duplicateApiEntity.getFilteredFields().contains("members")) {
             final Set<MembershipEntity> membershipsToDuplicate =
