@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import { Page } from '@gravitee/ng-portal-webclient';
 import { TreeItem } from '../../model/tree-item';
 import { NotificationService } from '../../services/notification.service';
@@ -35,7 +35,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
     ])
   ]
 })
-export class GvDocumentationComponent{
+export class GvDocumentationComponent implements AfterViewInit {
 
   currentPage: Page;
   currentMenuItem: TreeItem;
@@ -46,7 +46,7 @@ export class GvDocumentationComponent{
   @Input() rootDir: string;
   private _pages: Page[];
 
-  @ViewChild('tree', { static: false }) tree;
+  @ViewChild('treeMenu', { static: false }) treeMenu;
 
   @Input() set pages(pages: Page[]) {
     if (pages && pages.length) {
@@ -84,6 +84,13 @@ export class GvDocumentationComponent{
     private route: ActivatedRoute,
     private router: Router,
   ) {
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      const { height } = window.getComputedStyle(document.querySelector('header'));
+      this.treeMenu.style.top = height;
+    });
   }
 
   private initTree(pages: Page[], selectedPage?: string) {

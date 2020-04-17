@@ -19,8 +19,8 @@
   <div class="gv-documentation__loading" *ngIf="!isLoaded">
     <gv-icon shape="navigation:waiting"></gv-icon>
   </div>
-  <div class="gv-documentation__menu" [ngClass]="{show: isLoaded}">
-    <gv-tree #tree [items]="menu" [selectedItem]="currentMenuItem"></gv-tree>
+  <div #treeMenu class="gv-documentation__menu" [ngClass]="{show: isLoaded}">
+    <gv-tree [items]="menu" [selectedItem]="currentMenuItem"></gv-tree>
   </div>
   <app-gv-page *ngIf="currentPage" [page]="currentPage"
                [ngClass]="{'gv-documentation__content_swagger': isSwagger(currentPage), show: isLoaded, fullscreen: this.hasTreeClosed}"

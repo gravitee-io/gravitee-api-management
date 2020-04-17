@@ -25,7 +25,6 @@
 .gv-documentation__menu {
   display: none;
   position: fixed;
-  top: 132px;
   left: 42px;
   height: calc(100vh - 150px);
   z-index: 100;
@@ -53,7 +52,7 @@
 }
 
 app-gv-page {
-  overflow: scroll;
+  overflow: auto;
   display: none;
   opacity: 0;
   transition: opacity 1000ms ease-in-out;
