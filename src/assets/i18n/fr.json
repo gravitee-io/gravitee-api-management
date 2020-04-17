@@ -629,7 +629,7 @@
   },
   "gv-metrics": {
     "health": "Santé",
-    "hits": "Appels",
+    "hits": "Appels (7 derniers jours)",
     "subscribers": "Souscriptions"
   },
   "gv-page": {

@@ -629,7 +629,7 @@
   },
   "gv-metrics": {
     "health": "Zdraví",
-    "hits": "Zásah",
+    "hits": "Zásah (posledních 7 dní)",
     "subscribers": "Předplatitelé"
   },
   "gv-page": {
