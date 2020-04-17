@@ -64,6 +64,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   public notification: Notification;
   public isPreview = false;
   public isSticky = false;
+  public isHomepage = false;
   public isStickyHomepage = false;
   public links: any = {};
   @ViewChild(GvMenuTopSlotDirective, { static: true }) appGvMenuTopSlot: GvMenuTopSlotDirective;
@@ -202,7 +203,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   onScroll() {
     const pageYOffset = window.pageYOffset;
     window.requestAnimationFrame(() => {
-      if (this.isHomepage()) {
+      if (this.isHomepage) {
         this.isStickyHomepage = pageYOffset >= this.homepageBackgroundHeight - 70;
       }
       if (!this.isSticky) {
@@ -219,7 +220,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private computeHomepageHeight() {
-    if (this.isHomepage()) {
+    if (this.isHomepage) {
       setTimeout(() => {
         this.homepageBackgroundHeight = parseInt(window.getComputedStyle(this.homepageBackground.nativeElement).height, 10);
       }, 0);
@@ -298,6 +299,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private _onNavigationEnd() {
+    this.isHomepage = '/' === this.router.url;
     this.portalService.getPortalLinks().subscribe((portalLinks) => {
       if (portalLinks.slots) {
 
@@ -373,10 +375,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  isHomepage(): boolean {
-    return '/' === this.router.url;
-  }
-
   isAuthenticated(): boolean {
     return this.currentUserService.get().getValue() !== null;
   }
@@ -386,7 +384,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   displayShadowNav(): boolean {
-    return this.isHomepage() && !this.isAuthenticated();
+    return this.isHomepage && !this.isAuthenticated();
   }
 
   goTo(path: string) {

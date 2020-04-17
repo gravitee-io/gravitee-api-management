@@ -19,10 +19,10 @@
 <app-gv-cookie-consent></app-gv-cookie-consent>
 
 <div class="layout"
-     [ngClass]="{'sticky': this.isSticky, 'sticky-homepage': this.isStickyHomepage, 'layout__homepage': isHomepage()  }">
+     [ngClass]="{'sticky': this.isSticky, 'sticky-homepage': this.isStickyHomepage, 'layout__homepage': isHomepage  }">
 
     <div #homepageBackground class="layout__header__homepage__background">
-        <div *ngIf="isHomepage()" class="layout__header__homepage__title">
+        <div *ngIf="isHomepage" class="layout__header__homepage__title">
             <h1>{{'homepage.title' | translate}}</h1>
             <gv-button (click)="goTo('/catalog')" outlined>{{'homepage.explore' | translate}}</gv-button>
             <gv-button (click)="goTo('/user/registration')" *ngIf="displaySignUp()"
@@ -32,14 +32,14 @@
 
     <header class="layout__header">
         <div class="layout__header__container">
-            <div class="layout__header__logo" [ngClass]="{'layout__header__homepage__logo': isHomepage()}">
+            <div class="layout__header__logo" [ngClass]="{'layout__header__homepage__logo': isHomepage}">
                 <a [routerLink]="'/'" title="{{ 'site.title' | translate }}"></a>
             </div>
 
-            <gv-nav [routes]="mainRoutes" [ngClass]="{'layout__nav': isHomepage()}"></gv-nav>
+            <gv-nav [routes]="mainRoutes" [ngClass]="{'layout__nav': isHomepage}"></gv-nav>
 
             <div class="layout__nav__container" [ngClass]="{'layout__nav': displayShadowNav()}">
-                <gv-user-menu [routes]="userRoutes" [ngClass]="{'layout__user-menu': isHomepage()}"
+                <gv-user-menu [routes]="userRoutes" [ngClass]="{'layout__user-menu': isHomepage}"
                               [username]="this.getUserName()">
                     <gv-identity-picture *ngIf="currentUser"
                                          rounded
@@ -65,7 +65,7 @@
 
     </header>
 
-    <div class="layout__content" [ngClass]="{ 'layout__content__homepage': isHomepage() }">
+    <div class="layout__content" [ngClass]="{ 'layout__content__homepage': isHomepage }">
         <div [@routeAnimations]="prepareRoute(outlet)">
             <router-outlet #outlet="outlet"></router-outlet>
         </div>
