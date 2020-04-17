@@ -41,7 +41,10 @@
             <div class="layout__nav__container" [ngClass]="{'layout__nav': displayShadowNav()}">
                 <gv-user-menu [routes]="userRoutes" [ngClass]="{'layout__user-menu': isHomepage()}"
                               [username]="this.getUserName()">
-                    <gv-identity-picture *ngIf="currentUser" [display_name]="currentUser.display_name" [picture]="currentUser._links.avatar"
+                    <gv-identity-picture *ngIf="currentUser"
+                                         rounded
+                                         [display_name]="currentUser.display_name"
+                                         [picture]="currentUser._links.avatar"
                                          [notification]="numberOfPortalNotifications"></gv-identity-picture>
                 </gv-user-menu>
             </div>
@@ -52,7 +55,7 @@
             <ng-template appGvMenuRightTransitionSlot></ng-template>
             <ng-template appGvMenuRightSlot></ng-template>
         </gv-menu>
-        <gv-message 
+        <gv-message
             *ngIf="notification"
             [type]="notification.type"
             [innerHtml]="notification.message"
