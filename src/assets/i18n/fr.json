@@ -290,20 +290,26 @@
       "api": "API",
       "apiKey": {
         "created_at": "Souscrit le",
-        "end_at": "Se termine le",
-        "paused_at": "Mise en pause le",
-        "reason": "Motif :",
-        "title": "Clés d'API :"
+        "end_at": "Se termine",
+        "ended_at": "Terminée le",
+        "expired": {
+          "hide": "Cacher les clés expirées",
+          "show": "Afficher les clés expirées"
+        },
+        "revoke": {
+          "label": "Révoquer",
+          "message": "Êtes-vous sûr de vouloir révoquer cette clé d'API ?"
+        },
+        "success": {
+          "revoke": "Votre clé d'API a été révoquée avec succès"
+        },
+        "title": "Clés d'API"
       },
       "close": {
         "message": "Êtes-vous sûr de vouloir clôturer cette souscription ?",
         "title": "Clôturer souscription"
       },
-      "closedSuccess": "Votre Souscription a été clôturée avec succès",
       "created_at": "Date de souscription",
-      "detail": {
-        "title": "Informations sur la souscription"
-      },
       "filters": {
         "api": {
           "label": "Sélectionner une API",
@@ -316,9 +322,17 @@
       },
       "plan": "Plan",
       "processed_at": "Date de traitement",
+      "renew": {
+        "message": "Êtes-vous sûr de vouloir renouveler cette souscription ?",
+        "title": "Renouveler souscription"
+      },
       "start_at": "Date de démarrage",
       "status": "Status",
       "subscribed_by": "Souscrit par",
+      "success": {
+        "close": "Votre souscription a été clôturée avec succès",
+        "renew": "Votre souscription a été renouvelée avec succès"
+      },
       "title": "Souscriptions"
     },
     "success": {
@@ -470,6 +484,7 @@
     "title": "Catégories"
   },
   "common": {
+    "cancel": "Annuler",
     "date": {
       "range": {
         "title": "Sélectionner un interval de temps"
@@ -478,6 +493,7 @@
     "filters": {
       "title": "Filtres"
     },
+    "ok": "Valider",
     "reset": "Réinitialiser",
     "search": "Rechercher",
     "status": {

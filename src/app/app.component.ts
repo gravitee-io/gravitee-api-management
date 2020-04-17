@@ -123,6 +123,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       this.currentUser = newCurrentUser;
       this.userRoutes = this.navRouteService.getUserNav();
       if (this.currentUser) {
+        this.loadNotifications();
         this.interval = setInterval(
           () => {
             this.loadNotifications();

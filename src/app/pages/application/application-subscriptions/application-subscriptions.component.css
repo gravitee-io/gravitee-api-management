@@ -77,3 +77,47 @@
 .application__section > *, .application__aside > * {
   margin-bottom: 32px;
 }
+
+.application__aside__info {
+  background-color: var(--gv-theme-neutral-color-lightest);
+  border-radius: 4px;
+  padding: 12px 24px;
+}
+
+.application__aside__info span {
+  color: var(--gv-theme-neutral-color-dark);
+  filter: contrast(0);
+  padding: 1px 5px 1px 0;
+  line-height: 20px;
+}
+
+.application__aside__info gv-input {
+  margin: 10px 0 5px 0;
+  width: 100%;
+}
+
+.application__aside__info__apikeys {
+  max-height: 40vh;
+  overflow: auto;
+}
+
+.application__aside__info__apikey {
+  border-bottom: 1px solid var(--gv-theme-neutral-color-dark);
+  margin-bottom: 5px;
+  padding: 0 5px 10px 5px;
+}
+
+.application__aside__info__apikey__input {
+  display: flex;
+}
+
+gv-confirm {
+  --gv-button-primary--bgc:var(--gv-theme-danger-color, #FF5722);
+  align-self: center;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.application__aside__info__apikey__input__danger {
+  color: var(--gv-theme-danger-color, #FF5722);
+}

@@ -291,19 +291,25 @@
       "apiKey": {
         "created_at": "Přihlásit se k odběru",
         "end_at": "Končí dál",
-        "paused_at": "Pauza na",
-        "reason": "Důvod:",
+        "ended_at": "Dokončeno",
+        "expired": {
+          "hide": "Skrýt klíče, jejichž platnost vypršela",
+          "show": "Zobrazit klíče, jejichž platnost vypršela"
+        },
+        "revoke": {
+          "label": "Odvolat",
+          "message": "Opravdu chcete zrušit tento klíč API?"
+        },
+        "success": {
+          "revoke": "Váš klíč API byl úspěšně odvolán"
+        },
         "title": "Klíče API:"
       },
       "close": {
         "message": "Opravdu chcete zrušit tento odběr?",
         "title": "Zavřít odběr"
       },
-      "closedSuccess": "Váš odběr byl úspěšně ukončen",
       "created_at": "Datum předplatného",
-      "detail": {
-        "title": "Informace o předplatném"
-      },
       "filters": {
         "api": {
           "label": "Vyberte API",
@@ -316,9 +322,17 @@
       },
       "plan": "Plán",
       "processed_at": "Datum zpracování",
+      "renew": {
+        "message": "Opravdu chcete obnovit toto předplatné?",
+        "title": "Obnovte předplatné"
+      },
       "start_at": "Datum zahájení",
       "status": "Stav",
       "subscribed_by": "Přihlásit se k odběru",
+      "success": {
+        "close": "Váš odběr byl úspěšně ukončen",
+        "renew": "Vaše předplatné bylo úspěšně obnoveno"
+      },
       "title": "Předplatné"
     },
     "success": {
@@ -470,6 +484,7 @@
     "title": "Kategories"
   },
   "common": {
+    "cancel": "Zrušit",
     "date": {
       "range": {
         "title": "Vyberte časový interval"
@@ -478,6 +493,7 @@
     "filters": {
       "title": "Filtry"
     },
+    "ok": "Potvrdit",
     "reset": "Resetovat",
     "search": "vyhledávat",
     "status": {

@@ -21,7 +21,7 @@ import '@gravitee/ui-components/wc/gv-confirm';
 import {
   ApiService,
   SubscriptionService,
-  Subscription, GetSubscriptionsRequestParams, ApplicationService
+  Subscription, GetSubscriptionsRequestParams, ApplicationService, PermissionsService
 } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -50,8 +50,12 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   statusOptions: any;
   miscellaneous: Array<any>;
   metadata: any;
-  apiKeys: Array<any>;
+  validApiKeys: Array<any>;
+  expiredApiKeys: Array<any>;
   selectedSubscriptions: Array<string>;
+  displayExpiredApiKeys = false;
+  canDelete = false;
+  canUpdate = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -63,12 +67,80 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     private apiService: ApiService,
     private formBuilder: FormBuilder,
     public loaderService: LoaderService,
+    private permissionsService: PermissionsService,
+    private ref: ChangeDetectorRef,
   ) {
   }
 
   ngOnInit() {
     const application = this.route.snapshot.data.application;
     if (application) {
+      this.permissionsService.getCurrentUserPermissions({ applicationId: application.id }).toPromise()
+        .then(permissions => {
+          this.canDelete = permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('D');
+          this.canUpdate = permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('U');
+          this.format = (key) => this.translateService.get(key).toPromise();
+          this.apisOptions = [];
+          this.options = {
+            selectable: true,
+            data: [
+              { field: 'api', label: i18n('application.subscriptions.api') },
+              { field: 'plan', label: i18n('application.subscriptions.plan') },
+              { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at') },
+              {
+                field: 'subscribed_by', label: i18n('application.subscriptions.subscribed_by'),
+                format: (item) => this.metadata[item] && this.metadata[item].name
+              },
+              { field: 'processed_at', type: 'date', label: i18n('application.subscriptions.processed_at') },
+              { field: 'start_at', type: 'date', label: i18n('application.subscriptions.start_at') },
+              {
+                field: 'status', label: i18n('application.subscriptions.status'),
+                format: (key) => {
+                  const statusKey = 'common.status.' + key.toUpperCase();
+                  return this.translateService.get(statusKey).toPromise();
+                },
+                style: (item) => {
+                  let style = 'text-align: right;';
+                  switch (item.status.toUpperCase()) {
+                    case StatusEnum.ACCEPTED:
+                      return style += 'color: #009B5B';
+                    case StatusEnum.PAUSED:
+                    case StatusEnum.PENDING:
+                      return style += 'color: #FA8C16';
+                    case StatusEnum.REJECTED:
+                      return style += 'color: #F5222D';
+                  }
+                },
+              },
+              {
+                type: 'gv-icon',
+                width: '25px',
+                style: () => 'text-align: right',
+                confirmMessage: i18n('application.subscriptions.renew.message'),
+                condition: (item) => this.canUpdate &&
+                  [StatusEnum.ACCEPTED, StatusEnum.PAUSED].includes(item.status.toUpperCase()),
+                attributes: {
+                  onClick: (item) => this.renewSubscription(item.id),
+                  shape: 'code:lock-overturning',
+                  title: i18n('application.subscriptions.renew.title'),
+                },
+              },
+              {
+                type: 'gv-icon',
+                width: '25px',
+                style: () => 'text-align: right',
+                confirmMessage: i18n('application.subscriptions.close.message'),
+                condition: (item) => this.canDelete &&
+                  [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING].includes(item.status.toUpperCase()),
+                attributes: {
+                  onClick: (item) => this.closeSubscription(item.id),
+                  shape: 'general:trash',
+                  title: i18n('application.subscriptions.close.title'),
+                },
+              },
+            ]
+          };
+        });
       this.translateService.get([
         i18n('application.miscellaneous.owner'),
         i18n('application.miscellaneous.type'),
@@ -106,51 +178,6 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           this.apisOptions.push({ label: api.name + ' (' + api.version + ')', value: api.id });
         });
       });
-      this.format = (key) => this.translateService.get(key).toPromise();
-      this.apisOptions = [];
-      this.options = {
-        selectable: true,
-        data: [
-          { field: 'api', label: i18n('application.subscriptions.api') },
-          { field: 'plan', label: i18n('application.subscriptions.plan') },
-          { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at') },
-          {
-            field: 'subscribed_by', label: i18n('application.subscriptions.subscribed_by'),
-            format: (item) => this.metadata[item] && this.metadata[item].name
-          },
-          { field: 'processed_at', type: 'date', label: i18n('application.subscriptions.processed_at') },
-          { field: 'start_at', type: 'date', label: i18n('application.subscriptions.start_at') },
-          {
-            field: 'status', label: i18n('application.subscriptions.status'),
-            format: (key) => {
-              const statusKey = 'common.status.' + key.toUpperCase();
-              return this.translateService.get(statusKey).toPromise();
-            },
-            style: (item) => {
-              switch (item.status.toUpperCase()) {
-                case StatusEnum.ACCEPTED:
-                  return 'color: #009B5B';
-                case StatusEnum.PAUSED:
-                case StatusEnum.PENDING:
-                  return 'color: #FA8C16';
-                case StatusEnum.REJECTED:
-                  return 'color: #F5222D';
-              }
-            },
-          },
-          {
-            type: 'gv-icon',
-            width: '25px',
-            confirmMessage: i18n('application.subscriptions.close.message'),
-            condition: (item) => [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING].includes(item.status.toUpperCase()),
-            attributes: {
-              onClick: (item) => this.closeSubscription(item.id),
-              shape: 'general:trash',
-              title: i18n('application.subscriptions.close.title'),
-            },
-          },
-        ]
-      };
 
       const statusKeys = Object.keys(StatusEnum).map(s => 'common.status.' + s);
       this.translateService.get(statusKeys).toPromise().then(translatedKeys => {
@@ -187,7 +214,6 @@ export class ApplicationSubscriptionsComponent implements OnInit {
         this.selectedSubscriptions = [];
         this.onSelectSubscription(null);
       }
-
     });
   }
 
@@ -199,48 +225,59 @@ export class ApplicationSubscriptionsComponent implements OnInit {
 
   closeSubscription(subscriptionId) {
     this.subscriptionService.closeSubscription({ subscriptionId }).toPromise().then(() => {
-      this.notificationService.success(i18n('application.subscriptions.closedSuccess'));
-      this.search();
+      this.notificationService.success(i18n('application.subscriptions.success.close'));
+      this.search(true);
+    });
+  }
+
+  renewSubscription(subscriptionId) {
+    this.subscriptionService.renewKeySubscription({ subscriptionId }).toPromise().then(() => {
+      this.notificationService.success(i18n('application.subscriptions.success.renew'));
+      this.search(true);
+    });
+  }
+
+  revokeApiKey(subscriptionId, keyId) {
+    this.subscriptionService.revokeKeySubscription({ subscriptionId, keyId }).toPromise().then(() => {
+      this.notificationService.success(i18n('application.subscriptions.apiKey.success.revoke'));
+      this.search(true);
     });
   }
 
   @HostListener(':gv-table:select', ['$event.detail.items[0]'])
   onSelectSubscription(subscription: Subscription) {
-    this.apiKeys = [];
     this.router.navigate([], { queryParams: { subscription: subscription ? subscription.id : null }, fragment: 's' });
     if (subscription) {
       this.subscriptionService.getSubscriptionById({ subscriptionId: subscription.id, include: ['keys'] }).toPromise().then(sub => {
-        this.translateService.get([
-          'application.subscriptions.apiKey.created_at',
-          'application.subscriptions.apiKey.end_at',
-          'application.subscriptions.apiKey.paused_at',
-          'application.subscriptions.apiKey.reason',
-          'application.subscriptions.apiKey.title']).toPromise().then(translatedObject => {
-          const translatedValues = Object.values(translatedObject);
-          if (subscription.end_at) {
-            this.apiKeys.push({ key: translatedValues[1], value: new Date(subscription.end_at), date: 'short' });
-          }
-          if (subscription.paused_at) {
-            this.apiKeys.push({ key: translatedValues[2], value: new Date(subscription.paused_at), date: 'relative' });
-          }
-          if (subscription.reason) {
-            this.apiKeys.push({ key: translatedValues[3], value: subscription.reason });
-          }
-          if (sub.keys && sub.keys.length) {
-            this.apiKeys.push({ key: translatedValues[4] });
-            sub.keys.forEach(key => {
-              this.apiKeys.push({});
-              const ended = key.revoked || key.expired;
-              this.apiKeys.push({ key: ended, value: key.id, type: 'clipboard' });
-              this.apiKeys.push({ key: translatedValues[0], value: new Date(key.created_at), date: 'short' });
-              const endAt = key.revoked_at || key.expire_at;
-              if (endAt) {
-                this.apiKeys.push({ key: translatedValues[1], value: new Date(endAt), date: 'short' });
-              }
-            });
-          }
-        });
+        this.validApiKeys = sub.keys.filter(apiKey => this.isApiKeyValid(apiKey));
+        this.expiredApiKeys = sub.keys.filter(apiKey => !this.isApiKeyValid(apiKey));
+        this.ref.detectChanges();
       });
+    } else {
+      delete this.validApiKeys;
+      delete this.expiredApiKeys;
     }
+  }
+
+  getDateAsString(timestamp, long?) {
+    return long ? new Date(timestamp).toLocaleString() : new Date(timestamp).toLocaleDateString();
+  }
+
+  endAt(apiKey) {
+    return apiKey.revoked_at || apiKey.expire_at;
+  }
+
+  apiKeyEnded(apiKey) {
+    const endAt = this.endAt(apiKey);
+    return endAt && (new Date(endAt) < new Date());
+  }
+
+  isApiKeyValid(apiKey) {
+    return !this.endAt(apiKey) || !this.apiKeyEnded(apiKey);
+  }
+
+  toggleDisplayExpired() {
+    this.displayExpiredApiKeys = !this.displayExpiredApiKeys;
+    this.ref.detectChanges();
   }
 }

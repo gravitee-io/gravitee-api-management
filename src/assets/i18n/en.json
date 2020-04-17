@@ -291,19 +291,25 @@
       "apiKey": {
         "created_at": "Subscribe on",
         "end_at": "Ends on",
-        "paused_at": "Pause on",
-        "reason": "reason:",
+        "ended_at": "Completed on",
+        "expired": {
+          "hide": "Hide expired keys",
+          "show": "Show expired keys"
+        },
+        "revoke": {
+          "label": "Revoke",
+          "message": "Are you sure you want to revoke this API key?"
+        },
+        "success": {
+          "revoke": "Your API key has been successfully revoked"
+        },
         "title": "API keys:"
       },
       "close": {
         "message": "Are you sure you want to close this subscription?",
         "title": "Close subscription"
       },
-      "closedSuccess": "Your Subscription has been successfully closed",
       "created_at": "Subscription date",
-      "detail": {
-        "title": "Subscription information"
-      },
       "filters": {
         "api": {
           "label": "Select an API",
@@ -316,9 +322,17 @@
       },
       "plan": "Plan",
       "processed_at": "Processing Date",
+      "renew": {
+        "message": "Are you sure you want to renew this subscription?",
+        "title": "Renew subscription"
+      },
       "start_at": "Starting date",
       "status": "status",
       "subscribed_by": "Subscribed by",
+      "success": {
+        "close": "Your Subscription has been successfully closed",
+        "renew": "Your subscription has been successfully renewed"
+      },
       "title": "Subscriptions"
     },
     "success": {
@@ -470,6 +484,7 @@
     "title": "Categories"
   },
   "common": {
+    "cancel": "Cancel",
     "date": {
       "range": {
         "title": "Select a time interval"
@@ -478,6 +493,7 @@
     "filters": {
       "title": "Filters"
     },
+    "ok": "Validate",
     "reset": "Reset",
     "search": "Search",
     "status": {
