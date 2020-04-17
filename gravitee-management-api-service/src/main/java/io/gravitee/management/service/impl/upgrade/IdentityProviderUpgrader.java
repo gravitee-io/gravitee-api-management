@@ -87,6 +87,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
         idp.setDescription(description);
         idp.setEnabled(true);
         idp.setConfiguration(getConfiguration(providerIndex));
+        idp.setEmailRequired(Boolean.valueOf((String) idp.getConfiguration().getOrDefault("emailRequired", "false")));
 
         Map<String, String> userProfileMapping = getUserProfileMapping(providerIndex);
         if (!userProfileMapping.isEmpty()) {
@@ -101,6 +102,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
         idp.setName(id);
         idp.setDescription(description);
         idp.setConfiguration(getConfiguration(providerIndex));
+        idp.setEmailRequired(Boolean.valueOf((String) idp.getConfiguration().getOrDefault("emailRequired", "false")));
         idp.setEnabled(true);
 
         Map<String, String> userProfileMapping = getUserProfileMapping(providerIndex);
@@ -135,6 +137,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
         putIfNotNull(config, prefix, "userLogoutEndpoint");
         putIfNotNull(config, prefix, "serverURL");
         putIfNotNull(config, prefix, "domain");
+        putIfNotNull(config, prefix, "emailRequired");
 
         List<String> scopes = getListOfString("security.providers[" + providerIndex + "].scopes");
         if (!scopes.isEmpty()) {
