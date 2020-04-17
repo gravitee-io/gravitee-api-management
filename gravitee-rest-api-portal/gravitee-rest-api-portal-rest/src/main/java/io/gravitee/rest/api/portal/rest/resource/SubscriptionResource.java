@@ -67,7 +67,7 @@ public class SubscriptionResource extends AbstractResource {
             Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
             if(include.contains(INCLUDE_KEYS)) {
                 List<Key> keys = apiKeyService.findBySubscription(subscriptionId).stream()
-                        .sorted((o1, o2) -> Boolean.compare(o1.isRevoked(), o2.isRevoked()) + Boolean.compare(o1.isExpired(), o2.isExpired()))
+                        .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
                         .map(keyMapper::convert)
                         .collect(Collectors.toList());
                 subscription.setKeys(keys);
