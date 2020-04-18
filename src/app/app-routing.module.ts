@@ -231,10 +231,30 @@ export const routes: Routes = [
           expectedRole: Role.AUTH_USER
         }
       },
-      { path: 'registration', component: RegistrationComponent },
-      { path: 'registration/confirm/:token', component: RegistrationConfirmationComponent },
-      { path: 'resetPassword', component: ResetPasswordComponent },
-      { path: 'resetPassword/confirm/:token', component: ResetPasswordConfirmationComponent }
+      {
+        path: 'registration',
+        component: RegistrationComponent,
+        canActivate: [AuthGuardService],
+        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } }
+      },
+      {
+        path: 'registration/confirm/:token',
+        component: RegistrationConfirmationComponent,
+        canActivate: [AuthGuardService],
+        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } }
+      },
+      {
+        path: 'resetPassword',
+        component: ResetPasswordComponent,
+        canActivate: [AuthGuardService],
+        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } }
+      },
+      {
+        path: 'resetPassword/confirm/:token',
+        component: ResetPasswordConfirmationComponent,
+        canActivate: [AuthGuardService],
+        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } }
+      }
     ]
   },
   {

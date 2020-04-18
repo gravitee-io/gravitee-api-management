@@ -90,9 +90,9 @@
         <a *ngIf="registrationConfirmationForm && !isTokenExpired && !isSubmitted" routerLink="/"
            class="text-center">{{ "registrationConfirmation.backHome" | translate }}</a>
 
-        <a *ngIf="isTokenExpired" routerLink="/registration"
+        <a *ngIf="isTokenExpired" routerLink="/user/registration"
            class="text-center">{{ "registrationConfirmation.backRegistration" | translate }}</a>
-        <a *ngIf="isSubmitted" routerLink="/login"
+        <a *ngIf="isSubmitted" routerLink="/user/login"
            class="text-center">{{ "registrationConfirmation.backLogin" | translate }}</a>
       </div>
     </div>
