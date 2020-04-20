@@ -476,7 +476,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
     private ClientRegistrationProvider convert(NewClientRegistrationProviderEntity newClientRegistrationProvider) {
         ClientRegistrationProvider provider = new ClientRegistrationProvider();
-
+        provider.setId(UUID.toString(UUID.random()));
         provider.setName(newClientRegistrationProvider.getName());
         provider.setDescription(newClientRegistrationProvider.getDescription());
         provider.setDiscoveryEndpoint(newClientRegistrationProvider.getDiscoveryEndpoint());
