@@ -123,54 +123,56 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         // handle filtered fields list
         List<String> filteredFieldsList = (List<String>) apiEntity.getMetadata().get(METADATA_FILTERED_FIELDS_LIST);
 
-        if (!filteredFieldsList.contains("groups")) {
-            if (apiEntity.getGroups() != null && !apiEntity.getGroups().isEmpty()) {
-                Set<GroupEntity> groupEntities = applicationContext.getBean(GroupService.class).findByIds(apiEntity.getGroups());
-                jsonGenerator.writeObjectField("groups", groupEntities.stream().map(GroupEntity::getName).collect(Collectors.toSet()));
+        if (filteredFieldsList != null) {
+            if (!filteredFieldsList.contains("groups")) {
+                if (apiEntity.getGroups() != null && !apiEntity.getGroups().isEmpty()) {
+                    Set<GroupEntity> groupEntities = applicationContext.getBean(GroupService.class).findByIds(apiEntity.getGroups());
+                    jsonGenerator.writeObjectField("groups", groupEntities.stream().map(GroupEntity::getName).collect(Collectors.toSet()));
+                }
             }
-        }
 
-        // members
-        if (!filteredFieldsList.contains("members")) {
-            Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API);
-            List<Member> members = new ArrayList<>(memberEntities == null ? 0 : memberEntities.size());
-            if (memberEntities != null) {
-                memberEntities.forEach(m -> {
-                    UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
-                    if (userEntity != null) {
-                        Member member = new Member();
-                        member.setRole(m.getRole());
-                        member.setSource(userEntity.getSource());
-                        member.setSourceId(userEntity.getSourceId());
-                        members.add(member);
-                    }
-                });
+            // members
+            if (!filteredFieldsList.contains("members")) {
+                Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API);
+                List<Member> members = new ArrayList<>(memberEntities == null ? 0 : memberEntities.size());
+                if (memberEntities != null) {
+                    memberEntities.forEach(m -> {
+                        UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
+                        if (userEntity != null) {
+                            Member member = new Member();
+                            member.setRole(m.getRole());
+                            member.setSource(userEntity.getSource());
+                            member.setSourceId(userEntity.getSourceId());
+                            members.add(member);
+                        }
+                    });
+                }
+                jsonGenerator.writeObjectField("members", members);
             }
-            jsonGenerator.writeObjectField("members", members);
-        }
 
-        // pages
-        if (!filteredFieldsList.contains("pages")) {
-            List<PageEntity> pages = applicationContext.getBean(PageService.class).search(new PageQuery.Builder().api(apiEntity.getId()).build());
-            jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
-        }
+            // pages
+            if (!filteredFieldsList.contains("pages")) {
+                List<PageEntity> pages = applicationContext.getBean(PageService.class).search(new PageQuery.Builder().api(apiEntity.getId()).build());
+                jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
+            }
 
-        // plans
-        if (!filteredFieldsList.contains("plans")) {
-            Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());
-            Set<PlanEntity> plansToAdd = plans == null
-                    ? Collections.emptySet()
-                    : plans.stream()
-                    .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
-                    .collect(Collectors.toSet());
-            jsonGenerator.writeObjectField("plans", plansToAdd);
-        }
+            // plans
+            if (!filteredFieldsList.contains("plans")) {
+                Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());
+                Set<PlanEntity> plansToAdd = plans == null
+                        ? Collections.emptySet()
+                        : plans.stream()
+                        .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
+                        .collect(Collectors.toSet());
+                jsonGenerator.writeObjectField("plans", plansToAdd);
+            }
 
-        // metadata
-        if (!filteredFieldsList.contains("metadata")) {
-            List<ApiMetadataEntity> apiMetadata = applicationContext.getBean(ApiMetadataService.class).findAllByApi(apiEntity.getId());
-            if (apiMetadata != null && !apiMetadata.isEmpty()) {
-                jsonGenerator.writeObjectField("metadata", apiMetadata);
+            // metadata
+            if (!filteredFieldsList.contains("metadata")) {
+                List<ApiMetadataEntity> apiMetadata = applicationContext.getBean(ApiMetadataService.class).findAllByApi(apiEntity.getId());
+                if (apiMetadata != null && !apiMetadata.isEmpty()) {
+                    jsonGenerator.writeObjectField("metadata", apiMetadata);
+                }
             }
         }
     }
