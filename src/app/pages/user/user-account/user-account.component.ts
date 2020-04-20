@@ -17,8 +17,11 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import '@gravitee/ui-components/wc/gv-file-upload';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { AppComponent } from '../../../app.component';
+import { GvHeaderItemComponent } from '../../../components/gv-header-item/gv-header-item.component';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { User, UserService } from '@gravitee/ng-portal-webclient';
+import { EventService, GvEvent } from '../../../services/event.service';
 import { LoaderService } from '../../../services/loader.service';
 import { NotificationService } from '../../../services/notification.service';
 
@@ -39,7 +42,8 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private notificationService: NotificationService,
     private loaderService: LoaderService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private eventService: EventService
   ) {
   }
 
@@ -51,11 +55,16 @@ export class UserAccountComponent implements OnInit, OnDestroy {
         email: new FormControl({ value: this.email, disabled: true }, Validators.required),
         avatar: new FormControl(this.avatar)
       });
+
+      this.userForm.get('avatar').valueChanges.subscribe((avatar) => {
+        this.eventService.dispatch(new GvEvent(AppComponent.UPDATE_USER_AVATAR, { data: avatar }));
+      });
     });
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+    this.reset();
   }
 
   get avatar() {
@@ -82,6 +91,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
 
   reset() {
     this.userForm.get('avatar').patchValue(this.avatar);
+    this.userForm.markAsPristine();
   }
 
   canUpdate() {

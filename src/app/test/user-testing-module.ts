@@ -25,7 +25,9 @@ export class UserServiceStub {
 @Injectable()
 export class CurrentUserServiceStub {
   get(): BehaviorSubject<User> {
-    return new BehaviorSubject<User>({});
+    return new BehaviorSubject<User>({
+
+    });
   }
 }
 

@@ -15,12 +15,6 @@
  */
 @import "../../../../../src/css/form.css";
 
-.page__content {
-  display: flex;
-  flex-direction: row;
-  min-height: 0;
-}
-
 .grid {
   display: grid;
   grid-template-columns: 1fr 250px;

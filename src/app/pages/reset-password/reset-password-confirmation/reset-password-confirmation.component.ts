@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from '../../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TokenService } from '../../../services/token.service';
+import { sameValueValidator } from '../../registration/registration-confirmation/registration-confirmation.component';
 
 @Component({
   selector: 'app-reset-password-confirmation',
@@ -47,34 +48,32 @@ export class ResetPasswordConfirmationComponent implements OnInit {
     this.isSubmitted = false;
     this.token = this.route.snapshot.paramMap.get('token');
     this.userFromToken = this.tokenService.parseToken(this.token);
-    this.isTokenExpired = this.tokenService.isParsedTokenExpired(this.userFromToken);
+    this.isTokenExpired = this.tokenService.isParsedTokenExpired(this.userFromToken)
 
-    if (!this.isTokenExpired) {
-      this.resetPasswordConfirmationForm = this.formBuilder.group({
-        firstname: this.userFromToken.firstname,
-        lastname: this.userFromToken.lastname,
-        email: this.userFromToken.email,
-        password: '',
-        confirmedPassword: ''
-      });
-    } else {
+    this.resetPasswordConfirmationForm = this.formBuilder.group({
+      firstname: new FormControl({ value: this.userFromToken.firstname, disabled: true }),
+      lastname: new FormControl({ value: this.userFromToken.lastname, disabled: true }),
+      email: new FormControl({ value: this.userFromToken.email, disabled: true }),
+      password: new FormControl('', Validators.required),
+      confirmedPassword: new FormControl('', Validators.required)
+    });
+
+    this.resetPasswordConfirmationForm.get('confirmedPassword')
+      .setValidators([Validators.required, sameValueValidator(this.resetPasswordConfirmationForm.get('password'))]);
+
+    if (this.isTokenExpired) {
       this.notificationService.info(i18n('resetPasswordConfirmation.tokenExpired'));
     }
   }
 
-  isFormValid() {
-    return this.resetPasswordConfirmationForm.valid.valueOf() &&
-      (this.resetPasswordConfirmationForm.value.password === this.resetPasswordConfirmationForm.value.confirmedPassword);
-  }
-
   onSubmitResetPasswordConfirmationForm() {
-    if (this.isFormValid() && !this.isSubmitted) {
+    if (this.resetPasswordConfirmationForm.valid && !this.isSubmitted) {
 
       const input: FinalizeRegistrationInput = {
         token: this.token,
         password: this.resetPasswordConfirmationForm.value.password,
-        firstname: this.resetPasswordConfirmationForm.value.firstname,
-        lastname: this.resetPasswordConfirmationForm.value.lastname
+        firstname: this.userFromToken.firstname,
+        lastname: this.userFromToken.lastname
       };
       // call the register resource from the API.
       this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input }).subscribe(

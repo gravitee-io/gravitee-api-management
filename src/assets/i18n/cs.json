@@ -139,8 +139,9 @@
       "title": "Secret client"
     },
     "delete": {
-      "label": "Odstranit",
-      "message": "Opravdu chcete tuto aplikaci smazat?"
+      "cancel": "Zrušit",
+      "message": "Opravdu chcete tuto aplikaci smazat?",
+      "ok": "OK"
     },
     "description": {
       "label": "Popište účel této aplikace",
@@ -285,7 +286,6 @@
       "label": "Obnovte tajemství",
       "message": "Opravdu chcete obnovit tajemství své aplikace?<br/> Obnovením tajemství již nebudete moci generovat nové přístupové tokeny a volat API."
     },
-    "save": "Save",
     "subscriptions": {
       "api": "Api",
       "apiKey": {
@@ -490,11 +490,14 @@
         "title": "Vyberte časový interval"
       }
     },
+    "delete": "Odstranit",
     "filters": {
       "title": "Filtry"
     },
     "ok": "Potvrdit",
+    "options": "Možnosti",
     "reset": "Resetovat",
+    "save": "Uložit",
     "search": "vyhledávat",
     "status": {
       "ACCEPTED": "přijato",
@@ -502,7 +505,8 @@
       "PAUSED": "Přestávka",
       "PENDING": "Čekání",
       "REJECTED": "Odmítnuto"
-    }
+    },
+    "update": "Aktualizace"
   },
   "cookies": {
     "actions": {
@@ -529,8 +533,6 @@
     "email": {
       "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
     },
-    "picture_format_forbidden": "Formát SVG není povolen",
-    "picture_too_big": "Velikost obrázku musí být menší než 500 kB",
     "plan": {
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
@@ -741,8 +743,7 @@
       "text": "Nemáte prozatím účet ?"
     },
     "title": "Kdo jste ?",
-    "username": "Uživatelské jméno",
-    "withProviders": "Nebo"
+    "username": "Uživatelské jméno"
   },
   "notFound": {
     "goHome": "Zpět na domovskou stránku",
@@ -872,8 +873,6 @@
       "empty": "Nebylo přijato žádné oznámení",
       "read": "Přečtěte si",
       "title": "Oznámení"
-    },
-    "title": "Můj účet",
-    "update": "Aktualizace"
+    }
   }
 }

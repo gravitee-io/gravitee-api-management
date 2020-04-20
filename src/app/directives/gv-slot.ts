@@ -28,6 +28,7 @@ export abstract class GvSlot {
   }
 
   clear() {
+    this.currentComponentFactory = null;
     this.viewContainerRef.clear();
   }
 

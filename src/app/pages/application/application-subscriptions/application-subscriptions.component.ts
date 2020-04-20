@@ -30,6 +30,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { LoaderService } from '../../../services/loader.service';
 import StatusEnum = Subscription.StatusEnum;
 import { NotificationService } from '../../../services/notification.service';
+import { ScrollService } from '../../../services/scroll.service';
 import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
 
 @Component({
@@ -71,6 +72,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     public loaderService: LoaderService,
     private permissionsService: PermissionsService,
     private ref: ChangeDetectorRef,
+    private scrollService: ScrollService
   ) {
   }
 
@@ -118,7 +120,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
                 type: 'gv-icon',
                 width: '25px',
                 style: () => 'text-align: right',
-                confirmMessage: i18n('application.subscriptions.renew.message'),
+                confirm:{ msg: i18n('application.subscriptions.renew.message') },
                 condition: (item) => this.canUpdate &&
                   [StatusEnum.ACCEPTED, StatusEnum.PAUSED].includes(item.status.toUpperCase()),
                 attributes: {
@@ -131,7 +133,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
                 type: 'gv-icon',
                 width: '25px',
                 style: () => 'text-align: right',
-                confirmMessage: i18n('application.subscriptions.close.message'),
+                confirm:{ msg: i18n('application.subscriptions.close.message'), danger: true },
                 condition: (item) => this.canDelete &&
                   [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING].includes(item.status.toUpperCase()),
                 attributes: {
@@ -286,6 +288,9 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   }
 
   toggleDisplayExpired() {
+    if(!this.displayExpiredApiKeys){
+      this.scrollService.scrollToAnchor('expired-keys');
+    }
     this.displayExpiredApiKeys = !this.displayExpiredApiKeys;
     this.ref.detectChanges();
   }

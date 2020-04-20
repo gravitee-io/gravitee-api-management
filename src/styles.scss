@@ -1,5 +1,4 @@
 /* You can add global styles to this file, and also import other style files */
-
 @import "~@gravitee/ui-components/assets/css/gravitee-theme.generated.css";
 
 :root {
@@ -77,8 +76,76 @@
   min-height: calc(100vh - var(--gv-theme-layout-header--h));
 }
 
+.page__content-with-aside {
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+}
+
 .page__content section {
   margin-top: 42px;
+}
+
+.page__box {
+  background-color: var(--gv-theme-neutral-color-lightest);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 1rem 0;
+}
+
+
+.main {
+  flex: 1;
+}
+
+.main .page__box {
+  margin-right: 1rem;
+}
+
+.aside, .main {
+  display: flex;
+  flex-direction: column;
+}
+
+.aside {
+  min-width: 280px;
+}
+
+.page__box-title {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--gv-theme-neutral-color);
+  padding: 2rem 4rem;
+}
+
+.page__box-title .title {
+  flex: 1;
+}
+
+.aside .page__box-title,
+.aside .page__box-content,
+.aside .page__box-footer {
+  padding: 24px;
+}
+
+.page__box-content, .page__box-footer {
+  border-top: 1px solid var(--gv-theme-neutral-color);
+  padding: 2rem 4rem;
+}
+
+.aside .page__box-content {
+  display: flex;
+  flex-direction: column;
+  //width: 100%;
+}
+
+.page__box-title h1,
+.page__box-title h2,
+.page__box-title h3 {
+  text-transform: uppercase;
 }
 
 h1.title {
@@ -87,7 +154,7 @@ h1.title {
   margin: 0;
 }
 
-h1.title span {
+.title span {
   color: var(--gv-theme-neutral-color-dark);
   font-weight: 600;
   font-size: var(--gv-theme-font-size-s);
@@ -100,14 +167,6 @@ h2.title {
   font-size: var(--gv-theme-font-size-xl);
   line-height: var(--gv-theme-font-size-xl);
   opacity: 0.5;
-}
-
-h2.title span {
-  color: var(--gv-theme-neutral-color-dark);
-  font-weight: 600;
-  font-size: var(--gv-theme-font-size-s);
-  line-height: var(--gv-theme-font-size-s);
-  margin-left: 8px;
 }
 
 h3.title {
@@ -125,6 +184,7 @@ h4.title {
   margin: 0;
   font-size: var(--gv-theme-font-size-m);
   line-height: var(--gv-theme-font-size-m);
+  opacity: 0.6;
 }
 
 .text-center {

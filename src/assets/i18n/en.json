@@ -139,8 +139,9 @@
       "title": "Client secret"
     },
     "delete": {
-      "label": "Remove",
-      "message": "Are you sure you want to delete this application?"
+      "cancel": "Cancel",
+      "message": "Are you sure you want to delete this application?",
+      "ok": "OK"
     },
     "description": {
       "label": "Describe the goal of this application",
@@ -285,7 +286,6 @@
       "label": "Renew the secret",
       "message": "Are you sure you want to renew the secret of your application?<br/> By renewing the secret, you will no longer be able to generate new access tokens and call the API."
     },
-    "save": "Save",
     "subscriptions": {
       "api": "API",
       "apiKey": {
@@ -490,11 +490,14 @@
         "title": "Select a time interval"
       }
     },
+    "delete": "Remove",
     "filters": {
       "title": "Filters"
     },
     "ok": "Validate",
+    "options": "Options",
     "reset": "Reset",
+    "save": "Save",
     "search": "Search",
     "status": {
       "ACCEPTED": "Accepted",
@@ -502,7 +505,8 @@
       "PAUSED": "Paused",
       "PENDING": "Waiting",
       "REJECTED": "Rejected"
-    }
+    },
+    "update": "Update"
   },
   "cookies": {
     "actions": {
@@ -529,8 +533,6 @@
     "email": {
       "required": "Please configure an e-mail to use the contact form"
     },
-    "picture_format_forbidden": "SVG format is not allowed",
-    "picture_too_big": "Image size must be less than 500KB",
     "plan": {
       "notSubscribable": "A client_id is required to subscribe to an OAuth2 or JWT plan.",
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."
@@ -741,8 +743,7 @@
       "text": "Don't have an account yet ?"
     },
     "title": "Who are you ?",
-    "username": "Username",
-    "withProviders": "Or"
+    "username": "Username"
   },
   "notFound": {
     "goHome": "Go Home",
@@ -872,8 +873,6 @@
       "empty": "No notification received",
       "read": "Read",
       "title": "Notifications"
-    },
-    "title": "My account",
-    "update": "Update"
+    }
   }
 }

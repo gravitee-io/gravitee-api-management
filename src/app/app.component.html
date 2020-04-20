@@ -40,28 +40,27 @@
 
             <div class="layout__nav__container" [ngClass]="{'layout__nav': displayShadowNav()}">
                 <gv-user-menu [routes]="userRoutes" [ngClass]="{'layout__user-menu': isHomepage}"
-                              [username]="this.getUserName()">
+                              [username]="userName">
                     <gv-identity-picture *ngIf="currentUser"
                                          rounded
                                          [display_name]="currentUser.display_name"
-                                         [picture]="currentUser._links.avatar"
+                                         [picture]="userPicture"
                                          [notification]="numberOfPortalNotifications"></gv-identity-picture>
                 </gv-user-menu>
             </div>
         </div>
 
         <gv-menu [routes]="menuRoutes" [sticky]="this.isSticky">
-            <ng-template appGvMenuTopSlot></ng-template>
-            <ng-template appGvMenuRightTransitionSlot></ng-template>
-            <ng-template appGvMenuRightSlot></ng-template>
+            <ng-template gvMenuTopSlot></ng-template>
+            <ng-template gvMenuRightTransitionSlot></ng-template>
+            <ng-template gvMenuRightSlot></ng-template>
         </gv-menu>
         <gv-message
             *ngIf="notification"
             [type]="notification.type"
             [innerHtml]="notification.message"
             [closable]="notification.closable"
-            (:gv-message:close)="onCloseNotification()"
-        ></gv-message>
+            (:gv-message:close)="onCloseNotification()"></gv-message>
 
     </header>
 

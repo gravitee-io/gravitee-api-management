@@ -16,7 +16,7 @@
 import { Directive, ViewContainerRef } from '@angular/core';
 
 @Directive({
-  selector: '[appGvPageContentSlot]'
+  selector: '[gvPageContentSlot]'
 })
 export class GvPageContentSlotDirective {
 

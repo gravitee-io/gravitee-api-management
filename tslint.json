@@ -20,7 +20,7 @@
     "directive-selector": [
       true,
       "attribute",
-      "app",
+      "gv",
       "camelCase"
     ],
     "component-selector": [

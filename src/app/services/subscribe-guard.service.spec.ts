@@ -24,8 +24,10 @@ describe('SubscribeGuardService', () => {
   beforeEach(() => TestBed.configureTestingModule({
     imports: [HttpClientTestingModule, RouterTestingModule],
   }));
+
   it('should be created', () => {
     const service: SubscribeGuardService = TestBed.inject(SubscribeGuardService);
     expect(service).toBeTruthy();
   });
+
 });

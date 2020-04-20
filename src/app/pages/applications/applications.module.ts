@@ -36,7 +36,6 @@ import { SubscriptionsComponent } from '../subscriptions/subscriptions.component
 import { ApplicationsRoutingModule } from './applications-routing.module';
 import { ApplicationsComponent } from './applications.component';
 
-
 @NgModule({
   declarations: [
     ApplicationsComponent,

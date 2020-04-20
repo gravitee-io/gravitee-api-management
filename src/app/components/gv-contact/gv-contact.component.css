@@ -13,24 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.gv-contact {
-  background-color: var(--gv-theme-neutral-color-lightest);
-  padding: 1.5rem 4rem;
-}
+@import "../../../../src/css/form.css";
 
-.gv-contact form {
-  max-width: 1076px;
-  display: flex;
-  flex-direction: column;
-  margin: 0 auto;
-}
-
-.gv-contact title {
-  margin-bottom: 1.5rem;
-}
-
-.gv-contact__input {
-  --gv-button--p: 1rem 2rem;
-  max-width: 250px;
-  align-self: flex-end;
-}

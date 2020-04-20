@@ -13,111 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.application {
-  display: flex;
-}
+@import "../../../../../src/css/form.css";
 
-.application__section {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  max-width: 80%;
-  margin: 0 32px;
-}
-
-.application__section__block {
-  background-color: white;
-  border-radius: 4px;
+.grid {
   display: grid;
-  padding: 24px 50px;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 2rem;
 }
 
-.application__subscriptions-filter__block {
-  background-color: var(--gv-theme-neutral-color-lighter);
-  border-radius: 4px;
-  padding: 10px 20px;
-  margin: 20px 0;
-}
 
-.application__subscriptions-filter__header__block {
-  display: flex;
-  margin-bottom: 10px;
-}
-
-.application__subscriptions-filter__reset {
-  display: flex;
-  margin-left: auto;
-  margin-right: 0;
-}
-
-.application__subscriptions-filter__inputs {
-  text-align: right;
-}
-
-.application__subscriptions-filter__input {
-  --gv-button--p: 1rem 2rem;
-  max-width: 250px;
-  align-self: flex-end;
-}
-
-.application__subscriptions__inputs {
-  display: flex;
-  margin-bottom: 10px;
-}
-
-.application__subscriptions__input {
-  width: 50%;
-}
-
-.application__aside {
-  display: flex;
-  flex-direction: column;
-}
-
-.application__section > *, .application__aside > * {
-  margin-bottom: 32px;
-}
-
-.application__aside__info {
-  background-color: var(--gv-theme-neutral-color-lightest);
-  border-radius: 4px;
-  padding: 12px 24px;
-}
-
-.application__aside__info span {
+.aside .page__box-content span,
+.aside .page__box-footer span {
   color: var(--gv-theme-neutral-color-dark);
   filter: contrast(0);
-  padding: 1px 5px 1px 0;
+  margin: 0.2rem;
+  box-sizing: border-box;
   line-height: 20px;
+  height: 20px;
 }
 
-.application__aside__info gv-input {
-  margin: 10px 0 5px 0;
+.aside .page__box-content gv-input {
   width: 100%;
 }
 
-.application__aside__info__apikeys {
+.aside .expired-keys {
   max-height: 40vh;
   overflow: auto;
 }
 
-.application__aside__info__apikey {
-  border-bottom: 1px solid var(--gv-theme-neutral-color-dark);
-  margin-bottom: 5px;
-  padding: 0 5px 10px 5px;
-}
-
-.application__aside__info__apikey__input {
-  display: flex;
-}
-
-gv-confirm {
-  --gv-button-primary--bgc:var(--gv-theme-danger-color, #FF5722);
+.aside gv-confirm {
   align-self: center;
   display: flex;
   justify-content: flex-end;
-}
-
-.application__aside__info__apikey__input__danger {
-  color: var(--gv-theme-danger-color, #FF5722);
 }

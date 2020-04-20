@@ -59,10 +59,12 @@ import { ItemResourceTypeEnum } from './model/itemResourceType.enum';
 })
 export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
+  static UPDATE_USER_AVATAR: ':gv-user:avatar';
   public mainRoutes: Promise<INavRoute[]>;
   public userRoutes: Promise<INavRoute[]>;
   public menuRoutes: Promise<INavRoute[]>;
   public currentUser: User;
+  public userPicture: string;
   public notification: Notification;
   public isPreview = false;
   public isSticky = false;
@@ -70,9 +72,9 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   public isStickyHomepage = false;
   public links: any = {};
   @ViewChild(GvMenuTopSlotDirective, { static: true }) appGvMenuTopSlot: GvMenuTopSlotDirective;
+
   @ViewChild(GvMenuRightTransitionSlotDirective, { static: true }) appGvMenuRightTransitionSlot: GvMenuRightTransitionSlotDirective;
   @ViewChild(GvMenuRightSlotDirective, { static: true }) appGvMenuRightSlot: GvMenuRightSlotDirective;
-
   @ViewChild('homepageBackground', { static: true }) homepageBackground;
   private slots: Array<GvSlot>;
   private homepageBackgroundHeight: number;
@@ -125,6 +127,9 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       this.currentUser = newCurrentUser;
       this.userRoutes = this.navRouteService.getUserNav();
       if (this.currentUser) {
+        setTimeout(() => {
+          this.userPicture = this.currentUser._links ? this.currentUser._links.avatar : null;
+        });
         this.loadNotifications();
         this.interval = setInterval(
           () => {
@@ -133,6 +138,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
           this.configurationService.get('scheduler.notificationsInSeconds') * 1000
         );
       } else {
+        this.userPicture = null;
         clearInterval(this.interval);
       }
     });
@@ -153,24 +159,26 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   private loadNotifications() {
     this.userService.getCurrentUserNotifications({ size: 1 }).toPromise().then((response) => {
-      const portalNotification = response.data[0];
-      const total = response.metadata.pagination ? response.metadata.pagination.total : 0;
-      if (this.numberOfPortalNotifications !== null && (total > this.numberOfPortalNotifications)) {
-        this.eventService.dispatch(new GvEvent(UserNotificationComponent.NEW));
-        const windowNotification = (window as any).Notification;
-        if (windowNotification) {
-          windowNotification.requestPermission()
-            .then((permission) => {
-              if (permission === 'granted') {
-                const n = new windowNotification(portalNotification.title, {
-                  body: portalNotification.message
-                });
-              }
-            });
+      if (response.data && response.data[0]) {
+        const portalNotification = response.data[0];
+        const total = response.metadata.pagination ? response.metadata.pagination.total : 0;
+        if (this.numberOfPortalNotifications !== null && (total > this.numberOfPortalNotifications)) {
+          this.eventService.dispatch(new GvEvent(UserNotificationComponent.NEW));
+          const windowNotification = (window as any).Notification;
+          if (windowNotification) {
+            windowNotification.requestPermission()
+              .then((permission) => {
+                if (permission === 'granted') {
+                  const n = new windowNotification(portalNotification.title, {
+                    body: portalNotification.message
+                  });
+                }
+              });
+          }
         }
+        this.numberOfPortalNotifications = total;
+        this.ref.detectChanges();
       }
-      this.numberOfPortalNotifications = total;
-      this.ref.detectChanges();
     });
   }
 
@@ -181,9 +189,11 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     }
     this.slots = [this.appGvMenuRightSlot, this.appGvMenuRightTransitionSlot, this.appGvMenuTopSlot];
 
-    this.eventService.events.subscribe((event) => {
+    this.eventService.subscribe((event) => {
       if (event.type === UserNotificationComponent.REMOVE) {
         this.loadNotifications();
+      } else if (event.type === AppComponent.UPDATE_USER_AVATAR) {
+        this.userPicture = event.details.data;
       }
     });
   }
@@ -196,6 +206,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   async ngOnDestroy() {
     sessionStorage.removeItem('gvPreview');
     clearInterval(this.interval);
+    this.eventService.unsubscribe();
   }
 
   @HostListener(':gv-theme:error', ['$event.detail'])
@@ -291,7 +302,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     });
   }
 
-  getUserName() {
+  get userName() {
     if (this.currentUser) {
       return this.currentUser.display_name;
     }

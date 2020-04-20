@@ -14,3 +14,28 @@
  * limitations under the License.
  */
 @import '../../../css/form.css';
+
+.page__box {
+  max-width: 30rem;
+  margin: auto;
+}
+
+.form .form__actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: inline-flex;
+  margin: 1rem 0;
+  justify-content: center;
+}
+
+.row div {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.form .btn__provider {
+  --gv-button--p: 0.4rem;
+}

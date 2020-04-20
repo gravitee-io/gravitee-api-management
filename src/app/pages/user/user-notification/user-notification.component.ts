@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 
 import { PortalNotification, UserService } from '@gravitee/ng-portal-webclient';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -31,7 +31,7 @@ import '@gravitee/ui-components/wc/gv-table';
   styleUrls: ['./user-notification.component.css']
 })
 
-export class UserNotificationComponent implements OnInit {
+export class UserNotificationComponent implements OnInit, OnDestroy {
 
   static NEW = 'gv-notifications:onNew';
   static REMOVE = 'gv-notifications:onRemove';
@@ -85,11 +85,15 @@ export class UserNotificationComponent implements OnInit {
       ]
     };
     this.loadNotifications();
-    this.eventService.events.subscribe(({ type }) => {
+    this.eventService.subscribe(({ type }) => {
       if (type === UserNotificationComponent.NEW) {
         this.loadNotifications();
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.eventService.unsubscribe();
   }
 
   loadNotifications() {

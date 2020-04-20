@@ -139,8 +139,9 @@
       "title": "Client secret"
     },
     "delete": {
-      "label": "Supprimer",
-      "message": "Êtes-vous sûr de vouloir supprimer cette application ?"
+      "cancel": "Annuler",
+      "message": "Êtes-vous sûr de vouloir supprimer cette application ?",
+      "ok": "OK"
     },
     "description": {
       "label": "Décrire le but de cette application",
@@ -285,7 +286,6 @@
       "label": "Renouveler le secret",
       "message": "Êtes-vous sûr de vouloir renouveler le secret de votre application ?<br/> En renouvelant le secret, vous ne pourrez plus générer de nouveaux jetons d'accès et appeler l'API."
     },
-    "save": "Sauvegarder",
     "subscriptions": {
       "api": "API",
       "apiKey": {
@@ -490,11 +490,14 @@
         "title": "Sélectionner un interval de temps"
       }
     },
+    "delete": "Supprimer",
     "filters": {
       "title": "Filtres"
     },
     "ok": "Valider",
+    "options": "Options",
     "reset": "Réinitialiser",
+    "save": "Sauvegarder",
     "search": "Rechercher",
     "status": {
       "ACCEPTED": "Acceptée",
@@ -502,7 +505,8 @@
       "PAUSED": "En pause",
       "PENDING": "En attente",
       "REJECTED": "Rejetée"
-    }
+    },
+    "update": "Mettre à jour"
   },
   "cookies": {
     "actions": {
@@ -529,8 +533,6 @@
     "email": {
       "required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
     },
-    "picture_format_forbidden": "Le format SVG n'est pas autorisé",
-    "picture_too_big": "La taille de l'image doit être inférieure à 500Ko",
     "plan": {
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
@@ -741,8 +743,7 @@
       "text": "Pas encore de compte ?"
     },
     "title": "Identifiez-vous",
-    "username": "Identifiant",
-    "withProviders": "Ou"
+    "username": "Identifiant"
   },
   "notFound": {
     "goHome": "Retour à l'accueil",
@@ -872,8 +873,6 @@
       "empty": "Aucune notification reçue",
       "read": "Lu",
       "title": "Notifications"
-    },
-    "title": "Mon compte",
-    "update": "Mettre à jour"
+    }
   }
 }

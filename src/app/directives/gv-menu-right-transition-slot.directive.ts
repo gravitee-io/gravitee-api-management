@@ -17,7 +17,7 @@ import { Directive, ViewContainerRef } from '@angular/core';
 import { GvSlot } from './gv-slot';
 
 @Directive({
-  selector: '[appGvMenuRightTransitionSlot]'
+  selector: '[gvMenuRightTransitionSlot]'
 })
 export class GvMenuRightTransitionSlotDirective extends GvSlot {
 

@@ -31,7 +31,7 @@
               },
               {
                 "glob": "*",
-                "input":  "node_modules/@gravitee/ui-components/assets/images",
+                "input": "node_modules/@gravitee/ui-components/assets/images",
                 "output": "images/"
               }
             ],
@@ -120,7 +120,7 @@
               },
               {
                 "glob": "*",
-                "input":  "node_modules/@gravitee/ui-components/assets/images",
+                "input": "node_modules/@gravitee/ui-components/assets/images",
                 "output": "images/"
               }
             ],

@@ -42,12 +42,9 @@ export class ResetPasswordComponent implements OnInit {
     this.isSubmitted = false;
   }
 
-  isFormValid() {
-    return this.resetPasswordForm.valid.valueOf();
-  }
 
   onSubmitResetPassword() {
-    if (this.isFormValid() && !this.isSubmitted) {
+    if (this.resetPasswordForm.valid && !this.isSubmitted) {
 
       const input: ResetUserPasswordInput = {
         username: this.resetPasswordForm.value.username,

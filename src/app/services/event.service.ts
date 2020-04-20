@@ -14,17 +14,26 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Event } from '@angular/router';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EventService {
   private eventSource = new BehaviorSubject<GvEvent>(new GvEvent(undefined));
-  events = this.eventSource.asObservable();
+  private events: Observable<GvEvent> = this.eventSource.asObservable();
 
   dispatch(event: GvEvent) {
     this.eventSource.next(event);
+  }
+
+  subscribe(next: (value: GvEvent) => void, error?: (error: any) => void, complete?: () => void) {
+    return this.events.subscribe(next, error, complete);
+  }
+
+  unsubscribe() {
+    this.eventSource.complete();
   }
 
 }
@@ -32,6 +41,7 @@ export class EventService {
 export class GvEvent {
   type: string;
   details: any;
+
   constructor(type: string, details: any = {}) {
     this.type = type;
     this.details = details;

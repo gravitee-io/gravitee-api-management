@@ -39,6 +39,7 @@ import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
 import { FormGroup, FormControl } from '@angular/forms';
+import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { NotificationService } from '../../../services/notification.service';
 import { CurrentUserService } from 'src/app/services/current-user.service';
 import StatusEnum = Subscription.StatusEnum;
@@ -225,11 +226,12 @@ export class ApplicationMembersComponent implements OnInit {
       }
     };
   }
+
   _renderDelete(confirmMessage: any, iconTitle: any) {
     return {
       type: 'gv-icon',
       width: '25px',
-      confirmMessage ,
+      confirm: { msg: confirmMessage, danger: true },
       condition: (item) => item.role !== 'PRIMARY_OWNER',
       attributes: {
         onClick: (item) => this.removeMember(item),
@@ -242,15 +244,15 @@ export class ApplicationMembersComponent implements OnInit {
   async isReadOnly() {
     let memberPermissions: string[];
     return this.permissionService.getCurrentUserPermissions({ applicationId: this.application.id })
-    .toPromise()
-    .then((permissions) => {
-      if (permissions) {
-        memberPermissions = permissions.MEMBER;
-        return !memberPermissions || memberPermissions.length === 0 || !memberPermissions.includes('U');
-      } else {
-        return true;
-      }
-    });
+      .toPromise()
+      .then((permissions) => {
+        if (permissions) {
+          memberPermissions = permissions.MEMBER;
+          return !memberPermissions || memberPermissions.length === 0 || !memberPermissions.includes('U');
+        } else {
+          return true;
+        }
+      });
   }
 
   loadMembersTable() {

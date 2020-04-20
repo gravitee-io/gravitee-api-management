@@ -15,126 +15,159 @@
     limitations under the License.
 
 -->
-<div class="page__content application">
-  <section class="application__section">
-    <div class="application__section__block">
-      <h2 class="title">{{'application.members.list.title' | translate}} <span *ngIf="members">({{ members.length }})</span></h2>
-      <gv-table [items]="members" [options]="membersOptions"order="user.display_name"></gv-table>
+
+<div class="page__content page__content-with-aside">
+
+  <div class="main">
+
+    <div class="page__box">
+      <div class="page__box-title">
+        <h3 class="title">{{'application.members.list.title' | translate}}
+          <span *ngIf="members">({{ members.length }})</span></h3>
+      </div>
+      <div class="page__box-content">
+        <gv-table [items]="members" [options]="membersOptions" order="user.display_name"></gv-table>
+      </div>
     </div>
 
-    <div class="application__section__block"  *ngIf="!readonly">
-      <h2 class="title">{{'application.members.add.title' | translate}}</h2>
-      <form [formGroup]="addMemberForm" (ngSubmit)="addMember()" class="application__section__block__form">
-        <div class="application__section__block__form__title">
-          <gv-button link (click)="resetAddMember()">{{'application.members.add.reset' | translate}}</gv-button>
-        </div>
-        <div class="application__section__block__form__content">
+    <form class="page__box form" [formGroup]="addMemberForm" (ngSubmit)="addMember()" *ngIf="!readonly">
+
+      <div class="page__box-title">
+        <h3 class="title">{{'application.members.add.title' | translate}}</h3>
+        <gv-button link (click)="resetAddMember()">{{'application.members.add.reset' | translate}}</gv-button>
+      </div>
+
+      <div class="page__box-content">
+        <div class="grid form__control">
           <gv-autocomplete [options]="userListForAddMember"
                            (:gv-autocomplete:search)="onSearchUserToAdd($event)"
                            (:gv-autocomplete:select)="onSelectUserToAdd($event)">
             <gv-input
-              icon-left="general:search"
-              type="search"
-              label="{{'application.members.add.user.name' | translate}}"
-              placeholder="{{'application.members.add.user.placeholder' | translate}}"
-              [value]="selectedUserToAddName"
-              [valid]="hasNewMember"
-              [invalid]="!hasNewMember"
-            ></gv-input>
+                icon-left="general:search"
+                type="search"
+                label="{{'application.members.add.user.name' | translate}}"
+                placeholder="{{'application.members.add.user.placeholder' | translate}}"
+                [value]="selectedUserToAddName"
+                [valid]="hasNewMember"
+                [invalid]="!hasNewMember"></gv-input>
           </gv-autocomplete>
-          <div></div>
           <gv-select
-            label="{{'application.members.add.role.name' | translate}}"
-            placeholder="{{'application.members.add.role.placeholder' | translate}}"
-            [options]="roles"
-            formControlName="newMemberRole"
-            name="newMemberRole"
-            required="true"
-            ngDefaultControl
-          ></gv-select>
-        </div>
-        <div class="application__section__block__form__action">
-          <gv-button [disabled]="(addMemberForm.invalid || !hasNewMember)" type="submit" primary>{{'application.members.add.add' | translate}}</gv-button>
-        </div>
-      </form>
-    </div>
+              label="{{'application.members.add.role.name' | translate}}"
+              placeholder="{{'application.members.add.role.placeholder' | translate}}"
+              [options]="roles"
+              formControlName="newMemberRole"
+              name="newMemberRole"
+              required="true"
+              ngDefaultControl></gv-select>
 
-    <div class="application__section__block" *ngIf="!readonly">
-      <h2 class="title">{{'application.members.transferOwnership.title' | translate}}</h2>
-      <form [formGroup]="transferOwnershipForm" class="application__section__block__form">
-        <div class="application__section__block__form__title">
-          <gv-button link (click)="resetTransferOwnership()">{{'application.members.transferOwnership.reset' | translate}}</gv-button>
-          <span><gv-icon shape="code:info"></gv-icon>{{'application.members.transferOwnership.information' | translate}}</span>
         </div>
-        <div class="application__section__block__form__content">
-          <gv-autocomplete [options]="userListForTransferOwnership"
-                           (:gv-autocomplete:search)="onSearchUserForTransferOwnership($event)"
-                           (:gv-autocomplete:select)="onSelectUserForTransferOwnership($event)">
-            <gv-input
+
+        <div class="form__actions">
+          <gv-button [disabled]="(addMemberForm.invalid || !hasNewMember)" type="submit"
+                     primary>{{'application.members.add.add' | translate}}</gv-button>
+        </div>
+
+      </div>
+
+
+    </form>
+
+    <form [formGroup]="transferOwnershipForm" class="page__box form" *ngIf="!readonly">
+
+      <div class="page__box-title">
+        <h3 class="title">{{'application.members.transferOwnership.title' | translate}}</h3>
+        <gv-button link
+                   (click)="resetTransferOwnership()">{{'application.members.transferOwnership.reset' | translate}}</gv-button>
+      </div>
+
+      <div class="page__box-content">
+        <p><gv-icon shape="code:info"></gv-icon> {{'application.members.transferOwnership.information' | translate}}</p>
+        <gv-autocomplete [options]="userListForTransferOwnership"
+                         class="form__control"
+                         (:gv-autocomplete:search)="onSearchUserForTransferOwnership($event)"
+                         (:gv-autocomplete:select)="onSelectUserForTransferOwnership($event)">
+          <gv-input
               icon-left="general:search"
               type="search"
               label="{{'application.members.transferOwnership.newPrimaryOwner.name' | translate}}"
               placeholder="{{'application.members.transferOwnership.newPrimaryOwner.placeholder' | translate}}"
               [value]="selectedUserForTransferOwnershipName"
               [valid]="hasUserForTransferOwnership"
-              [invalid]="!hasUserForTransferOwnership"
+              [invalid]="!hasUserForTransferOwnership"></gv-input>
+        </gv-autocomplete>
 
-            ></gv-input>
-          </gv-autocomplete>
-        </div>
-        <div class="application__section__block__form__content">
-          <div class="application__section__block__form__content__username">
-            <gv-identity-picture [picture]="application ? application.owner._links.avatar : ''" [display_name]="application ? application.owner.display_name : ''"></gv-identity-picture>
-            <span>{{application ? application.owner.display_name : ''}}</span>
+        <div class="grid-transfer form__control">
+          <div class="grid-owner">
+            <gv-identity-picture [picture]="application ? application.owner._links.avatar : ''"
+                                 [display_name]="application ? application.owner.display_name : ''"></gv-identity-picture>
+            <div class="owner">{{application ? application.owner.display_name : ''}}</div>
           </div>
           <gv-select
-            label="{{'application.members.transferOwnership.currentPrimaryOwnerNewRole.name' | translate}}"
-            placeholder="{{'application.members.transferOwnership.currentPrimaryOwnerNewRole.placeholder' | translate}}"
-            [options]="roles"
-            formControlName="primaryOwnerNewRole"
-            name="primaryOwnerNewRole"
-            required="true"
-            ngDefaultControl
-          ></gv-select>
+              label="{{'application.members.transferOwnership.currentPrimaryOwnerNewRole.name' | translate}}"
+              placeholder="{{'application.members.transferOwnership.currentPrimaryOwnerNewRole.placeholder' | translate}}"
+              [options]="roles"
+              formControlName="primaryOwnerNewRole"
+              name="primaryOwnerNewRole"
+              required="true"
+              ngDefaultControl>
+          </gv-select>
         </div>
-        <div class="application__section__block__form__action">
-          <gv-confirm
+
+      </div>
+
+      <div class="page__box-footer form__actions">
+        <gv-confirm
+            danger
             message="{{'application.members.transferOwnership.confirm.message' | translate : {name: this.selectedUserForTransferOwnershipName} }}"
             okLabel="{{'application.members.transferOwnership.confirm.ok' | translate}}"
             cancelLabel="{{'application.members.transferOwnership.confirm.cancel' | translate}}"
             icon="code:warning#2"
             (:gv-confirm:ok)="transferOwnership()">
-            <gv-button danger [disabled]="(transferOwnershipForm.invalid || !hasUserForTransferOwnership)">
-              {{'application.members.transferOwnership.transfer' | translate}}
-            </gv-button>
-          </gv-confirm>
-        </div>
-      </form>
-    </div>
-
-    <div class="application__section__block" *ngIf="groups && groups.length > 0">
-      <h2 class="title">{{'application.members.inherited.title' | translate}}</h2>
-
-      <div *ngFor="let group of groups" class="groupMembers">
-        <h3 class="title">
-          {{'application.members.inherited.groupTitle' | translate: {nbMembers: group.nbGroupMembers, groupName: group.groupName} }}
-          <gv-button link (click)="toggleGroupMembers($event)">
-            <span class="hideTable">{{'application.members.inherited.hide' | translate}}</span>
-            <span class="showTable">{{'application.members.inherited.show' | translate}}</span>
+          <gv-button danger [disabled]="(transferOwnershipForm.invalid || !hasUserForTransferOwnership)">
+            {{'application.members.transferOwnership.transfer' | translate}}
           </gv-button>
-        </h3>
-        <gv-table
-          class="groupMembersTable"
-          [items]="group.groupMembers"
-          [options]="groupMembersOptions"
-          order="user.display_name">
-        </gv-table>
+        </gv-confirm>
       </div>
-    </div>
-  </section>
 
-  <aside class="application__aside">
-    <gv-info [item]="application" [miscellaneous]="miscellaneous"></gv-info>
-    <gv-list [items]="connectedApis" title="{{ 'application.list.connectedApis' | translate }}" clickable></gv-list>
+    </form>
+
+    <div class="page__box" *ngIf="groups && groups.length > 0">
+
+      <div class="page__box-title">
+        <h3 class="title">{{'application.members.inherited.title' | translate}}</h3>
+      </div>
+
+      <div class="page__box-content">
+        <div *ngFor="let group of groups" class="groupMembers">
+          <h3 class="title">
+            {{'application.members.inherited.groupTitle' | translate: {
+            nbMembers: group.nbGroupMembers,
+            groupName: group.groupName
+          } }}
+            <gv-button link (click)="toggleGroupMembers($event)">
+              <span class="hideTable">{{'application.members.inherited.hide' | translate}}</span>
+              <span class="showTable">{{'application.members.inherited.show' | translate}}</span>
+            </gv-button>
+          </h3>
+          <gv-table
+              class="groupMembersTable"
+              [items]="group.groupMembers"
+              [options]="groupMembersOptions"
+              order="user.display_name">
+          </gv-table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <aside class="aside">
+
+    <gv-info class="page__box" [item]="application" [miscellaneous]="miscellaneous"></gv-info>
+
+    <gv-list class="page__box" [items]="connectedApis" title="{{ 'application.list.connectedApis' | translate }}" clickable></gv-list>
   </aside>
+
 </div>
+

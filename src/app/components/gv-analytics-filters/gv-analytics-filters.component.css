@@ -13,61 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.gv-analytics-filter__block {
-  background-color: white;
-  border-radius: 4px;
-  padding: 10px 34px;
-}
 
-.gv-analytics-filter__dashboard {
-  float: right;
-}
+@import "../../../../src/css/form.css";
 
-.gv-analytics-filter__header__block {
-  border-bottom: 1px solid #E8E8E8;
-  display: flex;
-  margin-bottom: 20px;
-}
-
-.gv-analytics-filter__reset {
-  display: flex;
-  margin-left: auto;
-  margin-right: 0;
-}
-
-.gv-analytics-filter__timeframes {
-  text-align: center;
-}
-
-.gv-analytics-filter__showhide {
-  float: right;
-}
-
-.gv-analytics-filter__option {
+.timeframe gv-option {
   --gv-option-button--maw: 75px;
   width: 100%;
 }
 
-.gv-analytics-filter__tags {
-  float: left;
+.timepicker {
+  display: flex;
+  flex-direction: row;
 }
 
-.gv-analytics-filter__inputs {
-  text-align: right;
+.timepicker gv-date-picker {
+  flex: 1;
 }
 
-.gv-analytics-filter__input {
-  --gv-button--p: 1rem 2rem;
-  max-width: 250px;
-  align-self: flex-end;
-}
-
-.gv-analytics-filters {
-  margin: 20px 0;
-}
-
-.gv-analytics-filters__advanced {
+.grid-filters {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-gap: 20px;
+  grid-gap: 1rem;
 }

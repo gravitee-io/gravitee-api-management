@@ -13,10 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.application__section {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  margin: 0 32px;
-  --gv-table-header--fz: 20px;
-}

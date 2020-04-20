@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { IdentityProvider, PortalService } from '@gravitee/ng-portal-webclient';
@@ -37,6 +37,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   loginForm: FormGroup;
   registrationEnabled: boolean;
+  loginEnabled: boolean;
   providers: IdentityProvider[];
   private redirectUrl: string;
   firstClickHandler: any;
@@ -51,34 +52,33 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
   ) {
 
-    if (config.hasFeature(FeatureEnum.localLogin)) {
-      this.loginForm = this.formBuilder.group({
-        username: '',
-        password: '',
-      });
-    }
-    this.registrationEnabled = config.hasFeature(FeatureEnum.userRegistration);
-    this.firstClickHandler = this.onFirstClick.bind(this);
+
   }
 
   ngOnInit() {
+    this.firstClickHandler = this.onFirstClick.bind(this);
+
+    this.loginForm = this.formBuilder.group({ username: '', password: '', });
+    this.loginEnabled = this.config.hasFeature(FeatureEnum.localLogin);
+    this.registrationEnabled = this.config.hasFeature(FeatureEnum.userRegistration);
     this.redirectUrl = this.activatedRoute.snapshot.queryParams.redirectUrl || '/';
-    this.portalService.getPortalIdentityProviders()
-      .subscribe(
-        (configurationIdentitiesResponse) => {
-          this.providers = configurationIdentitiesResponse.data;
-        },
-        (error) => {
-          console.error('something wrong occurred with identity providers: ' + error.statusText);
-        }
-      );
+    this.portalService.getPortalIdentityProviders().subscribe(
+      (configurationIdentitiesResponse) => {
+        this.providers = configurationIdentitiesResponse.data;
+      },
+      (error) => {
+        console.error('something wrong occurred with identity providers: ' + error.statusText);
+      }
+    );
 
   }
 
   private onFirstClick() {
-    document.querySelectorAll('gv-input').forEach((element) => element.setAttribute('required', ''));
     this.loginForm.get('username').setValidators(Validators.required);
+    this.loginForm.get('username').setValue(null);
     this.loginForm.get('password').setValidators(Validators.required);
+    this.loginForm.get('password').setValue(null);
+    this.loginForm.markAllAsTouched();
     window.removeEventListener('click', this.firstClickHandler);
   }
 

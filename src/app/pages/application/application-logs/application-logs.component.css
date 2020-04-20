@@ -13,40 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.application {
+
+.pagination__block {
   display: flex;
+  justify-content: flex-end;
 }
+
 
 .application__section {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  margin: 0 32px;
-}
-
-.application__logs__block {
-  background-color: white;
-  border-radius: 4px;
-  padding: 10px 34px;
-  margin: 20px 0;
-}
-
-.application__logs__header__block {
-  border-bottom: 1px solid #E8E8E8;
-  margin-bottom: 20px;
-}
-
-.application__logs__pagination__block {
-  display: flex;
-  float: right;
-}
-
-.application__logs__pagination__size__block {
-  width: 60px;
-}
-
-.application__logs__pagination__pagination__block {
-  display: flex;
 }
 
 .application__log__block {

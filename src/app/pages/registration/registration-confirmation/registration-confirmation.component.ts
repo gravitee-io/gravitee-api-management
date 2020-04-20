@@ -13,13 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { Component, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import {
+  AbstractControl,
+  AbstractControlOptions, AsyncValidatorFn,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
+import { unwrapLazyLoadHelperCall } from '@angular/localize/src/tools/src/translate/source_files/source_file_utils';
 import { ActivatedRoute } from '@angular/router';
 import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from '../../../services/notification.service';
 import { TokenService } from '../../../services/token.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+
+
+export function sameValueValidator(field: AbstractControl): ValidatorFn {
+  return (control: AbstractControl): { [key: string]: any } | null => {
+    const forbidden = field.valid && field.value !== control.value;
+    return forbidden ? { passwordError: { value: control.value } } : null;
+  };
+}
 
 @Component({
   selector: 'app-registration-confirmation',
@@ -49,34 +67,30 @@ export class RegistrationConfirmationComponent implements OnInit {
     this.userFromToken = this.tokenService.parseToken(this.token);
     this.isTokenExpired = this.tokenService.isParsedTokenExpired(this.userFromToken);
 
-    if (!this.isTokenExpired) {
-      this.registrationConfirmationForm = this.formBuilder.group({
-        firstname: this.userFromToken.firstname,
-        lastname: this.userFromToken.lastname,
-        email: this.userFromToken.email,
-        password: '',
-        confirmedPassword: ''
-      });
-    } else {
+    this.registrationConfirmationForm = this.formBuilder.group({
+      firstname: new FormControl({ value: this.userFromToken.firstname, disabled: true }),
+      lastname: new FormControl({ value: this.userFromToken.lastname, disabled: true }),
+      email: new FormControl({ value: this.userFromToken.email, disabled: true }),
+      password: new FormControl('', Validators.required),
+      confirmedPassword: new FormControl('', Validators.required)
+    });
+
+    this.registrationConfirmationForm.get('confirmedPassword')
+      .setValidators([Validators.required, sameValueValidator(this.registrationConfirmationForm.get('password'))]);
+
+    if (this.isTokenExpired) {
       this.notificationService.info(i18n('registrationConfirmation.tokenExpired'));
     }
   }
 
-  isFormValid() {
-    return this.registrationConfirmationForm.valid.valueOf() &&
-      (this.registrationConfirmationForm.value.password === this.registrationConfirmationForm.value.confirmedPassword);
-  }
-
   onSubmitRegistrationConfirmationForm() {
-    if (this.isFormValid() && !this.isSubmitted) {
-
+    if (this.registrationConfirmationForm.valid && !this.isSubmitted) {
       const input: FinalizeRegistrationInput = {
         token: this.token,
         password: this.registrationConfirmationForm.value.password,
-        firstname: this.registrationConfirmationForm.value.firstname,
-        lastname: this.registrationConfirmationForm.value.lastname
+        firstname:this.userFromToken.firstname,
+        lastname: this.userFromToken.lastname
       };
-      // call the register resource from the API.
       this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input }).subscribe(
         () => {
           this.notificationService.success(i18n('registrationConfirmation.notification.success'));

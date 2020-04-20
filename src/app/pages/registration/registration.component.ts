@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { RegisterUserInput, UsersService } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from '../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -32,24 +32,20 @@ export class RegistrationComponent implements OnInit {
     private usersService: UsersService,
     private formBuilder: FormBuilder,
     private notificationService: NotificationService,
-  ) {}
-
-  ngOnInit() {
-    this.registrationForm = this.formBuilder.group({
-      firstname: '',
-      lastname: '',
-      email: '',
-    });
+  ) {
     this.isSubmitted = false;
   }
 
-  isFormValid() {
-    return this.registrationForm.valid.valueOf();
+  ngOnInit() {
+    this.registrationForm = this.formBuilder.group({
+      firstname: new FormControl('', Validators.required),
+      lastname: new FormControl('', Validators.required),
+      email: new FormControl('', [Validators.required, Validators.email]),
+    });
   }
 
   onSubmitRegistration() {
-    if (this.isFormValid() && !this.isSubmitted) {
-
+    if (this.registrationForm.valid && !this.isSubmitted) {
       const input: RegisterUserInput = {
         email: this.registrationForm.value.email,
         firstname: this.registrationForm.value.firstname,

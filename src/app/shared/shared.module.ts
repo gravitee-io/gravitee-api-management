@@ -21,6 +21,7 @@ import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-transl
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
+import { GvFormControlDirective } from '../directives/gv-form-control.directive';
 
 import { ApiLabelsPipe } from './../pipes/api-labels.pipe';
 import { SafePipe } from './../pipes/safe.pipe';
@@ -30,6 +31,7 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
     ApiLabelsPipe,
     ApiStatesPipe,
     SafePipe,
+    GvFormControlDirective,
   ],
   imports: [
     CommonModule,
@@ -52,6 +54,7 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
     HttpClientModule,
     ReactiveFormsModule,
     OAuthModule,
+    GvFormControlDirective,
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA

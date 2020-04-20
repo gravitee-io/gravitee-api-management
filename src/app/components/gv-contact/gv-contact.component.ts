@@ -16,7 +16,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ApiService, ApplicationService, PortalService } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from '../../services/notification.service';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { LoaderService } from '../../services/loader.service';
 import { CurrentUserService } from '../../services/current-user.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -52,7 +52,14 @@ export class GvContactComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.initFormGroup();
+    this.contactForm = this.formBuilder.group({
+      api: this.apiId || null,
+      application: null,
+      subject: new FormControl(null, Validators.required),
+      content: new FormControl(null, Validators.required),
+      copy_to_sender: false,
+    });
+
     this.applicationService.getApplications({ size: -1 })
       .subscribe((response) => {
         this.applications = response.data.map(application => {
@@ -75,21 +82,16 @@ export class GvContactComponent implements OnInit {
     }
   }
 
-  initFormGroup() {
-    this.contactForm = this.formBuilder.group({
-      api: this.apiId || null,
-      application: null,
-      subject: '',
-      content: '',
-      copy_to_sender: false,
-    });
+  reset() {
+    this.contactForm.reset();
   }
+
 
   submit() {
     if (!this.loaderService.get()) {
       this.portalService.createTicket({ TicketInput: this.contactForm.value }).subscribe(() => {
         this.notificationService.success(i18n('gv-contact.success'));
-        this.initFormGroup();
+        this.contactForm.reset();
       });
     }
   }

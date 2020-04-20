@@ -13,103 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- .application {
+@import "../../../../../src/css/form.css";
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 2rem;
+}
+
+.grid-transfer {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-gap: 2rem;
+}
+
+.grid-owner {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  grid-gap: 2rem;
+}
+
+.owner {
   display: flex;
-}
-
-.application__section {
-  display: block;
-  flex-direction: column;
-  flex: 1 1 auto;
-  max-width: 80%;
-  margin: 0 32px;
-}
-
-.application__section__block {
-  background-color: white;
-  border-radius: 4px;
-  padding: 24px 50px;
-}
-
-.application__section__block__form {
-  display: flex;
-  flex-direction: column;
-  margin: 0.2rem;
-  padding: 24px;
-  background-color: var(--gv-theme-neutral-color-lighter);
-}
-
-.application__section__block__form > * {
-  margin: 12px 0px;
-}
-
-.application__section__block__form__title {
-  display: flex;
-  flex-direction: row-reverse;
-  justify-content: space-between;
-}
-
-.application__section__block__form__content {
-  display: flex;
-}
-
-.application__section__block__form__content > gv-select,
-.application__section__block__form__content > gv-input,
-.application__section__block__form__content > gv-autocomplete {
-  flex: 1
-}
-
-.application__section__block__form__content > gv-select {
-  margin-left: 1rem;
-}
-
-.application__section__block__form__content__username {
-  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  width: 175px;
-  line-height: 40px;
-  padding: 16px 24px 0 24px;
-}
-
-.application__section__block__form__content__username gv-identity-picture {
-  height: 40px;
-  width: 40px;
-}
-
-.application__section__block__form__content__username span {
-  flex: 1;
-  text-align: center;
-  margin:0 0.4rem;
-}
-
-.application__section__block__form__action {
-  max-width: 250px;
-  align-self: flex-end;
-}
-
-gv-button {
-  --gv-button--p: 1rem 2rem;
 }
 
 gv-confirm {
   --gv-confirm--maw: 500px;
-  --gv-button-primary--bgc:var(--gv-theme-danger-color, #FF5722);
 }
 
-.application__aside {
-  display: flex;
-  flex-direction: column;
-}
-
-.application__section > *, .application__aside > * {
- margin-bottom: 32px;
-}
-
-.groupMembersTable, .hideTable, .groupMembers.show .showTable {
-  display: none;
-}
-
-.groupMembers.show .groupMembersTable, .groupMembers.show .hideTable {
-  display: block;
+gv-identity-picture {
+  height: 60px;
+  width: 60px;
 }

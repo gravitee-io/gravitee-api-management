@@ -15,63 +15,65 @@
     limitations under the License.
 
 -->
-<div class="page__content page__content__registration">
-  <div class="registration">
-    <h1 *ngIf="registrationForm">{{ 'registration.title' | translate }}</h1>
+<form class="page__content form" [formGroup]="registrationForm" (ngSubmit)="onSubmitRegistration()">
 
-    <form *ngIf="registrationForm && !isSubmitted" [formGroup]="registrationForm" (ngSubmit)="onSubmitRegistration()">
-      <gv-input
-        large
-        required
-        label="{{ 'registration.firstname' | translate }}"
-        formControlName="firstname"
-        name="firstname"
-        autocomplete="on"
-        autofocus
-        ngDefaultControl
-        class="registration__form__input"
-      >
-      </gv-input>
-      <gv-input
-        large
-        required
-        label="{{ 'registration.lastname' | translate }}"
-        formControlName="lastname"
-        autocomplete="on"
-        name="lastname"
-        ngDefaultControl
-        class="registration__form__input"
-      >
-      </gv-input>
-      <gv-input
-        large
-        required
-        type="email"
-        label="{{ 'registration.email' | translate }}"
-        formControlName="email"
-        autocomplete="on"
-        name="email"
-        ngDefaultControl
-        [email]="true"
-        class="registration__form__input"
-      >
-      </gv-input>
+  <div class="page__box">
 
+    <div class="page__box-title">
+      <h3>{{ 'registration.title' | translate }}</h3>
+    </div>
+
+    <div class="page__box-content" *ngIf="!isSubmitted">
+      <gv-input
+          large
+          class="form__control"
+          label="{{ 'registration.firstname' | translate }}"
+          formControlName="firstname"
+          name="firstname"
+          autocomplete="on"
+          autofocus
+          ngDefaultControl
+          gvControl>
+      </gv-input>
+      <gv-input
+          large
+          class="form__control"
+          label="{{ 'registration.lastname' | translate }}"
+          formControlName="lastname"
+          autocomplete="on"
+          name="lastname"
+          ngDefaultControl
+          gvControl>
+      </gv-input>
+      <gv-input
+          large
+          class="form__control"
+          type="email"
+          label="{{ 'registration.email' | translate }}"
+          formControlName="email"
+          autocomplete="on"
+          name="email"
+          ngDefaultControl
+          gvControl>
+      </gv-input>
+    </div>
+
+    <div class="page__box-footer form__actions">
       <gv-button
-        [disabled]="!isFormValid() || isSubmitted"
-        primary
-        type="submit"
-        class="registration__form__input"
-      >
+          *ngIf="!this.isSubmitted"
+          [disabled]="this.registrationForm.pristine || this.registrationForm.invalid"
+          primary
+          type="submit">
         {{ 'registration.button' | translate }}
       </gv-button>
-    </form>
 
-    <p class="text-center">
-      <a *ngIf="registrationForm && !isSubmitted" routerLink="/user/login">{{ "registration.backLogin" | translate }}</a>
-    </p>
+      <p class="text-center">
+        <gv-button link *ngIf="!isSubmitted" routerLink="/user/login">{{ "registration.backLogin" | translate }}</gv-button>
+        <gv-button link *ngIf="isSubmitted" routerLink="/" class="text-center">{{ "registration.backHome" | translate }}</gv-button>
+      </p>
 
-    <a *ngIf="isSubmitted" routerLink="/" class="text-center">{{ "registration.backHome" | translate }}</a>
+    </div>
 
   </div>
-</div>
+
+</form>

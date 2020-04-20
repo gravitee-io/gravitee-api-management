@@ -16,7 +16,7 @@
 import '@gravitee/ui-components/wc/gv-header';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Api, Application, User, PortalService } from '@gravitee/ng-portal-webclient';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CurrentUserService } from '../../services/current-user.service';
 import { EventService } from '../../services/event.service';
 import { NavRouteService } from '../../services/nav-route.service';
@@ -25,7 +25,7 @@ import { NavRouteService } from '../../services/nav-route.service';
   selector: 'app-gv-header-item',
   templateUrl: './gv-header-item.component.html',
 })
-export class GvHeaderItemComponent implements OnInit {
+export class GvHeaderItemComponent implements OnInit, OnDestroy {
   static RELOAD_EVENT = ':gv-header-item:reload';
   static UPDATE_PICTURE = ':gv-header-item:picture';
   static UPDATE_NAME = ':gv-header-item:name';
@@ -54,7 +54,7 @@ export class GvHeaderItemComponent implements OnInit {
       }
     });
 
-    this.eventService.events.subscribe((event) => {
+    this.eventService.subscribe((event) => {
       if (event.type === GvHeaderItemComponent.RELOAD_EVENT) {
         this.loadData();
       } else if (event.type === GvHeaderItemComponent.UPDATE_PICTURE) {
@@ -63,6 +63,10 @@ export class GvHeaderItemComponent implements OnInit {
         this.item = Object.assign({}, this.item, { name: event.details.data });
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.eventService.unsubscribe();
   }
 
   private loadData() {

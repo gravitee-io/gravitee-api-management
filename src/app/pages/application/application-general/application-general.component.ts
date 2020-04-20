@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-rating-list';
@@ -42,8 +42,7 @@ import StatusEnum = Subscription.StatusEnum;
   templateUrl: './application-general.component.html',
   styleUrls: ['./application-general.component.css']
 })
-export class ApplicationGeneralComponent implements OnInit {
-
+export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   applicationForm: FormGroup;
   application: Application;
   connectedApis: Promise<any[]>;
@@ -65,6 +64,10 @@ export class ApplicationGeneralComponent implements OnInit {
     private permissionsService: PermissionsService,
     private eventService: EventService
   ) {
+  }
+
+  ngOnDestroy() {
+    this.reset();
   }
 
   ngOnInit() {
@@ -134,10 +137,8 @@ export class ApplicationGeneralComponent implements OnInit {
   }
 
   reset() {
-    this.applicationForm.patchValue(this.application);
-    if(this.application.picture == null){
-      // Force picture
-      this.applicationForm.get('picture').setValue( null);
+    if (this.applicationForm) {
+      this.applicationForm.reset(this.application);
     }
   }
 

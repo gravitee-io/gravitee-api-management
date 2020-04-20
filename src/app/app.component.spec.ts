@@ -15,6 +15,8 @@
  */
 import { TestBed, async } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { UserService } from '@gravitee/ng-portal-webclient';
+import { Observable, of } from 'rxjs';
 import { AppComponent } from './app.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Title } from '@angular/platform-browser';
@@ -23,6 +25,7 @@ import { NotificationService } from './services/notification.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TranslateTestingModule } from './test/translate-testing-module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { UserTestingModule } from './test/user-testing-module';
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
@@ -31,7 +34,8 @@ describe('AppComponent', () => {
         RouterTestingModule,
         HttpClientTestingModule,
         TranslateTestingModule,
-        BrowserAnimationsModule
+        BrowserAnimationsModule,
+        UserTestingModule
       ],
       declarations: [
         AppComponent
@@ -50,11 +54,14 @@ describe('AppComponent', () => {
   let titleMock: Title;
   let notificationService;
   let navRouteService;
+  let userService;
   beforeEach(() => {
     titleMock = TestBed.inject(Title);
     notificationService = TestBed.inject(NotificationService);
     navRouteService = TestBed.inject(NavRouteService);
     navRouteService.getUserNav = jasmine.createSpy().and.returnValue([]);
+    userService = TestBed.inject(UserService);
+    userService.getCurrentUserNotifications = jasmine.createSpy().and.returnValue(of({}));
     fixture = TestBed.createComponent(AppComponent);
     app = fixture.componentInstance;
   });
