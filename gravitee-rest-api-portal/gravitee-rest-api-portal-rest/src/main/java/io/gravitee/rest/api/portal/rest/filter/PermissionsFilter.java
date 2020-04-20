@@ -104,6 +104,9 @@ public class PermissionsFilter implements ContainerRequestFilter {
     protected boolean hasPermission(ContainerRequestContext requestContext, String username, Permission permission) {
         Map<String, char[]> memberPermissions;
         switch (permission.value().getScope()) {
+            case ORGANIZATION:
+                memberPermissions = membershipService.getUserMemberPermissions(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization(), username);
+                return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
             case ENVIRONMENT:
                 memberPermissions = membershipService.getUserMemberPermissions(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), username);
                 return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
