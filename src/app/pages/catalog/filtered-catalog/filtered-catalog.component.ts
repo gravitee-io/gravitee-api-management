@@ -221,11 +221,11 @@ export class FilteredCatalogComponent implements OnInit {
         }
 
         this.allApis = allList.map((a) => {
-          const metric = this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise();
+          const metrics = this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise();
           a.states = this.apiStates.transform(a);
           a.labels = this.apiLabels.transform(a);
           const item = Promise.resolve(a);
-          return { item, metric };
+          return { item, metrics };
         });
 
       })
