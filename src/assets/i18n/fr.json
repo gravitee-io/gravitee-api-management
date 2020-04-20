@@ -632,8 +632,8 @@
   },
   "gv-metrics": {
     "health": "Santé",
-    "hits": "Appels (7 derniers jours)",
-    "subscribers": "Souscriptions"
+    "hits": "{count, plural, =0{Appel} one{Appel} other{Appels}} (7 derniers jours)",
+    "subscribers": "{count, plural, =0{Souscription} one{Souscription} other{Souscriptions}}"
   },
   "gv-page": {
     "swagger": {
