@@ -88,8 +88,11 @@ export class GvDocumentationComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     setTimeout(() => {
-      const { height } = window.getComputedStyle(document.querySelector('header'));
-      this.treeMenu.style.top = height;
+      const element = document.querySelector('header');
+      if (element) {
+        const { height } = window.getComputedStyle(element);
+        this.treeMenu.style.top = height;
+      }
     });
   }
 

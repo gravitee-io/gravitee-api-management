@@ -227,7 +227,9 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   private computeHomepageHeight() {
     if (this.isHomepage) {
       setTimeout(() => {
-        this.homepageBackgroundHeight = parseInt(window.getComputedStyle(this.homepageBackground.nativeElement).height, 10);
+        if (this.homepageBackground.nativeElement) {
+          this.homepageBackgroundHeight = parseInt(window.getComputedStyle(this.homepageBackground.nativeElement).height, 10);
+        }
       }, 0);
     }
   }
