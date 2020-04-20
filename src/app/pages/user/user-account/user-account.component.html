@@ -15,26 +15,57 @@
     limitations under the License.
 
 -->
+
 <div class="page__content">
-  <h1 class="title">{{'user.title' | translate}}</h1>
-  <div class="account__container">
-    <section class="account">
-      <h2>{{'user.account.title' | translate}}</h2>
-      <div class="account__user-info">
-        <div class="account__user-info__avatar">
-          <gv-identity-picture [display_name]="currentUser.display_name" [picture]="avatar"></gv-identity-picture>
-          <app-gv-file-upload [label]="'user.change_picture' | translate" (fileLoad)="onFileLoad($event)"></app-gv-file-upload>
-          <gv-button primary (click)="update()" [disabled]="!avatar">{{ "user.update" | translate}}</gv-button>
-        </div>
-        <p>
-          <b>{{'user.display_name' | translate}} </b>
-          <span>{{ displayName }}</span>
-        </p>
-        <p>
-          <b>{{'user.email' | translate}} </b>
-          <span>{{ email }}</span>
-        </p>
-      </div>
+
+    <section>
+        <form [formGroup]="userForm" (ngSubmit)="submit()" class="form">
+
+            <div class="form__title">
+                <h2 class="title">{{ "user.account.title" | translate}}</h2>
+                <gv-button (click)="reset()" link>
+                    {{ 'common.reset' | translate }}
+                </gv-button>
+            </div>
+
+            <div class="grid">
+                <div>
+                    <gv-file-upload
+                            [label]="'user.change_picture' | translate"
+                            name="avatar"
+                            formControlName="avatar"
+                            ngDefaultControl
+                            accept="image/*"
+                            expect=".svg"
+                            limit="500000"
+                            [label]="'application.change_picture' | translate"></gv-file-upload>
+                </div>
+                <div>
+                    <gv-input
+                            class="form__control"
+                            label="{{ 'user.display_name' | translate }}"
+                            formControlName="display_name"
+                            name="display_name"
+                            ngDefaultControl></gv-input>
+                    <gv-input
+                            class="form__control"
+                            label="{{ 'user.email' | translate }}"
+                            formControlName="email"
+                            name="email"
+                            ngDefaultControl></gv-input>
+                </div>
+
+            </div>
+
+            <div class="actions">
+
+                <gv-button type="submit" [disabled]="userForm.invalid || userForm.pristine" primary
+                           [loading]="isLoading() | async">
+                    {{ "user.update" | translate}}
+                </gv-button>
+            </div>
+        </form>
     </section>
-  </div>
+
 </div>
+

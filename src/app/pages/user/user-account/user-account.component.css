@@ -13,52 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.account__container {
-  display: flex;
-}
 
-.account, .notifications {
-  background-color: var(--gv-theme-neutral-color-lightest);
-  padding: 1.5rem 4rem;
-  min-height: 50vh;
-}
+@import "../../../../../src/css/form.css";
 
-.account {
-  width: 100%;
-}
-
-.notifications {
-  margin-left: 20px;
-  width: 30%;
-}
-
-.title {
-  margin-bottom: 1.5rem;
-}
-
-.account__user-info {
-  flex: 1;
-}
-
-.account__user-info__avatar {
-  align-items: center;
+.page__content {
   display: flex;
   flex-direction: row;
+  min-height: 0;
 }
 
-.account__user-info__avatar gv-identity-picture {
-  height: 50px;
-  width: 50px;
+section {
+  max-width: 1000px;
 }
 
-.account__user-info__avatar gv-button {
-  --gv-button--fz: 12px;
-  --gv-button--p: 5px 10px;
-  padding-left: 10px;
+.grid {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  grid-gap: 2rem;
+  min-height: 300px;
 }
 
-.notifications__header {
-  background-color: #FAFAFA;
-  padding: 1rem;
-  margin: 1rem 0;
+.form .form__control {
+  margin-bottom: 2rem;
+}
+
+.form .actions {
+  justify-content: flex-end;
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
 import { TranslateTestingModule } from '../../../test/translate-testing-module';
 import { UserTestingModule } from '../../../test/user-testing-module';
 
@@ -28,7 +29,7 @@ describe('UserAccountComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [UserAccountComponent, SafePipe],
-      imports: [TranslateTestingModule, UserTestingModule],
+      imports: [TranslateTestingModule, UserTestingModule, ReactiveFormsModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ]

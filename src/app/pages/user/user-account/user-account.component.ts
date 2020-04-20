@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import '@gravitee/ui-components/wc/gv-file-upload';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { User, UserService } from '@gravitee/ng-portal-webclient';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { LoaderService } from '../../../services/loader.service';
 import { NotificationService } from '../../../services/notification.service';
 
 @Component({
@@ -30,19 +32,25 @@ export class UserAccountComponent implements OnInit, OnDestroy {
 
   private subscription: any;
   public currentUser: User;
-  public avatar: string;
+  public userForm: FormGroup;
 
   constructor(
     private currentUserService: CurrentUserService,
     private userService: UserService,
     private notificationService: NotificationService,
+    private loaderService: LoaderService,
+    private formBuilder: FormBuilder
   ) {
   }
 
   ngOnInit() {
     this.subscription = this.currentUserService.get().subscribe((user) => {
       this.currentUser = user;
-      this.avatar = this.currentUser._links ? this.currentUser._links.avatar : null;
+      this.userForm = this.formBuilder.group({
+        display_name: new FormControl( { value: this.displayName, disabled: true }, Validators.required),
+        email: new FormControl({ value: this.email, disabled: true }, Validators.required),
+        avatar: new FormControl(this.avatar)
+      });
     });
   }
 
@@ -50,8 +58,8 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  onFileLoad(picture) {
-    this.avatar = picture;
+  get avatar() {
+    return this.currentUser._links ? this.currentUser._links.avatar : null;
   }
 
   get displayName() {
@@ -68,16 +76,26 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  update() {
-    if (this.avatar) {
-      this.userService.updateCurrentUser({ UserInput: { id: this.currentUser.id, avatar: this.avatar } })
+  isLoading() {
+    return this.loaderService.isLoading;
+  }
+
+  reset() {
+    this.userForm.get('avatar').patchValue(this.avatar);
+  }
+
+  canUpdate() {
+    return this.userForm.pristine && this.userForm.valid;
+  }
+
+  submit() {
+    if (!this.loaderService.get() && this.canUpdate) {
+      const UserInput = { id:  this.currentUser.id, avatar: this.userForm.get('avatar').value };
+      this.userService.updateCurrentUser({ UserInput })
         .toPromise()
         .then((user) => {
           this.currentUserService.set(user);
           this.notificationService.success(i18n('user.account.success'));
-          // @ts-ignore
-          document.querySelector('gv-identity-picture').picture = this.avatar;
-          delete this.avatar;
         });
     }
   }

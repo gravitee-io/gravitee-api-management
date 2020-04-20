@@ -13,63 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.application {
-  display: flex;
-}
+@import "../../../../../src/css/form.css";
 
-.application gv-image {
-  height: 30px;
-}
-
-.application__section {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  max-width: 80%;
-  margin: 0 32px;
-}
-
-.application__section__block {
- background-color: white;
- border-radius: 4px;
- padding: 24px 50px;
-}
-
-.application__aside {
-  display: flex;
-  flex-direction: column;
-}
-
-.application__title{
+.page__content {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  width: 75%;
+  min-height: 0;
 }
 
-.application__section > *, .application__aside > * {
- margin-bottom: 32px;
-}
-
-.application__image {
-  float: right;
-  width: 20%;
-}
-
-.application__image gv-image {
-  width: 128px;
-}
-
-.application__input {
-  width: 75%;
-}
-
-.application__input__delete {
-  --gv-button--bgc: red;
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 250px;
+  grid-gap: 1rem;
 }
 
 gv-confirm {
   --gv-confirm--maw: 500px;
-  --gv-button-primary--bgc:var(--gv-theme-danger-color, #FF5722);
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
 }

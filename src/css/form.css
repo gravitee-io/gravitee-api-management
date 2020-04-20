@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 .login, .registration, .registration-confirmation, .reset-password, .reset-password-confirmation {
   align-content: center;
   background-color: white;
@@ -28,4 +29,69 @@
   --gv-button--p: 0.7rem 0.5rem;
   margin: 0.5rem 0;
   width: 100%;
+}
+
+/**
+ FORM CSS
+ */
+.form .form__title {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2rem 0 3rem 0;
+}
+
+.form gv-button {
+  --gv-button--p: 0.7rem 0.5rem
+}
+
+.form gv-input,
+.form gv-text {
+  width: 100%;
+}
+
+.form .form__control {
+  margin-bottom: 1rem;
+}
+
+.form .form__control_inline {
+  display: flex;
+  flex-direction: row;
+}
+
+.form .form__control_inline gv-button,
+.form .form__control_inline gv-confirm {
+  align-self: flex-end;
+}
+
+
+section {
+  background-color: white;
+  border-radius: 4px;
+  padding: 24px 50px;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  margin: 0 32px;
+}
+
+section > * {
+  margin-bottom: 2rem;
+}
+
+aside {
+  display: flex;
+  flex-direction: column;
+}
+
+aside > * {
+  margin-bottom: 2rem;
+}
+
+.form .actions {
+  display: flex;
+  flex-direction: row;
+  margin-top: 2rem;
+  justify-content: space-between;
 }

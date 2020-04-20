@@ -20,10 +20,21 @@ import { BehaviorSubject } from 'rxjs';
   providedIn: 'root'
 })
 export class EventService {
-  private eventSource = new BehaviorSubject<string>(undefined);
-  event = this.eventSource.asObservable();
+  private eventSource = new BehaviorSubject<GvEvent>(new GvEvent(undefined));
+  events = this.eventSource.asObservable();
 
-  set(type: string) {
-    this.eventSource.next(type);
+  dispatch(event: GvEvent) {
+    this.eventSource.next(event);
   }
+
+}
+
+export class GvEvent {
+  type: string;
+  details: any;
+  constructor(type: string, details: any = {}) {
+    this.type = type;
+    this.details = details;
+  }
+
 }

@@ -15,9 +15,10 @@
  */
 import '@gravitee/ui-components/wc/gv-header';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { Api, ApiService, Application, ApplicationService, User, PortalService } from '@gravitee/ng-portal-webclient';
+import { Api, Application, User, PortalService } from '@gravitee/ng-portal-webclient';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { CurrentUserService } from '../../services/current-user.service';
+import { EventService } from '../../services/event.service';
 import { NavRouteService } from '../../services/nav-route.service';
 
 @Component({
@@ -25,6 +26,10 @@ import { NavRouteService } from '../../services/nav-route.service';
   templateUrl: './gv-header-item.component.html',
 })
 export class GvHeaderItemComponent implements OnInit {
+  static RELOAD_EVENT = ':gv-header-item:reload';
+  static UPDATE_PICTURE = ':gv-header-item:picture';
+  static UPDATE_NAME = ':gv-header-item:name';
+
   public item: Promise<Api | Application>;
   public currentUser: User;
   private itemId: string;
@@ -36,6 +41,7 @@ export class GvHeaderItemComponent implements OnInit {
               public navRouteService: NavRouteService,
               public currentUserService: CurrentUserService,
               public portalService: PortalService,
+              public eventService: EventService,
   ) {
   }
 
@@ -45,6 +51,16 @@ export class GvHeaderItemComponent implements OnInit {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.loadData();
+      }
+    });
+
+    this.eventService.events.subscribe((event) => {
+      if (event.type === GvHeaderItemComponent.RELOAD_EVENT) {
+        this.loadData();
+      } else if (event.type === GvHeaderItemComponent.UPDATE_PICTURE) {
+        this.item = Object.assign({}, this.item, { picture: event.details.data });
+      } else if (event.type === GvHeaderItemComponent.UPDATE_NAME) {
+        this.item = Object.assign({}, this.item, { name: event.details.data });
       }
     });
   }

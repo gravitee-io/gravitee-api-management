@@ -21,7 +21,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ConfigurationService } from '../../../services/configuration.service';
-import { EventService } from '../../../services/event.service';
+import { EventService, GvEvent } from '../../../services/event.service';
 
 import '@gravitee/ui-components/wc/gv-table';
 
@@ -32,6 +32,9 @@ import '@gravitee/ui-components/wc/gv-table';
 })
 
 export class UserNotificationComponent implements OnInit {
+
+  static NEW = 'gv-notifications:onNew';
+  static REMOVE = 'gv-notifications:onRemove';
 
   notifications: Array<PortalNotification>;
   options: any;
@@ -82,8 +85,8 @@ export class UserNotificationComponent implements OnInit {
       ]
     };
     this.loadNotifications();
-    this.eventService.event.subscribe((type) => {
-      if (type === 'gv-notifications:onNew') {
+    this.eventService.events.subscribe(({ type }) => {
+      if (type === UserNotificationComponent.NEW) {
         this.loadNotifications();
       }
     });
@@ -113,7 +116,7 @@ export class UserNotificationComponent implements OnInit {
 
   markAsRead(notificationId) {
     this.userService.deleteCurrentUserNotificationByNotificationId({ notificationId }).toPromise().then(() => {
-      this.eventService.set('gv-notifications:onRemove');
+      this.eventService.dispatch(new GvEvent(UserNotificationComponent.REMOVE));
       this.loadNotifications().then(() => {
         this.ref.detectChanges();
       });

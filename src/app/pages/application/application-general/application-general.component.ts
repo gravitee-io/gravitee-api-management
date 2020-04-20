@@ -18,7 +18,7 @@ import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
-import '@gravitee/ui-components/wc/gv-identity-picture';
+import '@gravitee/ui-components/wc/gv-file-upload';
 import {
   Application,
   ApplicationService,
@@ -31,6 +31,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { GvHeaderItemComponent } from '../../../components/gv-header-item/gv-header-item.component';
+import { EventService, GvEvent } from '../../../services/event.service';
 import { LoaderService } from '../../../services/loader.service';
 import { NotificationService } from '../../../services/notification.service';
 import StatusEnum = Subscription.StatusEnum;
@@ -61,6 +63,7 @@ export class ApplicationGeneralComponent implements OnInit {
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
     private permissionsService: PermissionsService,
+    private eventService: EventService
   ) {
   }
 
@@ -75,7 +78,26 @@ export class ApplicationGeneralComponent implements OnInit {
           this.canUpdate = this.permissions.DEFINITION && this.permissions.DEFINITION.includes('U');
         });
 
+      this.applicationForm = this.formBuilder.group(this.application);
+      this.applicationForm.setControl('picture', new FormControl(this.application.picture));
+      this.applicationForm.setControl('settings', new FormGroup({
+        app: new FormGroup({
+          type: new FormControl(''),
+        }),
+        oauth: new FormGroup({
+          client_id: new FormControl(''),
+          client_secret: new FormControl(''),
+        })
+      }));
       this.reset();
+      this.applicationForm.get('picture').valueChanges.subscribe((picture) => {
+        this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.UPDATE_PICTURE, { data: picture }));
+      });
+
+      this.applicationForm.get('name').valueChanges.subscribe((name) => {
+        this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.UPDATE_NAME, { data: name }));
+      });
+
       this.translateService.get([
         i18n('application.miscellaneous.owner'),
         i18n('application.miscellaneous.type'),
@@ -112,18 +134,11 @@ export class ApplicationGeneralComponent implements OnInit {
   }
 
   reset() {
-    this.applicationForm = this.formBuilder.group(this.application);
-    this.applicationForm.setControl('picture', new FormControl(''));
-    this.applicationForm.setControl('settings', new FormGroup({
-      app: new FormGroup({
-        type: new FormControl(''),
-      }),
-      oauth: new FormGroup({
-        client_id: new FormControl(''),
-        client_secret: new FormControl(''),
-      })
-    }));
     this.applicationForm.patchValue(this.application);
+    if(this.application.picture == null){
+      // Force picture
+      this.applicationForm.get('picture').setValue( null);
+    }
   }
 
   submit() {
@@ -133,15 +148,13 @@ export class ApplicationGeneralComponent implements OnInit {
         this.application = application;
         this.reset();
         this.notificationService.success(i18n('application.success.save'));
-        document.dispatchEvent(new Event(':gv-header-item:refresh'));
+        this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.RELOAD_EVENT));
       });
     }
   }
 
-  onFileLoad(picture) {
-    this.applicationForm.value.picture = picture;
-    this.applicationForm.patchValue(this.applicationForm.value);
-    this.applicationForm.markAsDirty();
+  get applicationPicture() {
+    return this.applicationForm.value.picture || this.application.picture || this.application._links.picture;
   }
 
   delete() {
@@ -162,4 +175,5 @@ export class ApplicationGeneralComponent implements OnInit {
   isLoading() {
     return this.loaderService.isLoading;
   }
+
 }

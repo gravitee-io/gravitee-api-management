@@ -31,6 +31,7 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 import { CurrentUserService } from './services/current-user.service';
 import { NotificationService } from './services/notification.service';
 import { ActivatedRoute, NavigationEnd, NavigationStart, Router, RouterOutlet } from '@angular/router';
@@ -45,7 +46,7 @@ import { FeatureEnum } from './model/feature.enum';
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvSlot } from './directives/gv-slot';
 import { GoogleAnalyticsService } from './services/google-analytics.service';
-import { EventService } from './services/event.service';
+import { EventService, GvEvent } from './services/event.service';
 import { ItemResourceTypeEnum } from './model/itemResourceType.enum';
 
 @Component({
@@ -155,7 +156,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       const portalNotification = response.data[0];
       const total = response.metadata.pagination ? response.metadata.pagination.total : 0;
       if (this.numberOfPortalNotifications !== null && (total > this.numberOfPortalNotifications)) {
-        this.eventService.set('gv-notifications:onNew');
+        this.eventService.dispatch(new GvEvent(UserNotificationComponent.NEW));
         const windowNotification = (window as any).Notification;
         if (windowNotification) {
           windowNotification.requestPermission()
@@ -180,8 +181,8 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     }
     this.slots = [this.appGvMenuRightSlot, this.appGvMenuRightTransitionSlot, this.appGvMenuTopSlot];
 
-    this.eventService.event.subscribe((type) => {
-      if (type === 'gv-notifications:onRemove') {
+    this.eventService.events.subscribe((event) => {
+      if (event.type === UserNotificationComponent.REMOVE) {
         this.loadNotifications();
       }
     });
