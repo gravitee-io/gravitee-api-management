@@ -78,7 +78,8 @@
               <v-pane-content>
                 <div>
                   <label class="theme-component-label">Logo</label>
-                  <gravitee-image image="theme.logo"
+                  <gravitee-image image-id="'theme-logo'"
+                                  image="theme.logo"
                                   image-url="$ctrl.getLogoUrl()"
                                   image-form="themeForm"
                                   ng-model="theme.logo"
@@ -88,7 +89,8 @@
 
                 <div>
                   <label class="theme-component-label">Optional logo</label>
-                  <gravitee-image image="theme.optionalLogo"
+                  <gravitee-image image-id="'theme-optionalLogo'"
+                                  image="theme.optionalLogo"
                                   image-default="theme.logo"
                                   image-url="$ctrl.getOptionalLogoUrl()"
                                   image-form="themeForm"
@@ -106,7 +108,8 @@
 
                 <div>
                   <label class="theme-component-label">Homepage background image</label>
-                  <gravitee-image image="theme.backgroundImage"
+                  <gravitee-image image-id="'theme-backgroundImage'"
+                                  image="theme.backgroundImage"
                                   image-url="$ctrl.getBackgroundImageUrl()"
                                   image-form="themeForm"
                                   ng-model="theme.backgroundImage"

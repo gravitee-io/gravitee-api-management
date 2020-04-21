@@ -20,7 +20,7 @@ import RoleService from '../../../../services/role.service';
 
 
 function DialogAddUserRoleController($mdDialog: angular.material.IDialogService, role, roleScope, $q: ng.IQService,
-                                     UserService: UserService, NotificationService: NotificationService, RoleService: RoleService) {
+  UserService: UserService, NotificationService: NotificationService, RoleService: RoleService) {
   'ngInject';
 
   this.role = role;
@@ -36,24 +36,24 @@ function DialogAddUserRoleController($mdDialog: angular.material.IDialogService,
   });
 
   this.hide = function () {
-     $mdDialog.cancel();
+    $mdDialog.cancel();
   };
 
   this.searchUser = function (query) {
     if (query) {
-      return UserService.search(query).then(function(response) {
+      return UserService.search(query).then(function (response) {
         return response.data;
       });
     }
   };
 
-  this.getUserAvatar = function(id?: string) {
+  this.getUserAvatar = function (id?: string) {
     return (id) ? UserService.getUserAvatar(id) : 'assets/default_photo.png';
   };
 
-  this.selectUser = function(user) {
+  this.selectUser = function (user) {
     if (user && user.reference) {
-      let selected = _.find(this.usersSelected, {reference: user.reference});
+      let selected = _.find(this.usersSelected, { reference: user.reference });
       if (!selected) {
         this.usersSelected.push(user);
       }
@@ -63,7 +63,7 @@ function DialogAddUserRoleController($mdDialog: angular.material.IDialogService,
 
   this.addUsers = function () {
     let promises: Array<any> = [];
-		for (let i = 0; i < this.usersSelected.length; i++) {
+    for (let i = 0; i < this.usersSelected.length; i++) {
       let member = this.usersSelected[i];
       let membership = {
         id: member.id,
@@ -71,11 +71,11 @@ function DialogAddUserRoleController($mdDialog: angular.material.IDialogService,
       };
 
       promises.push(RoleService.addRole(this.roleScope, this.role, membership));
-		}
+    }
 
-		$q.all(promises).then((response) => {
+    $q.all(promises).then((response) => {
       NotificationService.show('Users ' + _.map(this.usersSelected, 'displayName').join(',') + ' has been added successfully to the role');
-		  $mdDialog.hide(response);
+      $mdDialog.hide(response);
     });
   };
 }

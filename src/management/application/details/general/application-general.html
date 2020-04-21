@@ -21,36 +21,42 @@
     <div class="gv-form">
       <h2>General</h2>
       <div class="gv-form-content" layout="column">
+        <div layout-gt-sm="row">
+          <div layout="column" flex>
+            <div layout-gt-sm="row">
 
-        <md-input-container flex>
-          <label>Name</label>
-          <input ng-model="$ctrl.application.name" type="text" name="name" md-maxlength="512" required>
-          <div class="hint" ng-if="formApplication.name.$valid || formApplication.name.$pristine">Application name</div>
-          <div ng-messages="formApplication.name.$error">
-            <div ng-message="required">Application name is required.</div>
-            <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
-          </div>
-        </md-input-container>
+              <md-input-container flex>
+                <label>Name</label>
+                <input ng-model="$ctrl.application.name" type="text" name="name" md-maxlength="512" required>
+                <div class="hint" ng-if="formApplication.name.$valid || formApplication.name.$pristine">Application name</div>
+                <div ng-messages="formApplication.name.$error">
+                  <div ng-message="required">Application name is required.</div>
+                  <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
+                </div>
+              </md-input-container>
 
-        <md-input-container>
-          <label>Description</label>
-          <input ng-model="$ctrl.application.description" type="text" name="description" required>
-          <div class="hint" ng-if="formApplication.description.$valid || formApplication.description.$pristine">
-            Provide a description of your application, what it does, ...
-          </div>
-          <div ng-messages="formApplication.description.$error">
-            <div ng-message="required">Application description is required.</div>
-          </div>
-        </md-input-container>
+              <md-input-container ng-if="!$ctrl.isOAuthClient()">
+                <label>Type</label>
+                <input ng-model="$ctrl.application.settings.app.type" type="text" name="type">
+                <div class="hint" ng-if="formApplication.type.$valid || formApplication.type.$pristine">
+                  Type of the application (mobile, web, ...).
+                </div>
+              </md-input-container>
+            </div>
 
-        <md-input-container ng-if="!$ctrl.isOAuthClient()">
-          <label>Type</label>
-          <input ng-model="$ctrl.application.settings.app.type" type="text" name="type">
-          <div class="hint" ng-if="formApplication.type.$valid || formApplication.type.$pristine">
-            Type of the application (mobile, web, ...).
+            <md-input-container>
+              <label>Description</label>
+              <input ng-model="$ctrl.application.description" type="text" name="description" required>
+              <div class="hint" ng-if="formApplication.description.$valid || formApplication.description.$pristine">
+                Provide a description of your application, what it does, ...
+              </div>
+              <div ng-messages="formApplication.description.$error">
+                <div ng-message="required">Application description is required.</div>
+              </div>
+            </md-input-container>
           </div>
-        </md-input-container>
-
+          <gravitee-image image-id="$ctrl.application.id" image="$ctrl.application.picture" image-url="$ctrl.application.picture_url" image-name="$ctrl.application.name + '  ' + $ctrl.application.type"></gravitee-image>
+        </div>
         <div layout="row">
           <md-input-container class="md-block" flex>
             <label>Owner</label>

@@ -15,21 +15,16 @@
     limitations under the License.
 
 -->
-<div class="gravitee-upload-image">
-  <gravitee-identity-picture
-    image-id="imageId"
-    image="image"
-    image-url="imageUrl"
-    image-name="imageName"
-    image-width="110"
-  >
-  </gravitee-identity-picture>
+<div class="gravitee-identity-picture">
+  <img
+    id="avatar_{{imageId}}" 
+    class="avatar show" ng-class="imageBorderRadius?'rounded':''" ng-style="imageWidth?{'width':imageWidth+'px'}:''" 
+    ngf-no-object-url="true" ngf-src="identityPictureCtrl.getSource()" 
+    onerror="angular.element(this).scope().imgError()" onload="angular.element(this).scope().imgLoad()" 
+    gv-theme-element="{{imageTheme}}"/>
+  <div
+    id="jdenticon_{{imageId}}"
+    class="jdenticon" ng-class="imageBorderRadius?'rounded':''"
+    gv-theme-element="{{imageTheme}}"></div>
 </div>
-<div class="gravitee-upload-image-button">
-    <a ngf-select="imgCtrl.selectImage($file,$invalidFiles)" ngf-pattern="'image/*'"
-       ngf-accept="'image/*'"
-       ngf-max-size="maxSize">{{ changeLabel }}</a>
-    <a ng-if="canDelete" ng-click="imgCtrl.onDelete($event)">{{ deleteLabel }}</a>
-</div>
-
 

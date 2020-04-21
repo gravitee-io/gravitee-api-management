@@ -33,12 +33,12 @@ class InstancesController {
   constructor(
     private $scope: IInstancesScope,
     private InstancesService: InstancesService) {
-		'ngInject';
-	}
+    'ngInject';
+  }
 
   $onInit() {
     this.searchGatewayInstances = '';
-    this.instances = this.startedInstances = _.clone(_.filter(this.instances, { 'state': 'started'}));
+    this.instances = this.startedInstances = _.clone(_.filter(this.instances, { 'state': 'started' }));
     this._displayEmptyMode = this.startedInstances.length === 0;
 
     this.$scope.displayAllInstances = false;

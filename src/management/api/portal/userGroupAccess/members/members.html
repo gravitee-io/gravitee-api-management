@@ -25,6 +25,7 @@
         <table md-table class="gv-table-dense">
           <thead md-head md-order="order">
           <tr md-row>
+            <th md-column width="1%" nowrap></th>
             <th md-column order-by="lastname">Member</th>
             <th md-column order-by="type">Role</th>
             <th md-column permission permission-only="'api-member-u'"></th>
@@ -33,10 +34,16 @@
           <tbody md-body>
           <tr md-row ng-repeat="member in apiMembersCtrl.members | orderBy: order">
             <td md-cell>
+              <gravitee-identity-picture 
+                image-id="member.id"
+                image-url="apiMembersCtrl.getMembershipAvatar(member)"
+                image-name="apiMembersCtrl.getMembershipDisplay(member)"
+                image-width="32"
+                image-border-radius="true"
+              ></gravitee-identity-picture>
+          </td>
+            <td md-cell>
               <md-list-item >
-                <img ng-src="{{apiMembersCtrl.getMembershipAvatar(member)}}"
-                     onerror="this.src='assets/default_photo.png'"
-                     class="md-avatar" alt="User avatar" />
                 <span ng-if="member.role == 'PRIMARY_OWNER'"><b>{{apiMembersCtrl.getMembershipDisplay(member)}}</b></span>
                 <span ng-if="member.role != 'PRIMARY_OWNER'">{{apiMembersCtrl.getMembershipDisplay(member)}}</span>
               </md-list-item>
@@ -93,9 +100,13 @@
             <tr md-row ng-repeat="member in apiMembersCtrl.groupMembers[grp] | orderBy: order">
               <td md-cell>
                 <md-list-item>
-                  <img ng-src="{{apiMembersCtrl.getMembershipAvatar(member)}}"
-                       onerror="this.src='assets/default_photo.png'"
-                       class="md-avatar" alt="User avatar" />
+                  <gravitee-identity-picture 
+                    image-id="member.id"
+                    image-url="apiMembersCtrl.getMembershipAvatar(member)"
+                    image-name="apiMembersCtrl.getMembershipDisplay(member)"
+                    image-width="32"
+                    image-border-radius="true"
+                  ></gravitee-identity-picture>
                   <span>{{apiMembersCtrl.getMembershipDisplay(member)}}</span>
                 </md-list-item>
               </td>

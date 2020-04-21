@@ -17,7 +17,7 @@
 class SidenavService {
   private currentResource: string;
 
-	getCurrentResource(): string {
+  getCurrentResource(): string {
     return this.currentResource;
   }
 

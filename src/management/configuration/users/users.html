@@ -35,6 +35,7 @@
     <table md-table class="gv-table-dense">
         <thead md-head>
         <tr md-row>
+          <th md-column width="1%" nowrap></th>
           <th md-column>Display name</th>
           <th md-column width="15%" nowrap>Email</th>
           <th md-column width="15%" nowrap>Source</th>
@@ -44,10 +45,16 @@
         <tbody md-body>
         <tr md-row ng-repeat="user in $ctrl.usersPage.data | orderBy: orderUser">
             <td md-cell>
+              <gravitee-identity-picture 
+                image-id="user.id"
+                image-url="$ctrl.getUserPicture(user)"
+                image-name="user.displayName"
+                image-width="32"
+                image-border-radius="true"
+              ></gravitee-identity-picture>
+            </td>
+            <td md-cell>
               <a ui-sref="management.settings.user({userId: user.id})">
-                <img ng-src="{{$ctrl.getUserPicture(user)}}"
-                     onerror="this.src='assets/default_photo.png'"
-                     class="md-avatar" alt="User picture" />
                 {{user.displayName}}
               </a>
             </td>

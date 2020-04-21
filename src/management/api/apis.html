@@ -35,7 +35,8 @@
             <table md-table ng-model="$ctrl.selectedApis">
               <thead md-head md-order="query.order">
               <tr md-row>
-                <th md-column width="1%" md-order-by="name" ng-click="$ctrl.loadMore(query.order, false)"><span>Name</span></th>
+                <th md-column width="1%"></th>
+                <th md-column width="15%" md-order-by="name" ng-click="$ctrl.loadMore(query.order, false)"><span>Name</span></th>
                 <th md-column width="1%"></th>
                 <th md-column md-order-by="virtual_hosts" ng-click="$ctrl.loadMore(query.order, false)">Context paths</th>
                 <th md-column width="1%">Tags</th>
@@ -52,7 +53,14 @@
               <tr md-row
                   ng-repeat="api in $ctrl.apis track by api.id">
                 <td md-cell nowrap>
-                  <img style="max-height:40px; width: 40px;margin-right: 8px;" ng-src="{{::api.picture_url}}" onerror="this.src='assets/default_api_logo.png'"/>
+                  <gravitee-identity-picture 
+                    image-id="api.id"
+                    image-url="::api.picture_url"
+                    image-name="api.name + '  ' + api.version"
+                    image-width="40"
+                  ></gravitee-identity-picture>
+                </td>
+                <td md-cell>
                   <a ui-sref="management.apis.detail.portal.general({apiId: api.id})">
                     {{api.name}}
                     ({{api.version}})

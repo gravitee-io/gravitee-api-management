@@ -25,6 +25,7 @@
           <table md-table class="gv-table-dense">
             <thead md-head md-order="order">
             <tr md-row>
+              <th md-column width="1%" nowrap></th>
               <th md-column order-by="lastname">Member</th>
               <th md-column order-by="type">Role</th>
               <th md-column></th>
@@ -33,10 +34,17 @@
             <tbody md-body>
             <tr md-row ng-repeat="member in $ctrl.members | orderBy: order">
               <td md-cell>
+                <gravitee-identity-picture 
+                  image-id="member.id"
+                  image-url="$ctrl.getMembershipAvatar(member)"
+                  image-name="$ctrl.getMembershipDisplay(member)"
+                  image-width="40"
+                  image-border-radius="true"
+                  class="md-avatar"
+                ></gravitee-identity-picture>
+              </td>
+              <td md-cell>
                 <md-list-item class="md-2-line contact-item">
-                  <img ng-src="{{$ctrl.getMembershipAvatar(member)}}"
-                       onerror="this.src='assets/default_photo.png'"
-                       class="md-avatar" alt="User avatar" />
                   <div class="md-list-item-text compact">
                     <span ng-if="member.role == 'PRIMARY_OWNER'"><b>{{$ctrl.getMembershipDisplay(member)}}</b></span>
                     <span ng-if="member.role != 'PRIMARY_OWNER'">{{$ctrl.getMembershipDisplay(member)}}</span>

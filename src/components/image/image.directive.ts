@@ -15,6 +15,7 @@
  */
 
 import NotificationService from '../../services/notification.service';
+import * as jdenticon from 'jdenticon';
 
 class ImageDirective {
   constructor() {
@@ -22,14 +23,17 @@ class ImageDirective {
 
     let directive = {
       restrict: 'E',
+      require: 'graviteeIdentityPicture',
       scope: {
         image: '=',
+        imageId: '=',
         imageClass: '@',
         imageDefault: '=',
         imageOriginal: '=?',
         imageForm: '=',
         imageUrl: '=',
         imageBorderRadius: '@',
+        imageName: '=',
         changeLabel: '@',
         deleteLabel: '@',
         canDelete: '=',
@@ -78,13 +82,6 @@ class ImageController {
         this.NotificationService.showError(`File is not valid (error: ${fileError.$error})`);
       }
     }
-  }
-
-  getSource() {
-    if (this.$scope.image) {
-      return this.$scope.image;
-    }
-    return this.$scope.imageUrl || this.$scope.imageDefault;
   }
 
   onDelete() {

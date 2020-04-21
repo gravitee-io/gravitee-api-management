@@ -29,7 +29,7 @@ class ApiMembersController {
   private newPORole: any;
   private groupById: any;
   private displayGroups: any;
-  constructor (
+  constructor(
     private ApiService: ApiService,
     private resolvedMembers,
     private resolvedGroups,
@@ -72,7 +72,8 @@ class ApiMembersController {
     RoleService.list('API').then(function (roles) {
       that.roles = roles;
       that.newPORoles = _.filter(roles, (role: any) => {
-        return role.name !== 'PRIMARY_OWNER'; });
+        return role.name !== 'PRIMARY_OWNER';
+      });
       that.newPORole = _.find(roles, (role: any) => {
         return role.default;
       });
@@ -112,16 +113,16 @@ class ApiMembersController {
       }
     }).then((api) => {
       if (api) {
-				this.ApiService.getMembers(api.id).then((response) => {
-					this.members = response.data;
-				});
+        this.ApiService.getMembers(api.id).then((response) => {
+          this.members = response.data;
+        });
       }
-    }, function() {
+    }, function () {
       // You cancelled the dialog
     });
   }
 
-	showDeleteMemberConfirm(ev, member) {
+  showDeleteMemberConfirm(ev, member) {
     ev.stopPropagation();
     let self = this;
     this.$mdDialog.show({
@@ -141,7 +142,7 @@ class ApiMembersController {
   }
 
   getMembershipDisplay(member): string {
-    if (! member.displayName) {
+    if (!member.displayName) {
       return member.username;
     }
 

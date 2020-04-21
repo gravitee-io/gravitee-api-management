@@ -48,21 +48,21 @@ class ApplicationService {
     this.analyticsHttpTimeout = Constants.analyticsHttpTimeout as number;
   }
 
-	get(applicationId: string): ng.IHttpPromise<any> {
+  get(applicationId: string): ng.IHttpPromise<any> {
     return this.$http.get(this.applicationsURL + applicationId);
   }
 
-	getMembers(applicationId): ng.IHttpPromise<any> {
-		return this.$http.get(this.applicationsURL + applicationId + '/members');
-	}
+  getMembers(applicationId): ng.IHttpPromise<any> {
+    return this.$http.get(this.applicationsURL + applicationId + '/members');
+  }
 
-	addOrUpdateMember(applicationId: string, membership: IMembership): ng.IHttpPromise<any> {
+  addOrUpdateMember(applicationId: string, membership: IMembership): ng.IHttpPromise<any> {
     return this.$http.post(`${this.applicationsURL}${applicationId}/members`, membership);
-	}
+  }
 
-	deleteMember(applicationId: string, userId: string): ng.IHttpPromise<any> {
-		return this.$http.delete(this.applicationsURL + applicationId + '/members?user=' + userId);
-	}
+  deleteMember(applicationId: string, userId: string): ng.IHttpPromise<any> {
+    return this.$http.delete(this.applicationsURL + applicationId + '/members?user=' + userId);
+  }
 
   transferOwnership(applicationId: string, ownership: IMembership): ng.IHttpPromise<any> {
     return this.$http.post(this.applicationsURL + applicationId + '/members/transfer_ownership', ownership);
@@ -76,7 +76,7 @@ class ApplicationService {
     return this.$http.get(this.applicationsURL + '?group=' + group);
   }
 
-	create(application): ng.IHttpPromise<any> {
+  create(application): ng.IHttpPromise<any> {
     return this.$http.post(this.applicationsURL, application);
   }
 
@@ -87,7 +87,8 @@ class ApplicationService {
         'name': application.name,
         'description': application.description,
         'groups': application.groups,
-        'settings': application.settings
+        'settings': application.settings,
+        'picture': application.picture
       }
     );
   }

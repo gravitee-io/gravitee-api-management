@@ -44,7 +44,14 @@
               </thead>
               <tbody md-body>
               <tr md-row ng-repeat="application in $ctrl.applicationsToDisplay track by application.id">
-                <td md-cell nowrap><div style="min-width: 70px;" class="api-box-icon default"></div></td>
+                <td md-cell nowrap>
+                  <gravitee-identity-picture 
+                    image-id="application.id"
+                    image-url="::application.picture_url"
+                    image-name="application.name + '  ' + application.type"
+                    image-width="40"
+                  ></gravitee-identity-picture>
+                </td>
                 <td md-cell>
                   <a ui-sref="management.applications.application.general({applicationId: application.id})">
                     {{application.name}}

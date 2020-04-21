@@ -28,7 +28,13 @@
 					md-autofocus="true">
 				<md-item-template>
           <md-list-item class="md-2-line" style="height: 50px; min-height: 50px">
-            <img class="md-avatar" style="margin-top: 8px;" ng-src="{{api.picture_url}}" alt="{{api.id}}" onerror="this.src='assets/default_api_logo.png'" />
+            <gravitee-identity-picture
+              image-id="api.id"
+              image-url="api.picture_url"
+              image-name="api.name + '  ' + api.version"
+              image-width="40"
+              class="md-avatar"
+            ></gravitee-identity-picture>
             <div class="md-list-item-text">
               <h3>{{api.name}}</h3>
               <p>{{item.description}}</p>

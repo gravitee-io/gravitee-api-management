@@ -30,12 +30,7 @@ md-toolbar.topnavbar {
   font-size: 12px;
   text-transform: none;
   min-width: initial;
-  img {
-    vertical-align: middle;
-    border-radius: 20px;
-    height: 40px;
-    width: 40px;
-  }
+  line-height: inherit;
 }
 
 .gv-menu-content {

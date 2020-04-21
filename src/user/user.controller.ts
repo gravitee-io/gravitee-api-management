@@ -48,7 +48,7 @@ class UserController {
   save() {
     this.UserService.save(this.user).then((response) => {
       this.user = response.data;
-      this.$rootScope.$broadcast('graviteeUserRefresh');
+      this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : this.user, 'refresh': true});
       this.$scope.formUser.$setPristine();
       this.NotificationService.show('User has been updated successfully');
     });

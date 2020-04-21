@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {User} from '../entities/user';
+import { User } from '../entities/user';
 import RoleService from './role.service';
 import ApplicationService from './application.service';
 import ApiService from './api.service';
 import _ = require('lodash');
 import StringService from './string.service';
-import {UrlService} from '@uirouter/angularjs';
-import {PagedResult} from '../entities/pagedResult';
+import { UrlService } from '@uirouter/angularjs';
+import { PagedResult } from '../entities/pagedResult';
 import Base64Service from './base64.service';
 
 class UserService {
@@ -36,18 +36,18 @@ class UserService {
   private isLogout: boolean = false;
 
   constructor(private $http: ng.IHttpService,
-              private $q: ng.IQService,
-              Constants,
-              private RoleService: RoleService,
-              private PermPermissionStore,
-              private $urlService: UrlService,
-              private ApplicationService: ApplicationService,
-              private ApiService: ApiService,
-              private $location,
-              private $cookies,
-              private $window,
-              private StringService: StringService,
-              private Base64Service: Base64Service) {
+    private $q: ng.IQService,
+    Constants,
+    private RoleService: RoleService,
+    private PermPermissionStore,
+    private $urlService: UrlService,
+    private ApplicationService: ApplicationService,
+    private ApiService: ApiService,
+    private $location,
+    private $cookies,
+    private $window,
+    private StringService: StringService,
+    private Base64Service: Base64Service) {
     'ngInject';
     this.searchUsersURL = `${Constants.baseURL}search/users/`;
     this.usersURL = `${Constants.baseURL}users/`;
@@ -84,9 +84,9 @@ class UserService {
     return this.$http.post(`${this.usersURL}registration/finalize`, user);
   }
 
-	search(query): ng.IPromise<any> {
-		return this.$http.get(`${this.searchUsersURL}?q=${query}`);
-	}
+  search(query): ng.IPromise<any> {
+    return this.$http.get(`${this.searchUsersURL}?q=${query}`);
+  }
 
   isUserHasPermissions(permissions) {
     return this.currentUser && this.currentUser.allowedTo(permissions);
@@ -96,7 +96,7 @@ class UserService {
     let that = this;
 
     if (!this.currentUser || !this.currentUser.authenticated) {
-      const promises = [this.$http.get(this.userURL, {silentCall: true, forceSessionExpired: true} as ng.IRequestShortcutConfig)];
+      const promises = [this.$http.get(this.userURL, { silentCall: true, forceSessionExpired: true } as ng.IRequestShortcutConfig)];
 
       const applicationRegex = /applications\/([\w|\-]+)/;
       let applicationId = applicationRegex.exec(this.$location.$$path);

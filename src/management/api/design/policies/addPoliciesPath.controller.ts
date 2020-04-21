@@ -16,7 +16,7 @@
 import _ = require('lodash');
 
 class AddPoliciesPathController {
-  private newPath: {path: string; copyFromRootPath: boolean};
+  private newPath: { path: string; copyFromRootPath: boolean };
   private paths: any;
   private rootCtrl: any;
   private canCopyFromRootPath: boolean;
@@ -48,7 +48,7 @@ class AddPoliciesPathController {
     } else {
       this.paths[this.newPath.path] = [];
     }
-		this.$mdDialog.hide(this.paths);
+    this.$mdDialog.hide(this.paths);
   }
 }
 

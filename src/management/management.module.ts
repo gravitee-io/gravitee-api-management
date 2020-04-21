@@ -176,6 +176,7 @@ import DialogConfigureLoggingEditorController
 // Others
 import ThemeElementDirective from '../components/theme/theme-element.directive';
 
+import IdentityPictureDirective from '../components/identityPicture/identityPicture.directive';
 import ImageDirective from '../components/image/image.directive';
 import EventsService from '../services/events.service';
 import AnalyticsService from '../services/analytics.service';
@@ -711,6 +712,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())
   .directive('graviteeDiff', () => DiffDirective)
+  .directive('graviteeIdentityPicture', () => new IdentityPictureDirective())
   .directive('graviteeImage', () => new ImageDirective())
   .directive('graviteeEmptyState', () => new EmptyStateDirective())
   .directive('graviteeChart', () => new ChartDirective())

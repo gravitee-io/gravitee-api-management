@@ -12,7 +12,7 @@
     "curly": true,
     "eofline": true,
     "forin": true,
-    "indent": [true, 2],
+    "indent": [true, "spaces", 2],
     "interface-name": true,
     "jsdoc-format": true,
     "label-position": true,

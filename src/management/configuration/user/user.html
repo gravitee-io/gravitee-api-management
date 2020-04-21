@@ -16,16 +16,20 @@
 
 -->
 <div class="gv-forms" layout="column">
-    <div layout="row" layout-align="start end" class="gv-forms-header">
+    <div layout="row" layout-align="start end" class="gv-forms-header" style="display: flex; align-items: center; margin-top: 16px;">
+        <gravitee-identity-picture 
+          image-id="$ctrl.selectedUser.id"
+          image-url="$ctrl.getUserPicture()"
+          image-name="$ctrl.selectedUser.displayName"
+          image-width="50"
+          image-border-radius="true"
+        ></gravitee-identity-picture>
+
         <h1 class="user">
-          <img ng-src="{{$ctrl.getUserPicture()}}"
-               onerror="this.src='assets/default_photo.png'"
-               class="md-avatar" alt="User picture" />{{$ctrl.selectedUser.displayName}}
-
-          <a ui-sref="management.settings.users" style="font-size: 12px; font-weight: normal;">Back to users</a>
+          {{$ctrl.selectedUser.displayName}}
         </h1>
+        <a ui-sref="management.settings.users" style="font-size: 12px; font-weight: normal;">Back to users</a>
     </div>
-
 
     <div class="gv-form">
         <h2></h2>

@@ -23,14 +23,16 @@ class ThemeElementController {
 const ThemeElementDirective: ng.IDirective = ({
   restrict: 'A',
   link: function (scope, elem, attr, ctr: {Theme}) {
-    let splittedTheme: string[] = attr.gvThemeElement.split('.');
-    let style: any = ctr.Theme;
+    if (attr.gvThemeElement) {
+      let splittedTheme: string[] = attr.gvThemeElement.split('.');
+      let style: any = ctr.Theme;
 
-    splittedTheme.forEach((value: string) => {
-      style = style[value];
-    });
+      splittedTheme.forEach((value: string) => {
+        style = style[value];
+      });
 
-    elem.css(style);
+      elem.css(style);
+    }
   },
   controller: ThemeElementController,
 });

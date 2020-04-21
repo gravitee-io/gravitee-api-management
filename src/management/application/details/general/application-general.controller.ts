@@ -48,6 +48,12 @@ class ApplicationGeneralController {
     if (!this.application.groups) {
       this.application.groups = [];
     }
+    let self = this;
+    this.$scope.$on('apiPictureChangeSuccess', function(event, args) {
+      self.application.picture = args.image;
+      self.$scope.formApplication.$setDirty();
+    });
+
     this.initialApplication = _.cloneDeep(this.application);
     this.applicationType = ApplicationType[this.application.type];
   }

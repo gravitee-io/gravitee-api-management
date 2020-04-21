@@ -26,10 +26,10 @@ class ApplicationsController {
     private UserService: UserService,
     private $filter
   ) {
-		'ngInject';
-		this.selectedApplications = [];
+    'ngInject';
+    this.selectedApplications = [];
 
-		const that = this;
+    const that = this;
     UserService.current().then(function (user) {
       if (!user.username) {
         that.subMessage = 'Login to get access to your applications';
@@ -39,7 +39,7 @@ class ApplicationsController {
         that.subMessage = '';
       }
     });
-	}
+  }
 
   loadMore = function (order, searchApplications, showNext) {
     const doNotLoad = showNext && (this.applications && this.applications.length) === (this.applicationsToDisplay && this.applicationsToDisplay.length);
