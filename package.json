@@ -4,8 +4,8 @@
   "description": "Gravitee.io Portal",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --port=4100",
-    "start:prod": "node scripts/serve.js",
+    "serve": "ng serve --port=4100",
+    "serve:prod": "node scripts/serve.js",
     "build": "ng build --aot",
     "build:prod": "ng build --prod=true",
     "test": "ng test --browsers=Chrome",
