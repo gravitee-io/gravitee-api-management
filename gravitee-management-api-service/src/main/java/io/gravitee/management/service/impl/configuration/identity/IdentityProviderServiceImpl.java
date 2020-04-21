@@ -222,6 +222,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProvider.setEnabled(newIdentityProviderEntity.isEnabled());
         identityProvider.setUserProfileMapping(newIdentityProviderEntity.getUserProfileMapping());
         identityProvider.setEmailRequired(newIdentityProviderEntity.isEmailRequired());
+        identityProvider.setSyncMappings(newIdentityProviderEntity.isSyncMappings());
 
         return identityProvider;
     }
@@ -280,6 +281,10 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         } else {
             identityProviderEntity.setEmailRequired(identityProvider.getEmailRequired());
         }
+
+        identityProviderEntity.setSyncMappings(identityProvider.getSyncMappings() == null ?
+                false : identityProvider.getSyncMappings());
+
         return identityProviderEntity;
     }
 
@@ -292,6 +297,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProvider.setConfiguration(updateIdentityProvider.getConfiguration());
         identityProvider.setUserProfileMapping(updateIdentityProvider.getUserProfileMapping());
         identityProvider.setEmailRequired(updateIdentityProvider.isEmailRequired());
+        identityProvider.setSyncMappings(updateIdentityProvider.isSyncMappings());
 
         if (updateIdentityProvider.getGroupMappings() != null && !updateIdentityProvider.getGroupMappings().isEmpty()) {
             identityProvider.setGroupMappings(updateIdentityProvider.getGroupMappings()

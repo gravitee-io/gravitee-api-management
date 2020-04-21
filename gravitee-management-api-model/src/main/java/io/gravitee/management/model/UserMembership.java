@@ -27,6 +27,7 @@ public class UserMembership {
     private String reference;
     private String type;
     private Map<Integer, String> roles;
+    private String source;
 
     public String getReference() {
         return reference;
@@ -50,6 +51,14 @@ public class UserMembership {
 
     public void setRoles(Map<Integer, String> roles) {
         this.roles = roles;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     @Override

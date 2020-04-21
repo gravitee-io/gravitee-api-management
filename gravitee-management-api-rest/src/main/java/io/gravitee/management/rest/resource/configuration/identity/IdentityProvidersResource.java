@@ -70,6 +70,7 @@ public class IdentityProvidersResource extends AbstractResource {
             item.setType(identityProvider.getType());
             item.setCreatedAt(identityProvider.getCreatedAt());
             item.setUpdatedAt(identityProvider.getUpdatedAt());
+            item.setSync(identityProvider.isSyncMappings());
             return item;
         }).collect(Collectors.toList());
     }

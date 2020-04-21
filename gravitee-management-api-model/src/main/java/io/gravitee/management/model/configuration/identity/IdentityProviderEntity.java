@@ -49,6 +49,8 @@ public class IdentityProviderEntity {
 
     private boolean emailRequired;
 
+    private boolean syncMappings;
+
     @JsonProperty("created_at")
     private Date createdAt;
 
@@ -149,6 +151,14 @@ public class IdentityProviderEntity {
 
     public void setEmailRequired(boolean emailRequired) {
         this.emailRequired = emailRequired;
+    }
+
+    public boolean isSyncMappings() {
+        return syncMappings;
+    }
+
+    public void setSyncMappings(boolean syncMappings) {
+        this.syncMappings = syncMappings;
     }
 
     @Override

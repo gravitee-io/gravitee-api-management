@@ -43,6 +43,8 @@ public class NewIdentityProviderEntity {
 
     private boolean emailRequired;
 
+    private boolean syncMappings;
+
     public String getName() {
         return name;
     }
@@ -97,5 +99,13 @@ public class NewIdentityProviderEntity {
 
     public void setEmailRequired(boolean emailRequired) {
         this.emailRequired = emailRequired;
+    }
+
+    public boolean isSyncMappings() {
+        return syncMappings;
+    }
+
+    public void setSyncMappings(boolean syncMappings) {
+        this.syncMappings = syncMappings;
     }
 }

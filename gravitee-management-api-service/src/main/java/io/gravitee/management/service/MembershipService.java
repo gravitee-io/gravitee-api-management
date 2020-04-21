@@ -37,6 +37,7 @@ public interface MembershipService {
     Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope);
     Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName);
     MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role);
+    MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role, String source);
     void deleteMember(MembershipReferenceType referenceType, String referenceId, String userId);
     void deleteMembers(MembershipReferenceType referenceType, String referenceId);
     void transferApiOwnership(String apiId, MembershipUser user, RoleEntity newPrimaryOwnerRole);
@@ -156,6 +157,39 @@ public interface MembershipService {
             int result = scope.hashCode();
             result = 31 * result + name.hashCode();
             return result;
+        }
+    }
+
+    class Membership {
+        final MembershipReference reference;
+        final MembershipUser user;
+        final MembershipRole role;
+        String source;
+
+        public Membership(MembershipReference reference, MembershipUser user, MembershipRole role) {
+            this.reference = reference;
+            this.user = user;
+            this.role = role;
+        }
+
+        public MembershipReference getReference() {
+            return reference;
+        }
+
+        public MembershipUser getUser() {
+            return user;
+        }
+
+        public MembershipRole getRole() {
+            return role;
+        }
+
+        public String getSource() {
+            return source;
+        }
+
+        public void setSource(String source) {
+            this.source = source;
         }
     }
 }

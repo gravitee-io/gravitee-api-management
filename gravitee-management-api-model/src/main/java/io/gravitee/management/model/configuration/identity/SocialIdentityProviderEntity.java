@@ -42,6 +42,8 @@ public abstract class SocialIdentityProviderEntity {
     @JsonIgnore
     private String clientSecret;
 
+    private boolean syncMappings;
+
     @JsonIgnore
     private List<GroupMappingEntity> groupMappings;
 
@@ -164,5 +166,13 @@ public abstract class SocialIdentityProviderEntity {
 
     public void setEmailRequired(boolean emailRequired) {
         this.emailRequired = emailRequired;
+    }
+
+    public boolean isSyncMappings() {
+        return syncMappings;
+    }
+
+    public void setSyncMappings(boolean syncMappings) {
+        this.syncMappings = syncMappings;
     }
 }
