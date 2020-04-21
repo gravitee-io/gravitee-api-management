@@ -22,8 +22,8 @@
   <modelVersion>4.0.0</modelVersion>
   <properties>
     <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
-    <node.version>v10.16.3</node.version>
-    <yarn.version>v1.21.1</yarn.version>
+    <node.version>v12.16.2</node.version>
+    <npm.version>6.14.4</npm.version>
   </properties>
 
   <parent>
@@ -61,7 +61,6 @@
             <exclude>**/*.ttf</exclude>
             <exclude>**/*.woff2</exclude>
             <exclude>**/*.eot</exclude>
-            <exclude>yarn.lock</exclude>
           </excludes>
         </configuration>
       </plugin>
@@ -91,26 +90,26 @@
         <version>${frontend-maven-plugin.version}</version>
         <executions>
           <execution>
-            <id>install node and yarn</id>
+            <id>install node and npm</id>
             <goals>
-              <goal>install-node-and-yarn</goal>
+              <goal>install-node-and-npm</goal>
             </goals>
             <configuration>
               <nodeVersion>${node.version}</nodeVersion>
-              <yarnVersion>${yarn.version}</yarnVersion>
+              <npmVersion>${npm.version}</npmVersion>
             </configuration>
           </execution>
           <execution>
-            <id>yarn install</id>
+            <id>npm install</id>
             <goals>
-              <goal>yarn</goal>
+              <goal>npm</goal>
             </goals>
             <phase>generate-resources</phase>
           </execution>
           <execution>
-            <id>yarn lint</id>
+            <id>npm lint</id>
             <goals>
-              <goal>yarn</goal>
+              <goal>npm</goal>
             </goals>
             <phase>generate-resources</phase>
             <configuration>
@@ -118,9 +117,9 @@
             </configuration>
           </execution>
           <execution>
-            <id>build with yarn</id>
+            <id>build with npm</id>
             <goals>
-              <goal>yarn</goal>
+              <goal>npm</goal>
             </goals>
             <phase>process-resources</phase>
             <configuration>
