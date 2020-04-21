@@ -83,6 +83,19 @@
             </md-checkbox>
           </md-input-container>
         </div>
+
+        <div layout-gt-sm="row">
+          <md-radio-group ng-model="$ctrl.identityProvider.syncMappings">
+            <md-radio-button ng-value="false" class="md-primary">
+              Group and role mappings are computed only during first user authentication. Subsequent authentications
+              will not update any of these mappings. This mode is useful if you want to let the platform administrator
+              manage by himself roles and permissions.
+            </md-radio-button>
+            <md-radio-button ng-value="true">
+              Group and role mappings are computed during each user authentication. Platform administrators still have the
+              ability to override mappings but those one will be refreshed after next user authentications.</md-radio-button>
+          </md-radio-group>
+        </div>
       </div>
     </div>
 
