@@ -18,9 +18,13 @@ package io.gravitee.reporter.elasticsearch.indexer;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
+import io.reactivex.Flowable;
+import io.reactivex.functions.Function;
 import io.reactivex.processors.PublishProcessor;
 import io.reactivex.schedulers.Schedulers;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.reactivex.core.Vertx;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -55,7 +59,10 @@ public abstract class BulkIndexer extends AbstractIndexer {
 		bulkProcessor
 				.onBackpressureBuffer()
 				.observeOn(Schedulers.io())
-				.map(this::transform)
+				.flatMap((Function<Reportable, Publisher<Buffer>>) reportable ->
+						Flowable.just(reportable)
+							.map(this::transform)
+							.onErrorResumeNext(Flowable.empty()))
 				.buffer(
 						configuration.getFlushInterval(),
 						TimeUnit.SECONDS,
