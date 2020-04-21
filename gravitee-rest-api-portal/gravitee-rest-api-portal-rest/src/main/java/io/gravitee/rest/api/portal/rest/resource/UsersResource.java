@@ -104,7 +104,11 @@ public class UsersResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ) })
     public Response getUsers(@QueryParam("q") String query, @BeanParam PaginationParam paginationParam) {
-        List<User> users = identityService.search(query).stream()
+        String q = query;
+        if (q == null) {
+            q = "*";
+        }
+        List<User> users = identityService.search(q).stream()
                 .map(searchableUser -> userMapper.convert(searchableUser)
                         .links(userMapper.computeUserLinks(PortalApiLinkHelper.usersURL(uriInfo.getBaseUriBuilder(), searchableUser.getId()), null))
                 )
