@@ -15,10 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.RatingEntity;
-import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;

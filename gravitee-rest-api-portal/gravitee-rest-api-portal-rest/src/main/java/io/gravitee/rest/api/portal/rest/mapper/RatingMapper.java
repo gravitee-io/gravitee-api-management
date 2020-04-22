@@ -67,10 +67,12 @@ public class RatingMapper {
                     ratingEntity.getAnswers().stream()
                             .sorted(Comparator.comparing(RatingAnswerEntity::getCreatedAt))
                             .map(rae -> {
-                                        UserEntity responseAuthor = userService.findById(rae.getUser());
+                                        UserEntity answerAuthorEntity = userService.findById(rae.getUser());
+                                        User answerAuthor = userMapper.convert(answerAuthorEntity);
+                                        answerAuthor.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), answerAuthorEntity.getId()), answerAuthorEntity.getUpdatedAt()));
                                         return new RatingAnswer()
                                                 .id(rae.getId())
-                                                .author(userMapper.convert(responseAuthor))
+                                                .author(answerAuthor)
                                                 .comment(rae.getComment())
                                                 .date(rae.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
                                     }
