@@ -521,10 +521,11 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/subscriptionStatusesQueryParam'
 
       summary: List applications that subscribred to an API
       description: |
-        If the current user is the owner of the API, all connected ACCEPTED, PAUSED & PENDING applications will be returned.
+        If the current user is the owner of the API, all connected applications will be returned. Filtered by status. Ordered by number of hits.
         Else only applications that current is allowed to access will.
 
         This API has to be accessible by the current user, otherwise a 404 will be returned.
@@ -1121,8 +1122,7 @@ paths:
 
       summary: List APIs that subscribed with an application
       description: |
-        If the current user is the owner of the API, all connected ACCEPTED, PAUSED & PENDING applications will be returned.
-        Else only APIs that current is allowed to access will.
+        Lists API that current user is allowed to access. May be filtered by status. Ordered by nimber of hits.
 
         This application has to be accessible by the current user, otherwise a 404 will be returned.
       operationId: getSubscriberApisByApplicationId
@@ -2518,7 +2518,7 @@ components:
       name: statuses
       in: query
       required: false
-      description: Id of an application.
+      description: status of subscription.
       schema:
         type: array
         items:

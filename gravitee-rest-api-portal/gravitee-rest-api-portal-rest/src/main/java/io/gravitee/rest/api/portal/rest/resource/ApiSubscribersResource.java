@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -31,10 +32,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 
 import javax.inject.Inject;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -62,7 +60,7 @@ public class ApiSubscribersResource extends AbstractResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getSubscriberApplicationsByApiId(@BeanParam PaginationParam paginationParam,
-            @PathParam("apiId") String apiId) {
+            @PathParam("apiId") String apiId, @QueryParam("statuses") List<SubscriptionStatus> statuses) {
         String currentUser = getAuthenticatedUserOrNull();
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(currentUser);
         Optional<ApiEntity> optionalApi = userApis.stream().filter(a -> a.getId().equals(apiId)).findFirst();
@@ -71,7 +69,7 @@ public class ApiSubscribersResource extends AbstractResource {
             SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
             subscriptionQuery.setApi(apiId);
 
-            subscriptionQuery.setStatuses(Arrays.asList(ACCEPTED, PENDING, PAUSED));
+            subscriptionQuery.setStatuses(statuses);
 
             ApiEntity api = optionalApi.get();
             if(!api.getPrimaryOwner().getId().equals(currentUser) ) {
