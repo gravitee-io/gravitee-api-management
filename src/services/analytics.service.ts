@@ -31,7 +31,7 @@ class AnalyticsService {
   private analyticsURL: string;
   private analyticsHttpTimeout: number;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, Constants, public $stateParams) {
     'ngInject';
     this.platformUrl = `${Constants.baseURL}platform`;
     this.analyticsURL = `${Constants.baseURL}platform/analytics`;
@@ -90,6 +90,39 @@ class AnalyticsService {
 
   getLog(logId, timestamp) {
     return this.$http.get(this.platformUrl + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
+  }
+
+  getQueryFilters() {
+    let q = this.$stateParams.q;
+    if (q) {
+      const queryFilters = {};
+      q.split(' ').forEach(q => {
+        if (q.includes(':')) {
+          let param = q.split(':');
+          let keyParam = this.cleanParam(param[0]);
+          let valueParam = this.cleanParam(param[1]);
+          if (queryFilters[keyParam]) {
+            queryFilters[keyParam].push(valueParam);
+          } else {
+            queryFilters[keyParam] = [valueParam];
+          }
+        }
+      });
+      return queryFilters;
+    }
+    return null;
+  }
+
+  private cleanParam(param) {
+    return param.replace("%20", " ").replace(/[()]/g, "").replace(/[\\\"]/g, "");
+  }
+
+  buildQueryParam(queryParam, q: string) {
+    queryParam = (q === 'body') ? ('*' + queryParam + '*') : queryParam;
+    queryParam = (q === 'uri') ? (queryParam + '*') : queryParam;
+    queryParam = (q.includes('path')) ? ('\\"' + queryParam + '\\"') : queryParam;
+    queryParam = queryParam.replace(/\//g, '\\\\/');
+    return queryParam;
   }
 }
 

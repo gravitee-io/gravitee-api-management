@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
+import AnalyticsService from "../../services/analytics.service";
 
 class DashboardFilterController {
   private fields: any;
@@ -22,7 +23,7 @@ class DashboardFilterController {
   private onFilterChange: any;
   private lastSource: any;
 
-  constructor(private $rootScope, private $state: StateService) {
+  constructor(private $rootScope, private $state: StateService, private AnalyticsService: AnalyticsService) {
     'ngInject';
 
     this.fields = {};
@@ -40,23 +41,20 @@ class DashboardFilterController {
 
   $onInit() {
     //init filters based on stateParams
-    let q = this.$state.params["q"];
-    if (q) {
-      this.decodeQueryFilters(q);
+    let queryFilters = this.AnalyticsService.getQueryFilters();
+    if (queryFilters) {
+      this.decodeQueryFilters(queryFilters);
     } else {
       this.onFilterChange({query: undefined, widget: this.lastSource});
     }
   }
 
-  private decodeQueryFilters(query) {
-    let filters = query.split("AND");
-    for (let i = 0; i < filters.length; i++) {
-      let queryFilter = filters[i].replace(/[()]/g, "");
-      let kv = queryFilter.split(":");
-      let k = kv[0].trim();
-      let v = kv[1].replace(/[\\\"]/g, "").split('OR').map(x => x.trim());
-
-      let lastFilter;
+  private decodeQueryFilters(queryFilters) {
+    let filters = Object.keys(queryFilters);
+    let lastFilter;
+    filters.forEach(filter => {
+      let k = filter;
+      let v = queryFilters[filter];
 
       v.forEach(value => {
         let filter: any = {};
@@ -64,13 +62,11 @@ class DashboardFilterController {
         filter.name = value;
         filter.field = k;
         filter.fieldLabel = k;
-
         this.addFieldFilter(filter, false);
         lastFilter = filter;
       });
-
-      this.createAndSendQuery(lastFilter.silent);
-    }
+    });
+    this.createAndSendQuery(lastFilter.silent);
   }
 
   addFieldFilter(filter, run:boolean = true) {
@@ -150,7 +146,7 @@ class DashboardFilterController {
 
   createAndSendQuery(silent) {
     // Create a query with all the current filters
-    let query = _.values(_.mapValues(this.fields, function(value) { return value.query; })).join(' AND ');
+    let query = Object.keys(this.fields).map(field => this.fields[field].query).join(' AND ');
 
     // Update the query parameter
     if (!silent) {

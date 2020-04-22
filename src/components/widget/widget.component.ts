@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import AnalyticsService from "../../services/analytics.service";
 
 const WidgetComponent: ng.IComponentOptions = {
   template: require('./widget.html'),
@@ -22,9 +23,10 @@ const WidgetComponent: ng.IComponentOptions = {
     updateMode: '<',
     globalQuery: '<'
   },
-  controller: function($scope, $state) {
+  controller: function($scope, $state, AnalyticsService: AnalyticsService) {
     'ngInject';
     this.$state = $state;
+    this.AnalyticsService = AnalyticsService;
 
     $scope.$on('gridster-resized', function () {
       $scope.$broadcast('onWidgetResize');
@@ -43,23 +45,16 @@ const WidgetComponent: ng.IComponentOptions = {
           interval: timeframe.interval,
           from: timeframe.from,
           to: timeframe.to,
-          query: query,
-          additionalQuery: this.widget.chart.request.additionalQuery
+          query: query
         });
-
         this.reload();
       }
     });
 
     let unregisterFn = $scope.$on('onQueryFilterChange', (event, query) => {
       if (this.widget.chart && this.widget.chart.request) {
-        // Associate the new query filter to the chart request
-        this.widget.chart.request.additionalQuery = query.query;
-
-        // Reload only if not the same widget which applied the latest filter
-        if (this.widget.$uid !== query.source) {
-          this.reload();
-        }
+        this.widget.chart.request.query = query.query;
+        this.reload();
       }
     });
 
@@ -71,15 +66,20 @@ const WidgetComponent: ng.IComponentOptions = {
 
       // Prepare arguments
       let chartRequest = _.cloneDeep(this.widget.chart.request);
-      if (chartRequest.additionalQuery) {
-        if (chartRequest.query) {
-          if (!_.includes(chartRequest.query, chartRequest.additionalQuery)) {
-            chartRequest.query += ' AND ' + chartRequest.additionalQuery;
-          }
+      let field = this.widget.chart.request.field;
+      if (this.widget.chart.request.aggs && this.widget.chart.request.aggs.includes('field:')) {
+        field = this.widget.chart.request.aggs.replace('field:', '');
+      }
+      let queryFilters = this.AnalyticsService.getQueryFilters();
+      if (queryFilters) {
+        let filters;
+        if (Object.keys(queryFilters).find((q) => q === field)) {
+          filters = Object.keys(queryFilters).filter((q) => chartRequest.ranges || q !== field);
         } else {
-          chartRequest.query = chartRequest.additionalQuery;
+          filters = Object.keys(queryFilters);
         }
-        delete chartRequest.additionalQuery;
+        chartRequest.query = filters.map(f => '(' + f + ':' + queryFilters[f]
+          .map(qp => this.AnalyticsService.buildQueryParam(qp, f)).join(' OR ') + ')').join(' AND ');
       }
 
       if (this.globalQuery) {
