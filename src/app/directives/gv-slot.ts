@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ViewContainerRef } from '@angular/core';
+import { ComponentFactory, ViewContainerRef } from '@angular/core';
 
 export abstract class GvSlot {
+  private currentComponentFactory: ComponentFactory<any>;
 
   constructor(private viewContainerRef: ViewContainerRef) {
   }
@@ -30,13 +31,23 @@ export abstract class GvSlot {
     this.viewContainerRef.clear();
   }
 
-  setComponent(componentFactory) {
-    if (this.viewContainerRef.length === 0) {
-      this.viewContainerRef.createComponent(componentFactory);
-      if (this.viewContainerRef.element.nativeElement.previousSibling) {
-        this.viewContainerRef.element.nativeElement.previousSibling.slot = this.getName();
+  setComponent(componentFactory: ComponentFactory<any>) {
+    if (this.currentComponentFactory) {
+      if (this.currentComponentFactory.componentType !== componentFactory.componentType) {
+        this.clear();
+        this.createComponent(componentFactory);
       }
+    } else {
+      this.createComponent(componentFactory);
     }
+  }
+
+  private createComponent(componentFactory) {
+    this.viewContainerRef.createComponent(componentFactory);
+    if (this.viewContainerRef.element.nativeElement.previousSibling) {
+      this.viewContainerRef.element.nativeElement.previousSibling.slot = this.getName();
+    }
+    this.currentComponentFactory = componentFactory;
   }
 
 }
