@@ -19,6 +19,7 @@ import '@gravitee/ui-components/wc/gv-stepper';
 import '@gravitee/ui-components/wc/gv-plans';
 import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-code';
+import '@gravitee/ui-components/wc/gv-list';
 import {
   Api,
   ApiService,
@@ -34,6 +35,7 @@ import { Plan } from '@gravitee/ng-portal-webclient';
 import StatusEnum = Subscription.StatusEnum;
 import { distinctUntilChanged } from 'rxjs/operators';
 import { ConfigurationService } from '../../../services/configuration.service';
+import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
 
 @Component({
   selector: 'app-api-subscribe',
@@ -358,11 +360,9 @@ export class ApiSubscribeComponent implements OnInit {
           const appPlansSubscriptions = appSubscriptions.filter((subscription) => subscription.plan === plan.id);
           if (appPlansSubscriptions.length > 0) {
             subscribedApps.push({
-              name: application.name,
-              description: application.description,
-              picture: (application._links ? application._links.picture : ''),
+              item: application,
               subscriptions: appPlansSubscriptions,
-              suffix: application.applicationType,
+              type: ItemResourceTypeEnum.APPLICATION,
             });
             if (!this.canSubscribe(appPlansSubscriptions, plan)) {
               return null;

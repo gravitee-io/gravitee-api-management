@@ -22,7 +22,8 @@ import {
   UsersService,
   User,
   PortalService,
-  PermissionsService
+  PermissionsService,
+  Subscription
 } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -40,6 +41,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { NotificationService } from '../../../services/notification.service';
 import { CurrentUserService } from 'src/app/services/current-user.service';
+import StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-application-members',
@@ -161,16 +163,12 @@ export class ApplicationMembersComponent implements OnInit {
           this.loadMembersTable();
         });
 
-      this.connectedApis = this.applicationService.getSubscriberApisByApplicationId({ applicationId: this.application.id })
+      this.connectedApis = this.applicationService.getSubscriberApisByApplicationId({
+        applicationId: this.application.id,
+        statuses: [StatusEnum.ACCEPTED],
+      })
         .toPromise()
-        .then((response) => {
-          return response.data.map((api) => ({
-            name: api.name,
-            description: api.description,
-            picture: (api._links ? api._links.picture : ''),
-            suffix: api.version
-          }));
-        });
+        .then((response) => response.data.map((api) => ({ item: api, type: ItemResourceTypeEnum.API })));
 
       this.translateService.get([
         i18n('application.miscellaneous.owner'),

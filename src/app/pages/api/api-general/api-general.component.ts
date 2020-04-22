@@ -27,7 +27,8 @@ import {
   User,
   PermissionsService,
   PermissionsResponse,
-  GetApiRatingsByApiIdRequestParams
+  GetApiRatingsByApiIdRequestParams,
+  Subscription
 } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, PRIMARY_OUTLET, Router } from '@angular/router';
 import { ApiMetrics } from '@gravitee/ng-portal-webclient/model/apiMetrics';
@@ -38,6 +39,8 @@ import { CurrentUserService } from '../../../services/current-user.service';
 import { NotificationService } from '../../../services/notification.service';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ConfigurationService } from '../../../services/configuration.service';
+import StatusEnum = Subscription.StatusEnum;
+import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
 
 @Component({
   selector: 'app-api-general',
@@ -130,16 +133,12 @@ export class ApiGeneralComponent implements OnInit {
         this.currentUser = this.currentUserService.getUser();
         if (this.currentUser) {
           this._updateRatings();
-          this.linkedApp = this.apiService.getSubscriberApplicationsByApiId({ apiId })
-          .toPromise()
-          .then((response) => {
-            return response.data.map((app) => ({
-              name: app.name,
-              description: app.description,
-              picture: (app._links ? app._links.picture : ''),
-              suffix: app.applicationType,
-            }));
+          this.linkedApp = this.apiService.getSubscriberApplicationsByApiId({
+            apiId,
+            statuses: [StatusEnum.ACCEPTED],
           })
+          .toPromise()
+          .then((response) => response.data.map((app) => ({ item: app, type: ItemResourceTypeEnum.APPLICATION })))
           .catch(() => []);
         }
 

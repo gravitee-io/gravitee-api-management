@@ -104,18 +104,10 @@ export class ApplicationGeneralComponent implements OnInit {
 
       this.connectedApis = this.applicationService.getSubscriberApisByApplicationId({
         applicationId: this.application.id,
-        statuses: [StatusEnum.ACCEPTED, StatusEnum.PAUSED],
+        statuses: [StatusEnum.ACCEPTED],
       })
         .toPromise()
-        .then((response) => {
-          return response.data.map((api) => ({
-            name: api.name,
-            description: api.description,
-            picture: (api._links ? api._links.picture : ''),
-            suffix: api.version
-          }));
-        })
-        .catch(() => []);
+        .then((response) => response.data.map((api) => ({ item: api, type: 'api' })));
     }
   }
 

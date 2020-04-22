@@ -30,6 +30,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { LoaderService } from '../../../services/loader.service';
 import StatusEnum = Subscription.StatusEnum;
 import { NotificationService } from '../../../services/notification.service';
+import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
 
 @Component({
   selector: 'app-application-subscriptions',
@@ -56,6 +57,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   displayExpiredApiKeys = false;
   canDelete = false;
   canUpdate = false;
+  connectedApis: Promise<any[]>;
 
   constructor(
     private route: ActivatedRoute,
@@ -187,6 +189,13 @@ export class ApplicationSubscriptionsComponent implements OnInit {
         this.form.patchValue({ status: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING] });
         this.search(true);
       });
+
+      this.connectedApis = this.applicationService.getSubscriberApisByApplicationId({
+        applicationId: application.id,
+        statuses: [StatusEnum.ACCEPTED],
+      })
+      .toPromise()
+      .then((response) => response.data.map(api => ({ item: api, type: ItemResourceTypeEnum.API })));
     }
   }
 
