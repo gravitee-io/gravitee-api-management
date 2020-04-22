@@ -20,6 +20,7 @@ import { NotificationService } from '../../services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import '@gravitee/ui-components/wc/gv-tree';
 import { animate, style, transition, trigger } from '@angular/animations';
+import Timeout = NodeJS.Timeout;
 
 @Component({
   selector: 'app-gv-documentation',
@@ -35,7 +36,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
     ])
   ]
 })
-export class GvDocumentationComponent implements AfterViewInit {
+export class GvDocumentationComponent {
 
   currentPage: Page;
   currentMenuItem: TreeItem;
@@ -47,8 +48,10 @@ export class GvDocumentationComponent implements AfterViewInit {
   private _pages: Page[];
 
   @ViewChild('treeMenu', { static: false }) treeMenu;
+  private loadingTimer: Timeout;
 
   @Input() set pages(pages: Page[]) {
+    clearTimeout(this.loadingTimer);
     if (pages && pages.length) {
       if (this._pages !== pages) {
         this._pages = pages;
@@ -71,10 +74,10 @@ export class GvDocumentationComponent implements AfterViewInit {
           this.menu = [];
         }
       }
-      setTimeout(() => {
-        this.isLoaded = true;
-      }, 700);
     }
+    this.loadingTimer = setTimeout(() => {
+      this.isLoaded = true;
+    }, 700);
   }
 
   @Input() fragment: string;
@@ -84,16 +87,6 @@ export class GvDocumentationComponent implements AfterViewInit {
     private route: ActivatedRoute,
     private router: Router,
   ) {
-  }
-
-  ngAfterViewInit() {
-    setTimeout(() => {
-      const element = document.querySelector('header');
-      if (element) {
-        const { height } = window.getComputedStyle(element);
-        this.treeMenu.style.top = height;
-      }
-    });
   }
 
   private initTree(pages: Page[], selectedPage?: string) {
