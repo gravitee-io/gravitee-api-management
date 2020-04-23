@@ -15,12 +15,16 @@
  */
 package io.gravitee.management.security.filter;
 
-import com.auth0.jwt.JWTExpiredException;
+import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.idp.api.authentication.UserDetails;
-import io.gravitee.management.security.cookies.JWTCookieGenerator;
+import io.gravitee.management.security.cookies.CookieGenerator;
 import io.gravitee.management.service.common.JWTHelper.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,12 +56,16 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
 
-    private final JWTVerifier jwtVerifier;
-    private JWTCookieGenerator jwtCookieGenerator;
+    public static final String AUTH_COOKIE_NAME = "Auth-Graviteeio-APIM";
 
-    public JWTAuthenticationFilter(final String jwtSecret, final JWTCookieGenerator jwtCookieGenerator) {
-        this.jwtVerifier = new JWTVerifier(jwtSecret);
-        this.jwtCookieGenerator = jwtCookieGenerator;
+    private final JWTVerifier jwtVerifier;
+    private CookieGenerator cookieGenerator;
+
+    public JWTAuthenticationFilter(final String jwtSecret, final CookieGenerator cookieGenerator) {
+        Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
+        jwtVerifier = JWT.require(algorithm).build();
+
+        this.cookieGenerator = cookieGenerator;
     }
 
     @Override
@@ -70,9 +78,8 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
         String stringToken = req.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (isEmpty(stringToken) && req.getCookies() != null) {
-            final String authCookieName = "Auth-Graviteeio-APIM";
             final Optional<Cookie> optionalStringToken = Arrays.stream(req.getCookies())
-                    .filter(cookie -> authCookieName.equals(cookie.getName()))
+                    .filter(cookie -> AUTH_COOKIE_NAME.equals(cookie.getName()))
                     .findAny();
             if (optionalStringToken.isPresent()) {
                 stringToken = decode(optionalStringToken.get().getValue(), defaultCharset().name());
@@ -86,24 +93,23 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
             if (stringToken.contains(authorizationSchema)) {
                 final String jwtToken = stringToken.substring(authorizationSchema.length()).trim();
                 try {
-                    final Map<String, Object> verify = jwtVerifier.verify(jwtToken);
+                    final DecodedJWT jwt = jwtVerifier.verify(jwtToken);
 
-                    List<Map> permissions = (List<Map>) verify.get(Claims.PERMISSIONS);
+                    Claim permissionsClaim = jwt.getClaim(Claims.PERMISSIONS);
+
                     List<SimpleGrantedAuthority> authorities;
 
-                    if (permissions != null) {
-                        authorities = ((List<Map>) verify.get(Claims.PERMISSIONS)).stream()
-                                .map(map -> new SimpleGrantedAuthority(map.get("authority").toString()))
-                                .collect(Collectors.toList());
+                    if (permissionsClaim != null) {
+                        authorities = permissionsClaim.asList(Map.class).stream().map(o -> new SimpleGrantedAuthority((String) o.get("authority"))).collect(Collectors.toList());
                     } else {
                         authorities = Collections.emptyList();
                     }
 
-                    final UserDetails userDetails = new UserDetails(getStringValue(verify.get(Claims.SUBJECT)), "",
+                    final UserDetails userDetails = new UserDetails(getStringValue(jwt.getSubject()), "",
                             authorities);
-                    userDetails.setEmail((String) verify.get(Claims.EMAIL));
-                    userDetails.setFirstname((String) verify.get(Claims.FIRSTNAME));
-                    userDetails.setLastname((String) verify.get(Claims.LASTNAME));
+                    userDetails.setEmail(jwt.getClaim(Claims.EMAIL).asString());
+                    userDetails.setFirstname(jwt.getClaim(Claims.FIRSTNAME).asString());
+                    userDetails.setLastname(jwt.getClaim(Claims.LASTNAME).asString());
 
                     SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
                 } catch (final Exception e) {
@@ -111,13 +117,13 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.error(errorMessage, e);
                     } else {
-                        if (e instanceof JWTExpiredException) {
+                        if (e instanceof JWTVerificationException) {
                             LOGGER.warn(errorMessage);
                         } else {
                             LOGGER.error(errorMessage);
                         }
                     }
-                    res.addCookie(jwtCookieGenerator.generate(null));
+                    res.addCookie(cookieGenerator.generate(JWTAuthenticationFilter.AUTH_COOKIE_NAME, null));
                     res.sendError(HttpStatusCode.UNAUTHORIZED_401);
                     return;
                 }

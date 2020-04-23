@@ -15,7 +15,8 @@
  */
 package io.gravitee.management.service;
 
-import com.auth0.jwt.JWTSigner;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.application.ApplicationListItem;
@@ -27,7 +28,6 @@ import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.*;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -37,9 +37,16 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
 
 import static io.gravitee.management.service.common.JWTHelper.ACTION.USER_REGISTRATION;
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
@@ -275,8 +282,8 @@ public class UserServiceTest {
 
     @Test
     public void createAlreadyPreRegisteredUser() throws TechnicalException {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
 
         User user = new User();
         user.setId("CUSTOM_LONG_ID");
@@ -315,6 +322,8 @@ public class UserServiceTest {
     @Test
     public void shouldResetPassword() throws TechnicalException {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER))
+                .thenReturn(1000);
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
@@ -340,6 +349,23 @@ public class UserServiceTest {
     }
 
     private String createJWT(long expirationSeconds) {
+        Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
+
+        Date issueAt = new Date();
+        Instant expireAt = issueAt.toInstant().plus(Duration.ofSeconds(expirationSeconds));
+
+        return JWT.create()
+                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                .withIssuedAt(issueAt)
+                .withExpiresAt(Date.from(expireAt))
+                .withSubject(USER_NAME)
+                .withClaim(JWTHelper.Claims.EMAIL, EMAIL)
+                .withClaim(JWTHelper.Claims.FIRSTNAME, FIRST_NAME)
+                .withClaim(JWTHelper.Claims.LASTNAME, LAST_NAME)
+                .withClaim(JWTHelper.Claims.ACTION, USER_REGISTRATION.name())
+                .sign(algorithm);
+
+        /*
         HashMap<String, Object> claims = new HashMap<>();
         claims.put(JWTHelper.Claims.SUBJECT, USER_NAME);
         claims.put(JWTHelper.Claims.EMAIL, EMAIL);
@@ -348,6 +374,7 @@ public class UserServiceTest {
         claims.put(JWTHelper.Claims.ACTION, USER_REGISTRATION);
         claims.put("exp", expirationSeconds);
         return new JWTSigner(JWT_SECRET).sign(claims);
+         */
     }
 
     @Test

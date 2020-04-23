@@ -53,13 +53,14 @@
         <validation-api.version>2.0.1.Final</validation-api.version>
         <mail.version>1.4.7</mail.version>
         <freemarker.version>2.3.28</freemarker.version>
-        <java-jwt.version>2.2.1</java-jwt.version>
+        <java-jwt.version>3.10.2</java-jwt.version>
         <guava.version>20.0</guava.version>
         <jsonpath.version>2.3.0</jsonpath.version>
         <lucene.version>7.5.0</lucene.version>
         <powermock.version>2.0.0</powermock.version>
         <commons-lang3.version>3.9</commons-lang3.version>
         <swagger.version>1.5.23</swagger.version>
+        <nimbus-jose-jwt.version>8.15</nimbus-jose-jwt.version>
     </properties>
 
     <modules>

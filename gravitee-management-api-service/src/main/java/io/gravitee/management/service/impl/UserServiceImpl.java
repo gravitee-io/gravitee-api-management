@@ -15,8 +15,10 @@
  */
 package io.gravitee.management.service.impl;
 
-import com.auth0.jwt.JWTSigner;
+import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
@@ -36,7 +38,6 @@ import io.gravitee.management.service.notification.PortalHook;
 import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.management.service.search.query.Query;
 import io.gravitee.management.service.search.query.QueryBuilder;
-import io.gravitee.repository.Scope;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
@@ -58,15 +59,16 @@ import javax.mail.internet.InternetAddress;
 import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.gravitee.management.service.common.JWTHelper.ACTION.*;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
-import static io.gravitee.management.service.notification.NotificationParamsBuilder.*;
+import static io.gravitee.management.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
+import static io.gravitee.management.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -279,13 +281,20 @@ public class UserServiceImpl extends AbstractService implements UserService {
             if (jwtSecret == null || jwtSecret.isEmpty()) {
                 throw new IllegalStateException("JWT secret is mandatory");
             }
-            final Map<String, Object> claims = new JWTVerifier(jwtSecret).verify(registerUserEntity.getToken());
-            final String action = claims.get(Claims.ACTION).toString();
+
+            Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                    .build();
+
+            DecodedJWT jwt = verifier.verify(registerUserEntity.getToken());
+
+            final String action = jwt.getClaim(Claims.ACTION).asString();
             if (USER_REGISTRATION.name().equals(action)) {
                 checkUserRegistrationEnabled();
             } else if (GROUP_INVITATION.name().equals(action)) {
                 // check invitations
-                final String email = claims.get(Claims.EMAIL).toString();
+                final String email = jwt.getClaim(Claims.EMAIL).asString();
                 final List<InvitationEntity> invitations = invitationService.findAll();
                 final List<InvitationEntity> userInvitations = invitations.stream()
                         .filter(invitation -> invitation.getEmail().equals(email))
@@ -294,11 +303,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     throw new IllegalStateException("Invitation has been canceled");
                 }
             }
-            final Object subject = claims.get(Claims.SUBJECT);
+            final Object subject = jwt.getSubject();
             User user;
             if (subject == null) {
                 final NewExternalUserEntity externalUser = new NewExternalUserEntity();
-                final String email = claims.get(Claims.EMAIL).toString();
+                final String email = jwt.getClaim(Claims.EMAIL).asString();
                 externalUser.setSource(IDP_SOURCE_GRAVITEE);
                 externalUser.setSourceId(email);
                 externalUser.setFirstname(registerUserEntity.getFirstname());
@@ -513,28 +522,28 @@ public class UserServiceImpl extends AbstractService implements UserService {
     public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri,
                                                           final ACTION action) {
         // generate a JWT to store user's information and for security purpose
-        final Map<String, Object> claims = new HashMap<>();
-        claims.put(Claims.ISSUER, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER));
-
-        claims.put(Claims.SUBJECT, userEntity.getId());
-        claims.put(Claims.EMAIL, userEntity.getEmail());
-        claims.put(Claims.FIRSTNAME, userEntity.getFirstname());
-        claims.put(Claims.LASTNAME, userEntity.getLastname());
-        claims.put(Claims.ACTION, action);
-
-        final JWTSigner.Options options = new JWTSigner.Options();
-        options.setExpirySeconds(environment.getProperty("user.creation.token.expire-after",
-                Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER));
-        options.setIssuedAt(true);
-        options.setJwtId(true);
-
-        // send a confirm email with the token
         final String jwtSecret = environment.getProperty("jwt.secret");
         if (jwtSecret == null || jwtSecret.isEmpty()) {
             throw new IllegalStateException("JWT secret is mandatory");
         }
 
-        final String token = new JWTSigner(jwtSecret).sign(claims, options);
+        Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
+
+        Date issueAt = new Date();
+        Instant expireAt = issueAt.toInstant().plus(Duration.ofSeconds(environment.getProperty("user.creation.token.expire-after",
+                Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER)));
+
+        final String token = JWT.create()
+                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                .withIssuedAt(issueAt)
+                .withExpiresAt(Date.from(expireAt))
+                .withSubject(userEntity.getId())
+                .withClaim(Claims.EMAIL, userEntity.getEmail())
+                .withClaim(Claims.FIRSTNAME, userEntity.getFirstname())
+                .withClaim(Claims.LASTNAME, userEntity.getLastname())
+                .withClaim(Claims.ACTION, action.name())
+                .sign(algorithm);
+
         String portalUrl = environment.getProperty("portalURL");
 
         if (portalUrl!= null && portalUrl.endsWith("/")) {
@@ -543,6 +552,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         String registrationUrl = portalUrl + portalUri + token;
 
+        // send a confirm email with the token
         return new NotificationParamsBuilder()
                 .user(userEntity)
                 .token(token)

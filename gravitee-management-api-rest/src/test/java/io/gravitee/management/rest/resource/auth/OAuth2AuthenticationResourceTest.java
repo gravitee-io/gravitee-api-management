@@ -15,8 +15,11 @@
  */
 package io.gravitee.management.rest.resource.auth;
 
+import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.JWTVerifyException;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -54,13 +57,10 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static javax.ws.rs.client.Entity.json;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Christophe LANNOY (chrislannoy.java at gmail.com)
@@ -243,26 +243,27 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verifyJwtToken(response);
     }
 
-    private void verifyJwtToken(Response response) throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerifyException {
+    private void verifyJwtToken(Response response) throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
         TokenEntity responseToken = response.readEntity(TokenEntity.class);
         assertEquals("BEARER", responseToken.getType().name());
 
-        String jwt = responseToken.getToken();
+        String token = responseToken.getToken();
 
-        JWTVerifier jwtVerifier = new JWTVerifier("myJWT4Gr4v1t33_S3cr3t");
+        Algorithm algorithm = Algorithm.HMAC256("myJWT4Gr4v1t33_S3cr3t");
+        JWTVerifier jwtVerifier = JWT.require(algorithm).build();
 
-        Map<String, Object> mapJwt = jwtVerifier.verify(jwt);
+        DecodedJWT jwt = jwtVerifier.verify(token);
 
-        assertEquals(mapJwt.get("sub"),"janedoe@example.com");
+        assertEquals(jwt.getSubject(),"janedoe@example.com");
 
-        assertEquals(mapJwt.get("firstname"),"Jane");
-        assertEquals(mapJwt.get("iss"),"gravitee-management-auth");
-        assertEquals(mapJwt.get("sub"),"janedoe@example.com");
-        assertEquals(mapJwt.get("email"),"janedoe@example.com");
-        assertEquals(mapJwt.get("lastname"),"Doe");
+        assertEquals(jwt.getClaim("firstname").asString(),"Jane");
+        assertEquals(jwt.getClaim("iss").asString(),"gravitee-management-auth");
+        assertEquals(jwt.getClaim("sub").asString(),"janedoe@example.com");
+        assertEquals(jwt.getClaim("email").asString(),"janedoe@example.com");
+        assertEquals(jwt.getClaim("lastname").asString(),"Doe");
     }
 
-    private void verifyJwtTokenIsNotPresent(Response response) throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerifyException {
+    private void verifyJwtTokenIsNotPresent(Response response) throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
         assertNull(response.getCookies().get(HttpHeaders.AUTHORIZATION));
     }
 

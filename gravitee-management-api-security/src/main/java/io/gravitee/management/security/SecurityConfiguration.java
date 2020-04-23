@@ -18,7 +18,7 @@ package io.gravitee.management.security;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.gravitee.management.security.authentication.impl.AuthenticationProviderManagerImpl;
 import io.gravitee.management.security.config.BasicSecurityConfigurerAdapter;
-import io.gravitee.management.security.cookies.JWTCookieGenerator;
+import io.gravitee.management.security.cookies.CookieGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -34,8 +34,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 public class SecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
 
     @Bean
-    public JWTCookieGenerator jwtCookieGenerator() {
-        return new JWTCookieGenerator();
+    public CookieGenerator jwtCookieGenerator() {
+        return new CookieGenerator();
     }
 
     @Bean

@@ -20,8 +20,9 @@ import io.gravitee.management.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.management.idp.core.plugin.IdentityProviderManager;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.gravitee.management.security.authentication.GraviteeAuthenticationDetails;
-import io.gravitee.management.security.authentication.GraviteeAuthenticationDetailsSource;
-import io.gravitee.management.security.cookies.JWTCookieGenerator;
+import io.gravitee.management.security.cookies.CookieGenerator;
+import io.gravitee.management.security.csrf.CookieCsrfSignedTokenRepository;
+import io.gravitee.management.security.csrf.CsrfRequestMatcher;
 import io.gravitee.management.security.filter.JWTAuthenticationFilter;
 import io.gravitee.management.security.listener.AuthenticationFailureListener;
 import io.gravitee.management.security.listener.AuthenticationSuccessListener;
@@ -74,7 +75,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     @Autowired
     private AuthenticationProviderManager authenticationProviderManager;
     @Autowired
-    private JWTCookieGenerator jwtCookieGenerator;
+    private CookieGenerator cookieGenerator;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -124,6 +125,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     @Bean
     public AuthenticationFailureListener authenticationFailureListener() {
         return new AuthenticationFailureListener();
+    }
+
+    @Bean
+    public CookieCsrfSignedTokenRepository cookieCsrfSignedTokenRepository() {
+        return new CookieCsrfSignedTokenRepository();
     }
 
     @Bean
@@ -180,7 +186,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         cors(http);
 
         http
-                .addFilterBefore(new JWTAuthenticationFilter(jwtSecret, jwtCookieGenerator), BasicAuthenticationFilter.class);
+                .addFilterBefore(new JWTAuthenticationFilter(jwtSecret, cookieGenerator), BasicAuthenticationFilter.class);
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {
@@ -190,7 +196,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     private HttpSecurity session(HttpSecurity security) throws Exception {
         return security.sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
+                .disable();
+                //.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
@@ -264,7 +271,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails> authenticationDetailsSource() {
-        return request -> new GraviteeAuthenticationDetails(request);
+        return GraviteeAuthenticationDetails::new;
     }
 
     private HttpSecurity hsts(HttpSecurity security) throws Exception {
@@ -283,7 +290,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity csrf(HttpSecurity security) throws Exception {
-        return security.csrf().disable();
+        return security.csrf()
+                .csrfTokenRepository(cookieCsrfSignedTokenRepository())
+                .requireCsrfProtectionMatcher(new CsrfRequestMatcher()).and();
     }
 
     private HttpSecurity cors(HttpSecurity security) throws Exception {
