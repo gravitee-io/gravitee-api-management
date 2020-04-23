@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, Input, ViewChild } from '@angular/core';
 import { Page } from '@gravitee/ng-portal-webclient';
 import { TreeItem } from '../../model/tree-item';
 import { NotificationService } from '../../services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import '@gravitee/ui-components/wc/gv-tree';
 import { animate, style, transition, trigger } from '@angular/animations';
-import Timeout = NodeJS.Timeout;
 
 @Component({
   selector: 'app-gv-documentation',
@@ -48,7 +47,7 @@ export class GvDocumentationComponent {
   private _pages: Page[];
 
   @ViewChild('treeMenu', { static: false }) treeMenu;
-  private loadingTimer: Timeout;
+  private loadingTimer: number;
 
   @Input() set pages(pages: Page[]) {
     clearTimeout(this.loadingTimer);
