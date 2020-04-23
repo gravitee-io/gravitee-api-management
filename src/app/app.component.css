@@ -64,7 +64,6 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
 }
 
 .sticky-homepage .layout__header__homepage__background {
@@ -110,10 +109,10 @@
 }
 
 .layout__header__homepage__title {
-  margin-left: -25%;
   --gv-button--p: 1rem 2rem;
   --gv-button--bdrs: 5px;
   transition: opacity 250ms ease-in-out;
+  padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pl);
 }
 
 .sticky .layout__header__homepage__title {
