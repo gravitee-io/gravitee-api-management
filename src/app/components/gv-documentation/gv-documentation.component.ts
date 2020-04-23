@@ -47,7 +47,7 @@ export class GvDocumentationComponent {
   private _pages: Page[];
 
   @ViewChild('treeMenu', { static: false }) treeMenu;
-  private loadingTimer: number;
+  private loadingTimer: any;
 
   @Input() set pages(pages: Page[]) {
     clearTimeout(this.loadingTimer);
