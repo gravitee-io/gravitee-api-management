@@ -888,20 +888,26 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             sb.append(getName(application));
             sb.append(separator);
 
-            sb.append(dateFormatter.format(subscription.getCreatedAt()));
-            sb.append(separator);
+            if (subscription.getCreatedAt() != null) {
+                sb.append(dateFormatter.format(subscription.getCreatedAt()));
+                sb.append(separator);
+            }
 
-            sb.append(dateFormatter.format(subscription.getProcessedAt()));
-            sb.append(separator);
+            if (subscription.getProcessedAt() != null) {
+                sb.append(dateFormatter.format(subscription.getProcessedAt()));
+                sb.append(separator);
+            }
 
-            sb.append(dateFormatter.format(subscription.getStartingAt()));
-            sb.append(separator);
+            if (subscription.getStartingAt() != null) {
+                sb.append(dateFormatter.format(subscription.getStartingAt()));
+                sb.append(separator);
+            }
 
             if (subscription.getEndingAt() != null) {
                 sb.append(dateFormatter.format(subscription.getEndingAt()));
+                sb.append(separator);
             }
 
-            sb.append(separator);
             sb.append(subscription.getStatus());
 
             sb.append(lineSeparator());
