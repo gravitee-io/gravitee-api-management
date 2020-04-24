@@ -343,6 +343,11 @@ user:
 # The portal URL used in emails
 portalURL: http://localhost:3000/
 
+# Enable / disable documentation sanitize. Disabled by default.
+#documentation:
+#  markdown:
+#    sanitize: false
+
 search:
   data: ${gravitee.home}/data
 

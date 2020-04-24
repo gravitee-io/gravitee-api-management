@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.UpdatePageEntity;
+import io.gravitee.management.service.exceptions.PageContentUnsafeException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.PageServiceImpl;
@@ -23,6 +24,7 @@ import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -35,6 +37,7 @@ import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -177,4 +180,17 @@ public class PageService_UpdateTest {
         verify(pageRepository, never()).update(any());
     }
 
+    @Test(expected = PageContentUnsafeException.class)
+    public void shouldNotUpdateBecausePageContentUnsafeException() throws TechnicalException {
+
+        setField(pageService, "markdownSanitize", true);
+
+        when(existingPage.getContent()).thenReturn("<script />");
+        when(page1.getType()).thenReturn(PageType.MARKDOWN);
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
+
+        pageService.update(PAGE_ID, existingPage);
+
+        verify(pageRepository, never()).update(any());
+    }
 }

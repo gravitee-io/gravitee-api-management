@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.service.exceptions.PageContentUnsafeException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.PageServiceImpl;
 import io.gravitee.management.service.search.SearchEngineService;
@@ -28,6 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
@@ -35,6 +37,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -118,4 +121,23 @@ public class PageService_CreateTest {
         verify(pageRepository, never()).create(any());
     }
 
+    @Test(expected = PageContentUnsafeException.class)
+    public void shouldNotCreateBecausePageContentUnsafeException() throws TechnicalException {
+
+        setField(pageService, "markdownSanitize", true);
+
+        final String name = "MARKDOWN";
+        final String contrib = "contrib";
+        final String content = "<script />";
+
+        when(newPage.getName()).thenReturn(name);
+        when(newPage.getOrder()).thenReturn(1);
+        when(newPage.getContent()).thenReturn(content);
+        when(newPage.getLastContributor()).thenReturn(contrib);
+        when(newPage.getType()).thenReturn(io.gravitee.management.model.PageType.MARKDOWN);
+
+        this.pageService.createPage(API_ID, newPage);
+
+        verify(pageRepository, never()).create(any());
+    }
 }

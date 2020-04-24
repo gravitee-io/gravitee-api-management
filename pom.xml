@@ -62,6 +62,8 @@
         <commons-lang3.version>3.9</commons-lang3.version>
         <swagger.version>1.5.23</swagger.version>
         <nimbus-jose-jwt.version>8.15</nimbus-jose-jwt.version>
+        <flexmark.version>0.61.16</flexmark.version>
+        <owasp-java-html-sanitizer.version>20191001.1</owasp-java-html-sanitizer.version>
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
         <snakeyaml.version>1.26</snakeyaml.version>
         <jackson.version>2.10.3</jackson.version>
@@ -287,6 +289,16 @@
                 <groupId>com.github.java-json-tools</groupId>
                 <artifactId>json-schema-validator</artifactId>
                 <version>${json-schema-validator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.vladsch.flexmark</groupId>
+                <artifactId>flexmark-html2md-converter</artifactId>
+                <version>${flexmark.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+                <artifactId>owasp-java-html-sanitizer</artifactId>
+                <version>${owasp-java-html-sanitizer.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

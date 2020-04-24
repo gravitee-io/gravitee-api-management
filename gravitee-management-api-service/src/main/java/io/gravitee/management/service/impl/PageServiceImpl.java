@@ -34,15 +34,13 @@ import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.service.*;
-import io.gravitee.management.service.exceptions.NoFetcherDefinedException;
-import io.gravitee.management.service.exceptions.PageFolderActionException;
-import io.gravitee.management.service.exceptions.PageNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.management.service.impl.swagger.transformer.entrypoints.EntrypointsOAITransformer;
 import io.gravitee.management.service.impl.swagger.transformer.entrypoints.EntrypointsSwaggerV2Transformer;
 import io.gravitee.management.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
 import io.gravitee.management.service.impl.swagger.transformer.page.PageConfigurationSwaggerV2Transformer;
+import io.gravitee.management.service.sanitizer.HtmlSanitizer;
 import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.management.service.swagger.OAIDescriptor;
 import io.gravitee.management.service.swagger.SwaggerDescriptor;
@@ -60,6 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
@@ -91,6 +90,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	private static final Logger logger = LoggerFactory.getLogger(PageServiceImpl.class);
 
 	private static final String SENSITIVE_DATA_REPLACEMENT = "********";
+
+    @Value("${documentation.markdown.sanitize:false}")
+    private boolean markdownSanitize;
 
 	@Autowired
 	private PageRepository pageRepository;
@@ -155,9 +157,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			transformWithTemplate(pageEntity, apiId);
 		}
 
-		// If swagger page, let's try to apply transformations
-		if (io.gravitee.repository.management.model.PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
-			SwaggerDescriptor<?> descriptor = swaggerService.parse(pageEntity.getContent());
+        if (markdownSanitize && io.gravitee.repository.management.model.PageType.MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
+            pageEntity.setContent(HtmlSanitizer.sanitize(pageEntity.getContent()));
+        }else if (io.gravitee.repository.management.model.PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
+            // If swagger page, let's try to apply transformations
+            SwaggerDescriptor<?> descriptor = swaggerService.parse(pageEntity.getContent());
 
 			if (descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V1 || descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V2) {
 				Collection<SwaggerTransformer<SwaggerV2Descriptor>> transformers = new ArrayList<>();
@@ -244,7 +248,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
             if (PageType.FOLDER.equals(newPageEntity.getType())) {
 
-                if (newPageEntity.getContent() != null  && newPageEntity.getContent().length() > 0) {
+                if (newPageEntity.getContent() != null && newPageEntity.getContent().length() > 0) {
                     throw new PageFolderActionException("have a content");
                 }
 
@@ -266,7 +270,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			page.setCreatedAt(new Date());
 			page.setUpdatedAt(page.getCreatedAt());
 
-			Page createdPage = pageRepository.create(page);
+            Page createdPage = validateContentAndCreate(page);
 
 			//only one homepage is allowed
 			onlyOneHomepage(page);
@@ -363,8 +367,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				reorderAndSavePages(page);
 				return null;
 			} else {
-				Page updatedPage = pageRepository.update(page);
-				createAuditLog(page.getApi(), PAGE_UPDATED, page.getUpdatedAt(), pageToUpdate, page);
+                Page updatedPage = validateContentAndUpdate(page);
+                createAuditLog(page.getApi(), PAGE_UPDATED, page.getUpdatedAt(), pageToUpdate, page);
 
 				PageEntity pageEntity = convert(updatedPage);
 
@@ -598,8 +602,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			page.setUpdatedAt(new Date());
 			page.setLastContributor(contributor);
 
-			Page updatedPage = pageRepository.update(page);
-			createAuditLog(page.getApi(), PAGE_UPDATED, page.getUpdatedAt(), page, page);
+            Page updatedPage = validateContentAndUpdate(page);
+            createAuditLog(page.getApi(), PAGE_UPDATED, page.getUpdatedAt(), page, page);
 			return convert(updatedPage);
 		} catch (TechnicalException ex) {
 			throw onUpdateFail(pageId, ex);
@@ -852,11 +856,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			page.setApi(apiId);
 			if (searchResult.isEmpty()) {
 				page.setId(UUID.toString(UUID.random()));
-				return pageRepository.create(page);
+                return validateContentAndCreate(page);
 			} else {
 				page.setId(searchResult.get(0).getId());
 				mergeSensitiveData(this.getFetcher(searchResult.get(0).getSource()).getConfiguration(), page);
-				return pageRepository.update(page);
+				return validateContentAndUpdate(page);
 			}
 		} catch (TechnicalException | FetcherException ex) {
 			logger.error("An error occurs while trying to save the configuration",ex);
@@ -1206,41 +1210,64 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		this.applicationContext = applicationContext;
 	}
 
-	private void createAuditLog(String apiId, Audit.AuditEvent event, Date createdAt, Page oldValue, Page newValue) {
-		String pageId = oldValue != null ? oldValue.getId() : newValue.getId();
-		if (apiId == null ) {
-			auditService.createPortalAuditLog(
-					Collections.singletonMap(PAGE, pageId),
-					event,
-					createdAt,
-					oldValue,
-					newValue
-			);
-		} else {
-			auditService.createApiAuditLog(
-					apiId,
-					Collections.singletonMap(PAGE, pageId),
-					event,
-					createdAt,
-					oldValue,
-					newValue
-			);
-		}
+	private Page validateContentAndCreate(Page page) throws TechnicalException {
+
+        validateSafeContent(page);
+		return pageRepository.create(page);
 	}
 
-	private PageCriteria queryToCriteria(PageQuery query) {
-		final PageCriteria.Builder builder = new PageCriteria.Builder();
-		if (query != null) {
-			builder.homepage(query.getHomepage());
-			builder.api(query.getApi());
-			builder.name(query.getName());
-			builder.parent(query.getParent());
-			builder.published(query.getPublished());
-			if(query.getType() != null) {
-				builder.type(query.getType().name());
+    private Page validateContentAndUpdate(Page page) throws TechnicalException {
+
+        validateSafeContent(page);
+        return pageRepository.update(page);
+    }
+
+    private void validateSafeContent(Page page) {
+
+        if (markdownSanitize && io.gravitee.repository.management.model.PageType.MARKDOWN == page.getType()) {
+			HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(page.getContent());
+
+			if(!sanitizeInfos.isSafe()) {
+				throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
 			}
-			builder.rootParent(query.getRootParent());
-		}
-		return builder.build();
-	}
+        }
+    }
+
+    private void createAuditLog(String apiId, Audit.AuditEvent event, Date createdAt, Page oldValue, Page newValue) {
+        String pageId = oldValue != null ? oldValue.getId() : newValue.getId();
+        if (apiId == null) {
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(PAGE, pageId),
+                    event,
+                    createdAt,
+                    oldValue,
+                    newValue
+            );
+        } else {
+            auditService.createApiAuditLog(
+                    apiId,
+                    Collections.singletonMap(PAGE, pageId),
+                    event,
+                    createdAt,
+                    oldValue,
+                    newValue
+            );
+        }
+    }
+
+    private PageCriteria queryToCriteria(PageQuery query) {
+        final PageCriteria.Builder builder = new PageCriteria.Builder();
+        if (query != null) {
+            builder.homepage(query.getHomepage());
+            builder.api(query.getApi());
+            builder.name(query.getName());
+            builder.parent(query.getParent());
+            builder.published(query.getPublished());
+            if (query.getType() != null) {
+                builder.type(query.getType().name());
+            }
+            builder.rootParent(query.getRootParent());
+        }
+        return builder.build();
+    }
 }
