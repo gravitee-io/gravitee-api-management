@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
@@ -175,6 +176,7 @@ public class ApisResource extends AbstractResource {
         //find all subscribed apis
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApis(apis.stream().map(ApiEntity::getId).collect(Collectors.toList()));
+        subscriptionQuery.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
 
         // group by apis
         Map<String, Long> subscribedApiWithCount = subscriptionService.search(subscriptionQuery).stream()
