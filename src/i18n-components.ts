@@ -45,6 +45,7 @@ i18n([
   'gv-info.about',
   'gv-info.beFirstToRate',
   'gv-info.categories',
+  'gv-info.entrypoints',
   'gv-info.error',
   'gv-info.labels',
   'gv-info.metrics',
