@@ -222,6 +222,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
             View view = new View();
             view.setId(View.ALL_ID);
             view.setName("All");
+            view.setKey(IdGenerator.generate(view.getName()));
             view.setDefaultView(true);
             view.setOrder(0);
             view.setCreatedAt(new Date());
