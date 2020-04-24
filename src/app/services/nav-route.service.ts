@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ActivatedRoute, PRIMARY_OUTLET, Route, Router, Routes } from '@angular/router';
+import { ActivatedRoute, NavigationExtras, PRIMARY_OUTLET, Route, Router, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { FeatureGuardService } from './feature-guard.service';
 import { AuthGuardService } from './auth-guard.service';
@@ -223,4 +223,14 @@ export class NavRouteService {
     }
   }
 
+  navigateForceRefresh(commands: any[], extras?: NavigationExtras) {
+    this.router.navigate([], { ...extras, ...{
+        queryParams: { skipRefresh: true },
+        skipLocationChange: true
+      }
+    }).then(() => {
+      extras.queryParams.skipRefresh = null;
+      this.router.navigate(commands, extras);
+    });
+  }
 }

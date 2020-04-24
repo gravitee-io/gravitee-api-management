@@ -272,5 +272,4 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     }
     this.scrollService.scrollToAnchor('log');
   }
-
 }

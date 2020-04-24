@@ -20,6 +20,7 @@ import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { LoaderService } from '../../services/loader.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import '@gravitee/ui-components/wc/gv-date-picker';
+import { NavRouteService } from '../../services/nav-route.service';
 
 @Component({
   selector: 'app-gv-analytics-filters',
@@ -47,6 +48,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     public route: ActivatedRoute,
     public loaderService: LoaderService,
     public analyticsService: AnalyticsService,
+    private navRouteService: NavRouteService,
   ) {
   }
 
@@ -191,10 +193,10 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
         queryParams.to = this.analyticsForm.value.range[1];
         queryParams.timeframe = null;
       }
-      this.router.navigate([], {
+      this.navRouteService.navigateForceRefresh([], {
         queryParams,
         queryParamsHandling: 'merge',
-        fragment: this.analyticsService.fragment
+        fragment: this.analyticsService.fragment,
       });
     }
   }

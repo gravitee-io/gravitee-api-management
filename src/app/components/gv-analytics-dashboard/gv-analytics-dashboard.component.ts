@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
 import { Application, ApplicationService, Dashboard } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
+import { NavRouteService } from '../../services/nav-route.service';
 
 @Component({
   selector: 'app-gv-analytics-dashboard',
@@ -36,6 +37,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
     private router: Router,
     private applicationService: ApplicationService,
     private analyticsService: AnalyticsService,
+    private navRouteService: NavRouteService,
   ) {
   }
 
@@ -188,7 +190,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
     if (aggs && e.value) {
       const fields = aggs.split('field:');
       if (fields && fields[1]) {
-        const queryParams = { skipRefresh: null };
+        const queryParams = {};
         const fieldValue = this.route.snapshot.queryParams[fields[1]];
         if (fieldValue) {
           const visible = !fieldValue.includes(e.value);
@@ -209,19 +211,10 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
         } else {
           queryParams[fields[1]] = e.value;
         }
-        const qp = { skipRefresh: true };
-        qp[fields[1]] = null;
-        this.router.navigate([], {
-          queryParams: qp,
+        this.navRouteService.navigateForceRefresh([], {
+          queryParams,
           queryParamsHandling: 'merge',
           fragment: this.analyticsService.fragment,
-          skipLocationChange: true
-        }).then(() => {
-          this.router.navigate([], {
-            queryParams,
-            queryParamsHandling: 'merge',
-            fragment: this.analyticsService.fragment
-          });
         });
       }
     }

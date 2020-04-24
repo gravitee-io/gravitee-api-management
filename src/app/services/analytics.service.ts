@@ -216,7 +216,7 @@ export class AnalyticsService {
     const params = Object.keys(this.route.snapshot.queryParams)
       .filter(q => !this.queryParams.includes(q))
       .filter(q => this.route.snapshot.queryParams[q].length)
-      .filter(q => (ranges && ranges.length) || (field && q !== field))
+      .filter(q => (ranges && ranges.length) || (!field || q !== field))
       .map((q) => {
         const queryParam = this.route.snapshot.queryParams[q];
         if (typeof queryParam === 'string') {
