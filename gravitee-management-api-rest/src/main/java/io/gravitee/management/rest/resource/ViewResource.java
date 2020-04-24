@@ -21,8 +21,10 @@ import io.gravitee.management.model.UpdateViewEntity;
 import io.gravitee.management.model.ViewEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.exception.InvalidImageException;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.rest.utils.ImageUtils;
 import io.gravitee.management.service.ViewService;
 import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.management.service.exceptions.ViewNotFoundException;
@@ -128,13 +130,17 @@ public class ViewResource extends AbstractViewResource {
     @Permissions({
             @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.UPDATE)
     })
-    public ViewEntity update(@PathParam("id") String viewId, @Valid @NotNull final UpdateViewEntity view) {
-        checkAndScaleImage(view.getPicture());
+    public Response update(@PathParam("id") String viewId, @Valid @NotNull final UpdateViewEntity view) {
+        try {
+            ImageUtils.verify(view.getPicture());
+        } catch (InvalidImageException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
+        }
 
         ViewEntity viewEntity = viewService.update(viewId, view);
         setPicture(viewEntity, false);
 
-        return viewEntity;
+        return Response.ok(viewEntity).build();
     }
 
     @DELETE

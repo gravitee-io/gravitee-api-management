@@ -23,6 +23,7 @@ import io.gravitee.management.model.notification.NotifierEntity;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.exception.InvalidImageException;
 import io.gravitee.management.rest.model.ApiStateEntity;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam.LifecycleAction;
@@ -30,6 +31,7 @@ import io.gravitee.management.rest.resource.param.ReviewActionParam;
 import io.gravitee.management.rest.resource.param.ReviewActionParam.ReviewAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.rest.utils.ImageUtils;
 import io.gravitee.management.service.ApiMetadataService;
 import io.gravitee.management.service.MessageService;
 import io.gravitee.management.service.NotifierService;
@@ -240,7 +242,11 @@ public class ApiResource extends AbstractResource {
             return builder.build();
         }
 
-        checkAndScaleImage(apiToUpdate.getPicture());
+        try {
+            ImageUtils.verify(apiToUpdate.getPicture());
+        } catch (InvalidImageException e) {
+            return Response.status(Status.BAD_REQUEST).entity("Invalid image format").build();
+        }
 
         final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
         // Force context-path if user is not the primary_owner or an administrator

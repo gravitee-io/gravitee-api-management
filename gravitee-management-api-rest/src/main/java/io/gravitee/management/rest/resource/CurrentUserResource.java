@@ -22,8 +22,10 @@ import io.gravitee.common.util.Maps;
 import io.gravitee.management.idp.api.authentication.UserDetailRole;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.*;
+import io.gravitee.management.rest.exception.InvalidImageException;
 import io.gravitee.management.rest.model.PagedResult;
 import io.gravitee.management.rest.model.TokenEntity;
+import io.gravitee.management.rest.utils.ImageUtils;
 import io.gravitee.management.security.cookies.CookieGenerator;
 import io.gravitee.management.security.filter.JWTAuthenticationFilter;
 import io.gravitee.management.service.TagService;
@@ -154,7 +156,12 @@ public class CurrentUserResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 */
-        user.setPicture(checkAndScaleImage(user.getPicture()));
+        try {
+            user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
+        } catch (InvalidImageException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
+        }
+
         return ok(userService.update(userEntity.getId(), user)).build();
     }
 
