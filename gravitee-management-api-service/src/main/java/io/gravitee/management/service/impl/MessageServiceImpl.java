@@ -22,10 +22,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.management.service.exceptions.MessageEmptyException;
-import io.gravitee.management.service.exceptions.MessageRecipientFormatException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.Hook;
 import io.gravitee.management.service.notification.PortalHook;
@@ -37,8 +34,10 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.StringUtils;
@@ -54,7 +53,7 @@ import static io.gravitee.management.service.impl.MessageServiceImpl.MessageEven
  * @author GraviteeSource Team
  */
 @Component
-public class MessageServiceImpl extends AbstractService implements MessageService {
+public class MessageServiceImpl extends AbstractService implements MessageService, InitializingBean {
 
     private final Logger LOGGER = LoggerFactory.getLogger(MessageServiceImpl.class);
 
@@ -90,6 +89,28 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
     @Value("${email.from}")
     private String defaultFrom;
+
+    @Value("${notifiers.webhook.enabled:true}")
+    private boolean httpEnabled;
+
+    @Autowired
+    private Environment environment;
+
+    private List<String> httpWhitelist;
+
+    @Override
+    public void afterPropertiesSet() {
+
+        int i = 0;
+        httpWhitelist = new ArrayList<>();
+
+        String whitelistUrl;
+
+        while ((whitelistUrl = environment.getProperty("notifiers.webhook.whitelist[" + i + "]")) != null) {
+           httpWhitelist.add(whitelistUrl);
+           i++;
+        }
+    }
 
     public enum MessageEvent implements Audit.AuditEvent {
         MESSAGE_SENT
@@ -158,9 +179,25 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                 return recipientsId.size();
 
             case HTTP:
+                if (!httpEnabled) {
+                    throw new NotifierDisabledException();
+                }
+
+                String url = recipientsId.iterator().next();
+
+                environment.getProperty("notifiers.webhook.whitelist");
+
+                if(httpWhitelist != null && !httpWhitelist.isEmpty()) {
+
+                    // Check the provided url is allowed.
+                    if(httpWhitelist.stream().noneMatch(whitelistUrl -> whitelistUrl.endsWith("/") ? url.startsWith(whitelistUrl) : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/')))) {
+                        throw new MessageUrlForbiddenException();
+                    }
+                }
+
                 httpClientService.request(
                         HttpMethod.POST,
-                        recipientsId.iterator().next(),
+                        url,
                         message.getParams(),
                         getPostMessage(api, message),
                         Boolean.valueOf(message.isUseSystemProxy()));

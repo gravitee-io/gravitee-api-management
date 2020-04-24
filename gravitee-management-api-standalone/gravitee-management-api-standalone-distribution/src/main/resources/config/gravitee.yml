@@ -359,3 +359,9 @@ notifiers:
 #      trustAll: false
 #      keyStore:
 #      keyStorePassword:
+#  webhook:
+#    enabled: true
+    # Empty whitelist means all urls are allowed.
+#    whitelist:
+#      - https://whitelist.domain1.com
+#      - https://restricted.domain2.com/whitelisted/path
