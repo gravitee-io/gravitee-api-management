@@ -61,7 +61,7 @@ export class ApplicationCreationComponent implements OnInit {
   currentStep: number;
   applicationForm: FormGroup;
   allowedTypes: Array<ApplicationType>;
-  allowedOptions: { icon: string; active: boolean; description: string; id: string; title: string }[];
+  allowedOptions: { icon: string; description: string; id: string; title: string }[];
   apiList: { data: any; id: string; value: string }[];
   plans: Array<Plan>;
   subscribeList: any[];
@@ -117,7 +117,6 @@ export class ApplicationCreationComponent implements OnInit {
             return {
               id: type.id,
               icon: getApplicationTypeIcon(type.id),
-              active: index === 0,
               title,
               description,
             };

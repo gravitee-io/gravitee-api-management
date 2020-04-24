@@ -20,7 +20,7 @@ import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-web
 import { NotificationService } from '../../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TokenService } from '../../../services/token.service';
-import { sameValueValidator } from '../../registration/registration-confirmation/registration-confirmation.component';
+import { GvValidators } from '../../../utils/gv-validators';
 
 @Component({
   selector: 'app-reset-password-confirmation',
@@ -59,7 +59,7 @@ export class ResetPasswordConfirmationComponent implements OnInit {
     });
 
     this.resetPasswordConfirmationForm.get('confirmedPassword')
-      .setValidators([Validators.required, sameValueValidator(this.resetPasswordConfirmationForm.get('password'))]);
+      .setValidators([Validators.required, GvValidators.sameValueValidator(this.resetPasswordConfirmationForm.get('password'))]);
 
     if (this.isTokenExpired) {
       this.notificationService.info(i18n('resetPasswordConfirmation.tokenExpired'));

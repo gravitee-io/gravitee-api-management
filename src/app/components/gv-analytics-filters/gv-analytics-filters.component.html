@@ -30,7 +30,10 @@
 
       <div class="form__control timeframe">
         <gv-option [options]="analyticsService.timeframes"
-                   [value]="route.snapshot.queryParams.timeframe" reverse></gv-option>
+                   formControlName="timeframe"
+                   name="timeframe"
+                   ngDefaultControl
+                   reverse></gv-option>
       </div>
       <div class="form__control timepicker">
         <gv-date-picker label="{{ 'common.date.range.title' | translate }}"
@@ -40,8 +43,7 @@
                         name="range"
                         ngDefaultControl
                         [max]="maxDate"
-                        class="form__control"
-                        [invalid]="this.invalidDates">
+                        class="form__control">
 
         </gv-date-picker>
 
@@ -101,7 +103,7 @@
           {{ link.label }}
         </gv-button>
         <gv-button type="submit" class="gv-analytics-filter__input"
-                   [disabled]="!formValid()" primary [loading]="loaderService.isLoading | async">
+                   [disabled]="this.analyticsForm.invalid" primary [loading]="loaderService.isLoading | async">
           {{ 'application.analytics.search' | translate }}
         </gv-button>
       </div>

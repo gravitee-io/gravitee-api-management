@@ -19,6 +19,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { LoaderService } from '../../services/loader.service';
 import { AnalyticsService } from '../../services/analytics.service';
+import { GvValidators } from '../../utils/gv-validators';
+import '@gravitee/ui-components/wc/gv-button';
+import '@gravitee/ui-components/wc/gv-tag';
+import '@gravitee/ui-components/wc/gv-input';
+import '@gravitee/ui-components/wc/gv-select';
+import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-date-picker';
 import { NavRouteService } from '../../services/nav-route.service';
 
@@ -37,7 +43,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   analyticsForm: FormGroup;
   tags: Array<any>;
   apisOptions: Array<any>;
-  invalidDates: boolean;
   maxDate: number;
   advancedFiltersDisplayed;
 
@@ -55,28 +60,58 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   ngOnInit(): void {
 
     this.analyticsForm = this.formBuilder.group({
-      range: new FormControl([this.route.snapshot.queryParams.from, this.route.snapshot.queryParams.to]),
-      requestId: new FormControl(this.route.snapshot.queryParams._id),
-      transactionId: new FormControl(this.route.snapshot.queryParams.transaction),
-      methods: new FormControl(this.route.snapshot.queryParams.method),
-      path: new FormControl(this.route.snapshot.queryParams.uri),
-      responseTimes: new FormControl(this.route.snapshot.queryParams['response-time']),
-      status: new FormControl(this.route.snapshot.queryParams.status),
-      api: new FormControl(this.route.snapshot.queryParams.api),
-      payloads: new FormControl(this.route.snapshot.queryParams.body),
+      timeframe: new FormControl(null),
+      range: new FormControl([null, null]),
+      requestId: new FormControl(null),
+      transactionId: new FormControl(null),
+      methods: new FormControl(null),
+      path: new FormControl(null),
+      responseTimes: new FormControl(null),
+      status: new FormControl(null),
+      api: new FormControl(null),
+      payloads: new FormControl(null),
+    });
+
+    this.analyticsForm.get('timeframe').setValidators(GvValidators.oneRequired(this.analyticsForm.get('range')));
+    this.analyticsForm.get('range').setValidators([GvValidators.dateRange, GvValidators.oneRequired(this.analyticsForm.get('timeframe'))]);
+
+    this.analyticsForm.get('range').valueChanges.subscribe((range) => {
+      // Reset timeframe if range is set
+      if (range !== null && range.filter((v) => v != null).length === 2) {
+        this.analyticsForm.get('timeframe').setValue(null);
+      }
+    });
+
+    this.analyticsForm.get('timeframe').valueChanges.subscribe((timeframe) => {
+      // Reset range if timeframe is set
+      if (timeframe) {
+        this.analyticsForm.get('range').setValue([null, null]);
+      }
     });
 
     this.route.queryParams.subscribe((queryParams) => {
-      this.analyticsForm.get('range').setValue([queryParams.from, queryParams.to]);
-      this.analyticsForm.get('requestId').setValue(queryParams._id);
-      this.analyticsForm.get('transactionId').setValue(queryParams.transaction);
-      this.analyticsForm.get('methods').setValue(queryParams.method);
-      this.analyticsForm.get('path').setValue(queryParams.uri);
-      this.analyticsForm.get('responseTimes').setValue(queryParams['response-time']);
-      this.analyticsForm.get('api').setValue(queryParams.api);
-      this.analyticsForm.get('payloads').setValue(queryParams.body);
 
-      this.analyticsService.timeframes.forEach((t) => t.active = t.id === queryParams.timeframe);
+      if (!this.route.snapshot.queryParams.timeframe && !(this.route.snapshot.queryParams.from && this.route.snapshot.queryParams.to)) {
+        this.router.navigate([], {
+          queryParams: { timeframe: '1d' },
+          queryParamsHandling: 'merge',
+          fragment: this.analyticsService.fragment
+        });
+      }
+
+      const formValues = {
+        timeframe: queryParams.timeframe,
+        range: [queryParams.from, queryParams.to],
+        requestId: queryParams._id,
+        transactionId: queryParams.transaction,
+        methods: queryParams.method,
+        path: queryParams.uri,
+        responseTimes: queryParams['response-time'],
+        api: queryParams.api,
+        payloads: queryParams.body,
+      };
+
+      this.analyticsForm.reset(formValues);
 
       this.tags = [];
       Object.keys(queryParams)
@@ -98,15 +133,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
         this.advancedFiltersDisplayed = true;
       }
     });
-
-
-    if (!this.route.snapshot.queryParams.timeframe && !(this.route.snapshot.queryParams.from && this.route.snapshot.queryParams.to)) {
-      this.router.navigate([], {
-        queryParams: { timeframe: '1d' },
-        queryParamsHandling: 'merge',
-        fragment: this.analyticsService.fragment
-      });
-    }
 
     this.maxDate = new Date().getTime();
     this.maxDateTimer = setInterval(() => {
@@ -138,7 +164,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
       queryParamsHandling: 'merge',
       fragment: this.analyticsService.fragment
     }).then(() => {
-      this.analyticsForm.patchValue({ range: null });
       this.search();
     });
   }
@@ -172,12 +197,9 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     });
   }
 
-  formValid() {
-    return !this.invalidDates;
-  }
-
   search() {
-    if (this.formValid()) {
+    if (this.analyticsForm.valid) {
+
       const queryParams: any = {
         _id: this.analyticsForm.value.requestId || null,
         transaction: this.analyticsForm.value.transactionId || null,
@@ -187,17 +209,17 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
         status: this.analyticsForm.value.status || null,
         api: this.analyticsForm.value.api || null,
         body: this.analyticsForm.value.payloads || null,
+        from: this.analyticsForm.value.range[0],
+        to: this.analyticsForm.value.range[1],
+        timeframe: this.analyticsForm.value.timeframe
       };
-      if (this.analyticsForm.value.range && this.analyticsForm.value.range[0]) {
-        queryParams.from = this.analyticsForm.value.range[0];
-        queryParams.to = this.analyticsForm.value.range[1];
-        queryParams.timeframe = null;
-      }
+
       this.navRouteService.navigateForceRefresh([], {
         queryParams,
         queryParamsHandling: 'merge',
         fragment: this.analyticsService.fragment,
       });
+
     }
   }
 
@@ -230,4 +252,5 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   toggleFilters() {
     this.advancedFiltersDisplayed = !this.advancedFiltersDisplayed;
   }
+
 }

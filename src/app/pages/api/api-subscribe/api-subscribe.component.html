@@ -99,7 +99,7 @@
                 [innerHTML]="'apiSubscribe.success.subscriptionAccepted' | translate: {planName: getPlanName(), appName: getApplicationName(), apiName: apiName}"></p>
               <p>
                 <span>{{'apiSubscribe.success.subscriptionKey' | translate}}</span>
-                <gv-input type="clipboard" [value]="getSubscriptionKey()" small></gv-input>
+                <gv-input clipboard [value]="getSubscriptionKey()" small></gv-input>
               </p>
               <div class="success-links">
                 <a [routerLink]="['/' ]">{{ 'apiSubscribe.success.goToHome' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon></a>

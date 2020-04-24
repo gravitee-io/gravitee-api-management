@@ -23,6 +23,7 @@ import {
   selector: 'gv-input[formControl],gv-input[formControlName],' +
     'gv-text[formControl],gv-text[formControlName],' +
     'gv-select[formControl],gv-select[formControlName],' +
+    'gv-date-picker[formControl],gv-date-picker[formControlName],' +
     '[gvControl]'
 })
 export class GvFormControlDirective extends NgControlStatus implements AfterViewInit {

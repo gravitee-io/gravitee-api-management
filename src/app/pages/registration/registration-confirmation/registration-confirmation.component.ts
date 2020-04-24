@@ -30,14 +30,7 @@ import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-web
 import { NotificationService } from '../../../services/notification.service';
 import { TokenService } from '../../../services/token.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-
-
-export function sameValueValidator(field: AbstractControl): ValidatorFn {
-  return (control: AbstractControl): { [key: string]: any } | null => {
-    const forbidden = field.valid && field.value !== control.value;
-    return forbidden ? { passwordError: { value: control.value } } : null;
-  };
-}
+import { GvValidators } from '../../../utils/gv-validators';
 
 @Component({
   selector: 'app-registration-confirmation',
@@ -76,7 +69,7 @@ export class RegistrationConfirmationComponent implements OnInit {
     });
 
     this.registrationConfirmationForm.get('confirmedPassword')
-      .setValidators([Validators.required, sameValueValidator(this.registrationConfirmationForm.get('password'))]);
+      .setValidators([Validators.required, GvValidators.sameValueValidator(this.registrationConfirmationForm.get('password'))]);
 
     if (this.isTokenExpired) {
       this.notificationService.info(i18n('registrationConfirmation.tokenExpired'));

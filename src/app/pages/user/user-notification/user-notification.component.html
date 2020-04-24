@@ -21,18 +21,23 @@
     <div class="page__box">
 
       <div class="page__box-title">
-        <h3 class="title">{{'user.notifications.title' | translate}} <span *ngIf="this.total">({{this.total}})</span></h3>
+        <h3 class="title">{{'user.notifications.title' | translate}} <span *ngIf="this.total">({{this.total}})</span>
+        </h3>
       </div>
 
-      <gv-table [items]="notifications" [options]="options" [noheader]="true" [total]="total" [format]="format"
-                rowheight="50px" [emptymessage]="'user.notifications.empty' | translate"></gv-table>
-      <div *ngIf="notifications && notifications.length && total > size" class="pagination__block">
+      <div class="page__box-content">
+        <gv-table [items]="notifications" [options]="options" [noheader]="true" [total]="total" [format]="format"
+                  rowheight="50px" [emptymessage]="'user.notifications.empty' | translate"></gv-table>
+      </div>
+
+      <div *ngIf="notifications && notifications.length && total > size" class="page__box-footer pagination__block">
         <gv-select class="pagination__size__block" [options]="pageSizes" [value]="size"
                    small (:gv-select:select)="onSelectSize($event.detail)"></gv-select>
         <gv-pagination class="pagination__pagination__block" [data]="paginationData"></gv-pagination>
       </div>
-    </div>
-  </div>
 
+    </div>
+
+  </div>
 
 </div>
