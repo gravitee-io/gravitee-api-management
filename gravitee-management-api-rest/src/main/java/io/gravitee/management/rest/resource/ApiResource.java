@@ -740,6 +740,7 @@ public class ApiResource extends AbstractResource {
             entity.setServices(null);
             entity.setResources(null);
             entity.setPathMappings(null);
+            entity.setResponseTemplates(null);
         }
     }
 }
