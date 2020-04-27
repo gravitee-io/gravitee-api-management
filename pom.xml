@@ -173,6 +173,13 @@
                 <artifactId>vertx-core</artifactId>
                 <version>${vertx.version}</version>
             </dependency>
+
+            <!-- Spring -->
+            <dependency>
+                <groupId>org.springframework.integration</groupId>
+                <artifactId>spring-integration-xml</artifactId>
+                <version>${spring-integration.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -231,14 +238,17 @@
         <jetty.version>9.2.24.v20180105</jetty.version>
         <httpclient.version>4.5.7</httpclient.version>
         <reflections.version>0.9.10</reflections.version>
-        <snakeyaml.version>1.21</snakeyaml.version>
+        <snakeyaml.version>1.26</snakeyaml.version>
         <commons-io.version>2.5</commons-io.version>
         <commons-validator.version>1.4.1</commons-validator.version>
-        <json-path.version>2.2.0</json-path.version>
+        <json-path.version>2.4.0</json-path.version>
         <wiremock.version>2.21.0</wiremock.version>
-        <guava.version>26.0-jre</guava.version>
+        <guava.version>29.0-jre</guava.version>
         <powermock.version>2.0.0</powermock.version>
         <nimbus-jwt.version>8.12</nimbus-jwt.version>
+        <spring.version>5.2.5.RELEASE</spring.version>
+        <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
+        <jackson.version>2.10.3</jackson.version>
     </properties>
 
     <!-- allow snapshot only for vertx until the final release -->
