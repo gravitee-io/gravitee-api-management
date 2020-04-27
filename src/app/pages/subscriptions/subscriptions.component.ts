@@ -131,7 +131,7 @@ export class SubscriptionsComponent implements OnInit {
       this.subs = [];
     }
     if (!this.subs || !this.subs.length) {
-      this.emptyKeySubscriptions = 'yeah' + i18n('subscriptions.subscriptions.empty');
+      this.emptyKeySubscriptions = i18n('subscriptions.subscriptions.empty');
     }
   }
 }

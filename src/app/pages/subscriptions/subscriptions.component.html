@@ -19,14 +19,14 @@
   <h1 class="title">{{'subscriptions.title' | translate}}</h1>
   <section>
     <div class="table-container">
-      <gv-table title="{{'subscriptions.applications.title' | translate}}" [format]="format" [emptykey]="emptyKeyApplications"
+      <gv-table title="{{'subscriptions.applications.title' | translate}}" [format]="format" [emptymessage]="emptyKeyApplications | translate"
                 (:gv-table:select)="onApplicationClick($event)" (:gv-table:mouseenter)="onApplicationMouseEnter($event)" (:gv-table:mouseleave)="onFocusOut()"
                 order="name" [items]="applications" [options]="options" nosort rowsheight="40vh"></gv-table>
     </div>
     <div class="table-between"></div>
     <div class="table-container">
       <gv-table *ngIf="applications && applications.length" title="{{'subscriptions.subscriptions.title' | translate}}"
-                [format]="format" [emptykey]="emptyKeySubscriptions" order="api.name"
+                [format]="format" [emptymessage]="emptyKeySubscriptions | translate" order="api.name"
                 (:gv-table:select)="onSubscriptionClick($event)"
                 [items]="subs" [options]="optionsSubscriptions" nosort rowsheight="40vh"></gv-table>
     </div>
