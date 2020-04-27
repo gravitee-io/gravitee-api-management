@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit, NgZone } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-rating-list';
@@ -50,15 +50,14 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   });
   apisOptions: any;
   statusOptions: any;
-  miscellaneous: Array<any>;
   metadata: any;
   validApiKeys: Array<any>;
   expiredApiKeys: Array<any>;
   selectedSubscriptions: Array<string>;
+  selectedSubscription: Subscription;
   displayExpiredApiKeys = false;
   canDelete = false;
   canUpdate = false;
-  connectedApis: Promise<any[]>;
 
   constructor(
     private route: ActivatedRoute,
@@ -72,7 +71,8 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     public loaderService: LoaderService,
     private permissionsService: PermissionsService,
     private ref: ChangeDetectorRef,
-    private scrollService: ScrollService
+    private scrollService: ScrollService,
+    private ngZone: NgZone,
   ) {
   }
 
@@ -88,8 +88,20 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           this.options = {
             selectable: true,
             data: [
-              { field: 'api', label: i18n('application.subscriptions.api') },
-              { field: 'plan', label: i18n('application.subscriptions.plan') },
+              {
+                field: 'api', type: 'image',
+                alt: (item) => this.metadata[item.api] && (this.metadata[item.api].name + '  ' + this.metadata[item.api].version),
+                format: (item) => this.metadata[item] && this.metadata[item].pictureUrl
+              },
+              {
+                field: 'api', label: i18n('application.subscriptions.api'),
+                tag: (item) => this.metadata[item.api] && this.metadata[item.api].version,
+                format: (item) => this.metadata[item] && this.metadata[item].name
+              },
+              {
+                field: 'plan', label: i18n('application.subscriptions.plan'),
+                format: (item) => this.metadata[item] && this.metadata[item].name
+              },
               { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at') },
               {
                 field: 'subscribed_by', label: i18n('application.subscriptions.subscribed_by'),
@@ -103,6 +115,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
                   const statusKey = 'common.status.' + key.toUpperCase();
                   return this.translateService.get(statusKey).toPromise();
                 },
+                headerStyle: 'justify-content: flex-end;',
                 style: (item) => {
                   let style = 'text-align: right;';
                   switch (item.status.toUpperCase()) {
@@ -117,63 +130,18 @@ export class ApplicationSubscriptionsComponent implements OnInit {
                 },
               },
               {
-                type: 'gv-icon',
+                type: 'gv-button',
                 width: '25px',
-                style: () => 'text-align: right',
-                confirm:{ msg: i18n('application.subscriptions.renew.message') },
-                condition: (item) => this.canUpdate &&
-                  [StatusEnum.ACCEPTED, StatusEnum.PAUSED].includes(item.status.toUpperCase()),
                 attributes: {
-                  onClick: (item) => this.renewSubscription(item.id),
-                  shape: 'code:lock-overturning',
-                  title: i18n('application.subscriptions.renew.title'),
-                },
-              },
-              {
-                type: 'gv-icon',
-                width: '25px',
-                style: () => 'text-align: right',
-                confirm:{ msg: i18n('application.subscriptions.close.message'), danger: true },
-                condition: (item) => this.canDelete &&
-                  [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING].includes(item.status.toUpperCase()),
-                attributes: {
-                  onClick: (item) => this.closeSubscription(item.id),
-                  shape: 'general:trash',
-                  title: i18n('application.subscriptions.close.title'),
-                },
+                  link: true,
+                  href: (item) => `/catalog/api/${item.api}`,
+                  title: i18n('application.subscriptions.navigateToApi'),
+                  icon: 'communication:share',
+                  onClick: (item, e) => this.goToApi(item.api),
+                }
               },
             ]
           };
-        });
-      this.translateService.get([
-        i18n('application.miscellaneous.owner'),
-        i18n('application.miscellaneous.type'),
-        i18n('application.miscellaneous.createdDate'),
-        i18n('application.miscellaneous.lastUpdate')])
-        .subscribe(({
-                      'application.miscellaneous.owner': owner,
-                      'application.miscellaneous.type': type,
-                      'application.miscellaneous.createdDate': createdDate,
-                      'application.miscellaneous.lastUpdate': lastUpdate,
-                    }) => {
-          this.translateService.get('application.types', { type: application.applicationType })
-            .toPromise()
-            .then((applicationType => {
-              this.miscellaneous = [
-                { key: owner, value: application.owner.display_name },
-                { key: type, value: applicationType },
-                {
-                  key: createdDate,
-                  value: new Date(application.created_at),
-                  date: 'short'
-                },
-                {
-                  key: lastUpdate,
-                  value: new Date(application.updated_at),
-                  date: 'relative'
-                },
-              ];
-            }));
         });
 
       this.applicationService.getSubscriberApisByApplicationId({ applicationId: application.id, size: -1 }).toPromise().then(apis => {
@@ -192,13 +160,21 @@ export class ApplicationSubscriptionsComponent implements OnInit {
         this.search(true);
       });
 
-      this.connectedApis = this.applicationService.getSubscriberApisByApplicationId({
-        applicationId: application.id,
-        statuses: [StatusEnum.ACCEPTED],
-      })
-      .toPromise()
-      .then((response) => response.data.map(api => ({ item: api, type: ItemResourceTypeEnum.API })));
     }
+  }
+
+  canRenew(subscription: Subscription) {
+    return subscription && this.canUpdate
+      && [`${StatusEnum.ACCEPTED}`, `${StatusEnum.PAUSED}`].includes(subscription.status.toUpperCase());
+  }
+
+  canRevoke(subscription: Subscription) {
+    return subscription && this.canDelete
+      && [`${StatusEnum.ACCEPTED}`, `${StatusEnum.PAUSED}`, `${StatusEnum.PENDING}`].includes(subscription.status.toUpperCase());
+  }
+
+  goToApi(apiId: string) {
+    this.ngZone.run(() => this.router.navigate(['/catalog/api/', apiId ]));
   }
 
   search(displaySubscription?) {
@@ -213,10 +189,6 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     this.subscriptionService.getSubscriptions(requestParameters).toPromise().then(response => {
       this.subscriptions = response.data;
       this.metadata = response.metadata;
-      this.subscriptions.forEach(subscription => {
-        subscription.api = this.metadata[subscription.api] && this.metadata[subscription.api].name;
-        subscription.plan = this.metadata[subscription.plan] && this.metadata[subscription.plan].name;
-      });
       if (displaySubscription && this.route.snapshot.queryParams.subscription) {
         const subscription = this.subscriptions.find(s => s.id === this.route.snapshot.queryParams.subscription);
         this.selectedSubscriptions = [subscription.id];
@@ -237,7 +209,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   closeSubscription(subscriptionId) {
     this.subscriptionService.closeSubscription({ subscriptionId }).toPromise().then(() => {
       this.notificationService.success(i18n('application.subscriptions.success.close'));
-      this.search(true);
+      this.search(false);
     });
   }
 
@@ -255,18 +227,38 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     });
   }
 
-  @HostListener(':gv-table:select', ['$event.detail.items[0]'])
   onSelectSubscription(subscription: Subscription) {
     this.router.navigate([], { queryParams: { subscription: subscription ? subscription.id : null }, fragment: 's' });
     if (subscription) {
-      this.subscriptionService.getSubscriptionById({ subscriptionId: subscription.id, include: ['keys'] }).toPromise().then(sub => {
-        this.validApiKeys = sub.keys.filter(apiKey => this.isApiKeyValid(apiKey));
-        this.expiredApiKeys = sub.keys.filter(apiKey => !this.isApiKeyValid(apiKey));
-        this.ref.detectChanges();
-      });
+      this.selectedSubscription = subscription;
+      if (!this.selectedSubscription.keys || !this.selectedSubscription.keys[0]) {
+        this.subscriptionService.getSubscriptionById({ subscriptionId: subscription.id, include: ['keys'] })
+          .toPromise()
+          .then(sub => {
+            this.subscriptions.find(s => s.id === subscription.id).keys = sub.keys;
+            this.ref.detectChanges();
+          });
+      }
     } else {
-      delete this.validApiKeys;
-      delete this.expiredApiKeys;
+      delete this.selectedSubscription;
+    }
+  }
+
+  getValidApiKeys(sub: Subscription) {
+    if (sub && sub.keys) {
+      const validApiKeys = sub.keys.filter(apiKey => this.isApiKeyValid(apiKey));
+      if (validApiKeys && validApiKeys.length > 0) {
+        return validApiKeys;
+      }
+    }
+  }
+
+  getExpiredApiKeys(sub: Subscription) {
+    if (sub && sub.keys) {
+      const expiredApiKeys = sub.keys.filter(apiKey => !this.isApiKeyValid(apiKey));
+      if (expiredApiKeys && expiredApiKeys.length > 0) {
+        return expiredApiKeys;
+      }
     }
   }
 
@@ -288,7 +280,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   }
 
   toggleDisplayExpired() {
-    if(!this.displayExpiredApiKeys){
+    if (!this.displayExpiredApiKeys) {
       this.scrollService.scrollToAnchor('expired-keys');
     }
     this.displayExpiredApiKeys = !this.displayExpiredApiKeys;

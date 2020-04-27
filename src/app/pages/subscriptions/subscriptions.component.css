@@ -24,3 +24,7 @@ section {
 .table-between {
   width: 10%;
 }
+
+.curl-example {
+  flex: 1 1 auto;
+}

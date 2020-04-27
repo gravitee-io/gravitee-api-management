@@ -21,7 +21,6 @@
   grid-gap: 2rem;
 }
 
-
 .aside .page__box-content span,
 .aside .page__box-footer span {
   color: var(--gv-theme-neutral-color-dark);
@@ -41,8 +40,11 @@
   overflow: auto;
 }
 
-.aside gv-confirm {
-  align-self: center;
+gv-confirm {
+  --gv-confirm--maw: 500px;
+}
+
+.confirm__right {
   display: flex;
   justify-content: flex-end;
 }

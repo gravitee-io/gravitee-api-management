@@ -307,7 +307,7 @@
       },
       "close": {
         "message": "Opravdu chcete zrušit tento odběr?",
-        "title": "Zavřít odběr"
+        "title": "Zavřít"
       },
       "created_at": "Datum předplatného",
       "filters": {
@@ -320,11 +320,12 @@
           "title": "Stav"
         }
       },
+      "navigateToApi": "Přejít na API",
       "plan": "Plán",
       "processed_at": "Datum zpracování",
       "renew": {
         "message": "Opravdu chcete obnovit toto předplatné?",
-        "title": "Obnovte předplatné"
+        "title": "Obnovte"
       },
       "start_at": "Datum zahájení",
       "status": "Stav",
@@ -847,6 +848,7 @@
     "applications": {
       "init": "Nemáte žádnou aplikaci",
       "name": "Název",
+      "navigate": "Přejděte do aplikace",
       "owner": "Owner",
       "title": "Aplikace"
     },
@@ -855,6 +857,7 @@
       "empty": "Žádné předplatné této aplikace",
       "end_date": "Datum ukončení",
       "init": "Přepněte do aplikace a zobrazte její odběry",
+      "navigate": "Přejít na předplatné",
       "plan": "Plán",
       "start_date": "Datum zahájení",
       "title": "Předplatné"

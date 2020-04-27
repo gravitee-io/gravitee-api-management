@@ -51,6 +51,7 @@ export class FilteredCatalogComponent implements OnInit {
   allApis: Array<Promise<{ item: Api, metric: any }>>;
   randomList: Promise<any>[];
   promotedApi: Promise<any>;
+  promotedApiPath: string;
   promotedMetrics: ApiMetrics;
   categoryApiQuery: CategoryApiQuery;
   views: Array<string>;
@@ -71,7 +72,7 @@ export class FilteredCatalogComponent implements OnInit {
               private apiStates: ApiStatesPipe,
               private apiLabels: ApiLabelsPipe,
               private config: ConfigurationService,
-              ) {
+  ) {
     this.allApis = [];
     this.randomList = [];
   }
@@ -176,6 +177,7 @@ export class FilteredCatalogComponent implements OnInit {
         const promoted = response.data[0];
         if (promoted) {
           this.promotedMetrics = await this.apiService.getApiMetricsByApiId({ apiId: promoted.id }).toPromise();
+          this.promotedApiPath = `/catalog/api/${promoted.id}`;
         }
         // @ts-ignore
         this.promotedApi = Promise.resolve(promoted || {});

@@ -93,9 +93,9 @@
         <h3 *ngIf="selectedLog.response"  class="title">{{'application.log.responseBody' | translate}}</h3>
 
         <div *ngIf="selectedLog.request && !selectedLog.request.body"></div>
-        <gv-code *ngIf="selectedLog.request && selectedLog.request.body" [lang]="getLang(selectedLog.request.headers)">{{selectedLog.request.body}}</gv-code>
+        <gv-code *ngIf="selectedLog.request && selectedLog.request.body" [lang]="getLang(selectedLog.request.headers)" [content]="selectedLog.request.body"></gv-code>
         <div *ngIf="selectedLog.response && !selectedLog.response.body"></div>
-        <gv-code *ngIf="selectedLog.response && selectedLog.response.body" [lang]="getLang(selectedLog.response.headers)">{{selectedLog.response.body}}</gv-code>
+        <gv-code *ngIf="selectedLog.response && selectedLog.response.body" [lang]="getLang(selectedLog.response.headers)" [content]="selectedLog.response.body"></gv-code>
       </section>
 
     </div>

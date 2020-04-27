@@ -307,7 +307,7 @@
       },
       "close": {
         "message": "Êtes-vous sûr de vouloir clôturer cette souscription ?",
-        "title": "Clôturer souscription"
+        "title": "Clôturer"
       },
       "created_at": "Date de souscription",
       "filters": {
@@ -320,11 +320,12 @@
           "title": "Status"
         }
       },
+      "navigateToApi": "Voir l'API",
       "plan": "Plan",
       "processed_at": "Date de traitement",
       "renew": {
         "message": "Êtes-vous sûr de vouloir renouveler cette souscription ?",
-        "title": "Renouveler souscription"
+        "title": "Renouveler"
       },
       "start_at": "Date de démarrage",
       "status": "Status",
@@ -632,7 +633,7 @@
     "about": "À propos",
     "beFirstToRate": "Soyez le premier à noter",
     "categories": "Catégories",
-    "entrypoints": "URL d'accés",
+    "entrypoints": "URL d'accès",
     "error": "Une erreur est survenue pendant le chargement des informations de l'API",
     "labels": "Tags",
     "metrics": "Statistiques",
@@ -847,6 +848,7 @@
     "applications": {
       "init": "Vous n'avez pas d'application",
       "name": "Nom",
+      "navigate": "Voir l'application",
       "owner": "Propriétaire",
       "title": "Applications"
     },
@@ -855,6 +857,7 @@
       "empty": "Pas de souscription pour cette application",
       "end_date": "Date de fin",
       "init": "Passer sur une application pour voir ses souscriptions",
+      "navigate": "Voir la souscription",
       "plan": "Plan",
       "start_date": "Date de début",
       "title": "Souscriptions"

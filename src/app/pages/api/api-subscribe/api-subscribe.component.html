@@ -40,7 +40,7 @@
 
           <div *ngIf="isKeyLess() && apiSample">
             <h3>{{ 'apiSubscribe.plans.sample' | translate }}</h3>
-            <gv-code lang="shell">{{apiSample}}</gv-code>
+            <gv-code lang="shell" [content]="apiSample"></gv-code>
           </div>
 
         </div>
@@ -108,7 +108,7 @@
             </div>
             <div>
               <h3>{{'apiSubscribe.plans.sample' | translate}}</h3>
-              <gv-code lang="shell">{{apiSample}}</gv-code>
+              <gv-code lang="shell" [content]="apiSample"></gv-code>
             </div>
           </div>
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { Api, ApiService, Application, ApplicationService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
@@ -21,6 +21,7 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { Router } from '@angular/router';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import StatusEnum = Subscription.StatusEnum;
+import { ConfigurationService } from 'src/app/services/configuration.service';
 
 @Component({
   selector: 'app-subscriptions',
@@ -39,6 +40,9 @@ export class SubscriptionsComponent implements OnInit {
   emptyKeyApplications: string;
   emptyKeySubscriptions: string;
   selectedApplicationId: string;
+  selectedSubscriptions: Array<any>;
+  apikeyHeader: string;
+  public curlExample: string;
 
   constructor(
     private applicationService: ApplicationService,
@@ -46,6 +50,8 @@ export class SubscriptionsComponent implements OnInit {
     private apiService: ApiService,
     private translateService: TranslateService,
     private router: Router,
+    private configurationService: ConfigurationService,
+    private ngZone: NgZone,
   ) {
   }
 
@@ -54,26 +60,50 @@ export class SubscriptionsComponent implements OnInit {
     this.subs = [];
     this.emptyKeyApplications = i18n('subscriptions.applications.init');
     this.emptyKeySubscriptions = i18n('subscriptions.subscriptions.init');
+    this.apikeyHeader = this.configurationService.get('portal.apikeyHeader');
     this.options = {
       selectable: true,
       data: [
-        { field: '_links.picture', type: 'image', alt: 'name', width: '15%' },
+        { field: '_links.picture', type: 'image', alt: (item) => item.name + '  ' + item.applicationType, width: '15%' },
         {
           field: 'name',
           label: i18n('subscriptions.applications.name'),
           icon: (item) => getApplicationTypeIcon(item.applicationType),
           width: '60%',
         },
-        { field: 'owner.display_name', label: i18n('subscriptions.applications.owner'), width: '25%' },
+        { field: 'owner.display_name', label: i18n('subscriptions.applications.owner') },
+        {
+          type: 'gv-button',
+          width: '25px',
+          attributes: {
+            link: true,
+            href: (item) => `/applications/${item.id}`,
+            title: i18n('subscriptions.applications.navigate'),
+            icon: 'communication:share',
+            onClick: (item, e) => this.goToApplication(item.id),
+          }
+        },
       ]
     };
     this.optionsSubscriptions = {
+      selectable: true,
       data: [
-        { field: 'api._links.picture', type: 'image', alt: 'name' },
+        { field: 'api._links.picture', type: 'image', alt: (item) => item.api.name + '  ' + item.api.version },
         { field: 'api.name', tag: 'api.version', label: i18n('subscriptions.subscriptions.api') },
         { field: 'plan.name', label: i18n('subscriptions.subscriptions.plan') },
         { field: 'subscription.start_at', type: 'date', label: i18n('subscriptions.subscriptions.start_date') },
         { field: 'subscription.end_at', type: 'date', label: i18n('subscriptions.subscriptions.end_date') },
+        {
+          type: 'gv-button',
+          width: '25px',
+          attributes: {
+            link: true,
+            href: (item) => `/applications/${this.selectedApplicationId}/subscriptions?subscription=${item.subscription.id}`,
+            title: i18n('subscriptions.subscriptions.navigate'),
+            icon: 'communication:share',
+            onClick: (item) => this.goToSubscription(item.subscription.id),
+          }
+        },
       ]
     };
     this.format = (key) => this.translateService.get(key).toPromise();
@@ -89,6 +119,43 @@ export class SubscriptionsComponent implements OnInit {
     });
   }
 
+  async displayCurlExample(sub: any) {
+    let entrypoints = [];
+    if (!sub.api.entrypoints || !sub.api.entrypoints[0]) {
+      const subscribedApi = await this.apiService.getApiByApiId({ apiId: sub.api.id }).toPromise();
+      entrypoints = subscribedApi.entrypoints;
+      this.apis.find((api) => sub.api.id === api.id).entrypoints = subscribedApi.entrypoints;
+    } else {
+      entrypoints = sub.api.entrypoints;
+    }
+
+    let keys = [];
+    if (!sub.subscription.keys || !sub.subscription.keys[0]) {
+      const subscriptionDetail = await this.subscriptionService.getSubscriptionById({
+        subscriptionId: sub.subscription.id,
+        include: ['keys']
+      }).toPromise();
+      keys = subscriptionDetail.keys;
+      this.subscriptions.find((subscription) => sub.subscription.id === subscription.id).keys = subscriptionDetail.keys;
+    } else {
+      keys = sub.subscription.keys;
+    }
+
+    if (entrypoints[0] && keys[0]) {
+      this.curlExample = `$ curl ${entrypoints[0]} -H "${this.apikeyHeader}:${keys[0].id}"`;
+    }
+  }
+
+  goToApplication(appId: string) {
+    this.ngZone.run(() => this.router.navigate(['/applications', appId]));
+  }
+
+  goToSubscription(subId: string) {
+    this.ngZone.run(() =>
+      this.router.navigate(['/applications', this.selectedApplicationId, 'subscriptions'], { queryParams: { subscription: subId } } )
+    );
+  }
+
   onApplicationMouseEnter({ detail }) {
     this.selectSubscriptions(detail.item);
   }
@@ -98,8 +165,11 @@ export class SubscriptionsComponent implements OnInit {
   }
 
   onSubscriptionClick({ detail }) {
-    this.router.navigate(['/applications', this.selectedApplicationId, 'subscriptions'],
-      { queryParams: { subscription: detail.items[0].subscription.id } });
+    if (detail.items[0]) {
+      this.displayCurlExample(detail.items[0]);
+    } else {
+      this.curlExample = null;
+    }
   }
 
   onFocusOut() {
@@ -107,8 +177,14 @@ export class SubscriptionsComponent implements OnInit {
     this.subs = [];
   }
 
+  get rowsHeight() {
+    return this.curlExample ? '25vh' : '45vh';
+  }
+
   async selectSubscriptions(application) {
     this.selectedApplicationId = application ? application.id : null;
+    this.curlExample = null;
+    this.selectedSubscriptions = [];
     if (this.apis && this.selectedApplicationId) {
       if (this.subsByApplication[this.selectedApplicationId] == null) {
         const applicationSubscriptions = this.selectedApplicationId ?

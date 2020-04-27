@@ -307,7 +307,7 @@
       },
       "close": {
         "message": "Are you sure you want to close this subscription?",
-        "title": "Close subscription"
+        "title": "Close"
       },
       "created_at": "Subscription date",
       "filters": {
@@ -320,11 +320,12 @@
           "title": "status"
         }
       },
+      "navigateToApi": "Go to the API",
       "plan": "Plan",
       "processed_at": "Processing Date",
       "renew": {
         "message": "Are you sure you want to renew this subscription?",
-        "title": "Renew subscription"
+        "title": "Renew"
       },
       "start_at": "Starting date",
       "status": "status",
@@ -847,6 +848,7 @@
     "applications": {
       "init": "You do not have any application",
       "name": "Name",
+      "navigate": "Go to the application",
       "owner": "Owner",
       "title": "Applications"
     },
@@ -855,6 +857,7 @@
       "empty": "No subscriptions for this application",
       "end_date": "End date",
       "init": "Roll on an application to view its subscriptions",
+      "navigate": "Go to the subscription",
       "plan": "Plan",
       "start_date": "Date de début",
       "title": "Subscriptions"
