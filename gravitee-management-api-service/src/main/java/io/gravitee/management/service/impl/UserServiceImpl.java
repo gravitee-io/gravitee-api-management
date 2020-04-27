@@ -54,8 +54,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -116,6 +114,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
     private PortalNotificationConfigService portalNotificationConfigService;
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
+    @Autowired
+    private PasswordValidator passwordValidator;
 
     @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
     private String defaultAvatar;
@@ -340,9 +340,14 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             // Set date fields
             user.setUpdatedAt(new Date());
+
             // Encrypt password if internal user
             if (registerUserEntity.getPassword() != null) {
-                user.setPassword(passwordEncoder.encode(registerUserEntity.getPassword()));
+                if (passwordValidator.validate(registerUserEntity.getPassword())) {
+                    user.setPassword(passwordEncoder.encode(registerUserEntity.getPassword()));
+                } else {
+                    throw new PasswordFormatInvalidException();
+                }
             }
 
             user = userRepository.update(user);
@@ -352,6 +357,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     user.getUpdatedAt(),
                     null,
                     user);
+
+            // Do not send back the password
+            user.setPassword(null);
 
             final UserEntity userEntity = convert(user, true);
             searchEngineService.index(userEntity, false);
@@ -483,9 +491,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
      * Allows to create an user and send an email notification to finalize its creation.
      */
     private UserEntity createAndSendEmail(final NewExternalUserEntity newExternalUserEntity, final ACTION action) {
-        try {
-            new InternetAddress(newExternalUserEntity.getEmail()).validate();
-        } catch (final AddressException ex) {
+        if (!EmailValidator.isValid(newExternalUserEntity.getEmail())){
             throw new EmailFormatInvalidException(newExternalUserEntity.getEmail());
         }
 

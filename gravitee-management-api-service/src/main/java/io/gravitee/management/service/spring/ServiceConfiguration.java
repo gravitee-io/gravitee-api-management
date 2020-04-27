@@ -25,6 +25,7 @@ import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.fetcher.spring.FetcherConfigurationConfiguration;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.service.PasswordValidator;
 import io.gravitee.management.service.impl.search.configuration.SearchEngineConfiguration;
 import io.gravitee.management.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.management.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
@@ -32,6 +33,7 @@ import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.management.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.management.service.quality.ApiQualityMetricLoader;
+import io.gravitee.management.service.validator.RegexPasswordValidator;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
 import io.gravitee.plugin.fetcher.spring.FetcherPluginConfiguration;
@@ -93,5 +95,10 @@ public class ServiceConfiguration {
 	@Bean
 	public PolicyOperationVisitorManager policyVisitorManager() {
 		return new PolicyOperationVisitorManagerImpl();
+	}
+
+	@Bean
+	public PasswordValidator passwordValidator() {
+		return new RegexPasswordValidator();
 	}
 }

@@ -80,6 +80,9 @@ public class UserServiceTest {
     private UserServiceImpl userService = new UserServiceImpl();
 
     @Mock
+    private PasswordValidator passwordValidator;
+
+    @Mock
     private UserRepository userRepository;
     @Mock
     private ApplicationService applicationService;
@@ -280,10 +283,30 @@ public class UserServiceTest {
 
     }
 
+    @Test (expected = TechnicalManagementException.class)
+    public void createAlreadyPreRegisteredUser_invalidPassword() throws TechnicalException {
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
+
+        User user = new User();
+        user.setId("CUSTOM_LONG_ID");
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
+
+        RegisterUserEntity userEntity = new RegisterUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));
+        userEntity.setPassword(PASSWORD);
+
+        userService.finalizeRegistration(userEntity);
+    }
+
     @Test
     public void createAlreadyPreRegisteredUser() throws TechnicalException {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
         when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
+        when(passwordValidator.validate(anyString())).thenReturn(true);
 
         User user = new User();
         user.setId("CUSTOM_LONG_ID");
@@ -302,8 +325,7 @@ public class UserServiceTest {
         verify(userRepository).update(argThat(userToCreate -> "CUSTOM_LONG_ID".equals(userToCreate.getId()) &&
                 EMAIL.equals(userToCreate.getEmail()) &&
                 FIRST_NAME.equals(userToCreate.getFirstname()) &&
-                LAST_NAME.equals(userToCreate.getLastname()) &&
-                !StringUtils.isEmpty(userToCreate.getPassword())));
+                LAST_NAME.equals(userToCreate.getLastname())));
     }
 
     @Test(expected = TechnicalManagementException.class)

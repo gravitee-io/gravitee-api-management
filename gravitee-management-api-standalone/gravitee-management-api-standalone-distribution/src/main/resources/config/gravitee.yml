@@ -309,10 +309,27 @@ swagger:
   # Default scheme used when creating an API from a Swagger descriptor if there is no scheme specified.
   scheme: https
 
+# User management configuration
 user:
   login:
     # Create a default application when user connects to the portal for the very first time (default true)
     #defaultApplication: true
+
+  # Password complexity validation policy
+  # Applications should enforce password complexity rules to discourage easy to guess passwords.
+  # Passwords should require a minimum level of complexity that makes sense for the application and its user population.
+  #password:
+  #  policy:
+  #    pattern: ^(?=\s*\S).*$ # Regex pattern for password validation (default to ^(?=\s*\S).*$ (non empty string))
+  # Example : ^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\S+$).{8,}$
+  # ^                # start-of-string
+  #(?=.*[0-9])       # a digit must occur at least once
+  #(?=.*[a-z])       # a lower case letter must occur at least once
+  #(?=.*[A-Z])       # an upper case letter must occur at least once
+  #(?=.*[@#$%^&+=])  # a special character must occur at least once
+  #(?=\S+$)          # no whitespace allowed in the entire string
+  #.{8,}             # anything, at least eight places though
+  #$                 # end-of-string
   creation:
     token:
       #expire-after: 86400
