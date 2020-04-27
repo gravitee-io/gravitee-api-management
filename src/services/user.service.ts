@@ -78,12 +78,14 @@ class UserService {
     return this.$http.post(`${this.baseURL}users`, user);
   }
 
-  register(user): ng.IPromise<any> {
-    return this.$http.post(`${this.usersURL}registration`, user);
+  register(user, ReCaptchaToken?: string): ng.IPromise<any> {
+    const config = ReCaptchaToken ? {headers: {ReCaptchaToken}} : null;
+    return this.$http.post(`${this.usersURL}registration`, user, config);
   }
 
-  finalizeRegistration(user): ng.IPromise<any> {
-    return this.$http.post(`${this.usersURL}registration/finalize`, user);
+  finalizeRegistration(user, ReCaptchaToken?: string): ng.IPromise<any> {
+    const config = ReCaptchaToken ? {headers: {ReCaptchaToken}} : null;
+    return this.$http.post(`${this.usersURL}registration/finalize`, user, config);
   }
 
 	search(query): ng.IPromise<any> {

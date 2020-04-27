@@ -14,16 +14,48 @@
  * limitations under the License.
  */
 class RegistrationController {
-  constructor(UserService, $scope, NotificationService) {
-    'ngInject';
 
-    $scope.register = function () {
-      UserService.register($scope.user).then(function () {
-        $scope.formRegistration.$setPristine();
-        NotificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
-      });
-    };
+  private ReCaptchaToken: string;
+  user: any = {};
+
+  constructor(private UserService: UserService,
+              private $scope,
+              private NotificationService: NotificationService,
+              private ReCaptchaService: ReCaptchaService) {
+    'ngInject';
+    this.UserService = UserService;
+    this.$scope = $scope;
+    this.NotificationService = NotificationService;
+    this.ReCaptchaService = ReCaptchaService;
   }
+
+  $onInit() {
+   this.initCaptcha();
+  }
+
+  register() {
+
+    let scope = this.$scope;
+    let notificationService = this.NotificationService;
+    let self = this;
+
+    this.UserService.register(this.user, this.ReCaptchaToken).then(function () {
+
+      scope.formRegistration.$setPristine();
+      notificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
+      self.initCaptcha();
+    }, function (e) {
+      notificationService.showError(e);
+      self.initCaptcha();
+    });
+  }
+
+  initCaptcha() {
+    this.ReCaptchaService.execute('register').then((ReCaptchaToken) => {
+      this.ReCaptchaToken = ReCaptchaToken;
+    });
+  }
+
 }
 
 export default RegistrationController;

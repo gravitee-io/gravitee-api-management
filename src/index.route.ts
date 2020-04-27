@@ -107,7 +107,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       url: '/registration',
       template: require('./user/registration/registration.html'),
       controller: 'RegistrationController',
-      controllerAs: 'registrationCtrl',
+      controllerAs: '$ctrl',
       data: {
         devMode: true
       },
@@ -123,7 +123,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       url: '/registration/confirm/:token',
       template: require('./user/registration/confirm/confirm.html'),
       controller: 'ConfirmController',
-      controllerAs: 'confirmCtrl',
+      controllerAs: '$ctrl',
       data: {
         devMode: true
       }
@@ -132,7 +132,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       url: '/resetPassword/:token',
       template: require('./user/resetPassword/resetPassword.html'),
       controller: 'ResetPasswordController',
-      controllerAs: 'resetPasswordCtrl',
+      controllerAs: '$ctrl',
       data: {
         devMode: true
       }
