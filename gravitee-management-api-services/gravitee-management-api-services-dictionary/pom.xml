@@ -32,7 +32,6 @@
 
     <properties>
         <jolt.version>0.1.1</jolt.version>
-        <json-schema-validator.version>2.2.6</json-schema-validator.version>
     </properties>
 
     <dependencies>
@@ -60,13 +59,6 @@
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-
-        <!-- Json schema validator -->
-        <dependency>
-            <groupId>com.github.fge</groupId>
-            <artifactId>json-schema-validator</artifactId>
-            <version>${json-schema-validator.version}</version>
         </dependency>
 
         <!-- Spring dependencies -->
