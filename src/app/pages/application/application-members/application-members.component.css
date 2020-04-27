@@ -46,3 +46,11 @@ gv-identity-picture {
   height: 60px;
   width: 60px;
 }
+
+.groupMembersTable, .hideTable, .groupMembers.show .showTable {
+  display: none;
+}
+
+.groupMembers.show .groupMembersTable, .groupMembers.show .hideTable {
+  display: block;
+}
