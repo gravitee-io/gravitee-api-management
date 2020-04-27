@@ -398,3 +398,11 @@ notifiers:
 #    whitelist:
 #      - https://whitelist.domain1.com
 #      - https://restricted.domain2.com/whitelisted/path
+
+# Allows to enable or disable recaptcha (see https://developers.google.com/recaptcha/docs/v3). Currently, it only affect the user registration route.
+#reCaptcha:
+#  enabled: false
+#  siteKey:
+#  secretKey:
+#  minScore: 0.5
+#  reCaptcha: https://www.google.com/recaptcha/api/siteverify

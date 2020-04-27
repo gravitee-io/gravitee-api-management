@@ -21,6 +21,7 @@ import io.gravitee.management.model.annotations.ParameterKey;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.ConfigService;
 import io.gravitee.management.service.ParameterService;
+import io.gravitee.management.service.ReCaptchaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private ParameterService parameterService;
     @Autowired
     private ConfigurableEnvironment environment;
+    @Autowired
+    private ReCaptchaService reCaptchaService;
 
     @Override
     public PortalConfigEntity getPortalConfig() {
@@ -154,6 +157,11 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             }
             idx++;
         }
+
+        final PortalConfigEntity.ReCaptcha reCaptcha = new PortalConfigEntity.ReCaptcha();
+        reCaptcha.setEnabled(reCaptchaService.isEnabled());
+        reCaptcha.setSiteKey(reCaptchaService.getSiteKey());
+        portalConfigEntity.setReCaptcha(reCaptcha);
     }
 
     @Override

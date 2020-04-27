@@ -98,7 +98,10 @@ public enum Key {
 
     API_REVIEW_ENABLED("api.review.enabled", "false"),
 
-    MAINTENANCE_MODE_ENABLED("maintenance.enabled", "false");
+    MAINTENANCE_MODE_ENABLED("maintenance.enabled", "false"),
+
+    RECAPTCHA_ENABLED("reCaptcha.enabled","false"),
+    RECAPTCHA_SITE_KEY("reCaptcha.siteKey");;
 
     String key;
     String defaultValue;

@@ -141,7 +141,9 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             headers.forEach(request::putHeader);
         }
         if(body != null) {
-            request.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+            if(!request.headers().contains(HttpHeaders.CONTENT_TYPE)) {
+                request.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+            }
             request.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.getBytes().length));
             request.write(body);
         }

@@ -44,6 +44,7 @@ public class PortalConfigEntity {
     private Application application;
     private Alert alert;
     private Maintenance maintenance;
+    private ReCaptcha reCaptcha;
 
     public PortalConfigEntity() {
         company = new Company();
@@ -61,6 +62,7 @@ public class PortalConfigEntity {
         application = new Application();
         alert = new Alert();
         maintenance = new Maintenance();
+        reCaptcha = new ReCaptcha();
     }
 
     public Company getCompany() {
@@ -171,6 +173,14 @@ public class PortalConfigEntity {
 
     public void setMaintenance(Maintenance maintenance) {
         this.maintenance = maintenance;
+    }
+
+    public ReCaptcha getReCaptcha() {
+        return reCaptcha;
+    }
+
+    public void setReCaptcha(ReCaptcha reCaptcha) {
+        this.reCaptcha = reCaptcha;
     }
 
     public class Company {
@@ -1070,6 +1080,30 @@ public class PortalConfigEntity {
 
         public void setEnabled(Boolean enabled) {
             this.enabled = enabled;
+        }
+    }
+
+    public static class ReCaptcha {
+        @ParameterKey(Key.RECAPTCHA_ENABLED)
+        private Boolean enabled;
+
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        @ParameterKey(Key.RECAPTCHA_SITE_KEY)
+        private String siteKey;
+
+        public String getSiteKey() {
+            return siteKey;
+        }
+
+        public void setSiteKey(String siteKey) {
+            this.siteKey = siteKey;
         }
     }
 }

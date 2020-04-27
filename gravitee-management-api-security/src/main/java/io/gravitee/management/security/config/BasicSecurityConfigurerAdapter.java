@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.security.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.management.idp.api.IdentityProvider;
 import io.gravitee.management.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.management.idp.core.plugin.IdentityProviderManager;
@@ -24,8 +25,10 @@ import io.gravitee.management.security.cookies.CookieGenerator;
 import io.gravitee.management.security.csrf.CookieCsrfSignedTokenRepository;
 import io.gravitee.management.security.csrf.CsrfRequestMatcher;
 import io.gravitee.management.security.filter.JWTAuthenticationFilter;
+import io.gravitee.management.security.filter.RecaptchaFilter;
 import io.gravitee.management.security.listener.AuthenticationFailureListener;
 import io.gravitee.management.security.listener.AuthenticationSuccessListener;
+import io.gravitee.management.service.ReCaptchaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +79,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     private AuthenticationProviderManager authenticationProviderManager;
     @Autowired
     private CookieGenerator cookieGenerator;
+    @Autowired
+    private ReCaptchaService reCaptchaService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -187,6 +194,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
         http
                 .addFilterBefore(new JWTAuthenticationFilter(jwtSecret, cookieGenerator), BasicAuthenticationFilter.class);
+
+        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), JWTAuthenticationFilter.class);
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {
