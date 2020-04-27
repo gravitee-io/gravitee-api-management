@@ -28,7 +28,7 @@ import '@gravitee/ui-components/wc/gv-card-list';
 export class HomepageComponent implements OnInit {
 
   public homepage: Page;
-  public topApis: { item: Api; metric: Promise<ApiMetrics> }[];
+  public topApis: { item: Api; metric: Promise<ApiMetrics> }[] = [];
 
   constructor(
     private portalService: PortalService,
