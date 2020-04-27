@@ -50,8 +50,20 @@
           ENABLED
         </md-switch>
       </div>
+
+      <md-button class="md-raised" type="button"
+                 ngf-select="$ctrl.importTheme($file,$invalidFiles)"
+                 ngf-pattern="'application/json'"
+                 ngf-accept="'application/json'"
+                 ngf-max-size="1MB"
+                 permission permission-only="['environment-theme-u']">
+        Import
+      </md-button>
+      <md-button class="md-raised" type="button" ng-click="$ctrl.exportTheme()">
+        Export
+      </md-button>
       <md-button class="md-raised md-warn" type="button" ng-click="$ctrl.restoreDefaultTheme()"
-                 permission permission-only="['environment-theme-u', 'environment-theme-d']">
+                 permission permission-only="['environment-theme-u']">
         Restore default theme
       </md-button>
     </div>

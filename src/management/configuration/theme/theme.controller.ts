@@ -16,13 +16,14 @@
 
 import ThemeService from '../../../services/theme.service';
 import NotificationService from '../../../services/notification.service';
-import {Theme} from '../../../entities/theme';
+import { Theme } from '../../../entities/theme';
 
 class ThemeController {
 
   detachedWindow: Window;
   connected = false;
-  private connectionRequestInterval: NodeJS.Timer;
+  private connectionRequestInterval: any;
+  private checkConnectionRequestInterval: any;
 
   private currentHref: any;
   private handleEventHandlers: any;
@@ -84,13 +85,14 @@ class ThemeController {
       return [];
     };
 
-    $scope.$on('accordion:onReady', function () {
-      if ($scope.hasPreview()) {
-        $scope.accordion.toggle('image');
-      } else {
-        $scope.accordion.expandAll();
-      }
-
+    $scope.$on('accordion:onReady', function() {
+      setTimeout(() => {
+        if ($scope.hasPreview()) {
+          $scope.accordion.toggle('image');
+        } else {
+          $scope.accordion.expandAll();
+        }
+      }, 0);
     });
 
     $scope.getGlobalColorVariables = () => {
@@ -119,7 +121,7 @@ class ThemeController {
 
     $scope.getGlobalHomepageVariables = () => {
       return this.$scope.getThemeVariables((prop) => {
-        return  prop.type !== 'color' && prop.description.includes('Homepage');
+        return prop.type !== 'color' && prop.description.includes('Homepage');
       });
     };
 
@@ -219,8 +221,6 @@ class ThemeController {
       const parentCss = this.$scope.themeComponent.css.find((p) => p.name === parentProperty);
       if (parentCss) {
         value = `(inherited from ${parentCss.description})`;
-      } else {
-        console.warn('parentCss not found', parentProperty);
       }
     }
     return `${property.description}: ${value}`;
@@ -261,10 +261,7 @@ class ThemeController {
     let attempt = 0;
     this.connectionRequestInterval = setInterval(() => {
       if (!this.connected) {
-        const window = this.getWindow();
-        if (window) {
-          window.postMessage(this.getData({requestAnswer: true}), '*');
-        } else if (++attempt >= 3) {
+        if (!this.postMessage(this.getData({requestAnswer: true}), '*') && ++attempt >= 3) {
           clearInterval(this.connectionRequestInterval);
           this.$scope.isDetached = false;
           this._reloadIframe();
@@ -273,12 +270,25 @@ class ThemeController {
     }, 500);
   }
 
+  connect() {
+    clearInterval(this.connectionRequestInterval);
+    this.connectionRequestInterval = null;
+    this.connected = true;
+    clearInterval(this.checkConnectionRequestInterval);
+    this.checkConnectionRequestInterval = setInterval(() => {
+      this.postMessage(this.getData(), this.$scope.targetURL);
+    }, 30000);
+  }
+
+  disconnect() {
+    this.connected = false;
+    clearInterval(this.checkConnectionRequestInterval);
+  }
+
   handleEvent = (event) => {
     if (event.data.type === 'gravitee') {
       if (this.connectionRequestInterval) {
-        clearInterval(this.connectionRequestInterval);
-        this.connectionRequestInterval = null;
-        this.connected = true;
+        this.connect();
       }
       if (event.data.href) {
         this.currentHref = event.data.href;
@@ -294,7 +304,7 @@ class ThemeController {
     this.$scope.$apply(() => {
       this.$scope.href = this.currentHref + this.getQueryParams();
       this.$scope.isDetached = false;
-      this.connected = false;
+      this.disconnect();
       this.connectionRequest();
     });
   }
@@ -303,15 +313,17 @@ class ThemeController {
     if (!this.$scope.isDetached) {
       clearInterval(this.connectionRequestInterval);
       this.$scope.isDetached = true;
+      this.disconnect();
+      setTimeout(() => {
+        this.$scope.accordion.expandAll();
+      }, 0);
       setTimeout(() => {
         // Wait after last currentHref...
-        this.connected = false;
         this.detachedWindow = window.open(this.currentHref + this.getQueryParams(),
           this.$scope.previewName,
           `width=1024, height=${window.screen.height}, left=${window.screen.width - 1024}`);
         this.connectionRequest();
       }, 500);
-      this.$scope.accordion.expandAll();
     } else {
       this.detachedWindow.close();
     }
@@ -329,10 +341,19 @@ class ThemeController {
     });
   }
 
+  postMessage(data, url) {
+    const previewWindow = this.getWindow();
+    if (previewWindow) {
+      previewWindow.postMessage(data, url);
+      return true;
+    }
+    return false;
+  }
+
   reset = () => {
     this.loadTheme().then(() => {
       this.NotificationService.show('The theme has been reset.');
-      this.getWindow().postMessage(this.getData(), this.$scope.targetURL);
+      this.postMessage(this.getData(), this.$scope.targetURL);
     });
   }
 
@@ -391,8 +412,56 @@ class ThemeController {
   }
 
   onDataChanged = () => {
-    this.getWindow().postMessage(this.getData(), this.$scope.targetURL);
+    this.postMessage(this.getData(), this.$scope.targetURL);
   }
+
+  exportTheme = () => {
+    const theme = this.$scope.theme;
+    const data = {
+      name: theme.name,
+      definition: theme.definition,
+      logo: theme.logo,
+      optionalLogo: theme.optionalLogo,
+      backgroundImage: theme.backgroundImage,
+    };
+
+    const link = document.createElement('a');
+    link.style = 'display:none;';
+    document.body.appendChild(link);
+
+    const blob = new Blob([angular.toJson(data, 2)], {type: 'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = `gv-theme-${new Date().getTime()}.json`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    link.remove();
+  }
+
+  importTheme(file, invalidFiles) {
+    if (file) {
+      const reader = new FileReader();
+      reader.readAsText(file);
+      reader.onload = (event) => {
+        const theme = Object.assign({}, this.$scope.theme, JSON.parse(event.target.result));
+        this.setTheme(theme);
+        this.onDataChanged();
+        this.$scope.themeForm.$commitViewValue();
+        this.$scope.themeForm.$setDirty();
+        this.NotificationService.show('The theme has been loaded successfully, save it to validate the import.');
+      };
+
+    }
+    if (invalidFiles && invalidFiles.length > 0) {
+      const fileError = invalidFiles[0];
+      if (fileError.$error === 'maxSize') {
+        this.NotificationService.showError(`Theme "${fileError.name}" exceeds the maximum authorized size (${this.$scope.maxSize})`);
+      } else {
+        this.NotificationService.showError(`File is not valid (error: ${fileError.$error})`);
+      }
+    }
+  }
+
 
 }
 
