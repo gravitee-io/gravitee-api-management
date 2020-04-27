@@ -20,7 +20,8 @@
       "previous": "Previous",
       "next": "Next",
       "last": "Last"
-    }
+    },
+    "passwordRules": "Passwords must follow the rules in place."
   },
   "home": {
     "subtitle": "Developers portal",

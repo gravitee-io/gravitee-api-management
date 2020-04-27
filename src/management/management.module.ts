@@ -449,6 +449,7 @@ import ApiQualityRuleController from "../management/configuration/api-quality-ru
 import DeleteApiQualityRuleDialogController from "../management/configuration/api-quality-rules/api-quality-rule/delete-api-quality-rule.dialog.controller";
 import DialogQueryFilterInformationController
   from "./configuration/analytics/dashboard/query-filter-information.dialog.controller";
+import portalI18nConfig from "../portal/portal.i18n";
 
 (<any>window).traverse = traverse;
 
@@ -539,6 +540,7 @@ require('angular-moment-picker');
 
 (<any>window).tinycolor = tinycolor;
 require('md-color-picker');
+import portalI18nConfig from './portal.i18n';
 
 
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ng-showdown',
@@ -570,6 +572,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .config(globalNotificationsRouterConfig)
   .config(interceptorConfig)
   .config(delegatorConfig)
+  .config(portalI18nConfig)
   .config(function ($mdThemingProvider: angular.material.IThemingProvider) {
     $mdThemingProvider.theme('default')
       .primaryPalette('blue');
