@@ -15,12 +15,17 @@
  */
 package io.gravitee.management.service;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.PageSourceEntity;
 import io.gravitee.management.service.exceptions.PageContentUnsafeException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UrlForbiddenException;
 import io.gravitee.management.service.impl.PageServiceImpl;
 import io.gravitee.management.service.search.SearchEngineService;
+import io.gravitee.management.service.spring.ImportConfiguration;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
@@ -31,6 +36,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -66,6 +73,9 @@ public class PageService_CreateTest {
 
     @Mock
     private SearchEngineService searchEngineService;
+
+    @Mock
+    private ImportConfiguration importConfiguration;
 
     @Test
     public void shouldCreatePage() throws TechnicalException {
@@ -115,6 +125,26 @@ public class PageService_CreateTest {
         when(newPage.getName()).thenReturn(name);
 
         when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
+
+        pageService.createPage(API_ID, newPage);
+
+        verify(pageRepository, never()).create(any());
+    }
+
+    @Test(expected = UrlForbiddenException.class)
+    public void shouldNotCreateBecauseUrlForbiddenException() throws TechnicalException {
+
+        PageSourceEntity pageSource = new PageSourceEntity();
+        pageSource.setType("HTTP");
+        pageSource.setConfiguration(JsonNodeFactory.instance.objectNode().put("url", "http://localhost"));
+
+        final String name = "PAGE_NAME";
+
+        when(newPage.getName()).thenReturn(name);
+        when(newPage.getSource()).thenReturn(pageSource);
+
+        when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
+        when(importConfiguration.getImportWhitelist()).thenReturn(Collections.emptyList());
 
         pageService.createPage(API_ID, newPage);
 

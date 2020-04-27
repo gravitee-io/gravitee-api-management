@@ -28,18 +28,25 @@ import io.gravitee.management.service.impl.swagger.policy.PolicyOperationVisitor
 import io.gravitee.management.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.management.service.impl.swagger.visitor.v2.SwaggerOperationVisitor;
 import io.gravitee.management.service.impl.swagger.visitor.v3.OAIOperationVisitor;
+import io.gravitee.management.service.sanitizer.UrlSanitizerUtils;
+import io.gravitee.management.service.spring.ImportConfiguration;
 import io.gravitee.management.service.swagger.OAIDescriptor;
 import io.gravitee.management.service.swagger.SwaggerDescriptor;
 import io.gravitee.management.service.swagger.SwaggerV1Descriptor;
 import io.gravitee.management.service.swagger.SwaggerV2Descriptor;
 import io.swagger.models.Swagger;
 import io.swagger.v3.oas.models.OpenAPI;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.web.util.UrlUtils;
 import org.springframework.stereotype.Component;
 
+import javax.print.DocFlavor;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,6 +66,9 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     @Autowired
     private PolicyOperationVisitorManager policyOperationVisitorManager;
+
+    @Autowired
+    private ImportConfiguration importConfiguration;
 
     @Override
     public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
@@ -100,6 +110,11 @@ public class SwaggerServiceImpl implements SwaggerService {
 
         // try to read swagger in version 2
         logger.debug("Trying to load a Swagger v2 descriptor");
+
+        if(isUrl(content)) {
+            UrlSanitizerUtils.checkAllowed(content, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
+        }
+
         descriptor = new SwaggerV2Parser().parse(content);
 
         if (descriptor != null) {
@@ -123,5 +138,15 @@ public class SwaggerServiceImpl implements SwaggerService {
         }
 
         throw new SwaggerDescriptorException();
+    }
+
+    private boolean isUrl(String content) {
+
+        try {
+            new URL(content);
+            return true;
+        } catch (MalformedURLException e) {
+            return false;
+        }
     }
 }

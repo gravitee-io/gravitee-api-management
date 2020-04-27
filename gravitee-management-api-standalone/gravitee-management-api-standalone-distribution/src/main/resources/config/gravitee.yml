@@ -348,6 +348,14 @@ portalURL: http://localhost:3000/
 #  markdown:
 #    sanitize: false
 
+#imports:
+  # Enable / disable import from private hosts. Enabled by default. (See https://en.wikipedia.org/wiki/Private_network)
+#  allow-from-private: true
+  # Empty whitelist means all urls are allowed. Note: allow-from-private is ignored when whitelist is defined.
+#  whitelist:
+#      - https://whitelist.domain1.com
+#      - https://restricted.domain2.com/whitelisted/path
+
 search:
   data: ${gravitee.home}/data
 

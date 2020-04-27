@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import freemarker.template.Configuration;
@@ -40,8 +41,10 @@ import io.gravitee.management.service.impl.swagger.transformer.entrypoints.Entry
 import io.gravitee.management.service.impl.swagger.transformer.entrypoints.EntrypointsSwaggerV2Transformer;
 import io.gravitee.management.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
 import io.gravitee.management.service.impl.swagger.transformer.page.PageConfigurationSwaggerV2Transformer;
+import io.gravitee.management.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.management.service.sanitizer.HtmlSanitizer;
 import io.gravitee.management.service.search.SearchEngineService;
+import io.gravitee.management.service.spring.ImportConfiguration;
 import io.gravitee.management.service.swagger.OAIDescriptor;
 import io.gravitee.management.service.swagger.SwaggerDescriptor;
 import io.gravitee.management.service.swagger.SwaggerV2Descriptor;
@@ -57,10 +60,12 @@ import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -121,6 +126,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Autowired
 	private GraviteeDescriptorService graviteeDescriptorService;
+
+	@Autowired
+	private ImportConfiguration importConfiguration;
 
 	@Override
 	public PageEntity findById(String pageId) {
@@ -393,6 +401,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 }
 	private void fetchPage(final Page page) throws FetcherException {
+
+		validateSafeSource(page);
+
 		Fetcher fetcher = this.getFetcher(page.getSource());
 		if (fetcher != null) {
 			try {
@@ -1232,6 +1243,33 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			}
         }
     }
+
+    private void validateSafeSource(Page page) {
+
+		if (importConfiguration.isAllowImportFromPrivate() || page.getSource() == null || page.getSource().getConfiguration() == null) {
+			return;
+		}
+
+		PageSource source = page.getSource();
+		Map<String, String> map;
+
+		try {
+			map = new ObjectMapper().readValue(source.getConfiguration(), new TypeReference<Map<String, String>>() {
+			});
+		} catch (IOException e) {
+			throw new InvalidDataException("Source is invalid", e);
+		}
+
+		Optional<String> urlOpt = map.entrySet().stream().filter(e -> e.getKey().equals("repository") || e.getKey().matches(".*[uU]rl")).map(Map.Entry::getValue).findFirst();
+
+		if (!urlOpt.isPresent()) {
+			// There is no source to validate.
+			return;
+		}
+
+		// Validate the url is allowed.
+		UrlSanitizerUtils.checkAllowed(urlOpt.get(), importConfiguration.getImportWhitelist(), false);
+	}
 
     private void createAuditLog(String apiId, Audit.AuditEvent event, Date createdAt, Page oldValue, Page newValue) {
         String pageId = oldValue != null ? oldValue.getId() : newValue.getId();

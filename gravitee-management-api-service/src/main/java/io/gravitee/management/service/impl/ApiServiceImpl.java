@@ -51,9 +51,11 @@ import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.HookScope;
 import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
+import io.gravitee.management.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.management.service.search.query.Query;
 import io.gravitee.management.service.search.query.QueryBuilder;
+import io.gravitee.management.service.spring.ImportConfiguration;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -177,6 +179,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private RoleService roleService;
     @Autowired
     private ViewService viewService;
+    @Autowired
+    private ImportConfiguration importConfiguration;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
@@ -1428,6 +1432,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {
+        UrlSanitizerUtils.checkAllowed(apiDefinitionOrURL, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
         Buffer buffer = httpClientService.request(HttpMethod.GET, apiDefinitionOrURL, null, null, null);
         return buffer.toString();
     }

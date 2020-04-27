@@ -24,6 +24,7 @@ import io.gravitee.management.model.PageSourceEntity;
 import io.gravitee.management.service.impl.GraviteeDescriptorServiceImpl;
 import io.gravitee.management.service.impl.PageServiceImpl;
 import io.gravitee.management.service.search.SearchEngineService;
+import io.gravitee.management.service.spring.ImportConfiguration;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.management.api.PageRepository;
@@ -78,6 +79,9 @@ public class PageService_ImportDescriptorTest {
 
     @Mock
     private ObjectMapper mockMapper;
+
+    @Mock
+    private ImportConfiguration importConfiguration;
 
     private ObjectMapper mapper = new ObjectMapper();
 
