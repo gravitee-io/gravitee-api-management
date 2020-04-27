@@ -57,14 +57,14 @@ export class SubscriptionsComponent implements OnInit {
     this.options = {
       selectable: true,
       data: [
-        { field: '_links.picture', type: 'image', alt: 'name' },
+        { field: '_links.picture', type: 'image', alt: 'name', width: '15%' },
         {
           field: 'name',
           label: i18n('subscriptions.applications.name'),
-          icon: (item) => getApplicationTypeIcon(item.applicationType)
+          icon: (item) => getApplicationTypeIcon(item.applicationType),
+          width: '60%',
         },
-        { field: 'owner.display_name', label: i18n('subscriptions.applications.owner') },
-        { field: 'updated_at', type: 'date', label: i18n('subscriptions.applications.last_update') },
+        { field: 'owner.display_name', label: i18n('subscriptions.applications.owner'), width: '25%' },
       ]
     };
     this.optionsSubscriptions = {

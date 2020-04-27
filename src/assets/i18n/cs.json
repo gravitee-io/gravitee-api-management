@@ -846,7 +846,6 @@
   "subscriptions": {
     "applications": {
       "init": "Nemáte žádnou aplikaci",
-      "last_update": "Poslední aktualizace",
       "name": "Název",
       "owner": "Owner",
       "title": "Aplikace"

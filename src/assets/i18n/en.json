@@ -846,7 +846,6 @@
   "subscriptions": {
     "applications": {
       "init": "You do not have any application",
-      "last_update": "Last update",
       "name": "Name",
       "owner": "Owner",
       "title": "Applications"
