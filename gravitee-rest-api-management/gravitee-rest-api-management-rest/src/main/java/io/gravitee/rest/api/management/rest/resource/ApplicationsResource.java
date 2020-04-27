@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.swagger.annotations.*;
@@ -37,6 +38,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -51,6 +55,8 @@ import java.util.stream.Collectors;
 @Api(tags = {"Application"})
 public class ApplicationsResource extends AbstractResource {
 
+    @Context
+    private UriInfo uriInfo;
     @Context
     private ResourceContext resourceContext;
 
@@ -89,9 +95,24 @@ public class ApplicationsResource extends AbstractResource {
             }
         }
 
+        applications.forEach(application -> this.addPictureUrl(application));
+        
         return applications.stream()
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .collect(Collectors.toList());
+    }
+
+    private void addPictureUrl(ApplicationListItem application) {
+        final UriBuilder ub = uriInfo.getBaseUriBuilder();
+        final UriBuilder uriBuilder = ub.path("organizations").path(GraviteeContext.getCurrentOrganization())
+                .path("environments").path(GraviteeContext.getCurrentEnvironment())
+                .path("applications").path(application.getId()).path("picture");
+        if (application.getPicture() != null) {
+            // force browser to get if updated
+            uriBuilder.queryParam("hash", application.getPicture().hashCode());
+            application.setPicture(null);
+        }
+        application.setPictureUrl(uriBuilder.build().toString());
     }
 
     /**

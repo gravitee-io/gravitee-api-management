@@ -633,6 +633,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 item.setPrimaryOwner(applicationEntity.getPrimaryOwner());
                 item.setType(applicationEntity.getType());
                 item.setStatus(applicationEntity.getStatus());
+                item.setPicture(applicationEntity.getPicture());
 
                 ApplicationListItemSettings settings = new ApplicationListItemSettings();
                 if (applicationEntity.getSettings().getApp() != null) {

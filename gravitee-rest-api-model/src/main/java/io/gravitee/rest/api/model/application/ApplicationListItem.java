@@ -49,6 +49,11 @@ public class ApplicationListItem {
     @JsonProperty("settings")
     private ApplicationListItemSettings settings;
 
+    private String picture;
+
+    @JsonProperty(value = "picture_url")
+    private String pictureUrl;
+
     public String getId() {
         return id;
     }
@@ -127,6 +132,22 @@ public class ApplicationListItem {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 
     @Override

@@ -17,8 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
@@ -28,6 +27,7 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -38,8 +38,10 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
+
+import java.io.ByteArrayOutputStream;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -98,6 +100,55 @@ public class ApplicationResource extends AbstractResource {
         }
 
         return applicationService.update(application, updatedApplication);
+    }
+
+    @GET
+    @Path("picture")
+    @ApiOperation(value = "Get the application's picture",
+            notes = "User must have the READ permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Application's picture"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
+    })
+    public Response picture(@Context Request request, @PathParam("application") String application) throws ApplicationNotFoundException {
+        PictureEntity picture = applicationService.getPicture(application);
+        
+        if (picture instanceof UrlPictureEntity) {
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
+        }
+
+        InlinePictureEntity image = (InlinePictureEntity) picture;
+        if (image == null || image.getContent() == null) {
+            return Response.ok().build();
+        }
+
+        CacheControl cc = new CacheControl();
+        cc.setNoTransform(true);
+        cc.setMustRevalidate(false);
+        cc.setNoCache(false);
+        cc.setMaxAge(86400);
+
+        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
+        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
+
+        if (builder != null) {
+            // Preconditions are not met, returning HTTP 304 'not-modified'
+            return builder
+                    .cacheControl(cc)
+                    .build();
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(image.getContent(), 0, image.getContent().length);
+
+        return Response
+                .ok(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 
     @POST
