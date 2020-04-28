@@ -50,9 +50,9 @@ export class ApplicationType {
     'language',
     {
       requires_redirect_uris: true,
-      allowed_grant_types: [GrantType.AUTHORIZATION_CODE, GrantType.REFRESH_TOKEN, GrantType.IMPLICIT_HYBRID],
+      allowed_grant_types: [GrantType.AUTHORIZATION_CODE, GrantType.REFRESH_TOKEN],
       mandatory_grant_types: [GrantType.AUTHORIZATION_CODE.type],
-      default_grant_types: [GrantType.AUTHORIZATION_CODE.type]
+      default_grant_types: [GrantType.AUTHORIZATION_CODE.type, GrantType.REFRESH_TOKEN.type]
     },
     {
       oauth: {
