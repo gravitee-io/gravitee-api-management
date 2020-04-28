@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, Input, OnDestroy, ViewChild } from '@angular/core';
 import { ApiService, Page, PortalService } from '@gravitee/ng-portal-webclient';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NotificationService } from '../../services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { getCssVar } from '@gravitee/ui-components/src/lib/style';
+import { GvDocumentationComponent } from '../gv-documentation/gv-documentation.component';
 
 declare let Redoc: any;
 
@@ -34,6 +35,7 @@ export class GvPageRedocComponent implements OnDestroy {
   @ViewChild('redoc', { static: true }) redocContainer;
 
   @Input() fragment: string;
+  private lastTop: number;
 
   @Input() set page(page: Page) {
     if (page) {
@@ -61,6 +63,16 @@ export class GvPageRedocComponent implements OnDestroy {
     private route: ActivatedRoute,
   ) {
 
+  }
+
+  @HostListener('window:scroll')
+  onScroll() {
+    window.requestAnimationFrame(() => {
+      this.lastTop = GvDocumentationComponent.updateMenuPosition(this.redocMenu, this.lastTop);
+      if(this.lastTop) {
+        this.lastTop -= 108;
+      }
+    });
   }
 
   loadScript() {
@@ -126,6 +138,10 @@ export class GvPageRedocComponent implements OnDestroy {
 
   }
 
+  get redocMenu(): Element {
+    return document.querySelector('.menu-content');
+  }
+
   _redocCallback(errors) {
     if (errors) {
       this.notificationService.error(i18n('gv-page.swagger.badFormat'));
@@ -133,16 +149,20 @@ export class GvPageRedocComponent implements OnDestroy {
     this.isLoaded = true;
     setTimeout(() => {
       const wrap = document.querySelector('.redoc-wrap');
+      // @ts-ignore
       const height = window.getComputedStyle(wrap).height;
       // @ts-ignore
       document.querySelector('.layout__content').style.height = height;
       // @ts-ignore
       document.querySelector('.gv-documentation__content').style.height = height;
-      const menu = document.querySelector('.menu-content');
       // @ts-ignore
-      menu.style.position = 'fixed';
+      this.redocMenu.style.position = 'fixed';
       // @ts-ignore
-      menu.style.top = '132px';
+      this.redocMenu.style.height = ` ${(window.innerHeight - GvDocumentationComponent.MENU_TOP - GvDocumentationComponent.MENU_BOTTOM)}px`;
+      // @ts-ignore
+      this.redocMenu.style.top = `${GvDocumentationComponent.MENU_TOP}px`;
+      // @ts-ignore
+      this.redocMenu.style.bottom = `${GvDocumentationComponent.MENU_BOTTOM}px`;
       const width = window.getComputedStyle(document.querySelector('.menu-content')).width;
       // @ts-ignore
       document.querySelector('.api-content').style.marginLeft = width;

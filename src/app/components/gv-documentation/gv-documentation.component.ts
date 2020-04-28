@@ -37,18 +37,6 @@ import { animate, style, transition, trigger } from '@angular/animations';
 })
 export class GvDocumentationComponent {
 
-  currentPage: Page;
-  currentMenuItem: TreeItem;
-  menu: TreeItem[];
-  isLoaded = false;
-  hasTreeClosed = false;
-
-  @Input() rootDir: string;
-  private _pages: Page[];
-
-  @ViewChild('treeMenu', { static: false }) treeMenu;
-  private loadingTimer: any;
-
   @Input() set pages(pages: Page[]) {
     clearTimeout(this.loadingTimer);
     if (pages && pages.length) {
@@ -79,13 +67,50 @@ export class GvDocumentationComponent {
     }, 700);
   }
 
-  @Input() fragment: string;
-
   constructor(
     private notificationService: NotificationService,
     private route: ActivatedRoute,
     private router: Router,
   ) {
+  }
+
+  static MENU_TOP = 125;
+  static MENU_BOTTOM = 42;
+
+  currentPage: Page;
+  currentMenuItem: TreeItem;
+  menu: TreeItem[];
+  isLoaded = false;
+  hasTreeClosed = false;
+
+  @Input() rootDir: string;
+  private _pages: Page[];
+
+  @ViewChild('treeMenu', { static: false }) treeMenu;
+  private loadingTimer: any;
+  private lastTop: number;
+
+  @Input() fragment: string;
+
+  static updateMenuPosition(menuElement, lastTop) {
+    const scrollTop = document.scrollingElement.scrollTop;
+    const { height } = menuElement.getBoundingClientRect();
+    const contentHeight = document.querySelector('.gv-documentation__content').getBoundingClientRect().height;
+    if (contentHeight - scrollTop <= height) {
+      menuElement.style.top = `${lastTop}px`;
+      menuElement.style.bottom = `${contentHeight - scrollTop}px`;
+      menuElement.style.position = `absolute`;
+      return null;
+    } else {
+      this.reset(menuElement);
+      return scrollTop + GvDocumentationComponent.MENU_TOP;
+    }
+  }
+
+  static reset(menuElement) {
+    menuElement.style.bottom = `${GvDocumentationComponent.MENU_BOTTOM}px`;
+    menuElement.style.top = `${GvDocumentationComponent.MENU_TOP}px`;
+    menuElement.style.position = `fixed`;
   }
 
   private initTree(pages: Page[], selectedPage?: string) {
@@ -144,9 +169,21 @@ export class GvDocumentationComponent {
     });
   }
 
+
+  @HostListener('window:scroll')
+  onScroll() {
+    window.requestAnimationFrame(() => {
+      this.lastTop = GvDocumentationComponent.updateMenuPosition(this.treeMenu.nativeElement, this.lastTop);
+    });
+
+  }
+
   @HostListener(':gv-tree:select', ['$event.detail.value'])
   onPageChange(page) {
-    this.router.navigate([], { queryParams: { page: page.id } });
+    this.router.navigate([], { queryParams: { page: page.id } }).then(() => {
+      this.lastTop = null;
+      GvDocumentationComponent.reset(this.treeMenu.nativeElement);
+    });
     this.currentPage = page;
   }
 

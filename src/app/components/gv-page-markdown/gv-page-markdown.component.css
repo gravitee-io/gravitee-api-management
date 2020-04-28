@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 .markdown {
-  height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h));
   padding: 1rem 42px;
   overflow: auto;
   width: calc(100% - 84px);

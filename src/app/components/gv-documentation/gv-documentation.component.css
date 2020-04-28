@@ -26,9 +26,11 @@
   display: none;
   position: fixed;
   left: 42px;
-  height: calc(100vh - 150px);
   z-index: 100;
+  height: calc(100vh - 125px - 42px);
+  bottom: 42px;
 }
+
 .gv-documentation__menu.show {
   display: block;
 }
