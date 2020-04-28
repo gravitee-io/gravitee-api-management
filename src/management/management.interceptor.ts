@@ -106,8 +106,25 @@ function interceptorConfig(
     };
   };
 
+  let xsrfToken;
+
+  const csrfInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
+    return {
+      request: function (config) {
+        config.headers['X-XSRF-TOKEN'] = xsrfToken;
+        return config;
+      },
+      response: function(response) {
+        if(response.headers('X-XSRF-TOKEN') !== null) {
+          xsrfToken = response.headers('X-XSRF-TOKEN');
+        }
+        return response;
+      }
+    };
+  };
 
   if ($httpProvider.interceptors) {
+    $httpProvider.interceptors.push(csrfInterceptor);
     $httpProvider.interceptors.push(interceptorUnauthorized);
     $httpProvider.interceptors.push(interceptorTimeout);
   }
