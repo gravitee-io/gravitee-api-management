@@ -54,6 +54,9 @@ http:
     #allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
     # Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match)
     #allow-headers: 'X-Requested-With'
+  #csrf:
+    # Allows to enable or disable the CSRF protection (default is disabled).
+  #  enabled: false
   hsts:
     enabled: true
     include-sub-domains: true

@@ -196,8 +196,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     private HttpSecurity session(HttpSecurity security) throws Exception {
         return security.sessionManagement()
-                .disable();
-                //.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
@@ -290,9 +289,14 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity csrf(HttpSecurity security) throws Exception {
-        return security.csrf()
-                .csrfTokenRepository(cookieCsrfSignedTokenRepository())
-                .requireCsrfProtectionMatcher(new CsrfRequestMatcher()).and();
+
+        if(environment.getProperty("http.csrf.enabled", Boolean.class, false)) {
+            return security.csrf()
+                    .csrfTokenRepository(cookieCsrfSignedTokenRepository())
+                    .requireCsrfProtectionMatcher(new CsrfRequestMatcher()).and();
+        }else {
+            return security.csrf().disable();
+        }
     }
 
     private HttpSecurity cors(HttpSecurity security) throws Exception {
