@@ -2447,12 +2447,19 @@ components:
               - to
               - interval
               - query
+          - STATS :
+              Used to retrieve stats data, on a specific time interval.\
+              Query params :
+              - from
+              - to
+              - query
       schema:
         type: string
         enum:
           - GROUP_BY
           - DATE_HISTO
           - COUNT
+          - STATS
     analyticRangeQueryParam:
       name: ranges
       in: query

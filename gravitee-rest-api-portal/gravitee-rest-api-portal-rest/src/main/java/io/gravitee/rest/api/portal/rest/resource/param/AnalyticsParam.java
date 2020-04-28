@@ -163,12 +163,13 @@ public class AnalyticsParam {
             throw new BadRequestException("Query parameter 'interval' is not valid");
         }
 
-        if (interval < 1_000 || interval > 1_000_000_000) {
+        if (type.getValue() == AnalyticsTypeParam.AnalyticsType.DATE_HISTO && (interval < 1_000 || interval > 1_000_000_000)) {
             throw new BadRequestException("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000");
         }
 
-        if (type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY && (field == null || field.trim().isEmpty())) { // we need a field and, optionally, a list of ranges
-                throw new BadRequestException("'field' query parameter is required for 'group_by' request");
-       }
+        if ((type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY || type.getValue() == AnalyticsTypeParam.AnalyticsType.STATS)
+                && (field == null || field.trim().isEmpty())) { // we need a field and, optionally, a list of ranges
+                throw new BadRequestException("'field' query parameter is required for '" + type.getValue() + "' request");
+        }
     }
 }
