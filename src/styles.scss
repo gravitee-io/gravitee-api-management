@@ -173,6 +173,7 @@ h3.title {
   font-size: var(--gv-theme-font-size-l);
   line-height: var(--gv-theme-font-size-l);
   opacity: 0.6;
+  text-transform: uppercase;
 }
 
 h3.title p {
@@ -228,4 +229,17 @@ body {
 
 .pagination__pagination__block {
   display: flex;
+}
+
+.empty, .error {
+  box-sizing: border-box;
+  opacity: 0.5;
+  color: var(--gv-theme-font-color-dark);
+  text-align: center;
+  font-weight: bold;
+  align-items: center;
+  font-size: var(--gv-theme-font-size-xl, 26px);
+  padding: 3rem;
+  height: 100%;
+  width: 100%;
 }

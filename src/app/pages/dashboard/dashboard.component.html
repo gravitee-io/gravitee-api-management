@@ -16,7 +16,42 @@
 
 -->
 <div class="page__content">
+  <h1 *ngIf="currentUser">{{'dashboard.welcome' | translate : { username: currentUser.first_name || currentUser.display_name } }}</h1>
   <section>
-    <h1 *ngIf="currentUser">{{'dashboard.welcome' | translate : { username: currentUser.first_name || currentUser.display_name } }}</h1>
+    <h3 *ngIf="applications && applications.length" class="title" translate="dashboard.applications.title"></h3>
+    <div class="applications">
+      <gv-card-full *ngFor="let application of applications; let index = index" [item]="application"
+                    [metrics]="metrics[index]" (click)="goToApplication(application)"></gv-card-full>
+
+      <div class="applications__box__container">
+
+        <gv-button primary *ngIf="applicationCreationEnabled()" [routerLink]="'/applications/creation/'" href="/applications/creation/">
+          <div>
+            <gv-icon shape="code:plus"></gv-icon>
+            <h4 translate="dashboard.applications.create"></h4>
+          </div>
+        </gv-button>
+
+        <gv-button *ngIf="applications && applications.length" [routerLink]="'/applications/'" href="/applications/">
+          <div>
+            <gv-icon shape="general:other#2"></gv-icon>
+            <h4 translate="dashboard.applications.list"></h4>
+          </div>
+        </gv-button>
+
+      </div>
+    </div>
+    <div *ngIf="subscriptions && subscriptions.length">
+      <h3 class="title">{{"dashboard.subscriptions.title" | translate}}</h3>
+      <div class="applications__subscriptions__container">
+        <gv-table [format]="format" [emptymessage]="'dashboard.subscriptions.list.empty' | translate" order="api.name"
+                  (:gv-table:select)="onSubscriptionClick($event)"
+                  [items]="subscriptions" [options]="optionsSubscriptions" nosort></gv-table>
+        <div>
+          <div class="empty" *ngIf="!stats" translate="dashboard.subscriptions.subtitle"></div>
+          <gv-stats *ngIf="stats" [stats]="stats" [options]="optionsStats"></gv-stats>
+        </div>
+      </div>
+    </div>
   </section>
 </div>

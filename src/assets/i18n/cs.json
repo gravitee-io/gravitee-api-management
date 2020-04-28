@@ -528,6 +528,31 @@
     "title": "Nastavení cookies"
   },
   "dashboard": {
+    "applications": {
+      "create": "Vytvořte novou aplikaci",
+      "list": "Podívejte se na všechny své aplikace",
+      "title": "Vaše aplikace"
+    },
+    "stats": {
+      "avg": "průměrná doba odezvy",
+      "max": "maximální doba odezvy",
+      "min": "minimální doba odezvy",
+      "ms": "ms",
+      "rph": "žádost za hodinu",
+      "rpm": "žádost za minutu",
+      "rps": "požadavek za sekundu",
+      "total": "Celkem"
+    },
+    "subscriptions": {
+      "api": "Api",
+      "application": "Aplikace",
+      "list": {
+        "empty": "Žádné předplatné"
+      },
+      "plan": "Plán",
+      "subtitle": "Vyberte předplatné, chcete-li zobrazit aktivitu za poslední týden",
+      "title": "Vaše předplatné"
+    },
     "welcome": "Vítejte {username},"
   },
   "errors": {

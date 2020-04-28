@@ -20,6 +20,8 @@ import { UserTestingModule } from '../../test/user-testing-module';
 import { DashboardComponent } from './dashboard.component';
 import { UserService } from '@gravitee/ng-portal-webclient';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -28,7 +30,7 @@ describe('DashboardComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ DashboardComponent ],
-      imports: [TranslateTestingModule, UserTestingModule],
+      imports: [TranslateTestingModule, UserTestingModule, HttpClientTestingModule, RouterTestingModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ]

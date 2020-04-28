@@ -528,6 +528,31 @@
     "title": "Cookies settings"
   },
   "dashboard": {
+    "applications": {
+      "create": "Create an application",
+      "list": "See your applications",
+      "title": "Your applications"
+    },
+    "stats": {
+      "avg": "average response time",
+      "max": "maximum response time",
+      "min": "minimum response time",
+      "ms": "ms",
+      "rph": "request per hour",
+      "rpm": "request per minute",
+      "rps": "request per second",
+      "total": "total"
+    },
+    "subscriptions": {
+      "api": "API",
+      "application": "Application",
+      "list": {
+        "empty": "No subscription"
+      },
+      "plan": "Plan",
+      "subtitle": "Select a subscription to see the activity for the past week",
+      "title": "Your subscriptions"
+    },
     "welcome": "Welcome {username},"
   },
   "errors": {

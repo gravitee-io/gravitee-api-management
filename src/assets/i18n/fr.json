@@ -528,6 +528,31 @@
     "title": "Gestion des cookies"
   },
   "dashboard": {
+    "applications": {
+      "create": "Créer une application",
+      "list": "Voir vos applications",
+      "title": "Vos applications"
+    },
+    "stats": {
+      "avg": "temps de réponse moyen",
+      "max": "temps de réponse maximum",
+      "min": "temps de réponse minimum",
+      "ms": "ms",
+      "rph": "requête par heure",
+      "rpm": "requête par minute",
+      "rps": "requête par seconde",
+      "total": "total"
+    },
+    "subscriptions": {
+      "api": "API",
+      "application": "Application",
+      "list": {
+        "empty": "Aucune souscription"
+      },
+      "plan": "Plan",
+      "subtitle": "Sélectionner une souscription pour voir l'activité de la semaine passée",
+      "title": "Vos souscriptions"
+    },
     "welcome": "Bienvenue {username},"
   },
   "errors": {

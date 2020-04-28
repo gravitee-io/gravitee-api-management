@@ -26,8 +26,8 @@
       </div>
 
       <div class="page__box-content">
-        <gv-table [items]="notifications" [options]="options" [noheader]="true" [total]="total" [format]="format"
-                  rowheight="50px" [emptymessage]="'user.notifications.empty' | translate"></gv-table>
+        <gv-table [items]="notifications" [options]="options" [total]="total" [format]="format"
+                  rowheight="50px" [emptymessage]="'user.notifications.empty' | translate" noheader></gv-table>
       </div>
 
       <div *ngIf="notifications && notifications.length && total > size" class="page__box-footer pagination__block">

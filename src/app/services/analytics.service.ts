@@ -268,4 +268,36 @@ export class AnalyticsService {
     }), {});
   }
 
+  getDefaultStatsOptions(): Promise<Array<any>> {
+    return this.translateService.get([
+      'dashboard.stats.min',
+      'dashboard.stats.max',
+      'dashboard.stats.avg',
+      'dashboard.stats.rps',
+      'dashboard.stats.rpm',
+      'dashboard.stats.rph',
+      'dashboard.stats.total',
+      'dashboard.stats.ms',
+    ]).toPromise().then((translated) => {
+      const translatedValues = Object.values(translated);
+      return [
+        { key: 'min', label: translatedValues[0], unit: translatedValues[7], color: '#66bb6a' },
+        { key: 'max', label: translatedValues[1], unit: translatedValues[7], color: '#ef5350' },
+        { key: 'avg', label: translatedValues[2], unit: translatedValues[7], color: '#42a5f5' },
+        {
+          key: 'rps',
+          label: translatedValues[3],
+          color: '#ff8f2d',
+          fallback: [{
+            key: 'rpm',
+            label: translatedValues[4],
+          }, {
+            key: 'rph',
+            label: translatedValues[5],
+          }],
+        },
+        { key: 'count', label: translatedValues[6] },
+      ];
+    });
+  }
 }
