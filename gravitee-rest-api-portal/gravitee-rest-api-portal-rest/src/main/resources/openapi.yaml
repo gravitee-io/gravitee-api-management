@@ -1537,12 +1537,8 @@ paths:
             schema:
               $ref: '#/components/schemas/ResetUserPasswordInput'
       responses:
-        200:
+        204:
           description: The user whose password has been reset.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
         400:
           description: Input must not be null or no active and internally managed user has been found.
           content:

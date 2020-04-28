@@ -361,7 +361,7 @@ public class UserServiceTest {
     }
 
 
-    @Test(expected = UserNotFoundForPasswordResetException.class)
+    @Test(expected = UserNotFoundException.class)
     public void shouldFailWhileResettingPassword() throws TechnicalException {
         when(userRepository.findBySource(any(), any(), any(), any())).thenReturn(Optional.empty());
         userService.resetPasswordFromSourceId("my@email.com", "HTTP://MY-RESET-PAGE");

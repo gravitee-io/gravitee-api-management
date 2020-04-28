@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
@@ -23,6 +22,7 @@ import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -37,8 +37,8 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.doCallRealMethod;
 
 /**
@@ -214,9 +214,17 @@ public class UsersResourceTest extends AbstractResourceTest {
     public void shouldResetPassword() {
         ResetUserPasswordInput input = new ResetUserPasswordInput().username("my@email.com").resetPageUrl("HTTP://MY-RESET-PAGE");
         final Response response = target().path("_reset_password").request().post(Entity.json(input));
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
     }
 
+    @Test
+    public void shouldHaveNoContentResponseWithUnexistingUser() {
+        doThrow(new UserNotFoundException("my@email.com")).when(userService).resetPasswordFromSourceId("my@email.com", "HTTP://MY-RESET-PAGE");
+        ResetUserPasswordInput input = new ResetUserPasswordInput().username("my@email.com").resetPageUrl("HTTP://MY-RESET-PAGE");
+        final Response response = target().path("_reset_password").request().post(Entity.json(input));
+        assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
+    }
+    
     @Test
     public void shouldHaveBadRequestWhileResettingPasswordWithoutInput() {
         final Response response = target().path("_reset_password").request().post(Entity.json(null));

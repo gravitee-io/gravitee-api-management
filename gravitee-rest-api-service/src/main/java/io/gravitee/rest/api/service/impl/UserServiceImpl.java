@@ -771,19 +771,15 @@ public class UserServiceImpl extends AbstractService implements UserService {
             
     @Override
     public UserEntity resetPasswordFromSourceId(String sourceId, String resetPageUrl) {
-        try {
-            if (sourceId.startsWith("deleted")) {
-                throw new UserNotActiveException(sourceId);
-            }
-            UserEntity foundUser = this.findBySource(IDP_SOURCE_GRAVITEE, sourceId, false);
-            if ("ACTIVE".equals(foundUser.getStatus())) {
-                this.resetPassword(foundUser.getId(), resetPageUrl);
-                return foundUser;
-            } else {
-                throw new UserNotActiveException(foundUser.getSourceId());
-            }
-        } catch(UserNotFoundException ex) {
-            throw new UserNotFoundForPasswordResetException(sourceId);
+        if (sourceId.startsWith("deleted")) {
+            throw new UserNotActiveException(sourceId);
+        }
+        UserEntity foundUser = this.findBySource(IDP_SOURCE_GRAVITEE, sourceId, false);
+        if ("ACTIVE".equals(foundUser.getStatus())) {
+            this.resetPassword(foundUser.getId(), resetPageUrl);
+            return foundUser;
+        } else {
+            throw new UserNotActiveException(foundUser.getSourceId());
         }
     }
     
