@@ -22,6 +22,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 import io.gravitee.management.security.cookies.CookieGenerator;
+import io.gravitee.management.security.filter.JWTAuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -47,7 +48,7 @@ import java.util.UUID;
 public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTokenRepository {
 
     private final Logger LOGGER = LoggerFactory.getLogger(CookieCsrfSignedTokenRepository.class);
-    
+
     public static final String TOKEN_CLAIM = "token";
 
     private static final String DEFAULT_CSRF_COOKIE_NAME = "XSRF-TOKEN";
@@ -86,7 +87,20 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
     public void saveToken(CsrfToken token, HttpServletRequest request,
                           HttpServletResponse response) {
 
-        String tokenValue = token == null ? "" : token.getToken();
+        if(request.getAttribute("DEFAULT_CSRF_COOKIE_NAME") != null) {
+            // Token already persisted in cookie.
+            return;
+        }
+
+        if(token == null) {
+            // Null token means delete it.
+            response.addCookie(cookieGenerator.generate(DEFAULT_CSRF_COOKIE_NAME, null));
+            return;
+        }
+
+        String tokenValue = token.getToken();
+
+
 
         try {
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
@@ -100,6 +114,7 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
 
             Cookie cookie = cookieGenerator.generate(DEFAULT_CSRF_COOKIE_NAME, jwsObject.serialize(), false);
             response.addCookie(cookie);
+            request.setAttribute("DEFAULT_CSRF_COOKIE_NAME", true);
         } catch (JOSEException ex) {
             LOGGER.error("Unable to generate CSRF token", ex);
         }
@@ -121,7 +136,13 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
             JWSObject jws = JWSObject.parse(cookieValue);
 
             if (jws.verify(verifier)) {
-                return new DefaultCsrfToken(DEFAULT_CSRF_HEADER_NAME, DEFAULT_CSRF_PARAMETER_NAME, jws.getPayload().toJSONObject().getAsString(TOKEN_CLAIM));
+                String token = jws.getPayload().toJSONObject().getAsString(TOKEN_CLAIM);
+
+                if (!StringUtils.hasLength(token)) {
+                    return null;
+                }
+
+                return new DefaultCsrfToken(DEFAULT_CSRF_HEADER_NAME, DEFAULT_CSRF_PARAMETER_NAME, token);
             }
         } catch (ParseException | JOSEException ex) {
             LOGGER.error("Unable to verify CSRF token", ex);
