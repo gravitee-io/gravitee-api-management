@@ -53,7 +53,7 @@ export class ResetPasswordComponent implements OnInit {
       // call the register resource from the API.
       this.usersService.resetUserPassword({ ResetUserPasswordInput: input }).subscribe(
         (user) => {
-          this.notificationService.success(i18n('resetPassword.notification.success'), { email: user.email });
+          this.notificationService.success(i18n('resetPassword.notification.success'));
           this.isSubmitted = true;
         }
       );

@@ -785,7 +785,7 @@
     "backLogin": "Back to Sign in",
     "button": "Reset your password",
     "notification": {
-      "success": "Password reset confirmed! An email has been sent to: {email}"
+      "success": "Password reset confirmed! If the account exists an email will be sent."
     },
     "title": "Reset your password",
     "username": "Username"

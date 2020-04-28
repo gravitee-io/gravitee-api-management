@@ -785,7 +785,7 @@
     "backLogin": "Retour à la page d'identification",
     "button": "Réinitialisez votre mot de passe",
     "notification": {
-      "success": "Réinitilisation du mot de passe confirmée! Un email a été envoyé à : {email}"
+      "success": "Réinitilisation du mot de passe confirmée! Si le compte existe, un email sera envoyé."
     },
     "title": "Réinitialisez votre mot de passe",
     "username": "Identifiant"

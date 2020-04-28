@@ -785,7 +785,7 @@
     "backLogin": "Zpátky na přihlášení",
     "button": "Obnovit heslo",
     "notification": {
-      "success": "Obnovení hesla bylo potvrzeno! E-mail byl odeslán na adresu: {email}"
+      "success": "Obnovení hesla bylo potvrzeno! Pokud účet existuje, bude zaslán e-mail."
     },
     "title": "Obnovit heslo",
     "username": "Uživatelské jméno"
