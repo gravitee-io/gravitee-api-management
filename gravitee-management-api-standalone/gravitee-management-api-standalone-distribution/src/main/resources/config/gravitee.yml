@@ -52,7 +52,7 @@ http:
     #max-age: 864000
     # Which methods to allow (default value: OPTIONS, GET, POST, PUT, DELETE)
     #allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
-    # Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match)
+    # Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token)
     #allow-headers: 'X-Requested-With'
   #csrf:
     # Allows to enable or disable the CSRF protection (default is disabled).

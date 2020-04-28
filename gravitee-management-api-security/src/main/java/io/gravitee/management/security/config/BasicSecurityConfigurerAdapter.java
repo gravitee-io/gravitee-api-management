@@ -24,6 +24,7 @@ import io.gravitee.management.security.authentication.GraviteeAuthenticationDeta
 import io.gravitee.management.security.cookies.CookieGenerator;
 import io.gravitee.management.security.csrf.CookieCsrfSignedTokenRepository;
 import io.gravitee.management.security.csrf.CsrfRequestMatcher;
+import io.gravitee.management.security.filter.CsrfIncludeFilter;
 import io.gravitee.management.security.filter.JWTAuthenticationFilter;
 import io.gravitee.management.security.filter.RecaptchaFilter;
 import io.gravitee.management.security.listener.AuthenticationFailureListener;
@@ -46,6 +47,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -144,11 +146,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         final CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(getPropertiesAsList("http.cors.allow-origin", "*"));
-        config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match"));
+        config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token"));
         config.setAllowedMethods(getPropertiesAsList("http.cors.allow-methods", "OPTIONS, GET, POST, PUT, DELETE, PATCH"));
-        config.setExposedHeaders(getPropertiesAsList("http.cors.exposed-headers", "ETag"));
+        config.setExposedHeaders(getPropertiesAsList("http.cors.exposed-headers", "ETag, X-Xsrf-Token"));
         config.setMaxAge(environment.getProperty("http.cors.max-age", Long.class, 1728000L));
-        config.setExposedHeaders(Collections.singletonList("ETag"));
 
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -302,7 +303,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         if(environment.getProperty("http.csrf.enabled", Boolean.class, false)) {
             return security.csrf()
                     .csrfTokenRepository(cookieCsrfSignedTokenRepository())
-                    .requireCsrfProtectionMatcher(new CsrfRequestMatcher()).and();
+                    .requireCsrfProtectionMatcher(new CsrfRequestMatcher())
+                    .and()
+                    .addFilterAfter(new CsrfIncludeFilter(), CsrfFilter.class);
         }else {
             return security.csrf().disable();
         }

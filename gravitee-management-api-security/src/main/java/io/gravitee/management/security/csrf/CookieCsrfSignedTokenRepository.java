@@ -18,7 +18,9 @@ package io.gravitee.management.security.csrf;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.JWTParser;
 import io.gravitee.management.security.cookies.CookieGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,6 +47,8 @@ import java.util.Date;
 public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTokenRepository {
 
     private final Logger LOGGER = LoggerFactory.getLogger(CookieCsrfSignedTokenRepository.class);
+    
+    public static final String TOKEN_CLAIM = "token";
 
     private static final String DEFAULT_CSRF_COOKIE_NAME = "XSRF-TOKEN";
 
@@ -67,47 +72,56 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
 
     @Override
     public CsrfToken generateToken(HttpServletRequest request) {
-        try {
-            JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                    .issuer(issuer)
-                    .issueTime(new Date())
-                    .build();
 
-            JWSObject jwsObject = new JWSObject(new JWSHeader((JWSAlgorithm.HS256)), new Payload(claims.toJSONObject()));
-            jwsObject.sign(signer);
-
-            return new DefaultCsrfToken(DEFAULT_CSRF_HEADER_NAME, DEFAULT_CSRF_PARAMETER_NAME, jwsObject.serialize());
-        } catch (JOSEException ex) {
-            LOGGER.error("Unable to generate CSRF token", ex);
-            return null;
+        CsrfToken csrfToken = loadToken(request);
+        if (csrfToken != null) {
+            return csrfToken;
         }
+
+        UUID token = UUID.randomUUID();
+        return new DefaultCsrfToken(DEFAULT_CSRF_HEADER_NAME, DEFAULT_CSRF_PARAMETER_NAME, token.toString());
     }
 
     @Override
     public void saveToken(CsrfToken token, HttpServletRequest request,
                           HttpServletResponse response) {
+
         String tokenValue = token == null ? "" : token.getToken();
 
-        Cookie cookie = cookieGenerator.generate(DEFAULT_CSRF_COOKIE_NAME, tokenValue, false);
+        try {
+            JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                    .issuer(issuer)
+                    .issueTime(new Date())
+                    .claim(TOKEN_CLAIM, tokenValue)
+                    .build();
 
-        response.addCookie(cookie);
+            JWSObject jwsObject = new JWSObject(new JWSHeader((JWSAlgorithm.HS256)), new Payload(claims.toJSONObject()));
+            jwsObject.sign(signer);
+
+            Cookie cookie = cookieGenerator.generate(DEFAULT_CSRF_COOKIE_NAME, jwsObject.serialize(), false);
+            response.addCookie(cookie);
+        } catch (JOSEException ex) {
+            LOGGER.error("Unable to generate CSRF token", ex);
+        }
     }
 
     @Override
     public CsrfToken loadToken(HttpServletRequest request) {
+
         Cookie cookie = WebUtils.getCookie(request, DEFAULT_CSRF_COOKIE_NAME);
         if (cookie == null) {
             return null;
         }
-        String token = cookie.getValue();
-        if (!StringUtils.hasLength(token)) {
+        String cookieValue = cookie.getValue();
+        if (!StringUtils.hasLength(cookieValue)) {
             return null;
         }
 
         try {
-            JWSObject jws = JWSObject.parse(token);
+            JWSObject jws = JWSObject.parse(cookieValue);
+
             if (jws.verify(verifier)) {
-                return new DefaultCsrfToken(DEFAULT_CSRF_HEADER_NAME, DEFAULT_CSRF_PARAMETER_NAME, token);
+                return new DefaultCsrfToken(DEFAULT_CSRF_HEADER_NAME, DEFAULT_CSRF_PARAMETER_NAME, jws.getPayload().toJSONObject().getAsString(TOKEN_CLAIM));
             }
         } catch (ParseException | JOSEException ex) {
             LOGGER.error("Unable to verify CSRF token", ex);
