@@ -64,7 +64,8 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
         }
 
         if (user.getEmail() != null) {
-            doc.add(new StringField(FIELD_EMAIL, user.getEmail(), Field.Store.NO));
+            // For security reasons, we remove the domain part of the email
+            doc.add(new StringField(FIELD_EMAIL, user.getEmail().substring(0, user.getEmail().indexOf('@')), Field.Store.NO));
         }
 
         return doc;
