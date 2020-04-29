@@ -457,15 +457,15 @@
           "name": "--gv-table-header--fz",
           "description": "Title font size",
           "type": "string",
-          "default": "var(--gv-theme-font-size-xl, 26px)",
+          "default": "var(--gv-theme-font-size-l, 20px)",
           "value": ""
         },
         {
           "name": "--gv-table-header--p",
           "description": "Title padding",
           "type": "length",
-          "default": "30px",
-          "value": "30px"
+          "default": "2rem 4rem",
+          "value": "2rem 4rem"
         }
       ]
     },
@@ -853,8 +853,8 @@
           "name": "--gv-confirm--maw",
           "description": "Max width",
           "type": "length",
-          "default": "250px",
-          "value": "250px"
+          "default": "350px",
+          "value": "350px"
         }
       ]
     },
