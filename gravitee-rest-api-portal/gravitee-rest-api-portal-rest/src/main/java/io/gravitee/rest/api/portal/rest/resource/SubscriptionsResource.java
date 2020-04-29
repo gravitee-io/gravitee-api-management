@@ -24,10 +24,12 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -66,6 +68,8 @@ public class SubscriptionsResource extends AbstractResource {
     private PlanService planService;
     @Inject
     private UserService userService;
+    @Inject
+    private ApiMapper apiMapper;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -138,6 +142,8 @@ public class SubscriptionsResource extends AbstractResource {
             if (api != null) {
                 final Map<String, Object> m = new HashMap<>();
                 m.put("name", api.getName());
+                m.put("pictureUrl", apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())).getPicture());
+                m.put("version", api.getVersion());
                 metadata.put(api.getId(), m);
             }
             final PlanEntity plan = planService.findById(subscription.getPlan());
