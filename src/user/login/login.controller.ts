@@ -22,11 +22,13 @@ import RouterService from '../../services/router.service';
 import * as _ from 'lodash';
 import { IdentityProvider } from '../../entities/identityProvider';
 import AuthenticationService from '../../services/authentication.service';
+import ReCaptchaService from '../../services/reCaptcha.service';
 
 class LoginController {
   user: any = {};
   userCreationEnabled: boolean;
   localLoginDisabled: boolean;
+  private ReCaptchaToken: string;
 
   constructor(
     private AuthenticationService: AuthenticationService,
@@ -39,6 +41,7 @@ class LoginController {
     private $window,
     private $stateParams: StateParams,
     private $scope,
+    private ReCaptchaService: ReCaptchaService
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.portal.userCreation.enabled;
@@ -51,12 +54,12 @@ class LoginController {
 
   $onInit() {
     document.addEventListener('click', this._toDisabledMode);
+    this.initCaptcha();
   }
 
   $onDestroy() {
     document.removeEventListener('click', this._toDisabledMode);
   }
-
 
   authenticate(identityProvider: string) {
     let nonce = this.AuthenticationService.nonce(32);
@@ -74,13 +77,16 @@ class LoginController {
   }
 
   login() {
-    this.UserService.login(this.user).then(() => {
+    let self = this;
+
+    this.UserService.login(this.user, this.ReCaptchaToken).then(() => {
       this.UserService.current().then((user) => {
         this.loginSuccess(user);
       });
     }).catch(() => {
       this.user.username = '';
       this.user.password = '';
+      self.initCaptcha();
     });
   }
 
@@ -97,6 +103,12 @@ class LoginController {
         this.$state.go('portal.home');
       }
     }
+  }
+
+  initCaptcha() {
+    this.ReCaptchaService.execute('register').then((ReCaptchaToken) => {
+      this.ReCaptchaToken = ReCaptchaToken;
+    });
   }
 }
 

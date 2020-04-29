@@ -22,6 +22,7 @@ import StringService from './string.service';
 import {UrlService} from "@uirouter/angularjs";
 import {PagedResult} from "../entities/pagedResult";
 import Base64Service from "./base64.service";
+import {IRequestShortcutConfig} from "angular";
 
 class UserService {
   private baseURL: string;
@@ -194,12 +195,19 @@ class UserService {
     return (this.currentUser !== undefined && this.currentUser.id !== undefined);
   }
 
-  login(user): ng.IPromise<any> {
-    return this.$http.post(`${this.userURL}login`, {}, {
+  login(user, ReCaptchaToken?: string): ng.IPromise<any> {
+
+    let config = {
       headers: {
         Authorization: `Basic ${this.Base64Service.encode(`${user.username}:${user.password}`)}`
       }
-    });
+    };
+
+    if(ReCaptchaToken) {
+      config.headers['recaptchatoken'] = ReCaptchaToken;
+    }
+
+    return this.$http.post(`${this.userURL}login`, {}, config);
   }
 
   logout(): ng.IPromise<any> {

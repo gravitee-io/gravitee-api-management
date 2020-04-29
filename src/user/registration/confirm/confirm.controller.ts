@@ -29,27 +29,25 @@ class ConfirmController {
       if (jwtHelper.isTokenExpired($state.params.token)) {
         $scope.error = 'Your registration is expired!';
       } else {
-        ReCaptchaService.execute('finalizeRegistration').then( (ReCaptchaToken) => {
-          token = ReCaptchaToken;
-
           $scope.user = jwtHelper.decodeToken($state.params.token);
           if ($scope.user.firstname) {
             $scope.registrationMode = true;
           }
-        });
       }
     } catch (e) {
       $scope.error = e.toString();
     }
 
     $scope.confirmRegistration = function () {
-      UserService.finalizeRegistration({
-        token: $state.params.token, password: $scope.confirmPassword,
-        firstname: $scope.user.firstname, lastname: $scope.user.lastname
-      }, token).then(function () {
-        $scope.formConfirm.$setPristine();
-        NotificationService.show('Your account has been created successfully, you can now login...');
-        $state.go('login');
+      ReCaptchaService.execute('finalizeRegistration').then((ReCaptchaToken) => {
+        UserService.finalizeRegistration({
+          token: $state.params.token, password: $scope.confirmPassword,
+          firstname: $scope.user.firstname, lastname: $scope.user.lastname
+        }, ReCaptchaToken).then(function () {
+          $scope.formConfirm.$setPristine();
+          NotificationService.show('Your account has been created successfully, you can now login...');
+          $state.go('login');
+        });
       });
     };
 
