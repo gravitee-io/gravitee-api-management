@@ -43,7 +43,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 public class RecaptchaFilter extends GenericFilterBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecaptchaFilter.class);
-    private static final Set<String> RESTRICTED_PATHS = new HashSet<>(Arrays.asList("/users/registration", "/users/registration/finalize"));
+    private static final Set<String> RESTRICTED_PATHS = new HashSet<>(Arrays.asList("/user/login", "/users/registration", "/users/registration/finalize"));
 
     private ReCaptchaService reCaptchaService;
     private ObjectMapper objectMapper;
