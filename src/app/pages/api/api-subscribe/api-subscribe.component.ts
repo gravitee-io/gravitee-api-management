@@ -36,6 +36,7 @@ import StatusEnum = Subscription.StatusEnum;
 import { distinctUntilChanged } from 'rxjs/operators';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
+import { FeatureEnum } from 'src/app/model/feature.enum';
 
 @Component({
   selector: 'app-api-subscribe',
@@ -424,5 +425,9 @@ export class ApiSubscribeComponent implements OnInit {
           this._canSubscribe = false;
         }
       });
+  }
+
+  canCreateApp() {
+    return this.configurationService.hasFeature(FeatureEnum.applicationCreation);
   }
 }

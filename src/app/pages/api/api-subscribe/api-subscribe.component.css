@@ -115,7 +115,7 @@
   flex: 1;
 }
 
-.step-2 gv-select {
+.step-2 gv-select, .step-2 gv-text {
   width: 100%;
 }
 
