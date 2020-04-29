@@ -24,6 +24,10 @@ function interceptorConfig(
 
   $httpProvider.defaults.withCredentials = true;
 
+  // Explicitly disable automatic csrf handling as it will not work for cross-domain (using custom csrf interceptor).
+  $httpProvider.defaults.xsrfCookieName = 'none';
+  $httpProvider.defaults.xsrfHeaderName = 'none';
+
   let sessionExpired;
 
   const interceptorUnauthorized = ($q: angular.IQService, $injector: angular.auto.IInjectorService, $location, $state): angular.IHttpInterceptor => ({
