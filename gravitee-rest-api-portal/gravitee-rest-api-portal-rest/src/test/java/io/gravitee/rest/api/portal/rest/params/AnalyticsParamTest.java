@@ -108,7 +108,7 @@ public class AnalyticsParamTest {
         params.setFrom(1);
         params.setTo(10);
         params.setInterval(-1);
-        params.setTypeParam(new AnalyticsTypeParam("COUNT"));
+        params.setTypeParam(new AnalyticsTypeParam("DATE_HISTO"));
         
         testParams(params, "Query parameter 'interval' is not valid");
         
@@ -117,7 +117,7 @@ public class AnalyticsParamTest {
         params.setFrom(1);
         params.setTo(10);
         params.setInterval(10);
-        params.setTypeParam(new AnalyticsTypeParam("COUNT"));
+        params.setTypeParam(new AnalyticsTypeParam("DATE_HISTO"));
         
         testParams(params, "Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000");
         
@@ -126,7 +126,7 @@ public class AnalyticsParamTest {
         params.setFrom(1);
         params.setTo(10);
         params.setInterval(1_000_000_001);
-        params.setTypeParam(new AnalyticsTypeParam("COUNT"));
+        params.setTypeParam(new AnalyticsTypeParam("DATE_HISTO"));
         
         testParams(params, "Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000");
     }
