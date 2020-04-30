@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactor;
 import io.gravitee.gateway.reactor.handler.Entrypoint;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,8 +31,6 @@ public interface Reactable {
     boolean enabled();
 
     <D> Set<D> dependencies(Class<D> type);
-
-    Map<String, Object> properties();
 
     List<Entrypoint> entrypoints();
 }
