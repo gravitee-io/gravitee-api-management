@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,38 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.applications {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  grid-gap: 1rem;
-  margin: 20px 0;
-  min-height: 200px;
-  width: 100%;
-}
+import { TestBed } from '@angular/core/testing';
 
-.applications__box__container {
-  display: grid;
-  grid-gap: 0.6rem;
-  max-width: 240px;
-  min-height: 280px;
-}
+import { PreviewService } from './preview.service';
 
-gv-stats {
-  width: 100%;
-}
+describe('PreviewService', () => {
+  let service: PreviewService;
 
-.applications__subscriptions__container {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-gap: 1rem;
-}
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(PreviewService);
+  });
 
-.applications__subscriptions__container > * {
-  flex: 1;
-  margin: 20px 0;
-}
-
-.applications__subscriptions__container > div {
-  display: flex;
-  text-align: center;
-}
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});

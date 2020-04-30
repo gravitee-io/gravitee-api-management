@@ -48,6 +48,7 @@ import { GvSlot } from './directives/gv-slot';
 import { GoogleAnalyticsService } from './services/google-analytics.service';
 import { EventService, GvEvent } from './services/event.service';
 import { ItemResourceTypeEnum } from './model/itemResourceType.enum';
+import { PreviewService } from './services/preview.service';
 
 @Component({
   selector: 'app-root',
@@ -96,11 +97,12 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private eventService: EventService,
     private ref: ChangeDetectorRef,
     private googleAnalyticsService: GoogleAnalyticsService,
+    private previewService: PreviewService
   ) {
 
     this.activatedRoute.queryParamMap.subscribe(params => {
       if (params.has('preview') && params.get('preview') === 'on') {
-        sessionStorage.setItem('gvPreview', 'true');
+        this.previewService.activate();
       }
     });
 
@@ -112,11 +114,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       } else if (event instanceof NavigationEnd) {
         const currentRoute: ActivatedRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
         this._setBrowserTitle(currentRoute);
-        const gvPreview = sessionStorage.getItem('gvPreview');
-        if (gvPreview) {
-          this.isPreview = true;
-          this.notificationService.info('On preview mode');
-        }
+        this.isPreview = previewService.isActive();
         this._onNavigationEnd();
       }
     });
@@ -204,7 +202,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   @HostListener('window:beforeunload')
   async ngOnDestroy() {
-    sessionStorage.removeItem('gvPreview');
     clearInterval(this.interval);
     this.eventService.unsubscribe();
   }
