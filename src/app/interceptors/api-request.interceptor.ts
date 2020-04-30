@@ -49,6 +49,12 @@ export class ApiRequestInterceptor implements HttpInterceptor {
 
     return next.handle(request).pipe(tap(
       () => {
+        if (request.url.endsWith('_export')) {
+          /* tslint:disable:no-string-literal */
+          // @ts-ignore hack because of the sdk client limitations
+          request['responseType'] = 'text';
+          /* tslint:enable:no-string-literal */
+        }
       },
       (err: any) => {
         if (err.status === 404) {

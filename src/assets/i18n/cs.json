@@ -89,6 +89,7 @@
   "application": {
     "analytics": {
       "displayLogs": "Zobrazit protokoly",
+      "exportCSV": "Export ve formátu CSV",
       "filters": {
         "advanced": {
           "hide": "Skrýt pokročilé filtry",

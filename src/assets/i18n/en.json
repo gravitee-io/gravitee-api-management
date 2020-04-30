@@ -89,6 +89,7 @@
   "application": {
     "analytics": {
       "displayLogs": "View logs",
+      "exportCSV": "Export in CSV format",
       "filters": {
         "advanced": {
           "hide": "Hide advanced filters",

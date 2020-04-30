@@ -59,7 +59,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private config: ConfigurationService,
-    private scrollService: ScrollService
+    private scrollService: ScrollService,
   ) {
   }
 
@@ -84,19 +84,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
   async refresh(queryParams) {
     const application = this.route.snapshot.data.application;
     if (application) {
-      const timeSlot = this.analyticsService.getTimeSlotFromQueryParams();
-      let field = queryParams[SearchQueryParam.FIELD] || '@timestamp';
-      field = field === 'timestamp' ? '@timestamp' : field;
-      field = field === 'responseTime' ? 'response-time' : field;
-      const response = await this.applicationService.getApplicationLogs({
-        applicationId: application.id,
-        from: timeSlot.from, to: timeSlot.to,
-        size: this.size,
-        page: queryParams[SearchQueryParam.PAGE] || 1,
-        field,
-        order: queryParams[SearchQueryParam.ORDER] || 'DESC',
-        query: this.analyticsService.getQueryFromPath().query
-      }).toPromise();
+      const response = await this.applicationService.getApplicationLogs(this.getRequestParameters(queryParams, application)).toPromise();
 
       this.logs = response.data;
 
@@ -134,6 +122,22 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
         this.selectedLogIds = [];
       }
     }
+  }
+
+  private getRequestParameters(queryParams, application) {
+    const timeSlot = this.analyticsService.getTimeSlotFromQueryParams();
+    let field = queryParams[SearchQueryParam.FIELD] || '@timestamp';
+    field = field === 'timestamp' ? '@timestamp' : field;
+    field = field === 'responseTime' ? 'response-time' : field;
+    return {
+      applicationId: application.id,
+      from: timeSlot.from, to: timeSlot.to,
+      size: this.size,
+      page: queryParams[SearchQueryParam.PAGE] || 1,
+      field,
+      order: queryParams[SearchQueryParam.ORDER] || 'DESC',
+      query: this.analyticsService.getQueryFromPath().query
+    };
   }
 
   getStatusColor(status) {
@@ -271,5 +275,23 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
       this.responseHeaders = Object.keys(this.selectedLog.response.headers).map((key) => [key, this.selectedLog.response.headers[key]]);
     }
     this.scrollService.scrollToAnchor('log');
+  }
+
+  export() {
+    const queryParams = this.route.snapshot.queryParams;
+    const application = this.route.snapshot.data.application;
+    this.applicationService.exportApplicationLogsByApplicationId(this.getRequestParameters(queryParams, application)).toPromise()
+      .then((response) => {
+        const hiddenElement = document.createElement('a');
+        hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response);
+        hiddenElement.target = '_self';
+        let fileName = 'logs-' + application.name + '-' + Date.now();
+        fileName = fileName.replace(/[\s]/gi, '-');
+        fileName = fileName.replace(/[^\w]/gi, '-');
+        hiddenElement.download = fileName + '.csv';
+        document.getElementById('hidden-export-container').appendChild(hiddenElement);
+        hiddenElement.click();
+        document.getElementById('hidden-export-container').removeChild(hiddenElement);
+    });
   }
 }

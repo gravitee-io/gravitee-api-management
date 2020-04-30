@@ -87,7 +87,7 @@
                   placeholder="{{ 'application.analytics.filters.payloads.label' | translate }}"
                   formControlName="payloads" name="payloads" ngDefaultControl></gv-input>
 
-        <gv-input *ngIf="withURI !== undefined" label="{{ 'application.analytics.filters.path.title' | translate }}"
+        <gv-input *ngIf="withURI" label="{{ 'application.analytics.filters.path.title' | translate }}"
                   placeholder="{{ 'application.analytics.filters.path.label' | translate }}"
                   formControlName="path" name="path" ngDefaultControl></gv-input>
       </div>
@@ -98,7 +98,11 @@
               (click)="onTagRemove(tag)">{{tag}}</gv-tag>
 
       <div class="gv-analytics-filter__inputs">
-        <gv-button *ngIf="link" (click)="goTo(link.relativePath)" type="button" class="gv-analytics-filter__input"
+        <gv-button *ngIf="withExport" (:gv-button:click)="export.emit()" [disabled]="exportDisabled" type="button" class="gv-analytics-filter__input"
+                   [loading]="loaderService.isLoading | async" outlined>
+          {{ 'application.analytics.exportCSV' | translate }}
+        </gv-button>
+        <gv-button *ngIf="link" (:gv-button:click)="goTo(link.relativePath)" type="button" class="gv-analytics-filter__input"
                    [loading]="loaderService.isLoading | async">
           {{ link.label }}
         </gv-button>

@@ -15,9 +15,11 @@
     limitations under the License.
 
 -->
+<div id="hidden-export-container" style="display:none;"></div>
 <div class="page__content">
 
-  <app-gv-analytics-filters [link]="link" withURI></app-gv-analytics-filters>
+  <app-gv-analytics-filters [link]="link" (export)="export()" [exportDisabled]="!(logs && logs.length)"
+                            [withExport]="true" [withURI]="true"></app-gv-analytics-filters>
 
   <div class="page__box">
     <div class="page__box-title">

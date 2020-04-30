@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { ApplicationService, Dashboard } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
@@ -38,6 +38,9 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   @Input() dashboard: Dashboard;
   @Input() withURI: boolean;
   @Input() link: { label: string, relativePath: string };
+  @Input() withExport: boolean;
+  @Output() export: EventEmitter<any> = new EventEmitter();
+  @Input() exportDisabled: boolean;
 
   private maxDateTimer: any;
   analyticsForm: FormGroup;
@@ -58,7 +61,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   }
 
   ngOnInit(): void {
-
     this.analyticsForm = this.formBuilder.group({
       timeframe: new FormControl(null),
       range: new FormControl([null, null]),
@@ -252,5 +254,4 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   toggleFilters() {
     this.advancedFiltersDisplayed = !this.advancedFiltersDisplayed;
   }
-
 }
