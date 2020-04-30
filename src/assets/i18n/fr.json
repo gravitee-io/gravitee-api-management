@@ -556,6 +556,9 @@
     "welcome": "Bienvenue {username},"
   },
   "errors": {
+    "clientRegistrationProvider": {
+      "exception": "Une erreur est survenue lors de la connexion au service de gestion des accès"
+    },
     "email": {
       "required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
     },

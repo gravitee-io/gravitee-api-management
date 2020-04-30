@@ -16,7 +16,7 @@
 
 -->
 <div class="page__content">
-  <h1 *ngIf="currentUser">{{'dashboard.welcome' | translate : { username: currentUser.first_name || currentUser.display_name } }}</h1>
+  <h1 *ngIf="currentUser" class="title">{{'dashboard.welcome' | translate : { username: currentUser.first_name || currentUser.display_name } }}</h1>
   <section>
     <h3 *ngIf="applications && applications.length" class="title" translate="dashboard.applications.title"></h3>
     <div class="applications">

@@ -16,6 +16,7 @@
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 i18n([
+  'errors.clientRegistrationProvider.exception',
   'errors.email.required',
   'errors.plan.notSubscribable',
   'errors.plan.subscribed',

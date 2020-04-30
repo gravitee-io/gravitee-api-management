@@ -41,6 +41,7 @@
               [attr.readonly]="!canUpdate ? 'readonly' : null"
               class="form__control"
               required
+              rows="7"
               label="{{ 'application.description.title' | translate }}"
               placeholder="{{ 'application.description.label' | translate }}"
               formControlName="description"
@@ -50,6 +51,7 @@
           <div formGroupName="settings" *ngIf="application.settings.app">
             <div formGroupName="app">
               <gv-input
+                  [attr.readonly]="!canUpdate ? 'readonly' : null"
                   class="form__control"
                   label="{{ 'application.type.title' | translate }}"
                   placeholder="{{ 'application.type.label' | translate }}"
@@ -71,6 +73,9 @@
                           except=".svg"
                           limit="500000"
                           [label]="'application.change_picture' | translate"></gv-file-upload>
+
+          <gv-identity-picture *ngIf="!canUpdate" [picture]="application.picture" [display_name]="displayName">
+          </gv-identity-picture>
         </div>
 
       </div>
@@ -102,7 +107,7 @@
                   name="application.client_secret"
                   ngDefaultControl>
               </gv-input>
-              <gv-confirm *ngIf="application.settings.oauth.renew_client_secret_supported"
+              <gv-confirm *ngIf="canUpdate && application.settings.oauth.renew_client_secret_supported"
                           [message]="'application.renewSecret.message' | translate" (:gv-confirm:ok)="renewSecret()">
                 <gv-button secondary [loading]="isLoading() | async">
                   {{ 'application.renewSecret.label' | translate }}
@@ -118,7 +123,8 @@
   </div>
 
   <aside class="aside">
-    <div class="page__box">
+
+    <div class="page__box" *ngIf="canUpdate || canDelete">
       <div class="page__box-title">
         <h4 class="title">{{ "common.options" | translate}}</h4>
       </div>
@@ -128,7 +134,8 @@
                    [loading]="isLoading() | async">
           {{ 'common.save' | translate }}
         </gv-button>
-        <gv-button (click)="reset()" primary outlined [disabled]="applicationForm.pristine">
+        <gv-button *ngIf="canUpdate"
+                   (click)="reset()" primary outlined [disabled]="applicationForm.pristine">
           {{ 'common.reset' | translate }}
         </gv-button>
         <gv-confirm *ngIf="canDelete" [message]="'application.delete.message' | translate"
@@ -142,6 +149,7 @@
         </gv-confirm>
       </div>
     </div>
+
     <gv-info class="page__box" [item]="application" [miscellaneous]="miscellaneous"></gv-info>
     <gv-list class="page__box" [items]="connectedApis" title="{{ 'application.list.connectedApis' | translate }}" clickable></gv-list>
   </aside>

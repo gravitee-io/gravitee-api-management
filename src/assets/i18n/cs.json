@@ -556,6 +556,9 @@
     "welcome": "Vítejte {username},"
   },
   "errors": {
+    "clientRegistrationProvider": {
+      "exception": "Při připojování ke službě pro správu přístupu došlo k chybě"
+    },
     "email": {
       "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
     },

@@ -25,6 +25,13 @@ gv-confirm {
   --gv-confirm--maw: 500px;
 }
 
+gv-identity-picture {
+  height: 150px;
+  width: 150px;
+  margin: auto;
+  outline: var(--gv-theme-neutral-color-dark) solid 1px;
+}
+
 .row {
   display: flex;
   flex-direction: row;

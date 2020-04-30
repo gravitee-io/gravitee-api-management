@@ -48,10 +48,16 @@
 .form .form__control_inline {
   display: flex;
   flex-direction: row;
+  margin: 0.2rem;
+  box-sizing: border-box;
+  width: 100%;
 }
 
-.form .form__control_inline gv-button,
-.form .form__control_inline gv-confirm {
+.form .form__control_inline > * {
+  margin: 0 0 0 0.2rem;
   align-self: flex-end;
 }
 
+.form .form__control_inline > *:first-child {
+  margin: 0;
+}

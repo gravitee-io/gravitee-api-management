@@ -138,13 +138,16 @@
 .aside .page__box-content {
   display: flex;
   flex-direction: column;
-  //width: 100%;
 }
 
 .page__box-title h1,
 .page__box-title h2,
 .page__box-title h3 {
   text-transform: uppercase;
+}
+
+.title {
+  letter-spacing: 0.05rem;
 }
 
 h1.title {

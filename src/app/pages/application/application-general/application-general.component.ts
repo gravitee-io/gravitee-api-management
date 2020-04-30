@@ -19,6 +19,7 @@ import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
 import '@gravitee/ui-components/wc/gv-file-upload';
+import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import {
   Application,
   ApplicationService,
@@ -156,6 +157,10 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
 
   get applicationPicture() {
     return this.applicationForm.value.picture || this.application.picture || this.application._links.picture;
+  }
+
+  get displayName() {
+    return getPictureDisplayName(this.application);
   }
 
   delete() {

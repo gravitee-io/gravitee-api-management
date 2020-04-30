@@ -556,6 +556,9 @@
     "welcome": "Welcome {username},"
   },
   "errors": {
+    "clientRegistrationProvider": {
+      "exception": "An error occurred while connecting to the access management service"
+    },
     "email": {
       "required": "Please configure an e-mail to use the contact form"
     },
