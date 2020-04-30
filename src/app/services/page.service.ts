@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: block;
-  
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { Page } from '@gravitee/ng-portal-webclient';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PageService {
+  private readonly currentPageSource: BehaviorSubject<Page>;
+
+  constructor(
+  ) {
+    this.currentPageSource = new BehaviorSubject<Page>(null);
+  }
+
+  disposePage() {
+    this.currentPageSource.next(null);
+  }
+
+  get(): BehaviorSubject<Page> {
+    return this.currentPageSource;
+  }
+
+  set(page: Page) {
+    this.currentPageSource.next(page);
+  }
+
+  getCurrentPage() {
+    return this.currentPageSource.getValue();
+  }
 }

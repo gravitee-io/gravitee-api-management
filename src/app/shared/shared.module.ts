@@ -55,6 +55,7 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
     ReactiveFormsModule,
     OAuthModule,
     GvFormControlDirective,
+    SafePipe,
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA

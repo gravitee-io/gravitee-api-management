@@ -16,22 +16,16 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GvPageSwaggerUIComponent } from './gv-page-swaggerui.component';
-import { MarkdownModule } from 'ngx-markdown';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 
-describe('GvPageComponent', () => {
+describe('GvPageSwaggerUIComponent', () => {
   let component: GvPageSwaggerUIComponent;
   let fixture: ComponentFixture<GvPageSwaggerUIComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ GvPageSwaggerUIComponent ],
-      imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
+      imports: [ HttpClientTestingModule ],
     })
     .compileComponents();
   }));
@@ -39,8 +33,6 @@ describe('GvPageComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(GvPageSwaggerUIComponent);
     component = fixture.componentInstance;
-    component.currentPage = null;
-    component.page = null;
     fixture.detectChanges();
   });
 

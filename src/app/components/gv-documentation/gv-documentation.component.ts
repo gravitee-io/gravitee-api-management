@@ -38,6 +38,11 @@ import { animate, style, transition, trigger } from '@angular/animations';
 export class GvDocumentationComponent {
 
   @Input() set pages(pages: Page[]) {
+    if (this.route.snapshot.params.apiId) {
+      GvDocumentationComponent.MENU_TOP = 260;
+    } else {
+      GvDocumentationComponent.MENU_TOP = 128;
+    }
     clearTimeout(this.loadingTimer);
     if (pages && pages.length) {
       if (this._pages !== pages) {
@@ -74,7 +79,7 @@ export class GvDocumentationComponent {
   ) {
   }
 
-  static MENU_TOP = 125;
+  static MENU_TOP = 128;
   static MENU_BOTTOM = 42;
 
   currentPage: Page;
@@ -93,15 +98,21 @@ export class GvDocumentationComponent {
   @Input() fragment: string;
 
   static updateMenuPosition(menuElement, lastTop) {
-    const scrollTop = document.scrollingElement.scrollTop;
-    const { height } = menuElement.getBoundingClientRect();
-    const contentHeight = document.querySelector('.gv-documentation__content').getBoundingClientRect().height;
-    if (contentHeight - scrollTop <= height) {
-      menuElement.style.top = `${lastTop}px`;
-      menuElement.style.bottom = `${contentHeight - scrollTop}px`;
-      menuElement.style.position = `absolute`;
-      return null;
+      const scrollTop = document.scrollingElement.scrollTop;
+    if (menuElement && document.querySelector('.gv-documentation__content')) {
+      const { height } = menuElement.getBoundingClientRect();
+      const contentHeight = document.querySelector('.gv-documentation__content').getBoundingClientRect().height;
+      if (contentHeight - scrollTop <= height) {
+        menuElement.style.top = `${lastTop}px`;
+        menuElement.style.bottom = `${contentHeight - scrollTop}px`;
+        menuElement.style.position = `absolute`;
+        return null;
+      } else {
+        this.reset(menuElement);
+        return scrollTop + GvDocumentationComponent.MENU_TOP;
+      }
     } else {
+
       this.reset(menuElement);
       return scrollTop + GvDocumentationComponent.MENU_TOP;
     }

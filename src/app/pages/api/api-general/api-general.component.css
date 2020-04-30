@@ -41,6 +41,10 @@
  margin-bottom: 32px;
 }
 
+.api__aside app-gv-markdown-toc {
+  margin-bottom: 0px;
+ }
+
 .rating-form {
   display: flex;
   flex-direction: column;

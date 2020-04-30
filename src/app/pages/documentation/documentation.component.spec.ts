@@ -18,7 +18,6 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { DocumentationComponent } from './documentation.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { MarkdownModule } from 'ngx-markdown';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('DocumentationComponent', () => {
@@ -28,7 +27,7 @@ describe('DocumentationComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [DocumentationComponent],
-      imports: [HttpClientTestingModule, MarkdownModule, RouterTestingModule],
+      imports: [HttpClientTestingModule, RouterTestingModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ]

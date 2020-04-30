@@ -22,7 +22,7 @@
   <div #treeMenu class="gv-documentation__menu" [ngClass]="{show: isLoaded}">
     <gv-tree [items]="menu" [selectedItem]="currentMenuItem"></gv-tree>
   </div>
-  <app-gv-page *ngIf="currentPage" [page]="currentPage"
+  <app-gv-page *ngIf="currentPage" [page]="currentPage" withToc="true"
                [ngClass]="{'gv-documentation__content_swagger': isSwagger(currentPage), show: isLoaded, fullscreen: this.hasTreeClosed}"
                [fragment]="this.fragment"
                class="gv-documentation__content"></app-gv-page>

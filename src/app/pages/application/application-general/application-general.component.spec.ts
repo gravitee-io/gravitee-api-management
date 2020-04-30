@@ -18,7 +18,6 @@ import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
 import { ApplicationGeneralComponent } from './application-general.component';
 import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
-import { MarkdownModule } from 'ngx-markdown';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -31,7 +30,7 @@ describe('ApplicationGeneralComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ApplicationGeneralComponent, GvPageComponent],
-      imports: [MarkdownModule, HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
+      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ]

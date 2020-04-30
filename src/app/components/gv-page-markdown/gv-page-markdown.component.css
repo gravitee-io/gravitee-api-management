@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 .markdown {
-  padding: 1rem 42px;
+  padding: 0 42px;
   overflow: auto;
   width: calc(100% - 84px);
+}
+
+.markdown.with-toc {
+  width: calc(100% - 364px);
+}
+
+.aside {
+  position: fixed;
+  right: 42px;
+  z-index: 100;
+  height: calc(100vh - 125px - 42px);
 }

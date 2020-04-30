@@ -15,31 +15,25 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ApplicationNotificationsComponent } from './application-notifications.component';
-import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
+import { GvMarkdownTocComponent } from './gv-markdown-toc.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-describe('ApplicationNotificationsComponent', () => {
-  let component: ApplicationNotificationsComponent;
-  let fixture: ComponentFixture<ApplicationNotificationsComponent>;
+describe('GvMarkdownTocComponent', () => {
+  let component: GvMarkdownTocComponent;
+  let fixture: ComponentFixture<GvMarkdownTocComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ApplicationNotificationsComponent, GvPageComponent],
-      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
+      declarations: [ GvMarkdownTocComponent ],
+      imports: [ HttpClientTestingModule, RouterTestingModule ],
+
     })
-      .compileComponents();
+    .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationNotificationsComponent);
+    fixture = TestBed.createComponent(GvMarkdownTocComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

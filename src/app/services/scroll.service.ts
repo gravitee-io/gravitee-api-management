@@ -24,20 +24,28 @@ export class ScrollService {
   }
 
   scrollToAnchor(anchor) {
-    setTimeout(() => {
-      const element = document.getElementById(anchor);
-      if (element) {
-        this.scrollToStickyMenu();
-        setTimeout(() => {
-          const { top, left } = element.getBoundingClientRect();
-          window.scrollBy({
-            top: top - this.getHeaderHeight(),
-            left,
-            behavior: 'smooth'
-          });
-        }, 50);
-      }
-    }, 0);
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const element = document.getElementById(anchor);
+        if (element) {
+          this.scrollToStickyMenu();
+          setTimeout(() => {
+            const { top, left } = element.getBoundingClientRect();
+            window.scrollBy({
+              top: top - this.getHeaderHeight(),
+              left,
+              behavior: 'smooth'
+            });
+            setTimeout(() => {
+              resolve();
+            }, 500);
+          }, 50);
+        } else {
+          reject();
+        }
+      }, 0);
+    });
+
   }
 
   getHeaderHeight(): number {

@@ -679,6 +679,9 @@
     "paused": "En pause",
     "pending": "En attente"
   },
+  "gv-markdown-toc": {
+    "title": "Table des matières"
+  },
   "gv-metrics": {
     "health": "Santé",
     "hits": "{count, plural, =0{Appel} one{Appel} other{Appels}} (7 derniers jours)",

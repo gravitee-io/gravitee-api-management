@@ -23,7 +23,7 @@
       <p>{{ description }}</p>
     </div>
 
-    <app-gv-page *ngIf="homepage" [page]="homepage"></app-gv-page>
+    <app-gv-page *ngIf="homepage" [page]="homepage" class="api__section__block"></app-gv-page>
 
     <div class="api__section__block" *ngIf="canRate">
       <h4 class="title">{{ "apiGeneral.giveRating" | translate}}</h4>

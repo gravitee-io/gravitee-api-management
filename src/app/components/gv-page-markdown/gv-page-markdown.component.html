@@ -1,4 +1,3 @@
-
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -16,6 +15,20 @@
     limitations under the License.
 
 -->
-<div class="gv-page-container markdown">
-  <markdown *ngIf="currentPage" [data]="currentPage.content"></markdown>
-</div>
+<ng-container *ngIf="!withToc">
+  <div class="gv-page-container markdown">
+    <div *ngIf="pageContent" class="page__box-content markdown-content" [innerHTML]="pageContent | safe: 'html'"></div>
+  </div>
+</ng-container>
+<ng-container *ngIf="withToc">
+  <div class="gv-page-container markdown page__content page__content-with-aside with-toc">
+    <div class="main">
+      <div class="page__box">
+        <div #mdContent *ngIf="pageContent" class="page__box-content markdown-content" [innerHTML]="pageContent | safe: 'html'"></div>
+      </div>
+    </div>
+    <aside class="aside">
+      <app-gv-markdown-toc></app-gv-markdown-toc>
+    </aside>
+  </div>
+</ng-container>

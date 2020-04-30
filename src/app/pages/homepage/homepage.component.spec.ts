@@ -18,7 +18,6 @@ import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { HomepageComponent } from './homepage.component';
 import { GvPageComponent } from '../../components/gv-page/gv-page.component';
-import { MarkdownModule } from 'ngx-markdown';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ApiStatesPipe } from '../../pipes/api-states.pipe';
@@ -32,7 +31,7 @@ describe('HomepageComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ HomepageComponent, GvPageComponent, ApiStatesPipe, ApiLabelsPipe ],
-      imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule, TranslateTestingModule ],
+      imports: [ HttpClientTestingModule, RouterTestingModule, TranslateTestingModule ],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],

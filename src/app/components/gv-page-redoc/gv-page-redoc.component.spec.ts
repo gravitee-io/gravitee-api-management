@@ -16,22 +16,14 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GvPageRedocComponent } from './gv-page-redoc.component';
-import { MarkdownModule } from 'ngx-markdown';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 
-describe('GvPageComponent', () => {
+describe('GvPageRedocComponent', () => {
   let component: GvPageRedocComponent;
   let fixture: ComponentFixture<GvPageRedocComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ GvPageRedocComponent ],
-      imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
     })
     .compileComponents();
   }));
@@ -39,7 +31,6 @@ describe('GvPageComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(GvPageRedocComponent);
     component = fixture.componentInstance;
-    component.page = null;
     fixture.detectChanges();
   });
 

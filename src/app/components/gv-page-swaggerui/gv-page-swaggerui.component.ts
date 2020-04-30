@@ -15,12 +15,12 @@
  */
 import * as jsyaml from 'js-yaml';
 
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
-import { ApiService, Page, PortalService, User } from '@gravitee/ng-portal-webclient';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import {  Page, User } from '@gravitee/ng-portal-webclient';
 
 import { SwaggerUIBundle } from 'swagger-ui-dist';
 import { CurrentUserService } from 'src/app/services/current-user.service';
+import { PageService } from 'src/app/services/page.service';
 
 @Component({
   selector: 'app-gv-page-swaggerui',
@@ -29,36 +29,20 @@ import { CurrentUserService } from 'src/app/services/current-user.service';
 })
 export class GvPageSwaggerUIComponent implements OnInit {
 
-  @Input() set page(page: Page) {
-    if (page) {
-      const apiId = this.route.snapshot.params.apiId;
-      if (apiId) {
-        this.apiService.getPageByApiIdAndPageId({ apiId, pageId: page.id, include: ['content'] }).subscribe(response => {
-          this.refresh(response);
-        });
-      } else {
-        this.portalService.getPageByPageId({ pageId: page.id, include: ['content'] }).subscribe(response => {
-          this.refresh(response);
-        });
-      }
-    }
-  }
-
   constructor(
-    private portalService: PortalService,
-    private apiService: ApiService,
-    private route: ActivatedRoute,
-    private currentUserService: CurrentUserService
+    private currentUserService: CurrentUserService,
+    private pageService: PageService,
   ) {
   }
 
-  currentPage: Page;
   currentUser: User;
 
   ngOnInit() {
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
     });
+    const page = this.pageService.getCurrentPage();
+    this.refresh(page);
     this.loadStyle();
   }
 
@@ -87,14 +71,10 @@ export class GvPageSwaggerUIComponent implements OnInit {
   }
 
   refresh(page: Page) {
-    const cfg: any = this._prepareConfig(page);
-    SwaggerUIBundle({
-      ...cfg, ...{
-        onComplete: () => {
-          this.currentPage = page;
-        }
-      }
-    });
+    if (page) {
+      const cfg: any = this._prepareConfig(page);
+      SwaggerUIBundle(cfg);
+    }
   }
 
   _prepareConfig(page: Page) {

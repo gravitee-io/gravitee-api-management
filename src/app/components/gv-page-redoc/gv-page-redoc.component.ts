@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, Input, OnDestroy, ViewChild } from '@angular/core';
-import { ApiService, Page, PortalService } from '@gravitee/ng-portal-webclient';
+import { Component, HostListener, Input, OnDestroy, ViewChild, OnInit } from '@angular/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NotificationService } from '../../services/notification.service';
-import { ActivatedRoute, Router } from '@angular/router';
 import { getCssVar } from '@gravitee/ui-components/src/lib/style';
 import { GvDocumentationComponent } from '../gv-documentation/gv-documentation.component';
+import { PageService } from 'src/app/services/page.service';
 
 declare let Redoc: any;
 
@@ -28,7 +27,7 @@ declare let Redoc: any;
   templateUrl: './gv-page-redoc.component.html',
   styleUrls: ['./gv-page-redoc.component.css']
 })
-export class GvPageRedocComponent implements OnDestroy {
+export class GvPageRedocComponent implements OnInit, OnDestroy {
 
   isLoaded = false;
 
@@ -37,32 +36,17 @@ export class GvPageRedocComponent implements OnDestroy {
   @Input() fragment: string;
   private lastTop: number;
 
-  @Input() set page(page: Page) {
-    if (page) {
-      this.loadScript()
-        .then(() => {
-          const apiId = this.route.snapshot.params.apiId;
-          const pageId = page.id;
-          if (apiId) {
-            return this.apiService.getPageByApiIdAndPageId({ apiId, pageId, include: ['content'] }).toPromise();
-          } else {
-            return this.portalService.getPageByPageId({ pageId, include: ['content'] }).toPromise();
-          }
-        })
-        .then((response) => {
-          this.refresh(response);
-        });
-    }
-  }
-
   constructor(
-    private portalService: PortalService,
-    private apiService: ApiService,
     private notificationService: NotificationService,
-    private router: Router,
-    private route: ActivatedRoute,
+    private pageService: PageService,
   ) {
 
+  }
+
+  ngOnInit(){
+    const page = this.pageService.getCurrentPage();
+    this.loadScript()
+      .then(() => this.refresh(page));
   }
 
   @HostListener('window:scroll')
@@ -92,50 +76,51 @@ export class GvPageRedocComponent implements OnDestroy {
   }
 
   refresh(page) {
-    // @ts-ignore
-    // https://github.com/Redocly/redoc/blob/master/src/theme.ts
-    const color = getCssVar(document.body, '--gv-theme-color-dark');
-    const successColor = getCssVar(document.body, '--gv-theme-color');
-    const dangerColor = getCssVar(document.body, '--gv-theme-color-danger');
-    const textColor = getCssVar(document.body, '--gv-theme-font-color-dark');
-    const textColorLight = getCssVar(document.body, '--gv-theme-font-color-light');
-    const fontFamily = getCssVar(document.body, '--gv-theme-font-family');
-    const fontSize = getCssVar(document.body, '--gv-theme-font-size-m');
-    const sidebarColor = getCssVar(document.body, '--gv-theme-neutral-color-lightest');
+    if (page) {
+      // @ts-ignore
+      // https://github.com/Redocly/redoc/blob/master/src/theme.ts
+      const color = getCssVar(document.body, '--gv-theme-color-dark');
+      const successColor = getCssVar(document.body, '--gv-theme-color');
+      const dangerColor = getCssVar(document.body, '--gv-theme-color-danger');
+      const textColor = getCssVar(document.body, '--gv-theme-font-color-dark');
+      const textColorLight = getCssVar(document.body, '--gv-theme-font-color-light');
+      const fontFamily = getCssVar(document.body, '--gv-theme-font-family');
+      const fontSize = getCssVar(document.body, '--gv-theme-font-size-m');
+      const sidebarColor = getCssVar(document.body, '--gv-theme-neutral-color-lightest');
 
-    const options = {
-      expandResponses: '',
-      expandSingleSchemaField: false,
-      lazyRendering: true,
-      scrollYOffset: 120,
-      theme: {
-        colors: {
-          primary: { main: color },
-          success: { main: successColor },
-          error: { main: dangerColor },
-          text: { primary: textColor },
-        },
-        typography: {
-          fontSize,
-          fontFamily,
-          headings: {
-            fontFamily
+      const options = {
+        expandResponses: '',
+        expandSingleSchemaField: false,
+        lazyRendering: true,
+        scrollYOffset: 120,
+        theme: {
+          colors: {
+            primary: { main: color },
+            success: { main: successColor },
+            error: { main: dangerColor },
+            text: { primary: textColor },
           },
-        },
-        sidebar: {
-          backgroundColor: sidebarColor,
-          textColor,
-        },
-        rightPanel: {
-          backgroundColor: color,
-          textColor: textColorLight,
-        },
+          typography: {
+            fontSize,
+            fontFamily,
+            headings: {
+              fontFamily
+            },
+          },
+          sidebar: {
+            backgroundColor: sidebarColor,
+            textColor,
+          },
+          rightPanel: {
+            backgroundColor: color,
+            textColor: textColorLight,
+          },
 
-      },
-    };
+        },
+      };
 
-    Redoc.init(page._links.content, options, this.redocContainer.nativeElement, (errors) => this._redocCallback(errors));
-
+      Redoc.init(page._links.content, options, this.redocContainer.nativeElement, (errors) => this._redocCallback(errors));
+    }
   }
 
   get redocMenu(): Element {

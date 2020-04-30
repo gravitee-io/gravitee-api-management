@@ -679,6 +679,9 @@
     "paused": "Přestávka",
     "pending": "Čekání"
   },
+  "gv-markdown-toc": {
+    "title": "Obsah"
+  },
   "gv-metrics": {
     "health": "Zdraví",
     "hits": "{count, plural, =0{Zásah} one{Zásah} other{Zásahy}} (posledních 7 dní)",

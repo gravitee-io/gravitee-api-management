@@ -13,43 +13,87 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
-import { ApiService, Page, PortalService } from '@gravitee/ng-portal-webclient';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, Input, HostListener, AfterViewChecked, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import * as marked from 'marked';
+import { PageService } from 'src/app/services/page.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ScrollService } from 'src/app/services/scroll.service';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-gv-page-markdown',
   templateUrl: './gv-page-markdown.component.html',
-  styleUrls: ['./gv-page-markdown.component.css']
+  styleUrls: ['./gv-page-markdown.component.css'],
 })
-export class GvPageMarkdownComponent implements OnInit {
 
-  @Input() set page(page: Page) {
-    if (page) {
-      const apiId = this.route.snapshot.params.apiId;
-      if (apiId) {
-        this.apiService.getPageByApiIdAndPageId({ apiId, pageId: page.id, include: ['content'] }).subscribe(response => {
-          this.refresh(response);
-        });
-      } else {
-        this.portalService.getPageByPageId({ pageId: page.id, include: ['content'] }).subscribe(response => {
-          this.refresh(response);
-        });
-      }
+export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
+
+  @Input() withToc: boolean;
+
+  pageContent: string;
+  pageElementsPosition: any[];
+
+  @ViewChild('mdContent', { static: false }) mdContent: ElementRef;
+
+  constructor(
+    private pageService: PageService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private scrollService: ScrollService,
+  ) { }
+
+  ngOnInit() {
+    const page = this.pageService.getCurrentPage();
+    if (page && page.content) {
+      this.pageContent = marked(page.content);
     }
   }
 
-  constructor(
-    private portalService: PortalService,
-    private apiService: ApiService,
-    private route: ActivatedRoute,
-    ) { }
+  ngAfterViewInit() {
+    this.processOffsets();
+    if (this.pageElementsPosition) {
+      this.router.navigate([], {
+        fragment: this.pageElementsPosition[0] && this.pageElementsPosition[0].id,
+        queryParamsHandling: 'preserve',
+      });
+    }
+  }
 
-  currentPage: Page;
+  processOffsets() {
+    const mdContent = this.mdContent && this.mdContent.nativeElement;
+    if (mdContent) {
+      this.pageElementsPosition = [];
+      const markdownElements = Object.values(mdContent.children);
+      markdownElements.forEach((element: HTMLElement) => {
+        if (element && element.id && ['H2', 'H3', 'H4', 'H5', 'H6'].includes(element.tagName)) {
+          this.pageElementsPosition.push({
+            id: element.id,
+            offsetTop: document.getElementById(element.id).offsetTop - this.scrollService.getHeaderHeight()
+          });
+        }
+      });
+    }
+  }
 
-  ngOnInit() { }
-
-  refresh(page: Page) {
-    this.currentPage = page;
+  @HostListener('window:scroll')
+  onScroll() {
+    this.processOffsets();
+    if (this.pageElementsPosition) {
+      let anchor: string;
+      const currentYPosition = window.pageYOffset;
+      for (let index = 0; index < this.pageElementsPosition.length && !anchor; index++) {
+        const item = this.pageElementsPosition[index];
+        const nextItem = this.pageElementsPosition[index+1];
+        if (currentYPosition < item.offsetTop) {
+          anchor = null;
+        } else if (currentYPosition >= item.offsetTop && (!nextItem || (nextItem && currentYPosition < nextItem.offsetTop))) {
+          anchor = item.id;
+        }
+      }
+      this.router.navigate([], {
+        fragment: anchor || (this.pageElementsPosition[0] && this.pageElementsPosition[0].id),
+        queryParamsHandling: 'preserve',
+      });
+    }
   }
 }

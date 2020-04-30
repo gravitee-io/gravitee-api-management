@@ -16,22 +16,17 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GvPageMarkdownComponent } from './gv-page-markdown.component';
-import { MarkdownModule } from 'ngx-markdown';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-describe('GvPageComponent', () => {
+describe('GvPageMarkdownComponent', () => {
   let component: GvPageMarkdownComponent;
   let fixture: ComponentFixture<GvPageMarkdownComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ GvPageMarkdownComponent ],
-      imports: [ MarkdownModule, HttpClientTestingModule, RouterTestingModule ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
+      imports: [ RouterTestingModule ],
+
     })
     .compileComponents();
   }));
@@ -39,8 +34,8 @@ describe('GvPageComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(GvPageMarkdownComponent);
     component = fixture.componentInstance;
-    component.currentPage = null;
-    component.page = null;
+    component.withToc = null;
+    component.pageContent = null;
     fixture.detectChanges();
   });
 

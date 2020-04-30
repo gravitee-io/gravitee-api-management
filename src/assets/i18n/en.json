@@ -679,6 +679,9 @@
     "paused": "Paused",
     "pending": "Pending"
   },
+  "gv-markdown-toc": {
+    "title": "Table of contents"
+  },
   "gv-metrics": {
     "health": "Health",
     "hits": "{count, plural, =0{Hit} one{Hit} other{Hits}} (last 7 days)",

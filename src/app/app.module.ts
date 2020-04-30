@@ -40,6 +40,7 @@ import { GvContactComponent } from './components/gv-contact/gv-contact.component
 import { GvCookieConsentComponent } from './components/gv-cookie-consent/gv-cookie-consent.component';
 import { GvDocumentationComponent } from './components/gv-documentation/gv-documentation.component';
 import { GvHeaderItemComponent } from './components/gv-header-item/gv-header-item.component';
+import { GvMarkdownTocComponent } from './components/gv-markdown-toc/gv-markdown-toc.component';
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvMenuRightTransitionSlotDirective } from './directives/gv-menu-right-transition-slot.directive';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
@@ -53,7 +54,6 @@ import { HomepageComponent } from './pages/homepage/homepage.component';
 import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { LoginComponent } from './pages/login/login.component';
 import { LogoutComponent } from './pages/logout/logout.component';
-import { MarkdownModule } from 'ngx-markdown';
 import { MESSAGE_FORMAT_CONFIG } from 'ngx-translate-messageformat-compiler';
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA, APP_INITIALIZER } from '@angular/core';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
@@ -112,6 +112,7 @@ import { ViewportScroller } from '@angular/common';
     UserAccountComponent,
     UserContactComponent,
     UserNotificationComponent,
+    GvMarkdownTocComponent,
   ],
   entryComponents: [GvSearchApiComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
   imports: [
@@ -119,7 +120,6 @@ import { ViewportScroller } from '@angular/common';
     AppRoutingModule,
     BrowserAnimationsModule,
     BrowserModule,
-    MarkdownModule.forRoot({ loader: HttpClient }),
     SharedModule,
     TranslateModule.forRoot({
       loader: {
