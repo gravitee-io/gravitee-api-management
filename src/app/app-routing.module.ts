@@ -48,6 +48,7 @@ import { UserContactComponent } from './pages/user/user-contact/user-contact.com
 import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 import { CookiesComponent } from './pages/cookies/cookies.component';
 import { CategoryResolver } from './resolvers/category.resolver';
+import { PermissionsResolver } from './resolvers/permissions-resolver.service';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
@@ -72,7 +73,10 @@ export const routes: Routes = [
         data: {
           menu: { slots: { top: GvHeaderItemComponent }, hiddenPaths: ['subscribe'] }
         },
-        resolve: { api: ApiResolver },
+        resolve: {
+          api: ApiResolver,
+          permissions: PermissionsResolver,
+        },
         children: [
           {
             path: '',

@@ -78,71 +78,69 @@ export class ApplicationSubscriptionsComponent implements OnInit {
 
   ngOnInit() {
     const application = this.route.snapshot.data.application;
+    const permissions = this.route.snapshot.data.permissions;
     if (application) {
-      this.permissionsService.getCurrentUserPermissions({ applicationId: application.id }).toPromise()
-        .then(permissions => {
-          this.canDelete = permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('D');
-          this.canUpdate = permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('U');
-          this.format = (key) => this.translateService.get(key).toPromise();
-          this.apisOptions = [];
-          this.options = {
-            selectable: true,
-            data: [
-              {
-                field: 'api', type: 'image',
-                alt: (item) => this.metadata[item.api] && (this.metadata[item.api].name + '  ' + this.metadata[item.api].version),
-                format: (item) => this.metadata[item] && this.metadata[item].pictureUrl
-              },
-              {
-                field: 'api', label: i18n('application.subscriptions.api'),
-                tag: (item) => this.metadata[item.api] && this.metadata[item.api].version,
-                format: (item) => this.metadata[item] && this.metadata[item].name
-              },
-              {
-                field: 'plan', label: i18n('application.subscriptions.plan'),
-                format: (item) => this.metadata[item] && this.metadata[item].name
-              },
-              { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at') },
-              {
-                field: 'subscribed_by', label: i18n('application.subscriptions.subscribed_by'),
-                format: (item) => this.metadata[item] && this.metadata[item].name
-              },
-              { field: 'processed_at', type: 'date', label: i18n('application.subscriptions.processed_at') },
-              { field: 'start_at', type: 'date', label: i18n('application.subscriptions.start_at') },
-              {
-                field: 'status', label: i18n('application.subscriptions.status'),
-                format: (key) => {
-                  const statusKey = 'common.status.' + key.toUpperCase();
-                  return this.translateService.get(statusKey).toPromise();
-                },
-                headerStyle: 'justify-content: flex-end;',
-                style: (item) => {
-                  let style = 'text-align: right;';
-                  switch (item.status.toUpperCase()) {
-                    case StatusEnum.ACCEPTED:
-                      return style += 'color: #009B5B';
-                    case StatusEnum.PAUSED:
-                    case StatusEnum.PENDING:
-                      return style += 'color: #FA8C16';
-                    case StatusEnum.REJECTED:
-                      return style += 'color: #F5222D';
-                  }
-                },
-              },
-              {
-                type: 'gv-button',
-                width: '25px',
-                attributes: {
-                  link: true,
-                  href: (item) => `/catalog/api/${item.api}`,
-                  title: i18n('application.subscriptions.navigateToApi'),
-                  icon: 'communication:share',
-                  onClick: (item, e) => this.goToApi(item.api),
-                }
-              },
-            ]
-          };
-        });
+      this.canDelete = permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('D');
+      this.canUpdate = permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('U');
+      this.format = (key) => this.translateService.get(key).toPromise();
+      this.apisOptions = [];
+      this.options = {
+        selectable: true,
+        data: [
+          {
+            field: 'api', type: 'image',
+            alt: (item) => this.metadata[item.api] && (this.metadata[item.api].name + '  ' + this.metadata[item.api].version),
+            format: (item) => this.metadata[item] && this.metadata[item].pictureUrl
+          },
+          {
+            field: 'api', label: i18n('application.subscriptions.api'),
+            tag: (item) => this.metadata[item.api] && this.metadata[item.api].version,
+            format: (item) => this.metadata[item] && this.metadata[item].name
+          },
+          {
+            field: 'plan', label: i18n('application.subscriptions.plan'),
+            format: (item) => this.metadata[item] && this.metadata[item].name
+          },
+          { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at') },
+          {
+            field: 'subscribed_by', label: i18n('application.subscriptions.subscribed_by'),
+            format: (item) => this.metadata[item] && this.metadata[item].name
+          },
+          { field: 'processed_at', type: 'date', label: i18n('application.subscriptions.processed_at') },
+          { field: 'start_at', type: 'date', label: i18n('application.subscriptions.start_at') },
+          {
+            field: 'status', label: i18n('application.subscriptions.status'),
+            format: (key) => {
+              const statusKey = 'common.status.' + key.toUpperCase();
+              return this.translateService.get(statusKey).toPromise();
+            },
+            headerStyle: 'justify-content: flex-end;',
+            style: (item) => {
+              let style = 'text-align: right;';
+              switch (item.status.toUpperCase()) {
+                case StatusEnum.ACCEPTED:
+                  return style += 'color: #009B5B';
+                case StatusEnum.PAUSED:
+                case StatusEnum.PENDING:
+                  return style += 'color: #FA8C16';
+                case StatusEnum.REJECTED:
+                  return style += 'color: #F5222D';
+              }
+            },
+          },
+          {
+            type: 'gv-button',
+            width: '25px',
+            attributes: {
+              link: true,
+              href: (item) => `/catalog/api/${item.api}`,
+              title: i18n('application.subscriptions.navigateToApi'),
+              icon: 'communication:share',
+              onClick: (item, e) => this.goToApi(item.api),
+            }
+          },
+        ]
+      };
 
       this.applicationService.getSubscriberApisByApplicationId({ applicationId: application.id, size: -1 }).toPromise().then(apis => {
         this.apisOptions = [];

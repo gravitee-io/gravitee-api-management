@@ -26,6 +26,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthGuardService } from './auth-guard.service';
 import { CurrentUserService } from './current-user.service';
 import { TranslateTestingModule } from '../test/translate-testing-module';
+import { PermissionGuardService } from './permission-guard.service';
 
 describe('NavRouteService', () => {
 
@@ -35,6 +36,7 @@ describe('NavRouteService', () => {
   let authGuardService: AuthGuardService;
   let routeService: NavRouteService;
   let currentUserService: CurrentUserService;
+  let permissionGuardService: PermissionGuardService;
 
   beforeEach(() => {
 
@@ -67,8 +69,10 @@ describe('NavRouteService', () => {
     featureGuardService = TestBed.inject(FeatureGuardService);
     authGuardService = TestBed.inject(AuthGuardService);
     translateService = TestBed.inject(TranslateService);
+    permissionGuardService = TestBed.inject(PermissionGuardService);
 
-    routeService = new NavRouteService(router, translateService, featureGuardService, currentUserService, authGuardService);
+    routeService = new NavRouteService(router, translateService, featureGuardService, currentUserService, authGuardService,
+      permissionGuardService);
   });
 
   it('should be created', () => {

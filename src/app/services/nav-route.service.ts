@@ -19,6 +19,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { FeatureGuardService } from './feature-guard.service';
 import { AuthGuardService } from './auth-guard.service';
 import { CurrentUserService } from './current-user.service';
+import { PermissionGuardService } from './permission-guard.service';
 
 export interface INavRoute {
   path: string;
@@ -38,8 +39,9 @@ export class NavRouteService {
               private translateService: TranslateService,
               private featureGuardService: FeatureGuardService,
               private currentUserService: CurrentUserService,
-              private authGuardService: AuthGuardService) {
-  }
+              private authGuardService: AuthGuardService,
+              private permissionGuardService: PermissionGuardService,
+              ) {}
 
   async getUserNav(): Promise<INavRoute[]> {
     const parentPath = 'user';
@@ -95,10 +97,14 @@ export class NavRouteService {
 
       // @ts-ignore
       return Promise.all(children
-        // @ts-ignore
-        .filter((child) => child.data != null && child.data.title)
+        .filter(child => child.data != null && child.data.title)
         .filter(this.isVisiblePath(_hiddenPaths))
-        .filter((child) => this.featureGuardService.canActivate(child) === true)
+        .map(child => {
+          child.data = { ...data, ...child.data };
+          return child;
+        })
+        .filter(child => this.featureGuardService.canActivate(child) === true)
+        .filter(child => this.permissionGuardService.canActivate(child) === true)
         .map(async (child) => {
           const hasAuth = await this.authGuardService.canActivate(child);
           if (hasAuth === true) {

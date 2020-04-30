@@ -29,13 +29,12 @@ export class AuthGuardService implements CanActivate {
       const expectedRole = route.data.expectedRole;
       if (expectedRole) {
         return new Promise((resolve) => {
-          this.currentUserService.get().subscribe((user) => {
-            if (expectedRole === Role.AUTH_USER && user == null || expectedRole === Role.GUEST && user) {
-              resolve(this.router.parseUrl('/'));
-            } else {
-              resolve(true);
-            }
-          });
+          const user = this.currentUserService.get().getValue();
+          if (expectedRole === Role.AUTH_USER && user == null || expectedRole === Role.GUEST && user) {
+            resolve(this.router.parseUrl('/'));
+          } else {
+            resolve(true);
+          }
         });
       }
       return Promise.resolve(true);

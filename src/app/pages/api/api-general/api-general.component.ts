@@ -62,7 +62,7 @@ export class ApiGeneralComponent implements OnInit {
   homepage: Page;
   linkedApp: Promise<any[]>;
   miscellaneous: any[];
-  permissions: PermissionsResponse;
+  permissions: PermissionsResponse = {};
   ratingListPermissions: { update, delete, addAnswer, deleteAnswer };
   ratingForm: FormGroup;
   ratings: Array<Rating>;
@@ -87,8 +87,9 @@ export class ApiGeneralComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.route.params.subscribe((params) => {
-      const apiId = params.apiId;
+    const apiId = this.route.snapshot.params.apiId;
+    this.permissions = this.route.snapshot.data.permissions;
+    this.route.params.subscribe(() => {
       if (apiId) {
         if (this.hasRatingFeature()) {
 
@@ -137,9 +138,9 @@ export class ApiGeneralComponent implements OnInit {
             apiId,
             statuses: [StatusEnum.ACCEPTED],
           })
-          .toPromise()
-          .then((response) => response.data.map((app) => ({ item: app, type: ItemResourceTypeEnum.APPLICATION })))
-          .catch(() => []);
+            .toPromise()
+            .then((response) => response.data.map((app) => ({ item: app, type: ItemResourceTypeEnum.APPLICATION })))
+            .catch(() => []);
         }
 
         this.description = api.description;
@@ -164,7 +165,6 @@ export class ApiGeneralComponent implements OnInit {
         return api;
       }
     });
-
   }
 
   _updateRatings() {
@@ -177,47 +177,37 @@ export class ApiGeneralComponent implements OnInit {
 
       const apiId = this.apiId;
 
-      this.permissionsService.getCurrentUserPermissions({ apiId }).toPromise()
-        .then((permissions) => {
-          if (permissions) {
-            this.permissions = permissions;
-          }
-        })
-        .catch(() => (this.permissions = {}))
-        .finally(() => {
-
-          if (this.currentUser) {
-            const requestParameters: GetApiRatingsByApiIdRequestParams = { apiId, mine: true };
-            this.apiService.getApiRatingsByApiId(requestParameters).toPromise()
-              .then((mineRatingsResponse) => {
-                this.userRating = mineRatingsResponse.data.find((rating) => {
-                  return rating.author.id === this.currentUser.id;
-                });
-                this.canRate = this.permissions.RATING && this.permissions.RATING.includes('C') && this.userRating == null;
-                this._updateRatingForm();
-              });
-          }
-
-          this.apiService.getApiRatingsByApiId({
-            apiId,
-            page: 1,
-            size: this.ratingPageSize,
-            order: this.currentOrder
-          }).toPromise()
-            .then((ratingsResponse) => {
-              this.ratings = ratingsResponse.data;
-              if (this.currentUser) {
-                this.ratingListPermissions.update = this.ratings
-                  .filter((rating) => {
-                    return rating.author.id === this.currentUser.id;
-                  })
-                  .map((rating) => rating.id);
-                this.ratingListPermissions.delete = this.permissions.RATING && this.permissions.RATING.includes('D');
-                this.ratingListPermissions.addAnswer = this.permissions.RATING_ANSWER && this.permissions.RATING_ANSWER.includes('C');
-                this.ratingListPermissions.deleteAnswer = this.permissions.RATING_ANSWER && this.permissions.RATING_ANSWER.includes('D');
-              }
-              this.ratingsMetadata = ratingsResponse.metadata;
+      if (this.currentUser) {
+        const requestParameters: GetApiRatingsByApiIdRequestParams = { apiId, mine: true };
+        this.apiService.getApiRatingsByApiId(requestParameters).toPromise()
+          .then((mineRatingsResponse) => {
+            this.userRating = mineRatingsResponse.data.find((rating) => {
+              return rating.author.id === this.currentUser.id;
             });
+            this.canRate = this.permissions.RATING && this.permissions.RATING.includes('C') && this.userRating == null;
+            this._updateRatingForm();
+          });
+      }
+
+      this.apiService.getApiRatingsByApiId({
+        apiId,
+        page: 1,
+        size: this.ratingPageSize,
+        order: this.currentOrder
+      }).toPromise()
+        .then((ratingsResponse) => {
+          this.ratings = ratingsResponse.data;
+          if (this.currentUser) {
+            this.ratingListPermissions.update = this.ratings
+              .filter((rating) => {
+                return rating.author.id === this.currentUser.id;
+              })
+              .map((rating) => rating.id);
+            this.ratingListPermissions.delete = this.permissions.RATING && this.permissions.RATING.includes('D');
+            this.ratingListPermissions.addAnswer = this.permissions.RATING_ANSWER && this.permissions.RATING_ANSWER.includes('C');
+            this.ratingListPermissions.deleteAnswer = this.permissions.RATING_ANSWER && this.permissions.RATING_ANSWER.includes('D');
+          }
+          this.ratingsMetadata = ratingsResponse.metadata;
         });
     }
   }

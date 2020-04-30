@@ -73,15 +73,10 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.application = this.route.snapshot.data.application;
+    this.permissions = this.route.snapshot.data.permissions;
     if (this.application) {
-      this.permissionsService.getCurrentUserPermissions({ applicationId: this.application.id }).toPromise()
-        .then((permissions) => (this.permissions = permissions))
-        .catch(() => (this.permissions = {}))
-        .finally(() => {
-          this.canDelete = this.permissions.DEFINITION && this.permissions.DEFINITION.includes('D');
-          this.canUpdate = this.permissions.DEFINITION && this.permissions.DEFINITION.includes('U');
-        });
-
+      this.canDelete = this.permissions.DEFINITION && this.permissions.DEFINITION.includes('D');
+      this.canUpdate = this.permissions.DEFINITION && this.permissions.DEFINITION.includes('U');
       this.applicationForm = this.formBuilder.group(this.application);
       this.applicationForm.setControl('picture', new FormControl(this.application.picture));
       this.applicationForm.setControl('settings', new FormGroup({

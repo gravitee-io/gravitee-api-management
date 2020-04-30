@@ -108,7 +108,7 @@ export class ApplicationMembersComponent implements OnInit {
     this.application = this.route.snapshot.data.application;
     if (this.application) {
 
-      this.readonly = await this.isReadOnly();
+      this.readonly = await this.isReadOnly(true);
 
       this.portalService.getApplicationRoles()
         .toPromise()
@@ -241,11 +241,15 @@ export class ApplicationMembersComponent implements OnInit {
     };
   }
 
-  async isReadOnly() {
+  async isReadOnly(init?: boolean) {
     let memberPermissions: string[];
-    return this.permissionService.getCurrentUserPermissions({ applicationId: this.application.id })
-      .toPromise()
-      .then((permissions) => {
+    let permissionsPromise;
+    if (init) {
+      permissionsPromise = Promise.resolve(() => this.route.snapshot.data.permissions);
+    } else {
+      permissionsPromise = this.permissionService.getCurrentUserPermissions({ applicationId: this.application.id }).toPromise();
+    }
+    return permissionsPromise.then((permissions) => {
         if (permissions) {
           memberPermissions = permissions.MEMBER;
           return !memberPermissions || memberPermissions.length === 0 || !memberPermissions.includes('U');

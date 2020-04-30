@@ -32,6 +32,10 @@ import { ApplicationSubscriptionsComponent } from '../application/application-su
 import { SubscriptionsComponent } from '../subscriptions/subscriptions.component';
 import { ApplicationsComponent } from './applications.component';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { AuthGuardService } from '../../services/auth-guard.service';
+import { Role } from '../../model/role.enum';
+import { PermissionsResolver } from '../../resolvers/permissions-resolver.service';
+import { PermissionGuardService } from '../../services/permission-guard.service';
 
 const routes: Routes = [
   { path: '', redirectTo: 'mine', pathMatch: 'full' },
@@ -71,7 +75,8 @@ const routes: Routes = [
       menu: { slots: { top: GvHeaderItemComponent }, animation: { type: 'fade' } },
     },
     resolve: {
-      application: ApplicationResolver
+      application: ApplicationResolver,
+      permissions: PermissionsResolver,
     },
     children: [
       {
@@ -126,10 +131,12 @@ const routes: Routes = [
       {
         path: 'notifications',
         component: ApplicationNotificationsComponent,
+        canActivate: [PermissionGuardService],
         data: {
           icon: 'general:notifications#2',
           title: i18n('route.notifications'),
-          animation: { type: 'slide', group: 'app', index: 6 }
+          animation: { type: 'slide', group: 'app', index: 6 },
+          expectedPermissions: ['NOTIFICATION-R'],
         }
       },
     ]
