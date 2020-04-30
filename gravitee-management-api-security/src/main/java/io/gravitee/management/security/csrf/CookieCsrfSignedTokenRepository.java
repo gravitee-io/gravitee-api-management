@@ -100,8 +100,6 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
 
         String tokenValue = token.getToken();
 
-
-
         try {
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
                     .issuer(issuer)
@@ -112,7 +110,7 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
             JWSObject jwsObject = new JWSObject(new JWSHeader((JWSAlgorithm.HS256)), new Payload(claims.toJSONObject()));
             jwsObject.sign(signer);
 
-            Cookie cookie = cookieGenerator.generate(DEFAULT_CSRF_COOKIE_NAME, jwsObject.serialize(), false);
+            Cookie cookie = cookieGenerator.generate(DEFAULT_CSRF_COOKIE_NAME, jwsObject.serialize(), true);
             response.addCookie(cookie);
             request.setAttribute("DEFAULT_CSRF_COOKIE_NAME", true);
         } catch (JOSEException ex) {
