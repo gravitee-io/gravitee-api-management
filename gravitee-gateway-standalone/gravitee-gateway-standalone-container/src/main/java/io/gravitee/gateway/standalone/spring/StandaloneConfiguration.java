@@ -15,8 +15,10 @@
  */
 package io.gravitee.gateway.standalone.spring;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -37,6 +39,8 @@ import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+
+import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -67,6 +71,26 @@ public class StandaloneConfiguration {
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new GraviteeMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        SimpleModule module = new SimpleModule();
+        module.setDeserializerModifier(new BeanDeserializerModifier() {
+            @Override
+            public JsonDeserializer<Enum> modifyEnumDeserializer(DeserializationConfig config,
+                                                                 final JavaType type,
+                                                                 BeanDescription beanDesc,
+                                                                 final JsonDeserializer<?> deserializer) {
+                return new JsonDeserializer<Enum>() {
+                    @Override
+                    public Enum deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+                        Class<? extends Enum> rawClass = (Class<Enum<?>>) type.getRawClass();
+                        return Enum.valueOf(rawClass, jp.getValueAsString().toUpperCase());
+                    }
+                };
+            }
+        });
+
+        mapper.registerModule(module);
+
         return mapper;
     }
 
