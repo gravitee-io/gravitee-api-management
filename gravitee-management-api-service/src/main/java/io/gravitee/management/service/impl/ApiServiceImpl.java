@@ -1397,8 +1397,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             name(planNode.get("name").asText()).
                             security(PlanSecurityType.valueOf(planNode.get("security").asText().toUpperCase())).
                             build();
-                    List<PlanEntity> planEntities = planService.search(query);
-                    if (planEntities == null || planEntities.isEmpty()) {
+                    List<PlanEntity> planEntities = planService.search(query).stream()
+                            .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
+                            .collect(toList());
+                    if (planEntities.isEmpty()) {
                         NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
                         newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
                         planService.create(newPlanEntity);
