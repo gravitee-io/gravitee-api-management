@@ -125,7 +125,6 @@ public class ApplicationLogsResource extends AbstractResource {
 
     @POST
     @Path("_export")
-    @Produces(MediaType.TEXT_PLAIN)
     @Permissions({
         @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)
     })
