@@ -68,6 +68,7 @@
         <snakeyaml.version>1.26</snakeyaml.version>
         <jackson.version>2.10.3</jackson.version>
         <json-schema-validator.version>2.2.13</json-schema-validator.version>
+        <netty.version>4.1.49.Final</netty.version>
     </properties>
 
     <modules>
@@ -299,6 +300,15 @@
                 <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
                 <artifactId>owasp-java-html-sanitizer</artifactId>
                 <version>${owasp-java-html-sanitizer.version}</version>
+            </dependency>
+
+            <!-- Force upgrade of netty -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
