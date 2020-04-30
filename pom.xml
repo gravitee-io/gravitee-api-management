@@ -180,6 +180,15 @@
                 <artifactId>spring-integration-xml</artifactId>
                 <version>${spring-integration.version}</version>
             </dependency>
+
+            <!-- Force upgrade of netty -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -249,6 +258,7 @@
         <spring.version>5.2.5.RELEASE</spring.version>
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
         <jackson.version>2.10.3</jackson.version>
+        <netty.version>4.1.49.Final</netty.version>
     </properties>
 
     <!-- allow snapshot only for vertx until the final release -->
