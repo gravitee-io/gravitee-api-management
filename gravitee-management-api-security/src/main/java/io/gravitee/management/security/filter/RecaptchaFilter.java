@@ -43,6 +43,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 public class RecaptchaFilter extends GenericFilterBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecaptchaFilter.class);
+    public static final String DEFAULT_RECAPTCHA_HEADER_NAME = "X-Recaptcha-Token";
     private static final Set<String> RESTRICTED_PATHS = new HashSet<>(Arrays.asList("/user/login", "/users/registration", "/users/registration/finalize"));
 
     private ReCaptchaService reCaptchaService;
@@ -63,7 +64,7 @@ public class RecaptchaFilter extends GenericFilterBean {
 
             LOGGER.debug("Checking captcha");
 
-            String reCaptchaToken = httpRequest.getHeader("ReCaptchaToken");
+            String reCaptchaToken = httpRequest.getHeader(DEFAULT_RECAPTCHA_HEADER_NAME);
 
             if(!reCaptchaService.isValid(reCaptchaToken)) {
 

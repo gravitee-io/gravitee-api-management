@@ -55,7 +55,7 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
 
     private static final String DEFAULT_CSRF_PARAMETER_NAME = "_csrf";
 
-    private static final String DEFAULT_CSRF_HEADER_NAME = "X-XSRF-TOKEN";
+    public static final String DEFAULT_CSRF_HEADER_NAME = "X-Xsrf-Token";
 
     private final static String DEFAULT_JWT_ISSUER = "gravitee-management-auth";
 
@@ -87,7 +87,7 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
     public void saveToken(CsrfToken token, HttpServletRequest request,
                           HttpServletResponse response) {
 
-        if(request.getAttribute("DEFAULT_CSRF_COOKIE_NAME") != null) {
+        if(request.getAttribute(DEFAULT_CSRF_COOKIE_NAME) != null) {
             // Token already persisted in cookie.
             return;
         }
@@ -112,7 +112,7 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
 
             Cookie cookie = cookieGenerator.generate(DEFAULT_CSRF_COOKIE_NAME, jwsObject.serialize(), true);
             response.addCookie(cookie);
-            request.setAttribute("DEFAULT_CSRF_COOKIE_NAME", true);
+            request.setAttribute(DEFAULT_CSRF_COOKIE_NAME, true);
         } catch (JOSEException ex) {
             LOGGER.error("Unable to generate CSRF token", ex);
         }
