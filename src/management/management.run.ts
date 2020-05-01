@@ -18,7 +18,7 @@ import UserService from '../services/user.service';
 import {log} from "util";
 
 function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
-                  $timeout, UserService: UserService, Constants, PermissionStrategies) {
+                  $timeout, UserService: UserService, Constants, PermissionStrategies, ReCaptchaService) {
   'ngInject';
 
   $transitions.onStart({ to: (state) => state.name !== 'login' && state.name !== 'registration' &&
@@ -31,6 +31,10 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
   });
 
   $transitions.onFinish({}, function (trans) {
+
+    // Hide recaptcha badge by default (let each component decide whether it should display the recaptcha badge or not).
+    ReCaptchaService.hideBadge();
+
     let fromState = trans.from();
     let toState = trans.to();
 

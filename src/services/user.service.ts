@@ -79,14 +79,12 @@ class UserService {
     return this.$http.post(`${this.baseURL}users`, user);
   }
 
-  register(user, ReCaptchaToken?: string): ng.IPromise<any> {
-    const config = ReCaptchaToken ? {headers: {ReCaptchaToken}} : null;
-    return this.$http.post(`${this.usersURL}registration`, user, config);
+  register(user): ng.IPromise<any> {
+    return this.$http.post(`${this.usersURL}registration`, user);
   }
 
-  finalizeRegistration(user, ReCaptchaToken?: string): ng.IPromise<any> {
-    const config = ReCaptchaToken ? {headers: {ReCaptchaToken}} : null;
-    return this.$http.post(`${this.usersURL}registration/finalize`, user, config);
+  finalizeRegistration(user): ng.IPromise<any> {
+    return this.$http.post(`${this.usersURL}registration/finalize`, user);
   }
 
 	search(query): ng.IPromise<any> {
@@ -195,19 +193,13 @@ class UserService {
     return (this.currentUser !== undefined && this.currentUser.id !== undefined);
   }
 
-  login(user, ReCaptchaToken?: string): ng.IPromise<any> {
+  login(user): ng.IPromise<any> {
 
-    let config = {
+    return this.$http.post(`${this.userURL}login`, {}, {
       headers: {
         Authorization: `Basic ${this.Base64Service.encode(`${user.username}:${user.password}`)}`
       }
-    };
-
-    if(ReCaptchaToken) {
-      config.headers['recaptchatoken'] = ReCaptchaToken;
-    }
-
-    return this.$http.post(`${this.userURL}login`, {}, config);
+    });
   }
 
   logout(): ng.IPromise<any> {

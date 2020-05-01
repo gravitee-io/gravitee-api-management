@@ -16,7 +16,6 @@
 import UserService from '../../services/user.service';
 import {StateParams, StateService} from '@uirouter/core';
 import { IScope } from 'angular';
-import { StateService } from '@uirouter/core';
 import { User } from '../../entities/user';
 import RouterService from '../../services/router.service';
 import * as _ from 'lodash';
@@ -28,7 +27,6 @@ class LoginController {
   user: any = {};
   userCreationEnabled: boolean;
   localLoginDisabled: boolean;
-  private ReCaptchaToken: string;
 
   constructor(
     private AuthenticationService: AuthenticationService,
@@ -53,8 +51,8 @@ class LoginController {
   }
 
   $onInit() {
+    this.ReCaptchaService.displayBadge();
     document.addEventListener('click', this._toDisabledMode);
-    this.initCaptcha();
   }
 
   $onDestroy() {
@@ -77,17 +75,15 @@ class LoginController {
   }
 
   login() {
-    let self = this;
-
-    this.UserService.login(this.user, this.ReCaptchaToken).then(() => {
-      this.UserService.current().then((user) => {
-        this.loginSuccess(user);
-      });
-    }).catch(() => {
-      this.user.username = '';
-      this.user.password = '';
-      self.initCaptcha();
-    });
+    this.ReCaptchaService.execute('login').then(() =>
+      this.UserService.login(this.user).then(() => {
+        this.UserService.current().then((user) => {
+          this.loginSuccess(user);
+        });
+      }).catch(() => {
+        this.user.username = '';
+        this.user.password = '';
+      }))
   }
 
   loginSuccess(user: User) {
@@ -103,12 +99,6 @@ class LoginController {
         this.$state.go('portal.home');
       }
     }
-  }
-
-  initCaptcha() {
-    this.ReCaptchaService.execute('register').then((ReCaptchaToken) => {
-      this.ReCaptchaToken = ReCaptchaToken;
-    });
   }
 }
 

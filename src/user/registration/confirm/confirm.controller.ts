@@ -20,7 +20,7 @@ class ConfirmController {
   constructor(jwtHelper, $state, $scope, UserService, NotificationService, ReCaptchaService: ReCaptchaService) {
     'ngInject';
 
-    var token: string;
+    ReCaptchaService.displayBadge();
 
     if (!$state.params.token) {
       $state.go('portal.home');
@@ -39,11 +39,11 @@ class ConfirmController {
     }
 
     $scope.confirmRegistration = function () {
-      ReCaptchaService.execute('finalizeRegistration').then((ReCaptchaToken) => {
+      ReCaptchaService.execute('finalizeRegistration').then(() => {
         UserService.finalizeRegistration({
           token: $state.params.token, password: $scope.confirmPassword,
           firstname: $scope.user.firstname, lastname: $scope.user.lastname
-        }, ReCaptchaToken).then(function () {
+        }).then(function () {
           $scope.formConfirm.$setPristine();
           NotificationService.show('Your account has been created successfully, you can now login...');
           $state.go('login');

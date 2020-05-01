@@ -541,8 +541,6 @@ require('angular-moment-picker');
 
 (<any>window).tinycolor = tinycolor;
 require('md-color-picker');
-import portalI18nConfig from './portal.i18n';
-
 
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',

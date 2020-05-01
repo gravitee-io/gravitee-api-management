@@ -1,3 +1,7 @@
+import ReCaptchaService from "../../services/reCaptcha.service";
+import NotificationService from "../../services/notification.service";
+import UserService from "../../services/user.service";
+
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -15,7 +19,6 @@
  */
 class RegistrationController {
 
-  private ReCaptchaToken: string;
   user: any = {};
 
   constructor(private UserService: UserService,
@@ -30,32 +33,21 @@ class RegistrationController {
   }
 
   $onInit() {
-   this.initCaptcha();
+    this.ReCaptchaService.displayBadge();
   }
 
   register() {
-
     let scope = this.$scope;
     let notificationService = this.NotificationService;
     let self = this;
 
-    this.UserService.register(this.user, this.ReCaptchaToken).then(function () {
-
+    this.ReCaptchaService.execute('register').then(() => this.UserService.register(this.user).then(function () {
       scope.formRegistration.$setPristine();
       notificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
-      self.initCaptcha();
     }, function (e) {
       notificationService.showError(e);
-      self.initCaptcha();
-    });
+    }));
   }
-
-  initCaptcha() {
-    this.ReCaptchaService.execute('register').then((ReCaptchaToken) => {
-      this.ReCaptchaToken = ReCaptchaToken;
-    });
-  }
-
 }
 
 export default RegistrationController;

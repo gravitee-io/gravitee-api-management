@@ -14,21 +14,29 @@
  * limitations under the License.
  */
 declare var grecaptcha: any;
+
 class ReCaptchaService {
 
+  private readonly headerName: string = "X-Recaptcha-Token"
   private readonly scriptId: string = 'reCaptcha';
   private readonly siteKey: string;
-  private readonly enabled: Boolean;
+  private readonly enabled: Boolean = false;
+  private loaded: boolean = false;
+  private reCaptchaToken: string;
+  private display: boolean = false;
 
   constructor(private $http, Constants) {
     'ngInject';
     this.enabled = Constants.reCaptcha && !!Constants.reCaptcha.enabled;
     if (this.enabled) {
       this.siteKey = Constants.reCaptcha.siteKey;
+      this.load().then();
     }
   }
 
   load() {
+    let self = this;
+
     return new Promise((resolve, reject) => {
       if (this.enabled && !document.getElementById(this.scriptId)) {
         if (!this.siteKey) {
@@ -39,7 +47,11 @@ class ReCaptchaService {
           script.src = `https://www.google.com/recaptcha/api.js?render=${this.siteKey}`;
           script.async = true;
           script.onload = () => {
-            grecaptcha.ready(resolve);
+            grecaptcha.ready(function () {
+              resolve();
+              self.loaded = true;
+              self.displayOrHideBadge();
+            });
           };
           document.head.appendChild(script);
         }
@@ -49,14 +61,54 @@ class ReCaptchaService {
     });
   }
 
-  async execute(action: string) {
+  async execute(action: string): Promise<string> {
     if (this.enabled) {
-      await this.load();
-      return grecaptcha.execute(this.siteKey, { action });
+      if (!this.loaded) {
+        await this.load();
+      }
+      return grecaptcha.execute(this.siteKey, {action}).then((ReCaptchaToken) => {
+        this.reCaptchaToken = ReCaptchaToken;
+      });
     }
     return Promise.resolve(null);
   }
 
+  getCurrentToken(): string {
+    return this.reCaptchaToken;
+  }
+
+  getHeaderName(): string {
+    return this.headerName;
+  }
+
+  isEnabled(): Boolean {
+
+    return this.enabled;
+  }
+
+  displayBadge() {
+    this.display = true;
+
+    if(this.enabled && this.loaded){
+      document.getElementsByClassName("grecaptcha-badge")[0].style.setProperty('visibility', 'initial');
+    }
+  }
+
+  hideBadge() {
+    this.display = false;
+
+    if (this.enabled && this.loaded) {
+      document.getElementsByClassName("grecaptcha-badge")[0].style.setProperty('visibility', 'collapse', 'important');
+    }
+  }
+
+  private displayOrHideBadge() {
+    if(this.display === true) {
+      this.displayBadge();
+    } else {
+      this.hideBadge();
+    }
+  }
 }
 
 export default ReCaptchaService;
