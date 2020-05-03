@@ -135,6 +135,7 @@ public class HeartbeatService extends AbstractService {
         event.setId(UUID.toString(UUID.random()));
         event.setType(EventType.GATEWAY_STARTED);
         event.setCreatedAt(new Date());
+        event.setEnvironmentId("DEFAULT");
         event.setUpdatedAt(event.getCreatedAt());
         Map<String, String> properties = new HashMap<>();
         properties.put("id", node.id());
