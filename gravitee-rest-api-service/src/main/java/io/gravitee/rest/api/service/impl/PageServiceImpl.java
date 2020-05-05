@@ -333,15 +333,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			if (query != null && query.getPublished() != null && query.getPublished()) {
 				// remove child of unpublished folders
 				return pages.stream()
-						.filter(page -> {
-							if (page.getParentId() != null) {
-								final Optional<PageEntity> optionalPage =
-										pages.stream().filter(p -> p.getId().equals(page.getParentId())).findFirst();
-								return optionalPage.map(PageEntity::isPublished).orElse(false);
-							}
-							return true;
-						})
-						.collect(toList());
+					.filter(page -> {
+						if (page.getParentId() != null) {
+							return this.findById(page.getParentId()).isPublished();
+						}
+						return true;
+					})
+					.collect(toList());
 			}
 
 			return pages;
