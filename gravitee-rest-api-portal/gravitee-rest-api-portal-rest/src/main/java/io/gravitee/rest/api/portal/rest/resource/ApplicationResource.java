@@ -99,10 +99,6 @@ public class ApplicationResource extends AbstractResource {
 
         ApplicationEntity appEntity = applicationService.findById(applicationId);
 
-        if(!getAuthenticatedUser().equals(appEntity.getPrimaryOwner().getId())) {
-            throw new ForbiddenAccessException();
-        }
-
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
         updateApplicationEntity.setDescription(application.getDescription());
         if (application.getGroups() != null) {

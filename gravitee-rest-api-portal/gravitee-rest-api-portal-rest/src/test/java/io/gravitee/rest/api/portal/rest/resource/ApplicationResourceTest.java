@@ -127,19 +127,6 @@ public class ApplicationResourceTest extends AbstractResourceTest {
     }
     
     @Test
-    public void shouldHaveForbiddenWhileUpdatingApplication() {
-        ApplicationEntity appEntity = new ApplicationEntity();
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId("my-user");
-        PrimaryOwnerEntity owner = new PrimaryOwnerEntity(userEntity);
-        appEntity.setPrimaryOwner(owner);
-        doReturn(appEntity).when(applicationService).findById(APPLICATION_ID);
-        
-        final Response response = target(APPLICATION_ID).request().put(Entity.json(new Application().id(APPLICATION_ID)));
-        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
-    }
-    
-    @Test
     public void shouldUpdateApplicationWithoutSettings() {
         ApplicationEntity appEntity = new ApplicationEntity();
         UserEntity userEntity = new UserEntity();

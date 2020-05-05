@@ -388,15 +388,17 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 checkClientRegistrationEnabled();
 
                 // Update an OAuth client
-                ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
-                        optApplicationToUpdate.get().getMetadata().get("registration_payload"), updateApplicationEntity);
-
-                if (registrationResponse != null) {
-                    try {
-                        metadata.put("client_id", registrationResponse.getClientId());
-                        metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
+                final String registrationPayload = optApplicationToUpdate.get().getMetadata().get("registration_payload");
+                if (registrationPayload != null) {
+                    ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
+                            registrationPayload, updateApplicationEntity);
+                    if (registrationResponse != null) {
+                        try {
+                            metadata.put("client_id", registrationResponse.getClientId());
+                            metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
+                        } catch (JsonProcessingException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
