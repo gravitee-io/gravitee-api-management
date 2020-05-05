@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.spring;
 
+import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
 import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
@@ -60,5 +61,11 @@ public class RestManagementConfiguration {
                                                                           Environment environment) {
         // Using this we are now able to use {@link org.springframework.core.env.Environment} in Spring beans
         return new PropertySourceBeanProcessor(graviteeProperties, environment);
+    }
+
+    @Bean
+    public ExpressionLanguageInitializer expressionLanguageInitializer() {
+
+        return new ExpressionLanguageInitializer();
     }
 }

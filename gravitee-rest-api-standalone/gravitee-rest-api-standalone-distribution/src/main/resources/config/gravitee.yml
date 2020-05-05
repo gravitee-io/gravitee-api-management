@@ -370,3 +370,19 @@ notifiers:
 #      trustAll: false
 #      keyStore:
 #      keyStorePassword:
+
+#el:
+  # Allows to define which methods or classes are accessible to the Expression Language engine (/!\ caution, changing default whitelist may expose you to security issues).
+  # A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-expression-language/master/src/main/resources/whitelist).
+#  whitelist:
+    # Allows to define if the specified list of method or classes should be append to the default one or should replace it.
+    # We recommend you to always choose 'append' unless you absolutely kwnow what you are doing.
+#    mode: append
+    # Define the list of classes or methods to append (or set) to made accessible to the Expression Language.
+    # start with 'method' to allow a specific method (complete signature).
+    # start with 'class' to allow a complete class. All methods of the class will then be accessible.
+#    list:
+      # Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
+#      - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
+      # Ex: allow access to all methods of DateTimeFormatter class
+#      - class java.time.format.DateTimeFormatter
