@@ -20,7 +20,7 @@ import io.gravitee.rest.api.idp.api.identity.IdentityReference;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.idp.api.identity.User;
 import io.gravitee.rest.api.idp.core.authentication.IdentityManager;
-
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,6 +141,23 @@ public class CompositeIdentityManager implements IdentityManager {
         @Override
         public String getDisplayName() {
             return user.getDisplayName();
+        }
+
+        @Override
+        public String getDisplayNameForPicture() {
+            String displayNameForPicture;
+
+            if(StringUtils.isEmpty(getFirstname()) && StringUtils.isEmpty(getLastname())) {
+                displayNameForPicture = getDisplayName();    
+            } else {
+                StringBuilder sb = new StringBuilder();
+                sb.append(StringUtils.capitalize(getFirstname()));
+                sb.append(" ");
+                sb.append(getLastname().toUpperCase().charAt(0));
+                sb.append(".");
+                displayNameForPicture = sb.toString();
+            }
+            return displayNameForPicture;
         }
 
         @Override

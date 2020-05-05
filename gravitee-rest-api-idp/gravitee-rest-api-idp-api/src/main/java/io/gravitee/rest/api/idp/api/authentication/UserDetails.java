@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.idp.api.authentication;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -137,6 +138,22 @@ public class UserDetails extends User implements org.springframework.security.co
         return displayName;
     }
 
+    public String getDisplayNameForPicture() {
+        String displayNameForPicture;
+
+        if(StringUtils.isEmpty(firstname) && StringUtils.isEmpty(lastname)) {
+            displayNameForPicture = getDisplayName();    
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append(StringUtils.capitalize(firstname));
+            sb.append(" ");
+            sb.append(lastname.toUpperCase().charAt(0));
+            sb.append(".");
+            displayNameForPicture = sb.toString();
+        }
+        return displayNameForPicture;
+    }
+    
     public void setLastname(String lastname) {
         this.lastname = lastname;
     }

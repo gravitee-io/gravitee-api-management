@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.idp.api.authentication;
+package io.gravitee.rest.api.model;
 
-import io.gravitee.rest.api.model.UserEntity;
 import org.junit.Assert;
 import org.junit.Test;
 

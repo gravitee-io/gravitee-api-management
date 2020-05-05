@@ -27,6 +27,8 @@ public interface SearchableUser {
 
     String getDisplayName();
 
+    String getDisplayNameForPicture();
+
     String getFirstname();
 
     String getLastname();
