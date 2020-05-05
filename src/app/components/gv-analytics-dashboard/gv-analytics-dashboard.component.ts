@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Application, ApplicationService, Dashboard } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -27,6 +27,7 @@ import { NavRouteService } from '../../services/nav-route.service';
 export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
 
   @Input() dashboard: Dashboard;
+  @Output() searching = new EventEmitter<boolean>();
 
   private subscription: any;
   private application: Application;
@@ -58,6 +59,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
       this.application = this.route.snapshot.data.application;
       const timeSlot = this.analyticsService.getTimeSlotFromQueryParams();
 
+      const promises: Promise<any>[] = [];
       this.definition = JSON.parse(this.dashboard.definition).map((widget) => {
         if (widget.chart.request.ranges) {
           widget.chart.request.ranges = widget.chart.request.ranges.replace(/%3B/g, ';');
@@ -68,14 +70,14 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
           widget.chart.data = widget.chart.columns.map((column) => {
             return { label: column };
           });
-          if (widget.chart.percent) {
-            widget.chart.data.push({ label: '%' });
-          }
           const selected = queryParams[widget.chart.request.field];
           if (Array.isArray(selected)) {
             widget.selected = selected;
           } else {
             widget.selected = [selected];
+          }
+          if (widget.chart.percent) {
+            widget.chart.data.push({ label: '%' });
           }
         } else {
           if (!widget.chart.data) {
@@ -104,47 +106,60 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
           ...widget.chart.request,
           ...this.analyticsService.getQueryFromPath(widget.chart.request.field, widget.chart.request.ranges)
         };
-        const itemsPromise = this.applicationService.getApplicationAnalytics(requestParameters).toPromise();
 
-        if (widget.chart.type === 'table') {
+        if (widget.chart.percent) {
+          const percentPromises: Promise<any>[] = [];
+          percentPromises.push(this.applicationService.getApplicationAnalytics(requestParameters).toPromise());
+          delete requestParameters.query;
+          requestParameters.type = 'count';
+          percentPromises.push(this.applicationService.getApplicationAnalytics(requestParameters).toPromise());
+          promises.push(Promise.all(percentPromises));
+        } else {
+          promises.push(this.applicationService.getApplicationAnalytics(requestParameters).toPromise());
+        }
+        return widget;
+      });
 
-          const style = () => 'justify-content: flex-end; text-align: right;';
-          widget.chart.data[0].field = 'key';
-          widget.chart.data[1].field = 'value';
-          widget.chart.data[1].headerStyle = style;
-          widget.chart.data[1].style = style;
-          if (widget.chart.percent) {
-            widget.chart.data[2].field = 'percent';
-            widget.chart.data[2].headerStyle = style;
-            widget.chart.data[2].style = style;
+      this.searching.emit(true);
+      Promise.all(promises).then((response: any) => {
+        this.definition.forEach((widget, i) => {
+          let items;
+          let itemsPercent;
+          if (Array.isArray(response[i])) {
+            items = response[i][0];
+            itemsPercent = response[i][1];
+          } else {
+            items = response[i];
           }
+          if (widget.chart.type === 'table') {
+            const style = () => 'justify-content: flex-end; text-align: right;';
+            widget.chart.data[0].field = 'key';
+            widget.chart.data[1].field = 'value';
+            widget.chart.data[1].headerStyle = style;
+            widget.chart.data[1].style = style;
+            if (itemsPercent) {
+              widget.chart.data[2].field = 'percent';
+              widget.chart.data[2].headerStyle = style;
+              widget.chart.data[2].style = style;
+            }
 
-          widget.items = itemsPromise.then((items: any) => {
-            // @ts-ignore
             const keys = Object.keys(items.values);
-            if (widget.chart.percent) {
-              delete requestParameters.query;
-              requestParameters.type = 'count';
-              return this.applicationService.getApplicationAnalytics(requestParameters).toPromise().then(responseTotal => {
-                return keys.map((key) => {
-                  const value = items.values[key];
-                  return {
-                    id: key,
-                    key: items.metadata[key].name,
-                    value,
-                    // @ts-ignore
-                    percent: `${parseFloat(value / responseTotal.hits * 100).toFixed(2)}%`
-                  };
-                });
+            if (itemsPercent) {
+              widget.items = keys.map((key) => {
+                const value = items.values[key];
+                return {
+                  id: key,
+                  key: items.metadata[key].name,
+                  value,
+                  percent: `${parseFloat(value / itemsPercent.hits * 100 + '').toFixed(2)}%`
+                };
+              });
+            } else {
+              widget.items = keys.map((key) => {
+                return { id: key, key: items.metadata[key].name, value: items.values[key], percent: undefined };
               });
             }
-            return keys.map((key) => {
-              return { id: key, key: items.metadata[key].name, value: items.values[key], percent: undefined };
-            });
-          });
-        } else {
-          widget.items = itemsPromise.then((items) => {
-            // @ts-ignore
+          } else {
             const values = items.values;
             if (Array.isArray(values)) {
               values.forEach((item) => {
@@ -156,11 +171,10 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
                 }
               });
             }
-            return items;
-          });
-        }
-        return widget;
-      });
+            widget.items = items;
+          }
+        });
+      }).finally(() => this.searching.emit(false));
     }
   }
 

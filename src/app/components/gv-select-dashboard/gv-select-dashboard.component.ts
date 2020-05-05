@@ -16,10 +16,9 @@
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
-import { Dashboard, PortalService } from '@gravitee/ng-portal-webclient';
+import { Component, HostListener, OnInit } from '@angular/core';
+import { Dashboard } from '@gravitee/ng-portal-webclient';
 import { AnalyticsService } from '../../services/analytics.service';
-import { GvAnalyticsDashboardComponent } from '../gv-analytics-dashboard/gv-analytics-dashboard.component';
 
 @Component({
   selector: 'app-gv-select-dashboard',
@@ -31,26 +30,24 @@ export class GvSelectDashboardComponent implements OnInit {
   dashboard: Dashboard;
 
   constructor(
-    private portalService: PortalService,
     public route: ActivatedRoute,
     public router: Router,
     public analyticsService: AnalyticsService,
   ) {}
 
   ngOnInit() {
-    this.portalService.getDashboards().toPromise().then(dashboards => {
-      if (dashboards && dashboards.length) {
-        if (this.route.snapshot.queryParams.dashboard) {
-          this.dashboard = dashboards.find((dashboard) => dashboard.id === this.route.snapshot.queryParams.dashboard);
-        } else {
-          this.dashboard = dashboards[0];
-        }
-        this._onChangDisplay(this.dashboard.id);
-        this.dashboardsSelect = dashboards.map((dashboard) => {
-          return { label: dashboard.name, value: dashboard.id };
-        });
+    const dashboards = this.route.firstChild.firstChild.firstChild.snapshot.data.dashboards;
+    if (dashboards && dashboards.length) {
+      if (this.route.snapshot.queryParams.dashboard) {
+        this.dashboard = dashboards.find((dashboard) => dashboard.id === this.route.snapshot.queryParams.dashboard);
+      } else {
+        this.dashboard = dashboards[0];
       }
-    });
+      this._onChangDisplay(this.dashboard.id);
+      this.dashboardsSelect = dashboards.map((dashboard) => {
+        return { label: dashboard.name, value: dashboard.id };
+      });
+    }
   }
 
   @HostListener(':gv-select:select', ['$event.detail'])

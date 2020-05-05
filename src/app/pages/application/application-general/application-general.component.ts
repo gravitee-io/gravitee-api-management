@@ -34,7 +34,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { GvHeaderItemComponent } from '../../../components/gv-header-item/gv-header-item.component';
 import { EventService, GvEvent } from '../../../services/event.service';
-import { LoaderService } from '../../../services/loader.service';
 import { NotificationService } from '../../../services/notification.service';
 import StatusEnum = Subscription.StatusEnum;
 
@@ -51,6 +50,9 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   permissions: PermissionsResponse;
   canUpdate: boolean;
   canDelete: boolean;
+  isSaving: boolean;
+  isDeleting: boolean;
+  isRenewing: boolean;
 
   constructor(
     private applicationService: ApplicationService,
@@ -59,7 +61,6 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
     private translateService: TranslateService,
     private route: ActivatedRoute,
     private router: Router,
-    private loaderService: LoaderService,
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
     private permissionsService: PermissionsService,
@@ -139,19 +140,14 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   }
 
   submit() {
-    if (!this.loaderService.get() && this.canUpdate) {
-      this.applicationService.updateApplicationByApplicationId(
-        { applicationId: this.application.id, Application: this.applicationForm.value }).subscribe((application) => {
-        this.application = application;
-        this.reset();
-        this.notificationService.success(i18n('application.success.save'));
-        this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.RELOAD_EVENT));
-      });
-    }
-  }
-
-  get applicationPicture() {
-    return this.applicationForm.value.picture || this.application.picture || this.application._links.picture;
+    this.isSaving = true;
+    this.applicationService.updateApplicationByApplicationId(
+      { applicationId: this.application.id, Application: this.applicationForm.value }).toPromise().then((application) => {
+      this.application = application;
+      this.reset();
+      this.notificationService.success(i18n('application.success.save'));
+      this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.RELOAD_EVENT));
+    }).finally(() => this.isSaving = false);
   }
 
   get displayName() {
@@ -159,22 +155,19 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   }
 
   delete() {
+    this.isDeleting = true;
     this.applicationService.deleteApplicationByApplicationId({ applicationId: this.application.id }).toPromise().then(() => {
       this.router.navigate(['applications']);
       this.notificationService.success(i18n('application.success.delete'));
-    });
+    }).finally(() => this.isDeleting = false);
   }
 
   renewSecret() {
+    this.isRenewing = true;
     this.applicationService.renewApplicationSecret({ applicationId: this.application.id }).toPromise().then((application) => {
       this.application = application;
       this.reset();
       this.notificationService.success(i18n('application.success.renewSecret'));
-    });
+    }).finally(() => this.isRenewing = false);
   }
-
-  isLoading() {
-    return this.loaderService.isLoading;
-  }
-
 }

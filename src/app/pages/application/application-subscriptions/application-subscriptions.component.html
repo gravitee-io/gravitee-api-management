@@ -41,7 +41,7 @@
           </div>
 
           <div class="form__actions">
-            <gv-button type="submit" primary [loading]="loaderService.isLoading | async">
+            <gv-button type="submit" primary [loading]="isSearching" icon="general:search">
               {{ 'common.search' | translate }}
             </gv-button>
           </div>

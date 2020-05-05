@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, HostListener, OnInit, NgZone } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, NgZone } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-rating-list';
@@ -27,11 +27,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { LoaderService } from '../../../services/loader.service';
 import StatusEnum = Subscription.StatusEnum;
 import { NotificationService } from '../../../services/notification.service';
 import { ScrollService } from '../../../services/scroll.service';
-import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
 
 @Component({
   selector: 'app-application-subscriptions',
@@ -51,13 +49,12 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   apisOptions: any;
   statusOptions: any;
   metadata: any;
-  validApiKeys: Array<any>;
-  expiredApiKeys: Array<any>;
   selectedSubscriptions: Array<string>;
   selectedSubscription: Subscription;
-  displayExpiredApiKeys = false;
-  canDelete = false;
-  canUpdate = false;
+  displayExpiredApiKeys: boolean;
+  canDelete: boolean;
+  canUpdate: boolean;
+  isSearching: boolean;
 
   constructor(
     private route: ActivatedRoute,
@@ -68,7 +65,6 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     private translateService: TranslateService,
     private apiService: ApiService,
     private formBuilder: FormBuilder,
-    public loaderService: LoaderService,
     private permissionsService: PermissionsService,
     private ref: ChangeDetectorRef,
     private scrollService: ScrollService,
@@ -184,6 +180,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     if (this.form.value.status) {
       requestParameters.statuses = this.form.value.status;
     }
+    this.isSearching = true;
     this.subscriptionService.getSubscriptions(requestParameters).toPromise().then(response => {
       this.subscriptions = response.data;
       this.metadata = response.metadata;
@@ -195,7 +192,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
         this.selectedSubscriptions = [];
         this.onSelectSubscription(null);
       }
-    });
+    }).finally(() => this.isSearching = false);
   }
 
   reset() {

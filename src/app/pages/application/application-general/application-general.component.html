@@ -109,7 +109,7 @@
               </gv-input>
               <gv-confirm *ngIf="canUpdate && application.settings.oauth.renew_client_secret_supported"
                           [message]="'application.renewSecret.message' | translate" (:gv-confirm:ok)="renewSecret()">
-                <gv-button secondary [loading]="isLoading() | async">
+                <gv-button secondary [loading]="isRenewing" icon="code:lock-overturning">
                   {{ 'application.renewSecret.label' | translate }}
                 </gv-button>
               </gv-confirm>
@@ -131,11 +131,11 @@
       <div class="page__box-footer form__actions">
         <gv-button *ngIf="canUpdate"
                    type="submit" [disabled]="applicationForm.invalid || applicationForm.pristine" primary
-                   [loading]="isLoading() | async">
+                   [loading]="isSaving" icon="general:save">
           {{ 'common.save' | translate }}
         </gv-button>
-        <gv-button *ngIf="canUpdate"
-                   (click)="reset()" primary outlined [disabled]="applicationForm.pristine">
+        <gv-button *ngIf="canUpdate" (click)="reset()" outlined
+                   [disabled]="applicationForm.pristine">
           {{ 'common.reset' | translate }}
         </gv-button>
         <gv-confirm *ngIf="canDelete" [message]="'application.delete.message' | translate"
@@ -143,7 +143,7 @@
                     (:gv-confirm:ok)="delete()"
                     [cancelLabel]="'application.delete.cancel' | translate"
                     [okLabel]="'application.delete.ok' | translate">
-          <gv-button link [loading]="isLoading() | async">
+          <gv-button link [loading]="isDeleting">
             {{ 'common.delete' | translate }}
           </gv-button>
         </gv-confirm>

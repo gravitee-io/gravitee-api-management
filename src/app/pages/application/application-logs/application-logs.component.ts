@@ -39,7 +39,6 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
   logs: Array<Log>;
   selectedLogIds: string[];
   selectedLog;
-  Log;
   options: any;
   format: any;
   paginationData: any = {};
@@ -47,7 +46,9 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
   size: number;
   requestHeaders: Array<any>;
   responseHeaders: Array<any>;
-  link: { label: string, relativePath: string };
+  link: { label: string, relativePath: string, icon: string };
+  isExporting: boolean;
+  isSearching: boolean;
 
   @ViewChild(GvAnalyticsFiltersComponent)
   filtersComponent: GvAnalyticsFiltersComponent;
@@ -73,7 +74,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
       }
     });
     this.translateService.get('application.logs.displayAnalytics').subscribe(displayAnalytics => {
-      this.link = { label: displayAnalytics, relativePath: '../analytics' };
+      this.link = { label: displayAnalytics, relativePath: '../analytics', icon: 'shopping:chart-line#1' };
     });
   }
 
@@ -84,8 +85,9 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
   async refresh(queryParams) {
     const application = this.route.snapshot.data.application;
     if (application) {
+      this.isSearching = true;
       const response = await this.applicationService.getApplicationLogs(this.getRequestParameters(queryParams, application)).toPromise();
-
+      this.isSearching = false;
       this.logs = response.data;
 
       const metadata = response.metadata;
@@ -280,6 +282,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
   export() {
     const queryParams = this.route.snapshot.queryParams;
     const application = this.route.snapshot.data.application;
+    this.isExporting = true;
     this.applicationService.exportApplicationLogsByApplicationId(this.getRequestParameters(queryParams, application)).toPromise()
       .then((response) => {
         const hiddenElement = document.createElement('a');
@@ -292,6 +295,6 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
         document.getElementById('hidden-export-container').appendChild(hiddenElement);
         hiddenElement.click();
         document.getElementById('hidden-export-container').removeChild(hiddenElement);
-    });
+    }).finally(() => this.isExporting = false);
   }
 }

@@ -18,8 +18,9 @@
 <div id="hidden-export-container" style="display:none;"></div>
 <div class="page__content">
 
-  <app-gv-analytics-filters [link]="link" (export)="export()" [exportDisabled]="!(logs && logs.length)"
-                            [withExport]="true" [withURI]="true"></app-gv-analytics-filters>
+  <app-gv-analytics-filters [link]="link" [searchLoading]="isSearching"
+                            (export)="export()" [exportDisabled]="!(logs && logs.length)" [exportLoading]="isExporting"
+                            [withURI]="true"></app-gv-analytics-filters>
 
   <div class="page__box">
     <div class="page__box-title">

@@ -34,7 +34,8 @@ export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
   private subscription: any;
   application: Application;
   dashboard: Dashboard;
-  link: { label: string, relativePath: string };
+  link: { label: string, relativePath: string, icon: string };
+  isSearching: boolean;
 
   @ViewChild(GvAnalyticsFiltersComponent)
   filtersComponent: GvAnalyticsFiltersComponent;
@@ -63,7 +64,7 @@ export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
         }
       });
       this.translateService.get('application.analytics.displayLogs').subscribe(displayAnalytics => {
-        this.link = { label: displayAnalytics, relativePath: '../logs' };
+        this.link = { label: displayAnalytics, relativePath: '../logs', icon: 'communication:clipboard-list' };
       });
     }
   }
@@ -72,5 +73,11 @@ export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+  }
+
+  search(isSearching): void {
+    setTimeout(() => {
+      this.isSearching = isSearching;
+    });
   }
 }

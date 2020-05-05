@@ -22,7 +22,6 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { provideMock } from '../../../test/mock.helper.spec';
 import { NotificationService } from '../../../services/notification.service';
-import { LoaderService } from '../../../services/loader.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { RouterTestingModule } from '@angular/router/testing';
 
@@ -39,7 +38,6 @@ describe('UserContactComponent', () => {
       ],
       providers: [
         provideMock(NotificationService),
-        provideMock(LoaderService),
         provideMock(CurrentUserService),
       ]
     })

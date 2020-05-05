@@ -18,11 +18,9 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import '@gravitee/ui-components/wc/gv-file-upload';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { AppComponent } from '../../../app.component';
-import { GvHeaderItemComponent } from '../../../components/gv-header-item/gv-header-item.component';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { User, UserService } from '@gravitee/ng-portal-webclient';
 import { EventService, GvEvent } from '../../../services/event.service';
-import { LoaderService } from '../../../services/loader.service';
 import { NotificationService } from '../../../services/notification.service';
 
 @Component({
@@ -36,12 +34,12 @@ export class UserAccountComponent implements OnInit, OnDestroy {
   private subscription: any;
   public currentUser: User;
   public userForm: FormGroup;
+  isSaving: boolean;
 
   constructor(
     private currentUserService: CurrentUserService,
     private userService: UserService,
     private notificationService: NotificationService,
-    private loaderService: LoaderService,
     private formBuilder: FormBuilder,
     private eventService: EventService
   ) {
@@ -85,28 +83,20 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  isLoading() {
-    return this.loaderService.isLoading;
-  }
-
   reset() {
     this.userForm.get('avatar').patchValue(this.avatar);
     this.userForm.markAsPristine();
   }
 
-  canUpdate() {
-    return this.userForm.pristine && this.userForm.valid;
-  }
-
   submit() {
-    if (!this.loaderService.get() && this.canUpdate) {
-      const UserInput = { id:  this.currentUser.id, avatar: this.userForm.get('avatar').value };
-      this.userService.updateCurrentUser({ UserInput })
-        .toPromise()
-        .then((user) => {
-          this.currentUserService.set(user);
-          this.notificationService.success(i18n('user.account.success'));
-        });
-    }
+    const UserInput = { id:  this.currentUser.id, avatar: this.userForm.get('avatar').value };
+    this.isSaving = true;
+    this.userService.updateCurrentUser({ UserInput })
+      .toPromise()
+      .then((user) => {
+        this.currentUserService.set(user);
+        this.notificationService.success(i18n('user.account.success'));
+      })
+      .finally(() => this.isSaving = false);
   }
 }

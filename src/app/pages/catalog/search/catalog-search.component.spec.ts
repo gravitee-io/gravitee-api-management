@@ -24,7 +24,6 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { provideMock } from '../../../test/mock.helper.spec';
 import { NotificationService } from '../../../services/notification.service';
 import { ConfigurationService } from '../../../services/configuration.service';
-import { LoaderService } from '../../../services/loader.service';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { ApiService } from '@gravitee/ng-portal-webclient';
@@ -52,7 +51,7 @@ describe('CatalogSearchComponent', () => {
       providers: [
         provideMock(NotificationService),
         provideMock(ConfigurationService),
-        provideMock(LoaderService), ApiStatesPipe, ApiLabelsPipe
+        ApiStatesPipe, ApiLabelsPipe
       ]
     })
       .compileComponents();

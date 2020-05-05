@@ -21,7 +21,6 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { provideMock } from '../../test/mock.helper.spec';
 import { NotificationService } from '../../services/notification.service';
-import { LoaderService } from '../../services/loader.service';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 import { UserTestingModule } from '../../test/user-testing-module';
 import { GvContactComponent } from './gv-contact.component';
@@ -46,7 +45,6 @@ describe('GvContactComponent', () => {
       ],
       providers: [
         provideMock(NotificationService),
-        provideMock(LoaderService),
       ]
     })
       .compileComponents();

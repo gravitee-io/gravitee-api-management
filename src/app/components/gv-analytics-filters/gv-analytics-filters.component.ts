@@ -17,7 +17,6 @@ import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnDestroy,
 import { ApplicationService, Dashboard } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { LoaderService } from '../../services/loader.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import { GvValidators } from '../../utils/gv-validators';
 import '@gravitee/ui-components/wc/gv-button';
@@ -37,10 +36,11 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
 
   @Input() dashboard: Dashboard;
   @Input() withURI: boolean;
-  @Input() link: { label: string, relativePath: string };
-  @Input() withExport: boolean;
+  @Input() link: { label: string, relativePath: string, icon: string };
   @Output() export: EventEmitter<any> = new EventEmitter();
   @Input() exportDisabled: boolean;
+  @Input() exportLoading: boolean;
+  @Input() searchLoading: boolean;
 
   private maxDateTimer: any;
   analyticsForm: FormGroup;
@@ -54,7 +54,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     private formBuilder: FormBuilder,
     private applicationService: ApplicationService,
     public route: ActivatedRoute,
-    public loaderService: LoaderService,
     public analyticsService: AnalyticsService,
     private navRouteService: NavRouteService,
   ) {

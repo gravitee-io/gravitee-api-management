@@ -87,11 +87,12 @@
 
       <div class="page__box-footer form__actions">
 
-        <gv-button type="submit" [disabled]="contactForm.invalid || contactForm.disabled" primary [loading]="loaderService.isLoading | async">
+        <gv-button type="submit" [disabled]="contactForm.invalid || contactForm.disabled" primary
+                   icon="communication:send" [loading]="isSending">
           {{ 'gv-contact.button' | translate }}
         </gv-button>
 
-        <gv-button primary outlined (click)="reset()" [disabled]="contactForm.pristine">
+        <gv-button outlined (click)="reset()" [disabled]="contactForm.pristine">
           {{ 'common.reset' | translate }}
         </gv-button>
 

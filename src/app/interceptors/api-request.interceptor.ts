@@ -17,11 +17,10 @@ import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 
-import { finalize, tap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { CurrentUserService } from '../services/current-user.service';
 import { NotificationService } from '../services/notification.service';
-import { LoaderService } from '../services/loader.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ConfigurationService } from '../services/configuration.service';
 
@@ -33,13 +32,11 @@ export class ApiRequestInterceptor implements HttpInterceptor {
     private router: Router,
     private currentUserService: CurrentUserService,
     private notificationService: NotificationService,
-    private loaderService: LoaderService,
     private configService: ConfigurationService,
   ) {
   }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    this.loaderService.show();
     request = request.clone({
       setHeaders: {
         'X-Requested-With': 'XMLHttpRequest'
@@ -79,6 +76,6 @@ export class ApiRequestInterceptor implements HttpInterceptor {
           }
         }
       }
-    ), finalize(() => this.loaderService.hide()));
+    ));
   }
 }

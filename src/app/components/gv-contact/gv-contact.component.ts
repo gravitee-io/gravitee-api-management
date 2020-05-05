@@ -17,7 +17,6 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ApiService, ApplicationService, PortalService } from '@gravitee/ng-portal-webclient';
 import { NotificationService } from '../../services/notification.service';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { LoaderService } from '../../services/loader.service';
 import { CurrentUserService } from '../../services/current-user.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
@@ -39,6 +38,7 @@ export class GvContactComponent implements OnInit {
     label: string,
     value: string,
   }[];
+  isSending: boolean;
 
   constructor(
     private applicationService: ApplicationService,
@@ -46,7 +46,6 @@ export class GvContactComponent implements OnInit {
     private portalService: PortalService,
     private formBuilder: FormBuilder,
     private notificationService: NotificationService,
-    public loaderService: LoaderService,
     private currentUserService: CurrentUserService,
   ) {
   }
@@ -57,7 +56,7 @@ export class GvContactComponent implements OnInit {
       application: null,
       subject: new FormControl(null, Validators.required),
       content: new FormControl(null, Validators.required),
-      copy_to_sender: false,
+      copy_to_sender: false
     });
 
     this.applicationService.getApplications({ size: -1 })
@@ -83,16 +82,18 @@ export class GvContactComponent implements OnInit {
   }
 
   reset() {
-    this.contactForm.reset();
+    this.contactForm.reset({
+      api: this.apiId || null,
+      copy_to_sender: false,
+    });
   }
 
 
   submit() {
-    if (!this.loaderService.get()) {
-      this.portalService.createTicket({ TicketInput: this.contactForm.value }).subscribe(() => {
-        this.notificationService.success(i18n('gv-contact.success'));
-        this.contactForm.reset();
-      });
-    }
+    this.isSending = true;
+    this.portalService.createTicket({ TicketInput: this.contactForm.value }).toPromise().then(() => {
+      this.notificationService.success(i18n('gv-contact.success'));
+      this.reset();
+    }).finally(() => this.isSending = false);
   }
 }

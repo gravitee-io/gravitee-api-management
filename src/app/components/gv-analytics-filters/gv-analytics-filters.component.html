@@ -98,16 +98,17 @@
               (click)="onTagRemove(tag)">{{tag}}</gv-tag>
 
       <div class="gv-analytics-filter__inputs">
-        <gv-button *ngIf="withExport" (:gv-button:click)="export.emit()" [disabled]="exportDisabled" type="button" class="gv-analytics-filter__input"
-                   [loading]="loaderService.isLoading | async" outlined>
+        <gv-button *ngIf="export.observers.length" (:gv-button:click)="export.emit()"
+                   [disabled]="exportDisabled" type="button" class="gv-analytics-filter__input"
+                   [loading]="exportLoading" icon="finance:export" outlined>
           {{ 'application.analytics.exportCSV' | translate }}
         </gv-button>
         <gv-button *ngIf="link" (:gv-button:click)="goTo(link.relativePath)" type="button" class="gv-analytics-filter__input"
-                   [loading]="loaderService.isLoading | async">
+                   [icon]="link.icon">
           {{ link.label }}
         </gv-button>
-        <gv-button type="submit" class="gv-analytics-filter__input"
-                   [disabled]="this.analyticsForm.invalid" primary [loading]="loaderService.isLoading | async">
+        <gv-button type="submit" class="gv-analytics-filter__input" icon="general:search"
+                   [disabled]="this.analyticsForm.invalid" primary [loading]="searchLoading">
           {{ 'application.analytics.search' | translate }}
         </gv-button>
       </div>
