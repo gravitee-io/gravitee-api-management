@@ -33,7 +33,9 @@ public class TicketMapper {
         ticketEntity.setApi(ticketInput.getApi());
         ticketEntity.setApplication(ticketInput.getApplication());
         ticketEntity.setContent(ticketInput.getContent());
-        ticketEntity.setCopyToSender(ticketInput.getCopyToSender());
+        if (ticketInput.getCopyToSender() != null) {
+            ticketEntity.setCopyToSender(ticketInput.getCopyToSender());
+        }
         ticketEntity.setSubject(ticketInput.getSubject());
         return ticketEntity;
     }
