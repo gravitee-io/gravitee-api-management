@@ -26,7 +26,7 @@ import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
  */
 public abstract class TemplateAwareEndpointFactory<T extends io.gravitee.definition.model.Endpoint, S extends Endpoint> implements EndpointFactory<T, S> {
 
-    protected final TemplateEngine templateEngine = new SpelTemplateEngine();
+    protected final TemplateEngine templateEngine = TemplateEngine.templateEngine();
 
     @Override
     public S create(T endpoint, EndpointContext context) {

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
@@ -68,6 +69,12 @@ public class StandaloneConfiguration {
         ObjectMapper mapper = new GraviteeMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return mapper;
+    }
+
+    @Bean
+    public ExpressionLanguageInitializer expressionLanguageInitializer() {
+
+        return new ExpressionLanguageInitializer();
     }
 
     @Bean
