@@ -32,30 +32,31 @@
 
         <div class="rating-form-content">
 
-        <gv-input formControlName="title"
-                  name="title"
-                  label="Recommanderiez-vous cette API ?"
-                  placeholder="En un mot"
-                  ngDefaultControl
-                  [value]="userRating?.title"></gv-input>
+          <gv-input formControlName="title"
+                    name="title"
+                    label="{{ 'apiGeneral.rateTitle' | translate}}"
+                    placeholder="{{ 'apiGeneral.rateTitlePlaceholder' | translate}}"
+                    ngDefaultControl
+                    [value]="userRating?.title"></gv-input>
 
-        <gv-text formControlName="comment"
-                 name="comment"
-                 ngDefaultControl
-                 rows="5"
-                 placeholder="Expliquez-nous pourquoi"
-                 [value]="userRating?.comment"></gv-text>
+          <gv-text formControlName="comment"
+                   name="comment"
+                   ngDefaultControl
+                   rows="5"
+                   placeholder="{{ 'apiGeneral.rateComment' | translate}}"
+                   [value]="userRating?.comment"></gv-text>
         </div>
 
         <div class="rating-form-actions">
-        <gv-rating required
-                   formControlName="value"
-                   name="value"
-                   ngDefaultControl
-                   with-description
-                   [value]="userRating?.value"></gv-rating>
+          <gv-rating required
+                     formControlName="value"
+                     name="value"
+                     ngDefaultControl
+                     with-description
+                     [value]="userRating?.value"></gv-rating>
 
-        <gv-button type="submit" primary [disabled]="!hasValidRatingForm()">{{ "apiGeneral.rate" | translate}}</gv-button>
+          <gv-button type="submit" primary
+                     [disabled]="!hasValidRatingForm()">{{ "apiGeneral.rate" | translate}}</gv-button>
 
         </div>
       </form>
@@ -66,16 +67,18 @@
       <div class="api__section__ratings__title">
         <h4 class="title">{{ "apiGeneral.userRatings" | translate}} <span>({{getRatingsLength()}})</span></h4>
         <gv-select
-          small
-          (input)="onSortRatings($event)"
-          [value]="currentOrder"
-                   [options]="ratingsSortOptions"></gv-select>
+            small
+            (input)="onSortRatings($event)"
+            [value]="currentOrder"
+            [options]="ratingsSortOptions"></gv-select>
       </div>
 
 
       <gv-rating-list [ratings]="ratings" [user]="currentUser" [permissions]="ratingListPermissions"></gv-rating-list>
       <div class="rating-list-actions">
-        <gv-button *ngIf="hasMoreRatings()" (click)="onShowMoreRatings()" primary outlined>{{"apiGeneral.showMore" | translate}} ({{getShowMoreLength()}})</gv-button>
+        <gv-button *ngIf="hasMoreRatings()" (click)="onShowMoreRatings()" primary
+                   outlined>{{"apiGeneral.showMore" | translate}} ({{getShowMoreLength()}})
+        </gv-button>
       </div>
 
     </div>
@@ -83,7 +86,13 @@
   </section>
 
   <aside class="api__aside">
-    <gv-info [item]="currentApi" [metrics]="currentApiMetrics" [resources]="resources" [miscellaneous]="miscellaneous"></gv-info>
-    <gv-list *ngIf="linkedApp" [items]="linkedApp" title="{{ 'api.list.connectedApp' | translate }}" clickable></gv-list>
+
+    <gv-info [item]="currentApi"
+             [metrics]="currentApiMetrics"
+             [resources]="resources"
+             [miscellaneous]="miscellaneous"></gv-info>
+
+    <gv-list *ngIf="linkedApp" [items]="linkedApp" title="{{ 'api.list.connectedApp' | translate }}"
+             clickable></gv-list>
   </aside>
 </div>

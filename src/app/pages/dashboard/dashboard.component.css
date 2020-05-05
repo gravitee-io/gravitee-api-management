@@ -13,38 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.applications {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  grid-gap: 1rem;
-  margin: 20px 0;
-  min-height: 200px;
-  width: 100%;
+
+.main h3 {
+  padding: 1rem 0;
 }
 
-.applications__box__container {
+.content {
+  margin-top: 0.5rem;
   display: grid;
-  grid-gap: 0.6rem;
-  max-width: 240px;
-  min-height: 280px;
+  grid-template-columns: auto auto;
+  grid-gap: 0.5rem;
+  justify-content: start;
+}
+
+gv-card-list {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  grid-gap: 0.5rem;
+}
+
+.buttons {
+  display: grid;
+  grid-gap: 0.5rem;
 }
 
 gv-stats {
   width: 100%;
 }
 
-.applications__subscriptions__container {
+.subscriptions {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-gap: 1rem;
 }
 
-.applications__subscriptions__container > * {
+.subscriptions > * {
   flex: 1;
   margin: 20px 0;
 }
 
-.applications__subscriptions__container > div {
+.subscriptions > div {
   display: flex;
   text-align: center;
 }

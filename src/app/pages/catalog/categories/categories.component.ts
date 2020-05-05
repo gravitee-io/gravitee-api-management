@@ -18,15 +18,13 @@ import { PortalService, View } from '@gravitee/ng-portal-webclient';
 
 import '@gravitee/ui-components/wc/gv-category-list';
 import { Router } from '@angular/router';
-import { delay } from '../../../utils/utils';
-import { TimeTooLongError } from '../../../exceptions/TimeTooLongError';
 
 @Component({
   selector: 'app-categories',
   templateUrl: './categories.component.html'
 })
 export class CategoriesComponent implements OnInit {
-  nbCategories: number;
+  nbCategories: object;
   categories: Array<View>;
 
   constructor(
@@ -36,30 +34,16 @@ export class CategoriesComponent implements OnInit {
   }
 
   ngOnInit() {
-
-    Promise.race([this._loadCards(), delay(500)])
-      .catch((err) => {
-        if (err instanceof TimeTooLongError) {
-          // @ts-ignore
-          this.categories = new Array<View>(6);
-          // @ts-ignore
-          this.nbCategories = 6;
-        }
-      });
-  }
-
-  private _loadCards() {
-    return this.portalService.getViews({ size: -1 }).toPromise().then((response) => {
-      // @ts-ignore
-      this.categories = response.data;
-      // @ts-ignore
+    this.categories = new Array(6).fill(null);
+    this.portalService.getViews({ size: -1 }).toPromise().then((response) => {
       this.nbCategories = response.metadata.data.total;
+      this.categories = response.data;
     });
   }
 
   @HostListener(':gv-category:click', ['$event.detail'])
   onCardClick(category: View) {
-    this.router.navigate([`/catalog/categories/${ category.id }`]);
+    this.router.navigate([`/catalog/categories/${category.id}`]);
   }
 
 }

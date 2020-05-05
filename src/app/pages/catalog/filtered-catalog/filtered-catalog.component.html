@@ -19,6 +19,10 @@
   <h1 class="title" *ngIf="!inCategory()">{{getRouteTitle() | translate}}</h1>
   <h3 class="title" *ngIf="inCategory()">{{category.description}}</h3>
 
+  <section *ngIf="empty">
+    <div class="empty" [innerHTML]="'catalog.empty' | translate"></div>
+  </section>
+
   <section class="catalog__section__top">
 
     <gv-promote [item]="promotedApi" [metrics]="promotedMetrics"
@@ -45,17 +49,18 @@
                  [attr.placeholder]="'catalog.filter' | translate"
                  [options]="this.views">
       </gv-select>
-      <gv-option [options]="options" *ngIf="allApis.length > 0"></gv-option>
+      <gv-option [options]="options" *ngIf="allApis.length > 0" [value]="this.currentDisplay"></gv-option>
     </div>
 
-    <gv-card-list *ngIf="inDefaultDisplay()" [items]="allApis"></gv-card-list>
+    <gv-card-list *ngIf="showCards" [items]="allApis"></gv-card-list>
 
-    <div *ngIf="!inDefaultDisplay()" class="catalog__list catalog__list__all">
+    <div *ngIf="!showCards" class="catalog__list catalog__list__all">
       <gv-row *ngFor="let api of allApis" [item]="api.item" (click)="goToApi(api.item)"></gv-row>
     </div>
     <div class="catalog__section__content__pagination" [id]="fragments.pagination">
       <gv-pagination [data]="paginationData" hide-empty="true"></gv-pagination>
     </div>
   </section>
+
 </div>
 

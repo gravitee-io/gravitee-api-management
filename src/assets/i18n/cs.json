@@ -23,6 +23,9 @@
     "description": "Popis",
     "giveRating": "Vyjádřete svůj názor",
     "rate": "Poznámka",
+    "rateComment": "Vysvětlete nám proč",
+    "rateTitle": "Doporučili byste toto API ?",
+    "rateTitlePlaceholder": "Jedním slovem",
     "ratingAnswerCreated": "Vaše odpověď byla odeslána",
     "ratingAnswerDeleted": "Vaše odpověď byla smazána",
     "ratingCreated": "Váš názor byl odeslán",
@@ -475,6 +478,7 @@
       "cards": "Zobrazovací karty",
       "list": "Zobrazit seznam"
     },
+    "empty": "V této kategorii nejsou žádná API. <br/> Pomocí vyhledávání můžete procházet katalog.",
     "filter": "Filtrujte výsledky",
     "othersApi": {
       "subTitle": "Objevte různá API v titulcích tento měsíc",

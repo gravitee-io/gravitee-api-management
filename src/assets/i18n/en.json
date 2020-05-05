@@ -23,6 +23,9 @@
     "description": "Description",
     "giveRating": "Share your opinion",
     "rate": "Note",
+    "rateComment": "Explain to us why",
+    "rateTitle": "Would you recommend this API ?",
+    "rateTitlePlaceholder": "In a word",
     "ratingAnswerCreated": "Your response has been sent",
     "ratingAnswerDeleted": "Your answer has been deleted",
     "ratingCreated": "Your opinion has been sent",
@@ -475,6 +478,7 @@
       "cards": "Display cards",
       "list": "Display list"
     },
+    "empty": "There are no APIs in this category. <br/> You can use the search to browse the catalog.",
     "filter": "Filter the results",
     "othersApi": {
       "subTitle": "Discover the different APIs in the headlines this month",

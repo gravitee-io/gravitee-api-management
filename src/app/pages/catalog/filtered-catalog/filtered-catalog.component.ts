@@ -24,15 +24,12 @@ import '@gravitee/ui-components/wc/gv-option';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
-import { forkJoin } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { FeatureEnum } from '../../../model/feature.enum';
-import { TimeTooLongError } from '../../../exceptions/TimeTooLongError';
-import { delay } from '../../../utils/utils';
+import { createPromiseList } from 'src/app/utils/utils';
 
 @Component({
   selector: 'app-all',
@@ -48,8 +45,8 @@ export class FilteredCatalogComponent implements OnInit {
   private page: number;
   private size: number;
 
-  allApis: Array<Promise<{ item: Api, metric: any }>>;
-  randomList: Promise<any>[];
+  allApis: any[];
+  randomList: any[];
   promotedApi: Promise<any>;
   promotedApiPath: string;
   promotedMetrics: ApiMetrics;
@@ -59,11 +56,13 @@ export class FilteredCatalogComponent implements OnInit {
   paginationData: any;
   options: any[];
   currentDisplay: string;
+  empty: boolean;
   category: View;
   fragments: any = {
     pagination: 'pagination',
     filter: 'filter'
   };
+  private defaultView: { value, label };
 
   constructor(private apiService: ApiService,
               private translateService: TranslateService,
@@ -74,10 +73,14 @@ export class FilteredCatalogComponent implements OnInit {
               private config: ConfigurationService,
   ) {
     this.allApis = [];
-    this.randomList = [];
   }
 
   ngOnInit() {
+    this.translateService.get(i18n('catalog.defaultView')).toPromise()
+      .then((label) => this.defaultView = {
+        value: FilteredCatalogComponent.DEFAULT_VIEW,
+        label
+      });
     this.currentDisplay = this.activatedRoute.snapshot.queryParamMap.get('display') ||
       localStorage.getItem('user-display-mode') || FilteredCatalogComponent.DEFAULT_DISPLAY;
     this._initDisplayOptions();
@@ -94,8 +97,7 @@ export class FilteredCatalogComponent implements OnInit {
         if (this.page !== page || this.size !== size) {
           this.page = page;
           this.size = size;
-
-          Promise.race([this._loadCategory(), delay(500)]).catch((err) => this._catchLoading(err));
+          this._loadCategory();
         }
       } else {
         const view = params.get('view') || FilteredCatalogComponent.DEFAULT_VIEW;
@@ -103,26 +105,10 @@ export class FilteredCatalogComponent implements OnInit {
           this.currentView = view;
           this.page = page;
           this.size = size;
-
-          Promise.race([this._load(), delay(500)]).catch((err) => this._catchLoading(err));
+          this._load();
         }
       }
     });
-  }
-
-  private _catchLoading(err) {
-    if (err instanceof TimeTooLongError) {
-      // @ts-ignore
-      this.promotedApi = new Promise(null);
-      if (this.randomList.length === 0) {
-        this.randomList = new Array(4).fill(new Promise(null));
-      }
-      if (this.allApis.length === 0) {
-        this.allApis = new Array(this.size).fill(new Promise(null));
-      }
-    } else {
-      throw err;
-    }
   }
 
   private _initDisplayOptions() {
@@ -130,10 +116,9 @@ export class FilteredCatalogComponent implements OnInit {
       {
         id: FilteredCatalogComponent.DEFAULT_DISPLAY,
         icon: 'layout:layout-4-blocks',
-        active: this.inDefaultDisplay(),
         title: i18n('catalog.display.cards'),
       },
-      { id: 'list', icon: 'layout:layout-horizontal', active: !this.inDefaultDisplay(), title: i18n('catalog.display.list') }
+      { id: 'list', icon: 'layout:layout-horizontal', title: i18n('catalog.display.list') }
     ].map((option) => {
       this.translateService.get(option.title).subscribe((title) => option.title = title);
       // @ts-ignore
@@ -143,34 +128,33 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   _load() {
-    let promotedApiPromise = null;
     if (this.page === 1) {
-      promotedApiPromise = this._loadPromotedApi({ size: 1, cat: this.categoryApiQuery });
+      this.promotedApi = this._loadPromotedApi({ size: 1, cat: this.categoryApiQuery });
     }
-    return Promise.all([
-      this._loadRandomList(),
-      this._loadCards(promotedApiPromise)
-    ]);
+    return Promise.all([this._loadRandomList(), this._loadCards()]);
   }
 
   _loadRandomList() {
+    const { list, deferredList } = createPromiseList(FilteredCatalogComponent.RANDOM_MAX_SIZE);
+    this.randomList = list;
+
     return this.apiService.getApis({ size: FilteredCatalogComponent.RANDOM_MAX_SIZE, _cat: this.categoryApiQuery })
       .toPromise()
       .then((apiResponse) => {
-        this.randomList = apiResponse.data.map((a) => {
+        apiResponse.data.forEach((a, index) => {
           // @ts-ignore
           a.states = this.apiStates.transform(a);
-          return Promise.resolve(a);
+          deferredList.shift().resolve(a);
         });
-
+        deferredList.forEach((d) => d.resolve(undefined));
       })
       .catch((err) => {
-        // @ts-ignore
-        this.randomList = this.randomList.fill(() => Promise.reject(err));
+        deferredList.forEach((d) => d.reject(err));
       });
   }
 
-  _loadPromotedApi(requestParams) {
+  async _loadPromotedApi(requestParams) {
+    this.empty = false;
     return this.apiService.getApis(requestParams)
       .toPromise()
       .then(async (response) => {
@@ -178,31 +162,42 @@ export class FilteredCatalogComponent implements OnInit {
         if (promoted) {
           this.promotedMetrics = await this.apiService.getApiMetricsByApiId({ apiId: promoted.id }).toPromise();
           this.promotedApiPath = `/catalog/api/${promoted.id}`;
+        } else {
+          this.empty = true;
         }
-        // @ts-ignore
-        this.promotedApi = Promise.resolve(promoted || {});
-        return this.promotedApi;
-      })
-      .catch((err) => Promise.reject(err));
+        return promoted;
+      });
   }
 
   _loadCategory() {
     this.category = this.activatedRoute.snapshot.data.category;
-    return this._loadCards(this._loadPromotedApi({ size: 1, view: this.currentView }));
+    this.promotedApi = this._loadPromotedApi({ size: 1, view: this.currentView });
+    return this._loadCards();
   }
 
-  async _loadCards(promotedApiPromise) {
-    const size = this.size + (promotedApiPromise ? 1 : 0);
-
-    return forkJoin([
-      this.apiService.getApis({ page: this.page, size, cat: this.categoryApiQuery, view: this.currentView }),
-      this.translateService.get(i18n('catalog.defaultView')),
-    ])
-      .pipe(map(([allPage, label]) => [allPage.data, label, allPage.metadata]))
+  async _loadCards() {
+    const size = this.size + (this.promotedApi ? 1 : 0);
+    return this.apiService.getApis({ page: this.page, size, cat: this.categoryApiQuery, view: this.currentView })
       .toPromise()
-      .then(async ([allList, label, metadata]) => {
-
+      .then(async ({ data, metadata }) => {
         this.paginationData = metadata.pagination;
+
+        if (this.promotedApi) {
+          data = await this.promotedApi.then((promoted) => data.filter((api) => promoted.id && api.id !== promoted.id));
+        }
+
+        this.allApis = data.map((api) => {
+          const metrics = this.apiService.getApiMetricsByApiId({ apiId: api.id }).toPromise();
+
+          const item = metrics.then(() => {
+            // @ts-ignore
+            api.states = this.apiStates.transform(api);
+            api.labels = this.apiLabels.transform(api);
+            return api;
+          });
+
+          return { item, metrics };
+        });
 
         if (this.hasViewMode() && this.views == null) {
           this.apiService.getApis({ size: -1, cat: this.categoryApiQuery })
@@ -211,28 +206,16 @@ export class FilteredCatalogComponent implements OnInit {
               const views = this._getViews(apisResponse.data.slice(1));
               if (views.length > 0) {
                 // @ts-ignore
-                this.views = [{ value: FilteredCatalogComponent.DEFAULT_VIEW, label }].concat(views);
+                this.views = [this.defaultView].concat(views);
               } else {
                 this.views = [];
               }
             });
         }
-        if (promotedApiPromise) {
-          // @ts-ignore
-          allList = await promotedApiPromise.then((promoted) => allList.filter((api) => promoted.id && api.id !== promoted.id));
-        }
-
-        this.allApis = allList.map((a) => {
-          const metrics = this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise();
-          a.states = this.apiStates.transform(a);
-          a.labels = this.apiLabels.transform(a);
-          const item = Promise.resolve(a);
-          return { item, metrics };
-        });
-
+        return this.allApis;
       })
-      .catch((err) => {
-        this.allApis = this.allApis.map(() => Promise.reject(err));
+      .catch(() => {
+        this.allApis = [];
       });
   }
 
@@ -276,7 +259,7 @@ export class FilteredCatalogComponent implements OnInit {
       { relativeTo: this.activatedRoute, queryParams, queryParamsHandling: 'merge', fragment: this.fragments.filter });
   }
 
-  inDefaultDisplay() {
+  get showCards() {
     return this.currentDisplay === FilteredCatalogComponent.DEFAULT_DISPLAY;
   }
 
@@ -306,4 +289,5 @@ export class FilteredCatalogComponent implements OnInit {
   getRouteTitle() {
     return this.activatedRoute.snapshot.data.title;
   }
+
 }

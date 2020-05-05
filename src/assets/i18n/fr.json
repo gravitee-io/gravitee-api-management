@@ -23,6 +23,9 @@
     "description": "Description",
     "giveRating": "Donnez-nous votre avis",
     "rate": "Noter",
+    "rateComment": "Expliquez-nous pourquoi",
+    "rateTitle": "Recommanderiez-vous cette API ?",
+    "rateTitlePlaceholder": "En un mot",
     "ratingAnswerCreated": "Votre réponse a bien été envoyée",
     "ratingAnswerDeleted": "Votre réponse a bien été supprimée",
     "ratingCreated": "Votre avis a bien été envoyée",
@@ -475,6 +478,7 @@
       "cards": "Affichage carte",
       "list": "Affichage liste"
     },
+    "empty": "Il n'y a aucune API dans cette catégorie. <br/> Vous pouvez utiliser la recherche pour découvrir le catalogue.",
     "filter": "Filtrer les résultats",
     "othersApi": {
       "subTitle": "Découvrez les différentes APIs à la une ce mois-ci",

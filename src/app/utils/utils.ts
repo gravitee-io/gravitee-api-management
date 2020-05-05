@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TimeTooLongError } from '../exceptions/TimeTooLongError';
 
-export function delay(time) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      reject(new TimeTooLongError());
-    }, time);
-  });
+export function createPromiseList(size) {
+  const deferredList = [];
+  const list = new Array(size)
+    .fill(null)
+    .map(() => new Promise((resolve, reject) => (deferredList.push({ resolve, reject }))));
+  return { list, deferredList };
 }

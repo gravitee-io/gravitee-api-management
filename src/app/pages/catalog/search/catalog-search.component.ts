@@ -24,8 +24,7 @@ import { ApiService, ApisResponse, Api } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-query-param.enum';
 import { ConfigurationService } from '../../../services/configuration.service';
-import { delay } from '../../../utils/utils';
-import { TimeTooLongError } from '../../../exceptions/TimeTooLongError';
+import { createPromiseList } from '../../../utils/utils';
 
 @Component({
   selector: 'app-search',
@@ -37,7 +36,7 @@ export class CatalogSearchComponent implements OnInit {
   searchForm: FormGroup;
   pageSizes: Array<any>;
   paginationData: any;
-  apiResults: Array<Promise<Api>>;
+  apiResults: Promise<any>[];
   totalElements: number;
   currentPage;
 
@@ -73,35 +72,31 @@ export class CatalogSearchComponent implements OnInit {
       this.searchForm.reset({ query: this.searchForm.value.query, size: this.searchForm.value.size });
       this.currentPage = params.get(SearchQueryParam.PAGE) || 1;
       if (this.searchForm.value.query.trim() !== '') {
-        Promise.race([this._loadData(), delay(500)]).catch((err) => {
-          if (err instanceof TimeTooLongError) {
-            this.apiResults = new Array<Promise<Api>>(this.searchForm.value.size);
-          }
-        });
+        this._loadData();
       }
     });
   }
 
   _loadData() {
-    const params = new SearchRequestParams(this.searchForm.value.query || '*', this.searchForm.value.size, this.currentPage);
-    return this.apiService.searchApis(params)
+    const size = this.searchForm.value.size;
+    const params = new SearchRequestParams(this.searchForm.value.query || '*', size, this.currentPage);
+    const { list, deferredList } = createPromiseList(size);
+    this.apiResults = list;
+    this.apiService.searchApis(params)
       .toPromise()
       .then((apisResponse: ApisResponse) => {
-        if (apisResponse.data.length) {
-          this.apiResults = apisResponse.data.map((a) => {
-            return Promise.resolve(a);
-          });
-        } else {
-          // @ts-ignore
-          this.apiResults = [];
-        }
         this.paginationData = apisResponse.metadata.pagination;
         this.totalElements = (this.paginationData ? this.paginationData.total : 0);
+
+        apisResponse.data.forEach((api) => {
+          deferredList.shift().resolve(api);
+        });
+        deferredList.forEach((row) => row.resolve(undefined));
       })
       .catch((err) => {
         // @ts-ignore
-        this.apiResults = this.apiResults.map(() => Promise.reject(err));
         this.totalElements = 0;
+        return [];
       });
   }
 
