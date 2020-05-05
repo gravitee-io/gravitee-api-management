@@ -19,6 +19,7 @@ export class User {
   public id: string;
   public username: string;
   public displayName: string;
+  public displayNameForPicture: string;
   public email: string;
   public roles: any[];
   public userPermissions: string[];

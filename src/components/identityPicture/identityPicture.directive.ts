@@ -31,7 +31,8 @@ class IdentityPictureDirective {
         imageName: '=',
         imageWidth: '=',
         imageId: '=',
-        imageTheme: '<'
+        imageTheme: '<',
+        noDefaultImage: '=',
       },
       template: require('./identityPicture.html'),
       controller: IdentityPictureController,
@@ -49,8 +50,13 @@ class IdentityPictureController {
       document.querySelector('#avatar_' + $scope.imageId).classList.remove('show');
       const div: HTMLElement = document.querySelector('#jdenticon_' + $scope.imageId);
       div.classList.add('show');
-      div.title = $scope.imageName;
-      div.innerHTML = jdenticon.toSvg($scope.imageName, ($scope.imageWidth ? $scope.imageWidth : 110), { backColor: '#FFF' });
+      if ($scope.noDefaultImage) {
+        div.title = 'No image defined';
+        div.innerHTML = 'No image defined';
+      } else {
+        div.title = $scope.imageName;
+        div.innerHTML = jdenticon.toSvg($scope.imageName, ($scope.imageWidth ? $scope.imageWidth : 110), { backColor: '#FFF' });
+      }
     };
     $scope.imgLoad = function() {
       document.querySelector('#avatar_' + $scope.imageId).classList.add('show');

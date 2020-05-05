@@ -34,7 +34,7 @@
       <gravitee-identity-picture ng-if="$ctrl.hasAlert()"
         image-id="'navbar'"
         image-url="$ctrl.getUserPicture()"
-        image-name="$ctrl.graviteeUser.displayName"
+        image-name="$ctrl.graviteeUser.displayNameForPicture"
         image-width="42"
         image-border-radius="true"
         image-theme="'portal.navbar.user.img.alert'"
@@ -42,7 +42,7 @@
       <gravitee-identity-picture ng-if="!$ctrl.hasAlert()"
         image-id="'navbar'"
         image-url="$ctrl.getUserPicture()"
-        image-name="$ctrl.graviteeUser.displayName"
+        image-name="$ctrl.graviteeUser.displayNameForPicture"
         image-width="42"
         image-border-radius="true"
         image-theme="'portal.navbar.user.img'"
@@ -57,7 +57,7 @@
             <gravitee-identity-picture 
               image-id="'menu'"
               image-url="$ctrl.getUserPicture()"
-              image-name="$ctrl.graviteeUser.displayName"
+              image-name="$ctrl.graviteeUser.displayNameForPicture"
               image-width="42"
               image-border-radius="true"
             ></gravitee-identity-picture>

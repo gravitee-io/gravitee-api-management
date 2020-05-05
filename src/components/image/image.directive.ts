@@ -34,6 +34,7 @@ class ImageDirective {
         imageUrl: '=',
         imageBorderRadius: '@',
         imageName: '=',
+        noDefaultImage: '=',
         changeLabel: '@',
         deleteLabel: '@',
         canDelete: '=',
