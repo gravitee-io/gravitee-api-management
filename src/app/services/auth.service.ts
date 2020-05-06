@@ -73,10 +73,10 @@ export class AuthService {
     });
   }
 
-  authenticate(provider, redirectUrl: string = '') {
+  authenticate(provider) {
     if (provider) {
       this.storeProviderId(provider.id);
-      this._configure(provider, redirectUrl);
+      this._configure(provider);
       this.oauthService.initCodeFlow();
     }
   }
@@ -108,20 +108,19 @@ export class AuthService {
     );
   }
 
-  private _configure(provider, redirectUrl= '') {
-    const redirectUri =  window.location.origin + redirectUrl;
+  private _configure(provider) {
+    const redirectUri = window.location.origin;
     this.oauthService.configure({
       clientId: provider.client_id,
       loginUrl: provider.authorizationEndpoint,
       tokenEndpoint: this.configurationService.get('baseUrl') + '/auth/oauth2/' + provider.id,
       requireHttps: false,
       issuer: provider.tokenIntrospectionEndpoint,
-      // hack: AM is not fully OIDC compliant and need a target_url instead of post_logout_redirect_uri
-      logoutUrl: provider.userLogoutEndpoint ? provider.userLogoutEndpoint + '?target_url=' + window.location.origin : '',
+      logoutUrl: provider.userLogoutEndpoint,
       scope: provider.scopes.join(' '),
       responseType: 'code',
       redirectUri,
-      postLogoutRedirectUri: window.location.origin ,
+      postLogoutRedirectUri: redirectUri,
     });
   }
 

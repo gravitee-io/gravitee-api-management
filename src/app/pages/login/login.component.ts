@@ -61,7 +61,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loginForm = this.formBuilder.group({ username: '', password: '', });
     this.loginEnabled = this.config.hasFeature(FeatureEnum.localLogin);
     this.registrationEnabled = this.config.hasFeature(FeatureEnum.userRegistration);
-    this.redirectUrl = this.activatedRoute.snapshot.queryParams.redirectUrl || '/';
+    this.redirectUrl = this.activatedRoute.snapshot.queryParams.redirectUrl || '';
     this.portalService.getPortalIdentityProviders().subscribe(
       (configurationIdentitiesResponse) => {
         this.providers = configurationIdentitiesResponse.data;
@@ -106,7 +106,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   authenticate(provider) {
-    this.authService.authenticate(provider, this.redirectUrl);
+    this.authService.authenticate(provider);
   }
 
   isFormValid() {
