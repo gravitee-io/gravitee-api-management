@@ -563,6 +563,7 @@
     "email": {
       "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
     },
+    "forbidden": "Nemáte dostatečná práva pro přístup k tomuto prostředku",
     "plan": {
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."

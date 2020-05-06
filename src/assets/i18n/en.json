@@ -563,6 +563,7 @@
     "email": {
       "required": "Please configure an e-mail to use the contact form"
     },
+    "forbidden": "You do not have sufficient rights to access this resource",
     "plan": {
       "notSubscribable": "A client_id is required to subscribe to an OAuth2 or JWT plan.",
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."

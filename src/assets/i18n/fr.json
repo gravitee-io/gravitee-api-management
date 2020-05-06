@@ -563,6 +563,7 @@
     "email": {
       "required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
     },
+    "forbidden": "Vous n'avez pas les droits suffisants pour effectuer cette action",
     "plan": {
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
