@@ -54,10 +54,18 @@ databaseChangeLog:
   - include:
     - file: liquibase/changelogs/v1_25_4/schema.yml
   - include:
+    - file: liquibase/changelogs/v1_25_23/schema.yml
+  - include:
     - file: liquibase/changelogs/v1_26_0/schema.yml
   - include:
     - file: liquibase/changelogs/v1_27_0/schema.yml
   - include:
     - file: liquibase/changelogs/v1_30_0/schema.yml
+  - include:
+    - file: liquibase/changelogs/v1_30_3/schema.yml
+  - include:
+    - file: liquibase/changelogs/v1_30_6/schema.yml
+  - include:
+    - file: liquibase/changelogs/v1_30_4/schema.yml
   - include:
     - file: liquibase/changelogs/v3_0_0/schema.yml

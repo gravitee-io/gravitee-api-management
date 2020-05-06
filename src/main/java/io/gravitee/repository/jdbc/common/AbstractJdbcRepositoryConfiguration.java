@@ -52,6 +52,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     private static final int DEFAULT_MIN_IDLE = 10;
     private static final int DEFAULT_MAX_POOL_SIZE = 10;
     private static final boolean DEFAULT_REGISTER_MBEANS = true;
+    private static final boolean LIQUIBASE_ENABLED = true;
 
     @Autowired
     private Environment env;
@@ -106,7 +107,12 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         dsConfig.setRegisterMbeans(readPropertyValue("jdbc.pool.registerMbeans", Boolean.class, DEFAULT_REGISTER_MBEANS));
 
         final DataSource dataSource = new HikariDataSource(dsConfig);
-        runLiquibase(dataSource);
+
+        Boolean liquibase = readPropertyValue("jdbc.liquibase", Boolean.class, LIQUIBASE_ENABLED);
+        if (liquibase) {
+            runLiquibase(dataSource);
+        }
+
         return dataSource;
     }
 

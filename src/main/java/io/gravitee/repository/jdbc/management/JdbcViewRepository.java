@@ -27,7 +27,13 @@ import org.springframework.stereotype.Repository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ViewRepository;
+import io.gravitee.repository.management.model.Group;
+import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.management.model.View;
+import org.springframework.stereotype.Repository;
+
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
@@ -46,6 +52,7 @@ public class JdbcViewRepository implements ViewRepository {
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(View.class, "views", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
+            .addColumn("key", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("default_view", Types.BIT, boolean.class)
@@ -109,6 +116,7 @@ public class JdbcViewRepository implements ViewRepository {
             int rows = jdbcTemplate.update("update views set "
                                         + " id = ?"
                                         + " , environment_id = ?"
+                                        + " , " + escapeReservedWord("key") + " = ?"
                                         + " , name = ?"
                                         + " , description = ?"
                                         + " , default_view = ?"
@@ -124,6 +132,7 @@ public class JdbcViewRepository implements ViewRepository {
 
                                 , item.getId()
                                 , item.getEnvironmentId()
+                                , item.getKey()
                                 , item.getName()
                                 , item.getDescription()
                                 , item.isDefaultView()
@@ -170,6 +179,21 @@ public class JdbcViewRepository implements ViewRepository {
         } catch (final Exception ex) {
             LOGGER.error("Failed to find all views items:", ex);
             throw new TechnicalException("Failed to find all views items", ex);
+        }
+    }
+    
+    @Override
+    public Optional<View> findByKey(String key, String environment) throws TechnicalException {
+        LOGGER.debug("JdbcViewRepository.findByKey({},{})", key, environment);
+        try {
+            final Optional<View> view = jdbcTemplate.query(
+                    "select * from views where " + escapeReservedWord("key") + " = ? and environment_id = ?", ORM.getRowMapper(), key, environment)
+                    .stream().findFirst();
+            return view;
+        } catch (final Exception ex) {
+            final String error = "Failed to find view by key " + key;
+            LOGGER.error(error, ex);
+            throw new TechnicalException(error, ex);
         }
     }
 }

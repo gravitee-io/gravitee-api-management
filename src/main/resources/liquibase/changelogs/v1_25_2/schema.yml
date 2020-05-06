@@ -32,7 +32,14 @@ databaseChangeLog:
             columnName: subscription
             defaultNullValue: 'unknown'
             tableName: ratelimit
+        - dropPrimaryKey:
+            constraintName: pk_ratelimit
+            tableName: ratelimit
         - modifyDataType:
             tableName: ratelimit
             columnName: key
-            newDataType: nvarchar(128)
+            newDataType: nvarchar(128) not null
+        - addPrimaryKey:
+             constraintName: pk_ratelimit
+             columnNames: key
+             tableName: ratelimit

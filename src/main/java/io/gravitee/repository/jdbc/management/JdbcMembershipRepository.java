@@ -29,6 +29,7 @@ import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.*;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
 import static java.util.Collections.emptySet;
@@ -50,6 +51,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             .addColumn("reference_type", Types.NVARCHAR, MembershipReferenceType.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("role_id", Types.NVARCHAR, String.class)
+            .addColumn("source", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
@@ -62,6 +64,24 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     @Override
     protected String getId(Membership item) {
         return item.getId();
+    }
+
+    @Override
+    public void deleteMembers(MembershipReferenceType referenceType, String referenceId) throws TechnicalException {
+        LOGGER.debug("JdbcMembershipRepository.deleteMembers({}, {})", referenceType, referenceId);
+        try {
+            jdbcTemplate.update(
+                    "delete from memberships" +
+                            " where reference_type = ?" +
+                            " and reference_id = ?"
+                    , referenceType.name()
+                    , referenceId
+            );
+
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete JdbcMembershipRepository", ex);
+            throw new TechnicalException("Failed to delete JdbcMembershipRepository", ex);
+        }
     }
 
     @Override

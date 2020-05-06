@@ -150,20 +150,20 @@ public class JdbcObjectMapper<T> {
             return this;
         }
 
-        public JdbcObjectMapper build() {
-            return new JdbcObjectMapper(clazz, idColumn, columns, updateSql, tableName);
+        public JdbcObjectMapper<T> build() {
+            return new JdbcObjectMapper<>(clazz, idColumn, columns, updateSql, tableName);
         }
     }
 
-    public static JdbcObjectMapper.Builder builder(final Class clazz, final String tableName) {
+    public static <T> JdbcObjectMapper.Builder builder(final Class<T> clazz, final String tableName) {
         return builder(clazz, tableName, null);
     }
 
-    public static JdbcObjectMapper.Builder builder(final Class clazz, final String tableName, final String idColumn) {
-        return new JdbcObjectMapper.Builder(clazz, tableName, idColumn);
+    public static <T> JdbcObjectMapper.Builder builder(final Class<T> clazz, final String tableName, final String idColumn) {
+        return new JdbcObjectMapper.Builder<>(clazz, tableName, idColumn);
     }
 
-    private JdbcObjectMapper(final Class clazz, final String idColumn, final List<JdbcColumn> columns, final String updateSql, final String tableName) {
+    private JdbcObjectMapper(final Class<T> clazz, final String idColumn, final List<JdbcColumn> columns, final String updateSql, final String tableName) {
         try {
             this.constructor = clazz.getConstructor();
         } catch (final Exception e) {

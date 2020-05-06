@@ -79,6 +79,7 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
             .addColumn("type", Types.NVARCHAR, IdentityProviderType.class)
             .addColumn("enabled", Types.BOOLEAN, boolean.class)
             .addColumn("email_required", Types.BOOLEAN, Boolean.class)
+            .addColumn("sync_mappings", Types.BOOLEAN, Boolean.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();

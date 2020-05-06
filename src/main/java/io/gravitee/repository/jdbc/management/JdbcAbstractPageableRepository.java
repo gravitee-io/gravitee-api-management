@@ -44,8 +44,8 @@ abstract class JdbcAbstractPageableRepository<T> {
             if (start + rows > items.size()) {
                 rows = items.size() - start;
             }
-            return new Page(items.subList(start, start + rows), start / page.pageSize(), rows, items.size());
+            return new Page<>(items.subList(start, start + rows), start / page.pageSize(), rows, items.size());
         }
-        return new Page(items, 0, items.size(), items.size());
+        return new Page<>(items, 0, items.size(), items.size());
     }
 }

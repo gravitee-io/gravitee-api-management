@@ -202,6 +202,31 @@ public class JdbcPortalNotificationConfigRepository implements PortalNotificatio
         }
     }
 
+    @Override
+    public void deleteReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+        LOGGER.debug("JdbcPortalNotificationConfigRepository.deleteReference({} / {})", referenceType, referenceId);
+        try {
+            jdbcTemplate.update(
+                    "delete from portal_notification_configs" +
+                            " where reference_type = ?" +
+                            " and reference_id = ? "
+                    , referenceType.name()
+                    , referenceId
+            );
+
+            jdbcTemplate.update(
+                    "delete from portal_notification_config_hooks" +
+                            " where reference_type = ?" +
+                            " and reference_id = ? "
+                    , referenceType.name()
+                    , referenceId
+            );
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to deleteReference PortalNotificationConfig", ex);
+            throw new TechnicalException("Failed to deleteReference PortalNotificationConfig", ex);
+        }
+    }
+
     private void addHooks(PortalNotificationConfig parent) {
         List<String> hooks = new ArrayList<>();
         jdbcTemplate.query(
