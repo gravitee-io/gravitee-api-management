@@ -35,6 +35,7 @@ export class ConfigurationService {
   public load() {
     return new Promise((resolve) => {
       this.http.get('./assets/config.json').subscribe((configJson: any) => {
+        document.documentElement.style.setProperty('--gv-theme-loader', `url('${configJson.loaderUrl}')`);
         this.http.get(configJson.baseUrl + '/configuration').subscribe((configPortal) => {
           this.config = this._deepMerge(configJson, configPortal);
           resolve(true);
