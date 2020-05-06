@@ -1892,9 +1892,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
         builder.label(query.getLabel())
                 .name(query.getName())
-                .version(query.getVersion())
-                .view(query.getView());
+                .version(query.getVersion());
 
+        if (!isBlank(query.getView())) {
+            builder.view(viewService.findById(query.getView()).getId());
+        }      
         if (query.getGroups() != null && !query.getGroups().isEmpty()) {
             builder.groups(query.getGroups().toArray(new String[0]));
         }

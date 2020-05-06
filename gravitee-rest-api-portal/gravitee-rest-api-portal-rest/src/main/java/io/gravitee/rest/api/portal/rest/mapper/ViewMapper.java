@@ -39,7 +39,7 @@ public class ViewMapper {
 
         view.setDefaultView(viewEntity.isDefaultView());
         view.setDescription(viewEntity.getDescription());
-        view.setId(viewEntity.getId());
+        view.setId(viewEntity.getKey());
         view.setName(viewEntity.getName());
         view.setOrder(viewEntity.getOrder());
         view.setTotalApis(viewEntity.getTotalApis());

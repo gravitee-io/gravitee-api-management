@@ -105,19 +105,11 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
 
     @Override
     public ViewEntity findNotHiddenById(String id) {
-        try {
-            LOGGER.debug("Find not hidden view by id : {}", id);
-            Optional<View> view = viewRepository.findById(id);
-
-            if (view.isPresent() && !view.get().isHidden()) {
-                return convert(view.get());
-            }
-
-            throw new ViewNotFoundException(id);
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find a view using its ID: {}", id, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find a view using its ID: " + id, ex);
+        ViewEntity view = this.findById(id);
+        if (!view.isHidden()) {
+            return view;
         }
+        throw new ViewNotFoundException(id);
     }
     
     @Override

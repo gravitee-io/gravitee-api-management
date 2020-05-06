@@ -43,6 +43,7 @@ public class ViewMapperTest {
     private static final String VIEW_DESCRIPTION = "my-view-description";
     private static final String VIEW_ID = "my-view-id";
     private static final String VIEW_HIGHLIGHT_API = "my-view-highlight-api";
+    private static final String VIEW_KEY = "my-view-key";
     private static final String VIEW_NAME = "my-view-name";
     private static final String VIEW_PICTURE = "my-view-picture";
     private static final String VIEW_PICTURE_URL = "my-view-picture-url";
@@ -64,6 +65,7 @@ public class ViewMapperTest {
         viewEntity.setHidden(true);
         viewEntity.setHighlightApi(VIEW_HIGHLIGHT_API);
         viewEntity.setId(VIEW_ID);
+        viewEntity.setKey(VIEW_KEY);
         viewEntity.setName(VIEW_NAME);
         viewEntity.setOrder(11);
         viewEntity.setPicture(VIEW_PICTURE);
@@ -76,7 +78,7 @@ public class ViewMapperTest {
         View view = viewMapper.convert(viewEntity, UriBuilder.fromPath(VIEW_BASE_URL));
         assertTrue(view.getDefaultView());
         assertEquals(VIEW_DESCRIPTION, view.getDescription());
-        assertEquals(VIEW_ID, view.getId());
+        assertEquals(VIEW_KEY, view.getId());
         assertEquals(VIEW_NAME, view.getName());
         assertEquals(11, view.getOrder().intValue());
         assertEquals(42, view.getTotalApis().longValue());
