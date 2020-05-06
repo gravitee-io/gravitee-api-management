@@ -47,8 +47,7 @@
                     "index": false
                 },
                 "remote-address": {
-                    "type": "keyword",
-                    "index": false
+                    "type": "keyword"
                 },
                 "request-content-length": {
                     "type": "integer",

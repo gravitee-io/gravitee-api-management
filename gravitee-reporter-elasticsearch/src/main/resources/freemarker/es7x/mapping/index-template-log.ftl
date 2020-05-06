@@ -18,7 +18,7 @@
                     "type": "object",
                     "properties": {
                         "body":{
-                            "type": "keyword"
+                            "type": "text"
                         }
                     }
                 },
@@ -26,7 +26,7 @@
                     "type": "object",
                     "properties": {
                         "body":{
-                            "type": "keyword"
+                            "type": "text"
                         }
                     }
                 },
@@ -34,7 +34,7 @@
                     "type": "object",
                     "properties": {
                         "body":{
-                            "type": "keyword"
+                            "type": "text"
                         }
                     }
                 },
@@ -42,7 +42,7 @@
                     "type": "object",
                     "properties": {
                         "body":{
-                            "type": "keyword"
+                            "type": "text"
                         }
                     }
                 }

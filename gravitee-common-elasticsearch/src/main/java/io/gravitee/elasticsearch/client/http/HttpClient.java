@@ -51,6 +51,7 @@ import static java.lang.String.format;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HttpClient implements Client {
@@ -63,13 +64,13 @@ public class HttpClient implements Client {
     private static final String HTTPS_SCHEME = "https";
     private static final String CONTENT_TYPE = MediaType.APPLICATION_JSON + ";charset=UTF-8";
 
-    private static final String URL_ROOT = "/";
-    private static final String URL_STATE_CLUSTER = "/_cluster/health";
-    private static final String URL_BULK = "/_bulk";
-    private static final String URL_TEMPLATE = "/_template";
-    private static final String URL_INGEST = "/_ingest/pipeline";
-    private static final String URL_SEARCH = "/_search?ignore_unavailable=true";
-    private static final String URL_COUNT = "/_count?ignore_unavailable=true";
+    private static String URL_ROOT;
+    private static String URL_STATE_CLUSTER;
+    private static String URL_BULK;
+    private static String URL_TEMPLATE;
+    private static String URL_INGEST;
+    private static String URL_SEARCH;
+    private static String URL_COUNT;
 
     @Autowired
     private Vertx vertx;
@@ -104,6 +105,7 @@ public class HttpClient implements Client {
         if (! configuration.getEndpoints().isEmpty()) {
             final Endpoint endpoint = configuration.getEndpoints().get(0);
             final URI elasticEdpt = URI.create(endpoint.getUrl());
+            initializePaths(elasticEdpt);
 
             WebClientOptions options = new WebClientOptions()
                     .setDefaultHost(elasticEdpt.getHost())
@@ -128,23 +130,33 @@ public class HttpClient implements Client {
                         this.configuration.getPassword());
             }
 
-            ((WebClientInternal) this.httpClient.getDelegate()).addInterceptor(new Handler<HttpContext<?>>() {
-                @Override
-                public void handle(HttpContext context) {
-                    context.request()
-                            .timeout(configuration.getRequestTimeout())
-                            .putHeader(HttpHeaders.ACCEPT, CONTENT_TYPE)
-                            .putHeader(HttpHeaders.ACCEPT_CHARSET, StandardCharsets.UTF_8.name());
+            ((WebClientInternal) this.httpClient.getDelegate()).addInterceptor(context -> {
+                context.request()
+                        .timeout(configuration.getRequestTimeout())
+                        .putHeader(HttpHeaders.ACCEPT, CONTENT_TYPE)
+                        .putHeader(HttpHeaders.ACCEPT_CHARSET, StandardCharsets.UTF_8.name());
 
-                    // Basic authentication
-                    if (authorizationHeader != null) {
-                        context.request().putHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
-                    }
-
-                    context.next();
+                // Basic authentication
+                if (authorizationHeader != null) {
+                    context.request().putHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
                 }
+
+                context.next();
             });
+
         }
+    }
+
+    private void initializePaths(URI uri) {
+        String urlPrefix = uri.getPath().replaceAll("/$", "");
+
+        URL_ROOT = urlPrefix + "/";
+        URL_STATE_CLUSTER = urlPrefix + "/_cluster/health";
+        URL_BULK = urlPrefix + "/_bulk";
+        URL_TEMPLATE = urlPrefix + "/_template";
+        URL_INGEST = urlPrefix + "/_ingest/pipeline";
+        URL_SEARCH = urlPrefix + "/_search?ignore_unavailable=true";
+        URL_COUNT = urlPrefix + "/_count?ignore_unavailable=true";
     }
 
     @Override
