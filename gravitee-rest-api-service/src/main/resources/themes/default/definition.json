@@ -7,29 +7,29 @@
           "name": "--gv-theme-color-darker",
           "description": "Primary darker color",
           "type": "color",
-          "default": "#1D3730",
-          "value": "#1D3730"
+          "default": "#383E3F",
+          "value": "#383E3F"
         },
         {
           "name": "--gv-theme-color-dark",
           "description": "Primary dark color",
           "type": "color",
-          "default": "#193E34",
-          "value": "#193E34"
+          "default": "#28444F",
+          "value": "#28444F"
         },
         {
           "name": "--gv-theme-color",
           "description": "Primary color",
           "type": "color",
-          "default": "#009B5B",
-          "value": "#009B5B"
+          "default": "#5A7684",
+          "value": "#5A7684"
         },
         {
           "name": "--gv-theme-color-light",
           "description": "Primary light color",
           "type": "color",
-          "default": "#D5FDCB",
-          "value": "#D5FDCB"
+          "default": "#86c3d0",
+          "value": "#86c3d0"
         },
         {
           "name": "--gv-theme-color-danger",
@@ -168,8 +168,8 @@
           "name": "--gv-theme-homepage-background-color",
           "description": "Homepage background color",
           "type": "color",
-          "default": "#193E34",
-          "value": "#193E34"
+          "default": "#5A7684",
+          "value": "#5A7684"
         }
       ]
     },
@@ -187,7 +187,7 @@
           "name": "--gv-user-menu-hover--c",
           "description": "Hover color",
           "type": "color",
-          "default": "var(--gv-theme-color-dark, #193E34)",
+          "default": "var(--gv-theme-color-dark, #28444F)",
           "value": ""
         },
         {
@@ -208,7 +208,7 @@
           "name": "--gv-user-menu-hover--bgc",
           "description": "Hover background color",
           "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         },
         {
@@ -288,14 +288,14 @@
           "name": "--gv-menu--bgc",
           "description": "Background color.",
           "type": "color",
-          "default": "var(--gv-theme-color-dark, #193E34)",
+          "default": "var(--gv-theme-color-dark, #28444F)",
           "value": ""
         },
         {
           "name": "--gv-menu-link-active--bdbc",
           "description": "Border bottom color of active link.",
           "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         },
         {
@@ -342,7 +342,7 @@
           "name": "--gv-header--bgc",
           "description": "Background color.",
           "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         },
         {
@@ -389,7 +389,7 @@
           "name": "--gv-tree-active--bdc",
           "description": "Active border",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -429,7 +429,7 @@
           "name": "--gv-table-selected--bgc",
           "description": "Selected background color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -476,14 +476,14 @@
           "name": "--gv-stepper-validate--bgc",
           "description": "Validate background color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
           "name": "--gv-stepper-passed--bdc",
           "description": "Passed border color",
           "type": "color",
-          "default": "var(--gv-theme-color-light,#D5FDCB)",
+          "default": "var(--gv-theme-color-light,#86c3d0)",
           "value": ""
         },
         {
@@ -563,7 +563,7 @@
           "name": "--gv-rating--c",
           "description": "Color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -615,7 +615,7 @@
           "name": "--gv-promote-image--bgc",
           "description": "Image background color",
           "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         },
         {
@@ -688,7 +688,7 @@
           "name": "--gv-plans--bgc",
           "description": "Background color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -702,7 +702,7 @@
           "name": "--gv-plans-characteristic--bgc",
           "description": "Characteristic background color",
           "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         },
         {
@@ -834,7 +834,7 @@
           "name": "--gv-identity-picture-notification--bgc",
           "description": "Notification background color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         }
       ]
@@ -907,7 +907,7 @@
           "name": "--gv-code--bdc",
           "description": "Border color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -1070,7 +1070,7 @@
           "name": "--gv-tag-major--bgc",
           "description": "Major background color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -1091,7 +1091,7 @@
           "name": "--gv-tag-major--bdc",
           "description": "Major border color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -1180,7 +1180,7 @@
           "name": "--gv-switch-on--bgc",
           "description": "On background color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -1267,7 +1267,7 @@
           "name": "--gv-select-hover--bgc",
           "description": "Hover background color",
           "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         },
         {
@@ -1286,7 +1286,7 @@
           "name": "--gv-metric--c",
           "description": "Color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -1305,14 +1305,14 @@
           "name": "--gv-message-success--bgc",
           "description": "Success background color",
           "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         },
         {
           "name": "--gv-message-success--c",
           "description": "Success color",
           "type": "color",
-          "default": "var(--gv-theme-color-darker, #1D3730)",
+          "default": "var(--gv-theme-color-darker, #383E3F)",
           "value": ""
         },
         {
@@ -1401,7 +1401,7 @@
           "name": "--gv-link-active--bgc",
           "description": "Active background color",
           "type": "color",
-          "default": "var(--gv-theme-color-dark, #193E34)",
+          "default": "var(--gv-theme-color-dark, #28444F)",
           "value": ""
         },
         {
@@ -1519,7 +1519,7 @@
           "name": "--gv-date-picker-hover--bgc",
           "description": "Hover background color",
           "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         },
         {
@@ -1533,7 +1533,7 @@
           "name": "--gv-date-picker-selected--bgc",
           "description": "Selected background color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -1552,7 +1552,7 @@
           "name": "--gv-date-picker-hover--bgc",
           "description": "Hover background color",
           "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         },
         {
@@ -1566,7 +1566,7 @@
           "name": "--gv-date-picker-selected--bgc",
           "description": "Selected background color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -1585,7 +1585,7 @@
           "name": "--gv-date-picker-hover--bgc",
           "description": "Hover background color",
           "type": "color",
-          "default": "var(--gv-theme-color-light, #D5FDCB)",
+          "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         },
         {
@@ -1599,7 +1599,7 @@
           "name": "--gv-date-picker-selected--bgc",
           "description": "Selected background color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
@@ -1618,7 +1618,7 @@
           "name": "--gv-checkbox--bgc",
           "description": "Checked background color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         }
       ]
@@ -1630,7 +1630,7 @@
           "name": "--gv-button--bgc",
           "description": "Background color",
           "type": "color",
-          "default": "var(--gv-theme-color-dark, #193E34)",
+          "default": "var(--gv-theme-color-dark, #28444F)",
           "value": ""
         },
         {
@@ -1651,7 +1651,7 @@
           "name": "--gv-button-primary--bgc",
           "description": "Primary background color",
           "type": "color",
-          "default": "var(--gv-theme-color, #009B5B)",
+          "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
         },
         {
