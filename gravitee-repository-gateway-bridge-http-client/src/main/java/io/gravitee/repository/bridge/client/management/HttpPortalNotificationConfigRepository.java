@@ -26,6 +26,7 @@ import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -58,6 +59,11 @@ public class HttpPortalNotificationConfigRepository extends AbstractRepository i
 
     @Override
     public void deleteByUser(String user) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public void deleteReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
         throw new IllegalStateException();
     }
 }

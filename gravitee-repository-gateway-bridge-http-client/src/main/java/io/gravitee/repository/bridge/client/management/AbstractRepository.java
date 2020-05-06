@@ -20,6 +20,7 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,19 +34,22 @@ public abstract class AbstractRepository {
     @Autowired
     protected Vertx vertx;
 
+    @Autowired
+    private Environment environment;
+
     protected <T> HttpRequest<T> post(String url, BodyCodec<T> codec) {
-        return HttpRequest.<T>post(client, url).bodyCodec(codec).vertx(vertx);
+        return HttpRequest.<T>post(client, url).bodyCodec(codec).vertx(vertx).env(environment);
     }
 
     protected <T> HttpRequest<T> get(String url, BodyCodec<T> codec) {
-        return HttpRequest.<T>get(client, url).bodyCodec(codec).vertx(vertx);
+        return HttpRequest.<T>get(client, url).bodyCodec(codec).vertx(vertx).env(environment);
     }
 
     protected <T> HttpRequest<T> put(String url, BodyCodec<T> codec) {
-        return HttpRequest.<T>put(client, url).bodyCodec(codec).vertx(vertx);
+        return HttpRequest.<T>put(client, url).bodyCodec(codec).vertx(vertx).env(environment);
     }
 
     protected <T> HttpRequest<T> delete(String url, BodyCodec<T> codec) {
-        return HttpRequest.<T>delete(client, url).bodyCodec(codec).vertx(vertx);
+        return HttpRequest.<T>delete(client, url).bodyCodec(codec).vertx(vertx).env(environment);
     }
 }

@@ -40,7 +40,7 @@
 
     <properties>
         <gravitee-repository.version>3.0.0-SNAPSHOT</gravitee-repository.version>
-        <gravitee-common.version>1.16.0</gravitee-common.version>
+        <gravitee-common.version>1.16.1</gravitee-common.version>
     </properties>
 
     <dependencies>

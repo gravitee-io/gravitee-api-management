@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.client.http;
 
+import io.gravitee.repository.bridge.client.utils.BridgePath;
 import io.gravitee.repository.bridge.client.utils.VertxCompletableFuture;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.vertx.core.Future;
@@ -27,6 +28,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,6 +49,8 @@ public class HttpRequest<T> {
     private MultiMap parameters = new CaseInsensitiveHeaders();
 
     private Vertx vertx;
+
+    private Environment environment;
 
     private HttpRequest(WebClient client, HttpMethod method, String url) {
         this.client = client;
@@ -88,6 +92,12 @@ public class HttpRequest<T> {
         return this;
     }
 
+    public HttpRequest<T> env(Environment environment) {
+        this.environment = environment;
+
+        return this;
+    }
+
     public HttpMethod method() {
         return method;
     }
@@ -108,7 +118,7 @@ public class HttpRequest<T> {
         Future<T> future = Future.future();
 
         io.vertx.ext.web.client.HttpRequest<T> request = client
-                .request(method, "/_bridge" + url)
+                .request(method, BridgePath.get(environment) + url)
                 .as(codec);
 
         this.parameters.forEach(paramEntry -> request.addQueryParam(paramEntry.getKey(), paramEntry.getValue()));
@@ -139,7 +149,7 @@ public class HttpRequest<T> {
         Future<T> future = Future.future();
 
         io.vertx.ext.web.client.HttpRequest<T> request = client
-                .request(method, "/_bridge" + url)
+                .request(method, BridgePath.get(environment) + url)
                 .as(codec);
 
         this.parameters.forEach(paramEntry -> request.addQueryParam(paramEntry.getKey(), paramEntry.getValue()));
@@ -162,7 +172,7 @@ public class HttpRequest<T> {
             return completable.get();
         } catch (Exception ex) {
             logger.error("Unexpected error", ex);
-            return null;
+            throw new RuntimeException(ex);
         }
     }
 }

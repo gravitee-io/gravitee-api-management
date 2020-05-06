@@ -157,7 +157,7 @@ public class EventsHandler {
 
         Long toVal = payload.getLong("to");
         if (toVal != null && toVal > 0) {
-            builder.from(toVal);
+            builder.to(toVal);
         }
 
         JsonArray typesArr = payload.getJsonArray("types");

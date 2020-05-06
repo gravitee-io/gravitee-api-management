@@ -53,6 +53,10 @@ public class HttpMembershipRepository extends AbstractRepository implements Memb
         throw new IllegalStateException();
     }
 
+    public void deleteMembers(MembershipReferenceType referenceType, String referenceId) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
     @Override
     public Set<Membership> findByIds(Set<String> membershipIds) throws TechnicalException {
         throw new IllegalStateException();
