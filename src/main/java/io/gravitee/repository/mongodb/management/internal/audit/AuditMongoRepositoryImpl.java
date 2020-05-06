@@ -52,9 +52,9 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
 
         if (filter.getFrom() != 0 && filter.getTo() != 0) {
             query.addCriteria(
-                    where("createdAt").gte(new Date(filter.getFrom())).
-                    andOperator(
-                    where("createdAt").lte(new Date(filter.getTo()))));
+                    where("createdAt")
+                            .gte(new Date(filter.getFrom()))
+                            .lte(new Date(filter.getTo())));
         } else {
             if (filter.getFrom() != 0) {
                 query.addCriteria(where("createdAt").gte(new Date(filter.getFrom())));

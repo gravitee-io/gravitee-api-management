@@ -35,6 +35,9 @@ public interface PortalNotificationConfigMongoRepository extends MongoRepository
 
     @Query(value = "{ 'id.user': ?0 }", delete = true)
     void deleteByUser(String user);
+
+    @Query(value = "{ 'id.referenceType': ?0, 'id.referenceId': ?1 }", delete = true)
+    void deleteByReference(String referenceType, String referenceId);
 }
 
 

@@ -39,6 +39,8 @@ public class MembershipMongo extends Auditable {
     
     private String roleId;
 
+    private String source;
+
     public String getMemberId() {
         return memberId;
     }
@@ -53,6 +55,14 @@ public class MembershipMongo extends Auditable {
 
     public void setMemberType(String memberType) {
         this.memberType = memberType;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public String getReferenceId() {

@@ -15,30 +15,17 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import java.util.List;
-
-import io.gravitee.repository.management.model.View;
-import io.gravitee.repository.mongodb.management.internal.model.ViewMongo;
+import io.gravitee.repository.mongodb.management.internal.model.AlertEventMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import io.gravitee.repository.mongodb.management.internal.model.ViewMongo;
-
-import java.util.Optional;
-
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface ViewMongoRepository extends MongoRepository<ViewMongo, String> {
+public interface AlertEventMongoRepository extends MongoRepository<AlertEventMongo, String>, AlertEventMongoRepositoryCustom {
 
-    @Query("{ 'environmentId': ?0 }")
-    List<ViewMongo> findByEnvironmentId(String environmentId);
-
-    @Query("{ 'environmentId': ?1, 'key': ?0 }")
-    Optional<ViewMongo> findByKeyAndEnvironment(String key, String environment);
 }
 
 

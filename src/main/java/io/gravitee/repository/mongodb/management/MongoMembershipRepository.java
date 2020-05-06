@@ -78,6 +78,13 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
+    public void deleteMembers(MembershipReferenceType referenceType, String referenceId) throws TechnicalException {
+        logger.debug("Delete memberships [{}, {}]", referenceType, referenceId);
+        internalMembershipRepo.deleteByRef(referenceType.name(), referenceId);
+        logger.debug("Delete memberships [{}, {}] - Done", referenceType, referenceId);
+    }
+
+    @Override
     public Optional<Membership> findById(String membershipId) throws TechnicalException {
         logger.debug("Find membership by ID [{}]", membershipId);
 
@@ -219,6 +226,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         membership.setReferenceType(MembershipReferenceType.valueOf(membershipMongo.getReferenceType()));
         membership.setReferenceId(membershipMongo.getReferenceId());
         membership.setRoleId(membershipMongo.getRoleId());
+        membership.setSource(membershipMongo.getSource());
         membership.setCreatedAt(membershipMongo.getCreatedAt());
         membership.setUpdatedAt(membershipMongo.getUpdatedAt());
         return membership;
@@ -235,6 +243,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         membershipMongo.setReferenceId(membership.getReferenceId());
         membershipMongo.setReferenceType(membership.getReferenceType().name());
         membershipMongo.setRoleId(membership.getRoleId());
+        membershipMongo.setSource(membership.getSource());
         membershipMongo.setCreatedAt(membership.getCreatedAt());
         membershipMongo.setUpdatedAt(membership.getUpdatedAt());
         return membershipMongo;

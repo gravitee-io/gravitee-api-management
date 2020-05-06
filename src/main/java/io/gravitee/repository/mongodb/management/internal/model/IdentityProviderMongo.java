@@ -52,6 +52,8 @@ public class IdentityProviderMongo extends Auditable {
 
 	private Boolean emailRequired;
 
+	private Boolean syncMappings;
+
 	public String getId() {
         return id;
     }
@@ -146,6 +148,14 @@ public class IdentityProviderMongo extends Auditable {
 
 	public void setEmailRequired(Boolean emailRequired) {
 		this.emailRequired = emailRequired;
+	}
+
+	public Boolean getSyncMappings() {
+		return syncMappings;
+	}
+
+	public void setSyncMappings(Boolean syncMappings) {
+		this.syncMappings = syncMappings;
 	}
 
 	@Override

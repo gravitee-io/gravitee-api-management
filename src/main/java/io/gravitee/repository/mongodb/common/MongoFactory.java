@@ -56,6 +56,8 @@ public class MongoFactory implements FactoryBean<Mongo> {
 
     private final String propertyPrefix;
 
+    private Mongo mongo;
+
     public MongoFactory(String propertyPrefix) {
         this.propertyPrefix = propertyPrefix + ".mongodb.";
     }
@@ -181,48 +183,54 @@ public class MongoFactory implements FactoryBean<Mongo> {
 
     @Override
     public Mongo getObject() throws Exception {
-        MongoClientOptions.Builder builder = builder();
+        // According to https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/beans/factory/FactoryBean.html#isSingleton--
+        // It is the responsibility of the bean factory to ensure singleton instance.
+        if (mongo == null) {
+            MongoClientOptions.Builder builder = builder();
 
-        // Trying to get the MongoClientURI if uri property is defined
-        String uri = readPropertyValue(propertyPrefix + "uri");
+            // Trying to get the MongoClientURI if uri property is defined
+            String uri = readPropertyValue(propertyPrefix + "uri");
 
-        if (uri != null && ! uri.isEmpty()) {
-            // The builder can be configured with default options, which may be overridden by options specified in
-            // the URI string.
-            return new MongoClient(
-                    new MongoClientURI(uri, builder));
-        } else {
-            String username = readPropertyValue(propertyPrefix + "username");
-            String password = readPropertyValue(propertyPrefix + "password");
-
-            MongoCredential credential = null;
-            if (username != null || password != null) {
-                String authSource = readPropertyValue(propertyPrefix + "authSource", String.class, "gravitee");
-                credential = MongoCredential.createCredential(username, authSource, password.toCharArray());
-            }
-
-
-            List<ServerAddress> seeds;
-            int serversCount = getServersCount();
-
-            if (serversCount == 0) {
-                String host = readPropertyValue(propertyPrefix + "host", String.class, "localhost");
-                int port = readPropertyValue(propertyPrefix + "port", int.class, 27017);
-                seeds = Collections.singletonList(new ServerAddress(host, port));
+            if (uri != null && !uri.isEmpty()) {
+                // The builder can be configured with default options, which may be overridden by options specified in
+                // the URI string.
+                mongo = new MongoClient(
+                        new MongoClientURI(uri, builder));
             } else {
-                seeds = new ArrayList<>(serversCount);
-                for (int i = 0; i < serversCount; i++) {
-                    seeds.add(buildServerAddress(i));
+                String username = readPropertyValue(propertyPrefix + "username");
+                String password = readPropertyValue(propertyPrefix + "password");
+
+                MongoCredential credential = null;
+                if (username != null || password != null) {
+                    String authSource = readPropertyValue(propertyPrefix + "authSource", String.class, "gravitee");
+                    credential = MongoCredential.createCredential(username, authSource, password.toCharArray());
+                }
+
+
+                List<ServerAddress> seeds;
+                int serversCount = getServersCount();
+
+                if (serversCount == 0) {
+                    String host = readPropertyValue(propertyPrefix + "host", String.class, "localhost");
+                    int port = readPropertyValue(propertyPrefix + "port", int.class, 27017);
+                    seeds = Collections.singletonList(new ServerAddress(host, port));
+                } else {
+                    seeds = new ArrayList<>(serversCount);
+                    for (int i = 0; i < serversCount; i++) {
+                        seeds.add(buildServerAddress(i));
+                    }
+                }
+
+                MongoClientOptions options = builder.build();
+                if (credential == null) {
+                    mongo = new MongoClient(seeds, options);
+                } else {
+                    mongo = new MongoClient(seeds, credential, options);
                 }
             }
-
-            MongoClientOptions options = builder.build();
-            if (credential == null) {
-                return new MongoClient(seeds, options);
-            }
-
-            return new MongoClient(seeds, credential, options);
         }
+
+        return mongo;
     }
 
     public com.mongodb.reactivestreams.client.MongoClient getReactiveClient() throws Exception {
@@ -307,7 +315,7 @@ public class MongoFactory implements FactoryBean<Mongo> {
             String password = readPropertyValue(propertyPrefix + "password");
             MongoCredential credentials = null;
             if (username != null || password != null) {
-                String authSource = readPropertyValue(propertyPrefix + "authSource", String.class, "gravitee-am");
+                String authSource = readPropertyValue(propertyPrefix + "authSource", String.class, "gravitee");
                 credentials = MongoCredential.createCredential(username, authSource, password.toCharArray());
                 builder.credential(credentials);
             }

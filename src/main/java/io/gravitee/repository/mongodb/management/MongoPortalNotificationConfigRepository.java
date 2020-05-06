@@ -96,6 +96,12 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
         internalRepo.deleteByUser(user);
     }
 
+    @Override
+    public void deleteReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+        LOGGER.debug("Delete PortalNotificationConfigs [{}, {}]", referenceType, referenceId);
+        internalRepo.deleteByReference(referenceType.name(), referenceId);
+    }
+
     private PortalNotificationConfigMongo map(PortalNotificationConfig portalNotificationConfig) {
         PortalNotificationConfigPkMongo pk = new PortalNotificationConfigPkMongo();
         pk.setReferenceType(portalNotificationConfig.getReferenceType());

@@ -103,3 +103,14 @@ db.genericnotificationconfigs.dropIndexes();
 db.genericnotificationconfigs.createIndex( {"referenceId":1, "referenceType":1, "hooks":1});
 db.genericnotificationconfigs.createIndex( {"referenceId":1, "referenceType":1});
 db.genericnotificationconfigs.reIndex();
+
+// "alert triggers" collection
+db.alert_triggers.dropIndexes();
+db.alert_triggers.createIndex( { "referenceType": 1, "referenceId": 1 } );
+db.alert_triggers.reIndex();
+
+// "alert events" collection
+db.alert_events.dropIndexes();
+db.alert_events.createIndex( { "alert": 1 } );
+db.alert_events.createIndex( { "createdAt": 1 } );
+db.alert_events.reIndex();
