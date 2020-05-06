@@ -16,13 +16,19 @@
 package io.gravitee.gateway.standalone.vertx;
 
 import io.vertx.core.http.HttpServerOptions;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpServerConfiguration {
+public class VertxHttpServerConfiguration implements InitializingBean {
+
+    @Autowired
+    private ConfigurableEnvironment environment;
 
     @Value("${http.port:8082}")
     private int port;
@@ -36,14 +42,19 @@ public class VertxHttpServerConfiguration {
     @Value("${http.alpn:false}")
     private boolean alpn;
 
-    @Value("${http.ssl.clientAuth:false}")
-    private boolean clientAuth;
+    private ClientAuthMode clientAuth;
+
+    @Value("${http.ssl.keystore.type:#{null}}")
+    private String keyStoreType;
 
     @Value("${http.ssl.keystore.path:#{null}}")
     private String keyStorePath;
 
     @Value("${http.ssl.keystore.password:#{null}}")
     private String keyStorePassword;
+
+    @Value("${http.ssl.truststore.type:#{null}}")
+    private String trustStoreType;
 
     @Value("${http.ssl.truststore.path:#{null}}")
     private String trustStorePath;
@@ -125,11 +136,11 @@ public class VertxHttpServerConfiguration {
         this.trustStorePath = trustStorePath;
     }
 
-    public boolean isClientAuth() {
+    public ClientAuthMode isClientAuth() {
         return clientAuth;
     }
 
-    public void setClientAuth(boolean clientAuth) {
+    public void setClientAuth(ClientAuthMode clientAuth) {
         this.clientAuth = clientAuth;
     }
 
@@ -187,5 +198,52 @@ public class VertxHttpServerConfiguration {
 
     public void setWebsocketEnabled(boolean websocketEnabled) {
         this.websocketEnabled = websocketEnabled;
+    }
+
+    public String getKeyStoreType() {
+        return keyStoreType;
+    }
+
+    public void setKeyStoreType(String keyStoreType) {
+        this.keyStoreType = keyStoreType;
+    }
+
+    public String getTrustStoreType() {
+        return trustStoreType;
+    }
+
+    public void setTrustStoreType(String trustStoreType) {
+        this.trustStoreType = trustStoreType;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        String sClientAuthMode = environment.getProperty("http.ssl.clientAuth", ClientAuthMode.NONE.name());
+
+        if (sClientAuthMode.equalsIgnoreCase(Boolean.TRUE.toString())) {
+            clientAuth = ClientAuthMode.REQUIRED;
+        } else if (sClientAuthMode.equalsIgnoreCase(Boolean.FALSE.toString())) {
+            clientAuth = ClientAuthMode.NONE;
+        } else {
+            clientAuth = ClientAuthMode.valueOf(sClientAuthMode.toUpperCase());
+        }
+    }
+
+    public enum ClientAuthMode {
+        /**
+         * No client authentication is requested or required.
+         */
+        NONE,
+
+        /**
+         * Accept authentication if presented by client. If this option is set and the client chooses
+         * not to provide authentication information about itself, the negotiations will continue.
+         */
+        REQUEST,
+
+        /**
+         * Require client to present authentication, if not presented then negotiations will be declined.
+         */
+        REQUIRED
     }
 }

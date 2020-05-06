@@ -129,7 +129,6 @@ class VertxProxyConnection implements ProxyConnection {
                 httpClientRequest.setChunked(true);
             }
         } else {
-            proxyRequest.headers().remove(HttpHeaders.CONTENT_TYPE);
             proxyRequest.headers().remove(HttpHeaders.TRANSFER_ENCODING);
         }
 

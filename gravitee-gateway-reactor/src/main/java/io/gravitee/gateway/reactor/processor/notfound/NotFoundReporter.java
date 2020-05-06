@@ -41,6 +41,7 @@ public class NotFoundReporter extends AbstractProcessor<ExecutionContext> {
         Metrics metrics = context.request().metrics();
         metrics.setApi(UNKNOWN_SERVICE);
         metrics.setApplication(UNKNOWN_SERVICE);
+        metrics.setPath(context.request().pathInfo());
 
         if (logEnabled) {
             Buffer payload = Buffer.buffer();

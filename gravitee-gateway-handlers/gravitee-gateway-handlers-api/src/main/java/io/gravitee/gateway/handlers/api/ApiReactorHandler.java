@@ -111,10 +111,6 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         // Call an invoker to get a proxy connection (connection to an underlying backend, mainly HTTP)
         Invoker upstreamInvoker = (Invoker) context.getAttribute(ExecutionContext.ATTR_INVOKER);
 
-        // set the username provided by the jwt policy
-        if (context.getAttribute(ExecutionContext.ATTR_USER) != null && context.request().metrics().getUser() == null) {
-            context.request().metrics().setUser((String) context.getAttribute(ExecutionContext.ATTR_USER));
-        }
         context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis());
 
         upstreamInvoker.invoke(context, chain, connection -> {
@@ -198,8 +194,11 @@ public class ApiReactorHandler extends AbstractReactorHandler {
 
 
     private void handleError(ExecutionContext context, ProcessorFailure failure) {
+        if (context.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
+            context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
+                    context.request().metrics().getApiResponseTimeMs());
+        }
         context.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
-
         errorProcessorChain
                 .create()
                 .handler(__ -> handler.handle(context))

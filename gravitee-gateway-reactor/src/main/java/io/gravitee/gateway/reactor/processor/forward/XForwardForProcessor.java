@@ -44,11 +44,16 @@ public class XForwardForProcessor extends AbstractProcessor<ExecutionContext> {
             String[] xForwardedForValues = commaDelimitedListToStringArray(xForwardedForHeader);
 
             if (xForwardedForValues.length > 0) {
+                String xForwardFor = xForwardedForValues[0];
+                int idx = xForwardFor.indexOf(':');
+
+                xForwardFor = (idx != -1) ? xForwardFor.substring(0, idx).trim() : xForwardFor.trim();
+
                 // X-Forwarded-For header must be reconstructed to include the gateway host address
-                ((MutableExecutionContext) context).request(new XForwardForRequest(request, xForwardedForValues[0]));
+                ((MutableExecutionContext) context).request(new XForwardForRequest(request, xForwardFor));
 
                 // And override the remote address provided by container in metrics
-                request.metrics().setRemoteAddress(xForwardedForValues[0]);
+                request.metrics().setRemoteAddress(xForwardFor);
             }
         }
 

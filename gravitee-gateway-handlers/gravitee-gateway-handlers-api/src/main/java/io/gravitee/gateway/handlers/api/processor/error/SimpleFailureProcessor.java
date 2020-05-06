@@ -34,11 +34,13 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
      */
     private static final String APPLICATION_NAME_ANONYMOUS = "1";
 
+    private static final String PROCESSOR_FAILURE_ATTRIBUTE = ExecutionContext.ATTR_PREFIX + "failure";
+
     private final static ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public void handle(ExecutionContext context) {
-        final ProcessorFailure failure = (ProcessorFailure) context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure");
+        final ProcessorFailure failure = (ProcessorFailure) context.getAttribute(PROCESSOR_FAILURE_ATTRIBUTE);
 
         // If no application has been associated to the request (for example in case security chain can not be processed
         // correctly) set the default application to track it.

@@ -30,8 +30,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.management.model.Subscription.Status.*;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class SubscriptionRefresher implements Runnable {
@@ -65,8 +68,8 @@ public class SubscriptionRefresher implements Runnable {
 
     private Throwable lastException;
 
-    private final static List<Subscription.Status> REFRESH_STATUS = Arrays.asList(
-            Subscription.Status.ACCEPTED, Subscription.Status.CLOSED, Subscription.Status.PAUSED);
+    private static final List<Subscription.Status> REFRESH_STATUS = Arrays.asList(
+            Subscription.Status.ACCEPTED, CLOSED, PAUSED);
 
     public SubscriptionRefresher(final Api api) {
         this.api = api;
@@ -142,7 +145,7 @@ public class SubscriptionRefresher implements Runnable {
 
         Element element = cache.get(subscription.getId());
 
-        if ((subscription.getStatus() == Subscription.Status.CLOSED || subscription.getStatus() == Subscription.Status.PAUSED)
+        if ((CLOSED.equals(subscription.getStatus()) || PAUSED.equals(subscription.getStatus()))
                 && element != null) {
             cache.removeElement(element);
             String oldKey = (String) element.getObjectValue();
@@ -150,7 +153,7 @@ public class SubscriptionRefresher implements Runnable {
             if (eltSubscription != null && ((Subscription)eltSubscription.getObjectValue()).getId().equals(subscription.getId())) {
                 cache.remove(oldKey);
             }
-        } else {
+        } else if (ACCEPTED.equals(subscription.getStatus())){
             LOGGER.debug("Cache a subscription: plan[{}] application[{}] client_id[{}]", subscription.getPlan(), subscription.getApplication(), subscription.getClientId());
             cache.put(new Element(subscription.getId(), key));
             cache.put(new Element(key, subscription));
