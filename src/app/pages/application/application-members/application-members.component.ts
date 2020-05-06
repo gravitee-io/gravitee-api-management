@@ -23,7 +23,8 @@ import {
   User,
   PortalService,
   PermissionsService,
-  Subscription
+  Subscription,
+  PermissionsResponse
 } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -242,21 +243,19 @@ export class ApplicationMembersComponent implements OnInit {
   }
 
   async isReadOnly(init?: boolean) {
-    let memberPermissions: string[];
-    let permissionsPromise;
+    let permissions : PermissionsResponse;
     if (init) {
-      permissionsPromise = Promise.resolve(() => this.route.snapshot.data.permissions);
+      permissions = this.route.snapshot.data.permissions;
     } else {
-      permissionsPromise = this.permissionService.getCurrentUserPermissions({ applicationId: this.application.id }).toPromise();
+      permissions = await this.permissionService.getCurrentUserPermissions({ applicationId: this.application.id }).toPromise();
     }
-    return permissionsPromise.then((permissions) => {
-        if (permissions) {
-          memberPermissions = permissions.MEMBER;
-          return !memberPermissions || memberPermissions.length === 0 || !memberPermissions.includes('U');
-        } else {
-          return true;
-        }
-      });
+
+    if (permissions) {
+      const memberPermissions = permissions.MEMBER;
+      return !memberPermissions || memberPermissions.length === 0 || !memberPermissions.includes('U');
+    } else {
+      return true;
+    }
   }
 
   loadMembersTable() {
