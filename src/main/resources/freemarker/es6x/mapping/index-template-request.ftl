@@ -45,8 +45,7 @@
                     "index": false
                 },
                 "remote-address": {
-                    "type": "ip",
-                    "index": false
+                    "type": "ip"
                 },
                 "geoip" : {
                     "properties": {
