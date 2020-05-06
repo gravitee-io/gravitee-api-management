@@ -63,8 +63,7 @@ public class RoleScopeResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE)
     })
-    public RoleEntity create(@Valid @NotNull final NewRoleEntity role) {
-        return roleService.create(role);
+    public RoleEntity create(@PathParam("scope") RoleScope scope, @Valid @NotNull final NewRoleEntity role) {        return roleService.create(role);
     }
 
     @Path("{role}")

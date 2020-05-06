@@ -46,12 +46,12 @@ public class EntrypointsResource extends AbstractResource  {
     private EntrypointService entrypointService;
 
     @GET
-    @Path("{entrypointId}")
+    @Path("{entrypoint}")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ)
     })
-    public EntrypointEntity get(final @PathParam("entrypointId") String entrypointId)  {
+    public EntrypointEntity get(final @PathParam("entrypoint") String entrypointId)  {
         return entrypointService.findById(entrypointId);
     }
 

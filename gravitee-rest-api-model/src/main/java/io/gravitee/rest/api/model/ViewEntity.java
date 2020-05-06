@@ -32,6 +32,7 @@ public class ViewEntity {
     @NotNull
     @Size(min = 1)
     private String name;
+    private String key;
     private String description;
     private boolean defaultView;
     private boolean hidden;
@@ -50,6 +51,14 @@ public class ViewEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getName() {
@@ -146,19 +155,21 @@ public class ViewEntity {
         if (!(o instanceof ViewEntity)) return false;
         ViewEntity that = (ViewEntity) o;
         return Objects.equals(id, that.id) &&
+                Objects.equals(key, that.key) &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(description, that.description);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description);
+        return Objects.hash(id, key, name, description);
     }
 
     @Override
     public String toString() {
         return "ViewEntity{" +
                 "id='" + id + '\'' +
+                ", key='" + key + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", defaultView='" + defaultView + '\'' +

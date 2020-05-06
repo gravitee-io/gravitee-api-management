@@ -716,7 +716,7 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.update(subscription)).thenAnswer(returnsFirstArg());
         when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singleton(apiKeyEntity));
         when(apiKeyEntity.isRevoked()).thenReturn(false);
-        when(apiKeyEntity.getExpireAt()).thenReturn(new Date());
+        when(apiKeyEntity.getExpireAt()).thenReturn(new Date(updatedSubscription.getEndingAt().getTime() + 10000));
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(plan.getApi()).thenReturn(API_ID);
         when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);

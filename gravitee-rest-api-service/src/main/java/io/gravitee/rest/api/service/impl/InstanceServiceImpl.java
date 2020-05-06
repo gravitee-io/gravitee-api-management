@@ -17,10 +17,13 @@ package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
 
+import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
+import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +33,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -61,71 +65,73 @@ public class InstanceServiceImpl implements InstanceService {
     }
 
     @Override
-    public Collection<InstanceListItem> findInstances(boolean includeStopped, final String gatewayId) {
-        final EventQuery query = new EventQuery();
-        if (includeStopped) {
-            query.setTypes(instancesAllState);
+    public Page<InstanceListItem> search(InstanceQuery query) {
+        List<EventType> types;
+
+        if (query.isIncludeStopped()) {
+            types = instancesAllState;
         } else {
-            query.setTypes(instancesRunningOnly);
+            types = instancesRunningOnly;
         }
-        if (gatewayId != null) {
-            query.setId(gatewayId);
-        }
+
+        return eventService.search(types, query.getProperties(), query.getFrom(),
+                query.getTo(), query.getPage(), query.getSize(), new Function<EventEntity, InstanceListItem>() {
+                    @Override
+                    public InstanceListItem apply(EventEntity eventEntity) {
+                        InstanceEntity instanceEntity = convert(eventEntity);
+
+                        InstanceListItem item = new InstanceListItem();
+                        item.setId(instanceEntity.getId());
+                        item.setEvent(instanceEntity.getEvent());
+                        item.setHostname(instanceEntity.getHostname());
+                        item.setIp(instanceEntity.getIp());
+                        item.setPort(instanceEntity.getPort());
+                        item.setLastHeartbeatAt(instanceEntity.getLastHeartbeatAt());
+                        item.setStartedAt(instanceEntity.getStartedAt());
+                        item.setStoppedAt(instanceEntity.getStoppedAt());
+                        item.setVersion(instanceEntity.getVersion());
+                        item.setTags(instanceEntity.getTags());
+                        item.setTenant(instanceEntity.getTenant());
+                        item.setOperatingSystemName(instanceEntity.getSystemProperties().get("os.name"));
+                        item.setState(instanceEntity.getState());
+
+                        return item;
+                    }
+                });
+    }
+
+    @Override
+    public InstanceEntity findById(String instanceId) {
+        final EventQuery query = new EventQuery();
+        query.setId(instanceId);
+        query.setTypes(instancesAllState);
+
         final Collection<EventEntity> events = eventService.search(query);
+        if (events == null || events.isEmpty()) {
+            throw new InstanceNotFoundException(instanceId);
+        }
 
-        Instant nowMinusXMinutes = Instant.now().minus(5, ChronoUnit.MINUTES);
-        return events.stream().map(
-                event -> {
-                    Map<String, String> props = event.getProperties();
-                    InstanceListItem instance = new InstanceListItem(props.get("id"));
-                    instance.setEvent(event.getId());
-                    instance.setLastHeartbeatAt(new Date(Long.parseLong(props.get("last_heartbeat_at"))));
-                    instance.setStartedAt(new Date(Long.parseLong(props.get("started_at"))));
-
-                    if (event.getPayload() != null) {
-                        try {
-                            InstanceInfo info = objectMapper.readValue(event.getPayload(), InstanceInfo.class);
-                            instance.setHostname(info.getHostname());
-                            instance.setIp(info.getIp());
-                            instance.setPort(info.getPort());
-                            instance.setVersion(info.getVersion());
-                            instance.setTags(info.getTags());
-                            instance.setTenant(info.getTenant());
-                            instance.setOperatingSystemName(info.getSystemProperties().get("os.name"));
-                        } catch (IOException ioe) {
-                            LOGGER.error("Unexpected error while getting instance informations from event payload", ioe);
-                        }
-                    }
-
-                    if (event.getType() == EventType.GATEWAY_STARTED) {
-                        instance.setState(InstanceState.STARTED);
-                        // If last heartbeat timestamp is < now - 5m, set as unknown state
-                        Instant lastHeartbeat = Instant.ofEpochMilli(instance.getLastHeartbeatAt().getTime());
-                        if (lastHeartbeat.isBefore(nowMinusXMinutes)) {
-                            instance.setState(InstanceState.UNKNOWN);
-                        }
-                    } else {
-                        instance.setState(InstanceState.STOPPED);
-                        instance.setStoppedAt(new Date(Long.parseLong(props.get("stopped_at"))));
-                    }
-
-                    return instance;
-                }
-        ).collect(Collectors.toList());
+        return convert(events.iterator().next());
     }
 
     @Override
-    public Collection<InstanceListItem> findInstances(boolean includeStopped) {
-        return findInstances(includeStopped, null);
+    public InstanceEntity findByEvent(String eventId) {
+        try {
+            LOGGER.debug("Find instance by event ID: {}", eventId);
+
+            EventEntity event = eventService.findById(eventId);
+            return convert(event);
+        } catch (EventNotFoundException enfe) {
+            throw new InstanceNotFoundException(eventId);
+        }
     }
 
-    @Override
-    public InstanceEntity findById(String eventId) {
-        EventEntity event = eventService.findById(eventId);
+    private InstanceEntity convert(EventEntity event) {
         Instant nowMinusXMinutes = Instant.now().minus(5, ChronoUnit.MINUTES);
 
         Map<String, String> props = event.getProperties();
         InstanceEntity instance = new InstanceEntity(props.get("id"));
+        instance.setEvent(event.getId());
         instance.setLastHeartbeatAt(new Date(Long.parseLong(props.get("last_heartbeat_at"))));
         instance.setStartedAt(new Date(Long.parseLong(props.get("started_at"))));
 
@@ -141,15 +147,16 @@ public class InstanceServiceImpl implements InstanceService {
                 instance.setSystemProperties(info.getSystemProperties());
                 instance.setPlugins(info.getPlugins());
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while getting instance informations from event payload", ioe);
+                LOGGER.error("Unexpected error while getting instance data from event payload", ioe);
             }
         }
 
         if (event.getType() == EventType.GATEWAY_STARTED) {
-            instance.setState(InstanceState.STARTED);
             // If last heartbeat timestamp is < now - 5m, set as unknown state
             Instant lastHeartbeat = Instant.ofEpochMilli(instance.getLastHeartbeatAt().getTime());
-            if (lastHeartbeat.isBefore(nowMinusXMinutes)) {
+            if (lastHeartbeat.isAfter(nowMinusXMinutes)) {
+                instance.setState(InstanceState.STARTED);
+            } else {
                 instance.setState(InstanceState.UNKNOWN);
             }
         } else {
@@ -159,7 +166,6 @@ public class InstanceServiceImpl implements InstanceService {
 
         return instance;
     }
-
 
     private static class InstanceInfo {
         private String id;

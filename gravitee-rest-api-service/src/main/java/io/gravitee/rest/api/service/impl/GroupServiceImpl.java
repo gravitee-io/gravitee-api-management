@@ -21,11 +21,12 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.repository.management.model.Group;
-import io.gravitee.repository.management.model.GroupEvent;
-import io.gravitee.repository.management.model.GroupEventRule;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.InvitationReferenceType;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -43,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.GROUP;
@@ -257,6 +259,54 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to find a group", ex);
+        }
+    }
+
+    @Override
+    public void associate(String groupId, String associationType) {
+        try {
+            if ("api".equalsIgnoreCase(associationType)) {
+                apiRepository.search(null)
+                        .forEach(new Consumer<Api>() {
+                            @Override
+                            public void accept(Api api) {
+                                if (api.getGroups() == null) {
+                                    api.setGroups(new HashSet<>());
+                                }
+
+                                if (! api.getGroups().contains(groupId)) {
+                                    api.getGroups().add(groupId);
+                                    try {
+                                        apiRepository.update(api);
+                                    } catch (TechnicalException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        });
+            } else if ("application".equalsIgnoreCase(associationType)) {
+                applicationRepository.findAll()
+                        .forEach(new Consumer<Application>() {
+                            @Override
+                            public void accept(Application application) {
+                                if (application.getGroups() == null) {
+                                    application.setGroups(new HashSet<>());
+                                }
+
+                                if (! application.getGroups().contains(groupId)) {
+                                    application.getGroups().add(groupId);
+                                    try {
+                                        applicationRepository.update(application);
+                                    } catch (TechnicalException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        });
+            }
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to associate group to all {}", associationType, ex);
+            throw new TechnicalManagementException("An error occurs while trying to associate group to all " + associationType, ex);
         }
     }
 
@@ -531,11 +581,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             group.setEventRules(groupEventRules);
         }
-        entity.setMaxInvitation(group.getMaxInvitation());
-        entity.setLockApiRole(group.isLockApiRole());
-        entity.setLockApplicationRole(group.isLockApplicationRole());
-        entity.setSystemInvitation(group.isSystemInvitation());
-        entity.setEmailInvitation(group.isEmailInvitation());
+        group.setMaxInvitation(entity.getMaxInvitation());
+        group.setLockApiRole(entity.isLockApiRole());
+        group.setLockApplicationRole(entity.isLockApplicationRole());
+        group.setSystemInvitation(entity.isSystemInvitation());
+        group.setEmailInvitation(entity.isEmailInvitation());
         return group;
     }
 

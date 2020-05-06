@@ -15,7 +15,11 @@
  */
 package io.gravitee.rest.api.services.dictionary.provider.http;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.node.api.Node;
+import io.gravitee.node.api.utils.NodeUtils;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import io.gravitee.rest.api.services.dictionary.provider.Provider;
 import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
@@ -51,6 +55,8 @@ public class HttpProvider implements Provider {
 
     private Vertx vertx;
 
+    private Node node;
+
     public HttpProvider(final HttpProviderConfiguration configuration) {
         Objects.requireNonNull(configuration, "Configuration must not be null");
         this.configuration = configuration;
@@ -84,6 +90,14 @@ public class HttpProvider implements Provider {
                     requestUri.getHost(),
                     requestUri.toString()
             );
+
+            request.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
+            request.putHeader("X-Gravitee-Request-Id", RandomString.generate());
+
+            if (configuration.getHeaders() != null) {
+                configuration.getHeaders().forEach(httpHeader ->
+                        request.putHeader(httpHeader.getName(), httpHeader.getValue()));
+            }
 
             request.handler(response -> {
                 if (response.statusCode() == HttpStatusCode.OK_200) {
@@ -135,5 +149,9 @@ public class HttpProvider implements Provider {
 
     public void setVertx(Vertx vertx) {
         this.vertx = vertx;
+    }
+
+    public void setNode(Node node) {
+        this.node = node;
     }
 }

@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
@@ -449,6 +450,19 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             LOGGER.error("An error occurs while trying to create admin roles", ex);
             throw new TechnicalManagementException("An error occurs while trying to create admin roles ", ex);
         }
+    }
+
+    @Override
+    public RoleScope findScopeByMembershipReferenceType(MembershipReferenceType type) {
+        switch (type) {
+            case API: return RoleScope.API;
+            case GROUP: return RoleScope.GROUP;
+            case APPLICATION: return RoleScope.APPLICATION;
+            case ENVIRONMENT: return RoleScope.ENVIRONMENT;
+            case ORGANIZATION: return RoleScope.ORGANIZATION;
+            case PLATFORM: return RoleScope.PLATFORM;
+        }
+        return null;
     }
 
     private void createOrUpdateSystemRole(SystemRole roleName, RoleScope roleScope, Permission[] permissions, String organizationId) throws TechnicalException {

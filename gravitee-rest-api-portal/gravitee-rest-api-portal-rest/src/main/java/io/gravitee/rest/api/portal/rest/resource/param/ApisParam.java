@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource.param;
 
 import io.gravitee.rest.api.portal.rest.model.CategoryApiQuery;
+import io.swagger.annotations.ApiParam;
 
 import javax.ws.rs.QueryParam;
 
@@ -25,16 +26,22 @@ import javax.ws.rs.QueryParam;
  */
 public class ApisParam {
 
+    @ApiParam(value = "filter by context path")
     @QueryParam("context-path")
     private String contextPath;
+    @ApiParam(value = "filter by label")
     @QueryParam("label")
     private String label;
+    @ApiParam(value = "filter by version")
     @QueryParam("version")
     private String version;
+    @ApiParam(value = "filter by full API Name")
     @QueryParam("name")
     private String name;
+    @ApiParam(value = "filter by tag")
     @QueryParam("tag")
     private String tag;
+    @ApiParam(value = "filter by view id")
     @QueryParam("view")
     private String view;
     @QueryParam("cat")

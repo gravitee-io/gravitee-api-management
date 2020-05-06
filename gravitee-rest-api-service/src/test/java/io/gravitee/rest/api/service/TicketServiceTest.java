@@ -118,7 +118,7 @@ public class TicketServiceTest {
         when(userService.findById(USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
-        when(apiService.findByIdForTemplates(API_ID)).thenReturn(api);
+        when(apiService.findByIdForTemplates(API_ID, true)).thenReturn(api);
 
         ticketService.create(USERNAME, newTicketEntity);
         verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
@@ -131,7 +131,7 @@ public class TicketServiceTest {
 
         when(userService.findById(USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
-        when(apiService.findByIdForTemplates(API_ID)).thenReturn(api);
+        when(apiService.findByIdForTemplates(API_ID, true)).thenReturn(api);
 
         final Map<String, String> metadata = new HashMap<>();
         metadata.put(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY, DefaultMetadataUpgrader.DEFAULT_METADATA_EMAIL_SUPPORT);
@@ -154,7 +154,7 @@ public class TicketServiceTest {
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(user.getFirstname()).thenReturn(USER_FIRSTNAME);
         when(user.getLastname()).thenReturn(USER_LASTNAME);
-        when(apiService.findByIdForTemplates(API_ID)).thenReturn(api);
+        when(apiService.findByIdForTemplates(API_ID, true)).thenReturn(api);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
 
         final Map<String, String> metadata = new HashMap<>();

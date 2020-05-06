@@ -119,7 +119,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     boolean active = introspectPayload.path("active").asBoolean(true);
 
                     if (active) {
-                        return authenticateUser(identityProvider, servletResponse, token);
+                        return authenticateUser(identityProvider, servletResponse, token, null);
                     } else {
                         return Response
                                 .status(Response.Status.UNAUTHORIZED)
@@ -127,7 +127,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                                 .build();
                     }
                 } else {
-                    LOGGER.debug("Token exchange failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
+                    LOGGER.error("Token exchange failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
                 }
 
                 return Response
@@ -162,6 +162,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             accessData.add(CODE_KEY, payloadInput.getCode());
             accessData.add(CODE_VERIFIER_KEY, payloadInput.getCodeVerifier());
             accessData.add(GRANT_TYPE_KEY, payloadInput.getGrantType());
+
             Response response = client.target(identityProvider.getTokenEndpoint())
                     .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
                     .post(Entity.form(accessData));
@@ -169,9 +170,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 final String accessToken = (String) getResponseEntity(response).get(ACCESS_TOKEN_PROPERTY);
-                return authenticateUser(identityProvider, servletResponse, accessToken);
+                return authenticateUser(identityProvider, servletResponse, accessToken, payloadInput.getState());
             } else {
-                LOGGER.debug("Exchange authorization code failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
+                LOGGER.error("Exchange authorization code failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
             }
             return Response
                     .status(Response.Status.UNAUTHORIZED)
@@ -188,7 +189,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
      */
     private Response authenticateUser(final SocialIdentityProviderEntity socialProvider,
                                       final HttpServletResponse servletResponse,
-                                      final String accessToken) {
+                                      final String accessToken,
+                                      final String state) {
         // Step 2. Retrieve profile information about the authenticated end-user.
         Response response = client
                 .target(socialProvider.getUserInfoEndpoint())
@@ -200,16 +202,16 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return processUser(socialProvider, servletResponse, userInfo);
+            return processUser(socialProvider, servletResponse, userInfo, state);
         } else {
-            LOGGER.debug("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
+            LOGGER.error("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
 
         }
 
         return Response.status(response.getStatusInfo()).build();
     }
 
-    private Response processUser(final SocialIdentityProviderEntity socialProvider, final HttpServletResponse servletResponse, final String userInfo) {
+    private Response processUser(final SocialIdentityProviderEntity socialProvider, final HttpServletResponse servletResponse, final String userInfo, final String state) {
         UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(socialProvider, userInfo);
         String userId = user.getId();
         
@@ -230,7 +232,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         userDetails.setEmail(user.getEmail());
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
 
-        return connectUser(userId, servletResponse);
+        return connectUser(userId, state, servletResponse);
     }
 
 }

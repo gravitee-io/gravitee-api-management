@@ -60,6 +60,8 @@ public interface PageService {
 
 	boolean isDisplayable(ApiEntity api, boolean isPagePublished, String username);
 
+	void fetchAll(PageQuery query, String contributor);
+	
 	PageEntity fetch(String pageId, String contributor);
 
 	List<PageEntity> importFiles(ImportPageEntity pageEntity);

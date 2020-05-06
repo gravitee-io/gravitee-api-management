@@ -94,6 +94,9 @@ public class UserEntity implements Indexable {
      */
     private Date lastConnectionAt;
 
+    @JsonProperty("primary_owner")
+    private boolean primaryOwner;
+
     private String status;
 
     private long loginCount;
@@ -213,15 +216,27 @@ public class UserEntity implements Indexable {
     public String getDisplayName() {
         String displayName;
 
-        if (firstname != null || lastname != null) {
-            displayName = firstname + ' ' + lastname;
-        } else if (email != null && !"memory".equals(source)){
+        if ((firstname != null && !firstname.isEmpty()) || (lastname != null && !lastname.isEmpty())) {
+            if (firstname != null && !firstname.isEmpty()) {
+                displayName = firstname + ((lastname != null && !lastname.isEmpty()) ? ' ' + lastname : "");
+            } else {
+                displayName = lastname;
+            }
+        } else if (email != null && !email.isEmpty() && !"memory".equals(source)){
             displayName = email;
         } else {
             displayName = sourceId;
         }
 
         return displayName;
+    }
+
+    public boolean isPrimaryOwner() {
+        return primaryOwner;
+    }
+
+    public void setPrimaryOwner(boolean primaryOwner) {
+        this.primaryOwner = primaryOwner;
     }
 
     @Override

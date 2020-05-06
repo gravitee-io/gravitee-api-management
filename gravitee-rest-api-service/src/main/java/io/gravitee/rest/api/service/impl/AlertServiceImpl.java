@@ -21,7 +21,20 @@ import io.gravitee.alert.api.condition.Filter;
 import io.gravitee.alert.api.condition.StringCondition;
 import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.alert.api.trigger.TriggerProvider;
+import io.gravitee.alert.api.trigger.command.AlertNotificationCommand;
+import io.gravitee.alert.api.trigger.command.Command;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.notifier.api.Notification;
+import io.gravitee.plugin.alert.AlertTriggerProviderManager;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.AlertEventRepository;
+import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.api.search.AlertEventCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.AlertEvent;
+import io.gravitee.repository.management.model.AlertTrigger;
+import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.AlertService;
@@ -33,22 +46,18 @@ import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.alert.EmailNotifierConfiguration;
-import io.gravitee.notifier.api.Notification;
-import io.gravitee.plugin.alert.AlertTriggerProviderManager;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.AlertTriggerRepository;
-import io.gravitee.repository.management.model.AlertTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
@@ -96,7 +105,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private ApplicationService applicationService;
 
     @Autowired
-    private ConfigurableEnvironment environment;
+    private AlertEventRepository alertEventRepository;
 
     @Autowired
     private TriggerProvider triggerProvider;
@@ -178,8 +187,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         }
     }
 
-    @Override
-    public List<AlertTriggerEntity> findAll() {
+    private List<AlertTriggerEntity> findAll() {
         try {
             final Set<AlertTrigger> triggers = alertTriggerRepository.findAll();
             return triggers.stream().map(this::convert).collect(toList());
@@ -194,7 +202,30 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     public List<AlertTriggerEntity> findByReference(final AlertReferenceType referenceType, final String referenceId) {
         try {
             final List<AlertTrigger> triggers = alertTriggerRepository.findByReference(referenceType.name(), referenceId);
-            return triggers.stream().map(this::convert).sorted(comparing(AlertTriggerEntity::getName)).collect(toList());
+            return triggers.stream().map(new Function<AlertTrigger, AlertTriggerEntity>() {
+                @Override
+                public AlertTriggerEntity apply(AlertTrigger alertTrigger) {
+                    AlertTriggerEntity entity = convert(alertTrigger);
+
+                    getLastEvent(entity.getId())
+                            .ifPresent(alertEvent -> {
+                                        entity.setLastAlertAt(alertEvent.getCreatedAt());
+                                        entity.setLastAlertMessage(alertEvent.getMessage());
+                                    }
+                            );
+
+                    final Date from = new Date(System.currentTimeMillis());
+
+                    Map<String, Integer> counters = new HashMap<>();
+                    counters.put("5m", countEvents(entity.getId(), from.toInstant().minus(Duration.ofMinutes(5)).toEpochMilli(), from.getTime()));
+                    counters.put("1h", countEvents(entity.getId(), from.toInstant().minus(Duration.ofHours(1)).toEpochMilli(), from.getTime()));
+                    counters.put("1d", countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(1)).toEpochMilli(), from.getTime()));
+                    counters.put("1M", countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(30)).toEpochMilli(), from.getTime()));
+
+                    entity.setCounters(counters);
+                    return entity;
+                }
+            }).sorted(comparing(AlertTriggerEntity::getName)).collect(toList());
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list alerts by reference " + referenceType
                     + '/' + referenceId;
@@ -215,6 +246,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
             // Remove from repository
             alertTriggerRepository.delete(alertId);
+            alertEventRepository.deleteAll(alertId);
 
             // Notify alert plugins
             disableTrigger(alert);
@@ -223,6 +255,30 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             LOGGER.error(msg, te);
             throw new TechnicalManagementException(msg, te);
         }
+    }
+
+    @Override
+    public Page<AlertEventEntity> findEvents(final String alertId, final AlertEventQuery eventQuery) {
+        Page<AlertEvent> alertEventsRepo = alertEventRepository.search(
+                new AlertEventCriteria.Builder().alert(alertId).from(eventQuery.getFrom()).to(eventQuery.getTo()).build(),
+                new PageableBuilder().pageNumber(eventQuery.getPageNumber()).pageSize(eventQuery.getPageSize()).build());
+
+        if (alertEventsRepo.getPageElements() == 0) {
+            return new Page<>(Collections.emptyList(), 1, 0, 0);
+        }
+
+        List<AlertEventEntity> alertEvents = alertEventsRepo.getContent().stream().map(new Function<AlertEvent, AlertEventEntity>() {
+            @Override
+            public AlertEventEntity apply(AlertEvent alertEventRepo) {
+                AlertEventEntity alertEvent = new AlertEventEntity();
+                alertEvent.setCreatedAt(alertEventRepo.getCreatedAt());
+                alertEvent.setMessage(alertEventRepo.getMessage());
+                return alertEvent;
+            }
+        }).collect(toList());
+
+        return new Page<>(alertEvents, alertEventsRepo.getPageNumber(),
+                (int) alertEventsRepo.getPageElements(), alertEventsRepo.getTotalElements());
     }
 
     /*
@@ -380,6 +436,51 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 LOGGER.error("Connection with the alerting system has been loose.");
             }
         });
+
+        triggerProvider.addListener(new TriggerProvider.OnCommandListener() {
+            @Override
+            public void doOnCommand(Command command) {
+                processCommand(command);
+            }
+        });
+    }
+
+    private void processCommand(Command command) {
+        if (command instanceof AlertNotificationCommand) {
+            try {
+                AlertNotificationCommand alertCommand = (AlertNotificationCommand) command;
+
+                AlertEvent alertEvent = new AlertEvent();
+
+                alertEvent.setId(UUID.toString(UUID.random()));
+                alertEvent.setAlert(alertCommand.getTrigger());
+                alertEvent.setCreatedAt(new Date(alertCommand.getAlert().getTimestamp()));
+                alertEvent.setUpdatedAt(alertEvent.getCreatedAt());
+                alertEvent.setMessage(alertCommand.getAlert().getMessage());
+
+                alertEventRepository.create(alertEvent);
+            } catch (TechnicalException ex) {
+            final String message = "An error occurs while trying to create an alert event from command {}" + command;
+            LOGGER.error(message, ex);
+            throw new TechnicalManagementException(message, ex);
+        }
+        } else {
+            LOGGER.warn("Unknown alert command: {}", command);
+        }
+    }
+
+    private int countEvents(final String triggerId, final long from, final long to) {
+        return (int) alertEventRepository.search(
+                new AlertEventCriteria.Builder().alert(triggerId).from(from).to(to).build(),
+                new PageableBuilder().pageNumber(0).pageSize(1).build()).getTotalElements();
+    }
+
+    private Optional<AlertEvent> getLastEvent(final String triggerId) {
+        Page<AlertEvent> alertEventsRepo = alertEventRepository.search(
+                new AlertEventCriteria.Builder().alert(triggerId).from(0).to(0).build(),
+                new PageableBuilder().pageNumber(0).pageSize(1).build());
+
+        return (alertEventsRepo.getPageElements() == 0) ? Optional.empty() : Optional.of(alertEventsRepo.getContent().get(0));
     }
 
     private AlertTrigger convert(final NewAlertTriggerEntity alertEntity) {

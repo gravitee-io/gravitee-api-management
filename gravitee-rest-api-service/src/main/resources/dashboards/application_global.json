@@ -10,7 +10,7 @@
       "type": "table",
       "selectable": true,
       "columns": [
-        "Mapped path",
+        "Path",
         "Hits"
       ],
       "paging": 5,
@@ -108,13 +108,13 @@
     "sizeY": 1,
     "sizeX": 2,
     "title": "Top slow APIs",
-    "subhead": "Order by API response time calls",
+    "subhead": "Order by API's average response time",
     "chart": {
       "type": "table",
       "selectable": true,
       "columns": [
         "API",
-        "Latency (in ms)"
+        "Response Time (in ms)"
       ],
       "paging": 5,
       "request": {

@@ -28,6 +28,7 @@ public interface LogsService {
 
     SearchLogResponse findByApi(String api, LogQuery query);
     SearchLogResponse findByApplication(String application, LogQuery query);
+    SearchLogResponse findPlatform(LogQuery query);
     ApiRequest findApiLog(String id, Long timestamp);
     ApplicationRequest findApplicationLog(String id, Long timestamp);
     String exportAsCsv(SearchLogResponse searchLogResponse);

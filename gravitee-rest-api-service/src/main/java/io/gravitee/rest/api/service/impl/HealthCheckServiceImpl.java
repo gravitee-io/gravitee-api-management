@@ -33,6 +33,7 @@ import io.gravitee.repository.healthcheck.query.log.LogsResponse;
 import io.gravitee.repository.healthcheck.query.response.histogram.DateHistogramResponse;
 import io.gravitee.repository.healthcheck.query.responsetime.AverageResponseTimeQuery;
 import io.gravitee.repository.healthcheck.query.responsetime.AverageResponseTimeResponse;
+import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.model.InstanceListItem;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
@@ -45,6 +46,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.exceptions.AnalyticsCalculateException;
+import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -408,15 +410,15 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     private Map<String, String> getGatewayMetadata(String gateway) {
         Map<String, String> metadata = new HashMap<>();
 
-        Optional<InstanceListItem> instanceOptional = instanceService.findInstances(false, gateway).stream().findFirst();
-
-        if (instanceOptional.isPresent()) {
-            metadata.put("hostname", instanceOptional.get().getHostname());
-            metadata.put("ip", instanceOptional.get().getIp());
-            if (instanceOptional.get().getTenant() != null) {
-                metadata.put("tenant", instanceOptional.get().getTenant());
+        try {
+            InstanceEntity instance = instanceService.findById(gateway);
+            metadata.put("hostname", instance.getHostname());
+            metadata.put("ip", instance.getIp());
+            if (instance.getTenant() != null) {
+                metadata.put("tenant", instance.getTenant());
             }
-        } else {
+
+        } catch (InstanceNotFoundException infe) {
             metadata.put("deleted", "true");
         }
 

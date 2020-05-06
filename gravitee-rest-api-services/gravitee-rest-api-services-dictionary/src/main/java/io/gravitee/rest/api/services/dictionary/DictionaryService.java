@@ -21,6 +21,7 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
@@ -61,6 +62,9 @@ public class DictionaryService extends AbstractService implements EventListener<
     @Autowired
     private Vertx vertx;
 
+    @Autowired
+    private Node node;
+
     private final Map<String, Long> timers = new HashMap<>();
 
     @Override
@@ -95,7 +99,7 @@ public class DictionaryService extends AbstractService implements EventListener<
     }
 
     private void startDynamicDictionary(DictionaryEntity dictionary) {
-        if (! timers.containsKey(dictionary)) {
+        if (! timers.containsKey(dictionary.getId())) {
             DictionaryProviderEntity providerConf = dictionary.getProvider();
 
             if (DICTIONARY_HTTP_PROVIDER.equals(providerConf.getType())) {
@@ -105,6 +109,7 @@ public class DictionaryService extends AbstractService implements EventListener<
 
                     HttpProvider provider = new HttpProvider(configuration);
                     provider.setVertx(vertx);
+                    provider.setNode(node);
 
                     refresher.setProvider(provider);
                     refresher.setDictionaryService(dictionaryService);

@@ -86,6 +86,12 @@ public class ApiService_DeleteTest {
     @Mock
     private AlertService alertService;
     @Mock
+    private PageService pageService;
+    @Mock
+    private GenericNotificationConfigService genericNotificationConfigService;
+    @Mock
+    private PortalNotificationConfigService portalNotificationConfigService;
+    @Mock
     private ApiQualityRuleRepository apiQualityRuleRepository;
 
     @Before

@@ -16,13 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.PolicyListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
@@ -55,6 +56,9 @@ public class PoliciesResource {
     @Inject
     private PolicyService policyService;
 
+    @Inject
+    private PolicyOperationVisitorManager policyOperationVisitorManager;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List policies")
@@ -86,6 +90,25 @@ public class PoliciesResource {
     @Path("{policy}")
     public PolicyResource getPolicyResource() {
         return resourceContext.getResource(PolicyResource.class);
+    }
+
+    @GET
+    @Path("swagger")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List Swagger policies")
+    @Permissions({
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
+    })
+    public List<PolicyListItem> getSwaggerPolicy() {
+        return policyOperationVisitorManager.getPolicyVisitors()
+                .stream()
+                .map(operationVisitor -> {
+                    PolicyListItem item = new PolicyListItem();
+                    item.setId(operationVisitor.getId());
+                    item.setName(operationVisitor.getName());
+                    return item;
+                })
+                .collect(Collectors.toList());
     }
 
     private PolicyListItem convert(PolicyEntity policy) {

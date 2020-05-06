@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.alert.*;
 
 import java.util.List;
@@ -28,6 +30,6 @@ public interface AlertService {
     AlertTriggerEntity update(UpdateAlertTriggerEntity alert);
     List<AlertTriggerEntity> findByReference(AlertReferenceType referenceType, String referenceId);
     void delete(String alertId, String referenceId);
-    List<AlertTriggerEntity> findAll();
     AlertStatusEntity getStatus();
+    Page<AlertEventEntity> findEvents(String alertId, AlertEventQuery eventQuery);
 }

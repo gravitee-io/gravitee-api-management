@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import freemarker.template.Configuration;
@@ -33,6 +34,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
@@ -42,7 +44,15 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
+import io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints.EntrypointsOAITransformer;
+import io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints.EntrypointsSwaggerV2Transformer;
+import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
+import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationSwaggerV2Transformer;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.swagger.OAIDescriptor;
+import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
+import io.gravitee.rest.api.service.swagger.SwaggerV2Descriptor;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +65,7 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -78,6 +89,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	private static final Gson gson = new Gson();
 
 	private static final Logger logger = LoggerFactory.getLogger(PageServiceImpl.class);
+
+	private static final String SENSITIVE_DATA_REPLACEMENT = "********";
 
 	@Autowired
 	private PageRepository pageRepository;
@@ -108,64 +121,64 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	private GraviteeDescriptorService graviteeDescriptorService;
 
 	private enum PageSituation {
-	    ROOT, IN_ROOT, IN_FOLDER_IN_ROOT, IN_FOLDER_IN_FOLDER, SYSTEM_FOLDER, IN_SYSTEM_FOLDER, IN_FOLDER_IN_SYSTEM_FOLDER, TRANSLATION;
+		ROOT, IN_ROOT, IN_FOLDER_IN_ROOT, IN_FOLDER_IN_FOLDER, SYSTEM_FOLDER, IN_SYSTEM_FOLDER, IN_FOLDER_IN_SYSTEM_FOLDER, TRANSLATION;
 	}
 
 	private PageSituation getPageSituation(String pageId) throws TechnicalException {
-	    if (pageId == null) {
-	        return PageSituation.ROOT;
-	    } else {
-	        Optional<Page> optionalPage = pageRepository.findById(pageId);
-	        if (optionalPage.isPresent()) {
-	            Page page = optionalPage.get();
-	            if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(page.getType())) {
-	                return PageSituation.SYSTEM_FOLDER;
-	            }
+		if (pageId == null) {
+			return PageSituation.ROOT;
+		} else {
+			Optional<Page> optionalPage = pageRepository.findById(pageId);
+			if (optionalPage.isPresent()) {
+				Page page = optionalPage.get();
+				if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(page.getType())) {
+					return PageSituation.SYSTEM_FOLDER;
+				}
 
-	            if (PageType.TRANSLATION.name().equalsIgnoreCase(page.getType())) {
-                    return PageSituation.TRANSLATION;
-                }
-	            
-                String parentId = page.getParentId();
-                if (parentId == null) {
-                    return PageSituation.IN_ROOT;
-                }
+				if (PageType.TRANSLATION.name().equalsIgnoreCase(page.getType())) {
+					return PageSituation.TRANSLATION;
+				}
 
-                Optional<Page> optionalParent = pageRepository.findById(parentId);
-                if (optionalParent.isPresent()) {
-                    Page parentPage = optionalParent.get();
-                    if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
-                        return PageSituation.IN_SYSTEM_FOLDER;
-                    }
+				String parentId = page.getParentId();
+				if (parentId == null) {
+					return PageSituation.IN_ROOT;
+				}
 
-                    if (PageType.FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
-                        String grandParentId = parentPage.getParentId();
-                        if (grandParentId == null) {
-                            return PageSituation.IN_FOLDER_IN_ROOT;
-                        }
+				Optional<Page> optionalParent = pageRepository.findById(parentId);
+				if (optionalParent.isPresent()) {
+					Page parentPage = optionalParent.get();
+					if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
+						return PageSituation.IN_SYSTEM_FOLDER;
+					}
 
-                        Optional<Page> optionalGrandParent = pageRepository.findById(grandParentId);
-                        if (optionalGrandParent.isPresent()) {
-                            Page grandParentPage = optionalGrandParent.get();
-                            if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
-                                return PageSituation.IN_FOLDER_IN_SYSTEM_FOLDER;
-                            }
-                            if (PageType.FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
-                                return PageSituation.IN_FOLDER_IN_FOLDER;
-                            }
-                        }
-                    }
-                }
+					if (PageType.FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
+						String grandParentId = parentPage.getParentId();
+						if (grandParentId == null) {
+							return PageSituation.IN_FOLDER_IN_ROOT;
+						}
 
-	        }
-	        logger.debug("Impossible to determine page situation for the page " + pageId);
-	        return null;
-	    }
+						Optional<Page> optionalGrandParent = pageRepository.findById(grandParentId);
+						if (optionalGrandParent.isPresent()) {
+							Page grandParentPage = optionalGrandParent.get();
+							if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
+								return PageSituation.IN_FOLDER_IN_SYSTEM_FOLDER;
+							}
+							if (PageType.FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
+								return PageSituation.IN_FOLDER_IN_FOLDER;
+							}
+						}
+					}
+				}
+
+			}
+			logger.debug("Impossible to determine page situation for the page " + pageId);
+			return null;
+		}
 	}
 
 	@Override
-    public PageEntity findById(String pageId) {
-	    return this.findById(pageId, null);
+	public PageEntity findById(String pageId) {
+		return this.findById(pageId, null);
 	}
 
 	@Override
@@ -177,25 +190,25 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			if (page.isPresent()) {
 				PageEntity foundPageEntity = convert(page.get());
-				if(acceptedLocale != null && !acceptedLocale.isEmpty()) {
-				    Page translation = getTranslation(foundPageEntity, acceptedLocale);
-				    if(translation != null) {
-				        String translationName = translation.getName();
-                        if(translationName != null && !translationName.isEmpty()) {
-				            foundPageEntity.setName(translationName);
-				        }
-                        String inheritContent = translation.getConfiguration().get(PageConfigurationKeys.TRANSLATION_INHERIT_CONTENT);
-                        if (inheritContent != null && "false".equals(inheritContent)) {
-                            foundPageEntity.setContent(translation.getContent());
-                        }
-				    }
+				if (acceptedLocale != null && !acceptedLocale.isEmpty()) {
+					Page translation = getTranslation(foundPageEntity, acceptedLocale);
+					if (translation != null) {
+						String translationName = translation.getName();
+						if (translationName != null && !translationName.isEmpty()) {
+							foundPageEntity.setName(translationName);
+						}
+						String inheritContent = translation.getConfiguration().get(PageConfigurationKeys.TRANSLATION_INHERIT_CONTENT);
+						if (inheritContent != null && "false".equals(inheritContent)) {
+							foundPageEntity.setContent(translation.getContent());
+						}
+					}
 				} else {
-    				List<PageEntity> translations = convert(getTranslations(foundPageEntity.getId()));
-    				if(translations != null && !translations.isEmpty()) {
-    				    foundPageEntity.setTranslations(translations);
-    				}
+					List<PageEntity> translations = convert(getTranslations(foundPageEntity.getId()));
+					if (translations != null && !translations.isEmpty()) {
+						foundPageEntity.setTranslations(translations);
+					}
 				}
-                return foundPageEntity;
+				return foundPageEntity;
 			}
 
 			throw new PageNotFoundException(pageId);
@@ -213,81 +226,122 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			apiId = ((ApiPageEntity) pageEntity).getApi();
 		}
 		transformSwagger(pageEntity, apiId);
-    }
+	}
 
 	@Override
 	public void transformSwagger(PageEntity pageEntity, String apiId) {
-		transformUsingConfiguration(pageEntity);
+		// First apply templating if required
 		if (apiId != null) {
 			transformWithTemplate(pageEntity, apiId);
+		}
+
+		// If swagger page, let's try to apply transformations
+		if (PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
+			SwaggerDescriptor<?> descriptor = swaggerService.parse(pageEntity.getContent());
+
+			if (descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V1 || descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V2) {
+				Collection<SwaggerTransformer<SwaggerV2Descriptor>> transformers = new ArrayList<>();
+				transformers.add(new PageConfigurationSwaggerV2Transformer(pageEntity));
+
+				if (apiId != null) {
+					List<ApiEntrypointEntity> entrypoints = apiService.findById(apiId).getEntrypoints();
+					transformers.add(new EntrypointsSwaggerV2Transformer(pageEntity, entrypoints));
+				}
+
+				swaggerService.transform((SwaggerV2Descriptor) descriptor, transformers);
+			} else if (descriptor.getVersion() == SwaggerDescriptor.Version.OAI_V3) {
+				Collection<SwaggerTransformer<OAIDescriptor>> transformers = new ArrayList<>();
+				transformers.add(new PageConfigurationOAITransformer(pageEntity));
+
+				if (apiId != null) {
+					List<ApiEntrypointEntity> entrypoints = apiService.findById(apiId).getEntrypoints();
+					transformers.add(new EntrypointsOAITransformer(pageEntity, entrypoints));
+				}
+
+				swaggerService.transform((OAIDescriptor) descriptor, transformers);
+			}
+
+			if (pageEntity.getContentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
+				try {
+					pageEntity.setContent(descriptor.toJson());
+				} catch (JsonProcessingException e) {
+					logger.error("Unexpected error", e);
+				}
+			} else {
+				try {
+					pageEntity.setContent(descriptor.toYaml());
+				} catch (JsonProcessingException e) {
+					logger.error("Unexpected error", e);
+				}
+			}
 		}
 	}
 
 	@Override
-    public List<PageEntity> search(final PageQuery query) {
-	    return this.search(query, null, false);
+	public List<PageEntity> search(final PageQuery query) {
+		return this.search(query, null, false);
 	}
 
 	@Override
-    public List<PageEntity> search(final PageQuery query, boolean withTranslations) {
-        return this.search(query, null, withTranslations);
-    }
+	public List<PageEntity> search(final PageQuery query, boolean withTranslations) {
+		return this.search(query, null, withTranslations);
+	}
 
 	@Override
-    public List<PageEntity> search(final PageQuery query, String acceptedLocale) {
-	    return this.search(query, acceptedLocale, false);
+	public List<PageEntity> search(final PageQuery query, String acceptedLocale) {
+		return this.search(query, acceptedLocale, false);
 	}
 
 	private List<PageEntity> search(final PageQuery query, String acceptedLocale, boolean withTranslations) {
 		try {
 			Stream<Page> pagesStream = pageRepository.search(queryToCriteria(query)).stream();
-			if(!withTranslations) {
-			    pagesStream = pagesStream.filter(page -> !PageType.TRANSLATION.name().equals(page.getType()));
+			if (!withTranslations) {
+				pagesStream = pagesStream.filter(page -> !PageType.TRANSLATION.name().equals(page.getType()));
 			}
-			
-            List<PageEntity> pages = pagesStream
-			        .map(this::convert)
-			        .collect(Collectors.toList());
-			
+
+			List<PageEntity> pages = pagesStream
+					.map(this::convert)
+					.collect(Collectors.toList());
+
 			if (acceptedLocale == null || acceptedLocale.isEmpty()) {
-                pages.forEach(p-> {
-                    if (!PageType.TRANSLATION.name().equals(p.getType())) {
-                        List<PageEntity> translations = convert(getTranslations(p.getId()));
-                        if(translations != null && !translations.isEmpty()) {
-                            p.setTranslations(translations);
-                        }
-                    }
-                });
-            } else {
-                pages.forEach(p-> {
-                    if (!PageType.TRANSLATION.name().equals(p.getType())) {
-                        Page translation = getTranslation(p, acceptedLocale);
-                        if(translation != null) {
-                            String translationName = translation.getName();
-                            if(translationName != null && !translationName.isEmpty()) {
-                                p.setName(translationName);
-                            }
-                            String inheritContent = translation.getConfiguration().get(PageConfigurationKeys.TRANSLATION_INHERIT_CONTENT);
-                            if (inheritContent != null && "false".equals(inheritContent)) {
-                                p.setContent(translation.getContent());
-                            }
-                        }
-                    }
-                });
-            }
+				pages.forEach(p -> {
+					if (!PageType.TRANSLATION.name().equals(p.getType())) {
+						List<PageEntity> translations = convert(getTranslations(p.getId()));
+						if (translations != null && !translations.isEmpty()) {
+							p.setTranslations(translations);
+						}
+					}
+				});
+			} else {
+				pages.forEach(p -> {
+					if (!PageType.TRANSLATION.name().equals(p.getType())) {
+						Page translation = getTranslation(p, acceptedLocale);
+						if (translation != null) {
+							String translationName = translation.getName();
+							if (translationName != null && !translationName.isEmpty()) {
+								p.setName(translationName);
+							}
+							String inheritContent = translation.getConfiguration().get(PageConfigurationKeys.TRANSLATION_INHERIT_CONTENT);
+							if (inheritContent != null && "false".equals(inheritContent)) {
+								p.setContent(translation.getContent());
+							}
+						}
+					}
+				});
+			}
 
 			if (query != null && query.getPublished() != null && query.getPublished()) {
 				// remove child of unpublished folders
 				return pages.stream()
-					.filter(page -> {
-						if (page.getParentId() != null) {
-							final Optional<PageEntity> optionalPage =
-									pages.stream().filter(p -> p.getId().equals(page.getParentId())).findFirst();
-							return optionalPage.map(PageEntity::isPublished).orElse(false);
-						}
-						return true;
-					})
-					.collect(toList());
+						.filter(page -> {
+							if (page.getParentId() != null) {
+								final Optional<PageEntity> optionalPage =
+										pages.stream().filter(p -> p.getId().equals(page.getParentId())).findFirst();
+								return optionalPage.map(PageEntity::isPublished).orElse(false);
+							}
+							return true;
+						})
+						.collect(toList());
 			}
 
 			return pages;
@@ -298,46 +352,40 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 	}
 
-    private Page getTranslation(PageEntity pageToTranslate, String acceptedLocale) {
-        if(PageType.LINK.name().equals(pageToTranslate.getType())
-                && pageToTranslate.getConfiguration() != null
-                && "true".equals(pageToTranslate.getConfiguration().get(PageConfigurationKeys.LINK_INHERIT))
-                ) {
-            
-            Page relatedTranslation = getTranslation(pageToTranslate.getContent(), acceptedLocale);
-            Page linkTranslation = null;
-            if(relatedTranslation != null) {
-                linkTranslation = new Page();
-                linkTranslation.setName(relatedTranslation.getName());
-                linkTranslation.setContent(relatedTranslation.getContent());
-                linkTranslation.setConfiguration(Collections.emptyMap());
+	private Page getTranslation(PageEntity pageToTranslate, String acceptedLocale) {
+		if (PageType.LINK.name().equals(pageToTranslate.getType())
+				&& pageToTranslate.getConfiguration() != null
+				&& "true".equals(pageToTranslate.getConfiguration().get(PageConfigurationKeys.LINK_INHERIT))
+		) {
 
-            }
-            return linkTranslation;
-        }
-        return getTranslation(pageToTranslate.getId(), acceptedLocale);
-    }
-    
-   private Page getTranslation(String pageId, String acceptedLocale) {
-        try {
-            Optional<Page> optTranslation = this.pageRepository.search(new PageCriteria.Builder().parent(pageId).type(PageType.TRANSLATION.name()).build())
-                    .stream()
-                    .filter(t-> acceptedLocale.equals(t.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG)))
-                    .findFirst();
-            if (optTranslation.isPresent()) {
-                return optTranslation.get();
-            }
-            return null;
-        } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to search pages", ex);
-        }
-    }
-	
-	private void transformUsingConfiguration(final PageEntity pageEntity) {
-		if (PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
-			swaggerService.transform(pageEntity);
+			Page relatedTranslation = getTranslation(pageToTranslate.getContent(), acceptedLocale);
+			Page linkTranslation = null;
+			if (relatedTranslation != null) {
+				linkTranslation = new Page();
+				linkTranslation.setName(relatedTranslation.getName());
+				linkTranslation.setContent(relatedTranslation.getContent());
+				linkTranslation.setConfiguration(Collections.emptyMap());
+
+			}
+			return linkTranslation;
+		}
+		return getTranslation(pageToTranslate.getId(), acceptedLocale);
+	}
+
+	private Page getTranslation(String pageId, String acceptedLocale) {
+		try {
+			Optional<Page> optTranslation = this.pageRepository.search(new PageCriteria.Builder().parent(pageId).type(PageType.TRANSLATION.name()).build())
+					.stream()
+					.filter(t -> acceptedLocale.equals(t.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG)))
+					.findFirst();
+			if (optTranslation.isPresent()) {
+				return optTranslation.get();
+			}
+			return null;
+		} catch (TechnicalException ex) {
+			logger.error("An error occurs while trying to search pages", ex);
+			throw new TechnicalManagementException(
+					"An error occurs while trying to search pages", ex);
 		}
 	}
 
@@ -355,7 +403,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 						model.put("metadata", mapMetadata);
 					}
 				} else {
-					ApiModelEntity apiEntity = apiService.findByIdForTemplates(api);
+					ApiModelEntity apiEntity = apiService.findByIdForTemplates(api, true);
 					model.put("api", apiEntity);
 				}
 
@@ -370,9 +418,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Override
 	public PageEntity createPage(String apiId, NewPageEntity newPageEntity) {
-	    return this.createPage(apiId, newPageEntity, GraviteeContext.getCurrentEnvironment());
+		return this.createPage(apiId, newPageEntity, GraviteeContext.getCurrentEnvironment());
 	}
-	
+
 	private PageEntity createPage(String apiId, NewPageEntity newPageEntity, String environmentId) {
 		try {
 			logger.debug("Create page {} for API {}", newPageEntity, apiId);
@@ -380,41 +428,41 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			String id = RandomString.generate();
 
 			PageType newPageType = newPageEntity.getType();
-			
-            if( PageType.TRANSLATION.equals(newPageType)) {
-			    checkTranslationConsistency(newPageEntity.getParentId(), newPageEntity.getConfiguration(), true);
-			    
-		        Optional<Page> optTranslatedPage = this.pageRepository.findById(newPageEntity.getParentId());
-		        if(optTranslatedPage.isPresent()) {
-    		        newPageEntity.setPublished(optTranslatedPage.get().isPublished());
-		        }
+
+			if (PageType.TRANSLATION.equals(newPageType)) {
+				checkTranslationConsistency(newPageEntity.getParentId(), newPageEntity.getConfiguration(), true);
+
+				Optional<Page> optTranslatedPage = this.pageRepository.findById(newPageEntity.getParentId());
+				if (optTranslatedPage.isPresent()) {
+					newPageEntity.setPublished(optTranslatedPage.get().isPublished());
+				}
 			}
-			
-            if (PageType.FOLDER.equals(newPageType)) {
-                checkFolderConsistency(newPageEntity);
-            }
 
-            if (PageType.LINK.equals(newPageType)) {
-                String resourceType = newPageEntity.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE);
-                String content = newPageEntity.getContent();
-                if(content == null || content.isEmpty()) {
-                    throw new PageActionException(PageType.LINK, "be created. It must have a URL, a page Id or a view Id");
-                }
-                if("root".equals(content) || PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) || PageConfigurationKeys.LINK_RESOURCE_TYPE_VIEW.equals(resourceType)) {
-                    newPageEntity.setPublished(true);
-                } else {
-                    Optional<Page> optionalRelatedPage = pageRepository.findById(content);
-                    if(optionalRelatedPage.isPresent()) {
-                        Page relatedPage = optionalRelatedPage.get();
-                        checkLinkRelatedPageType(relatedPage);
-                        newPageEntity.setPublished(relatedPage.isPublished());
-                    }
-                }
-            }
+			if (PageType.FOLDER.equals(newPageType)) {
+				checkFolderConsistency(newPageEntity);
+			}
 
-            if (PageType.SWAGGER == newPageType || PageType.MARKDOWN == newPageType) {
-                checkMarkdownOrSwaggerConsistency(newPageEntity, newPageType);
-            }
+			if (PageType.LINK.equals(newPageType)) {
+				String resourceType = newPageEntity.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE);
+				String content = newPageEntity.getContent();
+				if (content == null || content.isEmpty()) {
+					throw new PageActionException(PageType.LINK, "be created. It must have a URL, a page Id or a view Id");
+				}
+				if ("root".equals(content) || PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) || PageConfigurationKeys.LINK_RESOURCE_TYPE_VIEW.equals(resourceType)) {
+					newPageEntity.setPublished(true);
+				} else {
+					Optional<Page> optionalRelatedPage = pageRepository.findById(content);
+					if (optionalRelatedPage.isPresent()) {
+						Page relatedPage = optionalRelatedPage.get();
+						checkLinkRelatedPageType(relatedPage);
+						newPageEntity.setPublished(relatedPage.isPublished());
+					}
+				}
+			}
+
+			if (PageType.SWAGGER == newPageType || PageType.MARKDOWN == newPageType) {
+				checkMarkdownOrSwaggerConsistency(newPageEntity, newPageType);
+			}
 
 			Page page = convert(newPageEntity);
 
@@ -424,19 +472,19 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 
 			page.setId(id);
-			if(StringUtils.isEmpty(apiId)) {
-			    page.setReferenceId(environmentId);
-                page.setReferenceType(PageReferenceType.ENVIRONMENT);
+			if (StringUtils.isEmpty(apiId)) {
+				page.setReferenceId(environmentId);
+				page.setReferenceType(PageReferenceType.ENVIRONMENT);
 			} else {
-			    page.setReferenceId(apiId);
-			    page.setReferenceType(PageReferenceType.API);
+				page.setReferenceId(apiId);
+				page.setReferenceType(PageReferenceType.API);
 			}
 			// Set date fields
 			page.setCreatedAt(new Date());
 			page.setUpdatedAt(page.getCreatedAt());
 
 			Page createdPage = pageRepository.create(page);
-			
+
 			//only one homepage is allowed
 			onlyOneHomepage(page);
 			createAuditLog(apiId, PAGE_CREATED, page.getCreatedAt(), null, page);
@@ -453,75 +501,75 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	}
 
 
-    private void checkMarkdownOrSwaggerConsistency(NewPageEntity newPageEntity, PageType newPageType)
-            throws TechnicalException {
-        PageSituation newPageParentSituation = getPageSituation(newPageEntity.getParentId());
-        if (newPageParentSituation == PageSituation.SYSTEM_FOLDER
-                || newPageParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
-            throw new PageActionException(newPageType, "be created under a system folder");
-        }
-    }
+	private void checkMarkdownOrSwaggerConsistency(NewPageEntity newPageEntity, PageType newPageType)
+			throws TechnicalException {
+		PageSituation newPageParentSituation = getPageSituation(newPageEntity.getParentId());
+		if (newPageParentSituation == PageSituation.SYSTEM_FOLDER
+				|| newPageParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
+			throw new PageActionException(newPageType, "be created under a system folder");
+		}
+	}
 
 
-    private void checkFolderConsistency(NewPageEntity newPageEntity) throws TechnicalException {
-        if (newPageEntity.getContent() != null  && newPageEntity.getContent().length() > 0) {
-            throw new PageFolderActionException("have a content");
-        }
+	private void checkFolderConsistency(NewPageEntity newPageEntity) throws TechnicalException {
+		if (newPageEntity.getContent() != null && newPageEntity.getContent().length() > 0) {
+			throw new PageFolderActionException("have a content");
+		}
 
-        if (newPageEntity.isHomepage()) {
-            throw new PageFolderActionException("be affected to the home page");
-        }
+		if (newPageEntity.isHomepage()) {
+			throw new PageFolderActionException("be affected to the home page");
+		}
 
-        PageSituation newPageParentSituation = getPageSituation(newPageEntity.getParentId());
-        if (newPageParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
-            throw new PageFolderActionException("be created in a folder of a system folder");
-        }
-    }
+		PageSituation newPageParentSituation = getPageSituation(newPageEntity.getParentId());
+		if (newPageParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
+			throw new PageFolderActionException("be created in a folder of a system folder");
+		}
+	}
 
-    private void checkTranslationConsistency(String parentId, Map<String, String> configuration, boolean forCreation) throws TechnicalException {
-        if (parentId == null || parentId.isEmpty()) {
-            throw new PageActionException(PageType.TRANSLATION, "have no parentId");
-        }
-        if (configuration == null 
-                || configuration.get(PageConfigurationKeys.TRANSLATION_LANG) == null 
-                || configuration.get(PageConfigurationKeys.TRANSLATION_LANG).isEmpty() ) {
-            throw new PageActionException(PageType.TRANSLATION, "have no configured language");
-        }
-        
-        Optional<Page> optTranslatedPage = this.pageRepository.findById(parentId);
-        if(optTranslatedPage.isPresent()) {
-            
-            Page translatedPage = optTranslatedPage.get();
-            PageType translatedPageType = PageType.valueOf(translatedPage.getType());
-            if(PageType.ROOT == translatedPageType || PageType.SYSTEM_FOLDER == translatedPageType || PageType.TRANSLATION == translatedPageType) {
-                 throw new PageActionException(PageType.TRANSLATION, "have a parent with type " + translatedPageType.name() + ". Parent " + parentId + " is not one of this type : FOLDER, LINK, MARKDOWN, SWAGGER");
-            }
-            
-            if (forCreation) {
-                String newTranslationLang = configuration.get(PageConfigurationKeys.TRANSLATION_LANG);
-                Page existingTranslation = getTranslation(parentId, newTranslationLang);
-     
-                if (existingTranslation != null) {
-                    throw new PageActionException(PageType.TRANSLATION, "be created. A translation for this language already exist");
-                }
-            }
-        } else {
-            // TODO: should be reactivated when import/export is fixed
-            //throw new PageActionException(PageType.TRANSLATION, "have an inexisting parent. Parent " + parentId + " not found");
-        }
-    }
+	private void checkTranslationConsistency(String parentId, Map<String, String> configuration, boolean forCreation) throws TechnicalException {
+		if (parentId == null || parentId.isEmpty()) {
+			throw new PageActionException(PageType.TRANSLATION, "have no parentId");
+		}
+		if (configuration == null
+				|| configuration.get(PageConfigurationKeys.TRANSLATION_LANG) == null
+				|| configuration.get(PageConfigurationKeys.TRANSLATION_LANG).isEmpty()) {
+			throw new PageActionException(PageType.TRANSLATION, "have no configured language");
+		}
 
-    private void checkLinkRelatedPageType(Page relatedPage) throws TechnicalException {
-        PageSituation relatedPageSituation = getPageSituation(relatedPage.getId());
+		Optional<Page> optTranslatedPage = this.pageRepository.findById(parentId);
+		if (optTranslatedPage.isPresent()) {
 
-        if (PageType.LINK.name().equalsIgnoreCase(relatedPage.getType())
-                || PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(relatedPage.getType())
-                || (PageType.FOLDER.name().equalsIgnoreCase(relatedPage.getType())
-                        && relatedPageSituation == PageSituation.IN_SYSTEM_FOLDER)) {
-            throw new PageActionException(PageType.LINK,
-                    "be related to a Link, a System folder or a folder in a System folder");
-        }
-    }
+			Page translatedPage = optTranslatedPage.get();
+			PageType translatedPageType = PageType.valueOf(translatedPage.getType());
+			if (PageType.ROOT == translatedPageType || PageType.SYSTEM_FOLDER == translatedPageType || PageType.TRANSLATION == translatedPageType) {
+				throw new PageActionException(PageType.TRANSLATION, "have a parent with type " + translatedPageType.name() + ". Parent " + parentId + " is not one of this type : FOLDER, LINK, MARKDOWN, SWAGGER");
+			}
+
+			if (forCreation) {
+				String newTranslationLang = configuration.get(PageConfigurationKeys.TRANSLATION_LANG);
+				Page existingTranslation = getTranslation(parentId, newTranslationLang);
+
+				if (existingTranslation != null) {
+					throw new PageActionException(PageType.TRANSLATION, "be created. A translation for this language already exist");
+				}
+			}
+		} else {
+			// TODO: should be reactivated when import/export is fixed
+			//throw new PageActionException(PageType.TRANSLATION, "have an inexisting parent. Parent " + parentId + " not found");
+		}
+	}
+
+	private void checkLinkRelatedPageType(Page relatedPage) throws TechnicalException {
+		PageSituation relatedPageSituation = getPageSituation(relatedPage.getId());
+
+		if (PageType.LINK.name().equalsIgnoreCase(relatedPage.getType())
+				|| PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(relatedPage.getType())
+				|| (PageType.FOLDER.name().equalsIgnoreCase(relatedPage.getType())
+				&& relatedPageSituation == PageSituation.IN_SYSTEM_FOLDER)) {
+			throw new PageActionException(PageType.LINK,
+					"be related to a Link, a System folder or a folder in a System folder");
+		}
+	}
 
 	@Override
 	public PageEntity createPage(NewPageEntity newPageEntity) {
@@ -536,7 +584,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	}
 
 	private void onlyOneHomepage(Page page) throws TechnicalException {
-		if(page.isHomepage()) {
+		if (page.isHomepage()) {
 			Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().referenceId(page.getReferenceId()).referenceType(page.getReferenceType().name()).homepage(true).build());
 			pages.stream().
 					filter(i -> !i.getId().equals(page.getId())).
@@ -551,14 +599,14 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 	}
 
-    @Override
-    public PageEntity update(String pageId, UpdatePageEntity updatePageEntity) {
-        return this.update(pageId, updatePageEntity, false);
-    }
+	@Override
+	public PageEntity update(String pageId, UpdatePageEntity updatePageEntity) {
+		return this.update(pageId, updatePageEntity, false);
+	}
 
-    @Override
-    public PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial) {
-        try {
+	@Override
+	public PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial) {
+		try {
 			logger.debug("Update Page {}", pageId);
 
 			Optional<Page> optPageToUpdate = pageRepository.findById(pageId);
@@ -571,59 +619,62 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			String pageType = pageToUpdate.getType();
 
-            if (PageType.LINK.name().equalsIgnoreCase(pageType)) {
-                String newResourceRef = updatePageEntity.getContent();
-                String actualResourceRef = pageToUpdate.getContent();
+			if (PageType.LINK.name().equalsIgnoreCase(pageType)) {
+				String newResourceRef = updatePageEntity.getContent();
+				String actualResourceRef = pageToUpdate.getContent();
 
-                if(newResourceRef != null && !newResourceRef.equals(actualResourceRef)) {
-                    String resourceType = (updatePageEntity.getConfiguration() != null
-                            ? updatePageEntity.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)
-                            : pageToUpdate.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE));
-                    
-                    if(PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) && (updatePageEntity.getContent() != null && updatePageEntity.getContent().isEmpty())) {
-                        throw new PageActionException(PageType.LINK, "be created. An external Link must have a URL");
-                    }
-                    
-                    if("root".equals(newResourceRef) || PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) || PageConfigurationKeys.LINK_RESOURCE_TYPE_VIEW.equals(resourceType)) {
-                        updatePageEntity.setPublished(true);
-                    } else {
-                        Optional<Page> optionalRelatedPage = pageRepository.findById(newResourceRef);
-                        if(optionalRelatedPage.isPresent()) {
-                            Page relatedPage = optionalRelatedPage.get();
-                            checkLinkRelatedPageType(relatedPage);
-                            updatePageEntity.setPublished(relatedPage.isPublished());
-                        }
-                    }
-                } else if (newResourceRef != null && newResourceRef.equals(actualResourceRef)) {
-                 // can not publish or unpublish a Link. LINK publication state is changed when the related page is updated.
-                    updatePageEntity.setPublished(pageToUpdate.isPublished());
-                }
-            }
-            
-            if (PageType.TRANSLATION.name().equalsIgnoreCase(pageType)) {
-                String parentId = (updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().isEmpty()) ? updatePageEntity.getParentId() : pageToUpdate.getParentId();
-                Map<String, String> configuration = updatePageEntity.getConfiguration() != null ? updatePageEntity.getConfiguration() : pageToUpdate.getConfiguration();
-                checkTranslationConsistency(parentId, configuration, false);
-            }
-            
-			if (updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().equals(pageToUpdate.getParentId())) {
-			    checkUpdatedPageSituation(updatePageEntity, pageType, pageId);
-			    if (PageType.TRANSLATION.name().equalsIgnoreCase(pageType)) {
-                    Optional<Page> optionalTranslatedPage = pageRepository.findById(updatePageEntity.getParentId());
-                    if(optionalTranslatedPage.isPresent()) {
-                        updatePageEntity.setPublished(optionalTranslatedPage.get().isPublished());
-                    }
-			    }
-            }
+				if (newResourceRef != null && !newResourceRef.equals(actualResourceRef)) {
+					String resourceType = (updatePageEntity.getConfiguration() != null
+							? updatePageEntity.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)
+							: pageToUpdate.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE));
 
-            if(partial) {
-                page = merge(updatePageEntity, pageToUpdate);
-            } else {
-                page = convert(updatePageEntity);
+					if (PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) && (updatePageEntity.getContent() != null && updatePageEntity.getContent().isEmpty())) {
+						throw new PageActionException(PageType.LINK, "be created. An external Link must have a URL");
+					}
+
+					if ("root".equals(newResourceRef) || PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) || PageConfigurationKeys.LINK_RESOURCE_TYPE_VIEW.equals(resourceType)) {
+						updatePageEntity.setPublished(true);
+					} else {
+						Optional<Page> optionalRelatedPage = pageRepository.findById(newResourceRef);
+						if (optionalRelatedPage.isPresent()) {
+							Page relatedPage = optionalRelatedPage.get();
+							checkLinkRelatedPageType(relatedPage);
+							updatePageEntity.setPublished(relatedPage.isPublished());
+						}
+					}
+				} else if (newResourceRef != null && newResourceRef.equals(actualResourceRef)) {
+					// can not publish or unpublish a Link. LINK publication state is changed when the related page is updated.
+					updatePageEntity.setPublished(pageToUpdate.isPublished());
+				}
 			}
 
-            if (page.getSource() != null) {
+			if (PageType.TRANSLATION.name().equalsIgnoreCase(pageType)) {
+				String parentId = (updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().isEmpty()) ? updatePageEntity.getParentId() : pageToUpdate.getParentId();
+				Map<String, String> configuration = updatePageEntity.getConfiguration() != null ? updatePageEntity.getConfiguration() : pageToUpdate.getConfiguration();
+				checkTranslationConsistency(parentId, configuration, false);
+			}
+
+			if (updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().equals(pageToUpdate.getParentId())) {
+				checkUpdatedPageSituation(updatePageEntity, pageType, pageId);
+				if (PageType.TRANSLATION.name().equalsIgnoreCase(pageType)) {
+					Optional<Page> optionalTranslatedPage = pageRepository.findById(updatePageEntity.getParentId());
+					if (optionalTranslatedPage.isPresent()) {
+						updatePageEntity.setPublished(optionalTranslatedPage.get().isPublished());
+					}
+				}
+			}
+
+			if (partial) {
+				page = merge(updatePageEntity, pageToUpdate);
+			} else {
+				page = convert(updatePageEntity);
+			}
+
+			if (page.getSource() != null) {
 				try {
+					if (pageToUpdate.getSource() != null && pageToUpdate.getSource().getConfiguration() != null) {
+						mergeSensitiveData(this.getFetcher(pageToUpdate.getSource()).getConfiguration(), page);
+					}
 					fetchPage(page);
 				} catch (FetcherException e) {
 					throw onUpdateFail(pageId, e);
@@ -646,21 +697,21 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				return null;
 			} else {
 				Page updatedPage = pageRepository.update(page);
-				
-	            if (pageToUpdate.isPublished() != page.isPublished()
-	                    && !PageType.LINK.name().equalsIgnoreCase(pageType)
-	                    && !PageType.TRANSLATION.name().equalsIgnoreCase(pageType)) {
-	                // update all the related links and translations publication status.
-	                this.changeRelatedPagesPublicationStatus(pageId, updatePageEntity.isPublished());
-	            }
-	            
+
+				if (pageToUpdate.isPublished() != page.isPublished()
+						&& !PageType.LINK.name().equalsIgnoreCase(pageType)
+						&& !PageType.TRANSLATION.name().equalsIgnoreCase(pageType)) {
+					// update all the related links and translations publication status.
+					this.changeRelatedPagesPublicationStatus(pageId, updatePageEntity.isPublished());
+				}
+
 				createAuditLog(page.getReferenceId(), PAGE_UPDATED, page.getUpdatedAt(), pageToUpdate, page);
 
 				PageEntity pageEntity = convert(updatedPage);
 
 				// update document in search engine
-                if(pageToUpdate.isPublished() && !page.isPublished()) {
-                	searchEngineService.delete(convert(pageToUpdate), false);
+				if (pageToUpdate.isPublished() && !page.isPublished()) {
+					searchEngineService.delete(convert(pageToUpdate), false);
 				} else {
 					index(pageEntity);
 				}
@@ -668,140 +719,141 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				return pageEntity;
 			}
 		} catch (TechnicalException ex) {
-            throw onUpdateFail(pageId, ex);
+			throw onUpdateFail(pageId, ex);
 		}
 	}
 
-    private void checkUpdatedPageSituation(UpdatePageEntity updatePageEntity, String pageType, String pageId) throws TechnicalException {
-        PageSituation newParentSituation = getPageSituation(updatePageEntity.getParentId());
-        switch (pageType) {
-            case "SYSTEM_FOLDER":
-                if (newParentSituation != PageSituation.ROOT) {
-                    throw new PageActionException(PageType.SYSTEM_FOLDER, " be moved in this folder");
-                }
-                break;
-            case "MARKDOWN":
-                if (newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.IN_SYSTEM_FOLDER ) {
-                    throw new PageActionException(PageType.MARKDOWN, " be moved in a system folder or in a folder of a system folder");
-                }
-                break;
-            case "SWAGGER":
-                if (newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.IN_SYSTEM_FOLDER ) {
-                    throw new PageActionException(PageType.SWAGGER, " be moved in a system folder or in a folder of a system folder");
-                }
-                break;
-            case "FOLDER":
-                PageSituation folderSituation = getPageSituation(pageId);
-                if (folderSituation == PageSituation.IN_SYSTEM_FOLDER && newParentSituation != PageSituation.SYSTEM_FOLDER) {
-                    throw new PageActionException(PageType.FOLDER, " be moved anywhere other than in a system folder");
-                } else if (folderSituation != PageSituation.IN_SYSTEM_FOLDER && newParentSituation == PageSituation.SYSTEM_FOLDER) {
-                    throw new PageActionException(PageType.FOLDER, " be moved in a system folder");
-                }
-                break;
-            case "LINK":
-                if (newParentSituation != PageSituation.SYSTEM_FOLDER && newParentSituation != PageSituation.IN_SYSTEM_FOLDER ) {
-                    throw new PageActionException(PageType.LINK, " be moved anywhere other than in a system folder or in a folder of a system folder");
-                }
-                break;
-            case "TRANSLATION":
-                if (newParentSituation == PageSituation.ROOT || newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.TRANSLATION) {
-                    throw new PageActionException(PageType.TRANSLATION, "be updated. Parent " + updatePageEntity.getParentId() + " is not one of this type : FOLDER, LINK, MARKDOWN, SWAGGER");
-                }
-                break;
-            default:
-                break;
-        }
+	private void checkUpdatedPageSituation(UpdatePageEntity updatePageEntity, String pageType, String pageId) throws TechnicalException {
+		PageSituation newParentSituation = getPageSituation(updatePageEntity.getParentId());
+		switch (pageType) {
+			case "SYSTEM_FOLDER":
+				if (newParentSituation != PageSituation.ROOT) {
+					throw new PageActionException(PageType.SYSTEM_FOLDER, " be moved in this folder");
+				}
+				break;
+			case "MARKDOWN":
+				if (newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
+					throw new PageActionException(PageType.MARKDOWN, " be moved in a system folder or in a folder of a system folder");
+				}
+				break;
+			case "SWAGGER":
+				if (newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
+					throw new PageActionException(PageType.SWAGGER, " be moved in a system folder or in a folder of a system folder");
+				}
+				break;
+			case "FOLDER":
+				PageSituation folderSituation = getPageSituation(pageId);
+				if (folderSituation == PageSituation.IN_SYSTEM_FOLDER && newParentSituation != PageSituation.SYSTEM_FOLDER) {
+					throw new PageActionException(PageType.FOLDER, " be moved anywhere other than in a system folder");
+				} else if (folderSituation != PageSituation.IN_SYSTEM_FOLDER && newParentSituation == PageSituation.SYSTEM_FOLDER) {
+					throw new PageActionException(PageType.FOLDER, " be moved in a system folder");
+				}
+				break;
+			case "LINK":
+				if (newParentSituation != PageSituation.SYSTEM_FOLDER && newParentSituation != PageSituation.IN_SYSTEM_FOLDER) {
+					throw new PageActionException(PageType.LINK, " be moved anywhere other than in a system folder or in a folder of a system folder");
+				}
+				break;
+			case "TRANSLATION":
+				if (newParentSituation == PageSituation.ROOT || newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.TRANSLATION) {
+					throw new PageActionException(PageType.TRANSLATION, "be updated. Parent " + updatePageEntity.getParentId() + " is not one of this type : FOLDER, LINK, MARKDOWN, SWAGGER");
+				}
+				break;
+			default:
+				break;
+		}
 
-    }
+	}
 
 
-    private void changeRelatedPagesPublicationStatus(String pageId, Boolean published) {
-        try {
-            // Update related page's links
-            this.pageRepository.search(new PageCriteria.Builder().type(PageType.LINK.name()).build()).stream()
-                    .filter(p -> pageId.equals(p.getContent()))
-                    .forEach(p -> {
-                        try {
-                            // Update link
-                            p.setPublished(published);
-                            pageRepository.update(p);
-                            
-                            // Update link's translations
-                            changeTranslationPagesPublicationStatus(p.getId(), published);
-                        } catch (TechnicalException ex) {
-                            throw onUpdateFail(p.getId(), ex);
-                        }
-                    });
-            
-            // Update related page's translations
-            changeTranslationPagesPublicationStatus(pageId, published);
-            
-        } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
-            throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
-        }
-    }
-    
-    private void changeTranslationPagesPublicationStatus(String translatedPageId, Boolean published) {
-        try {
-            this.pageRepository.search(new PageCriteria.Builder().parent(translatedPageId).type(PageType.TRANSLATION.name()).build()).stream()
-            .forEach(p -> {
-                try {
-                    p.setPublished(published);
-                    pageRepository.update(p);
-                } catch (TechnicalException ex) {
-                    throw onUpdateFail(p.getId(), ex);
-                }
-            });
-        } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
-            throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
-        }
-    }
+	private void changeRelatedPagesPublicationStatus(String pageId, Boolean published) {
+		try {
+			// Update related page's links
+			this.pageRepository.search(new PageCriteria.Builder().type(PageType.LINK.name()).build()).stream()
+					.filter(p -> pageId.equals(p.getContent()))
+					.forEach(p -> {
+						try {
+							// Update link
+							p.setPublished(published);
+							pageRepository.update(p);
 
-    private void deleteRelatedPages(String pageId) {
-        try {
-            this.pageRepository.search(new PageCriteria.Builder().type("LINK").build()).stream()
-                    .filter(p -> pageId.equals(p.getContent()))
-                    .forEach(p -> {
-                        try {
-                            pageRepository.delete(p.getId());
-                            this.deleteRelatedTranslations(p.getId());
-                        } catch (TechnicalException ex) {
-                            logger.error("An error occurs while trying to delete Page {}", p.getId(), ex);
-                            throw new TechnicalManagementException("An error occurs while trying to delete Page " + p.getId(), ex);
-                        }
-                    });
-            this.deleteRelatedTranslations(pageId);
-        } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
-            throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
-        }
-    }
+							// Update link's translations
+							changeTranslationPagesPublicationStatus(p.getId(), published);
+						} catch (TechnicalException ex) {
+							throw onUpdateFail(p.getId(), ex);
+						}
+					});
 
-    private void deleteRelatedTranslations(String pageId) {
-        try {
-            this.pageRepository.search(new PageCriteria.Builder().parent(pageId).type(PageType.TRANSLATION.name()).build()).stream()
-                    .forEach(p -> {
-                        try {
-                            pageRepository.delete(p.getId());
-                        } catch (TechnicalException ex) {
-                            logger.error("An error occurs while trying to delete Page {}", p.getId(), ex);
-                            throw new TechnicalManagementException("An error occurs while trying to delete Page " + p.getId(), ex);
-                        }
-                    });
-        } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
-            throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
-        }
-    }
-    
-    private void index(PageEntity pageEntity) {
+			// Update related page's translations
+			changeTranslationPagesPublicationStatus(pageId, published);
+
+		} catch (TechnicalException ex) {
+			logger.error("An error occurs while trying to search pages", ex);
+			throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
+		}
+	}
+
+	private void changeTranslationPagesPublicationStatus(String translatedPageId, Boolean published) {
+		try {
+			this.pageRepository.search(new PageCriteria.Builder().parent(translatedPageId).type(PageType.TRANSLATION.name()).build()).stream()
+					.forEach(p -> {
+						try {
+							p.setPublished(published);
+							pageRepository.update(p);
+						} catch (TechnicalException ex) {
+							throw onUpdateFail(p.getId(), ex);
+						}
+					});
+		} catch (TechnicalException ex) {
+			logger.error("An error occurs while trying to search pages", ex);
+			throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
+		}
+	}
+
+	private void deleteRelatedPages(String pageId) {
+		try {
+			this.pageRepository.search(new PageCriteria.Builder().type("LINK").build()).stream()
+					.filter(p -> pageId.equals(p.getContent()))
+					.forEach(p -> {
+						try {
+							pageRepository.delete(p.getId());
+							this.deleteRelatedTranslations(p.getId());
+						} catch (TechnicalException ex) {
+							logger.error("An error occurs while trying to delete Page {}", p.getId(), ex);
+							throw new TechnicalManagementException("An error occurs while trying to delete Page " + p.getId(), ex);
+						}
+					});
+			this.deleteRelatedTranslations(pageId);
+		} catch (TechnicalException ex) {
+			logger.error("An error occurs while trying to search pages", ex);
+			throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
+		}
+	}
+
+	private void deleteRelatedTranslations(String pageId) {
+		try {
+			this.pageRepository.search(new PageCriteria.Builder().parent(pageId).type(PageType.TRANSLATION.name()).build()).stream()
+					.forEach(p -> {
+						try {
+							pageRepository.delete(p.getId());
+						} catch (TechnicalException ex) {
+							logger.error("An error occurs while trying to delete Page {}", p.getId(), ex);
+							throw new TechnicalManagementException("An error occurs while trying to delete Page " + p.getId(), ex);
+						}
+					});
+		} catch (TechnicalException ex) {
+			logger.error("An error occurs while trying to search pages", ex);
+			throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
+		}
+	}
+
+	private void index(PageEntity pageEntity) {
 		if (pageEntity.isPublished()) {
 			searchEngineService.index(pageEntity, false);
-        }
+		}
 
-}
+	}
+
 	private void fetchPage(final Page page) throws FetcherException {
 		Fetcher fetcher = this.getFetcher(page.getSource());
 		if (fetcher != null) {
@@ -879,26 +931,36 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Override
 	public List<PageEntity> importFiles(String apiId, ImportPageEntity pageEntity) {
-		upsertRootPage(apiId, pageEntity);
+		Page page = upsertRootPage(apiId, pageEntity);
+		pageEntity.setSource(convert(page.getSource(), false));
+		return fetchPages(apiId, pageEntity);
+	}
 
+	@Override
+	public void fetchAll(PageQuery query, String contributor) {
 		try {
-			Page page = convert(pageEntity);
-			Fetcher _fetcher = this.getFetcher(page.getSource());
-			if (_fetcher == null) {
-				return emptyList();
-			}
-
-			if (!(_fetcher instanceof FilesFetcher)) {
-				throw new UnsupportedOperationException("The plugin does not support to import a directory.");
-			}
-
-			FilesFetcher fetcher = (FilesFetcher) _fetcher;
-
-			return importDirectory(apiId, pageEntity, fetcher);
-
-		} catch (FetcherException ex) {
-			logger.error("An error occurs while trying to import a directory",ex);
-			throw new TechnicalManagementException("An error occurs while trying import a directory" , ex);
+			pageRepository.search(queryToCriteria(query))
+					.stream()
+					.filter(pageListItem ->
+							pageListItem.getSource() != null)
+					.forEach(pageListItem -> {
+						if (pageListItem.getType() != null && pageListItem.getType().toString().equals("ROOT")) {
+							final ImportPageEntity pageEntity = new ImportPageEntity();
+							pageEntity.setType(PageType.valueOf(pageListItem.getType().toString()));
+							pageEntity.setSource(convert(pageListItem.getSource(), false));
+							pageEntity.setConfiguration(pageListItem.getConfiguration());
+							pageEntity.setPublished(pageListItem.isPublished());
+							pageEntity.setExcludedGroups(pageListItem.getExcludedGroups());
+							pageEntity.setLastContributor(contributor);
+							fetchPages(query.getApi(), pageEntity);
+						} else {
+							fetch(pageListItem.getId(), contributor);
+						}
+					});
+		} catch (TechnicalException ex) {
+			logger.error("An error occurs while trying to fetch pages", ex);
+			throw new TechnicalManagementException(
+					"An error occurs while trying to fetch pages", ex);
 		}
 	}
 
@@ -930,14 +992,14 @@ public class PageServiceImpl extends TransactionalService implements PageService
 						: descriptorPage.getDest();
 
 				try {
-				createdPages.addAll(
-						upsertPageAndParentFolders(
-								parentPath,
-								newPage,
-								parentsIdByPath,
-								fetcher,
-								apiId,
-								descriptorPage.getSrc()));
+					createdPages.addAll(
+							upsertPageAndParentFolders(
+									parentPath,
+									newPage,
+									parentsIdByPath,
+									fetcher,
+									apiId,
+									descriptorPage.getSrc()));
 				} catch (TechnicalException ex) {
 					logger.error("An error occurs while trying to import a gravitee descriptor", ex);
 					throw new TechnicalManagementException("An error occurs while trying to import a gravitee descriptor", ex);
@@ -957,7 +1019,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 					.findFirst();
 			if (optDescriptor.isPresent()) {
 				try {
-				    fetcher.getConfiguration().setFilepath(optDescriptor.get());
+					((FilepathAwareFetcherConfiguration)fetcher.getConfiguration()).setFilepath(optDescriptor.get());
 					final Resource resource = fetcher.fetch();
 					final GraviteeDescriptorEntity descriptorEntity = graviteeDescriptorService.read(getResourceContentAsString(resource));
 					return importDescriptor(apiId, pageEntity, fetcher, descriptorEntity);
@@ -996,8 +1058,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			}
 			return createdPages;
 		} catch (FetcherException ex) {
-			logger.error("An error occurs while trying to import a directory",ex);
-			throw new TechnicalManagementException("An error occurs while trying import a directory" , ex);
+			logger.error("An error occurs while trying to import a directory", ex);
+			throw new TechnicalManagementException("An error occurs while trying import a directory", ex);
 		}
 	}
 
@@ -1023,12 +1085,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return null;
 	}
 
-	private String getParentPathFromFilePath(String filePath){
-	    if (filePath != null && !filePath.isEmpty()) {
+	private String getParentPathFromFilePath(String filePath) {
+		if (filePath != null && !filePath.isEmpty()) {
 			String[] pathElements = filePath.split("/");
 			if (pathElements.length > 0) {
 				StringJoiner stringJoiner = new StringJoiner("/");
-				for (int i = 0; i < pathElements.length -1; i++) {
+				for (int i = 0; i < pathElements.length - 1; i++) {
 					stringJoiner.add(pathElements[i]);
 				}
 				return stringJoiner.toString();
@@ -1067,7 +1129,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 									.type(PageType.FOLDER.name())
 									.build());
 					PageEntity folder;
-					if(pages.isEmpty()) {
+					if (pages.isEmpty()) {
 						NewPageEntity newPage = new NewPageEntity();
 						newPage.setParentId(parentId);
 						newPage.setPublished(newPageEntity.isPublished());
@@ -1091,13 +1153,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				new PageCriteria.Builder()
 						.parent(parentId)
 						.referenceId(apiId)
-                        .referenceType(PageReferenceType.API.name())
+						.referenceType(PageReferenceType.API.name())
 						.name(newPageEntity.getName())
 						.type(newPageEntity.getType().name())
 						.build());
 		if (pages.isEmpty()) {
 			newPageEntity.setParentId(parentId);
-			FilepathAwareFetcherConfiguration configuration = fetcher.getConfiguration();
+			FilepathAwareFetcherConfiguration configuration = (FilepathAwareFetcherConfiguration)fetcher.getConfiguration();
 			configuration.setFilepath(src);
 			newPageEntity.getSource().setConfiguration(mapper.valueToTree(configuration));
 			createdPages.add(this.createPage(apiId, newPageEntity));
@@ -1108,7 +1170,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			updatePage.setPublished(newPageEntity.isPublished());
 			updatePage.setOrder(newPageEntity.getOrder());
 			updatePage.setHomepage(newPageEntity.isHomepage());
-			FilepathAwareFetcherConfiguration configuration = fetcher.getConfiguration();
+			FilepathAwareFetcherConfiguration configuration = (FilepathAwareFetcherConfiguration)fetcher.getConfiguration();
 			configuration.setFilepath(src);
 			updatePage.setSource(newPageEntity.getSource());
 			updatePage.getSource().setConfiguration(mapper.valueToTree(configuration));
@@ -1117,12 +1179,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return createdPages;
 	}
 
-	private void upsertRootPage(String apiId, ImportPageEntity rootPage) {
+	private Page upsertRootPage(String apiId, ImportPageEntity rootPage) {
 		try {
 			// root page exists ?
 			List<Page> searchResult = pageRepository.search(new PageCriteria.Builder()
-			        .referenceId(apiId)
-                    .referenceType(PageReferenceType.API.name())
+					.referenceId(apiId)
+					.referenceType(PageReferenceType.API.name())
 					.type(PageType.ROOT.name())
 					.build());
 
@@ -1130,19 +1192,20 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			page.setReferenceId(apiId);
 			if (searchResult.isEmpty()) {
 				page.setId(RandomString.generate());
-				pageRepository.create(page);
+				return pageRepository.create(page);
 			} else {
 				page.setId(searchResult.get(0).getId());
-				pageRepository.update(page);
+				mergeSensitiveData(this.getFetcher(searchResult.get(0).getSource()).getConfiguration(), page);
+				return pageRepository.update(page);
 			}
-		} catch (TechnicalException ex) {
-			logger.error("An error occurs while trying to save the configuration",ex);
-			throw new TechnicalManagementException("An error occurs while trying to save the configuration" , ex);
+		} catch (TechnicalException | FetcherException ex) {
+			logger.error("An error occurs while trying to save the configuration", ex);
+			throw new TechnicalManagementException("An error occurs while trying to save the configuration", ex);
 		}
 	}
 
 	private PageType getSupportedPageType(String extension) {
-		for (PageType pageType: PageType.values()) {
+		for (PageType pageType : PageType.values()) {
 			if (pageType.extensions().contains(extension.toLowerCase())) {
 				return pageType;
 			}
@@ -1158,31 +1221,31 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			q.parent(pageToReorder.getParentId());
 		}
 		final Collection<Page> pages = pageRepository.search(q.build());
-        final List<Boolean> increment = asList(true);
-        pages.stream()
-            .sorted(Comparator.comparingInt(Page::getOrder))
-            .forEachOrdered(page -> {
-	            try {
-		            if (page.equals(pageToReorder)) {
-			            increment.set(0, false);
-			            page.setOrder(pageToReorder.getOrder());
-		            } else {
-			            final int newOrder;
-			            final Boolean isIncrement = increment.get(0);
-			            if (page.getOrder() < pageToReorder.getOrder()) {
-				            newOrder = page.getOrder() - (isIncrement ? 0 : 1);
-			            } else if (page.getOrder() > pageToReorder.getOrder())  {
-				            newOrder = page.getOrder() + (isIncrement? 1 : 0);
-			            } else {
-				            newOrder = page.getOrder() + (isIncrement? 1 : -1);
-			            }
-			            page.setOrder(newOrder);
-		            }
-		            pageRepository.update(page);
-	            } catch (final TechnicalException ex) {
-		            throw onUpdateFail(page.getId(), ex);
-	            }
-            });
+		final List<Boolean> increment = asList(true);
+		pages.stream()
+				.sorted(Comparator.comparingInt(Page::getOrder))
+				.forEachOrdered(page -> {
+					try {
+						if (page.equals(pageToReorder)) {
+							increment.set(0, false);
+							page.setOrder(pageToReorder.getOrder());
+						} else {
+							final int newOrder;
+							final Boolean isIncrement = increment.get(0);
+							if (page.getOrder() < pageToReorder.getOrder()) {
+								newOrder = page.getOrder() - (isIncrement ? 0 : 1);
+							} else if (page.getOrder() > pageToReorder.getOrder()) {
+								newOrder = page.getOrder() + (isIncrement ? 1 : 0);
+							} else {
+								newOrder = page.getOrder() + (isIncrement ? 1 : -1);
+							}
+							page.setOrder(newOrder);
+						}
+						pageRepository.update(page);
+					} catch (final TechnicalException ex) {
+						throw onUpdateFail(page.getId(), ex);
+					}
+				});
 	}
 
 	private TechnicalManagementException onUpdateFail(String pageId, TechnicalException ex) {
@@ -1195,12 +1258,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return new TechnicalManagementException("An error occurs while trying to fetch content. " + ex.getMessage(), ex);
 	}
 
-    @Override
+	@Override
 	public void delete(String pageId) {
 		try {
 			logger.debug("Delete Page : {}", pageId);
 			Optional<Page> optPage = pageRepository.findById(pageId);
-			if ( !optPage.isPresent()) {
+			if (!optPage.isPresent()) {
 				throw new PageNotFoundException(pageId);
 			}
 
@@ -1210,20 +1273,20 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			if (PageType.FOLDER.name().equalsIgnoreCase(page.getType()) &&
 					!pageRepository.search(new PageCriteria.Builder()
 							.referenceId(page.getReferenceId())
-                            .referenceType(page.getReferenceType().name())
-							.parent(page.getId()).build()).isEmpty() ) {
+							.referenceType(page.getReferenceType().name())
+							.parent(page.getId()).build()).isEmpty()) {
 				throw new TechnicalManagementException("Unable to remove the folder. It must be empty before being removed.");
 			}
 
 			pageRepository.delete(pageId);
 			// delete links and translations related to the page
 			if (!PageType.LINK.name().equalsIgnoreCase(page.getType()) && !PageType.TRANSLATION.name().equalsIgnoreCase(page.getType())) {
-			    this.deleteRelatedPages(pageId);
+				this.deleteRelatedPages(pageId);
 			}
 
-            createAuditLog(page.getReferenceId(), PAGE_DELETED, new Date(), page, null);
+			createAuditLog(page.getReferenceId(), PAGE_DELETED, new Date(), page, null);
 
-            // remove from search engine
+			// remove from search engine
 			searchEngineService.delete(convert(page), false);
 		} catch (TechnicalException ex) {
 			logger.error("An error occurs while trying to delete Page {}", pageId, ex);
@@ -1261,36 +1324,36 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		if (api.getVisibility() == Visibility.PUBLIC && pageIsPublished) {
 			isDisplayable = true;
 		} else if (username != null) {
-		    MemberEntity member = membershipService.getUserMember(MembershipReferenceType.API, api.getId(), username);
-            if (member == null && api.getGroups() != null) {
-                Iterator<String> groupIdIterator = api.getGroups().iterator();
-                while (!isDisplayable && groupIdIterator.hasNext()) {
-                    String groupId = groupIdIterator.next();
-                    member = membershipService.getUserMember(MembershipReferenceType.GROUP, groupId, username);
-                    isDisplayable = isDisplayableForMember(member, pageIsPublished);
-                }
-            } else {
-                isDisplayable = isDisplayableForMember(member, pageIsPublished);
-            }
+			MemberEntity member = membershipService.getUserMember(MembershipReferenceType.API, api.getId(), username);
+			if (member == null && api.getGroups() != null) {
+				Iterator<String> groupIdIterator = api.getGroups().iterator();
+				while (!isDisplayable && groupIdIterator.hasNext()) {
+					String groupId = groupIdIterator.next();
+					member = membershipService.getUserMember(MembershipReferenceType.GROUP, groupId, username);
+					isDisplayable = isDisplayableForMember(member, pageIsPublished);
+				}
+			} else {
+				isDisplayable = isDisplayableForMember(member, pageIsPublished);
+			}
 		}
 		return isDisplayable;
 	}
 
-    private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {
-        // if not member => not displayable
-        if (member == null) {
-            return false;
-        }
-        // if member && published page => displayable
-        if (pageIsPublished) {
-            return true;
-        }
+	private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {
+		// if not member => not displayable
+		if (member == null) {
+			return false;
+		}
+		// if member && published page => displayable
+		if (pageIsPublished) {
+			return true;
+		}
 
-        // only members which could modify a page can see an unpublished page
-        return roleService.hasPermission(member.getPermissions(), ApiPermission.DOCUMENTATION,
-                new RolePermissionAction[] { RolePermissionAction.UPDATE, RolePermissionAction.CREATE,
-                        RolePermissionAction.DELETE });
-    }
+		// only members which could modify a page can see an unpublished page
+		return roleService.hasPermission(member.getPermissions(), ApiPermission.DOCUMENTATION,
+				new RolePermissionAction[]{RolePermissionAction.UPDATE, RolePermissionAction.CREATE,
+						RolePermissionAction.DELETE});
+	}
 
 	@Override
 	public PageEntity fetch(String pageId, String contributor) {
@@ -1322,6 +1385,23 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			return convert(updatedPage);
 		} catch (TechnicalException ex) {
 			throw onUpdateFail(pageId, ex);
+		}
+	}
+
+	private List<PageEntity> fetchPages(final String apiId, ImportPageEntity pageEntity) {
+		try {
+			Fetcher _fetcher = this.getFetcher(convert(pageEntity.getSource()));
+			if (_fetcher == null) {
+				return emptyList();
+			}
+			if (!(_fetcher instanceof FilesFetcher)) {
+				throw new UnsupportedOperationException("The plugin does not support to import a directory.");
+			}
+			FilesFetcher fetcher = (FilesFetcher) _fetcher;
+			return importDirectory(apiId, pageEntity, fetcher);
+		} catch (FetcherException ex) {
+			logger.error("An error occurs while trying to import a directory", ex);
+			throw new TechnicalManagementException("An error occurs while trying import a directory", ex);
 		}
 	}
 
@@ -1503,7 +1583,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return page;
 	}
 
-	private static UpdatePageEntity convertToUpdateEntity(Page page) {
+	private UpdatePageEntity convertToUpdateEntity(Page page) {
 		UpdatePageEntity updatePageEntity = new UpdatePageEntity();
 
 		updatePageEntity.setName(page.getName());
@@ -1511,7 +1591,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		updatePageEntity.setLastContributor(page.getLastContributor());
 		updatePageEntity.setOrder(page.getOrder());
 		updatePageEntity.setPublished(page.isPublished());
-		updatePageEntity.setSource(convert(page.getSource()));
+		updatePageEntity.setSource(this.convert(page.getSource()));
 		updatePageEntity.setConfiguration(page.getConfiguration());
 		updatePageEntity.setHomepage(page.isHomepage());
 		updatePageEntity.setExcludedGroups(page.getExcludedGroups());
@@ -1529,18 +1609,68 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return source;
 	}
 
-	private static PageSourceEntity convert(PageSource pageSource) {
+	private PageSourceEntity convert(PageSource pageSource) {
+		return convert(pageSource, true);
+	}
+
+	private PageSourceEntity convert(PageSource pageSource, boolean removeSensitiveData) {
 		PageSourceEntity entity = null;
 		if (pageSource != null) {
 			entity = new PageSourceEntity();
 			entity.setType(pageSource.getType());
 			try {
-				entity.setConfiguration((new ObjectMapper()).readTree(pageSource.getConfiguration()));
-			} catch (IOException e) {
-			    logger.error(e.getMessage(), e);
+				FetcherConfiguration fetcherConfiguration = this.getFetcher(pageSource).getConfiguration();
+				if (removeSensitiveData) {
+					removeSensitiveData(fetcherConfiguration);
+				}
+				entity.setConfiguration((new ObjectMapper()).valueToTree(fetcherConfiguration));
+			} catch (FetcherException e) {
+				logger.error(e.getMessage(), e);
 			}
 		}
 		return entity;
+	}
+
+	private void removeSensitiveData(FetcherConfiguration fetcherConfiguration) {
+		Field[] fields = fetcherConfiguration.getClass().getDeclaredFields();
+		for (Field field : fields) {
+			if (field.isAnnotationPresent(Sensitive.class)) {
+				boolean accessible = field.isAccessible();
+				field.setAccessible(true);
+				try {
+					field.set(fetcherConfiguration, SENSITIVE_DATA_REPLACEMENT);
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+				field.setAccessible(accessible);
+			}
+		}
+	}
+
+	private void mergeSensitiveData(FetcherConfiguration originalFetcherConfiguration, Page page) throws FetcherException {
+		FetcherConfiguration updatedFetcherConfiguration = this.getFetcher(page.getSource()).getConfiguration();
+		boolean updated = false;
+
+		Field[] fields = originalFetcherConfiguration.getClass().getDeclaredFields();
+		for (Field field : fields) {
+			if (field.isAnnotationPresent(Sensitive.class)) {
+				boolean accessible = field.isAccessible();
+				field.setAccessible(true);
+				try {
+					Object updatedValue = field.get(updatedFetcherConfiguration);
+					if ( updatedValue.equals(SENSITIVE_DATA_REPLACEMENT) ) {
+						updated = true;
+						field.set(updatedFetcherConfiguration, field.get(originalFetcherConfiguration));
+					}
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+				field.setAccessible(accessible);
+			}
+		}
+		if(updated) {
+			page.getSource().setConfiguration((new ObjectMapper()).valueToTree(updatedFetcherConfiguration).toString());
+		}
 	}
 
 	@SuppressWarnings("squid:S1166")

@@ -90,6 +90,8 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
                 String username = environment.getProperty("users[" + userIdx + "].username");
                 String password = environment.getProperty("users[" + userIdx + "].password");
                 String email = environment.getProperty("users[" + userIdx + "].email");
+                String firstname = environment.getProperty("users[" + userIdx + "].firstname");
+                String lastname = environment.getProperty("users[" + userIdx + "].lastname");
                 String roles = environment.getProperty("users[" + userIdx + "].roles");
                 List<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roles);
                 userIdx++;
@@ -98,6 +100,8 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
 
                 newUser.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
                 newUser.setSourceId(username);
+                newUser.setFirstname(firstname);
+                newUser.setLastname(lastname);
                 userDetailsService.createUser(newUser);
             }
         }
@@ -122,6 +126,8 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
 
         InMemoryUser user = new InMemoryUser(userDetails.getUsername());
         user.setEmail(userDetails.getEmail());
+        user.setFirstname(userDetails.getFirstname());
+        user.setLastname(userDetails.getLastname());
         return user;
     }
 

@@ -26,19 +26,21 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
-import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.GroupEvent;
-import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.*;
@@ -56,6 +58,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
@@ -73,6 +76,9 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -140,6 +146,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
     @Autowired
+    private PortalNotificationConfigService portalNotificationConfigService;
+    @Autowired
     private NotifierService notifierService;
     @Autowired
     private SwaggerService swaggerService;
@@ -166,10 +174,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Autowired
     private RoleService roleService;
     @Autowired
+    private ViewService viewService;
+    @Autowired
     private ApplicationService applicationService;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
+    private static final String LOGGING_DELIMITER_BASE = "\\s+(\\|\\||\\&\\&)\\s+";
     private static final String ENDPOINTS_DELIMITER = "\n";
 
     @Override
@@ -178,7 +189,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity create(final NewSwaggerApiEntity swaggerApiEntity, final String userId,
+    public ApiEntity create(final SwaggerApiEntity swaggerApiEntity, final String userId,
                             final ImportSwaggerDescriptorEntity swaggerDescriptor) throws ApiAlreadyExistsException {
 
         final NewApiEntity newApiEntity = new NewApiEntity();
@@ -187,13 +198,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         newApiEntity.setContextPath(swaggerApiEntity.getContextPath());
         newApiEntity.setDescription(swaggerApiEntity.getDescription());
         newApiEntity.setEndpoint(String.join(ENDPOINTS_DELIMITER, swaggerApiEntity.getEndpoint()));
-        newApiEntity.setGroups(swaggerApiEntity.getGroups());
 
-        return create(newApiEntity, userId, swaggerDescriptor, swaggerApiEntity.getPaths());
+        return create(newApiEntity, userId, swaggerDescriptor, swaggerApiEntity);
     }
 
     private ApiEntity create(final NewApiEntity newApiEntity, final String userId,
-                             final ImportSwaggerDescriptorEntity swaggerDescriptor, final List<SwaggerPath> swaggerPaths) throws ApiAlreadyExistsException {
+            final ImportSwaggerDescriptorEntity swaggerDescriptor, final SwaggerApiEntity swaggerApiEntity) throws ApiAlreadyExistsException {
         UpdateApiEntity apiEntity = new UpdateApiEntity();
 
         apiEntity.setName(newApiEntity.getName());
@@ -247,14 +257,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setPaths(paths);
         apiEntity.setPathMappings(new HashSet<>(declaredPaths));
 
-        if (swaggerDescriptor != null) {
-            fillApiEntityFromSwagger(apiEntity, swaggerDescriptor, swaggerPaths);
+        if (swaggerApiEntity != null && swaggerDescriptor != null) {
+            if (swaggerDescriptor.isWithPolicyPaths()) {
+                apiEntity.setPaths(swaggerApiEntity.getPaths());
+            }
+
+            if (swaggerDescriptor.isWithPathMapping()) {
+                apiEntity.setPathMappings(swaggerApiEntity.getPathMappings());
+            }
         }
 
         final ApiEntity createdApi = create0(apiEntity, userId);
 
         createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
-
 
         return createdApi;
     }
@@ -264,18 +279,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder()
                 .api(api.getId())
                 .type(PageType.SWAGGER)
-                .build()
-        );
+                .build());
 
         if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
-            if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
+            if(isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
                 final NewPageEntity page = new NewPageEntity();
                 page.setName("Swagger");
                 page.setType(SWAGGER);
                 page.setOrder(1);
                 if (INLINE.equals(swaggerDescriptor.getType())) {
-                    String modifiedApi = addGraviteeUrl(api.getProxy().getVirtualHosts(), swaggerDescriptor.getPayload());
-                    page.setContent(modifiedApi);
+                    page.setContent(swaggerDescriptor.getPayload());
                 } else {
                     final PageSourceEntity source = new PageSourceEntity();
                     page.setSource(source);
@@ -288,9 +301,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 final UpdatePageEntity page = new UpdatePageEntity();
                 page.setName(pageToUpdate.getName());
                 page.setOrder(pageToUpdate.getOrder());
+                page.setHomepage(pageToUpdate.isHomepage());
+                page.setPublished(pageToUpdate.isPublished());
+                page.setParentId(pageToUpdate.getParentId());
+                page.setConfiguration(pageToUpdate.getConfiguration());
                 if (INLINE.equals(swaggerDescriptor.getType())) {
-                    String modifiedApi = addGraviteeUrl(api.getProxy().getVirtualHosts(), swaggerDescriptor.getPayload());
-                    page.setContent(modifiedApi);
+                    page.setContent(swaggerDescriptor.getPayload());
                 } else {
                     final PageSourceEntity source = new PageSourceEntity();
                     page.setSource(source);
@@ -300,95 +316,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 pageService.update(pageToUpdate.getId(), page);
             }
         }
-    }
-
-    private void fillApiEntityFromSwagger(UpdateApiEntity apiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor, List<SwaggerPath> swaggerPaths) {
-        if (swaggerDescriptor.isWithPolicyPaths() && swaggerPaths != null && !swaggerPaths.isEmpty()) {
-            final Map<String, Path> pathWithMocks = new HashMap<>(swaggerPaths.size());
-            swaggerPaths.forEach(swaggerPath -> {
-                final Path path = new Path();
-                path.setPath(swaggerPath.getPath());
-
-                if (swaggerDescriptor.isWithPolicyMocks()) {
-                    addMockToPath(swaggerPath, path);
-                }
-                pathWithMocks.put(swaggerPath.getPath(), path);
-            });
-            apiEntity.setPaths(pathWithMocks);
-        }
-        if (swaggerDescriptor.isWithPathMapping()) {
-            apiEntity.setPathMappings(swaggerPaths.stream().map(SwaggerPath::getPath).collect(toSet()));
-        }
-    }
-
-    private void addMockToPath(SwaggerPath swaggerPath, final Path path) {
-        final List<Rule> rules = new ArrayList<>();
-        swaggerPath.getVerbs().forEach(swaggerVerb -> {
-            final Rule rule = new Rule();
-            rule.setEnabled(true);
-            rule.setDescription(swaggerVerb.getDescription());
-            rule.setMethods(singleton(HttpMethod.valueOf(swaggerVerb.getVerb())));
-            final Policy policy = new Policy();
-            policy.setName("mock");
-
-            final Map<String, Object> configuration = new HashMap<>();
-
-            String responseStatus = swaggerVerb.getResponseStatus();
-            try {
-                Integer.parseInt(responseStatus);
-            } catch (final NumberFormatException nfe) {
-                responseStatus = "200";
-            }
-            configuration.put("status", responseStatus);
-            if (swaggerVerb.getContentType() != null) {
-                final Map<Object, Object> header = new HashMap<>(2);
-                header.put("name", "Content-Type");
-                header.put("value", swaggerVerb.getContentType());
-                configuration.put("headers", singletonList(header));
-            }
-            try {
-                final Object responseProperties = swaggerVerb.getResponseProperties();
-                if (responseProperties != null) {
-                    configuration.put("content", objectMapper.writeValueAsString(swaggerVerb.isArray() ?
-                            singletonList(responseProperties) : responseProperties));
-                }
-                policy.setConfiguration(objectMapper.writeValueAsString(configuration));
-            } catch (final JsonProcessingException e) {
-                e.printStackTrace();
-            }
-
-            rule.setPolicy(policy);
-            rules.add(rule);
-        });
-
-        path.setRules(rules);
-    }
-
-    private String addGraviteeUrl(List<VirtualHost> virtualHosts, String payload) {
-        List<String> graviteeUrls = new ArrayList<>();
-        String portalEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
-        if (portalEntrypoint != null) {
-            virtualHosts.forEach(new Consumer<VirtualHost>() {
-                @Override
-                public void accept(VirtualHost virtualHost) {
-                    if (virtualHost.getHost() == null) {
-                        graviteeUrls.add(portalEntrypoint + virtualHost.getPath());
-                    } else {
-                        graviteeUrls.add(virtualHost.getHost() + virtualHost.getPath());
-                    }
-                }
-            });
-        }
-
-        List<EntrypointEntity> entrypoints = entrypointService.findAll();
-        entrypoints.stream().flatMap(new Function<EntrypointEntity, Stream<String>>() {
-            @Override
-            public Stream<String> apply(EntrypointEntity entrypoint) {
-                return virtualHosts.stream().map(virtualHost -> entrypoint.getValue() + virtualHost.getPath());
-            }
-        }).forEach(graviteeUrls::add);
-
-        return swaggerService.replaceServerList(payload, graviteeUrls);
     }
 
     private ApiEntity create0(UpdateApiEntity api, String userId) throws ApiAlreadyExistsException {
@@ -413,6 +340,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // check endpoints name
             checkEndpointsName(api);
+
+            // check HC inheritance
+            checkHealthcheckInheritance(api);
 
             addLoggingMaxDuration(api.getProxy().getLogging());
 
@@ -481,14 +411,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
                     
                     // create the default mail notification
+                   final String emailMetadataValue = "${(api.primaryOwner.email)!''}";
+
                     GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
                     notificationConfigEntity.setName("Default Mail Notifications");
                     notificationConfigEntity.setReferenceType(HookScope.API.name());
                     notificationConfigEntity.setReferenceId(createdApi.getId());
                     notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
                     notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
-                    notificationConfigEntity.setConfig("${(api.primaryOwner.email)!''}");
+                    notificationConfigEntity.setConfig(emailMetadataValue);
                     genericNotificationConfigService.create(notificationConfigEntity);
+
+                    // create the default mail support metadata
+                    NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
+                    newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
+                    newApiMetadataEntity.setName(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
+                    newApiMetadataEntity.setDefaultValue(emailMetadataValue);
+                    newApiMetadataEntity.setValue(emailMetadataValue);
+                    newApiMetadataEntity.setApiId(createdApi.getId());
+                    apiMetadataService.create(newApiMetadataEntity);
     
                     //TODO add membership log
                     ApiEntity apiEntity = convert(createdApi, primaryOwner);
@@ -521,6 +462,58 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    private void checkEndpointsExists(UpdateApiEntity api) {
+        if (api.getProxy().getGroups() == null
+                || api.getProxy().getGroups().isEmpty()) {
+            throw new EndpointMissingException();
+        }
+
+        EndpointGroup endpointGroup = api.getProxy().getGroups().iterator().next();
+        //Is service discovery enabled ?
+        EndpointDiscoveryService endpointDiscoveryService = endpointGroup.getServices() == null ? null : endpointGroup.getServices().get(EndpointDiscoveryService.class);
+        if ((endpointDiscoveryService == null || !endpointDiscoveryService.isEnabled()) &&
+            (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())) {
+            throw new EndpointMissingException();
+        }
+    }
+
+    private void checkHealthcheckInheritance(UpdateApiEntity api) {
+        boolean inherit = false;
+
+        if (api.getProxy() != null && api.getProxy().getGroups() != null) {
+            for (EndpointGroup group : api.getProxy().getGroups()) {
+                if (group.getEndpoints() != null) {
+                    for (Endpoint endpoint : group.getEndpoints()) {
+                        if (endpoint instanceof HttpEndpoint) {
+                            HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
+                            if (httpEndpoint.getHealthCheck() != null && httpEndpoint.getHealthCheck().isInherit()) {
+                                inherit = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (inherit) {
+            //if endpoints are set to inherit HC configuration, this configuration must exists.
+            boolean hcServiceExists = false;
+            if (api.getServices() != null) {
+                for (Service service : api.getServices().getAll()) {
+                    if (service instanceof HealthCheckService) {
+                        hcServiceExists = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hcServiceExists) {
+                throw new HealthcheckInheritanceException();
+            }
+        }
+    }
+
     private void assertEndpointNameNotContainsInvalidCharacters(String name) {
         if (name != null && name.contains(":")) {
             throw new EndpointNameInvalidException(name);
@@ -541,11 +534,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(logging.getCondition());
                     if (matcher.matches()) {
                         String currentDurationAsStr = matcher.group("timestamp");
-                        String before = matcher.group("before");
-                        String after = matcher.group("after");
+                        String before = formatExpression(matcher, "before");
+                        String after = formatExpression(matcher, "after");
                         try {
-                            Long currentDuration = Long.valueOf(currentDurationAsStr);
-                            if (currentDuration > maxEndDate) {
+                            final long currentDuration = Long.parseLong(currentDurationAsStr);
+                            if (currentDuration > maxEndDate || (!before.isEmpty() || !after.isEmpty())) {
                                 logging.setCondition(before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after);
                             }
                         } catch (NumberFormatException nfe) {
@@ -560,6 +553,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    private String formatExpression(final Matcher matcher, final String group) {
+        final String matchedExpression = matcher.group(group);
+        final boolean expressionBlank = matchedExpression == null || "".equals(matchedExpression);
+        final boolean after = "after".equals(group);
+
+        String expression;
+        if (after) {
+            expression = expressionBlank ? "" : " && (" + matchedExpression + ")";
+            expression = expression.replaceAll("\\(" + LOGGING_DELIMITER_BASE, "\\(");
+        } else {
+            expression = expressionBlank ? "" : "(" + matchedExpression + ") && ";
+            expression = expression.replaceAll(LOGGING_DELIMITER_BASE + "\\)", "\\)");
+        }
+        return expression;
+    }
+
     @Override
     public ApiEntity findById(String apiId) {
         try {
@@ -568,13 +577,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Optional<Api> api = apiRepository.findById(apiId);
 
             if (api.isPresent()) {
-                MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(io.gravitee.rest.api.model.MembershipReferenceType.API, api.get().getId());
-                if (primaryOwnerMemberEntity == null) {
-                    LOGGER.error("The API {} doesn't have any primary owner.", apiId);
-                    throw new TechnicalException("The API " + apiId + " doesn't have any primary owner.");
-                }
-
-                ApiEntity apiEntity = convert(api.get(), userService.findById(primaryOwnerMemberEntity.getMemberId()));
+                ApiEntity apiEntity = convert(api.get(), getPrimaryOwner(api.get()));
 
                 // Compute entrypoints
                 calculateEntrypoints(apiEntity);
@@ -589,54 +592,77 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    private UserEntity getPrimaryOwner(Api api) throws TechnicalException {
+        MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(io.gravitee.rest.api.model.MembershipReferenceType.API, api.getId());
+        if (primaryOwnerMemberEntity == null) {
+            LOGGER.error("The API {} doesn't have any primary owner.", api.getId());
+            throw new TechnicalException("The API " + api.getId() + " doesn't have any primary owner.");
+        }
+
+        return userService.findById(primaryOwnerMemberEntity.getMemberId());
+    }
+
     private void calculateEntrypoints(ApiEntity api) {
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
 
         if (api.getProxy() != null) {
+            String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
+            final String scheme = getScheme(defaultEntrypoint);
             if (api.getTags() != null && !api.getTags().isEmpty()) {
                 List<EntrypointEntity> entrypoints = entrypointService.findAll();
-                entrypoints.forEach(new Consumer<EntrypointEntity>() {
-                    @Override
-                    public void accept(EntrypointEntity entrypoint) {
-                        Set<String> tagEntrypoints = new HashSet<>(Arrays.asList(entrypoint.getTags()));
-                        tagEntrypoints.retainAll(api.getTags());
+                entrypoints.forEach(entrypoint -> {
+                    Set<String> tagEntrypoints = new HashSet<>(Arrays.asList(entrypoint.getTags()));
+                    tagEntrypoints.retainAll(api.getTags());
 
-                        if (tagEntrypoints.size() == entrypoint.getTags().length) {
-                            api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
-                                @Override
-                                public void accept(VirtualHost virtualHost) {
-                                    apiEntrypoints.add(new ApiEntrypointEntity(
-                                            tagEntrypoints,
-                                            DUPLICATE_SLASH_REMOVER
-                                                    .matcher(entrypoint.getValue() + URI_PATH_SEPARATOR + virtualHost.getPath())
-                                                    .replaceAll(URI_PATH_SEPARATOR),
-                                            virtualHost.getHost())
-                                    );
-                                }
-                            });
-                        }
+                    if (tagEntrypoints.size() == entrypoint.getTags().length) {
+                        api.getProxy().getVirtualHosts().forEach(virtualHost -> {
+                            String targetHost = (virtualHost.getHost() == null || !virtualHost.isOverrideEntrypoint()) ?
+                                    entrypoint.getValue() : virtualHost.getHost();
+                            if (!targetHost.toLowerCase().startsWith("http")) {
+                                targetHost = scheme + "://" + targetHost;
+                            }
+                            apiEntrypoints.add(new ApiEntrypointEntity(
+                                    tagEntrypoints,
+                                    DUPLICATE_SLASH_REMOVER
+                                            .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
+                                            .replaceAll(URI_PATH_SEPARATOR),
+                                    virtualHost.getHost())
+                            );
+                        });
                     }
                 });
             }
 
             // If empty, get the default entrypoint
             if (apiEntrypoints.isEmpty()) {
-                String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
-
-                api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
-                    @Override
-                    public void accept(VirtualHost virtualHost) {
-                        apiEntrypoints.add(new ApiEntrypointEntity(
-                                DUPLICATE_SLASH_REMOVER
-                                        .matcher(defaultEntrypoint + URI_PATH_SEPARATOR + virtualHost.getPath())
-                                        .replaceAll(URI_PATH_SEPARATOR), virtualHost.getHost())
-                        );
+                api.getProxy().getVirtualHosts().forEach(virtualHost -> {
+                    String targetHost = (virtualHost.getHost() == null || !virtualHost.isOverrideEntrypoint()) ?
+                            defaultEntrypoint : virtualHost.getHost();
+                    if (!targetHost.toLowerCase().startsWith("http")) {
+                        targetHost = scheme + "://" + targetHost;
                     }
+                    apiEntrypoints.add(new ApiEntrypointEntity(
+                            DUPLICATE_SLASH_REMOVER
+                                    .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
+                                    .replaceAll(URI_PATH_SEPARATOR), virtualHost.getHost())
+                    );
                 });
             }
         }
 
         api.setEntrypoints(apiEntrypoints);
+    }
+
+    private String getScheme(String defaultEntrypoint) {
+        String scheme = "https";
+        if (defaultEntrypoint != null) {
+            try {
+                scheme = new URL(defaultEntrypoint).getProtocol();
+            } catch (MalformedURLException e) {
+                // return default scheme
+            }
+        }
+        return scheme;
     }
 
     @Override
@@ -755,19 +781,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity update(String apiId, UpdateSwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    public ApiEntity update(String apiId, SwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
         final ApiEntity apiEntityToUpdate = this.findById(apiId);
         final UpdateApiEntity updateApiEntity = convert(apiEntityToUpdate);
 
-        //overwrite from swagger
+        // Overwrite from swagger
         updateApiEntity.setVersion(swaggerApiEntity.getVersion());
         updateApiEntity.setName(swaggerApiEntity.getName());
         updateApiEntity.setDescription(swaggerApiEntity.getDescription());
-        updateApiEntity.setGroups(swaggerApiEntity.getGroups());
 
-        //overwrite from swagger, if asked
-        List<SwaggerPath> swaggerPaths = swaggerApiEntity.getPaths();
-        fillApiEntityFromSwagger(updateApiEntity, swaggerDescriptor, swaggerPaths);
+        // Overwrite from swagger, if asked
+        if (swaggerApiEntity != null) {
+            updateApiEntity.setPaths(swaggerApiEntity.getPaths());
+
+            if (swaggerDescriptor.isWithPathMapping()) {
+                updateApiEntity.setPathMappings(swaggerApiEntity.getPathMappings());
+            }
+        }
+
         createOrUpdateDocumentation(swaggerDescriptor, apiEntityToUpdate, false);
 
         return update(apiId, updateApiEntity);
@@ -786,8 +817,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check if entrypoints are unique
             virtualHostService.validate(updateApiEntity.getProxy().getVirtualHosts(), apiId);
 
+            // check endpoints presence
+            checkEndpointsExists(updateApiEntity);
+
             // check endpoints name
             checkEndpointsName(updateApiEntity);
+
+            // check HC inheritance
+            checkHealthcheckInheritance(updateApiEntity);
 
             addLoggingMaxDuration(updateApiEntity.getProxy().getLogging());
 
@@ -814,6 +851,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 } catch (GroupsNotFoundException gnfe) {
                     throw new InvalidDataException("Groups [" + updateApiEntity.getGroups() + "] does not exist");
                 }
+            }
+
+            // add a default path
+            if (updateApiEntity.getPaths() == null || updateApiEntity.getPaths().isEmpty()) {
+                updateApiEntity.setPaths(singletonMap("/",new Path()));
             }
 
             Api apiToUpdate = optApiToUpdate.get();
@@ -989,10 +1031,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 eventService.search(query)
                         .forEach(event -> eventService.delete(event.getId()));
 
-                // Delete API
-                apiRepository.delete(apiId);
+                // Delete pages
+                final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build());
+                pages.forEach(pageEntity ->  pageService.delete(pageEntity.getId()));
+
                 // Delete top API
                 topApiService.delete(apiId);
+                // Delete API
+                apiRepository.delete(apiId);
+                // Delete all membership references
+                membershipService.deleteMembers(MembershipReferenceType.API, apiId);
+                // Delete notifications
+                genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
+                portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
                 // Delete alerts
                 final List<AlertTriggerEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
                 alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
@@ -1396,23 +1447,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             //Pages
             final JsonNode pagesDefinition = jsonNode.path("pages");
             if (pagesDefinition != null && pagesDefinition.isArray()) {
-                for (final JsonNode pageNode : pagesDefinition) {
-                    PageQuery query = new PageQuery.Builder().
-                            api(createdOrUpdatedApiEntity.getId()).
-                            name(pageNode.get("name").asText()).
-                            type(PageType.valueOf(pageNode.get("type").asText())).
-                            build();
-                    List<PageEntity> pageEntities = pageService.search(query);
-                    if (pageEntities == null || pageEntities.isEmpty()) {
-                        pageService.createPage(createdOrUpdatedApiEntity.getId(), objectMapper.readValue(pageNode.toString(), NewPageEntity.class));
-                    } else if (pageEntities.size() == 1) {
-                        UpdatePageEntity updatePageEntity = objectMapper.readValue(pageNode.toString(), UpdatePageEntity.class);
-                        pageService.update(pageEntities.get(0).getId(), updatePageEntity);
-                    } else {
-                        LOGGER.error("Not able to identify the page to update: {}. Too much page with the same name", pageNode.get("name").asText());
-                        throw new TechnicalManagementException("Not able to identify the page to update: " + pageNode.get("name").asText() + ". Too much page with the same name");
-                    }
-                }
+                List<PageEntity> pagesList = objectMapper.readValue(pagesDefinition.toString(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class));
+                PageEntityTreeNode documentationTree = new PageEntityTreeNode(new PageEntity());
+                documentationTree.appendListToTree(pagesList);
+                createOrUpdateChildrenPages(createdOrUpdatedApiEntity.getId(), null, documentationTree.children);
             }
 
             //Plans
@@ -1439,6 +1478,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     }
                 }
             }
+            // Metadata
+            final JsonNode metadataDefinition = jsonNode.path("metadata");
+            if (metadataDefinition != null && metadataDefinition.isArray()) {
+                try {
+                    for (JsonNode metadataNode : metadataDefinition) {
+                        UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(metadataNode.toString(), UpdateApiMetadataEntity.class);
+                        updateApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
+                        apiMetadataService.update(updateApiMetadataEntity);
+                    }
+                } catch (Exception ex) {
+                    LOGGER.error("An error occurs while creating API metadata", ex);
+                    throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
+                }
+            }
             return createdOrUpdatedApiEntity;
         } catch (final IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
@@ -1449,6 +1502,110 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {
         Buffer buffer = httpClientService.request(HttpMethod.GET, apiDefinitionOrURL, null, null, null);
         return buffer.toString();
+    }
+
+    class PageEntityTreeNode {
+
+        PageEntity data;
+        PageEntityTreeNode parent;
+        List<PageEntityTreeNode> children;
+
+        public PageEntityTreeNode(PageEntity data) {
+            this.data = data;
+            this.children = new LinkedList<>();
+        }
+
+        public PageEntityTreeNode addChild(PageEntity child) {
+            PageEntityTreeNode childNode = new PageEntityTreeNode(child);
+            childNode.parent = this;
+            this.children.add(childNode);
+            return childNode;
+        }
+
+        private PageEntityTreeNode findById(String id) {
+            if (id.equals(data.getId())) {
+                return this;
+            }
+            for (PageEntityTreeNode child : children) {
+                PageEntityTreeNode result = child.findById(id);
+                if (result != null) {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        public void appendListToTree(List<PageEntity> pagesList) {
+            List<PageEntity> orphans = new ArrayList<>();
+            for (PageEntity newPage : pagesList) {
+                if (newPage.getParentId() == null || newPage.getParentId().isEmpty()) {
+                    this.addChild(newPage);
+                } else {
+                    PageEntityTreeNode parentNode = this.findById(newPage.getParentId());
+                    if (parentNode != null) {
+                        parentNode.addChild(newPage);
+                    } else {
+                        orphans.add(newPage);
+                    }
+                }
+            }
+            if (!orphans.isEmpty() && orphans.size() < pagesList.size()) {
+                appendListToTree(orphans);
+            }
+        }
+    }
+
+    private void createOrUpdateChildrenPages(String apiId, String parentId, List<PageEntityTreeNode> children) {
+        for (final PageEntityTreeNode child : children) {
+            PageEntity pageEntityToImport = child.data;
+            pageEntityToImport.setParentId(parentId);
+
+            PageQuery query = new PageQuery.Builder().
+                    api(apiId).
+                    name(pageEntityToImport.getName()).
+                    type(PageType.valueOf(pageEntityToImport.getType())).
+                    build();
+            List<PageEntity> pageEntities = pageService.search(query);
+
+            PageEntity createdOrUpdatedPage = null;
+            if (pageEntities == null || pageEntities.isEmpty()) {
+                NewPageEntity newPage = new NewPageEntity();
+                newPage.setConfiguration(pageEntityToImport.getConfiguration());
+                newPage.setContent(pageEntityToImport.getContent());
+                newPage.setExcludedGroups(pageEntityToImport.getExcludedGroups());
+                newPage.setHomepage(pageEntityToImport.isHomepage());
+                newPage.setLastContributor(pageEntityToImport.getLastContributor());
+                newPage.setName(pageEntityToImport.getName());
+                newPage.setOrder(pageEntityToImport.getOrder());
+                newPage.setParentId(pageEntityToImport.getParentId());
+                newPage.setPublished(pageEntityToImport.isPublished());
+                newPage.setSource(pageEntityToImport.getSource());
+                newPage.setType(PageType.valueOf(pageEntityToImport.getType()));
+
+                createdOrUpdatedPage = pageService.createPage(apiId, newPage);
+            } else if(pageEntities.size() == 1) {
+                UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+                updatePageEntity.setConfiguration(pageEntityToImport.getConfiguration());
+                updatePageEntity.setContent(pageEntityToImport.getContent());
+                updatePageEntity.setExcludedGroups(pageEntityToImport.getExcludedGroups());
+                updatePageEntity.setHomepage(pageEntityToImport.isHomepage());
+                updatePageEntity.setLastContributor(pageEntityToImport.getLastContributor());
+                updatePageEntity.setName(pageEntityToImport.getName());
+                updatePageEntity.setOrder(pageEntityToImport.getOrder());
+                updatePageEntity.setParentId(pageEntityToImport.getParentId());
+                updatePageEntity.setPublished(pageEntityToImport.isPublished());
+                updatePageEntity.setSource(pageEntityToImport.getSource());
+
+                createdOrUpdatedPage = pageService.update(pageEntities.get(0).getId(), updatePageEntity);
+            } else {
+                LOGGER.error("Not able to identify the page to update: {}. Too much page with the same name", pageEntityToImport.getName());
+                throw new TechnicalManagementException("Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much page with the same name");
+            }
+
+            if(child.children != null && !child.children.isEmpty()) {
+                this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children);
+            }
+        }
     }
 
     @Override
@@ -1510,7 +1667,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiModelEntity findByIdForTemplates(String apiId) {
+    public ApiModelEntity findByIdForTemplates(String apiId, boolean decodeTemplate) {
         final ApiEntity apiEntity = findById(apiId);
 
         final ApiModelEntity apiModelEntity = new ApiModelEntity();
@@ -1542,6 +1699,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(),
                     metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
             apiModelEntity.setMetadata(mapMetadata);
+            if (decodeTemplate) {
+                try {
+                    Template apiMetadataTemplate = new Template(apiModelEntity.getId(), new StringReader(mapMetadata.toString()), freemarkerConfiguration);
+                    String decodedValue = FreeMarkerTemplateUtils.processTemplateIntoString(apiMetadataTemplate, Collections.singletonMap("api", apiModelEntity));
+                    Map<String, String> metadataDecoded = Arrays
+                            .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                            .map(entry -> entry.split("="))
+                            .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
+                    apiModelEntity.setMetadata(metadataDecoded);
+                } catch (Exception ex) {
+                    throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
+                }
+            }
         }
         return apiModelEntity;
     }
@@ -1563,8 +1733,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (SWAGGER.name().equals(pageEntity.getType())) {
             final ImportSwaggerDescriptorEntity importSwaggerDescriptorEntity = new ImportSwaggerDescriptorEntity();
             importSwaggerDescriptorEntity.setPayload(pageEntity.getContent());
-            final NewSwaggerApiEntity newSwaggerApiEntity = swaggerService.prepare(importSwaggerDescriptorEntity);
-            apiEntity.getPathMappings().addAll(newSwaggerApiEntity.getPaths().stream().map(SwaggerPath::getPath).collect(toList()));
+            final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(importSwaggerDescriptorEntity);
+            apiEntity.getPathMappings().addAll(swaggerApiEntity.getPathMappings());
         }
 
         return update(apiEntity.getId(), ApiService.convert(apiEntity));
@@ -1761,7 +1931,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
-            ApiEntity apiEntity = convert(apiRepository.update(api));
+            ApiEntity apiEntity = convert(apiRepository.update(api), getPrimaryOwner(api));
             // Audit
             auditService.createApiAuditLog(
                     apiId,
@@ -1897,6 +2067,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
+
+                // Issue https://github.com/gravitee-io/issues/issues/3356
+                if (apiDefinition.getProxy().getVirtualHosts() != null &&
+                        !apiDefinition.getProxy().getVirtualHosts().isEmpty()) {
+                    apiEntity.setContextPath(apiDefinition.getProxy().getVirtualHosts().get(0).getPath());
+                }
+
                 if (apiDefinition.getPathMappings() != null) {
                     apiEntity.setPathMappings(new HashSet<>(apiDefinition.getPathMappings().keySet()));
                 }
@@ -1909,9 +2086,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
         apiEntity.setPicture(api.getPicture());
-        apiEntity.setViews(api.getViews());
         apiEntity.setLabels(api.getLabels());
 
+        final Set<String> apiViews = api.getViews();
+        if (apiViews != null) {
+            final List<ViewEntity> views = viewService.findAll();
+            final Set<String> newApiViews = new HashSet<>(apiViews.size());
+            for (final String apiView : apiViews) {
+                final Optional<ViewEntity> optionalView = views.stream().filter(v -> apiView.equals(v.getId())).findAny();
+                optionalView.ifPresent(view -> newApiViews.add(view.getKey()));
+            }
+            apiEntity.setViews(newApiViews);
+        }
         final LifecycleState state = api.getLifecycleState();
         if (state != null) {
             apiEntity.setState(Lifecycle.State.valueOf(state.name()));
@@ -1949,7 +2135,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setName(updateApiEntity.getName().trim());
         api.setDescription(updateApiEntity.getDescription().trim());
         api.setPicture(updateApiEntity.getPicture());
-        api.setViews(updateApiEntity.getViews());
+
+        final Set<String> apiViews = updateApiEntity.getViews();
+        if (apiViews != null) {
+            final List<ViewEntity> views = viewService.findAll();
+            final Set<String> newApiViews = new HashSet<>(apiViews.size());
+            for (final String apiView : apiViews) {
+                final Optional<ViewEntity> optionalView =
+                        views.stream().filter(v -> apiView.equals(v.getKey()) || apiView.equals(v.getId())).findAny();
+                optionalView.ifPresent(view -> newApiViews.add(view.getId()));
+            }
+            api.setViews(newApiViews);
+        }
 
         if (updateApiEntity.getLabels() != null) {
             api.setLabels(new ArrayList(new LinkedHashSet<>(updateApiEntity.getLabels())));

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApiKeyEntity;
@@ -76,6 +77,12 @@ public class ApplicationService_ArchiveTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private GenericNotificationConfigService genericNotificationConfigService;
+    
+    @Mock
+    private MembershipRepository membershipRepository;
 
     @Test
     public void shouldArchive() throws TechnicalException {

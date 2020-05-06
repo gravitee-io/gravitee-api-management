@@ -80,30 +80,32 @@ public class PlatformAnalyticsResource extends AbstractResource  {
         // add filter by Apis or Applications
         String extraFilter = null;
         if (!isAdmin()) {
-            String fieldName = null;
-            List<String> ids = null;
-            if ("api".equals(analyticsParam.getField()) || "tenant".equals(analyticsParam.getField())) {
+            String fieldName;
+            List<String> ids;
+            if ("application".equals(analyticsParam.getField())) {
+                fieldName = "application";
+                ids = applicationService.findByUser(getAuthenticatedUser())
+                        .stream()
+                        .filter(app -> permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ))
+                        .map(ApplicationListItem::getId)
+                        .collect(Collectors.toList());
+            } else {
                 fieldName = "api";
                 ids = apiService.findByUser(getAuthenticatedUser(), null)
                         .stream()
                         .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
                         .map(ApiEntity::getId)
                         .collect(Collectors.toList());
-            } else if ("application".equals(analyticsParam.getField())) {
-                fieldName = analyticsParam.getField();
-                ids = applicationService.findByUser(getAuthenticatedUser())
-                        .stream()
-                        .filter(app -> permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ))
-                        .map(ApplicationListItem::getId)
-                        .collect(Collectors.toList());
             }
 
-            if (fieldName != null) {
-                if (ids.isEmpty()) {
-                    return Response.noContent().build();
-                }
-                extraFilter = getExtraFilter(fieldName, ids);
+            if (ids.isEmpty()) {
+                return Response.noContent().build();
             }
+            extraFilter = getExtraFilter(fieldName, ids);
+        }
+
+        if (analyticsParam.getQuery() != null) {
+            analyticsParam.setQuery(analyticsParam.getQuery().replaceAll("\\?", "1"));
         }
 
         switch (analyticsParam.getTypeParam().getValue()) {

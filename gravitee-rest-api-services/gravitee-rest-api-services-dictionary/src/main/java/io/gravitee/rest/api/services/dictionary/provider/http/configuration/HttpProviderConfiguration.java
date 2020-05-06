@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.services.dictionary.provider.http.configuration;
 
+import java.util.List;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -23,6 +25,7 @@ public class HttpProviderConfiguration {
 
     private String url;
     private String specification;
+    private List<HttpHeader> headers;
 
     public String getUrl() {
         return url;
@@ -38,5 +41,13 @@ public class HttpProviderConfiguration {
 
     public void setSpecification(String specification) {
         this.specification = specification;
+    }
+
+    public List<HttpHeader> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(List<HttpHeader> headers) {
+        this.headers = headers;
     }
 }

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import java.util.List;
 
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -35,5 +36,7 @@ public interface MetadataService {
 
     void checkMetadataFormat(MetadataFormat format, String value);
 
+    void checkMetadataFormat(MetadataFormat format, String value, ApiEntity apiEntity);
+    
     MetadataEntity findDefaultByKey(String key);
 }

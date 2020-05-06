@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -25,6 +26,8 @@ public class UserMembership {
 
     private String reference;
     private String type;
+    private Map<String, String> roles;
+    private String source;
 
     public String getReference() {
         return reference;
@@ -40,6 +43,22 @@ public class UserMembership {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Map<String, String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Map<String, String> roles) {
+        this.roles = roles;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     @Override

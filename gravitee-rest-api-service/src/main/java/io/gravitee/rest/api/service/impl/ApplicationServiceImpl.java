@@ -20,11 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.repository.management.model.ApplicationType;
-import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationListItemSettings;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
@@ -76,6 +76,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     private UserService userService;
 
     @Autowired
+    private MembershipRepository membershipRepository;
+
+    @Autowired
     private MembershipService membershipService;
 
     @Autowired
@@ -109,16 +112,19 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         try {
             LOGGER.debug("Find application by ID: {}", applicationId);
 
-            Optional<Application> application = applicationRepository.findById(applicationId);
+            Optional<Application> applicationOptional = applicationRepository.findById(applicationId);
 
-            if (application.isPresent()) {
-                MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(MembershipReferenceType.APPLICATION, application.get().getId());
+            if (applicationOptional.isPresent()) {
+                Application application = applicationOptional.get();
+                MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(MembershipReferenceType.APPLICATION, application.getId());
                 if (primaryOwnerMemberEntity == null) {
-                    LOGGER.error("The Application {} doesn't have any primary owner.", applicationId);
-                    return convert(application.get(), null);
+                    if (!ApplicationStatus.ARCHIVED.equals(application.getStatus())) {
+                        LOGGER.error("The Application {} doesn't have any primary owner.", applicationId);
+                    }
+                    return convert(application, null);
                 }
 
-                return convert(application.get(), userService.findById(primaryOwnerMemberEntity.getMemberId()));
+                return convert(application, userService.findById(primaryOwnerMemberEntity.getMemberId()));
             }
 
             throw new ApplicationNotFoundException(applicationId);
@@ -561,6 +567,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setUpdatedAt(new Date());
             application.setStatus(ApplicationStatus.ARCHIVED);
             applicationRepository.update(application);
+            // remove notifications
+            genericNotificationConfigService.deleteReference(NotificationReferenceType.APPLICATION, applicationId);
+            // remove memberships
+            membershipRepository.deleteMembers(io.gravitee.repository.management.model.MembershipReferenceType.APPLICATION, applicationId);
             // Audit
             auditService.createApplicationAuditLog(
                     application.getId(),

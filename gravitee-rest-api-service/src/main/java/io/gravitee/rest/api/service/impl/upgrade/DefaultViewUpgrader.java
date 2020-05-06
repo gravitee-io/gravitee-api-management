@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.ViewRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.View;
 import io.gravitee.rest.api.model.ViewEntity;
 import io.gravitee.rest.api.service.Upgrader;
@@ -27,6 +32,7 @@ import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,7 +41,6 @@ import java.util.Optional;
  */
 @Component
 public class DefaultViewUpgrader implements Upgrader, Ordered {
-
     /**
      * Logger.
      */
@@ -43,19 +48,37 @@ public class DefaultViewUpgrader implements Upgrader, Ordered {
 
     @Autowired
     private ViewService viewService;
+    @Autowired
+    private ViewRepository viewRepository;
+    @Autowired
+    private ApiRepository apiRepository;
 
     @Override
     public boolean upgrade() {
         // Initialize default view
-        Optional<ViewEntity> optionalAllView = viewService.findAll().
-                stream().
-                filter(v -> v.getId().equals(View.ALL_ID)).
-                findFirst();
-        if(!optionalAllView.isPresent()) {
-            logger.info("Create default View");
-            viewService.initialize(GraviteeContext.getDefaultEnvironment());
+        final Set<View> views;
+        try {
+            views = viewRepository.findAll();
+            Optional<View> optionalAllView = views.
+                    stream().
+                    filter(v -> v.getId().equals(View.ALL_ID)).
+                    findFirst();
+            if (optionalAllView.isPresent()) {
+                final String key = optionalAllView.get().getKey();
+                if (key == null || key.isEmpty()) {
+                    logger.info("Update views to add field key");
+                    for (final View view : views) {
+                        view.setKey(IdGenerator.generate(view.getName()));
+                        viewRepository.update(view);
+                    }
+                }
+            } else {
+                logger.info("Create default View");
+                viewService.initialize(GraviteeContext.getDefaultEnvironment());
+            }
+        } catch (TechnicalException e) {
+            e.printStackTrace();
         }
-
         return true;
     }
 

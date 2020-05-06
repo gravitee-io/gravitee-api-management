@@ -36,6 +36,7 @@ public interface GroupService {
     List<GroupEntity>       findAll                             ();
     GroupEntity             findById                            (String groupId);
     Set<GroupEntity>        findByIds                           (Set<String> groupIds);
+    void                    associate(String groupId, String associationType);
     Set<GroupEntity>        findByEvent                         (GroupEvent event);
     List<GroupEntity>       findByName                          (String name);
     Set<GroupEntity>        findByUser                          (String username);

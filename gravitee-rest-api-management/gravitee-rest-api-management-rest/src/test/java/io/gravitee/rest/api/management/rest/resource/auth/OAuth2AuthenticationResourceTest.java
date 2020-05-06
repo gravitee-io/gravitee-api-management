@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -567,50 +568,59 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verify(userService, times(1)).connect("janedoe@example.com");
 
         //verify group creations
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+                new MembershipService.MembershipRole(RoleScope.API, "USER"),
+                USER_SOURCE_OAUTH2);
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"),
+                USER_SOURCE_OAUTH2);
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+                new MembershipService.MembershipRole(RoleScope.API, "USER"),
+                USER_SOURCE_OAUTH2);
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"),
+                USER_SOURCE_OAUTH2);
 
-        verify(membershipService, times(0)).addRoleToMemberOnReference(
+        verify(membershipService, times(0)).updateRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+                new MembershipService.MembershipRole(RoleScope.API, "USER"),
+                USER_SOURCE_OAUTH2);
 
-        verify(membershipService, times(0)).addRoleToMemberOnReference(
+        verify(membershipService, times(0)).updateRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"),
+                USER_SOURCE_OAUTH2);
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+                new MembershipService.MembershipRole(RoleScope.API, "USER"),
+                USER_SOURCE_OAUTH2);
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"),
+                USER_SOURCE_OAUTH2);
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "USER"));
+                new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "USER"),
+                USER_SOURCE_OAUTH2);
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -734,7 +744,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verifyJwtToken(response);
     }
 
-
     @Test
     public void shouldNotConnectNewUserWhenWrongELGroupsMapping() throws Exception {
 
@@ -763,7 +772,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).findBySource(USER_SOURCE_OAUTH2,"janedoe@example.com",false);
+        verify(userService, times(0)).findBySource(USER_SOURCE_OAUTH2,"janedoe@example.com",false);
         verify(userService, times(0)).create(any(NewExternalUserEntity.class),anyBoolean());
 
         verify(userService, times(0)).update(any(String.class), any(UpdateUserEntity.class));

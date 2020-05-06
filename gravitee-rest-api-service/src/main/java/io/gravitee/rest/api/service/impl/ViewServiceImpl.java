@@ -25,12 +25,12 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.DatatypeConverter;
 
+import io.gravitee.common.utils.IdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.model.View;
@@ -85,19 +85,21 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     }
 
     @Override
-    public ViewEntity findById(String id) {
+    public ViewEntity findById(final String id) {
         try {
             LOGGER.debug("Find view by id : {}", id);
             Optional<View> view = viewRepository.findById(id);
-
+            if (!view.isPresent()) {
+                view = viewRepository.findByKey(id, GraviteeContext.getCurrentEnvironment());
+            }
             if (view.isPresent()) {
                 return convert(view.get());
             }
-
             throw new ViewNotFoundException(id);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find a view using its ID: {}", id, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find a view using its ID: " + id, ex);
+            final String error = "An error occurs while trying to find a view using its id: " + id;
+            LOGGER.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
         }
     }
 
@@ -191,6 +193,11 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
                 Optional<View> viewOptional = viewRepository.findById(viewEntity.getId());
                 if (viewOptional.isPresent()) {
                     View view = convert(viewEntity, viewOptional.get().getEnvironmentId());
+                    // check if picture has been set
+                    if (view.getPicture() == null) {
+                        // Picture can not be updated when re-ordering views
+                        view.setPicture(viewOptional.get().getPicture());
+                    }
 
                     savedViews.add(convert(viewRepository.update(view)));
                     auditService.createPortalAuditLog(
@@ -240,6 +247,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
             view.setId(View.ALL_ID);
             view.setEnvironmentId(environmentId);
             view.setName("All");
+            view.setKey(RandomString.generate());
             view.setDefaultView(true);
             view.setOrder(0);
             view.setCreatedAt(new Date());
@@ -269,6 +277,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     private View convert(final NewViewEntity viewEntity) {
         final View view = new View();
         view.setId(RandomString.generate());
+        view.setKey(IdGenerator.generate(viewEntity.getName()));
         view.setName(viewEntity.getName());
         view.setDescription(viewEntity.getDescription());
         view.setOrder(viewEntity.getOrder());
@@ -281,6 +290,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     private View convert(final UpdateViewEntity viewEntity, final String environment) {
         final View view = new View();
         view.setId(viewEntity.getId());
+        view.setKey(IdGenerator.generate(viewEntity.getName()));
         view.setEnvironmentId(environment);
         view.setName(viewEntity.getName());
         view.setDescription(viewEntity.getDescription());
@@ -295,6 +305,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     private ViewEntity convert(final View view) {
         final ViewEntity viewEntity = new ViewEntity();
         viewEntity.setId(view.getId());
+        viewEntity.setKey(view.getKey());
         viewEntity.setName(view.getName());
         viewEntity.setDescription(view.getDescription());
         viewEntity.setDefaultView(view.isDefaultView());
@@ -310,8 +321,8 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     @Override
     public long getTotalApisByView(Set<ApiEntity> apis, ViewEntity view) {
         return apis.stream()
-                .filter(api -> View.ALL_ID.equals(view.getId())
-                        || (api.getViews() != null && api.getViews().contains(view.getId())))
+                .filter(api -> View.ALL_ID.equals(view.getKey())
+                        || (api.getViews() != null && api.getViews().contains(view.getKey())))
                 .count();
     }
 }

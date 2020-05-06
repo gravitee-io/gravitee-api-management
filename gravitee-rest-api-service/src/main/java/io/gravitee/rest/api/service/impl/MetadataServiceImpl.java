@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
@@ -24,6 +26,7 @@ import io.gravitee.rest.api.model.MetadataEntity;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.NewMetadataEntity;
 import io.gravitee.rest.api.model.UpdateMetadataEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.exceptions.DuplicateMetadataNameException;
@@ -33,8 +36,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import javax.mail.internet.InternetAddress;
+import java.io.StringReader;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -44,9 +49,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
-import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_CREATED;
-import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_DELETED;
-import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_UPDATED;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
@@ -65,6 +68,9 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private Configuration freemarkerConfiguration;
 
     @Override
     public List<MetadataEntity> findAllDefault() {
@@ -200,35 +206,51 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     }
 
     @Override
-    public void checkMetadataFormat(final MetadataFormat format, final String value) {
-        if (isBlank(value)) {
-            return;
-        }
+    public void checkMetadataFormat(MetadataFormat format, String value) {
+        checkMetadataFormat(format, value, null);
+    }
+
+    @Override
+    public void checkMetadataFormat(final MetadataFormat format, final String value, final ApiEntity api) {
         try {
+            String decodedValue = value;
+            if (api != null && !isBlank(value) && value.startsWith("${")) {
+                Template template = new Template(value, new StringReader(value), freemarkerConfiguration);
+                decodedValue = FreeMarkerTemplateUtils.processTemplateIntoString(template, Collections.singletonMap("api", api));
+            }
+
+            if (isBlank(decodedValue)) {
+                return;
+            }
+
             switch (format) {
                 case BOOLEAN:
-                    Boolean.valueOf(value);
+                    Boolean.valueOf(decodedValue);
                     break;
                 case URL:
-                    new URL(value);
+                    new URL(decodedValue);
                     break;
                 case MAIL:
-                    final InternetAddress email = new InternetAddress(value);
+                    final InternetAddress email = new InternetAddress(decodedValue);
                     email.validate();
                     break;
                 case DATE:
                     final SimpleDateFormat sdf = new SimpleDateFormat("YYYY-mm-dd");
                     sdf.setLenient(false);
-                    sdf.parse(value);
+                    sdf.parse(decodedValue);
                     break;
                 case NUMERIC:
-                    Double.valueOf(value);
+                    Double.valueOf(decodedValue);
                     break;
             }
         } catch (final Exception e) {
             LOGGER.error("Error occurred while trying to validate format '{}' of value '{}'", format, value, e);
             throw new TechnicalManagementException("Error occurred while trying to validate format " + format + " of value " + value, e);
         }
+    }
+
+    public void setFreemarkerConfiguration(Configuration freemarkerConfiguration) {
+        this.freemarkerConfiguration = freemarkerConfiguration;
     }
 
     private MetadataEntity convert(final Metadata metadata) {

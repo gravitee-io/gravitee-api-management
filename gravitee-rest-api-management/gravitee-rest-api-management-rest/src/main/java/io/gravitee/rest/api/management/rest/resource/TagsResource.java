@@ -99,7 +99,7 @@ public class TagsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.UPDATE)
     })
-    public TagEntity update(@Valid @NotNull final UpdateTagEntity tag) {
+    public TagEntity update(@PathParam("tag") String tagId, @Valid @NotNull final UpdateTagEntity tag) {
         return tagService.update(tag);
     }
 

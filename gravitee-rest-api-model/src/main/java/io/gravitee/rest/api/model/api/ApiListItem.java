@@ -21,6 +21,7 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Date;
 import java.util.List;
@@ -33,46 +34,97 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class ApiListItem {
-
+    @ApiModelProperty(
+            value = "Api's uuid.",
+            example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;
 
+    @ApiModelProperty(
+            value = "Api's name. Duplicate names can exists.",
+            example = "My Api")
     private String name;
 
+    @ApiModelProperty(
+            value = "Api's version. It's a simple string only used in the portal.",
+            example = "v1.0")
     private String version;
 
+    @ApiModelProperty(
+            value = "Api's version. It's a simple string only used in the portal.",
+            example = "v1.0")
     private String description;
 
     @JsonProperty("created_at")
+    @ApiModelProperty(
+            value = "The date (as a timestamp) when the API was created.",
+            example = "1581256457163")
     private Date createdAt;
 
     @JsonProperty("updated_at")
+    @ApiModelProperty(
+            value = "The last date (as a timestamp) when the API was updated.",
+            example = "1581256457163")
     private Date updatedAt;
 
+    @ApiModelProperty(
+            value = "The visibility of the API regarding the portal.",
+            example = "PUBLIC",
+            allowableValues = "PUBLIC, PRIVATE")
     private Visibility visibility;
 
+    @ApiModelProperty(
+            value = "The status of the API regarding the gateway.",
+            example = "STARTED",
+            allowableValues = "INITIALIZED, STOPPED, STARTED, CLOSED")
     private Lifecycle.State state;
 
     @JsonProperty("owner")
+    @ApiModelProperty(
+            value = "The user with role PRIMARY_OWNER on this API.")
     private PrimaryOwnerEntity primaryOwner;
 
     private String role;
 
     @JsonProperty(value = "picture_url")
+    @ApiModelProperty(
+            value = "the API logo url.",
+            example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture")
     private String pictureUrl;
 
     @JsonProperty(value = "virtual_hosts")
     private List<VirtualHost> virtualHosts;
 
+    @ApiModelProperty(
+            value = "the list of views associated with this API",
+            dataType = "java.util.List",
+            example = "Product, Customer, Misc")
     private Set<String> views;
 
+    @ApiModelProperty(
+            value = "the free list of labels associated with this API",
+            dataType = "java.util.List",
+            example = "json, read_only, awesome")
     private List<String> labels;
 
+    @ApiModelProperty(
+            value = "true if the user can administrate the API, false otherwise",
+            example = "true")
     private boolean manageable;
 
+    @ApiModelProperty(
+            value = "How consumers have evaluated the API (between 0 to 5)",
+            example = "4")
     private Double rate;
 
+    @ApiModelProperty(
+            value = "How many consumers have evaluated the API",
+            example = "4")
     private int numberOfRatings;
 
+    @ApiModelProperty(
+            value = "the list of sharding tags associated with this API.",
+            dataType = "java.util.List",
+            example = "public, private")
     private Set<String> tags;
 
     @JsonProperty(value = "lifecycle_state")

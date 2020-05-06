@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.Collection;
-
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.model.InstanceListItem;
+import io.gravitee.rest.api.model.InstanceQuery;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,7 +26,7 @@ import io.gravitee.rest.api.model.InstanceListItem;
  */
 public interface InstanceService {
 
-    Collection<InstanceListItem> findInstances(boolean includeStopped);
-    Collection<InstanceListItem> findInstances(boolean includeStopped, String gatewayId);
-    InstanceEntity findById(String id);
+    Page<InstanceListItem> search(InstanceQuery query);
+    InstanceEntity findById(String instance);
+    InstanceEntity findByEvent(String event);
 }

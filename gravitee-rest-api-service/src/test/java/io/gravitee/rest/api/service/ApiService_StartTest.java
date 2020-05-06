@@ -23,26 +23,16 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.model.EventQuery;
-import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.mixin.ApiMixin;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.NotifierService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.ApiHook;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,7 +49,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_StartTest {
@@ -73,7 +65,7 @@ public class ApiService_StartTest {
     @Mock
     private ApiRepository apiRepository;
     @Mock
-    private MembershipRepository membershipRepository;
+    private MembershipService membershipService;
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
     @Mock
@@ -88,13 +80,22 @@ public class ApiService_StartTest {
     private NotifierService notifierService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private ViewService viewService;
 
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         UserEntity u = mock(UserEntity.class);
+        when(u.getId()).thenReturn("uid");
         when(userService.findById(any())).thenReturn(u);
+        MembershipEntity po = mock(MembershipEntity.class);
+        when(membershipService.getPrimaryOwner(
+                eq(io.gravitee.rest.api.model.MembershipReferenceType.API),
+                anyString())).thenReturn(po);
+        when(po.getId()).thenReturn("uid");
+        when(api.getId()).thenReturn(API_ID);
     }
 
     @Test

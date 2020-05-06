@@ -18,6 +18,7 @@ package io.gravitee.rest.api.services.dynamicproperties.provider.http;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
+import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.HttpProvider;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper.JoltMapper;
@@ -59,6 +60,9 @@ public class HttpProviderTest {
 
     @Mock
     private JoltMapper mapper;
+
+    @Mock
+    private Node node;
 
     @Before
     public void setUp() {

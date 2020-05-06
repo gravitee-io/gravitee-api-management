@@ -43,10 +43,10 @@ public interface ApiService {
     Set<ApiEntity> findByVisibility(Visibility visibility);
 
     ApiEntity create(NewApiEntity api, String userId);
-    ApiEntity create(NewSwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
+    ApiEntity create(SwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     ApiEntity update(String apiId, UpdateApiEntity api);
-    ApiEntity update(String apiId, UpdateSwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor);
+    ApiEntity update(String apiId, SwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     void delete(String apiId);
 
@@ -79,7 +79,11 @@ public interface ApiService {
 
     void deleteTagFromAPIs(String tagId);
 
-    ApiModelEntity findByIdForTemplates(String apiId);
+    ApiModelEntity findByIdForTemplates(String apiId, boolean decodeTemplate);
+
+    default ApiModelEntity findByIdForTemplates(String apiId) {
+        return findByIdForTemplates(apiId, false);
+    }
 
     boolean exists(String apiId);
 

@@ -16,8 +16,10 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,15 +30,29 @@ public class ImportSwaggerDescriptorEntity {
     private Type type = Type.INLINE;
 
     @NotNull
+    @ApiModelProperty(
+            value = "The swagger/openapi content.")
     private String payload;
+
     @JsonProperty("with_documentation")
+    @ApiModelProperty(
+            value = "Do you want to create a swagger page in addition to the API ?",
+            example = "true")
     private boolean withDocumentation;
+
     @JsonProperty("with_path_mapping")
+    @ApiModelProperty(
+            value = "Do you want to create a path mapping for each declared swagger paths in addition to the API ?",
+            example = "true")
     private boolean withPathMapping;
+    
     @JsonProperty("with_policy_paths")
+    @ApiModelProperty(
+            value = "Do you want to create a path (in order to add policies under) for each declared swagger paths in addition to the API ?",
+            example = "true")
     private boolean withPolicyPaths;
-    @JsonProperty("with_policy_mocks")
-    private boolean withPolicyMocks;
+    @JsonProperty("with_policies")
+    private List<String> withPolicies;
 
     public Type getType() {
         return type;
@@ -78,12 +94,12 @@ public class ImportSwaggerDescriptorEntity {
         this.withPolicyPaths = withPolicyPaths;
     }
 
-    public boolean isWithPolicyMocks() {
-        return withPolicyMocks;
+    public List<String> getWithPolicies() {
+        return withPolicies;
     }
 
-    public void setWithPolicyMocks(boolean withPolicyMocks) {
-        this.withPolicyMocks = withPolicyMocks;
+    public void setWithPolicies(List<String> withPolicies) {
+        this.withPolicies = withPolicies;
     }
 
     public enum Type {

@@ -68,11 +68,17 @@ public class JettyConfiguration {
     @Value("${jetty.ssl.keystore.path:#{null}}")
     private String keyStorePath;
 
+    @Value("${jetty.ssl.keystore.type:#{null}}")
+    private String keyStoreType;
+
     @Value("${jetty.ssl.keystore.password:#{null}}")
     private String keyStorePassword;
 
     @Value("${jetty.ssl.truststore.path:#{null}}")
     private String trustStorePath;
+
+    @Value("${jetty.ssl.truststore.type:#{null}}")
+    private String trustStoreType;
 
     @Value("${jetty.ssl.truststore.password:#{null}}")
     private String trustStorePassword;
@@ -219,5 +225,21 @@ public class JettyConfiguration {
 
     public void setTrustStorePassword(String trustStorePassword) {
         this.trustStorePassword = trustStorePassword;
+    }
+
+    public String getKeyStoreType() {
+        return keyStoreType;
+    }
+
+    public void setKeyStoreType(String keyStoreType) {
+        this.keyStoreType = keyStoreType;
+    }
+
+    public String getTrustStoreType() {
+        return trustStoreType;
+    }
+
+    public void setTrustStoreType(String trustStoreType) {
+        this.trustStoreType = trustStoreType;
     }
 }

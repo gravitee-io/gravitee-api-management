@@ -15,9 +15,14 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties.provider.http;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
+import io.gravitee.node.api.Node;
+import io.gravitee.node.api.utils.NodeUtils;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper.JoltMapper;
@@ -51,6 +56,8 @@ public class HttpProvider implements Provider {
     private JoltMapper mapper;
 
     private Vertx vertx;
+
+    private Node node;
 
     public HttpProvider(final DynamicPropertyService dpService) {
         Objects.requireNonNull(dpService, "Service must not be null");
@@ -86,6 +93,9 @@ public class HttpProvider implements Provider {
                     requestUri.getHost(),
                     requestUri.toString()
             );
+
+            request.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
+            request.putHeader("X-Gravitee-Request-Id", RandomString.generate());
 
             request.handler(response -> {
                 if (response.statusCode() == HttpStatusCode.OK_200) {
@@ -137,5 +147,9 @@ public class HttpProvider implements Provider {
 
     public void setVertx(Vertx vertx) {
         this.vertx = vertx;
+    }
+
+    public void setNode(Node node) {
+        this.node = node;
     }
 }

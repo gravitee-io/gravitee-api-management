@@ -92,7 +92,13 @@ public class ApiService_CreateTest {
     private GenericNotificationConfigService genericNotificationConfigService;
 
     @Mock
+    private ApiMetadataService apiMetadataService;
+
+    @Mock
     private VirtualHostService virtualHostService;
+
+    @Mock
+    private ViewService viewService;
 
     @Before
     public void init() {
@@ -177,5 +183,6 @@ public class ApiService_CreateTest {
         verify(membershipService, times(1)).addRoleToMemberOnReference(any(), any(), any());
         verify(auditService, times(1)).createApiAuditLog(any(), any(), eq(Api.AuditEvent.API_CREATED), any(), eq(null) , any());
         verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(apiMetadataService, times(1)).create(any());
     }
 }

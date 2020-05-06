@@ -36,6 +36,8 @@ public class IdentityProviderListItem {
 
     private boolean enabled;
 
+    private boolean sync;
+
     private IdentityProviderType type;
 
     @JsonProperty("created_at")
@@ -98,6 +100,14 @@ public class IdentityProviderListItem {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public boolean isSync() {
+        return sync;
+    }
+
+    public void setSync(boolean sync) {
+        this.sync = sync;
     }
 
     @Override

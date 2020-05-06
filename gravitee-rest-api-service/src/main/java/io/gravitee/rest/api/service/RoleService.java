@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
@@ -43,4 +44,5 @@ public interface RoleService {
     boolean                 hasPermission               (Map<String, char[]> userPermissions, Permission permission, RolePermissionAction[] acls);
     void                    initialize                  (String organizationId);
     RoleEntity              update                      (UpdateRoleEntity role);
+    RoleScope               findScopeByMembershipReferenceType (MembershipReferenceType type);
 }

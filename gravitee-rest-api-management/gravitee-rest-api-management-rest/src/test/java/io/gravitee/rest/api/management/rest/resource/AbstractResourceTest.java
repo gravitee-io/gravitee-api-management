@@ -20,6 +20,7 @@ import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -118,10 +119,19 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected TagService tagService;
 
     @Autowired
+    private ApiMetadataService apiMetadataService;
+
+    @Autowired
     protected ParameterService parameterService;
 
     @Autowired
     protected VirtualHostService virtualHostService;
+
+    @Autowired
+    protected ViewService viewService;
+
+    @Autowired
+    protected PolicyOperationVisitorManager policyOperationVisitorManager;
     
     @Autowired
     protected ConfigService configService;
@@ -252,8 +262,23 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
+        public ApiMetadataService apiMetadataService() {
+    	    return mock(ApiMetadataService.class);
+        }
+
+        @Bean
         public VirtualHostService virtualHostService() {
             return mock(VirtualHostService.class);
+        }
+
+        @Bean
+        public ViewService viewService() {
+            return mock(ViewService.class);
+        }
+
+        @Bean
+        public PolicyOperationVisitorManager policyOperationVisitorManager() {
+    	    return mock(PolicyOperationVisitorManager.class);
         }
 
         @Bean

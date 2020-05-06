@@ -27,6 +27,8 @@ public class InstanceEntity {
 
     private String id;
 
+    private String event;
+
     @JsonProperty("started_at")
     private Date startedAt;
 
@@ -75,6 +77,14 @@ public class InstanceEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getEvent() {
+        return event;
+    }
+
+    public void setEvent(String event) {
+        this.event = event;
     }
 
     public Date getStartedAt() {

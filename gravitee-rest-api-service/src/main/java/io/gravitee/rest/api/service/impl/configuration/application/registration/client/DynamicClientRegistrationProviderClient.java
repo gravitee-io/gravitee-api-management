@@ -102,7 +102,10 @@ public abstract class DynamicClientRegistrationProviderClient {
         }
     }
 
-    public ClientRegistrationResponse update(String registrationAccessToken, String registrationClientUri, ClientRegistrationRequest request) {
+    public ClientRegistrationResponse update(String registrationAccessToken,
+                                             String registrationClientUri,
+                                             ClientRegistrationRequest request,
+                                             String clientId) {
         HttpPut updateRequest = new HttpPut(registrationClientUri);
 
         updateRequest.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + registrationAccessToken);
@@ -110,13 +113,15 @@ public abstract class DynamicClientRegistrationProviderClient {
 
         try {
             JsonNode reqNode = mapper.readTree(mapper.writeValueAsString(request));
+
+            // Set the client_id according to https://tools.ietf.org/html/rfc7592#page-7
+            ((ObjectNode) reqNode).put("client_id", clientId);
+
             if (request.getScope() != null && !request.getScope().isEmpty()) {
                 ((ObjectNode) reqNode).put("scope", String.join(ClientRegistrationRequest.SCOPE_DELIMITER, request.getScope()));
             } else {
                 ((ObjectNode) reqNode).remove("scope");
             }
-
-        //    ((ObjectNode) reqNode).put("client_id", "0d7be850-e1ac-4d7a-9cf3-4f1ebd2c4ccb");
 
             updateRequest.setEntity(new StringEntity(
                     mapper.writeValueAsString(reqNode),

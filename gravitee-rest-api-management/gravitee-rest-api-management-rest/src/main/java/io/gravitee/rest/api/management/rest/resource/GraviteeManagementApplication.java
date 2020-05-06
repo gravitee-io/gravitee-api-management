@@ -22,6 +22,7 @@ import java.util.Iterator;
 
 import javax.inject.Inject;
 
+import io.gravitee.rest.api.management.rest.filter.*;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -30,10 +31,6 @@ import org.glassfish.jersey.server.ServerProperties;
 import com.fasterxml.jackson.databind.JavaType;
 
 import io.gravitee.common.util.Version;
-import io.gravitee.rest.api.management.rest.filter.GraviteeContextRequestFilter;
-import io.gravitee.rest.api.management.rest.filter.GraviteeContextResponseFilter;
-import io.gravitee.rest.api.management.rest.filter.PermissionsFilter;
-import io.gravitee.rest.api.management.rest.filter.SecurityContextFilter;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.provider.BadRequestExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.ByteArrayOutputStreamWriter;
@@ -117,6 +114,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(GraviteeContextRequestFilter.class);
         register(GraviteeContextResponseFilter.class);
         register(UriBuilderRequestFilter.class);
+        register(MaintenanceFilter.class);
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);
 

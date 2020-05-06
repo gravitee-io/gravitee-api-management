@@ -20,7 +20,9 @@ import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserMembership;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
 
@@ -57,6 +59,9 @@ public class MembershipService_FindUserMembershipTest {
     @Mock
     private GroupService mockGroupService;
 
+    @Mock
+    private RoleService mockRoleService;
+
     @Test
     public void shouldGetEmptyResultForEnvironmentType() {
         List<UserMembership> references = membershipService.findUserMembership(io.gravitee.rest.api.model.MembershipReferenceType.ENVIRONMENT, USER_ID);
@@ -67,6 +72,7 @@ public class MembershipService_FindUserMembershipTest {
 
     @Test
     public void shouldGetEmptyResultIfNoApiNorGroups() throws Exception {
+        when(mockRoleService.findByScope(any())).thenReturn(Collections.emptyList());
         when(mockMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType(eq(USER_ID), eq(MembershipMemberType.USER), eq(MembershipReferenceType.API)))
                 .thenReturn(Collections.emptySet());
         
@@ -79,8 +85,14 @@ public class MembershipService_FindUserMembershipTest {
 
     @Test
     public void shouldGetApiWithoutGroups() throws Exception {
+        RoleEntity roleEntity = new RoleEntity();
+        roleEntity.setId("role");
+        roleEntity.setName("PO");
+        roleEntity.setScope(RoleScope.API);
+        when(mockRoleService.findByScope(any())).thenReturn(Collections.singletonList(roleEntity));
         Membership mApi = mock(Membership.class);
         when(mApi.getReferenceId()).thenReturn("api-id1");
+        when(mApi.getRoleId()).thenReturn("role");
         
         when(mockMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType(eq(USER_ID), eq(MembershipMemberType.USER), eq(MembershipReferenceType.API)))
                 .thenReturn(Collections.singleton(mApi));
@@ -96,6 +108,7 @@ public class MembershipService_FindUserMembershipTest {
 
     @Test
     public void shouldGetApiWithOnlyGroups() throws Exception {
+        when(mockRoleService.findByScope(any())).thenReturn(Collections.emptyList());
         Membership mGroup = mock(Membership.class);
         when(mGroup.getReferenceId()).thenReturn("api-id2");
         
@@ -119,11 +132,18 @@ public class MembershipService_FindUserMembershipTest {
 
     @Test
     public void shouldGetApiWithApiAndGroups() throws Exception {
+        RoleEntity roleEntity = new RoleEntity();
+        roleEntity.setId("role");
+        roleEntity.setName("PO");
+        roleEntity.setScope(RoleScope.API);
+        when(mockRoleService.findByScope(any())).thenReturn(Collections.singletonList(roleEntity));
         Membership mApi = mock(Membership.class);
         when(mApi.getReferenceId()).thenReturn("api-id1");
+        when(mApi.getRoleId()).thenReturn("role");
         
         Membership mGroup = mock(Membership.class);
         when(mGroup.getReferenceId()).thenReturn("api-id2");
+        when(mApi.getRoleId()).thenReturn("role");
         
         when(mockMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType(eq(USER_ID), eq(MembershipMemberType.USER), eq(MembershipReferenceType.API)))
                 .thenReturn(Collections.singleton(mApi));

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.standalone;
 
 import io.gravitee.node.container.spring.SpringBasedContainer;
 import io.gravitee.rest.api.standalone.spring.StandaloneConfiguration;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.util.List;
 
@@ -36,6 +37,15 @@ public class GraviteeApisContainer extends SpringBasedContainer {
     @Override
     protected String name() {
         return "Gravitee.io - Rest APIs";
+    }
+
+    @Override
+    protected void initializeLogging() {
+        super.initializeLogging();
+        
+        // Move all java util logging logs to SLF4j
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
     }
 
     public static void main(String[] args) throws Exception {

@@ -71,12 +71,13 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     private String defaultFrom;
 
     public void sendEmailNotification(final EmailNotification emailNotification) {
-        if (enabled) {
+        if (enabled && emailNotification.getTo() != null && emailNotification.getTo().length > 0) {
             try {
                 final MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
 
                 final Template template = freemarkerConfiguration.getTemplate(emailNotification.getTemplate());
-                final String content = processTemplateIntoString(template, emailNotification.getParams());
+                String content = processTemplateIntoString(template, emailNotification.getParams());
+                content = content.replaceAll("&lt;br /&gt;", "<br />");
 
                 final String from = isNull(emailNotification.getFrom()) || emailNotification.getFrom().isEmpty()
                         ? defaultFrom
@@ -107,8 +108,6 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                 LOGGER.error("Error while sending email notification", ex);
                 throw new TechnicalManagementException("Error while sending email notification", ex);
             }
-        } else {
-            throw new EmailDisabledException();
         }
     }
 

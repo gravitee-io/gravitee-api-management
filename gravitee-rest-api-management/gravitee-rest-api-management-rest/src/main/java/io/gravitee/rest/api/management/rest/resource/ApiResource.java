@@ -23,20 +23,13 @@ import io.gravitee.rest.api.management.rest.resource.param.ReviewActionParam.Rev
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.gravitee.rest.api.model.api.DuplicateApiEntity;
-import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.MessageService;
-import io.gravitee.rest.api.service.NotifierService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.QualityMetricsService;
-import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -86,11 +79,13 @@ public class ApiResource extends AbstractResource {
     private ParameterService parameterService;
     @Inject
     private SwaggerService swaggerService;
+    @Autowired
+    private ApiMetadataService apiMetadataService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get the API definition",
-            notes = "User must have the READ permission to use this service")
+    @ApiOperation(value = "Get the API's definition",
+            notes = "User must have the READ permission on the API_DEFINITION to use this service on a private API.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -412,7 +407,8 @@ public class ApiResource extends AbstractResource {
     public Response updateWithSwagger(
             @PathParam("api") String api,
             @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        final ApiEntity updatedApi = apiService.update(api, swaggerService.prepareForUpdate(swaggerDescriptor), swaggerDescriptor);
+        SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(swaggerDescriptor);
+        final ApiEntity updatedApi = apiService.update(api, swaggerApiEntity, swaggerDescriptor);
         return Response
                 .ok(updatedApi)
                 .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
@@ -436,10 +432,10 @@ public class ApiResource extends AbstractResource {
             @PathParam("api") String api,
             @QueryParam("version") @DefaultValue("default") String version,
             @QueryParam("exclude") @DefaultValue("") String exclude) {
-        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
-        filterSensitiveData(apiEntity);
+        final ApiEntity apiEntity = apiService.findById(api);
+        final String apiDefinition = apiService.exportAsJson(api, version, exclude.split(","));
         return Response
-                .ok(apiService.exportAsJson(api, version, exclude.split(",")))
+                .ok(apiDefinition)
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity)))
                 .build();
     }

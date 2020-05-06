@@ -68,7 +68,7 @@ public class ViewService_GetTotalApisByViewTest {
     @Test
     public void testEnhanceForOneView() {
         ViewEntity v = new ViewEntity();
-        v.setId("1");
+        v.setKey("1");
         
         long totalApisByView = viewService.getTotalApisByView(apis, v);
        
@@ -78,7 +78,7 @@ public class ViewService_GetTotalApisByViewTest {
     @Test
     public void testEnhanceForAllView() {
         ViewEntity v = new ViewEntity();
-        v.setId("all");
+        v.setKey("all");
         
         long totalApisByView = viewService.getTotalApisByView(apis, v);
         

@@ -33,6 +33,9 @@ import java.util.concurrent.ArrayBlockingQueue;
  */
 public class JettyServerFactory implements FactoryBean<Server> {
 
+    private final static String KEYSTORE_TYPE_PKCS12 = "pkcs12";
+    private final static String KEYSTORE_TYPE_JKS = "jks";
+
     @Autowired
     private JettyConfiguration jettyConfiguration;
 
@@ -81,11 +84,19 @@ public class JettyServerFactory implements FactoryBean<Server> {
             if (jettyConfiguration.getKeyStorePath() != null) {
                 sslContextFactory.setKeyStorePath(jettyConfiguration.getKeyStorePath());
                 sslContextFactory.setKeyStorePassword(jettyConfiguration.getKeyStorePassword());
+
+                if (KEYSTORE_TYPE_PKCS12.equalsIgnoreCase(jettyConfiguration.getKeyStoreType())) {
+                    sslContextFactory.setKeyStoreType(KEYSTORE_TYPE_PKCS12);
+                }
             }
 
             if (jettyConfiguration.getTrustStorePath() != null) {
                 sslContextFactory.setTrustStorePath(jettyConfiguration.getTrustStorePath());
                 sslContextFactory.setTrustStorePassword(jettyConfiguration.getTrustStorePassword());
+
+                if (KEYSTORE_TYPE_PKCS12.equalsIgnoreCase(jettyConfiguration.getTrustStoreType())) {
+                    sslContextFactory.setTrustStoreType(KEYSTORE_TYPE_PKCS12);
+                }
             }
 
             HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);

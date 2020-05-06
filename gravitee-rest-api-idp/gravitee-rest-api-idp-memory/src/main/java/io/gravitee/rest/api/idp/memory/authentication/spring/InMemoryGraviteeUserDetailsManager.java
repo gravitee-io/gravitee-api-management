@@ -114,6 +114,8 @@ public class InMemoryGraviteeUserDetailsManager implements UserDetailsManager,
         UserDetails userDetails = new UserDetails(user.getUsername(), user.getPassword(), user.getEmail(), user.getAuthorities());
         userDetails.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
         userDetails.setSourceId(user.getUsername());
+        userDetails.setFirstname(user.getFirstname());
+        userDetails.setLastname(user.getLastname());
 
         return userDetails;
     }
@@ -130,7 +132,12 @@ public class InMemoryGraviteeUserDetailsManager implements UserDetailsManager,
         UserDetails userDetails = new UserDetails(user.getUsername(), user.getPassword(), user.getAuthorities());
         userDetails.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
         userDetails.setSourceId(user.getUsername());
-        
+
+        if (user instanceof io.gravitee.rest.api.idp.api.authentication.UserDetails) {
+            userDetails.setFirstname(((io.gravitee.rest.api.idp.api.authentication.UserDetails) user).getFirstname());
+            userDetails.setLastname(((io.gravitee.rest.api.idp.api.authentication.UserDetails) user).getLastname());
+        }
+
         return userDetails;
     }
 }

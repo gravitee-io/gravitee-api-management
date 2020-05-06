@@ -36,6 +36,11 @@ public class ViewRepositoryProxy extends AbstractProxy<ViewRepository> implement
     }
 
     @Override
+    public Optional<View> findByKey(String s, String environment) throws TechnicalException {
+        return target.findByKey(s, environment);
+    }
+
+    @Override
     public View create(View item) throws TechnicalException {
         return target.create(item);
     }

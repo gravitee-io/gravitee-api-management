@@ -3337,6 +3337,8 @@ components:
             - BEARER
         token:
           type: string
+        state:
+          type: string
     View:
       properties:
         id:
@@ -3796,6 +3798,8 @@ components:
           type: string
           minLength: 1
         code_verifier:
+          type: string
+        state:
           type: string
     TicketInput:
       required:

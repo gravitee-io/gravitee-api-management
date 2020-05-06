@@ -231,7 +231,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                 portalConfigEntity.getApplication().getRegistration(),
                 portalConfigEntity.getApplication().getTypes(),
                 portalConfigEntity.getLogging().getAudit().getTrail(),
-                portalConfigEntity.getAlert()
+                portalConfigEntity.getAlert(),
+                portalConfigEntity.getMaintenance()
         };
     }
 }

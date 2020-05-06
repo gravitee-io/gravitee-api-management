@@ -80,6 +80,8 @@ public class ApiService_FindByUserTest {
     private ParameterService parameterService;
     @Mock
     private ApplicationService applicationService;
+    @Mock
+    private ViewService viewService;
 
     @Before
     public void setUp() {

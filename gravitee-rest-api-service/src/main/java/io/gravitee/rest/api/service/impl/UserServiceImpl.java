@@ -38,6 +38,7 @@ import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -64,7 +65,6 @@ import org.springframework.stereotype.Component;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.xml.bind.DatatypeConverter;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -175,7 +175,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     settings.setApp(simpleAppSettings);
                     defaultApp.setSettings(settings);
 
-                    applicationService.create(defaultApp, userId);
+                    try {
+                        applicationService.create(defaultApp, userId);
+                    } catch (IllegalStateException ex) {
+                        //do not fail to create a user even if we are not able to create its default app
+                    }
                 }
             }
 
@@ -661,12 +665,33 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         if (results.hasResults()) {
             List<UserEntity> users = new ArrayList<>((findByIds(results.getDocuments())));
+
+            populatePrimaryOwnerFlag(users);
+
             return new Page<>(users,
                     pageable.getPageNumber(),
                     pageable.getPageSize(),
                     results.getHits());
         }
         return new Page<>(Collections.emptyList(), 1, 0, 0);
+    }
+
+    private void populatePrimaryOwnerFlag(final List<UserEntity> users) {
+        RoleEntity apiPORole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+                .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
+        RoleEntity applicationPORole = roleService.findByScopeAndName(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name())
+                .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
+
+        users.forEach(user -> {
+            final boolean apiPO = !membershipService.getMembershipsByMemberAndReferenceAndRole(
+                    MembershipMemberType.USER, user.getId(), MembershipReferenceType.API, apiPORole.getId())
+                    .isEmpty();
+            final boolean appPO = !membershipService.getMembershipsByMemberAndReferenceAndRole(
+                    MembershipMemberType.USER, user.getId(), MembershipReferenceType.APPLICATION, applicationPORole.getId())
+                    .isEmpty();
+
+            user.setPrimaryOwner(apiPO || appPO);
+        });
     }
 
 
@@ -692,6 +717,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     .stream()
                     .map(u -> convert(u, false))
                     .collect(toList());
+
+            populatePrimaryOwnerFlag(entities);
 
             return new Page<>(entities,
                     users.getPageNumber() + 1,

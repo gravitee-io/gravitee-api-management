@@ -97,6 +97,7 @@ public enum Key {
     APPLICATION_REGISTRATION_ENABLED("application.registration.enabled", "false"),
 
     API_REVIEW_ENABLED("api.review.enabled", "false"),
+    MAINTENANCE_MODE_ENABLED("maintenance.enabled", "false"),
     NEWSLETTER_ENABLED("newsletter.enabled", "true");
 
     String key;

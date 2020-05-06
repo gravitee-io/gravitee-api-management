@@ -166,7 +166,7 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
             throw new DuplicateMetadataNameException(optionalMetadata.get().getName());
         }
 
-        metadataService.checkMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue());
+        metadataService.checkMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue(), apiEntity);
 
         try {
             final Metadata metadata = convertForAPI(metadataEntity);
@@ -193,15 +193,6 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
     @Override
     public ApiMetadataEntity update(final UpdateApiMetadataEntity metadataEntity) {
         final ApiEntity apiEntity = apiService.findById(metadataEntity.getApiId());
-        // First we prevent the duplicate metadata name
-        final Optional<ApiMetadataEntity> optionalMetadata = findAllByApi(apiEntity.getId()).stream()
-                .filter(metadata -> !metadataEntity.getKey().equals(metadata.getKey()) && metadataEntity.getName().equalsIgnoreCase(metadata.getName()))
-                .findAny();
-
-        if (optionalMetadata.isPresent()) {
-            throw new DuplicateMetadataNameException(optionalMetadata.get().getName());
-        }
-
         metadataService.checkMetadataFormat(metadataEntity.getFormat(), metadataEntity.getDefaultValue());
         try {
             final List<MetadataEntity> defaultMedatata = metadataService.findAllDefault();

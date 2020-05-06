@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.spring;
 
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
@@ -31,6 +32,8 @@ import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
 import io.gravitee.rest.api.fetcher.spring.FetcherConfigurationConfiguration;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.impl.search.configuration.SearchEngineConfiguration;
+import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
+import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
@@ -70,7 +73,7 @@ public class ServiceConfiguration {
 		ObjectMapper objectMapper = new GraviteeMapper();
 		PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
 		objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
-
+		objectMapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
 		// register API serializer
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(ApiEntity.class, apiSerializer());
@@ -86,5 +89,10 @@ public class ServiceConfiguration {
 	@Bean
 	public ApiSerializer apiSerializer() {
 		return new ApiCompositeSerializer();
+	}
+
+	@Bean
+	public PolicyOperationVisitorManager policyVisitorManager() {
+		return new PolicyOperationVisitorManagerImpl();
 	}
 }

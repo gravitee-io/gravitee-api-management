@@ -59,7 +59,7 @@ public class UsersResource extends AbstractResource {
     @GET
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ))
     @ApiOperation(
-            value = "Search for API using the search engine",
+            value = "Search for users using the search engine",
             notes = "User must have the MANAGEMENT_USERS[READ] permission to use this service"
     )
     @ApiResponses({

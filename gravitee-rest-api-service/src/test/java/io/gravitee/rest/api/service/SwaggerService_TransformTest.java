@@ -23,6 +23,11 @@ import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
+import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
+import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationSwaggerV2Transformer;
+import io.gravitee.rest.api.service.swagger.OAIDescriptor;
+import io.gravitee.rest.api.service.swagger.SwaggerV1Descriptor;
+import io.gravitee.rest.api.service.swagger.SwaggerV2Descriptor;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
 
@@ -33,6 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,30 +77,39 @@ public class SwaggerService_TransformTest {
     public void shouldTransformAPIFromSwaggerV1_json() throws IOException {
         PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON);
 
-        swaggerService.transform(pageEntity);
+        SwaggerV1Descriptor descriptor = (SwaggerV1Descriptor) swaggerService.parse(pageEntity.getContent());
 
-        assertNotNull(pageEntity.getContent());
-        validateV2(Json.mapper().readTree(pageEntity.getContent()));
+        swaggerService.transform(descriptor,
+                Collections.singleton(new PageConfigurationSwaggerV2Transformer(pageEntity)));
+
+        assertNotNull(descriptor.toJson());
+        validateV2(Json.mapper().readTree(descriptor.toJson()));
     }
 
     @Test
     public void shouldTransformAPIFromSwaggerV2_json() throws IOException {
         PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/swagger-v2.json", MediaType.APPLICATION_JSON);
 
-        swaggerService.transform(pageEntity);
+        SwaggerV2Descriptor descriptor = (SwaggerV2Descriptor) swaggerService.parse(pageEntity.getContent());
 
-        assertNotNull(pageEntity.getContent());
-        validateV2(Json.mapper().readTree(pageEntity.getContent()));
+        swaggerService.transform(descriptor,
+                Collections.singleton(new PageConfigurationSwaggerV2Transformer(pageEntity)));
+
+        assertNotNull(descriptor.toJson());
+        validateV2(Json.mapper().readTree(descriptor.toJson()));
     }
 
     @Test
     public void shouldTransformAPIFromSwaggerV2_yaml() throws IOException {
         PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/swagger-v2.yaml", MediaType.TEXT_PLAIN);
 
-        swaggerService.transform(pageEntity);
+        SwaggerV2Descriptor descriptor = (SwaggerV2Descriptor) swaggerService.parse(pageEntity.getContent());
 
-        assertNotNull(pageEntity.getContent());
-        validateV2(Yaml.mapper().readTree(pageEntity.getContent()));
+        swaggerService.transform(descriptor,
+                Collections.singleton(new PageConfigurationSwaggerV2Transformer(pageEntity)));
+
+        assertNotNull(descriptor.toYaml());
+        validateV2(Yaml.mapper().readTree(descriptor.toYaml()));
     }
 
 
@@ -102,20 +117,26 @@ public class SwaggerService_TransformTest {
     public void shouldTransformAPIFromSwaggerV3_json() throws IOException {
         PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi.json", MediaType.APPLICATION_JSON);
 
-        swaggerService.transform(pageEntity);
+        OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent());
 
-        assertNotNull(pageEntity.getContent());
-        validateV3(Json.mapper().readTree(pageEntity.getContent()));
+        swaggerService.transform(descriptor,
+                Collections.singleton(new PageConfigurationOAITransformer(pageEntity)));
+
+        assertNotNull(descriptor.toJson());
+        validateV3(Json.mapper().readTree(descriptor.toJson()));
     }
 
     @Test
     public void shouldTransformAPIFromSwaggerV3_yaml() throws IOException {
         PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi.yaml", MediaType.TEXT_PLAIN);
 
-        swaggerService.transform(pageEntity);
+        OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent());
 
-        assertNotNull(pageEntity.getContent());
-        validateV3(Yaml.mapper().readTree(pageEntity.getContent()));
+        swaggerService.transform(descriptor,
+                Collections.singleton(new PageConfigurationOAITransformer(pageEntity)));
+
+        assertNotNull(descriptor.toYaml());
+        validateV3(Yaml.mapper().readTree(descriptor.toYaml()));
     }
 
     private void validateV2(JsonNode node) {

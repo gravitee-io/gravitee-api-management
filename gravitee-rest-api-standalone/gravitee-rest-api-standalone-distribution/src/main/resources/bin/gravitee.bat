@@ -50,7 +50,7 @@ set JAVA_OPTS=%JAVA_OPTS% -XX:+DisableExplicitGC
 REM Ensure UTF-8 encoding by default (e.g. filenames)
 set JAVA_OPTS=%JAVA_OPTS% -Dfile.encoding=UTF-8
 
-# Display our environment
+REM Display our environment
 echo "=============================================================="
 echo ""
 echo "  Gravitee.IO Standalone Runtime Bootstrap Environment"

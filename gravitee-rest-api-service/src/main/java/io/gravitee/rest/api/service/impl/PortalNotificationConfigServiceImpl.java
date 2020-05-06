@@ -101,6 +101,16 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         }
     }
 
+    @Override
+    public void deleteReference(NotificationReferenceType referenceType, String referenceId) {
+        try {
+            portalNotificationConfigRepository.deleteReference(referenceType, referenceId);
+        } catch (TechnicalException te) {
+            LOGGER.error("An error occurs while trying to delete notification settings for reference {} / {}", referenceType, referenceId, te);
+            throw new TechnicalManagementException("An error occurs while trying to delete notification settings for reference " + referenceType + " / " + referenceId, te);
+        }
+    }
+
     private PortalNotificationConfigEntity getDefaultEmpty(String user, NotificationReferenceType referenceType, String referenceId) {
         PortalNotificationConfigEntity portalNotificationConfigEntity = new PortalNotificationConfigEntity();
         portalNotificationConfigEntity.setConfigType(NotificationConfigType.PORTAL);

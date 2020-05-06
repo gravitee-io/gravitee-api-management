@@ -15,26 +15,26 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.InstanceListItem;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.management.rest.resource.param.InstanceSearchParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.InstanceListItem;
+import io.gravitee.rest.api.model.InstanceQuery;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.InstanceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+
+import javax.inject.Inject;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,8 +56,15 @@ public class InstancesResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ)
     })
-    public Collection<InstanceListItem> listInstances(@QueryParam("includeStopped") boolean includeStopped) {
-        return new ArrayList<>(instanceService.findInstances(includeStopped));
+    public Page<InstanceListItem> listInstances(@BeanParam InstanceSearchParam param) {
+        InstanceQuery query = new InstanceQuery();
+        query.setIncludeStopped(param.isIncludeStopped());
+        query.setFrom(param.getFrom());
+        query.setTo(param.getTo());
+        query.setPage(param.getPage());
+        query.setSize(param.getSize());
+
+        return instanceService.search(query);
     }
 
     @Path("{instance}")

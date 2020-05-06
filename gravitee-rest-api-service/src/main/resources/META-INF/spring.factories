@@ -12,3 +12,6 @@ io.gravitee.rest.api.service.alert.AlertTrigger=\
     io.gravitee.rest.api.service.alert.triggers.RequestMaxResponseTimeThresholdTrigger,\
     io.gravitee.rest.api.service.alert.triggers.RequestQuotaThresholdTrigger,\
     io.gravitee.rest.api.service.alert.triggers.NodeMetricsThresholdTrigger
+
+io.gravitee.plugin.core.api.PluginHandler=\
+    io.gravitee.rest.api.service.impl.swagger.policy.PolicyPluginHandler

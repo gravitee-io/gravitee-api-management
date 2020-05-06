@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.analytics.*;
 import io.gravitee.rest.api.model.analytics.query.*;
 import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.*;
 
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -57,8 +59,25 @@ public class AnalyticsServiceImpl implements AnalyticsService {
      */
     private final Logger logger = LoggerFactory.getLogger(AnalyticsServiceImpl.class);
 
-    private static final String UNKNOWN_API = "1";
-    private static final String APPLICATION_KEYLESS = "1";
+    private static final String UNKNOWN_SERVICE = "1";
+    private static final String UNKNOWN_SERVICE_MAPPED = "?";
+
+    private static final String METADATA_NAME = "name";
+    private static final String METADATA_DELETED = "deleted";
+    private static final String METADATA_UNKNOWN = "unknown";
+    private static final String METADATA_VERSION = "version";
+    private static final String METADATA_UNKNOWN_API_NAME = "Unknown API (not found)";
+    private static final String METADATA_UNKNOWN_APPLICATION_NAME = "Unknown application (keyless)";
+    private static final String METADATA_DELETED_API_NAME = "Deleted API";
+    private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
+    private static final String METADATA_DELETED_TENANT_NAME = "Deleted tenant";
+    private static final String METADATA_DELETED_PLAN_NAME = "Deleted plan";
+
+    private static final String FIELD_API = "api";
+    private static final String FIELD_APPLICATION = "application";
+    private static final String FIELD_TENANT = "tenant";
+    private static final String FIELD_PLAN = "plan";
+    private static final String FIELD_GEOIP_COUNTRY_ISO_CODE = "geoip.country_iso_code";
 
     @Autowired
     private AnalyticsRepository analyticsRepository;
@@ -206,28 +225,22 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             childBuckets.add(convertBucket(timestamps, from, interval, childBucket));
         }
 
-        if (analyticsBucket.getField().equals("application")) {
+        if (FIELD_APPLICATION.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket.data().keySet().stream().forEach(app -> {
-                metadata.put(app, getApplicationMetadata(app));
-            });
+            bucket.data().keySet().forEach(app -> metadata.put(app, getApplicationMetadata(app)));
 
             analyticsBucket.setMetadata(metadata);
-        } else if (analyticsBucket.getField().equals("api")) {
+        } else if (FIELD_API.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket.data().keySet().stream().forEach(api -> {
-                metadata.put(api, getAPIMetadata(api));
-            });
+            bucket.data().keySet().forEach(api -> metadata.put(api, getAPIMetadata(api)));
 
             analyticsBucket.setMetadata(metadata);
-        } else if (analyticsBucket.getField().equals("tenant")) {
+        } else if (FIELD_TENANT.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket.data().keySet().stream().forEach(tenant -> {
-                metadata.put(tenant, getTenantMetadata(tenant));
-            });
+            bucket.data().keySet().forEach(tenant -> metadata.put(tenant, getTenantMetadata(tenant)));
 
             analyticsBucket.setMetadata(metadata);
         }
@@ -281,7 +294,11 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         topHitsAnalytics.setValues(
             groupByResponse.values()
                     .stream()
-                    .collect(Collectors.toMap(o -> "1".equals(o.name()) ? "deleted" : o.name(), GroupByResponse.Bucket::value,
+                    .collect(Collectors.toMap(
+                            // https://stackoverflow.com/questions/5525795/does-javascript-guarantee-object-property-order/5525820#5525820
+                            // because javascript does not preserve the order, we have to convert all "1" keys to a non int value
+                            bucket -> UNKNOWN_SERVICE.equals(bucket.name()) ? UNKNOWN_SERVICE_MAPPED : bucket.name(),
+                            GroupByResponse.Bucket::value,
                             (v1,v2) ->{ throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));},
                             LinkedHashMap::new)));
 
@@ -292,17 +309,19 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
             if (topHitsAnalytics.getValues() != null) {
+                int i = 0;
                 for (String key : topHitsAnalytics.getValues().keySet()) {
                     switch(fieldName) {
-                        case "api": metadata.put(key, getAPIMetadata(key)); break;
-                        case "application": metadata.put(key, getApplicationMetadata(key)); break;
-                        case "plan": metadata.put(key, getPlanMetadata(key)); break;
-                        case "tenant": metadata.put(key, getTenantMetadata(key)); break;
-                        case "geoip.country_iso_code": metadata.put(key, getCountryName(key)); break;
+                        case FIELD_API: metadata.put(key, getAPIMetadata(key)); break;
+                        case FIELD_APPLICATION: metadata.put(key, getApplicationMetadata(key)); break;
+                        case FIELD_PLAN: metadata.put(key, getPlanMetadata(key)); break;
+                        case FIELD_TENANT: metadata.put(key, getTenantMetadata(key)); break;
+                        case FIELD_GEOIP_COUNTRY_ISO_CODE: metadata.put(key, getCountryName(key)); break;
                         default:
                             metadata.put(key, getGenericMetadata(key)); break;
-
                     }
+                    metadata.get(key).put("order", String.valueOf(i));
+                    i++;
                 }
             }
 
@@ -316,17 +335,20 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Map<String, String> metadata = new HashMap<>();
 
         try {
-            ApiEntity apiEntity = apiService.findById(api);
-            metadata.put("name", apiEntity.getName());
-            metadata.put("version", apiEntity.getVersion());
-        } catch (ApiNotFoundException anfe) {
-            metadata.put("deleted", "true");
-            metadata.put("name", "Deleted API");
-            if (api.equals(UNKNOWN_API)) {
-                metadata.put("name", "Unknown API (not found)");
+            if (api.equals(UNKNOWN_SERVICE) || api.equals(UNKNOWN_SERVICE_MAPPED)) {
+                metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
+                metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                metadata.put("name", "Deleted API");
+                ApiEntity apiEntity = apiService.findById(api);
+                metadata.put(METADATA_NAME, apiEntity.getName());
+                metadata.put(METADATA_VERSION, apiEntity.getVersion());
+                if (ApiLifecycleState.ARCHIVED.equals(apiEntity.getLifecycleState())) {
+                    metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                }
             }
+        } catch (ApiNotFoundException anfe) {
+            metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+            metadata.put(METADATA_NAME, METADATA_DELETED_API_NAME);
         }
 
         return metadata;
@@ -336,18 +358,19 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Map<String, String> metadata = new HashMap<>();
 
         try {
-            ApplicationEntity applicationEntity = applicationService.findById(application);
-            metadata.put("name", applicationEntity.getName());
-            if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
-                metadata.put("deleted", "true");
+            if (application.equals(UNKNOWN_SERVICE) || application.equals(UNKNOWN_SERVICE_MAPPED)) {
+                metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
+                metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
+            } else {
+                ApplicationEntity applicationEntity = applicationService.findById(application);
+                metadata.put(METADATA_NAME, applicationEntity.getName());
+                if (ApplicationStatus.ARCHIVED.toString().equals(applicationEntity.getStatus())) {
+                    metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                }
             }
         } catch (ApplicationNotFoundException anfe) {
-            metadata.put("deleted", "true");
-            if (application.equals(APPLICATION_KEYLESS)) {
-                metadata.put("name", "Unknown application (keyless)");
-            } else {
-                metadata.put("name", "Deleted application");
-            }
+            metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+            metadata.put(METADATA_NAME, METADATA_DELETED_APPLICATION_NAME);
         }
 
         return metadata;
@@ -358,10 +381,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         try {
             PlanEntity planEntity = planService.findById(plan);
-            metadata.put("name", planEntity.getName());
+            metadata.put(METADATA_NAME, planEntity.getName());
         } catch (PlanNotFoundException anfe) {
-            metadata.put("deleted", "true");
-            metadata.put("name", "Deleted plan");
+            metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+            metadata.put(METADATA_NAME, METADATA_DELETED_PLAN_NAME);
         }
 
         return metadata;
@@ -372,10 +395,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         try {
             TenantEntity tenantEntity = tenantService.findById(tenant);
-            metadata.put("name", tenantEntity.getName());
+            metadata.put(METADATA_NAME, tenantEntity.getName());
         } catch (TenantNotFoundException tnfe) {
-            metadata.put("deleted", "true");
-            metadata.put("name", "Deleted tenant");
+            metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+            metadata.put(METADATA_NAME, METADATA_DELETED_TENANT_NAME);
         }
 
         return metadata;
@@ -384,7 +407,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private Map<String, String> getCountryName(String country_iso) {
         Map<String, String> metadata = new HashMap<>();
 
-        metadata.put("name", (new Locale("", country_iso)).getDisplayCountry(Locale.UK));
+        metadata.put(METADATA_NAME, (new Locale("", country_iso)).getDisplayCountry(Locale.UK));
 
         return metadata;
     }
@@ -392,7 +415,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private Map<String, String> getGenericMetadata(String value) {
         Map<String, String> metadata = new HashMap<>();
 
-        metadata.put("name", value);
+        metadata.put(METADATA_NAME, value);
 
         return metadata;
     }

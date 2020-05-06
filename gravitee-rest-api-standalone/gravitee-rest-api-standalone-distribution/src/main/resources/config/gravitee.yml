@@ -32,9 +32,11 @@
 #  secured: false
 #  ssl:
 #    keystore:
+#      type: jks # Supports jks, pkcs12
 #      path: ${gravitee.home}/security/keystore.jks
 #      password: secret
 #    truststore:
+#      type: jks # Supports jks, pkcs12
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
 
@@ -194,26 +196,39 @@ security:
       users:
         - user:
           username: user
+          #firstname:
+          #lastname:
           # Passwords are encoded using BCrypt
           # Password value: password
           password: $2a$10$9kjw/SH9gucCId3Lnt6EmuFreUAcXSZgpvAYuW2ISv7hSOhHRH1AO
           roles: ORGANIZATION:USER,ENVIRONMENT:USER
+          # Useful to receive notifications
+          #email:
         - user:
           username: admin
+          #firstname:
+          #lastname:
           # Password value: admin
           password: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq
           roles: ORGANIZATION:ADMIN,ENVIRONMENT:ADMIN
+          #email:
         - user:
           username: api1
+          #firstname:
+          #lastname:
           # Password value: api1
           password: $2a$10$iXdXO4wAYdhx2LOwijsp7.PsoAZQ05zEdHxbriIYCbtyo.y32LTji
           # You can declare multiple roles using comma separator
           roles: ORGANIZATION:USER,ENVIRONMENT:API_PUBLISHER
+          #email:
         - user:
           username: application1
+          #firstname:
+          #lastname:
           # Password value: application1
           password: $2a$10$2gtKPYRB9zaVaPcn5RBx/.3T.7SeZoDGs9GKqbo9G64fKyXFR1He.
           roles: ORGANIZATION:USER,ENVIRONMENT:USER
+          #email:
     # Enable authentication using internal repository
     - type: gravitee
       # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
@@ -329,7 +344,7 @@ search:
 #httpClient:
 #  timeout: 10000 # in milliseconds
 #  proxy:
-#    type: HTML #HTTP, SOCK4, SOCK5
+#    type: HTTP #HTTP, SOCK4, SOCK5
 #    http:
 #      host: localhost
 #      port: 3128
@@ -355,16 +370,3 @@ notifiers:
 #      trustAll: false
 #      keyStore:
 #      keyStorePassword:
-
-# Gravitee Alert Engine is only available with support
-alerts:
-  enabled: false
-  default:
-    enabled: false
-    # must be reachable by other nodes
-    cluster:
-      host: localhost
-      port: 0
-      hazelcast:
-        config:
-          path: ${gravitee.home}/config/hazelcast.xml

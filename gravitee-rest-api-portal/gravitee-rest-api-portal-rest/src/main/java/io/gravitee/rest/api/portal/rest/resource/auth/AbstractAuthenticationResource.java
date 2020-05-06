@@ -73,6 +73,7 @@ abstract class AbstractAuthenticationResource {
     public static final String CODE_VERIFIER_KEY = "code_verifier";
     public static final String GRANT_TYPE_KEY = "grant_type";
     public static final String TOKEN = "token";
+    public static final String STATE = "state";
 
     protected Map<String, Object> getResponseEntity(final Response response) throws IOException {
         return getEntity((getResponseEntityAsString(response)));
@@ -86,7 +87,7 @@ abstract class AbstractAuthenticationResource {
         return MAPPER.readValue(response, new TypeReference<Map<String, Object>>() {});
     }
 
-    protected Response connectUser(String userId, final HttpServletResponse servletResponse) {
+    protected Response connectUser(String userId,final String state, final HttpServletResponse servletResponse) {
         UserEntity user = userService.connect(userId);
 
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -126,6 +127,10 @@ abstract class AbstractAuthenticationResource {
         tokenEntity.setTokenType(TokenTypeEnum.BEARER);
         tokenEntity.setToken(sign);
 
+        if (state != null && !state.isEmpty()) {
+            tokenEntity.setState(state);
+        }
+        
         final Cookie bearerCookie = jwtCookieGenerator.generate("Bearer%20" + sign);
         servletResponse.addCookie(bearerCookie);
 

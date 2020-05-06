@@ -54,6 +54,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.repository.management.model.View.ALL_ID;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -78,6 +79,8 @@ public class ApisResource extends AbstractResource {
     private RatingService ratingService;
     @Inject
     private VirtualHostService virtualHostService;
+    @Inject
+    private ViewService viewService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -99,8 +102,8 @@ public class ApisResource extends AbstractResource {
         apiQuery.setName(apisParam.getName());
         apiQuery.setTag(apisParam.getTag());
         apiQuery.setState(apisParam.getState());
-        if (!ALL_ID.equals(apisParam.getView())) {
-            apiQuery.setView(apisParam.getView());
+        if (apisParam.getView() != null && !ALL_ID.equals(apisParam.getView())) {
+            apiQuery.setView(viewService.findById(apisParam.getView()).getId());
         }
 
         final Collection<ApiEntity> apis;
@@ -196,7 +199,7 @@ public class ApisResource extends AbstractResource {
     })
     public Response importSwagger(
             @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        final ApiEntity api = apiService.create(swaggerService.prepare(swaggerDescriptor), getAuthenticatedUser(), swaggerDescriptor);
+        final ApiEntity api = apiService.create(swaggerService.createAPI(swaggerDescriptor), getAuthenticatedUser(), swaggerDescriptor);
         return Response
                 .created(URI.create("/apis/" + api.getId()))
                 .entity(api)
@@ -250,7 +253,7 @@ public class ApisResource extends AbstractResource {
             }
 
             Map<String, Object> filters = new HashMap<>();
-            filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
+            filters.put("api", apis.stream().map(ApiEntity::getId).collect(toSet()));
 
             return Response.ok().entity(apiService.search(query, filters)
                     .stream()
@@ -293,7 +296,6 @@ public class ApisResource extends AbstractResource {
         apiItem.setCreatedAt(api.getCreatedAt());
         apiItem.setUpdatedAt(api.getUpdatedAt());
         apiItem.setLabels(api.getLabels());
-        apiItem.setViews(api.getViews());
         apiItem.setPrimaryOwner(api.getPrimaryOwner());
 
         if (api.getVisibility() != null) {

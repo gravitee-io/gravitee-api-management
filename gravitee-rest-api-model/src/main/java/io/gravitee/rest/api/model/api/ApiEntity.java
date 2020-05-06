@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.search.Indexable;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
@@ -49,64 +50,139 @@ import java.util.*;
  */
 @JsonFilter("apiMembershipTypeFilter")
 public class ApiEntity implements Indexable {
-
+    @ApiModelProperty(
+            value = "API's uuid.",
+            example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;
+
+    @ApiModelProperty(
+            value = "API's name. Duplicate names can exists.",
+            example = "My Api")
     private String name;
+
+    @ApiModelProperty(
+            value = "Api's version. It's a simple string only used in the portal.",
+            example = "v1.0")
     private String version;
+
+    @ApiModelProperty(
+            value = "API's description. A short description of your API.",
+            example = "I can use a hundred characters to describe this API.")
     private String description;
+
+    @ApiModelProperty(
+            value = "API's groups. Used to add team in your API.",
+            dataType = "java.util.List",
+            example = "MY_GROUP1, MY_GROUP2")
     private Set<String> groups;
+
+    @JsonProperty(value = "context_path")
+    @ApiModelProperty(
+            value = "API's context path.",
+            example = "/my-awesome-api")
+    private String contextPath;
 
     @NotNull
     @DeploymentRequired
     @JsonProperty(value = "proxy", required = true)
+    @ApiModelProperty(
+            value = "API's definition.")
     private Proxy proxy;
 
     @DeploymentRequired
     @JsonProperty(value = "paths", required = true)
+    @ApiModelProperty(
+        value = "a map where you can associate a path to a configuration (the policies configuration)")
     private Map<String, Path> paths = new HashMap<>();
 
     @JsonProperty("deployed_at")
+    @ApiModelProperty(
+            value = "The last date (as timestamp) when the API was deployed.",
+            example = "1581256457163")
     private Date deployedAt;
 
     @JsonProperty("created_at")
+    @ApiModelProperty(
+            value = "The date (as a timestamp) when the API was created.",
+            example = "1581256457163")
     private Date createdAt;
 
     @JsonProperty("updated_at")
+    @ApiModelProperty(
+            value = "The last date (as a timestamp) when the API was updated.",
+            example = "1581256457163")
     private Date updatedAt;
 
+    @ApiModelProperty(
+            value = "The visibility of the API regarding the portal.",
+            example = "PUBLIC",
+            allowableValues = "PUBLIC, PRIVATE")
     private Visibility visibility;
 
+    @ApiModelProperty(
+            value = "The status of the API regarding the gateway.",
+            example = "STARTED",
+            allowableValues = "INITIALIZED, STOPPED, STARTED, CLOSED")
     private Lifecycle.State state;
 
     @JsonProperty("owner")
+    @ApiModelProperty(
+            value = "The user with role PRIMARY_OWNER on this API.")
     private PrimaryOwnerEntity primaryOwner;
 
     @DeploymentRequired
     @JsonProperty(value = "properties")
+    @ApiModelProperty(
+            value = "A dictionary (could be dynamic) of properties available in the API context.")
     private io.gravitee.definition.model.Properties properties;
 
     @DeploymentRequired
     @JsonProperty(value = "services")
+    @ApiModelProperty(
+        value = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
     private Services services;
 
     @DeploymentRequired
+    @ApiModelProperty(
+            value = "the list of sharding tags associated with this API.",
+            dataType = "java.util.List",
+            example = "public, private")
     private Set<String> tags;
 
+    @ApiModelProperty(
+            value = "the API logo encoded in base64")
     private String picture;
 
     @JsonProperty(value = "picture_url")
+    @ApiModelProperty(
+            value = "the API logo url.",
+            example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture")
     private String pictureUrl;
 
     @DeploymentRequired
     @JsonProperty(value = "resources")
+    @ApiModelProperty(
+            value = "The list of API resources used by policies like cache resources or oauth2")
     private List<Resource> resources = new ArrayList<>();
 
+    @ApiModelProperty(
+            value = "the list of views associated with this API",
+            dataType = "java.util.List",
+            example = "Product, Customer, Misc")
     private Set<String> views;
 
+    @ApiModelProperty(
+            value = "the free list of labels associated with this API",
+            dataType = "java.util.List",
+            example = "json, read_only, awesome")
     private List<String> labels;
 
     @DeploymentRequired
     @JsonProperty(value = "path_mappings")
+    @ApiModelProperty(
+            value = "A list of paths used to aggregate data in analytics",
+            dataType = "java.util.List",
+            example = "/products/:productId, /products/:productId/media")
     private Set<String> pathMappings = new HashSet<>();
 
     @JsonIgnore
@@ -114,6 +190,8 @@ public class ApiEntity implements Indexable {
 
     @DeploymentRequired
     @JsonProperty(value = "response_templates")
+    @ApiModelProperty(
+        value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ...")
     private Map<String, ResponseTemplates> responseTemplates;
 
     @JsonProperty(value = "lifecycle_state")
@@ -338,6 +416,14 @@ public class ApiEntity implements Indexable {
 
     public void setEntrypoints(List<ApiEntrypointEntity> entrypoints) {
         this.entrypoints = entrypoints;
+    }
+
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
     }
 
     @Override

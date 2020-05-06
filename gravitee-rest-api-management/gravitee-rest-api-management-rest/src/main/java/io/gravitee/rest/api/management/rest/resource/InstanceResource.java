@@ -57,7 +57,7 @@ public class InstanceResource {
             @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ)
     })
     public InstanceEntity getInstance() {
-        return instanceService.findById(this.instance);
+        return instanceService.findByEvent(this.instance);
     }
 
     @Path("monitoring/{gatewayId}")
