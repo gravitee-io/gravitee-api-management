@@ -61,6 +61,11 @@ public class Membership {
     private String roleId;
 
     /**
+     * The source of the membership (system, idp, ...)
+     */
+    private String source;
+
+    /**
      * Creation date
      */
     private Date createdAt;
@@ -157,6 +162,15 @@ public class Membership {
     public void setReferenceType(MembershipReferenceType referenceType) {
         this.referenceType = referenceType;
     }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -178,6 +192,7 @@ public class Membership {
                 ", referenceId='" + referenceId + '\'' +
                 ", referenceType='" + referenceType + '\'' +
                 ", roleId='" + roleId + '\'' +
+                ", source='" + source + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
