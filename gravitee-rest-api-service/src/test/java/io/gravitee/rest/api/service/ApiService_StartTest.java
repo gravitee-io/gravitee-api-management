@@ -94,7 +94,6 @@ public class ApiService_StartTest {
         when(membershipService.getPrimaryOwner(
                 eq(io.gravitee.rest.api.model.MembershipReferenceType.API),
                 anyString())).thenReturn(po);
-        when(po.getId()).thenReturn("uid");
         when(api.getId()).thenReturn(API_ID);
     }
 
