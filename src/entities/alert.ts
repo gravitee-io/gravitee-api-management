@@ -57,15 +57,17 @@ export abstract class Metrics {
   conditions: string[];
   loader: (type: number, id: string, $injector: any) => Tuple[];
   scopes: Scope[];
+  supportPropertyProjection: boolean = false;
 
   static filterByScope(metrics: Metrics[], scope: Scope): Metrics[] {
     return metrics.filter((metric) => (metric.scopes === undefined || metric.scopes.indexOf(scope) !== -1));
   }
 
-  constructor(key: string, name: string, conditions: string[], scopes?: Scope[], loader?: (type: number, id: string, $injector: any) => Tuple[]) {
+  constructor(key: string, name: string, conditions: string[], supportPropertyProjection?: boolean, scopes?: Scope[], loader?: (type: number, id: string, $injector: any) => Tuple[]) {
     this.key = key;
     this.name = name;
     this.conditions = conditions;
+    this.supportPropertyProjection = supportPropertyProjection;
     this.scopes = scopes;
     this.loader = loader;
   }
@@ -83,6 +85,7 @@ export class Alert {
   enabled: boolean;
   dampening: Dampening;
   conditions: any[];
+  projections: any[];
   notifications: any[];
   filters: any[];
 

@@ -1,9 +1,11 @@
 .widget-card {
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  overflow: scroll;
-  padding-bottom: 10px;
+  overflow: auto;
   & > md-card-title {
-    padding-bottom: 0px;
+    flex: none;
+    padding: 16px;
     span.md-title {
       font-size: 12px;
     }
@@ -12,13 +14,13 @@
     }
 
     & > md-card-title-media {
-      margin-top: 0px;
+      margin-top: 0;
     }
   }
 
   & > md-card-content {
-    padding-bottom: 0px;
-    padding-top: 16px;
+    flex: 1;
+    padding-bottom: 0;
   }
 
   a {
@@ -43,23 +45,12 @@
   }
 }
 
+.gv-widget-content {
+  height: 100%;
+}
+
 .gravitee-widget-draggable {
   cursor: move;
-}
-
-.gravitee-widget-pagination {
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  width: 100%;
-
-  .buttons {
-    margin-right: 10px !important;
-  }
-}
-
-.gv-widget-stats-container {
-  margin-top: 10px;
 }
 
 .gv-widget-stats {
@@ -86,4 +77,14 @@
 .gv-widget-stats-label {
   font-size: 15px;
   text-align: center;
+}
+
+.gravitee-widget-table {
+  flex: 1;
+}
+
+.test {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }

@@ -1,0 +1,97 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-sub-content">
+<div class="gv-forms gv-forms-fluid" layout="column">
+  <div class="gv-form">
+    <h1 flex>Platform Logs</h1>
+    <div class="gv-form-content" layout="column">
+      <div layout="row">
+        <gv-logs-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)" flex></gv-logs-timeframe>
+        <div style="margin: auto;">
+          <md-button type="button" class="md-raised" ng-click="$ctrl.exportAsCSV()" ng-disabled="!$ctrl.logs.logs || $ctrl.logs.logs.length === 0">
+            Export as CSV
+          </md-button>
+        </div>
+      </div>
+
+      <gv-logs-filters context="platform" on-filters-change="$ctrl.filtersChange(filters)" metadata="$ctrl.metadata"></gv-logs-filters>
+
+<md-table-container layout-padding>
+  <table md-table class="gravitee-analytics-top-hits-table gv-table-dense">
+    <thead md-head md-order="$ctrl.query.field">
+    <tr md-row>
+      <th md-column width="1%" md-order-by="@timestamp" nowrap>Date</th>
+      <th md-column width="1%" md-order-by="status" nowrap>Status</th>
+      <th md-column width="1%" nowrap>API</th>
+      <th md-column width="1%" nowrap>Application</th>
+      <th ng-if="$ctrl.Constants.logging.user.displayed" md-column width="1%" md-order-by="user" nowrap>User</th>
+      <th md-column width="1%" nowrap>Plan</th>
+      <th md-column width="1%" md-order-by="method" nowrap>Method</th>
+      <th md-column md-order-by="path">Path</th>
+      <th md-column width="1%" md-numeric nowrap>Response time</th>
+    </tr>
+    </thead>
+    <tbody md-body>
+    <tr ng-if="$ctrl.logs.logs.length > 0" md-row
+        ng-repeat="log in $ctrl.logs.logs | limitTo: $ctrl.query.size"
+        md-auto-select md-select="log" md-select-id="key"
+        ng-class="{'log-error': log.status >= 400}">
+      <td md-cell nowrap>
+        <a ui-sref="management.log({
+          logId: log.id,
+          timestamp: log.timestamp,
+          from: $ctrl.query.from,
+          to: $ctrl.query.to,
+          q: $ctrl.query.query,
+          page: $ctrl.query.page,
+          size: $ctrl.query.size
+          })">
+          {{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}}
+        </a>
+      </td>
+      <td md-cell nowrap><span class="gv-statuscode-{{log.status / 100 | number:0}}xx">{{log.status}}</span></td>
+      <td md-cell nowrap>{{$ctrl.logs.metadata[log.api].name}}</td>
+      <td md-cell nowrap>{{$ctrl.logs.metadata[log.application].name}}</td>
+      <td ng-if="$ctrl.Constants.logging.user.displayed" md-cell nowrap>{{log.user}}</td>
+      <td md-cell nowrap>{{$ctrl.logs.metadata[log.plan].name}}</td>
+      <td md-cell nowrap style="text-align: center">
+        <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{log.method | uppercase}}-selected">
+          {{log.method | uppercase}}
+        </span>
+      </td>
+      <td md-cell>{{log.path}}</td>
+      <td md-cell nowrap>{{log.responseTime}} ms</td>
+    </tr>
+    <tr ng-if="$ctrl.logs.total === 0">
+      <td md-cell colspan="8">No log</td>
+    </tr>
+    </tbody>
+  </table>
+</md-table-container>
+
+<md-table-pagination
+  md-limit="$ctrl.query.size"
+  md-limit-options="[5, 10, 15, 20, 30, 50, 100]"
+  md-page="$ctrl.query.page"
+  md-total="{{$ctrl.logs.total}}"
+  md-on-paginate="$ctrl.onPaginate">
+</md-table-pagination>
+    </div>
+  </div>
+</div>
+</div>

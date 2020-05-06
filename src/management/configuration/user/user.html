@@ -28,7 +28,7 @@
         <h1 class="user">
           {{$ctrl.selectedUser.displayName}}
         </h1>
-        <a ui-sref="management.settings.users" style="font-size: 12px; font-weight: normal;">Back to users</a>
+        <a ng-click="$ctrl.backToUsers()" style="font-size: 12px; font-weight: normal;">Back to users</a>
     </div>
 
     <div class="gv-form">

@@ -1,0 +1,39 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-dialog aria-label="Transfer subscription">
+  <md-dialog-content layout-padding>
+    <h4>Change the end date of the subscription</h4>
+    <div ng-cloak layout="column">
+      <p style="color: #d73a49;">Be careful, by changing the end date <code>{{ $ctrl.subscription.application.name }}</code> could be no longer have access to this API.</p>
+      <p ng-if="'api_key'===$ctrl.subscription.plan.security"><br>All API keys after the new end date will be revoked.</p>
+      <md-input-container style="margin-bottom: 0;">
+        <label>New End Date</label>
+        <input moment-picker="$ctrl.endDateFormated"
+               locale="en-gb"
+               format="YYYY-MM-DD HH:mm"
+               min-date="$ctrl.now"
+               ng-model="$ctrl.endDate"
+               ng-model-options="{ updateOn: 'blur' }">
+      </md-input-container>
+    </div>
+  </md-dialog-content>
+  <md-dialog-actions layout="row">
+    <md-button ng-click="$ctrl.hide()">Cancel</md-button>
+    <md-button class="md-raised md-warn" ng-click="$ctrl.save()">Yes, Change the end date.</md-button>
+  </md-dialog-actions>
+</md-dialog>

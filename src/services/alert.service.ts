@@ -57,6 +57,7 @@ class AlertService {
         conditions: alert.conditions,
         notifications: alert.notifications,
         filters: alert.filters,
+        projections: alert.projections,
         dampening: alert.dampening
       });
   }
@@ -75,8 +76,33 @@ class AlertService {
       conditions: alert.conditions,
       notifications: alert.notifications,
       filters: alert.filters,
+      projections: alert.projections,
       dampening: alert.dampening
     });
+  }
+
+  listAlertEvents(alert: Alert, params?: any): IHttpPromise<any> {
+    let url = this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts/' + alert.id + '/events?';
+
+    if (params !== undefined) {
+      if (params.from !== undefined) {
+        url += '&from=' + params.from;
+      }
+
+      if (params.to !== undefined) {
+        url += '&to=' + params.to;
+      }
+
+      if (params.page !== undefined) {
+        url += '&page=' + params.page;
+      }
+
+      if (params.size !== undefined) {
+        url += '&size=' + params.size;
+      }
+    }
+
+    return this.$http.get(url);
   }
 
   delete(alert: Alert) {

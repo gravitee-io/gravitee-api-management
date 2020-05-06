@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
+import AnalyticsService from '../../services/analytics.service';
 
 class DashboardFilterController {
   private fields: any;
@@ -22,7 +23,7 @@ class DashboardFilterController {
   private onFilterChange: any;
   private lastSource: any;
 
-  constructor(private $rootScope, private $state: StateService) {
+  constructor(private $rootScope, private $state: StateService, private AnalyticsService: AnalyticsService) {
     'ngInject';
 
     this.fields = {};
@@ -40,15 +41,15 @@ class DashboardFilterController {
 
   $onInit() {
     // init filters based on stateParams
-    let q = this.$state.params.q;
-    if (q) {
-      this.decodeQueryFilters(q);
+    let queryFilters = this.AnalyticsService.getQueryFilters();
+    if (queryFilters) {
+      this.decodeQueryFilters(queryFilters);
     } else {
       this.onFilterChange({query: undefined, widget: this.lastSource});
     }
   }
 
-  addFieldFilter(filter) {
+  addFieldFilter(filter, run: boolean = true) {
     let field = this.fields[filter.field] || {filters: {}};
 
     field.filters[filter.key] = {
@@ -56,10 +57,9 @@ class DashboardFilterController {
       onRemove: (filter.events !== undefined) && filter.events.remove
     };
 
-    let label = (filter.fieldLabel ? filter.fieldLabel : filter.field)
-      + ' = \'' + filter.name + '\'';
-
-    let query = '(' + filter.field + ':' + _.map(_.keys(field.filters), (key) => key.includes('TO') ? key : '\\"' + key + '\\"').join(' OR ') + ')';
+    let label = (filter.fieldLabel ? filter.fieldLabel : filter.field) + ' = \'' + filter.name + '\'';
+    let query = '(' + _.map(_.keys(field.filters), (key) => filter.field.includes('path') ?
+      filter.field + ':' + '\\"' + key + '\\"' : filter.field + ':' + key).join(' OR ') + ')';
 
     this.filters.push({
       source: filter.widget,
@@ -73,7 +73,10 @@ class DashboardFilterController {
 
     this.fields[filter.field] = field;
     this.lastSource = filter.widget;
-    this.createAndSendQuery(filter.silent);
+
+    if (run) {
+      this.createAndSendQuery(filter.silent);
+    }
   }
 
   removeFieldFilter(filter) {
@@ -111,7 +114,8 @@ class DashboardFilterController {
     }
 
     if (! _.isEmpty(fieldObject.filters)) {
-      fieldObject.query = '(' + field + ':' + _.map(_.keys(fieldObject.filters), (key) => key.includes('TO') ? key : '\\"' + key + '\\"').join(' OR ') + ')';
+      fieldObject.query = '(' + _.map(_.keys(fieldObject.filters), (key) => field.includes('path') ?
+        field + ':' + '\\"' + key + '\\"' : field + ':' + key).join(' OR ') + ')';
       this.fields[field] = fieldObject;
     } else {
       delete this.fields[field];
@@ -122,7 +126,7 @@ class DashboardFilterController {
 
   createAndSendQuery(silent) {
     // Create a query with all the current filters
-    let query = _.values(_.mapValues(this.fields, function(value) { return value.query; })).join(' AND ');
+    let query = Object.keys(this.fields).map(field => this.fields[field].query).join(' AND ');
 
     // Update the query parameter
     if (!silent) {
@@ -136,22 +140,24 @@ class DashboardFilterController {
     }
   }
 
-  private decodeQueryFilters(query) {
-    let filters = query.split('AND');
-    for (let i = 0; i < filters.length; i++) {
-      let queryFilter = filters[i].replace(/[()]/g, '');
-      let kv = queryFilter.split(':');
-      let k = kv[0].trim();
-      let v = kv[1].replace(/[\\\"]/g, '').split('OR').map(x => x.trim());
+  private decodeQueryFilters(queryFilters) {
+    let filters = Object.keys(queryFilters);
+    let lastFilter;
+    filters.forEach(filter => {
+      let k = filter;
+      let v = queryFilters[filter];
 
-      let filter: any = {};
-      filter.key = v;
-      filter.name = v;
-      filter.field = k;
-      filter.fieldLabel = k;
-
-      this.addFieldFilter(filter);
-    }
+      v.forEach(value => {
+        let filter: any = {};
+        filter.key = value;
+        filter.name = value;
+        filter.field = k;
+        filter.fieldLabel = k;
+        this.addFieldFilter(filter, false);
+        lastFilter = filter;
+      });
+    });
+    this.createAndSendQuery(lastFilter.silent);
   }
 }
 

@@ -63,7 +63,8 @@ class IdentityProviderService {
         groupMappings: identityProvider.groupMappings,
         roleMappings: identityProvider.roleMappings,
         userProfileMapping: identityProvider.userProfileMapping,
-        emailRequired: identityProvider.emailRequired
+        emailRequired: identityProvider.emailRequired,
+        syncMappings: identityProvider.syncMappings
       }).then(response => {
         let identityProvider = response.data;
 

@@ -56,6 +56,7 @@ html {
 }
 
 body {
+  top: 0px !important;
   background-color: lightgrey;
   position: inherit !important;
 }
@@ -644,4 +645,24 @@ md-progress-circular {
 .gv-input-number {
   width: fit-content;
   min-width: 300px;
+}
+
+.gv-tooltip {
+  display: grid;
+}
+
+.gv-tooltip-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.gv-tooltip-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.gv-tooltip-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.gv-tooltip-5 {
+  grid-template-columns: repeat(5, 1fr);
 }

@@ -23,6 +23,7 @@ export class LogsQuery {
   page: number;
   size: number;
   field: string;
+  order: boolean;
 }
 
 interface IMembership {
@@ -251,7 +252,7 @@ class ApiService {
           validation: plan.validation, policies: plan.policies,
           securityDefinition: plan.securityDefinition,
           characteristics: plan.characteristics, order: plan.order, paths: plan.paths,
-          excluded_groups: plan.excludedGroups,
+          excluded_groups: plan.excluded_groups,
           comment_required: plan.comment_required,
           comment_message: plan.comment_message,
           tags: plan.tags,
@@ -263,7 +264,7 @@ class ApiService {
           name: plan.name, description: plan.description, api: plan.api,
           validation: plan.validation, policies: plan.policies,
           characteristics: plan.characteristics, type: plan.type, paths: plan.paths,
-          security: plan.security, securityDefinition: plan.securityDefinition, excluded_groups: plan.excludedGroups,
+          security: plan.security, securityDefinition: plan.securityDefinition, excluded_groups: plan.excluded_groups,
           comment_required: plan.comment_required,
           comment_message: plan.comment_message,
           tags: plan.tags,
@@ -323,6 +324,15 @@ class ApiService {
 
   pauseSubscription(apiId, subscriptionId) {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/status?status=PAUSED');
+  }
+
+  updateSubscription(apiId, subscription) {
+    return this.$http.put(this.apisURL + apiId + '/subscriptions/' + subscription.id,
+      {
+        id: subscription.id,
+        starting_at: subscription.starting_at,
+        ending_at: subscription.ending_at
+      });
   }
 
   resumeSubscription(apiId, subscriptionId) {

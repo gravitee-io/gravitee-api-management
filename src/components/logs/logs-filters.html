@@ -49,13 +49,13 @@
     </md-input-container>
   </div>
   <div layout-gt-sm="row">
-    <md-input-container class="md-block" flex-gt-sm flex="20" ng-if="$ctrl.context === 'api'">
+    <md-input-container class="md-block" flex-gt-sm flex="20" ng-if="$ctrl.context === 'api' || $ctrl.context === 'platform'">
       <label>Applications</label>
       <md-select ng-model="$ctrl.filters.application" placeholder="Application" multiple>
         <md-option ng-value="app.id" ng-repeat="app in $ctrl.metadata.applications">{{app.name}}</md-option>
       </md-select>
     </md-input-container>
-    <md-input-container class="md-block" flex-gt-sm flex="20" ng-if="$ctrl.context === 'application'">
+    <md-input-container class="md-block" flex-gt-sm flex="20" ng-if="$ctrl.context === 'application' || $ctrl.context === 'platform'">
       <label>Apis</label>
       <md-select ng-model="$ctrl.filters.api" placeholder="API" multiple>
         <md-option ng-value="api.id" ng-repeat="api in $ctrl.metadata.apis">{{api.name}}</md-option>
@@ -84,7 +84,7 @@
       <label>Search in payloads</label>
       <input ng-model="$ctrl.filters.body">
     </md-input-container>
-    <md-input-container class="md-block" flex-gt-sm>
+    <md-input-container class="md-block" flex-gt-sm ng-if="$ctrl.context != 'platform'">
       <label>Endpoint</label>
       <input ng-model="$ctrl.filters.endpoint">
     </md-input-container>

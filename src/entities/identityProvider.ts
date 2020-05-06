@@ -38,6 +38,7 @@ export class IdentityProvider {
   public scopes: any;
   public scope: any;
   public userLogoutEndpoint: any;
+  public syncMappings: boolean;
 
   constructor() {
     'ngInject';

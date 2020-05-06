@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
+import AnalyticsService from '../../../services/analytics.service';
 
 const WidgetDataTableComponent: ng.IComponentOptions = {
   template: require('./widget-data-table.html'),
@@ -24,9 +25,10 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget'
   },
-  controller: function($scope, $state: StateService) {
+  controller: function($scope, $state: StateService, AnalyticsService: AnalyticsService) {
     'ngInject';
 
+    this.AnalyticsService = AnalyticsService;
     this.$scope = $scope;
     this.$state = $state;
     this.selected = [];
@@ -35,23 +37,34 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
       this.widget = this.parent.widget;
     };
 
-    this.$onChanges = function(changes) {
+    this.$onChanges = (changes) => {
       if (changes.data) {
         let data = changes.data.currentValue;
         this.paging = 1;
-        this.results = _.map(data.values, function (value, key) {
+        this.results = _.map(data.values, (value, key) => {
           let percent;
           if (_.includes(value, '/')) {
             let splittedValue = value.split('/');
             value = parseInt(splittedValue[0], 10);
             percent = parseFloat(splittedValue[1]);
           }
-          return {
+          let result = {
             key: key,
             value: value,
             percent: percent,
             metadata: (data && data.metadata) ? data.metadata[key] : undefined
           };
+          let widget = this.widget || this.parent.widget;
+          if (widget) {
+            let queryFilters = this.AnalyticsService.getQueryFilters();
+            if (queryFilters) {
+              let queryFilter = queryFilters[widget.chart.request.field];
+              if (queryFilter && queryFilter.includes(key)) {
+                this.selected.push(result);
+              }
+            }
+          }
+          return result;
         });
       }
     };
@@ -60,6 +73,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
     this.selectItem = function (item) {
       that.updateQuery(item, true);
     };
+
     this.deselectItem = function (item) {
       that.updateQuery(item, false);
     };
@@ -75,11 +89,29 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
       });
     };
 
+    this.isClickable = function(result) {
+      return $state.current.name === 'management.platform' && !result.metadata.unknown
+        && (this.widget.chart.request.field === 'api' || this.widget.chart.request.field === 'application');
+    };
+
     this.goto = function(key) {
-      if (this.widget.chart.request.field === 'api') {
-        this.$state.go('management.apis.detail.analytics.overview', {apiId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q: this.widget.chart.request.query});
-      } else if (this.widget.chart.request.field === 'application') {
-        this.$state.go('management.applications.application.analytics', {applicationId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q: this.widget.chart.request.query});
+      // only on platform analytics
+      if ($state.current.name === 'management.platform') {
+        if (this.widget.chart.request.field === 'api') {
+          this.$state.go('management.apis.detail.analytics.overview', {
+            apiId: key,
+            from: this.widget.chart.request.from,
+            to: this.widget.chart.request.to,
+            q: this.widget.chart.request.query
+          });
+        } else if (this.widget.chart.request.field === 'application') {
+          this.$state.go('management.applications.application.analytics', {
+            applicationId: key,
+            from: this.widget.chart.request.from,
+            to: this.widget.chart.request.to,
+            q: this.widget.chart.request.query
+          });
+        }
       }
     };
   }

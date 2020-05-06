@@ -22,14 +22,14 @@
   <modelVersion>4.0.0</modelVersion>
   <properties>
     <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
-    <node.version>v12.16.2</node.version>
     <npm.version>6.14.4</npm.version>
+    <node.version>v12.16.2</node.version>
   </properties>
 
   <parent>
     <groupId>io.gravitee</groupId>
     <artifactId>gravitee-parent</artifactId>
-    <version>17</version>
+    <version>17.1</version>
   </parent>
 
   <groupId>io.gravitee.management</groupId>

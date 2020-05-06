@@ -51,8 +51,11 @@
           <div layout-gt-sm="row">
             <div class="md-block" flex-gt-sm>
               <label>Characteristics</label>
-              <md-chips ng-model="$ctrl.parent.plan.characteristics" placeholder="Enter a characteristic"
-                        secondary-placeholder="+Characteristic" ng-click="$ctrl.planGeneralForm.$setDirty()"></md-chips>
+              <md-chips ng-model="$ctrl.parent.plan.characteristics"
+                        placeholder="Enter a characteristic"
+                        md-add-on-blur="true"
+                        secondary-placeholder="+Characteristic"
+                        ng-click="$ctrl.planGeneralForm.$setDirty()"></md-chips>
             </div>
           </div>
 
@@ -112,8 +115,8 @@
 
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex="100">
-              <label>Groups allowed to access this plan</label>
-              <md-select ng-model="$ctrl.parent.plan.authorizedGroups" multiple>
+              <label>Groups excluded</label>
+              <md-select ng-model="$ctrl.parent.plan.excluded_groups" multiple>
                 <md-option ng-repeat="group in $ctrl.parent.groups | orderBy:'name'" ng-value="group.id">
                   {{group.name}}
                 </md-option>

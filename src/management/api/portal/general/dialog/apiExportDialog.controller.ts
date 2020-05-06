@@ -22,7 +22,8 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64,
     { id: 'groups', description: 'Groups', checked: true },
     { id: 'members', description: 'Members', checked: true },
     { id: 'pages', description: 'Pages', checked: true },
-    { id: 'plans', description: 'Plans', checked: true }
+    { id: 'plans', description: 'Plans', checked: true },
+    { id: 'metadata', description: 'Metadata', checked: true }
   ];
 
   $scope.data = {

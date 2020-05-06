@@ -137,8 +137,34 @@
           <input ng-model="$ctrl.dictionary.provider.configuration.url" type="url" ng-required="true">
         </md-input-container>
 
+        <div layout="column" layout-sm="column" style="margin-bottom: 15px;">
+            <h5 style="color: grey;">
+              <span>Headers</span>
+              <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5;" aria-label="Add HTTP header" ng-click="$ctrl.addHTTPHeader()">Add headers</ng-md-icon>
+            </h5>
+            <div layout="row" layout-sm="column" layout-align="center center" ng-repeat="header in $ctrl.dictionary.provider.configuration.headers">
+              <ng-md-icon icon="remove_circle_outline" style="fill: #b1bdc5;" aria-label="Delete header" ng-click="$ctrl.removeHTTPHeader($index)"></ng-md-icon>
+
+              <div flex="5" hide-xs hide-sm>
+                <!-- Spacer //-->
+              </div>
+
+              <md-input-container flex-gt-sm>
+                <input aria-label="Header name" ng-model="header.name" type="text" placeholder="Header name" ng-required="true">
+              </md-input-container>
+
+              <div flex="5" hide-xs hide-sm>
+                <!-- Spacer //-->
+              </div>
+
+              <md-input-container flex-gt-sm>
+                <input aria-label="Header value" ng-model="header.value" type="text" placeholder="Header value" ng-required="true">
+              </md-input-container>
+            </div>
+          </div>
+
         <md-input-container class="md-block" flex-gt-sm>
-          <label>
+          <label style="transform: translate3d(0, 6px, 0) scale(0.75) !important;">
             Transformation (JOLT Specification)
           </label>
 
@@ -204,12 +230,12 @@
         </tr>
         </thead>
         <tbody md-body>
-        <tr md-row ng-repeat="(key, value) in $ctrl.dictionary.properties">
+        <tr md-row ng-repeat="(key, value) in $ctrl.getPropertiesPage()">
           <td md-cell><md-checkbox aria-label="Select {{key}}" ng-model="$ctrl.selectedProperties[key]" ng-change="$ctrl.checkSelectAll()"></md-checkbox></td>
-          <td md-cell>{{key}}</td>
+          <td md-cell>{{::key}}</td>
           <td md-cell ng-click="$ctrl.editProperty($event, key, value)"
               ng-class="{'gravitee-placeholder': value}">
-            {{value || 'Set value'}}
+            {{::value || 'Set value'}}
           </td>
           <td md-cell ng-if="$ctrl.dictionary.type === 'manual'">
             <ng-md-icon permission permission-only="['environment-dictionary-u']"
@@ -219,6 +245,7 @@
         </tbody>
       </table>
     </md-table-container>
+    <md-table-pagination ng-if="$ctrl.hasProperties()" md-limit="$ctrl.query.limit" md-limit-options="[10, 25, 50, 75, 100]" md-page="$ctrl.query.page" md-total="{{$ctrl.query.total}}" md-on-limit="$ctrl.searchEvents" md-on-paginate="$ctrl.searchEvents" md-page-select></md-table-pagination>
 
     <gravitee-empty-state ng-if="!$ctrl.hasProperties()"
                           icon="assignment"

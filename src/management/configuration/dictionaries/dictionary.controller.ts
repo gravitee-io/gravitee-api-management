@@ -39,6 +39,8 @@ class DictionaryController {
 
   private selectedProperties: any = {};
 
+  private query: any;
+
   constructor(
     private $scope: IDictionaryScope,
     private $state: StateService,
@@ -96,6 +98,26 @@ class DictionaryController {
   $onInit() {
     this.updateMode = this.dictionary && this.dictionary.id;
     this.initialDictionary = _.cloneDeep(this.dictionary);
+
+    this.query = {
+      limit: 10,
+      page: 1,
+      total: (this.initialDictionary && this.initialDictionary.properties && Object.keys(this.initialDictionary.properties).length) || 0
+    };
+  }
+
+  getPropertiesPage() {
+    let properties = Object
+      .entries(this.dictionary.properties)
+      .slice(
+        (this.query.page - 1) * this.query.limit,
+        (this.query.page * this.query.limit))
+      .reduce(function(map, obj) {
+        map[obj[0]] = obj[1];
+        return map;
+      }, {});
+
+    return properties;
   }
 
   reset() {
@@ -175,6 +197,7 @@ class DictionaryController {
 
       if (property) {
         this.dictionary.properties[property.key] = property.value;
+        ++this.query.total;
       }
     });
   }
@@ -195,6 +218,7 @@ class DictionaryController {
 
   deleteProperty(key) {
     delete this.dictionary.properties[key];
+    --this.query.total;
   }
 
   deleteSelectedProperties() {
@@ -227,6 +251,21 @@ class DictionaryController {
 
   hasSelectedProperties() {
     return _.filter(this.selectedProperties, (p) => p).length > 0;
+  }
+
+  addHTTPHeader() {
+    if (this.dictionary.provider.configuration.headers === undefined) {
+      this.dictionary.provider.configuration.headers = [];
+    }
+
+    this.dictionary.provider.configuration.headers.push({name: '', value: ''});
+  }
+
+  removeHTTPHeader(idx) {
+    if (this.dictionary.provider.configuration.headers !== undefined) {
+      this.dictionary.provider.configuration.headers.splice(idx, 1);
+      this.formDictionary.$setDirty();
+    }
   }
 }
 

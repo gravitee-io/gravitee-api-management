@@ -21,8 +21,28 @@ class InstancesService {
     this.instancesURL = `${Constants.baseURL}instances/`;
   }
 
-  list(includeStopped?: boolean) {
-    return this.$http.get(this.instancesURL + '?includeStopped=' + (includeStopped === undefined ? false : includeStopped));
+  search(includeStopped?: boolean, from?: number, to?: number, page?: number, size?: number) {
+    if (includeStopped === undefined) {
+      includeStopped = false;
+    }
+
+    if (from === undefined) {
+      from = 0;
+    }
+
+    if (to === undefined) {
+      to = 0;
+    }
+
+    if (page === undefined) {
+      page = 0;
+    }
+
+    if (size === undefined) {
+      size = 100;
+    }
+
+    return this.$http.get(`${this.instancesURL}?includeStopped=${includeStopped}&from=${from}&to=${to}&page=${page}&size=${size}`);
   }
 
   get(id) {

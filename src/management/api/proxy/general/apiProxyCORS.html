@@ -31,7 +31,10 @@
     <md-checkbox
       ng-model="apiProxyCtrl.api.proxy.cors.enabled"
       aria-label="Enable CORS" flex>Enabled
-      <div class="ipsum">CORS is a mechanism that allows restricted resources (e.g. fonts) on a web page to be requested from another domain outside the domain from which the first resource was served.</div>
+      <div class="ipsum">
+        CORS is a mechanism that allows restricted resources (e.g. fonts) on a web page to be requested from another domain outside the domain from which the first resource was served.<br>
+        If you enable the <i>try-it</i> feature of a Swagger page you probably have to enable and configure the CORS.
+      </div>
     </md-checkbox>
   <div layout="column" layout-wrap layout-gt-sm="row">
     <div flex-xs flex="50">
@@ -39,13 +42,18 @@
         <label>Access-Control-Allow-Origin *</label>
         <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowOrigin"
                   ng-required="apiProxyCtrl.api.proxy.cors.enabled"
-                  md-removable="apiProxyCtrl.api.proxy.cors.enabled" placeholder="*, mydomain.com, ..."
+                  md-removable="apiProxyCtrl.api.proxy.cors.enabled" placeholder="*, https://mydomain.com, ..."
+                  md-on-add="apiProxyCtrl.controlAllowOrigin($chip, $index)"
+                  md-add-on-blur="true"
                   readonly="!apiProxyCtrl.api.proxy.cors.enabled">
           <md-chip-template>
             <strong>{{$chip}}</strong>
           </md-chip-template>
         </md-chips>
-        <div class="hint">The origin parameter specifies a URI that may access the resource.</div>
+        <div class="hint">
+          The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the <i>same-origin</i> definition.<br>
+          If you choose to enable '*' it means that is allows all requests, regardless of origin.
+        </div>
       </md-input-container>
     </div>
 
@@ -76,8 +84,11 @@
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
           <label>Access-Control-Allow-Headers</label>
-        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowHeaders" md-autocomplete-snap
-                  md-require-match="false" readonly="!apiProxyCtrl.api.proxy.cors.enabled">
+        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowHeaders"
+                  md-autocomplete-snap
+                  md-add-on-blur="true"
+                  md-require-match="false"
+                  readonly="!apiProxyCtrl.api.proxy.cors.enabled">
           <md-autocomplete
             md-search-text="searchHeaders"
             md-items="item in apiProxyCtrl.querySearchHeaders(searchHeaders)"
@@ -123,7 +134,9 @@
 
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
-        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.exposeHeaders" md-autocomplete-snap
+        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.exposeHeaders"
+                  md-autocomplete-snap
+                  md-add-on-blur="true"
                   md-require-match="false"
                   readonly="!apiProxyCtrl.api.proxy.cors.enabled">
           <md-autocomplete

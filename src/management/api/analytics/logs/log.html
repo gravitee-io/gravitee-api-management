@@ -224,9 +224,9 @@
       <md-table-container>
         <table md-table class="gv-table-dense">
           <tbody md-body>
-          <tr md-row ng-repeat="(key, value) in $ctrl.log.clientRequest.headers" style="height: 30px;">
-            <td md-cell><span style="font-weight: bold">{{key}}</span></td>
-            <td md-cell>{{value[0]}}</td>
+          <tr md-row ng-repeat="header in $ctrl.log.clientRequest.headersAsList" style="height: 30px;">
+            <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
+            <td md-cell>{{header[1]}}</td>
           </tr>
           </tbody>
         </table>
@@ -279,9 +279,9 @@
       <md-table-container ng-if="$ctrl.log.endpoint">
         <table md-table class="gv-table-dense">
           <tbody md-body>
-          <tr md-row ng-repeat="(key, value) in $ctrl.log.proxyRequest.headers" style="height: 30px;">
-            <td md-cell><span style="font-weight: bold">{{key}}</span></td>
-            <td md-cell>{{value[0]}}</td>
+          <tr md-row ng-repeat="header in $ctrl.log.proxyRequest.headersAsList" style="height: 30px;">
+            <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
+            <td md-cell>{{header[1]}}</td>
           </tr>
           </tbody>
         </table>
@@ -330,9 +330,9 @@
         <md-table-container>
           <table md-table class="gv-table-dense">
             <tbody md-body>
-            <tr md-row ng-repeat="(key, value) in $ctrl.log.clientResponse.headers" style="height: 30px;">
-              <td md-cell><span style="font-weight: bold">{{key}}</span></td>
-              <td md-cell>{{value[0]}}</td>
+            <tr md-row ng-repeat="header in $ctrl.log.clientResponse.headersAsList" style="height: 30px;">
+                <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
+                <td md-cell>{{header[1]}}</td>
             </tr>
             </tbody>
           </table>
@@ -381,9 +381,9 @@
       <md-table-container ng-if="$ctrl.log.endpoint">
         <table md-table class="gv-table-dense">
           <tbody md-body>
-          <tr md-row ng-repeat="(key, value) in $ctrl.log.proxyResponse.headers" style="height: 30px;">
-            <td md-cell><span style="font-weight: bold">{{key}}</span></td>
-            <td md-cell>{{value[0]}}</td>
+          <tr md-row ng-repeat="header in $ctrl.log.proxyResponse.headersAsList" style="height: 30px;">
+            <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
+            <td md-cell>{{header[1]}}</td>
           </tr>
           </tbody>
         </table>

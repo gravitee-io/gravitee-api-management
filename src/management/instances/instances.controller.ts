@@ -13,49 +13,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import InstancesService from '../../services/instances.service';
+import { StateService } from '@uirouter/core';
 
 interface IInstancesScope extends ng.IScope {
 
-  displayAllInstances: boolean;
+  showHistory: boolean;
 
   switchDisplayInstances(): void;
 }
 
 class InstancesController {
   private instances: any;
-  private startedInstances: any;
-  private allInstances: any;
   private _displayEmptyMode: boolean;
   private searchGatewayInstances: string;
+  private query: any;
+  private lastFrom: any;
+  private lastTo: any;
 
   constructor(
     private $scope: IInstancesScope,
-    private InstancesService: InstancesService) {
+    private InstancesService: InstancesService,
+    private $state: StateService) {
     'ngInject';
   }
 
   $onInit() {
-    this.searchGatewayInstances = '';
-    this.instances = this.startedInstances = _.clone(_.filter(this.instances, { 'state': 'started' }));
-    this._displayEmptyMode = this.startedInstances.length === 0;
+    this.query = {
+      limit: 10,
+      page: 1
+    };
 
-    this.$scope.displayAllInstances = false;
+    this.searchInstances = this.searchInstances.bind(this);
+
+    this.searchGatewayInstances = '';
+    this._displayEmptyMode = this.instances.content.length === 0;
+
+    this.$scope.showHistory = false;
 
     this.$scope.switchDisplayInstances = () => {
-      this.$scope.displayAllInstances = !this.$scope.displayAllInstances;
+      this.instances.content = [];
+      this.$scope.showHistory = !this.$scope.showHistory;
 
-      if (this.$scope.displayAllInstances) {
-        this._displayEmptyMode = this.instances.length === 0;
-        if (this.allInstances) {
-          this.instances = this.allInstances;
-        } else {
-          this.InstancesService.list(true).then(response => this.instances = this.allInstances = response.data);
-        }
+      if (this.$scope.showHistory) {
+        let now = Date.now();
+        this.$state.params.from = now - (1000 * 60 * 60 * 24);
+        this.$state.params.to = now + (1000 * 60);
       } else {
-        this._displayEmptyMode = this.startedInstances.length === 0;
-        this.instances = this.startedInstances;
+        this.searchInstances();
       }
     };
   }
@@ -74,8 +79,25 @@ class InstancesController {
     return 'desktop_windows';
   }
 
+  onTimeframeChange(timeframe) {
+    this.lastFrom = timeframe.from;
+    this.lastTo = timeframe.to;
+
+    this.searchInstances();
+  }
+
   displayEmptyMode() {
     return this.instances.length === 0;
+  }
+
+  searchInstances() {
+    this.InstancesService.search(this.$scope.showHistory,
+      this.$scope.showHistory ? this.lastFrom : 0, this.$scope.showHistory ? this.lastTo : 0,
+      this.$scope.showHistory ? this.query.page - 1 : 0,
+      this.$scope.showHistory ? this.query.limit : 100).then(response => {
+      this.instances = response.data;
+      this._displayEmptyMode = this.instances.content.length === 0;
+    });
   }
 }
 

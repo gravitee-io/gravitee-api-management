@@ -17,6 +17,8 @@ import * as _ from 'lodash';
 import NotificationService from '../../../../../services/notification.service';
 import ApiService from '../../../../../services/api.service';
 import UserService from '../../../../../services/user.service';
+import { StateService } from '@uirouter/core';
+import {IScope} from 'angular';
 
 class ApiMetadataController {
   private api: any;
@@ -29,7 +31,9 @@ class ApiMetadataController {
     private UserService: UserService,
     private metadataFormats: any,
     private metadata: any,
-    private $state) {
+    private $state: StateService,
+    public $rootScope: IScope,
+  ) {
     'ngInject';
     this.api = resolvedApi.data;
   }

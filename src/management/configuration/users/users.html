@@ -56,12 +56,13 @@
             <td md-cell>
               <a ui-sref="management.settings.user({userId: user.id})">
                 {{user.displayName}}
+                <span ng-if="user.primary_owner" flex class="badge" style="background-color: #039be5">Primary Owner</span>
               </a>
             </td>
             <td md-cell width="15%" nowrap>{{user.email}}</td>
             <td md-cell width="15%" nowrap>{{user.source}}</td>
             <td md-cell width="1%" nowrap ng-click="$event.stopPropagation()">
-                <span permission permission-only="['organization-user-d']">
+                <span ng-if="!user.primary_owner" permission permission-only="['organization-user-d']">
                     <md-tooltip md-direction="top">delete</md-tooltip>
                     <ng-md-icon icon="delete" style="width:20px; display: block;" ng-click="$ctrl.remove($event, user)" aria-label="delete-user"></ng-md-icon>
                 </span>

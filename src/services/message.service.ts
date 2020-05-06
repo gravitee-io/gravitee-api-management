@@ -22,21 +22,21 @@ class MessageService {
     this.baseURL = Constants.baseURL;
   }
 
-  sendFromPortal(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: string[]) {
+  sendFromPortal(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {
     return this.$http.post(
       `${this.baseURL}messages`,
       this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders)
     );
   }
 
-  sendFromApi(apiId: string, title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: string[]) {
+  sendFromApi(apiId: string, title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {
     return this.$http.post(
       `${this.baseURL}apis/${apiId}/messages`,
       this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders)
     );
   }
 
-  private getPayload(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: string[]) {
+  private getPayload(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {
     if (url) {
       let params = {};
       for (let idx = 0; idx < httpHeaders.length; idx ++) {

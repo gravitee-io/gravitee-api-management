@@ -17,6 +17,7 @@ import _ = require('lodash');
 
 class RoleService {
   private roleURL: string;
+  private permissionsByScope: any;
 
   constructor(private $http, Constants, private $q) {
     'ngInject';
@@ -94,7 +95,7 @@ class RoleService {
 
   private fetchScopes() {
     if (this.permissionsByScope) {
-      return this.$q.resolve<any>(this.permissionsByScope);
+      return this.$q.resolve(this.permissionsByScope);
     } else {
       return this.$http.get(this.roleURL).then(response => {
         this.permissionsByScope = response.data;

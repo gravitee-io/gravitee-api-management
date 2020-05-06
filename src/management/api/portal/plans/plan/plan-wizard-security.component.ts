@@ -66,7 +66,14 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
           this.securitySchema = schema.data;
 
           if (this.parent.plan.securityDefinition) {
-            this.parent.plan.securityDefinition = JSON.parse(this.parent.plan.securityDefinition);
+            try {
+              this.parent.plan.securityDefinition = JSON.parse(this.parent.plan.securityDefinition);
+
+              // Try a double parsing (it appears that sometimes the json of security definition is double-encoded
+              this.parent.plan.securityDefinition = JSON.parse(this.parent.plan.securityDefinition);
+            } catch (e) {
+
+            }
           } else {
             this.parent.plan.securityDefinition = {};
           }

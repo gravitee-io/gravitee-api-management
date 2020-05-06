@@ -33,6 +33,28 @@ const LogComponent: ng.IComponentOptions = {
       size: $state.params.size
     };
 
+    this.$onInit = () => {
+      this.headersAsList(this.log.clientRequest);
+      this.headersAsList(this.log.proxyRequest);
+      this.headersAsList(this.log.clientResponse);
+      this.headersAsList(this.log.proxyResponse);
+    };
+
+    this.headersAsList = (obj) => {
+      if (obj) {
+        obj.headersAsList = [];
+        for (const k in obj.headers) {
+          if (obj.headers.hasOwnProperty(k)) {
+            for (const v in obj.headers[k]) {
+              if (obj.headers[k].hasOwnProperty(v)) {
+                obj.headersAsList.push([k, obj.headers[k][v]]);
+              }
+            }
+          }
+        }
+      }
+    };
+
     this.getMimeType = function(log) {
       if (log.headers['Content-Type'] !== undefined) {
         let contentType = log.headers['Content-Type'][0];

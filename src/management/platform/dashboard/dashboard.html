@@ -32,7 +32,8 @@
     </div>
 
     <div class="gv-form">
-      <gv-dashboard model="dashboardCtrl.dashboard" on-timeframe-change="dashboardCtrl.onTimeframeChange(timeframe)"></gv-dashboard>
+      <gv-dashboard model="dashboardCtrl.dashboard" on-timeframe-change="dashboardCtrl.onTimeframeChange(timeframe)"
+                    on-view-log-click="dashboardCtrl.viewLogs()" access-logs="true"></gv-dashboard>
     </div>
 
     <div class="gv-form" ng-if="dashboardCtrl.events.content.length > 0">

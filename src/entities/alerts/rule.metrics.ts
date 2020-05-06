@@ -17,7 +17,7 @@
 
 import {Metrics, Scope} from '../alert';
 import {ApiMetrics} from './api.metrics';
-import {NodeLifecycleMetrics, NodeMetrics} from './node.metrics';
+import {NodeHealthcheckMetrics, NodeLifecycleMetrics, NodeMetrics} from './node.metrics';
 
 export class Rule {
 
@@ -25,7 +25,7 @@ export class Rule {
     'REQUEST',
     'METRICS_SIMPLE_CONDITION',
     'Alert when a metric of the request validates a condition',
-    [Scope.API],
+    [Scope.API, Scope.PLATFORM],
     'API metrics',
     ApiMetrics.METRICS);
 
@@ -33,7 +33,7 @@ export class Rule {
     'REQUEST',
     'METRICS_AGGREGATION',
     'Alert when the aggregated value of a request metric rises a threshold',
-    [Scope.API],
+    [Scope.API, Scope.PLATFORM],
     'API metrics',
     [ApiMetrics.RESPONSE_TIME, ApiMetrics.UPSTREAM_RESPONSE_TIME, ApiMetrics.REQUEST_CONTENT_LENGTH, ApiMetrics.RESPONSE_CONTENT_LENGTH]);
 
@@ -41,12 +41,12 @@ export class Rule {
     'REQUEST',
     'METRICS_RATE',
     'Alert when the rate of a given condition rises a threshold',
-    [Scope.API],
+    [Scope.API, Scope.PLATFORM],
     'API metrics',
     ApiMetrics.METRICS);
 
   static API_HC_ENDPOINT_STATUS_CHANGED: Rule = new Rule(
-    'ENDPOINT_HEALTH_CHECK',
+      'ENDPOINT_HEALTH_CHECK',
     'API_HC_ENDPOINT_STATUS_CHANGED',
     'Alert when the health status of an endpoint has changed',
     [Scope.API],
@@ -60,7 +60,7 @@ export class Rule {
     'Application');
 
   static NODE_LIFECYCLE_CHANGED: Rule = new Rule(
-    'NODE_LIFECYCLE',
+      'NODE_LIFECYCLE',
     'NODE_LIFECYCLE_CHANGED',
     'Alert when the lifecycle status of a node has changed',
     [Scope.PLATFORM],
@@ -90,6 +90,14 @@ export class Rule {
     'Node',
     NodeMetrics.METRICS);
 
+  static NODE_HEALTHCHECK: Rule = new Rule(
+    'NODE_HEALTHCHECK',
+    'NODE_HEALTHCHECK',
+    'Alert on the health status of the node',
+    [Scope.PLATFORM],
+    'Node',
+    NodeHealthcheckMetrics.METRICS);
+
   static RULES: Rule[] = [
     Rule.API_METRICS_THRESHOLD,
     Rule.API_METRICS_AGGREGATION,
@@ -99,7 +107,8 @@ export class Rule {
     Rule.NODE_LIFECYCLE_CHANGED,
     Rule.NODE_METRICS_THRESHOLD,
     Rule.NODE_METRICS_AGGREGATION,
-    Rule.NODE_METRICS_RATE
+    Rule.NODE_METRICS_RATE,
+    Rule.NODE_HEALTHCHECK
   ];
   public source: string;
   public type: string;
@@ -113,7 +122,15 @@ export class Rule {
   }
 
   static findByScopeAndType(scope: Scope, type: string): Rule {
-    return Rule.RULES.find(rule => rule.type === type && rule.scopes.indexOf(scope) !== -1);
+    let source;
+    if (type.includes('@')) {
+      const arr = type.split('@');
+      source = arr[0];
+      type = arr[1];
+    }
+    return Rule.RULES.find(rule => {
+      return (source ? rule.source === source : true) && rule.type === type && rule.scopes.indexOf(scope) !== -1;
+    });
   }
 
   constructor(source: string, type: string, description: string, scopes: Scope[], category: string, metrics?: Metrics[]) {

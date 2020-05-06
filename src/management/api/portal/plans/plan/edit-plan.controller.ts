@@ -44,9 +44,6 @@ class ApiEditPlanController {
     }[]
   };
 
-  invalidPolicies = ['api-key', 'oauth2', 'jwt', 'rate-limit', 'quota', 'resource-filtering', 'xslt', 'xml-json',
-    'rest-to-json', 'json-to-json', 'html-json', 'policy-assign-content'];
-
   constructor(
     private $scope,
     private $state: StateService,
@@ -82,9 +79,6 @@ class ApiEditPlanController {
 
     this.planPolicies = this.plan.paths['/'];
 
-    // Remove some policies from the "plan" policies scope
-    _.remove(this.policies, (policy) => this.invalidPolicies.indexOf(policy.id) !== -1);
-
     // Add policy metadata
     if (this.planPolicies) {
       this.planPolicies.forEach(policy => {
@@ -109,12 +103,6 @@ class ApiEditPlanController {
       } else {
         this.groups = [];
       }
-    }
-
-    if (this.plan.excluded_groups) {
-      this.plan.authorizedGroups = _.difference(_.map(this.groups, 'id'), this.plan.excluded_groups);
-    } else {
-      this.plan.authorizedGroups = _.map(this.groups, 'id');
     }
   }
 
@@ -163,12 +151,6 @@ class ApiEditPlanController {
   saveOrUpdate() {
     // Transform security definition to json
     this.plan.securityDefinition = JSON.stringify(this.plan.securityDefinition);
-
-    // Convert authorized groups to excludedGroups
-    this.plan.excludedGroups = [];
-    if (this.groups) {
-      this.plan.excludedGroups = _.difference(_.map(this.groups, 'id'), this.plan.authorizedGroups);
-    }
 
     this.ApiService.savePlan(this.$stateParams.apiId, this.plan).then( () => {
       this.NotificationService.show(this.plan.name + ' has been saved successfully');

@@ -138,6 +138,13 @@ class DashboardController {
   getEventLabel(label) {
     return this.eventLabels[label];
   }
+
+  viewLogs() {
+    // Update the query parameter
+    this.$state.transitionTo(
+      'management.logs',
+      this.$state.params);
+  }
 }
 
 export default DashboardController;

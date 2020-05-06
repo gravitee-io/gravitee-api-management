@@ -54,6 +54,7 @@
           <div layout="column" flex>
             <h5>Characteristics</h5>
             <md-chips ng-model="$ctrl.parent.plan.characteristics" placeholder="Enter a characteristic"
+                      md-add-on-blur="true"
                       secondary-placeholder="+Characteristic" ng-click="apiPlanForm.$setDirty()"></md-chips>
           </div>
         </div>

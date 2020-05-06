@@ -45,7 +45,8 @@ function interceptorConfig(
               $location.$$path !== ''
               && $location.$$path !== '/'
               && $location.$$path !== '/login'
-              && !$location.$$path.startsWith('/registration');
+              && !$location.$$path.startsWith('/registration')
+              && !$location.$$path.startsWith('/resetPassword');
             if (error.config.forceSessionExpired || (!sessionExpired && !error.config.silentCall)) {
               sessionExpired = true;
               // session expired
@@ -63,6 +64,9 @@ function interceptorConfig(
           if (error.status === 500) {
             errorMessage = error.data ? error.data.message : 'Unexpected error';
           } else if (error.status === 503) {
+            if (error.data && error.data.message) {
+              document.getElementsByTagName('body').item(0).innerText = error.data.message;
+            }
             errorMessage = error.data ? error.data.message : 'Server unavailable';
           }
         }

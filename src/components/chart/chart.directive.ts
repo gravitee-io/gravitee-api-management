@@ -171,23 +171,30 @@ class ChartDirective {
                 formatter: function () {
                   // TODO: check this
                   // let s = '<b>' + Highcharts.dateFormat('%A, %b %d, %H:%M', new Date(this.x)) + '</b>';
+                  const nbCol = Math.trunc(this.points.filter((p) => p.y).length / 10);
                   let dateFormat = newOptions.dateFormat || '%A, %b %d, %H:%M';
-                  let s = '<b>' + Highcharts.dateFormat(dateFormat, this.x) + '</b>';
+                  let s = '<div><b>' + Highcharts.dateFormat(dateFormat, this.x) + '</b></div>';
+                  s += '<div class="' + ((nbCol >= 2) ? 'gv-tooltip gv-tooltip-' + (nbCol > 5 ? 5 : nbCol) : '') + '">';
                   if (_.filter(this.points, (point: any) => {
                       return point.y !== 0;
                     }).length) {
+                    let i = 0;
                     _.forEach(this.points, function (point) {
                       if (point.y) {
                         let name = ' ' + (point.series.options.labelPrefix ? point.series.options.labelPrefix + ' ' + point.series.name : point.series.name);
-                        s += '<br /><span style="color:' + point.color + '">\u25CF</span>' + name + ': <b>' + (point.series.options.decimalFormat ? Highcharts.numberFormat(point.y, 2) : point.y) +
-                          (point.series.options.labelSuffix ? point.series.options.labelSuffix : '') + '</b>';
+                        if (nbCol < 2 && i++ > 0) {
+                          s += '<br />';
+                        }
+                        s += '<span style="margin: 1px 5px;"><span style="color:' + point.color + '">\u25CF</span>' + name + ': <b>' + (point.series.options.decimalFormat ? Highcharts.numberFormat(point.y, 2) : point.y) +
+                          (point.series.options.labelSuffix ? point.series.options.labelSuffix : '') + '</b></span>';
                       }
                     });
                   }
+                  s += '</div>';
                   return s;
                 },
-                headerFormat: '<b>{point.key}</b><br/>',
-                shared: true
+                shared: true,
+                useHTML: true
               };
               newOptions.plotOptions = _.merge(newOptions.plotOptions, {
                 series: {

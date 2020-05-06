@@ -25,7 +25,8 @@ const ImportComponent: ng.IComponentOptions = {
   template: require('./import-api.html'),
   bindings: {
     apiId: '<',
-    cancelAction: '&'
+    cancelAction: '&',
+    policies: '<'
   },
   controller: function(
     $state: StateService,
@@ -170,21 +171,20 @@ const ImportComponent: ng.IComponentOptions = {
     };
 
     this.importSwagger = () => {
-      let type = 'URL';
-      let payload = this.apiDescriptorURL;
-      if (this.importFileMode) {
-        type = 'INLINE';
-        payload = this.importAPIFile.content;
-      }
-
       let swagger = {
         with_documentation: this.importCreateDocumentation,
         with_path_mapping: this.importCreatePathMapping,
         with_policy_paths: this.importCreatePolicyPaths,
-        with_policy_mocks: this.importCreateMocks,
-        type,
-        payload
+        with_policies: _.map(_.filter(this.policies, 'enable'), 'id')
       };
+
+      if (this.importFileMode) {
+        swagger.type = 'INLINE';
+        swagger.payload = this.importAPIFile.content;
+      } else {
+        swagger.type = 'URL';
+        swagger.payload = this.apiDescriptorURL;
+      }
 
       if (this.isForUpdate()) {
         // @ts-ignore

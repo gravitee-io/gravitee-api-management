@@ -56,11 +56,11 @@ const AlertComponent: ng.IComponentOptions = {
       this.updateMode = $state.params.alertId !== undefined;
 
       if (! this.updateMode) {
-        this.alert = new Alert('New alert', 'info', this.rules[0].source, this.rules[0].description, this.rules[0].type, referenceType, referenceId);
+        this.alert = new Alert('New alert', 'info', undefined, undefined, undefined, referenceType, referenceId);
         this.alerts.push(this.alert);
       } else {
         this.alert = _.find(this.alerts, {id: $state.params.alertId}) || this.alerts[0];
-        this.alert.type = this.alert.type.toUpperCase();
+        this.alert.type = (this.alert.source + '@' + this.alert.type).toUpperCase();
         this.alert.reference_type = referenceType;
       }
 
@@ -79,8 +79,9 @@ const AlertComponent: ng.IComponentOptions = {
       }
     };
 
-    this.save = (alert) => {
+    this.save = (alert: Alert) => {
       let service;
+      alert.type = alert.type.split('@')[1];
       if (this.updateMode) {
         service = AlertService.update(alert);
       } else {
@@ -121,7 +122,7 @@ const AlertComponent: ng.IComponentOptions = {
     };
 
     this.onRuleChange = () => {
-      let rule: Rule = _.find(this.rules, rule => rule.type === this.alert.type);
+      let rule: Rule = _.find(this.rules, rule => (rule.source + '@' + rule.type) === this.alert.type);
       this.alert.source = rule.source;
       if (this.alert.filters) {
         this.alert.filters.length = 0;

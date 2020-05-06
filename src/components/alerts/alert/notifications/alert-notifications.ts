@@ -36,6 +36,7 @@ const AlertNotificationsComponent: ng.IComponentOptions = {
 
     this.removeNotification = (idx: number) => {
       this.alert.notifications.splice(idx, 1);
+      this.parent.formAlert.$setDirty();
     };
   }
 };

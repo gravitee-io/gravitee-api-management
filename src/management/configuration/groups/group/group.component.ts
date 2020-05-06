@@ -50,6 +50,12 @@ const GroupComponent: ng.IComponentOptions = {
     this.$rootScope = $rootScope;
 
     this.$onInit = () => {
+      this.updateMode = this.group !== undefined && this.group.id !== undefined;
+
+      if (!this.updateMode) {
+        this.group = {};
+      }
+
       $scope.groupApis = [];
       $scope.groupApplications = [];
       $scope.currentTab = 'users';
@@ -58,6 +64,9 @@ const GroupComponent: ng.IComponentOptions = {
         $scope.selectedApiRole = this.group.roles.API;
         $scope.selectedApplicationRole = this.group.roles.APPLICATION;
       }
+
+      this.apiByDefault = this.group.event_rules && this.group.event_rules.findIndex(rule => rule.event === 'API_CREATE') !== -1;
+      this.applicationByDefault = this.group.event_rules && this.group.event_rules.findIndex(rule => rule.event === 'APPLICATION_CREATE') !== -1;
     };
 
     this.updateRole = (member: any) => {
@@ -67,28 +76,52 @@ const GroupComponent: ng.IComponentOptions = {
       });
     };
 
-    this.update = () => {
-      let roles: any = {};
-
-      if ($scope.selectedApiRole) {
-        roles.API = $scope.selectedApiRole;
-      } else {
-        delete roles.API;
-      }
-
-      if ($scope.selectedApplicationRole) {
-        roles.APPLICATION = $scope.selectedApplicationRole;
-      } else {
-        delete roles.APPLICATION;
-      }
-
-      this.group.roles = roles;
-      GroupService.update(this.group).then((response) => {
-        this.group = response.data;
-        this.$onInit();
-        $scope.formGroup.$setPristine();
-        NotificationService.show('Group \'' + this.group.name + '\' has been updated');
+    this.associateToApis = () => {
+      GroupService.associate(this.group.id, 'api').then((response) => {
+        $state.reload();
+        NotificationService.show('Group \'' + this.group.name + '\' has been associated to all APIs');
       });
+    };
+
+    this.associateToApplications = () => {
+      GroupService.associate(this.group.id, 'application').then((response) => {
+        $state.reload();
+        NotificationService.show('Group \'' + this.group.name + '\' has been associated to all applications');
+      });
+    };
+
+    this.update = () => {
+      GroupService.updateEventRules(this.group, this.apiByDefault, this.applicationByDefault);
+
+      if (!this.updateMode) {
+        GroupService.create(this.group).then((response) => {
+          $state.go('management.settings.groups.group', {groupId: response.data.id}, {reload: true});
+          NotificationService.show('Group \'' + this.group.name + '\' has been created');
+        });
+      } else {
+        let roles: any = {};
+
+        if ($scope.selectedApiRole) {
+          roles.API = $scope.selectedApiRole;
+        } else {
+          delete roles.API;
+        }
+
+        if ($scope.selectedApplicationRole) {
+          roles.APPLICATION = $scope.selectedApplicationRole;
+        } else {
+          delete roles.APPLICATION;
+        }
+
+        this.group.roles = roles;
+
+        GroupService.update(this.group).then((response) => {
+          this.group = response.data;
+          this.$onInit();
+          $scope.formGroup.$setPristine();
+          NotificationService.show('Group \'' + this.group.name + '\' has been updated');
+        });
+      }
     };
 
     this.removeUser = (ev, member: any) => {
@@ -96,7 +129,7 @@ const GroupComponent: ng.IComponentOptions = {
       $mdDialog.show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           msg: '',
@@ -186,7 +219,7 @@ const GroupComponent: ng.IComponentOptions = {
     };
 
     this.canSave = () => {
-      return this.group.manageable;
+      return !this.updateMode || this.group.manageable;
     };
 
     this.updateInvitation = (invitation: any) => {
@@ -244,7 +277,7 @@ const GroupComponent: ng.IComponentOptions = {
       $mdDialog.show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           msg: '',

@@ -42,6 +42,7 @@
             <th md-column>Name</th>
             <th md-column>Description</th>
             <th md-column>Enabled</th>
+            <th md-column>Sync</th>
             <th md-column>Last updated at</th>
             <th md-column width="48px" nowrap></th>
           </tr>
@@ -61,6 +62,9 @@
             <td md-cell>{{identityProvider.description}}</td>
             <td md-cell>
               <ng-md-icon ng-if="identityProvider.enabled" icon="done"></ng-md-icon>
+            </td>
+            <td md-cell>
+              <ng-md-icon ng-if="identityProvider.sync" icon="done"></ng-md-icon>
             </td>
             <td md-cell>{{identityProvider.updated_at | date:'MMM d, y h:mm:ss a'}}</td>
             <td md-cell width="40" nowrap>

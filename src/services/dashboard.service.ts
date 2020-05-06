@@ -128,6 +128,9 @@ class DashboardService {
       label: 'Host',
       value: 'host'
     }, {
+      label: 'Consumer IP',
+      value: 'remote-address'
+    }, {
       label: 'Country',
       value: 'geoip.country_iso_code'
     }, {
@@ -151,12 +154,12 @@ class DashboardService {
 
   getAggregateFields() {
     return _.concat(
-      _.map(this.getAverageableFields(), (field) => {
+      _.map(this.getAverageableFields(), (field: any) => {
         field.aggLabel = 'Average ' + _.lowerCase(field.label);
         field.aggValue = 'avg:' + field.value;
         return field;
       }),
-      _.map(this.getIndexedFields(), (field) => {
+      _.map(this.getIndexedFields(), (field: any) => {
         field.aggLabel = 'By ' + _.lowerCase(field.label);
         field.aggValue = 'field:' + field.value;
         return field;

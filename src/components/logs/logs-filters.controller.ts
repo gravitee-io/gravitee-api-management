@@ -41,7 +41,10 @@ class LogsFiltersController {
     '[200 TO 300]': '200 to 300ms',
     '[300 TO 400]': '300 to 400ms',
     '[400 TO 500]': '400 to 500ms',
-    '[500 TO *]': '> 500ms'
+    '[500 TO 1000]': '500 to 1000ms',
+    '[1000 TO 2000]': '1000 to 2000ms',
+    '[2000 TO 5000]': '2000 to 5000ms',
+    '[5000 TO *]': '> 5000ms'
   };
   public httpStatus = {
     100: 'CONTINUE',
@@ -142,6 +145,20 @@ class LogsFiltersController {
         this.displayMode = this.displayModes[0];
       }
     }
+
+    if (this.context === 'platform' || this.context === 'api') {
+      this.metadata.applications.push({
+        id: '1',
+        name: 'Unknown application'
+      });
+    }
+
+    if (this.context === 'platform' || this.context === 'application') {
+      this.metadata.apis.push({
+        id: '1',
+        name: 'Unknown API'
+      });
+    }
   }
   search() {
     let query = this.buildQuery(this.filters);
@@ -190,6 +207,14 @@ class LogsFiltersController {
           break;
         case 'application':
           this.filters.application = v;
+          break;
+        case 'path':
+          let value = v[0].replace(/\\"/g, '');
+          if (this.api) {
+            this.filters.uri = this.api.proxy.virtual_hosts[0].path + value;
+          } else {
+            this.filters.uri = value;
+          }
           break;
         case 'uri':
           this.filters.uri = v[0].replace(/\*|\\\\/g, '');
@@ -252,15 +277,25 @@ class LogsFiltersController {
     let that = this;
     _.forEach( keys, key => {
       let val = filters[key];
-      if (key === 'uri') {
-        if (!val.startsWith('/')) {
+
+      // 1. add the first / for uri
+      if (key === 'uri' && !val.startsWith('/')) {
           val = '/' + val;
-        }
-        val = val.replace(/\//g, '\\\\/') + '*';
       }
-      if (key === 'endpoint') {
-        val = val.replace(/:/g, '\\\\:').replace(/\//g, '\\\\/');
+
+      // 2. escape reserved characters
+      // + - = && || > < ! ( ) { } [ ] ^ " ~ ? : \ /
+      if (typeof val === 'string' || val instanceof String) {
+        val = val.replace(
+          /(\+|\-|\=|\&{2}|\|{2}|\>|\<|\!|\(|\)|\{|\}|\[|\]|\^|\"|\~|\?|\:|\\|\/)/g,
+          '\\\\$1');
       }
+
+      // 3. add the last * for uri
+      if (key === 'uri' && !val.endsWith('*')) {
+          val += '*';
+      }
+
       if (key === 'body') {
         val = '*' + val + '*';
       }

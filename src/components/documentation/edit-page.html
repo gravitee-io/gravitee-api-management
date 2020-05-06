@@ -287,7 +287,7 @@
                             <!-- import file -->
                             <div style="display: inline-block;" ng-if="$ctrl.canUpdate">
                                 <h4>Select a file to import:</h4>
-                                <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" >
+                                <input type="file" filecontent="$ctrl.page.content" filename="pageContentFile.name" >
                             </div>
                         </div>
                     </md-tab-body>
@@ -428,7 +428,7 @@
                             <div ng-if="$ctrl.page.configuration.viewer === 'Swagger'" layout="column">
                                 <h3>Swagger</h3>
                                 <md-checkbox ng-model="$ctrl.page.configuration.tryIt" ng-true-value="'true'" ng-false-value="'false'">
-                                Enable "Try it!" mode
+                                Enable "Try it!" mode. Perhaps you will have to configure the CORS in the proxy section.
                                 </md-checkbox>
                                 <md-checkbox ng-model="$ctrl.page.configuration.tryItAnonymous" ng-true-value="'true'" ng-false-value="'false'">
                                 Allow "Try it!" for anonymous users
@@ -438,6 +438,12 @@
                                     <input type="text" ng-model="$ctrl.page.configuration.tryItURL" ng-disabled="$ctrl.page.configuration.tryIt === 'false'">
                                     <div class="hint">Base URL used to try the API</div>
                                 </md-input-container>
+                                <md-checkbox ng-model="$ctrl.page.configuration.entrypointsAsServers" ng-true-value="'true'" ng-false-value="'false'" ng-click="$ctrl.toggleEntrypointAsServer()">
+                                  Swagger servers URL are based on the entrypoints of the API (in that case, the base URL is no more used).
+                                </md-checkbox>
+                                <md-checkbox ng-model="$ctrl.page.configuration.entrypointAsBasePath" ng-true-value="'true'" ng-false-value="'false'" ng-disabled="$ctrl.page.configuration.entrypointsAsServers === undefined || $ctrl.page.configuration.entrypointsAsServers === 'false'">
+                                  Swagger servers URL contains the context-path of the API as the base path
+                                </md-checkbox>
                                 <md-checkbox ng-model="$ctrl.page.configuration.showURL" ng-true-value="'true'" ng-false-value="'false'">
                                     Show the URL to download the content
                                 </md-checkbox>
@@ -498,8 +504,8 @@
                     <md-tab-body>
                         <h3>Groups Authorizations</h3>
                         <md-input-container class="md-block" flex="100">
-                            <label>Groups allowed to access to this page. All by default.</label>
-                            <md-select ng-model="$ctrl.page.authorizedGroups" multiple>
+                            <label>Groups excluded</label>
+                            <md-select ng-model="$ctrl.page.excluded_groups" multiple>
                                 <md-option ng-repeat="group in $ctrl.groups | orderBy:'name'" ng-value="group.id">
                                     {{group.name}}
                                 </md-option>

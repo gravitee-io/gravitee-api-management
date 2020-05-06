@@ -90,6 +90,13 @@
               <div ng-message="pattern">Listening path is not valid (must start with a '/' and must contain any letter, capitalize letter, number, dash or underscore)</div>
             </div>
           </md-input-container>
+
+          <md-input-container class="md-block" flex-gt-sm>
+            <input aria-label="Override entrypoint" name="vhost{{$index}}-override" ng-model="vHost.override_entrypoint" type="checkbox" placeholder="Override entrypoint">
+            <div class="hint" ng-if="vHost.override_entrypoint === undefined || vHost.override_entrypoint === '' || apiProxyCtrl.formApi['vhost'+$index+'-override'].$dirty">
+              Useful to override entrypoint with the virtual host on the portal.
+            </div>
+          </md-input-container>
         </div>
       </div>
     </div>

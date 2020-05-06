@@ -31,13 +31,13 @@ const MetadataValidatorDirective: IDirective = ({
     scope.$watch('format', function (newFormat) {
       switch (newFormat) {
         case 'numeric':
-          scope.ngPattern = /^\d+(\.\d{1,2})?$/;
+          scope.ngPattern = /^((\$\{.+\})|\d+(\.\d{1,2})?)$/;
           break;
         case 'url':
-          scope.ngPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+          scope.ngPattern = /^((\$\{.+\})|(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?)$/;
           break;
         case 'mail':
-          scope.ngPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+          scope.ngPattern = /^((\$\{.+\})|(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,})))$/;
           break;
         case 'string':
           delete scope.ngPattern;

@@ -129,7 +129,7 @@
                     <a class="execute" ui-sref="{{$ctrl.settingsMenu.users.goTo}}">Users</a>
                 </li>
                 <li class="iterable-item"
-                    ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.groups') || $ctrl.$state.includes('management.settings.group') }"
+                    ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.groups') }"
                     ng-if="$ctrl.settingsMenu.groups.perm">
                     <a class="execute" ui-sref="{{$ctrl.settingsMenu.groups.goTo}}">Groups</a>
                 </li>

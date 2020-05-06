@@ -74,7 +74,7 @@
                       <md-select ng-model="$ctrl.alert.type" required ng-disabled="$ctrl.updateMode"
                                  ng-change="$ctrl.onRuleChange()">
                         <md-optgroup label="{{group}}" ng-repeat="group in $ctrl.groups">
-                          <md-option ng-value="rule.type" ng-repeat="rule in $ctrl.rules | filter: {category: group}">{{rule.description}}</md-option>
+                          <md-option ng-value="rule.source + '@' + rule.type" ng-repeat="rule in $ctrl.rules | filter: {category: group}">{{rule.description}}</md-option>
                         </md-optgroup>
                       </md-select>
                     </md-input-container>
@@ -104,22 +104,47 @@
                       <div class="ipsum">Field metrics and condition for the rule</div>
                     </div>
 
-                    <div class="gv-form-content" layout="column" ng-switch="$ctrl.alert.type">
-                      <gv-alert-trigger-metrics-simple-condition ng-switch-when="METRICS_SIMPLE_CONDITION"
-                                                          alert="$ctrl.alert"></gv-alert-trigger-metrics-simple-condition>
-                      <gv-alert-trigger-metrics-aggregation ng-switch-when="METRICS_AGGREGATION"
-                                                              alert="$ctrl.alert"></gv-alert-trigger-metrics-aggregation>
-                      <gv-alert-trigger-metrics-frequency ng-switch-when="METRICS_FREQUENCY"
-                                                          alert="$ctrl.alert"></gv-alert-trigger-metrics-frequency>
-                      <gv-alert-trigger-metrics-rate ng-switch-when="METRICS_RATE"
-                                                     alert="$ctrl.alert"></gv-alert-trigger-metrics-rate>
-                      <gv-alert-trigger-api-health-check-status-changed ng-switch-when="API_HC_ENDPOINT_STATUS_CHANGED"
-                                                                        alert="$ctrl.alert"></gv-alert-trigger-api-health-check-status-changed>
-                      <gv-alert-trigger-node-lifecycle-changed ng-switch-when="NODE_LIFECYCLE_CHANGED"
-                                                                        alert="$ctrl.alert"></gv-alert-trigger-node-lifecycle-changed>
-                      <gv-alert-trigger-application-quota ng-switch-when="APPLICATION_QUOTA"
-                                                               alert="$ctrl.alert"></gv-alert-trigger-application-quota>
+                    <div class="gv-form-content" layout="column">
+                      <div style="margin-bottom: 5px" ng-if="$ctrl.alert.type === undefined">
+                        <span style="font-style: italic">Select a rule before setting the condition.</span>
+                        <br/>
+                      </div>
 
+                      <gv-alert-trigger-metrics-simple-condition
+                        ng-if="$ctrl.alert.type === 'REQUEST@METRICS_SIMPLE_CONDITION'"
+                        alert="$ctrl.alert"></gv-alert-trigger-metrics-simple-condition>
+
+                      <gv-alert-trigger-metrics-simple-condition
+                        ng-if="$ctrl.alert.type === 'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION'"
+                        alert="$ctrl.alert"></gv-alert-trigger-metrics-simple-condition>
+
+                      <gv-alert-trigger-metrics-aggregation
+                        ng-if="$ctrl.alert.type === 'REQUEST@METRICS_AGGREGATION'"
+                        alert="$ctrl.alert"></gv-alert-trigger-metrics-aggregation>
+
+                      <gv-alert-trigger-metrics-aggregation
+                        ng-if="$ctrl.alert.type === 'NODE_HEARTBEAT@METRICS_AGGREGATION'"
+                        alert="$ctrl.alert"></gv-alert-trigger-metrics-aggregation>
+
+                      <gv-alert-trigger-metrics-rate
+                        ng-if="$ctrl.alert.type === 'REQUEST@METRICS_RATE'"
+                        alert="$ctrl.alert"></gv-alert-trigger-metrics-rate>
+
+                      <gv-alert-trigger-metrics-rate
+                        ng-if="$ctrl.alert.type === 'NODE_HEARTBEAT@METRICS_RATE'"
+                        alert="$ctrl.alert"></gv-alert-trigger-metrics-rate>
+
+                      <gv-alert-trigger-api-health-check-status-changed
+                        ng-if="$ctrl.alert.type === 'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED'"
+                        alert="$ctrl.alert"></gv-alert-trigger-api-health-check-status-changed>
+
+                      <gv-alert-trigger-node-lifecycle-changed
+                        ng-if="$ctrl.alert.type === 'NODE_LIFECYCLE@NODE_LIFECYCLE_CHANGED'"
+                        alert="$ctrl.alert"></gv-alert-trigger-node-lifecycle-changed>
+
+                      <gv-alert-trigger-application-quota
+                        ng-if="$ctrl.alert.type === 'REQUEST@APPLICATION_QUOTA'"
+                        alert="$ctrl.alert"></gv-alert-trigger-application-quota>
                     </div>
                   </div>
 
@@ -136,6 +161,13 @@
               <gv-alert-trigger-dampening dampening="$ctrl.alert.dampening"></gv-alert-trigger-dampening>
 
               <gv-alert-notifications alert="$ctrl.alert"></gv-alert-notifications>
+            </md-tab-body>
+          </md-tab>
+
+          <md-tab md-on-select="$ctrl.currentTab=$ctrl.selectTab(2)" ng-disabled="!$ctrl.updateMode">
+            <md-tab-label>History</md-tab-label>
+            <md-tab-body>
+              <gv-alert-history alert="$ctrl.alert"></gv-alert-history>
             </md-tab-body>
           </md-tab>
         </md-tabs>

@@ -348,15 +348,15 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     this.openUrl = (page: any) => {
       if ('FOLDER' === page.type || 'SYSTEM_FOLDER' === page.type) {
         if (this.apiId) {
-          return $state.href('management.apis.detail.portal.documentation', {apiId: this.apiId, type: page.type, parent: page.id});
+          return $state.go('management.apis.detail.portal.documentation', {apiId: this.apiId, type: page.type, parent: page.id});
         } else {
-          return $state.href('management.settings.documentation', {parent: page.id});
+          return $state.go('management.settings.documentation', {parent: page.id});
         }
       } else {
         if (this.apiId) {
-          return $state.href('management.apis.detail.portal.editdocumentation', {apiId: this.apiId, type: page.type, pageId: page.id});
+          return $state.go('management.apis.detail.portal.editdocumentation', {apiId: this.apiId, type: page.type, pageId: page.id});
         } else {
-          return $state.href('management.settings.editdocumentation', {pageId: page.id, type: page.type, tab: 'content'});
+          return $state.go('management.settings.editdocumentation', {pageId: page.id, type: page.type, tab: 'content'});
         }
       }
     };

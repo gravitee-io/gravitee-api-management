@@ -43,7 +43,7 @@
 
   <md-card-content ng-if="$ctrl.updateMode">
     <gravitee-empty-state ng-if="!$ctrl.isModificationMode" icon="{{$ctrl.getIconFromType()}}" model="Dashboard"></gravitee-empty-state>
-    <div ng-if="!$ctrl.widget.chart.type" layout="column">
+    <div class="gv-widget-content" ng-if="!$ctrl.widget.chart.type" layout="column">
       <md-input-container>
         <label>Widget type</label>
         <md-select ng-model="$ctrl.widget.chart.type" ng-change="$ctrl.isModificationMode = true" required>
@@ -65,8 +65,8 @@
       <md-progress-circular md-mode="indeterminate" class="md-accent md-hue-1" md-diameter="50"></md-progress-circular>
     </div>
 
-    <div ng-if="!$ctrl.fetchData && $ctrl.results" ng-switch on="$ctrl.widget.chart.type">
-      <gv-widget-data-table ng-switch-when="table" data="$ctrl.results"></gv-widget-data-table>
+    <div style="height: 100%;" ng-if="!$ctrl.fetchData && $ctrl.results" ng-switch on="$ctrl.widget.chart.type">
+      <gv-widget-data-table class="test" ng-switch-when="table" data="$ctrl.results"></gv-widget-data-table>
       <gv-widget-chart-line ng-switch-when="line" data="$ctrl.results"></gv-widget-chart-line>
       <gv-widget-chart-pie ng-switch-when="pie" data="$ctrl.results"></gv-widget-chart-pie>
       <gv-widget-chart-map ng-switch-when="map" data="$ctrl.results"></gv-widget-chart-map>

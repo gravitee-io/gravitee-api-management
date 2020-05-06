@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogAddGroupController($scope, $mdDialog, currentName, currentDefaultApplication, currentDefaultApi,  action) {
-  'ngInject';
-  $scope.name = currentName;
-  $scope.defaultApplication = currentDefaultApplication;
-  $scope.defaultApi = currentDefaultApi;
-  $scope.action = action;
+const AlertTriggerProjectionsComponent: ng.IComponentOptions = {
+  bindings: {
+    alert: '<',
+    condition: '<',
+    metrics: '<'
+  },
+  template: require('./trigger-projections.html'),
+  controller: function () {
+    'ngInject';
 
-  this.hide = function () {
-    $mdDialog.hide();
-  };
-
-  this.save = function () {
-    $mdDialog.hide(
-      {
-        name: $scope.name,
-        defaultApplication: $scope.defaultApplication,
-        defaultApi: $scope.defaultApi
+    this.addProjection = () => {
+      if (this.condition.projections === undefined) {
+        this.condition.projections = [];
       }
-    );
-  };
-}
 
-export default DialogAddGroupController;
+      this.condition.projections.push({'type': 'PROPERTY'});
+    };
+
+    this.removeProjection = (idx: number) => {
+      this.condition.projections.splice(idx, 1);
+    };
+  }
+};
+
+export default AlertTriggerProjectionsComponent;

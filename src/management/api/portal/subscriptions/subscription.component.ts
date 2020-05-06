@@ -239,7 +239,10 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
         controller: 'DialogApiKeyExpirationController',
         controllerAs: 'dialogApiKeyExpirationController',
         template: require('./apikey.expiration.dialog.html'),
-        clickOutsideToClose: true
+        clickOutsideToClose: true,
+        locals: {
+          maxEndDate: this.subscription.ending_at
+        }
       }).then(expirationDate => {
         apiKey.expire_at = expirationDate;
 
@@ -268,6 +271,26 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
         this.subscription.plan = plan;
         this.transferSubscription(this.subscription);
       });
+    }
+
+    changeEndDate() {
+      this.$mdDialog.show({
+        controller: 'DialogSubscriptionChangeEndDateController',
+        controllerAs: '$ctrl',
+        template: require('./subscription.change.end.date.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          subscription: this.subscription
+
+        }
+      }).then(endDate => {
+        this.subscription.ending_at = endDate;
+        this.ApiService.updateSubscription(this.api.id, this.subscription).then(() => {
+          this.NotificationService.show('The end date has been modified.');
+          this.listApiKeys();
+        });
+      });
+
     }
 
     isValid(key) {

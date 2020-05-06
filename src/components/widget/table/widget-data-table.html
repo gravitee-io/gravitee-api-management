@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<md-table-container>
+<md-table-container style="height: 100%;" class="gravitee-widget-table">
   <table md-table class="gravitee-analytics-top-hits-table gv-table-dense" multiple md-row-select="$ctrl.widget.chart.selectable" data-ng-model="$ctrl.selected">
     <thead md-head>
       <tr md-row style="height: 30px;">
@@ -25,13 +25,17 @@
     </thead>
     <tbody md-body>
       <tr ng-if="$ctrl.results.length > 0" md-row
-          ng-repeat="result in $ctrl.results | limitTo: $ctrl.widget.chart.paging: ($ctrl.paging - 1) * $ctrl.widget.chart.paging"
+          ng-repeat="result in $ctrl.results | limitTo: $ctrl.widget.chart.paging: ($ctrl.paging - 1) * $ctrl.widget.chart.paging | orderBy:'metadata.order'"
           md-select="result" md-select-id="key" style="height: 25px;"
           md-on-select="$ctrl.selectItem" md-on-deselect="$ctrl.deselectItem">
         <td md-cell>
-          <a ng-if="!result.metadata.deleted" ng-click="$ctrl.goto(result.key)">
+          <a ng-if="!result.metadata.deleted && !result.metadata.unknown && $ctrl.isClickable(result)" ng-click="$ctrl.goto(result.key)">
             {{result.metadata.name}} <small ng-if="result.metadata.version">({{result.metadata.version}})</small>
           </a>
+
+          <span ng-if="!result.metadata.deleted && !$ctrl.isClickable(result)" >
+            {{result.metadata.name}} <small ng-if="result.metadata.version">({{result.metadata.version}})</small>
+          </span>
 
           <span ng-if="result.metadata.deleted" style="color: grey;">
             {{result.metadata.name}}

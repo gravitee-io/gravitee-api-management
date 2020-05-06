@@ -18,6 +18,7 @@ import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { PagedResult } from '../../../../entities/pagedResult';
 import { StateService } from '@uirouter/core';
+import {IScope} from 'angular';
 import * as moment from 'moment';
 
 let defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
@@ -61,6 +62,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       private NotificationService: NotificationService,
       private $mdDialog: angular.material.IDialogService,
       private $state: StateService,
+      public $rootScope: IScope,
       private $timeout: ng.ITimeoutService
     ) {
       'ngInject';

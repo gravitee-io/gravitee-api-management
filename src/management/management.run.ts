@@ -22,7 +22,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
   'ngInject';
 
   $transitions.onStart({ to: (state) => state.name !== 'login' && state.name !== 'registration'
-      && state.name !== 'confirm' && state.name !== 'confirmProfile'}, (trans) => {
+      && state.name !== 'confirm' && state.name !== 'confirmProfile' && state.name !== 'resetPassword'}, (trans) => {
     let forceLogin = Constants.authentication.forceLogin.enabled;
 
     if (forceLogin && !UserService.isAuthenticated()) {
