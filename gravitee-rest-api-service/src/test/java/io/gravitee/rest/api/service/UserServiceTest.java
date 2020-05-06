@@ -179,14 +179,23 @@ public class UserServiceTest {
         when(user.getCreatedAt()).thenReturn(date);
         when(user.getUpdatedAt()).thenReturn(date);
         when(userRepository.create(any(User.class))).thenReturn(user);
-        RoleEntity role = mock(RoleEntity.class);
-        when(role.getScope()).thenReturn(RoleScope.ENVIRONMENT);
-        when(role.getName()).thenReturn("USER");
+        RoleEntity roleEnv = mock(RoleEntity.class);
+        when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleEnv.getName()).thenReturn("USER");
+        when(membershipService.getRoles(
+                MembershipReferenceType.ENVIRONMENT,
+                "DEFAULT",
+                MembershipMemberType.USER,
+                user.getId())).thenReturn(new HashSet<>(Arrays.asList(roleEnv)));
+        RoleEntity roleOrg = mock(RoleEntity.class);
+        when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
+        when(roleOrg.getName()).thenReturn("USER");
         when(membershipService.getRoles(
                 MembershipReferenceType.ORGANIZATION,
                 "DEFAULT",
                 MembershipMemberType.USER,
-                user.getId())).thenReturn(new HashSet<>(Arrays.asList(role)));
+                user.getId())).thenReturn(new HashSet<>(Arrays.asList(roleOrg)));
+        
         when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
 
         final UserEntity createdUserEntity = userService.create(newUser, false);
@@ -615,7 +624,7 @@ public class UserServiceTest {
 
         mockDefaultEnvironment();
         
-        when(roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION)).thenReturn(Arrays.asList(mockRoleEntity(RoleScope.ORGANIZATION,"USER")));
+        when(roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(Arrays.asList(mockRoleEntity(RoleScope.ORGANIZATION,"USER"), mockRoleEntity(RoleScope.ENVIRONMENT,"USER")));
 
         User createdUser = mockUser();
         when(userRepository.create(any(User.class))).thenReturn(createdUser);
@@ -638,16 +647,13 @@ public class UserServiceTest {
         when(identityProvider.getId()).thenReturn("oauth2");
         when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(Optional.empty());
 
-        RoleEntity roleOrganizationUser = mockRoleEntity(RoleScope.ORGANIZATION,"USER");
-
-        when(roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION)).thenReturn(Arrays.asList(roleOrganizationUser));
-
+        when(roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(Arrays.asList(mockRoleEntity(RoleScope.ORGANIZATION,"USER"), mockRoleEntity(RoleScope.ENVIRONMENT,"USER")));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body_no_matching.json"), Charset.defaultCharset());
         userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
 
         //verify group creations
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(2)).addRoleToMemberOnReference(
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class));
@@ -674,13 +680,14 @@ public class UserServiceTest {
         // mock role search
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION,"ADMIN");
         RoleEntity roleOrganizationUser = mockRoleEntity(RoleScope.ORGANIZATION,"USER");
+        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT,"ADMIN");
         RoleEntity roleApiUser = mockRoleEntity(RoleScope.API,"USER");
         RoleEntity roleApplicationAdmin = mockRoleEntity(RoleScope.APPLICATION,"ADMIN");
 
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN")).thenReturn(Optional.of(roleOrganizationAdmin));
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER")).thenReturn(Optional.of(roleOrganizationUser));
         when(roleService.findDefaultRoleByScopes(RoleScope.API,RoleScope.APPLICATION)).thenReturn(Arrays.asList(roleApiUser,roleApplicationAdmin));
-        when(roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION)).thenReturn(Arrays.asList(roleOrganizationAdmin));
+        when(roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
 
         when(membershipService.addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
@@ -784,16 +791,14 @@ public class UserServiceTest {
         when(identityProvider.getId()).thenReturn("oauth2");
         when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(Optional.empty());
 
-        RoleEntity roleOrganizationUser = mockRoleEntity(RoleScope.ORGANIZATION,"USER");
-
-        when(roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION)).thenReturn(Arrays.asList(roleOrganizationUser));
+        when(roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(Arrays.asList(mockRoleEntity(RoleScope.ORGANIZATION,"USER"), mockRoleEntity(RoleScope.ENVIRONMENT,"USER")));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
         userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
 
 
         //verify group creations
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(2)).addRoleToMemberOnReference(
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class));

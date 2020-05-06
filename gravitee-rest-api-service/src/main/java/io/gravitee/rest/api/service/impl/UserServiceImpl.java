@@ -461,7 +461,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     private void addDefaultMembership(User user) {
-        RoleScope[] scopes = {RoleScope.ORGANIZATION};
+        RoleScope[] scopes = {RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT};
         List<RoleEntity> defaultRoleByScopes = roleService.findDefaultRoleByScopes(scopes);
         if (defaultRoleByScopes == null || defaultRoleByScopes.isEmpty()) {
             throw new DefaultRoleNotFoundException(scopes);
@@ -474,6 +474,12 @@ public class UserServiceImpl extends AbstractService implements UserService {
                             new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization()),
                             new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                             new MembershipService.MembershipRole(RoleScope.ORGANIZATION, defaultRoleByScope.getName()));
+                    break;
+                case ENVIRONMENT:
+                    membershipService.addRoleToMemberOnReference(
+                            new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment()),
+                            new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, defaultRoleByScope.getName()));
                     break;
                 default:
                     break;
