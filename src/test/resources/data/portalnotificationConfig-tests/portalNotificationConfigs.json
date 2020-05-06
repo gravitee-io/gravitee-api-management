@@ -54,5 +54,21 @@
     "hooks": ["A", "C"],
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883
+  },
+  {
+    "user": "apiToDelete-1",
+    "referenceType": "API",
+    "referenceId": "apiToDelete",
+    "hooks": ["D"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "user": "apiToDelete-2",
+    "referenceType": "API",
+    "referenceId": "apiToDelete",
+    "hooks": ["D"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
   }
 ]

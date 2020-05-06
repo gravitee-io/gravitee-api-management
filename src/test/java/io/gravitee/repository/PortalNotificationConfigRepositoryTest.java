@@ -163,4 +163,15 @@ public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTe
 
         assertFalse(portalNotificationConfigRepository.findById("useridToDelete", NotificationReferenceType.API, "config").isPresent());
     }
+
+    @Test
+    public void shouldDeleteReference() throws Exception {
+        assertTrue("should exists before delete {apiToDelete-1}", portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete").isPresent());
+        assertTrue("should exists before delete {apiToDelete-2}", portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete").isPresent());
+
+        portalNotificationConfigRepository.deleteReference(NotificationReferenceType.API, "apiToDelete");
+
+        assertFalse("should be deleted {apiToDelete-1}", portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete").isPresent());
+        assertFalse("should be deleted {apiToDelete-2}", portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete").isPresent());
+    }
 }

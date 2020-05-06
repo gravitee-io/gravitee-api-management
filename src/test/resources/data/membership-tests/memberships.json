@@ -5,6 +5,7 @@
     "memberType" : "USER",
     "referenceId" : "api1",
     "referenceType" : "API",
+    "source": "myIdp",
     "roleId" : "API_OWNER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
@@ -66,6 +67,26 @@
     "referenceId" : "api2_findByIds",
     "referenceType" : "API",
     "roleId" : "API_OWNER",
+    "createdAt" : "1439022010883",
+    "updatedAt" : "1439022010883"
+  },
+  {
+    "id": "api2_user_deleteRef_1",
+    "memberId" : "user_deleteRef_1",
+    "memberType" : "USER",
+    "referenceId" : "api_deleteRef",
+    "referenceType" : "API",
+    "roleId" : "OWNER",
+    "createdAt" : "1439022010883",
+    "updatedAt" : "1439022010883"
+  },
+  {
+    "id": "api2_user_deleteRef_2",
+    "memberId" : "user_deleteRef_2",
+    "memberType" : "USER",
+    "referenceId" : "api_deleteRef",
+    "referenceType" : "API",
+    "roleId": "OWNER",
     "createdAt" : "1439022010883",
     "updatedAt" : "1439022010883"
   }

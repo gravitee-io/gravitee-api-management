@@ -40,6 +40,8 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
     @Override
     void prepare(ViewRepository viewRepository) throws Exception {
         final View newView = mock(View.class);
+        when(newView.getId()).thenReturn("fd19297e-01a3-4828-9929-7e01a3782809");
+        when(newView.getKey()).thenReturn("new-view");
         when(newView.getName()).thenReturn("View name");
         when(newView.getEnvironmentId()).thenReturn("DEFAULT");
         when(newView.getDescription()).thenReturn("Description for the new view");
@@ -49,7 +51,6 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
         when(newView.getOrder()).thenReturn(1);
         when(newView.isDefaultView()).thenReturn(true);
         when(newView.getPicture()).thenReturn("New picture");
-
 
         final View viewProducts = new View();
         viewProducts.setId("view");
@@ -73,18 +74,29 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
         when(viewProductsUpdated.getHighlightApi()).thenReturn("new Highlighted API");
         when(viewProductsUpdated.getPicture()).thenReturn("New picture");
 
-        final Set<View> views = newSet(newView, viewProducts, mock(View.class));
-        final Set<View> viewsAfterDelete = newSet(newView, viewProducts);
-        final Set<View> viewsAfterAdd = newSet(newView, viewProducts, mock(View.class), mock(View.class));
+        final View myView = new View();
+        myView.setId("123");
+        myView.setKey("my-view");
+        myView.setName("My view");
+        myView.setCreatedAt(new Date(1000000000000L));
+        myView.setUpdatedAt(new Date(1111111111111L));
+        myView.setHidden(false);
+        myView.setOrder(3);
+        myView.setDefaultView(false);
+
+        final Set<View> views = newSet(newView, viewProducts, mock(View.class), myView);
+        final Set<View> viewsAfterDelete = newSet(newView, viewProducts, myView);
+        final Set<View> viewsAfterAdd = newSet(newView, viewProducts, mock(View.class), mock(View.class), myView);
 
         when(viewRepository.findAll()).thenReturn(views, viewsAfterAdd, views, viewsAfterDelete, views);
         when(viewRepository.findAllByEnvironment("DEFAULT")).thenReturn(views);
 
         when(viewRepository.create(any(View.class))).thenReturn(newView);
 
-        when(viewRepository.findById("new-view")).thenReturn(of(newView));
+        when(viewRepository.findById("fd19297e-01a3-4828-9929-7e01a3782809")).thenReturn(of(newView));
         when(viewRepository.findById("unknown")).thenReturn(empty());
         when(viewRepository.findById("products")).thenReturn(of(viewProducts), of(viewProductsUpdated));
+        when(viewRepository.findByKey("my-view", "DEFAULT")).thenReturn(of(myView));
 
         when(viewRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }

@@ -55,6 +55,7 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
         when(newIdentityProvider.getUpdatedAt()).thenReturn(new Date(1439032010883L));
         when(newIdentityProvider.getType()).thenReturn(IdentityProviderType.GITHUB);
         when(newIdentityProvider.getEmailRequired()).thenReturn(true);
+        when(newIdentityProvider.getSyncMappings()).thenReturn(true);
 
         final IdentityProvider identityProvider1 = new IdentityProvider();
         identityProvider1.setId("github");
@@ -77,6 +78,7 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
         when(identityProviderUpdated.getType()).thenReturn(IdentityProviderType.GOOGLE);
         when(identityProviderUpdated.isEnabled()).thenReturn(true);
         when(identityProviderUpdated.getEmailRequired()).thenReturn(true);
+        when(identityProviderUpdated.getSyncMappings()).thenReturn(true);
 
         final IdentityProvider identityProvider3 = createMock();
 

@@ -130,6 +130,8 @@ public abstract class AbstractRepositoryTest {
     @Inject
     protected DashboardRepository dashboardRepository;
     @Inject
+    protected AlertEventRepository alertEventRepository;
+    @Inject
     protected EnvironmentRepository environmentRepository;
     @Inject
     protected OrganizationRepository organizationRepository;
@@ -265,6 +267,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Dashboard) {
             dashboardRepository.create((Dashboard) object);
+        }
+        else if( object instanceof AlertEvent) {
+            alertEventRepository.create((AlertEvent) object);
         }
         else if (object instanceof Environment) {
             environmentRepository.create((Environment) object);

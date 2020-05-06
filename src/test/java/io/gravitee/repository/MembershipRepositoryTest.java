@@ -23,6 +23,7 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.management.model.MembershipReferenceType.API;
 import static org.junit.Assert.*;
 
 /**
@@ -39,6 +40,13 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
     public void shouldFindById() throws TechnicalException {
         Optional<Membership> membership = membershipRepository.findById("api1_user1");
         assertTrue("There is a membership", membership.isPresent());
+        assertTrue( membership.get().getRoleId().equals("API_OWNER"));
+        assertEquals("api1", membership.get().getReferenceId());
+        assertEquals("user1", membership.get().getMemberId());
+        assertEquals(API, membership.get().getReferenceType());
+        assertEquals("myIdp", membership.get().getSource());
+        assertEquals(new Date(1439022010883L), membership.get().getUpdatedAt());
+        assertEquals(new Date(1439022010883L), membership.get().getCreatedAt());
         assertEquals("API_OWNER", membership.get().getRoleId());
     }
 
@@ -214,5 +222,23 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         membershipRepository.update(null);
         fail("A null membership should not be updated");
+    }
+
+    @Test
+    public void shouldDeleteMembers() throws TechnicalException {
+
+        int m1 = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId("user_deleteRef_1", MembershipMemberType.USER,  API, "api_deleteRef").size();
+        int m2 = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId("user_deleteRef_2", MembershipMemberType.USER, API, "api_deleteRef").size();
+
+        assertEquals("m1 exists", 1, m1);
+        assertEquals("m2 exists", 1, m2);
+
+        membershipRepository.deleteMembers(API, "api_deleteRef");
+
+        m1 = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId("user_deleteRef_1", MembershipMemberType.USER,  API, "api_deleteRef").size();
+        m2 = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId("user_deleteRef_2", MembershipMemberType.USER, API, "api_deleteRef").size();
+
+        assertEquals("m1 doesn't exist", 0, m1);
+        assertEquals("m2 doesn't exist", 0, m2);
     }
 }

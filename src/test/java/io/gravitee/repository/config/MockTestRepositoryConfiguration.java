@@ -204,6 +204,11 @@ public class MockTestRepositoryConfiguration {
     }
 
     @Bean
+    public AlertEventRepositoryMock alertEventRepositoryMock() {
+        return new AlertEventRepositoryMock();
+    }
+
+    @Bean
     public EnvironmentRepositoryMock environmentRepository() throws Exception {
         return new EnvironmentRepositoryMock();
     }

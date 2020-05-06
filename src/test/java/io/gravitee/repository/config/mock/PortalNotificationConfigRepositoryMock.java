@@ -97,5 +97,11 @@ public class PortalNotificationConfigRepositoryMock extends AbstractRepositoryMo
                 "D",
                 NotificationReferenceType.APPLICATION,
                 "search")).thenReturn(emptyList());
+
+        // shouldDeleteReference
+        when(portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete"))
+                .thenReturn(of(mock(PortalNotificationConfig.class)), empty());
+        when(portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete"))
+                .thenReturn(of(mock(PortalNotificationConfig.class)), empty());
     }
 }

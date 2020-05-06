@@ -1,0 +1,35 @@
+[
+   {
+      "id": "an-alert-event",
+      "alert": "alert-parent-id",
+      "message": "Message of the alert",
+      "createdAt": 1439022010883
+   },
+   {
+      "id": "an-alert-to-update",
+      "alert": "alert-parent-id",
+      "message": "Message of the alert to update",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id": "latest-alert",
+      "alert": "alert-parent-id2",
+      "message": "Message of the latest alert",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id": "an-alert-event-to-delete1",
+      "alert": "alert-id-to-delete",
+      "message": "Message of the alert",
+      "createdAt": 1439022010883
+   },
+   {
+      "id": "an-alert-event-to-delete2",
+      "alert": "alert-id-to-delete",
+      "message": "Message of the alert to update",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }
+]

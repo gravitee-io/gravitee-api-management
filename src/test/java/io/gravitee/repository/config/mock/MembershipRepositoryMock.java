@@ -23,9 +23,9 @@ import io.gravitee.repository.management.model.MembershipReferenceType;
 import java.util.Date;
 import java.util.HashSet;
 
+import static io.gravitee.repository.management.model.MembershipReferenceType.API;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
@@ -51,6 +51,9 @@ public class MembershipRepositoryMock extends AbstractRepositoryMock<MembershipR
         when(m1.getReferenceType()).thenReturn(MembershipReferenceType.API);
         when(m1.getRoleId()).thenReturn(API_OWNER_ROLE);
         when(m1.getReferenceId()).thenReturn("api1");
+        when(m1.getCreatedAt()).thenReturn(new Date(1439022010883L));
+        when(m1.getUpdatedAt()).thenReturn(new Date(1439022010883L));
+        when(m1.getSource()).thenReturn("myIdp");
         Membership m2 = new Membership("api2_user2", "user2", MembershipMemberType.USER, "api2", MembershipReferenceType.API, API_OWNER_ROLE);
         m2.setId("api2_user2");
         Membership m3 = new Membership("api3_user3", "user3", MembershipMemberType.USER, "api3", MembershipReferenceType.API, "API_USER");
@@ -94,5 +97,8 @@ public class MembershipRepositoryMock extends AbstractRepositoryMock<MembershipR
         when(membershipRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(membershipRepository.findByRoleId("APPLICATION_USER")).thenReturn(new HashSet<>(asList(mock(Membership.class), mock(Membership.class))));
+
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId("user_deleteRef_1", MembershipMemberType.USER,  API, "api_deleteRef")).thenReturn(singleton(mock(Membership.class)), emptySet());
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId("user_deleteRef_2", MembershipMemberType.USER, API, "api_deleteRef")).thenReturn(singleton(mock(Membership.class)), emptySet());
     }
 }

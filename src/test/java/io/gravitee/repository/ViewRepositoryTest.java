@@ -36,11 +36,18 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindByKey() throws Exception {
+        final Optional<View> optionalView = viewRepository.findByKey("my-view", "DEFAULT");
+        assertTrue(optionalView.isPresent());
+        assertEquals("123", optionalView.get().getId());
+    }
+
+    @Test
     public void shouldFindAll() throws Exception {
         final Set<View> views = viewRepository.findAll();
 
         assertNotNull(views);
-        assertEquals(3, views.size());
+        assertEquals(4, views.size());
     }
     
     @Test
@@ -48,13 +55,14 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         final Set<View> views = viewRepository.findAllByEnvironment("DEFAULT");
 
         assertNotNull(views);
-        assertEquals(3, views.size());
+        assertEquals(4, views.size());
     }
     
     @Test
     public void shouldCreate() throws Exception {
         final View view = new View();
-        view.setId("new-view");
+        view.setId("fd19297e-01a3-4828-9929-7e01a3782809");
+        view.setKey("new-view");
         view.setEnvironmentId("DEFAULT");
         view.setName("View name");
         view.setDescription("Description for the new view");
@@ -71,10 +79,12 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
 
         Assert.assertEquals(nbViewsBeforeCreation + 1, nbViewsAfterCreation);
 
-        Optional<View> optional = viewRepository.findById("new-view");
+        Optional<View> optional = viewRepository.findById("fd19297e-01a3-4828-9929-7e01a3782809");
         Assert.assertTrue("View saved not found", optional.isPresent());
 
         final View viewSaved = optional.get();
+        Assert.assertEquals("Invalid saved view id.", view.getId(), viewSaved.getId());
+        Assert.assertEquals("Invalid saved view key.", view.getKey(), viewSaved.getKey());
         Assert.assertEquals("Invalid saved environment id.",  view.getEnvironmentId(), viewSaved.getEnvironmentId());
         Assert.assertEquals("Invalid saved view name.", view.getName(), viewSaved.getName());
         Assert.assertEquals("Invalid view description.", view.getDescription(), viewSaved.getDescription());
