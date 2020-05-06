@@ -238,7 +238,7 @@
 }
 
 .tui-editor-contents h1 {
-      margin-top: 14px;
+      margin-top: 14px !important;
       padding-bottom: 30px;
       border-bottom: 1px solid #dbdbdb;
 }
@@ -247,22 +247,15 @@
 .tui-editor-contents h2,
 .tui-editor-contents h3,
 .tui-editor-contents h5 {
+    display: block !important;
     font-weight: bold;
     font: 200 36px 'Raleway',Helvetica,sans-serif;
 }
 
-/*.tui-editor-contents h1 {
-    font-size: 1.6rem;
-    line-height: 28px;
-    border-bottom: 3px double #999;
-    margin: 52px 0 15px 0;
-    padding-bottom: 7px;
-    color: #000;
-}*/
 .tui-editor-contents h1 {
-  font-size: 3 rem;
+  font-size: 3rem !important;
   line-height: 1.2;
-  margin-bottom: 2rem;
+  margin-bottom: 2rem !important;
   color: #3572b0;
   font-weight: 500;
 }

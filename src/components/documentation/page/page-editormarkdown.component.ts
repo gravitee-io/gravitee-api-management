@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import 'tui-editor/dist/tui-editor-extScrollSync';
-import 'tui-editor/dist/tui-editor-extTable';
 import angular = require('angular');
 import { StateService, any } from '@uirouter/core';
 
-import * as TuiEditor from 'tui-editor';
+import * as Editor from '@toast-ui/editor';
 
 class ComponentCtrl implements ng.IComponentController {
 
@@ -76,7 +74,7 @@ class ComponentCtrl implements ng.IComponentController {
     if (this.tuiEditor) {
       this.tuiEditor.remove();
     }
-    this.tuiEditor = new TuiEditor(Object.assign({
+    this.tuiEditor = new Editor(Object.assign({
       el: document.querySelector('#editSection'),
       initialEditType: 'markdown',
       previewStyle: 'vertical',

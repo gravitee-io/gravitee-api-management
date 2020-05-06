@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Viewer from 'tui-editor/dist/tui-editor-Viewer';
+import * as Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
 import * as _ from 'lodash';
 import * as remark from 'remark';
 
