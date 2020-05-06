@@ -73,7 +73,7 @@ md-sidenav, .sidenav-list md-list-item.subheader::before, md-list-item::before, 
 }
 
 .sidenav-list hr {
-  border-top: rgb(45, 50, 62);
+  border-top: #28444F;
 }
 
 md-sidenav.md-sidenav-theme {
@@ -117,7 +117,7 @@ md-sidenav:not(._md-locked-open) {
 .sidenav-list {
   overflow-y: auto;
   overflow-x: hidden;
-  
+
   height: calc(100vh - #{$sidenavHeaderHeight});
   padding: 0;
 
@@ -151,7 +151,7 @@ md-sidenav:not(._md-locked-open) {
 
   h4 {
     text-transform: uppercase;
-    color: #6B7682;
+    color: #fdfdfd;
     font-weight: 400;
     letter-spacing: .5px;
     padding: 15px $sidenavItemLeftWidth/2 8px;
@@ -195,11 +195,11 @@ md-sidenav:not(._md-locked-open) {
     height: 18px !important;
     min-height: 18px !important;
     line-height: 18px !important;
-    background-color: #006CAB;
+    background-color: $bgColor;
   }
 
   .md-button.sidenav-toggle:hover, .md-button.sidenav-toggle:focus {
-    background-color: #006CAB;
+    background-color: $bgColor;
   }
 
   ng-md-icon.sidenav-toggle-icon {

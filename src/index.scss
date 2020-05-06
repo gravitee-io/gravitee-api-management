@@ -1,5 +1,4 @@
-//                   #2D323E
-$backgroundColor: rgb(45, 50, 62);
+$backgroundColor: #fdfdfd;
 
 @import '~angular-gridster/dist/angular-gridster.css';
 @import '~angular-loading-bar/build/loading-bar.css';
@@ -381,7 +380,6 @@ md-list-item::before {
     height: auto;
   }
   &.default {
-    background: url('assets/GRAVITEE_LOGOsstxtclair-05.png') no-repeat center center;
     background-size: auto 100%;
   }
 }
@@ -608,14 +606,6 @@ table {
   fill: rgba(0, 0, 0, 0.54);
 }
 
-ng-md-icon {
-  fill: rgba(0, 0, 0, 0.54);
-}
-.md-fab {
-  ng-md-icon {
-    fill: #fff;
-  }
-}
 md-progress-circular {
   display: inline-block;
   position: absolute;

@@ -1,7 +1,7 @@
 {
   "portal": {
     "navbar": {
-      "background-color": "#2d323e",
+      "background-color": "#28444F",
       "color": "#fff",
       "help": {
         "fill": "#fff"
@@ -17,8 +17,8 @@
           }
         },
         "notification": {
-          "background-image": "linear-gradient(#54a3ff, #006eed)",
-          "border": "2px solid #2d323e"
+          "background-image": "linear-gradient(#28444F, #1D1D1B)",
+          "border": "1px solid #617b81"
         }
       }
     },

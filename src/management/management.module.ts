@@ -589,9 +589,29 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .config(interceptorConfig)
   .config(delegatorConfig)
   .config(function ($mdThemingProvider: angular.material.IThemingProvider) {
+
+    $mdThemingProvider.definePalette('gravitee', {
+      '0': '28444F',
+      '50': '28444F',
+      '100': '28444F',
+      '200': '28444F',
+      '300': '28444F',
+      '400': '28444F',
+      '500': '28444F',
+      '600': '28444F',
+      '700': '28444F',
+      '800': '28444F',
+      '900': '28444F',
+      A100: '28444F',
+      A200: '28444F',
+      A400: '28444F',
+      A700: '28444F',
+      'contrastDefaultColor': 'light',
+    });
+
     $mdThemingProvider.theme('default')
-      .primaryPalette('blue')
-      .accentPalette('blue');
+      .primaryPalette('gravitee')
+      .accentPalette('gravitee');
 
     $mdThemingProvider.theme('sidenav')
       .backgroundPalette('grey', {

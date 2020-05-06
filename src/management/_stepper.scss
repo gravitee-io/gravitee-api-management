@@ -197,11 +197,15 @@ md-radio-button.import-file-from-url {
 
   &.info {
     i {
-      color: #106cc8;
+      color: #28444F;
     }
   }
 }
 
 md-pagination-wrapper {
   transform: none !important;
+}
+
+.md-step.md-active md-step-label-wrapper:before, .md-step.md-success md-step-label-wrapper:before {
+  background: #28444F;
 }
