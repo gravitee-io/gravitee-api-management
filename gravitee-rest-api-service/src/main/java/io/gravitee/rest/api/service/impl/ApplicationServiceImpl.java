@@ -569,8 +569,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             applicationRepository.update(application);
             // remove notifications
             genericNotificationConfigService.deleteReference(NotificationReferenceType.APPLICATION, applicationId);
-            // remove memberships
-            membershipRepository.deleteMembers(io.gravitee.repository.management.model.MembershipReferenceType.APPLICATION, applicationId);
             // Audit
             auditService.createApplicationAuditLog(
                     application.getId(),
