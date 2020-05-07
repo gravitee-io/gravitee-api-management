@@ -19,7 +19,8 @@ import { PortalService, Page } from '@gravitee/ng-portal-webclient';
 
 @Component({
   selector: 'app-single-page',
-  templateUrl: './single-page.component.html'
+  templateUrl: './single-page.component.html',
+  styleUrls: ['./single-page.component.css'],
 })
 export class SinglePageComponent implements OnInit {
 

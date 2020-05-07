@@ -13,32 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-.markdown {
-  overflow: auto;
-  width: calc(100% - 84px);
-}
-
-.page__content-with-aside.markdown {
-  padding: 0 42px;
-}
-
-.markdown-content {
-  border: none;
-  padding: 0;
-}
-
-.page__content-with-aside .markdown-content {
-  padding: 2rem 4rem;
-}
-
-.markdown.with-toc {
-  width: calc(100% - 364px);
-}
-
-.aside {
-  position: fixed;
-  right: 42px;
-  z-index: 100;
-  height: calc(100vh - 125px - 42px);
+.page__content {
+  padding: var(--gv-theme-page--pt) 50px var(--gv-theme-page--pb) 50px;
 }
