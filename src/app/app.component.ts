@@ -301,7 +301,13 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   get userName() {
     if (this.currentUser) {
-      return this.currentUser.display_name;
+      if (this.currentUser.first_name && this.currentUser.last_name) {
+        const capitalizedFirstName = this.currentUser.first_name[0].toUpperCase() + this.currentUser.first_name.slice(1);
+        const shortLastName = this.currentUser.last_name[0].toUpperCase();
+        return `${capitalizedFirstName} ${shortLastName}.`;
+      } else {
+        return this.currentUser.display_name;
+      }
     }
     return null;
   }
