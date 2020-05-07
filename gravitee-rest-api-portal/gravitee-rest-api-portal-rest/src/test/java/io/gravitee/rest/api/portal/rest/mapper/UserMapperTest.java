@@ -90,7 +90,7 @@ public class UserMapperTest {
         assertEquals(USER_EMAIL, responseUser.getEmail());
         assertEquals(USER_FIRSTNAME, responseUser.getFirstName());
         assertEquals(USER_LASTNAME, responseUser.getLastName());
-        assertEquals(StringUtils.capitalize(USER_FIRSTNAME) + ' ' + USER_LASTNAME.toUpperCase().charAt(0) + '.', responseUser.getDisplayName());
+        assertEquals(USER_FIRSTNAME + ' ' + USER_LASTNAME, responseUser.getDisplayName());
     }
 
     @Test
