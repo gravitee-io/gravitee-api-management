@@ -50,13 +50,15 @@ public class PayloadInputBodyReader implements MessageBodyReader<PayloadInput> {
             throws IOException, WebApplicationException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             final String line = br.readLine();
-            final List<NameValuePair> params = URLEncodedUtils.parse(line, Charset.defaultCharset());
             final PayloadInput payloadInput = new PayloadInput();
-            payloadInput.setGrantType(getParam(params, "grant_type"));
-            payloadInput.setCode(getParam(params, "code"));
-            payloadInput.setRedirectUri(getParam(params, "redirect_uri"));
-            payloadInput.setCodeVerifier(getParam(params, "code_verifier"));
-            payloadInput.setClientId(getParam(params, "client_id"));
+            if (line != null) {
+                final List<NameValuePair> params = URLEncodedUtils.parse(line, Charset.defaultCharset());
+                payloadInput.setGrantType(getParam(params, "grant_type"));
+                payloadInput.setCode(getParam(params, "code"));
+                payloadInput.setRedirectUri(getParam(params, "redirect_uri"));
+                payloadInput.setCodeVerifier(getParam(params, "code_verifier"));
+                payloadInput.setClientId(getParam(params, "client_id"));
+            }
             return payloadInput;
         }
     }
