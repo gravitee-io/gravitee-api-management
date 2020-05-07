@@ -111,6 +111,16 @@ export const NavbarComponent: ng.IComponentOptions = {
       vm.portalURL = Constants.portal.url;
     };
 
+    vm.userShortName = function() {
+      if (vm.graviteeUser.firstname && vm.graviteeUser.lastname) {
+        const capitalizedFirstName = vm.graviteeUser.firstname[0].toUpperCase() + vm.graviteeUser.firstname.slice(1);
+        const shotLastName = vm.graviteeUser.lastname[0].toUpperCase();
+        return `${capitalizedFirstName} ${shotLastName}.`;
+      } else {
+        return vm.graviteeUser.displayName;
+      }
+    };
+
     vm.isUserManagement = function () {
       return vm.graviteeUser.isAdmin();
     };

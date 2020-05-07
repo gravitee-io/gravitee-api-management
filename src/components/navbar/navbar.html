@@ -34,7 +34,7 @@
       <gravitee-identity-picture ng-if="$ctrl.hasAlert()"
         image-id="'navbar'"
         image-url="$ctrl.getUserPicture()"
-        image-name="$ctrl.graviteeUser.displayNameForPicture"
+        image-name="$ctrl.graviteeUser.displayName"
         image-width="42"
         image-border-radius="true"
         image-theme="'portal.navbar.user.img.alert'"
@@ -42,7 +42,7 @@
       <gravitee-identity-picture ng-if="!$ctrl.hasAlert()"
         image-id="'navbar'"
         image-url="$ctrl.getUserPicture()"
-        image-name="$ctrl.graviteeUser.displayNameForPicture"
+        image-name="$ctrl.graviteeUser.displayName"
         image-width="42"
         image-border-radius="true"
         image-theme="'portal.navbar.user.img'"
@@ -57,13 +57,13 @@
             <gravitee-identity-picture 
               image-id="'menu'"
               image-url="$ctrl.getUserPicture()"
-              image-name="$ctrl.graviteeUser.displayNameForPicture"
+              image-name="$ctrl.graviteeUser.displayName"
               image-width="42"
               image-border-radius="true"
             ></gravitee-identity-picture>
           </div>
           <div layout="column" layout-align="start start">
-            <h5>{{$ctrl.graviteeUser.displayName}}</h5>
+            <h5>{{$ctrl.userShortName()}}</h5>
             <small>{{$ctrl.graviteeUser.email}}</small>
           </div>
         </div>
