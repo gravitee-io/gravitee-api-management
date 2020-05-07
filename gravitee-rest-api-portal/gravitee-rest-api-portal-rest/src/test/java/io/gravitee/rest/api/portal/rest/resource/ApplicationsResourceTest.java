@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.Error;
@@ -29,10 +30,8 @@ import org.mockito.Mockito;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,15 +57,17 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         
         ApplicationListItem applicationListItem1 = new ApplicationListItem();
         applicationListItem1.setId("A");
+        applicationListItem1.setName("A");
 
         ApplicationListItem applicationListItem2 = new ApplicationListItem();
         applicationListItem2.setId("B");
+        applicationListItem2.setName("B");
 
         Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2));
         doReturn(mockApplications).when(applicationService).findByUser(any());
 
-        doReturn(new Application().id("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
-        doReturn(new Application().id("B")).when(applicationMapper).convert(eq(applicationListItem2), any());
+        doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
+        doReturn(new Application().id("B").name("B")).when(applicationMapper).convert(eq(applicationListItem2), any());
 
 
         ApplicationEntity createdEntity = new ApplicationEntity();
@@ -99,6 +100,32 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertNotNull(links);
     }
 
+    @Test
+    public void shouldGetApplicationsOrderByNbSubscriptionsDesc() {
+        SubscriptionEntity subA1 = new SubscriptionEntity();
+        subA1.setApplication("A");
+        SubscriptionEntity subA2 = new SubscriptionEntity();
+        subA2.setApplication("A");
+        SubscriptionEntity subB1 = new SubscriptionEntity();
+        subB1.setApplication("B");
+        SubscriptionEntity subB2 = new SubscriptionEntity();
+        subB2.setApplication("B");
+        SubscriptionEntity subB3 = new SubscriptionEntity();
+        subB3.setApplication("B");
+        doReturn(Arrays.asList(subA1, subA2, subB1, subB2, subB3)).when(subscriptionService).search(any());
+        
+        final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals("B", applicationsResponse.getData().get(0).getId());
+        assertEquals("A", applicationsResponse.getData().get(1).getId());
+        
+        Map<String, Object> subscriptionsMetadata = applicationsResponse.getMetadata().get("subscriptions");
+        assertEquals(3, subscriptionsMetadata.get("B"));
+        assertEquals(2, subscriptionsMetadata.get("A"));
+    }
+    
     @Test
     public void shouldGetApplicationsWithPaginatedLink() {
         final Response response = target().queryParam("page", 2).queryParam("size", 1).request().get();

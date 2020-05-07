@@ -551,7 +551,8 @@ paths:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
         - $ref: '#/components/parameters/forSubscriptionParam'
-      summary: List all the applications accessible to authenticated user.
+        - $ref: '#/components/parameters/applicationOrderQueryParam'
+      summary: List all the applications accessible to authenticated user. Default order is by *name* ASC.
       description: |
         List all the applications accessible to authenticated user.
 
@@ -2337,7 +2338,7 @@ components:
         A  list of "field" elements.
         By default, sort is ASC. If *field* starts with '-', the order sort is DESC.\
         Currently, only **value**, **date** and **answers** are supported.
-      example: "order=-avg:response-time"
+      example: "order=value"
       schema:
         type: string
 
@@ -2349,6 +2350,17 @@ components:
       description: If true, only return applications with APPLICATION_SUBSCRIPTION[CREATE] permission.
       schema:
         type: boolean
+    applicationOrderQueryParam:
+      name: order
+      in: query
+      required: false
+      description: |
+        A  list of "field" elements or *nbSubscriptions*.
+        By default, sort is ASC. If *field* starts with '-', the order sort is DESC.\
+        Currently, only **name** and **nbSubscriptions** are supported.
+      example: "order=-nbSubscriptions"
+      schema:
+        type: string
 
     #Pages filtering
     homePageQueryParam:
