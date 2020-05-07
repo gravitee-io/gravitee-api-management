@@ -80,8 +80,6 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -1039,8 +1037,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 topApiService.delete(apiId);
                 // Delete API
                 apiRepository.delete(apiId);
-                // Delete all membership references
-                membershipService.deleteMembers(MembershipReferenceType.API, apiId);
                 // Delete notifications
                 genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
                 portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
