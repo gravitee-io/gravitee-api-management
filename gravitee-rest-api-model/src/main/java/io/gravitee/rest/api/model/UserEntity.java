@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.gravitee.rest.api.model.search.Indexable;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 import java.util.Objects;
@@ -30,7 +29,7 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties(value = {"displayName", "displayNameForPicture"}, allowGetters = true)
+@JsonIgnoreProperties(value = {"displayName"}, allowGetters = true)
 public class UserEntity implements Indexable {
 
     /**
@@ -231,22 +230,6 @@ public class UserEntity implements Indexable {
 
         return displayName;
     }
-
-    public String getDisplayNameForPicture() {
-        String displayNameForPicture;
-
-        if(StringUtils.isEmpty(firstname) && StringUtils.isEmpty(lastname)) {
-            displayNameForPicture = getDisplayName();    
-        } else {
-            StringBuilder sb = new StringBuilder();
-            sb.append(StringUtils.capitalize(firstname));
-            sb.append(" ");
-            sb.append(lastname.toUpperCase().charAt(0));
-            sb.append(".");
-            displayNameForPicture = sb.toString();
-        }
-        return displayNameForPicture;
-	}
 
     public boolean isPrimaryOwner() {
         return primaryOwner;
