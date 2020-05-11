@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div class="gv-sub-content">
+<div class="gv-sub-content" ng-if="!$ctrl._displayEmptyMode">
     <div class="gv-forms gv-forms-fluid" layout="column">
       <div>
         <h1>API Gateway</h1>
@@ -136,4 +136,4 @@
 <gravitee-empty-state ng-if="$ctrl._displayEmptyMode"
                       icon="developer_dashboard"
                       model="Instance"
-                      message="There is no API gateway instance running"/>
+                      message="There is no API gateway instance running"></gravitee-empty-state>
