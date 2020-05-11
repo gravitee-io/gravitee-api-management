@@ -20,6 +20,7 @@ import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ApplicationService applicationService;
+
+    @Autowired
+    protected ApplicationTypeService applicationTypeService;
 
     @Autowired
     protected PolicyService policyService;
@@ -132,7 +136,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected PolicyOperationVisitorManager policyOperationVisitorManager;
-    
+
     @Autowired
     protected ConfigService configService;
 
@@ -154,6 +158,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ApplicationService applicationService() {
             return mock(ApplicationService.class);
+        }
+
+        @Bean
+        public ApplicationTypeService applicationTypeService() {
+            return mock(ApplicationTypeService.class);
         }
 
         @Bean

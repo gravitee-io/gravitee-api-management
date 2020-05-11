@@ -751,13 +751,6 @@
           "type": "length",
           "default": "200px",
           "value": "200px"
-        },
-        {
-          "name": "--gv-option--fxw",
-          "description": "Flex wrap",
-          "type": "length",
-          "default": "none",
-          "value": "none"
         }
       ]
     },
@@ -1672,8 +1665,8 @@
           "name": "--gv-button--p",
           "description": "Padding",
           "type": "length",
-          "default": "0rem 0.5rem",
-          "value": "0rem 0.5rem"
+          "default": "7px 14px",
+          "value": "7px 14px"
         },
         {
           "name": "--gv-button--fz",

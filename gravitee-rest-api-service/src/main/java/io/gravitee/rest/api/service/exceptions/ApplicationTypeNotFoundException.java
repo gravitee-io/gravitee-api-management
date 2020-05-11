@@ -13,39 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.configuration.application;
+package io.gravitee.rest.api.service.exceptions;
 
-import java.util.List;
+import java.util.Map;
 
-public class ApplicationGrantTypeEntity {
+import static java.util.Collections.singletonMap;
 
-    private String type;
+public class ApplicationTypeNotFoundException extends AbstractNotFoundException {
 
-    private String name;
+    private final String typeId;
 
-    private List<String> response_types;
-
-    public String getType() {
-        return type;
+    public ApplicationTypeNotFoundException(String typeId) {
+        this.typeId = typeId;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    @Override
+    public String getTechnicalCode() {
+        return "applicationType.notFound";
     }
 
-    public String getName() {
-        return name;
+    @Override
+    public String getMessage() {
+        return "ApplicationType [" + typeId + "] can not be found";
     }
 
-    public void setName(String name) {
-        this.name = name;
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("type", typeId);
     }
 
-    public List<String> getResponse_types() {
-        return response_types;
-    }
-
-    public void setResponse_types(List<String> response_types) {
-        this.response_types = response_types;
-    }
 }

@@ -190,11 +190,10 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         web.setId("web");
         List<ApplicationGrantTypeEntity> grantTypes = new ArrayList<>();
         ApplicationGrantTypeEntity grantType = new ApplicationGrantTypeEntity();
-        grantType.setCode("code");
         grantType.setName("name");
         List<String> responses_types = new ArrayList<>();
         responses_types.add("token");
-        grantType.setResponses_types(responses_types);
+        grantType.setResponse_types(responses_types);
         grantTypes.add(grantType);
         web.setAllowed_grant_types(grantTypes);
         web.setDefault_grant_types(new ArrayList<>());
@@ -216,10 +215,8 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
 
         assertEquals("web", types.get(1).getId());
         assertEquals(1, types.get(1).getAllowedGrantTypes().size());
-        assertEquals("code", types.get(1).getAllowedGrantTypes().get(0).getCode());
-        assertEquals("token", types.get(1).getAllowedGrantTypes().get(0).getResponsesTypes().get(0));
     };
-    
+
     @Test
     public void shouldGetApplicationRoles() throws TechnicalException {
         resetAllMocks();

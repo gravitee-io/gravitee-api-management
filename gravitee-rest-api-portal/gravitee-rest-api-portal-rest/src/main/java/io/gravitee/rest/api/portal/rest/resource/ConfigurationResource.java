@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
@@ -161,14 +160,10 @@ public class ConfigurationResource extends AbstractResource {
     @Path("applications/types")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getEnabledApplicationTypes() {
-        try {
-            ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes();
-            return Response
-                    .ok(convert(enabledApplicationTypes))
-                    .build();
-        } catch (TechnicalException e) {
-            return Response.ok().build();
-        }
+        ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes();
+        return Response
+                .ok(convert(enabledApplicationTypes))
+                .build();
     }
 
     @GET
@@ -183,10 +178,10 @@ public class ConfigurationResource extends AbstractResource {
                                         .id(roleEntity.getName())
                                         .name(roleEntity.getName())
                                         .system(roleEntity.isSystem())
-                                        )
-                                .collect(Collectors.toList())
                                 )
+                                .collect(Collectors.toList())
                         )
+                )
                 .build();
     }
 
@@ -213,10 +208,8 @@ public class ConfigurationResource extends AbstractResource {
 
         return allowedGrantTypes.stream().map(applicationGrantTypeEntity -> {
             ApplicationGrantType applicationGrantType = new ApplicationGrantType();
-            applicationGrantType.setCode(applicationGrantTypeEntity.getCode());
             applicationGrantType.setName(applicationGrantTypeEntity.getName());
             applicationGrantType.setType(applicationGrantTypeEntity.getType());
-            applicationGrantType.setResponsesTypes(applicationGrantTypeEntity.getResponses_types());
             return applicationGrantType;
         }).collect(Collectors.toList());
     }

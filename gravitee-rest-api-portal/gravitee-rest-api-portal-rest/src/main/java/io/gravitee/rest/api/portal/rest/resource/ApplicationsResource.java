@@ -92,7 +92,6 @@ public class ApplicationsResource extends AbstractResource {
                 SimpleApplicationSettings sas = new SimpleApplicationSettings();
                 sas.setClientId(simpleAppInput.getClientId());
                 sas.setType(simpleAppInput.getType());
-
                 newApplicationEntitySettings.setApp(sas);
             }
 
@@ -100,16 +99,8 @@ public class ApplicationsResource extends AbstractResource {
             if (oauthAppInput != null) {
                 OAuthClientSettings ocs = new OAuthClientSettings();
                 ocs.setApplicationType(oauthAppInput.getApplicationType());
-                ocs.setClientId(oauthAppInput.getClientId());
-                ocs.setClientSecret(oauthAppInput.getClientSecret());
-                ocs.setClientUri(oauthAppInput.getClientUri());
-                ocs.setClientId(oauthAppInput.getClientId());
-                ocs.setLogoUri(oauthAppInput.getLogoUri());
                 ocs.setGrantTypes(oauthAppInput.getGrantTypes());
                 ocs.setRedirectUris(oauthAppInput.getRedirectUris());
-                ocs.setRenewClientSecretSupported(oauthAppInput.getRenewClientSecretSupported().booleanValue());
-                ocs.setResponseTypes(oauthAppInput.getResponseTypes());
-
                 newApplicationEntitySettings.setoAuthClient(ocs);
             }
         }
@@ -135,15 +126,15 @@ public class ApplicationsResource extends AbstractResource {
 
         Stream<Application> applicationStream = applicationService.findByUser(getAuthenticatedUser())
                 .stream()
-                .map(application ->applicationMapper.convert(application, uriInfo))
+                .map(application -> applicationMapper.convert(application, uriInfo))
                 .map(this::addApplicationLinks);
 
         if (forSubscription) {
             applicationStream = applicationStream.filter(app -> this.hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, app.getId(), RolePermissionAction.CREATE));
         }
-        
+
         boolean isAsc = !order.startsWith("-");
-        
+
         if (order.contains("nbSubscriptions")) {
             FilteredApplication filteredApplications = orderByNumberOfSubscriptions(applicationStream.collect(Collectors.toList()), isAsc);
             return createListResponse(filteredApplications.getFilteredApplications(), paginationParam, filteredApplications.getMetadata());
@@ -156,7 +147,7 @@ public class ApplicationsResource extends AbstractResource {
         List<Application> applicationsList = applicationStream
                 .sorted(applicationNameComparator)
                 .collect(Collectors.toList());
-        
+
         return createListResponse(applicationsList, paginationParam);
     }
 
@@ -185,7 +176,7 @@ public class ApplicationsResource extends AbstractResource {
             Long applicationSubscriptionsCount = subscribedApplicationsWithCount.get(application.getId());
             //creation of a map which will be sorted to retrieve applications in the right order
             applicationsWithCount.put(application, applicationSubscriptionsCount == null ? 0L : applicationSubscriptionsCount);
-            
+
             //creation of a metadata map
             subscriptionsMetadata.put(application.getId(), applicationSubscriptionsCount == null ? 0L : applicationSubscriptionsCount);
         });
@@ -212,7 +203,7 @@ public class ApplicationsResource extends AbstractResource {
     public ApplicationResource getApplicationResource() {
         return resourceContext.getResource(ApplicationResource.class);
     }
-    
+
     private class FilteredApplication {
         List<Application> filteredApplications;
         Map<String, Map<String, Object>> metadata;

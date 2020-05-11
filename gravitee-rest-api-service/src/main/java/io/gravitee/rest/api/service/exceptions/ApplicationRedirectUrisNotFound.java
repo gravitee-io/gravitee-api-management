@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.gravitee.rest.api.service.exceptions;
 
-/**
- * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
- * @author GraviteeSource Team
- */
-package io.gravitee.rest.api.service.configuration.application;
+import java.util.Map;
 
-import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
-import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
+public class ApplicationRedirectUrisNotFound extends AbstractNotFoundException {
 
-public interface ApplicationTypeService {
+    @Override
+    public String getMessage() {
+        return "Redirect Uris can not be found or empty";
+    }
 
-    ApplicationTypesEntity getEnabledApplicationTypes();
+    @Override
+    public String getTechnicalCode() {
+        return "application.redirectUrisNotFound";
+    }
 
-    ApplicationTypeEntity getApplicationType(String typeId);
+    @Override
+    public Map<String, String> getParameters() {
+        return null;
+    }
 
 }

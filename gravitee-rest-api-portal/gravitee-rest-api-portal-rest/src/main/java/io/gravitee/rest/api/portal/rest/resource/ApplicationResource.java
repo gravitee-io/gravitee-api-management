@@ -16,21 +16,25 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
+import io.gravitee.rest.api.portal.rest.model.ApplicationType;
 import io.gravitee.rest.api.portal.rest.model.Group;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 
 import javax.inject.Inject;
@@ -59,10 +63,13 @@ public class ApplicationResource extends AbstractResource {
     @Inject
     private ApplicationMapper applicationMapper;
 
+    @Inject
+    private ApplicationTypeService applicationTypeService;
+
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE)
     })
     public Response deleteApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
         applicationService.archive(applicationId);
@@ -74,7 +81,7 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
     })
     public Response getApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
         Application application = applicationMapper.convert(applicationService.findById(applicationId), uriInfo);
@@ -85,13 +92,27 @@ public class ApplicationResource extends AbstractResource {
                 ;
     }
 
+    @GET
+    @Path("configuration")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
+    })
+    public Response getApplicationType(@PathParam("applicationId") String applicationId) {
+        ApplicationEntity applicationEntity = applicationService.findById(applicationId);
+        ApplicationTypeEntity applicationType = applicationTypeService.getApplicationType(applicationEntity.getType());
+        return Response
+                .ok(applicationType)
+                .build();
+    }
+
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public Response updateApplicationByApplicationId(@PathParam("applicationId") String applicationId, @Valid @NotNull(message="Input must not be null.") Application application) {
+    public Response updateApplicationByApplicationId(@PathParam("applicationId") String applicationId, @Valid @NotNull(message = "Input must not be null.") Application application) {
 
         if (!applicationId.equalsIgnoreCase(application.getId())) {
             throw new BadRequestException("'applicationId' is not the same that the application in payload");
@@ -101,30 +122,21 @@ public class ApplicationResource extends AbstractResource {
 
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
         updateApplicationEntity.setDescription(application.getDescription());
-        if (application.getGroups() != null) {
-            updateApplicationEntity.setGroups(application.getGroups().stream().map(Group::getId).collect(Collectors.toSet()));
-        }
         updateApplicationEntity.setName(application.getName());
         updateApplicationEntity.setPicture(checkAndScaleImage(application.getPicture()));
 
-        if(application.getSettings() != null) {
+        if (application.getSettings() != null) {
             ApplicationSettings settings = new ApplicationSettings();
-            if(application.getSettings().getApp() != null) {
-                SimpleApplicationSettings sas = new SimpleApplicationSettings();
+
+            if (application.getSettings().getApp() != null) {
+                SimpleApplicationSettings sas = appEntity.getSettings().getApp();
                 sas.setClientId(application.getSettings().getApp().getClientId());
                 sas.setType(application.getSettings().getApp().getType());
                 settings.setApp(sas);
-            } else if(application.getSettings().getOauth() != null) {
-                OAuthClientSettings oacs = new OAuthClientSettings();
-                oacs.setApplicationType(application.getSettings().getOauth().getApplicationType());
-                oacs.setClientId(application.getSettings().getOauth().getClientId());
-                oacs.setClientSecret(application.getSettings().getOauth().getClientSecret());
-                oacs.setClientUri(application.getSettings().getOauth().getClientUri());
+            } else if (application.getSettings().getOauth() != null) {
+                OAuthClientSettings oacs = appEntity.getSettings().getoAuthClient();
                 oacs.setGrantTypes(application.getSettings().getOauth().getGrantTypes());
-                oacs.setLogoUri(application.getSettings().getOauth().getLogoUri());
                 oacs.setRedirectUris(application.getSettings().getOauth().getRedirectUris());
-                oacs.setRenewClientSecretSupported(application.getSettings().getOauth().getRenewClientSecretSupported());
-                oacs.setResponseTypes(application.getSettings().getOauth().getResponseTypes());
                 settings.setoAuthClient(oacs);
             }
             updateApplicationEntity.setSettings(settings);
@@ -142,7 +154,7 @@ public class ApplicationResource extends AbstractResource {
     @Path("picture")
     @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
     @Permissions({
-        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
     })
     public Response getPictureByApplicationId(@Context Request request, @PathParam("applicationId") String applicationId) {
         applicationService.findById(applicationId);
@@ -157,7 +169,7 @@ public class ApplicationResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
     public Response renewApplicationSecret(@PathParam("applicationId") String applicationId) {
 
@@ -199,4 +211,5 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationSubscribersResource getApplicationSubscribersResource() {
         return resourceContext.getResource(ApplicationSubscribersResource.class);
     }
+
 }

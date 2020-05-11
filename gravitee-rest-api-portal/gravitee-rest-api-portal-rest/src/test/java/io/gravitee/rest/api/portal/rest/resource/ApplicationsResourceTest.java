@@ -54,7 +54,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     @Before
     public void init() {
         resetAllMocks();
-        
+
         ApplicationListItem applicationListItem1 = new ApplicationListItem();
         applicationListItem1.setId("A");
         applicationListItem1.setName("A");
@@ -113,11 +113,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         ApplicationListItem applicationListItem3 = new ApplicationListItem();
         applicationListItem3.setId("C");
         applicationListItem3.setName("C");
-        
+
         ApplicationListItem applicationListItem4 = new ApplicationListItem();
         applicationListItem4.setId("D");
         applicationListItem4.setName("d");
-        
+
         Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4));
         doReturn(mockApplications).when(applicationService).findByUser(any());
 
@@ -125,8 +125,8 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         doReturn(new Application().id("B").name("b")).when(applicationMapper).convert(eq(applicationListItem2), any());
         doReturn(new Application().id("C").name("C")).when(applicationMapper).convert(eq(applicationListItem3), any());
         doReturn(new Application().id("D").name("d")).when(applicationMapper).convert(eq(applicationListItem4), any());
-        
-        
+
+
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -137,7 +137,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals("C", applicationsResponse.getData().get(2).getId());
         assertEquals("D", applicationsResponse.getData().get(3).getId());
     }
-    
+
     @Test
     public void shouldGetApplicationsOrderByNbSubscriptionsDesc() {
         SubscriptionEntity subA1 = new SubscriptionEntity();
@@ -151,14 +151,14 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         SubscriptionEntity subB3 = new SubscriptionEntity();
         subB3.setApplication("B");
         doReturn(Arrays.asList(subA1, subA2, subB1, subB2, subB3)).when(subscriptionService).search(any());
-        
+
         final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
         assertEquals("B", applicationsResponse.getData().get(0).getId());
         assertEquals("A", applicationsResponse.getData().get(1).getId());
-        
+
         Map<String, Object> subscriptionsMetadata = applicationsResponse.getMetadata().get("subscriptions");
         assertEquals(3, subscriptionsMetadata.get("B"));
         assertEquals(2, subscriptionsMetadata.get("A"));
@@ -177,11 +177,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         ApplicationListItem applicationListItem3 = new ApplicationListItem();
         applicationListItem3.setId("C");
         applicationListItem3.setName("C");
-        
+
         ApplicationListItem applicationListItem4 = new ApplicationListItem();
         applicationListItem4.setId("D");
         applicationListItem4.setName("d");
-        
+
         Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4));
         doReturn(mockApplications).when(applicationService).findByUser(any());
 
@@ -189,7 +189,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         doReturn(new Application().id("B").name("b")).when(applicationMapper).convert(eq(applicationListItem2), any());
         doReturn(new Application().id("C").name("C")).when(applicationMapper).convert(eq(applicationListItem3), any());
         doReturn(new Application().id("D").name("d")).when(applicationMapper).convert(eq(applicationListItem4), any());
-        
+
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");
         SubscriptionEntity subA2 = new SubscriptionEntity();
@@ -211,7 +211,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         SubscriptionEntity subD2 = new SubscriptionEntity();
         subD2.setApplication("D");
         doReturn(Arrays.asList(subA1, subA2, subB1, subB2, subB3, subC1, subC2, subC3, subD1, subD2)).when(subscriptionService).search(any());
-        
+
         final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -220,7 +220,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals("C", applicationsResponse.getData().get(1).getId());
         assertEquals("A", applicationsResponse.getData().get(2).getId());
         assertEquals("D", applicationsResponse.getData().get(3).getId());
-        
+
     }
 
     @Test
@@ -245,7 +245,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertEquals("errors.pagination.invalid", error.getCode());
         assertEquals("400", error.getStatus());
@@ -260,7 +260,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         //Test with default limit
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
         assertEquals(0, applicationsResponse.getData().size());
 
@@ -270,7 +270,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         //Test with small limit
         final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
-        
+
         applicationsResponse = anotherResponse.readEntity(ApplicationsResponse.class);
         assertEquals(0, applicationsResponse.getData().size());
 
@@ -447,11 +447,6 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         final io.gravitee.rest.api.model.application.OAuthClientSettings oauthClientSettings = settings.getoAuthClient();
         assertNotNull(oauthClientSettings);
         assertEquals(APPLICATION, oauthClientSettings.getApplicationType());
-        assertEquals(APPLICATION, oauthClientSettings.getClientId());
-        assertEquals(APPLICATION, oauthClientSettings.getClientSecret());
-        assertEquals(APPLICATION, oauthClientSettings.getClientUri());
-        assertEquals(APPLICATION, oauthClientSettings.getLogoUri());
-
         final List<String> grantTypes = oauthClientSettings.getGrantTypes();
         assertNotNull(grantTypes);
         assertFalse(grantTypes.isEmpty());
@@ -462,19 +457,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertFalse(redirectUris.isEmpty());
         assertEquals(APPLICATION, redirectUris.get(0));
 
-        final List<String> responseTypes = oauthClientSettings.getResponseTypes();
-        assertNotNull(responseTypes);
-        assertFalse(responseTypes.isEmpty());
-        assertEquals(APPLICATION, responseTypes.get(0));
-
-        assertTrue(oauthClientSettings.isRenewClientSecretSupported());
-
-
         Application createdApp = response.readEntity(Application.class);
         assertNotNull(createdApp);
         assertEquals("NEW", createdApp.getId());
     }
-    
+
     @Test
     public void shouldHaveBadRequestWhileCreatingApplication() {
         final Response response = target().request().post(Entity.json(null));

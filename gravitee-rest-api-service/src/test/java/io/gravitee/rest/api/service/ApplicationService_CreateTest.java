@@ -26,14 +26,11 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
+import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
-import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 
 import org.junit.Test;
@@ -42,9 +39,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -92,7 +87,7 @@ public class ApplicationService_CreateTest {
     private ParameterService parameterService;
 
     @Mock
-    private ClientRegistrationService clientRegistrationService;
+    private ApplicationTypeService applicationTypeService;
 
     @Test
     public void shouldCreateForUser() throws TechnicalException {
@@ -126,6 +121,63 @@ public class ApplicationService_CreateTest {
 
         when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED)).thenReturn(Boolean.FALSE);
 
+        applicationService.create(newApplication, USER_NAME);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotCreateBecauseAppTypeIsNotAllowed() {
+        ApplicationSettings settings = new ApplicationSettings();
+        OAuthClientSettings clientSettings = new OAuthClientSettings();
+        clientSettings.setApplicationType("web");
+        settings.setoAuthClient(clientSettings);
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED)).thenReturn(Boolean.TRUE);
+        applicationService.create(newApplication, USER_NAME);
+    }
+
+    @Test(expected = ApplicationGrantTypesNotFoundException.class)
+    public void shouldNotCreateBecauseGrantTypesIsEmpty() {
+        ApplicationSettings settings = new ApplicationSettings();
+        OAuthClientSettings clientSettings = new OAuthClientSettings();
+        clientSettings.setApplicationType("web");
+        settings.setoAuthClient(clientSettings);
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED)).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(Key.valueOf("APPLICATION_TYPE_WEB_ENABLED"))).thenReturn(Boolean.TRUE);
+        applicationService.create(newApplication, USER_NAME);
+    }
+
+    @Test(expected = ApplicationGrantTypesNotAllowedException.class)
+    public void shouldNotCreateBecauseGrantTypesIsNotAllowed() {
+        ApplicationSettings settings = new ApplicationSettings();
+        OAuthClientSettings clientSettings = new OAuthClientSettings();
+        clientSettings.setApplicationType("web");
+        clientSettings.setGrantTypes(Arrays.asList("foobar"));
+        settings.setoAuthClient(clientSettings);
+        ApplicationTypeEntity applicationType = mock(ApplicationTypeEntity.class);
+        when(applicationTypeService.getApplicationType(any())).thenReturn(applicationType);
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED)).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(Key.valueOf("APPLICATION_TYPE_WEB_ENABLED"))).thenReturn(Boolean.TRUE);
+        applicationService.create(newApplication, USER_NAME);
+    }
+
+    @Test(expected = ApplicationRedirectUrisNotFound.class)
+    public void shouldNotCreateBecauseRedirectURIsNotFound() {
+        ApplicationSettings settings = new ApplicationSettings();
+        OAuthClientSettings clientSettings = new OAuthClientSettings();
+        clientSettings.setApplicationType("web");
+        clientSettings.setGrantTypes(Arrays.asList("foobar"));
+        settings.setoAuthClient(clientSettings);
+        ApplicationTypeEntity applicationType = mock(ApplicationTypeEntity.class);
+        ApplicationGrantTypeEntity foobar = new ApplicationGrantTypeEntity();
+        foobar.setType("foobar");
+        when(applicationType.getRequires_redirect_uris()).thenReturn(true);
+        when(applicationType.getAllowed_grant_types()).thenReturn(Arrays.asList(foobar));
+        when(applicationTypeService.getApplicationType(any())).thenReturn(applicationType);
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED)).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(Key.valueOf("APPLICATION_TYPE_WEB_ENABLED"))).thenReturn(Boolean.TRUE);
         applicationService.create(newApplication, USER_NAME);
     }
 

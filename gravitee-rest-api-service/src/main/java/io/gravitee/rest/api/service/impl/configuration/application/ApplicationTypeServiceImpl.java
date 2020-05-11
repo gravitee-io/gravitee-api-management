@@ -23,7 +23,12 @@ import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntit
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.exceptions.ApplicationTypeNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,28 +55,41 @@ public class ApplicationTypeServiceImpl implements ApplicationTypeService {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public ApplicationTypesEntity getEnabledApplicationTypes() throws TechnicalException {
+    public ApplicationTypesEntity getEnabledApplicationTypes() {
         JsonNode jsonTypes = this.getApplicationTypesConfiguration();
         return getFilteredApplicationTypes(jsonTypes);
     }
 
-    public ApplicationTypesEntity getFilteredApplicationTypes(JsonNode jsonTypes) throws TechnicalException {
+    @Override
+    public ApplicationTypeEntity getApplicationType(String typeId) {
+        return this.getApplicationTypesEntity()
+                .getData()
+                .stream()
+                .filter(typeEntity -> typeEntity.getId().equals(typeId.toLowerCase())).findFirst()
+                .orElseThrow(() -> new ApplicationTypeNotFoundException(typeId));
+    }
+
+    private ApplicationTypesEntity getApplicationTypesEntity() {
         try {
             InputStream resourceAsStream = this.getClass().getResourceAsStream(DEFINITION_PATH);
             String rawJson = IOUtils.toString(resourceAsStream, defaultCharset());
-            ApplicationTypesEntity applicationTypesEntity = objectMapper.readValue(rawJson, ApplicationTypesEntity.class);
-
-            List<ApplicationTypeEntity> filteredData = applicationTypesEntity
-                    .getData()
-                    .stream()
-                    .filter(typeEntity -> jsonTypes.get(typeEntity.getId()).get("enabled").asBoolean(false))
-                    .collect(Collectors.toList());
-
-            applicationTypesEntity.setData(filteredData);
-            return applicationTypesEntity;
+            return objectMapper.readValue(rawJson, ApplicationTypesEntity.class);
         } catch (IOException e) {
-            throw new TechnicalException(e);
+            throw new TechnicalManagementException("An error occurs while trying load application type definition", e);
         }
+    }
+
+    public ApplicationTypesEntity getFilteredApplicationTypes(JsonNode jsonTypes) {
+        ApplicationTypesEntity applicationTypesEntity = this.getApplicationTypesEntity();
+
+        List<ApplicationTypeEntity> filteredData = applicationTypesEntity
+                .getData()
+                .stream()
+                .filter(typeEntity -> jsonTypes.get(typeEntity.getId()).get("enabled").asBoolean(false))
+                .collect(Collectors.toList());
+
+        applicationTypesEntity.setData(filteredData);
+        return applicationTypesEntity;
     }
 
     public JsonNode getApplicationTypesConfiguration() {

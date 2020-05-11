@@ -972,6 +972,26 @@ paths:
           $ref: '#/components/responses/ApplicationNotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /applications/{applicationId}/configuration:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Application
+      summary: Get the application type configuration.
+      operationId: getApplicationType
+      description: |
+        Get application type.
+      security: []
+      responses:
+        200:
+          description: Application type configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationType'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/logs:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -1149,7 +1169,7 @@ paths:
       summary: List groups
       description: |
         List all groups
-        
+
         User must have the MANAGEMENT_GROUP[READ] permission.
       operationId: getGroups
       responses:
@@ -2555,7 +2575,7 @@ components:
           type: string
           enum:
             - keys
-    
+
     #Users filtering
     usersQueryParam:
       name: q
@@ -3483,20 +3503,12 @@ components:
             $ref: '#/components/schemas/ApplicationGrantType'
     ApplicationGrantType:
       properties:
-        code:
-          description: code of grant type
-          type: string
         type:
           description: type of grant type
           type: string
         name:
           description: name of grant type
           type: string
-        responses_types:
-          description: List of response types
-          type: array
-          items:
-            type: string
     Hook:
       properties:
         id:

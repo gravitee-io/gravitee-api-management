@@ -16,10 +16,12 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -27,6 +29,7 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -61,6 +64,9 @@ public class ApplicationResource extends AbstractResource {
     @Inject
     private NotifierService notifierService;
 
+    @Inject
+    private ApplicationTypeService applicationTypeService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get an application",
@@ -73,6 +79,26 @@ public class ApplicationResource extends AbstractResource {
     })
     public ApplicationEntity getApplication(@PathParam("application") String application) {
         return applicationService.findById(application);
+    }
+
+
+    @GET
+    @Path("configuration")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get application type definition of an application",
+            notes = "User must have the READ permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "ApplicationType", response = ApplicationType.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
+    })
+    public Response getApplicationType(@PathParam("application") String application) {
+        ApplicationEntity applicationEntity = applicationService.findById(application);
+        ApplicationTypeEntity applicationType = applicationTypeService.getApplicationType(applicationEntity.getType());
+        return Response
+                .ok(applicationType)
+                .build();
     }
 
     @PUT
@@ -114,7 +140,7 @@ public class ApplicationResource extends AbstractResource {
     })
     public Response picture(@Context Request request, @PathParam("application") String application) throws ApplicationNotFoundException {
         PictureEntity picture = applicationService.getPicture(application);
-        
+
         if (picture instanceof UrlPictureEntity) {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
         }

@@ -16,18 +16,16 @@
       "requires_redirect_uris": true,
       "allowed_grant_types": [
         {
-          "code": "authorization_code",
           "type": "authorization_code",
           "name": "Authorization Code",
-          "responses_types": [
+          "response_types": [
             "code"
           ]
         },
         {
-          "code": "implicit",
           "type": "implicit",
           "name": "Implicit",
-          "responses_types": [
+          "response_types": [
             "token",
             "id_token"
           ]
@@ -35,12 +33,10 @@
       ],
       "default_grant_types": [
         {
-          "code": "implicit",
-          "type": "implicit",
-          "name": "Implicit",
-          "responses_types": [
-            "token",
-            "id_token"
+          "type": "authorization_code",
+          "name": "Authorization Code",
+          "response_types": [
+            "code"
           ]
         }
       ],
@@ -53,24 +49,21 @@
       "requires_redirect_uris": true,
       "allowed_grant_types": [
         {
-          "code": "authorization_code",
           "type": "authorization_code",
           "name": "Authorization Code",
-          "responses_types": [
+          "response_types": [
             "code"
           ]
         },
         {
-          "code": "refresh_token",
           "type": "refresh_token",
           "name": "Refresh Token",
-          "responses_types": []
+          "response_types": []
         },
         {
-          "code": "implicit_hybrid",
-          "type": "implicit_hybrid",
+          "type": "implicit",
           "name": "Implicit (Hybrid)",
-          "responses_types": [
+          "response_types": [
             "token",
             "id_token"
           ]
@@ -78,20 +71,18 @@
       ],
       "default_grant_types": [
         {
-          "code": "authorization_code",
           "type": "authorization_code",
           "name": "Authorization Code",
-          "responses_types": [
+          "response_types": [
             "code"
           ]
         }
       ],
       "mandatory_grant_types": [
         {
-          "code": "authorization_code",
           "type": "authorization_code",
           "name": "Authorization Code",
-          "responses_types": [
+          "response_types": [
             "code"
           ]
         }
@@ -104,37 +95,49 @@
       "requires_redirect_uris": true,
       "allowed_grant_types": [
         {
-          "code": "authorization_code",
           "type": "authorization_code",
           "name": "Authorization Code",
-          "responses_types": [
+          "response_types": [
             "code"
           ]
         },
         {
-          "code": "refresh_token",
           "type": "refresh_token",
           "name": "Refresh Token",
-          "responses_types": []
+          "response_types": []
         },
         {
-          "code": "password",
           "type": "password",
           "name": "Resource Owner Password",
-          "responses_types": []
+          "response_types": []
         },
         {
-          "code": "implicit_hybrid",
-          "type": "implicit_hybrid",
+          "type": "implicit",
           "name": "Implicit (Hybrid)",
-          "responses_types": [
+          "response_types": [
             "token",
             "id_token"
           ]
         }
       ],
-      "default_grant_types": [],
-      "mandatory_grant_types": []
+      "default_grant_types": [
+        {
+          "type": "authorization_code",
+          "name": "Authorization Code",
+          "response_types": [
+            "code"
+          ]
+        }
+      ],
+      "mandatory_grant_types": [
+        {
+          "type": "authorization_code",
+          "name": "Authorization Code",
+          "response_types": [
+            "code"
+          ]
+        }
+      ]
     },
     {
       "id": "backend_to_backend",
@@ -143,32 +146,23 @@
       "requires_redirect_uris": false,
       "allowed_grant_types": [
         {
-          "code": "client_credentials",
           "type": "client_credentials",
           "name": "Client Credentials",
-          "responses_types": []
-        },
-        {
-          "code": "refresh_token",
-          "type": "refresh_token",
-          "name": "Refresh Token",
-          "responses_types": []
+          "response_types": []
         }
       ],
       "default_grant_types": [
         {
-          "code": "client_credentials",
           "type": "client_credentials",
           "name": "Client Credentials",
-          "responses_types": []
+          "response_types": []
         }
       ],
       "mandatory_grant_types": [
         {
-          "code": "client_credentials",
           "type": "client_credentials",
           "name": "Client Credentials",
-          "responses_types": []
+          "response_types": []
         }
       ]
     }

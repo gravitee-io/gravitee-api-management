@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
 import io.gravitee.rest.api.management.rest.resource.quality.QualityRulesResource;
+import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -28,6 +29,7 @@ import io.gravitee.rest.api.management.rest.resource.configuration.identity.Iden
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import io.swagger.annotations.Api;
@@ -39,6 +41,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
 
@@ -55,6 +58,9 @@ public class ConfigurationResource {
 
     @Inject
     private NotifierService notifierService;
+
+    @Inject
+    private ApplicationTypeService applicationTypeService;
 
     @GET
     @Path("/hooks")
@@ -137,6 +143,17 @@ public class ConfigurationResource {
     @Path("applications/registration/providers")
     public ClientRegistrationProvidersResource getClientRegistrationProvidersResource() {
         return resourceContext.getResource(ClientRegistrationProvidersResource.class);
+    }
+
+    @GET
+    @Path("applications/types")
+    @ApiOperation("Get the list of enabled application types")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getEnabledApplicationTypes() {
+        ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes();
+        return Response
+                .ok(enabledApplicationTypes.getData())
+                .build();
     }
 
     @Path("entrypoints")
