@@ -123,13 +123,13 @@
         <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.canSave()">
           <md-button ng-if="$ctrl.updateMode" class="md-raised md-primary" type="submit"
                      ng-disabled="formGroup.$invalid || formGroup.$pristine"
-                     permission permission-only="['management-group-u']">
+                     permission permission-only="['environment-group-u']">
             Update
           </md-button>
 
           <md-button ng-if="!$ctrl.updateMode" class="md-raised md-primary" type="submit"
                      ng-disabled="formGroup.$invalid || formGroup.$pristine"
-                     permission permission-only="['management-group-c']">
+                     permission permission-only="['environment-group-c']">
             Create
           </md-button>
 

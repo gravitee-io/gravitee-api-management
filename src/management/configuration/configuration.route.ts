@@ -223,7 +223,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-group'
         },
         perms: {
-          only: ['management-group-r']
+          only: ['environment-group-r']
         }
       }
     })

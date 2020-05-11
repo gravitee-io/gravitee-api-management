@@ -147,10 +147,10 @@ function managementRouterConfig($stateProvider) {
         menu: null,
         devMode: true,
         perms: {
-          only: ['management-platform-r']
+          only: ['environment-platform-r']
         },
         docs: {
-          page: 'management-dashboard'
+          page: 'environment-dashboard'
         }
       },
       params: {
@@ -191,10 +191,10 @@ function managementRouterConfig($stateProvider) {
         devMode: true,
         menu: null,
         perms: {
-          only: ['management-platform-r']
+          only: ['environment-platform-r']
         },
         docs: {
-          page: 'management-dashboard'
+          page: 'environment-dashboard'
         }
       }
     })
