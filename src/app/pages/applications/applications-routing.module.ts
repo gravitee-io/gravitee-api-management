@@ -19,8 +19,10 @@ import { GvButtonCreateApplicationComponent } from '../../components/gv-button-c
 import { GvHeaderItemComponent } from '../../components/gv-header-item/gv-header-item.component';
 import { GvSelectDashboardComponent } from '../../components/gv-select-dashboard/gv-select-dashboard.component';
 import { FeatureEnum } from '../../model/feature.enum';
+import { ApplicationTypeResolver } from '../../resolvers/application-type.resolver';
 import { ApplicationResolver } from '../../resolvers/application.resolver';
 import { DashboardsResolver } from '../../resolvers/dashboards.resolver';
+import { EnabledApplicationTypesResolver } from '../../resolvers/enabled-application-types.resolver';
 import { FeatureGuardService } from '../../services/feature-guard.service';
 import { ApplicationAnalyticsComponent } from '../application/application-analytics/application-analytics.component';
 import { ApplicationCreationComponent } from '../application/application-creation/application-creation.component';
@@ -32,8 +34,6 @@ import { ApplicationSubscriptionsComponent } from '../application/application-su
 import { SubscriptionsComponent } from '../subscriptions/subscriptions.component';
 import { ApplicationsComponent } from './applications.component';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { AuthGuardService } from '../../services/auth-guard.service';
-import { Role } from '../../model/role.enum';
 import { PermissionsResolver } from '../../resolvers/permissions-resolver.service';
 import { PermissionGuardService } from '../../services/permission-guard.service';
 
@@ -67,6 +67,9 @@ const routes: Routes = [
       title: i18n('route.applicationCreation'),
       expectedFeature: FeatureEnum.applicationCreation,
       animation: { type: 'fade' },
+    },
+    resolve: {
+      enabledApplicationTypes: EnabledApplicationTypesResolver,
     }
   },
   {
@@ -86,6 +89,9 @@ const routes: Routes = [
           icon: 'general:clipboard',
           title: i18n('route.catalogApi'),
           animation: { type: 'slide', group: 'app', index: 1 }
+        },
+        resolve: {
+          applicationType: ApplicationTypeResolver,
         }
       },
       {

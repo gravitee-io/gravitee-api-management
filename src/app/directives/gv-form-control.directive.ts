@@ -49,8 +49,10 @@ export class GvFormControlDirective extends NgControlStatus implements AfterView
 
   ngAfterViewInit() {
     this.update(this.control.status);
-    this.control.statusChanges.subscribe((status) => {
-      this.update(status);
-    });
+    if (this.control.statusChanges) {
+      this.control.statusChanges.subscribe((status) => {
+        this.update(status);
+      });
+    }
   }
 }

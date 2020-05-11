@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import {
-  FormArray,
   FormBuilder,
   FormControl,
   FormGroup,
@@ -32,51 +31,51 @@ import { ConfigurationService } from '../../../services/configuration.service';
 
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import {
-  Api,
-  ApiService,
-  ApisResponse, Application,
+  ApiService, Application,
   ApplicationInput,
   ApplicationService,
   ApplicationType,
   Plan,
   PortalService, SubscriptionService
 } from '@gravitee/ng-portal-webclient';
-import { SearchRequestParams } from '../../../utils/search-query-param.enum';
 import { NotificationService } from '../../../services/notification.service';
-import { distinctUntilChanged } from 'rxjs/operators';
+
+export interface ApplicationTypeOption extends ApplicationType {
+  icon: string;
+  description: string;
+  title: string;
+}
+
+interface StepState {
+  description: string,
+  validate: boolean
+}
 
 @Component({
   selector: 'app-application-creation',
   templateUrl: './application-creation.component.html',
-  styleUrls: ['./application-creation.component.css']
+  styleUrls: ['./application-creation.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 export class ApplicationCreationComponent implements OnInit {
-
-
-  @ViewChild('searchApiAutocomplete') searchApiAutocomplete;
-  @ViewChild('clientId') clientId;
 
   private _allSteps: any;
   steps: any;
   currentStep: number;
   applicationForm: FormGroup;
-  allowedTypes: Array<ApplicationType>;
-  allowedOptions: { icon: string; description: string; id: string; title: string }[];
-  apiList: { data: any; id: string; value: string }[];
+  allowedTypes: Array<ApplicationTypeOption>;
   plans: Array<Plan>;
   subscribeList: any[];
-  subscriptionListOptions: any;
-  validationListOptions: any;
-  disabledPlans: number;
-  private updateStepsTimer: any;
+
   private readSteps: number[];
-  selectedApi: Api;
-  allGrantTypes: { code?: string; responses_types?: Array<string>; name?: string; disabled: boolean; type?: string; value: boolean }[];
-  planForm: FormGroup;
+
   creationInProgress: boolean;
   creationSuccess: boolean;
   creationError: boolean;
   createdApplication: Application;
+  applicationType: ApplicationTypeOption;
+  private stepOneForm: FormGroup;
+  private stepTwoForm: FormGroup;
 
   constructor(private translateService: TranslateService,
               private configurationService: ConfigurationService,
@@ -91,11 +90,7 @@ export class ApplicationCreationComponent implements OnInit {
               private applicationService: ApplicationService,
               private ref: ChangeDetectorRef) {
     this.currentStep = 1;
-    this.apiList = [];
-    this.subscribeList = [];
-    this.disabledPlans = 0;
     this.readSteps = [1];
-    this.plans = [];
   }
 
   async ngOnInit() {
@@ -106,16 +101,14 @@ export class ApplicationCreationComponent implements OnInit {
       i18n('applicationCreation.step.validate')
     ].map((_title) => this.translateService.get(_title).toPromise().then((title) => ({ title }))));
     this.steps = this._allSteps;
-    const applicationTypes = await this.portalService.getEnabledApplicationTypes().toPromise();
-    this.allowedTypes = applicationTypes.data;
-    this.allowedOptions = await Promise.all(applicationTypes.data
+    this.allowedTypes = await Promise.all(this.route.snapshot.data.enabledApplicationTypes
       .map((type, index) => {
         return this.translateService.get([`applicationType.${type.id}.title`, `applicationType.${type.id}.description`])
           .toPromise()
           .then((translations) => {
             const [title, description] = Object.values(translations);
             return {
-              id: type.id,
+              ...type,
               icon: getApplicationTypeIcon(type.id),
               title,
               description,
@@ -123,188 +116,21 @@ export class ApplicationCreationComponent implements OnInit {
           });
       }));
 
-    this.planForm = this.formBuilder.group({
-      apiId: new FormControl(null, [Validators.required]),
-      planId: new FormControl(null, [Validators.required]),
-    });
-
     this.applicationForm = this.formBuilder.group({
       name: new FormControl(null, [Validators.required]),
       description: new FormControl(null, [Validators.required]),
       picture: new FormControl(null),
-      groups: new FormArray([]),
-      settings: this.formBuilder.group({
-        app: this.formBuilder.group({
-          type: new FormControl('', null),
-          client_id: new FormControl('', null),
-        }),
-        oauth: this.formBuilder.group({
-          client_secret: new FormControl('', null),
-          client_id: new FormControl('', null),
-          redirect_uris: new FormArray([]),
-          client_uri: new FormControl('', null),
-          response_types: new FormArray([]),
-          grant_types: new FormArray([]),
-          application_type: new FormControl(this.allowedOptions[0].id, [Validators.required]),
-          renew_client_secret_supported: new FormControl(false, null),
-        })
-      })
+      settings: new FormControl(null, [Validators.required]),
     });
-
-    this.translateService.get([
-      i18n('apiSubscribe.apps.comment'),
-      i18n('applicationCreation.subscription.comment'),
-      i18n('applicationCreation.subscription.remove'),
-      i18n('applicationCreation.subscription.validation.type'),
-      i18n('applicationCreation.subscription.validation.auto'),
-      i18n('applicationCreation.subscription.validation.manual'),
-    ]).toPromise().then(translations => {
-      const values = Object.values(translations);
-      this.subscriptionListOptions = {
-        data: [
-          { field: 'api.name', label: 'Api' },
-          { field: 'plan.name', label: 'Plan' },
-          {
-            field: 'request',
-            label: values[1],
-            type: 'gv-text',
-            attributes: {
-              rows: 2,
-              required: (item) => item.requiredComment,
-              placeholder: (item) => item.plan.comment_question || values[0],
-            },
-            width: '350px'
-          },
-          {
-            type: 'gv-icon',
-            width: '25px',
-            attributes: {
-              shape: 'general:trash',
-              clickable: true,
-              onClick: (item) => this.removePlan(item.plan),
-              title: values[2]
-            },
-          },
-        ]
-      };
-
-      this.validationListOptions = {
-        data: [
-          { field: 'api.name', label: 'Api' },
-          { field: 'plan.name', label: 'Plan' },
-          {
-            field: 'request',
-            label: values[1],
-          },
-          {
-            field: (item) => item.plan.validation.toUpperCase === Plan.ValidationEnum.AUTO ? values[4] : values[5],
-            label: values[3],
-          }
-        ]
-      };
-    });
-
-    this.applicationForm.valueChanges
-      .pipe(distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)))
-      .subscribe(() => setTimeout(() => this.updateSteps(), 0));
-
-    if (this.activatedRoute.snapshot.queryParamMap.has('api')) {
-      const apiId = this.activatedRoute.snapshot.queryParamMap.get('api');
-      this.apiService.getApiByApiId({ apiId })
-        .toPromise()
-        .then((api) => {
-          this.loadPlans(api);
-        });
-    }
-    this.updateGrantTypes();
-  }
-
-  get applicationType() {
-    return this.applicationForm.get('settings.oauth.application_type') as FormControl;
-  }
-
-  get applicationTypeEntity() {
-    return this.allowedTypes.find((type) => type.id === this.applicationType.value);
-  }
-
-  get redirectURIs() {
-    return this.applicationForm.get('settings.oauth.redirect_uris') as FormArray;
-  }
-
-  get grantTypes() {
-    return this.applicationForm.get('settings.oauth.grant_types') as FormArray;
-  }
-
-  get pictureSrc() {
-    return this.applicationForm.get('picture').value;
-  }
-
-  get appName() {
-    return this.applicationForm.get('name').value;
-  }
-
-  get appDescription() {
-    return this.applicationForm.get('description').value;
-  }
-
-  get appClientId() {
-    return this.applicationForm.get('settings.app.client_id').value;
-  }
-
-  get selectedPlan() {
-    const id = this.planForm.get('planId').value;
-    return this.plans.find((p) => p.id === id);
-  }
-
-  onSearchApi({ detail }) {
-    this.plans = [];
-    return this.apiService.searchApis(new SearchRequestParams(detail, 5))
-      .toPromise()
-      .then((apisResponse: ApisResponse) => {
-        if (apisResponse.data.length) {
-          this.apiList = apisResponse.data.map((a) => {
-            const row = document.createElement('gv-row');
-            // @ts-ignore
-            row.item = a;
-            return { value: a.name, element: row, id: a.id, data: a };
-          });
-        } else {
-          this.apiList = [];
-        }
-      });
-  }
-
-  async onSelectApi({ detail }) {
-    const api = this.apiList.find((a) => a.id === detail.id).data;
-    this.planForm.get('apiId').setValue(api.id);
-    this.loadPlans(api);
-  }
-
-  private async loadPlans(api) {
-    if (api) {
-      const plans = await this.apiService.getApiPlansByApiId({ apiId: api.id }).toPromise();
-      this.plans = plans.data.filter((plan) => (plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS));
-      if (this.selectedPlan == null && this.plans.length > 0) {
-        this.planForm.get('planId').setValue(this.plans[0].id);
-      }
-      this.planForm.get('apiId').setValue(api.id);
-      this.selectedApi = api;
-    }
-  }
-
-  isOAuthClient() {
-    return this.applicationType.value !== 'simple';
-  }
-
-  get applicationTypeName() {
-    const entity = this.applicationTypeEntity;
-    return this.isOAuthClient() ? entity.name : entity.name + ' ' + this.applicationForm.get('settings.app.type').value;
   }
 
   setCurrentStep(step) {
     if (!(this.creationSuccess)) {
       if (!this.readSteps.includes(step)) {
         this.readSteps.push(step);
+        if (step === 3) {
+          this.subscribeList = [];
+        }
       }
       this.ref.detectChanges();
       this.updateSteps();
@@ -318,79 +144,27 @@ export class ApplicationCreationComponent implements OnInit {
     this.setCurrentStep(current);
   }
 
-  updateGrantTypes() {
-    this.subscribeList = [];
-    const appTypeEntity = this.applicationTypeEntity;
-    this.grantTypes.clear();
-    this.allGrantTypes = appTypeEntity.allowed_grant_types.map((allowedGrantType) => {
-      const value = appTypeEntity.default_grant_types
-        .find((grant) => allowedGrantType.code === grant.code) != null;
-
-      const disabled = appTypeEntity.mandatory_grant_types
-        .find((grant) => allowedGrantType.code === grant.code) != null;
-
-      if (value === true) {
-        this.grantTypes.push(new FormControl(allowedGrantType.type));
-      }
-      return { ...allowedGrantType, disabled, value };
-    });
-    if (!this.requiresRedirectUris) {
-      this.redirectURIs.clear();
-    }
-  }
-
-  get canAddPlan() {
-    return this.subscribeList.find((s) => s.plan.id === this.selectedPlan.id) != null;
-  }
-
   get requireClientId() {
-    return !this.hasValidClientId(this.selectedPlan);
-  }
-
-  hasValidClientId(plan) {
-    if (!this.isOAuthClient()
-      && (plan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 || plan.security.toUpperCase() === Plan.SecurityEnum.JWT)) {
-      if (this.appClientId == null || this.appClientId.trim() === '') {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  addPlan() {
-    if (this.planForm.valid && this.selectedApi && this.selectedPlan) {
-      this.subscribeList = [...this.subscribeList, {
-        api: this.selectedApi,
-        plan: this.selectedPlan,
-        requiredComment: this.requireComment(),
-        request: ''
-      }];
-      this.updateSteps();
-    }
-  }
-
-  removePlan(plan) {
-    this.subscribeList = this.subscribeList.filter((s) => !(s.plan.id === plan.id));
-    this.ref.detectChanges();
-    this.updateSteps();
-  }
-
-  isInvalid(...controlNames) {
-    return controlNames.find((name) => this.applicationForm.get(name).errors != null) != null;
-  }
-
-  hasValidType() {
-    if (this.readSteps.includes(2)) {
-      if (this.applicationType.value === 'simple' || this.applicationType.value === 'backend_to_backend') {
+    if (this.applicationType && this.isSimpleApp && this.subscribeList) {
+      const subscription = this.subscribeList.find((s) => !this.hasValidClientId(s.plan));
+      if (subscription) {
         return true;
-      } else {
-        return this.redirectURIs.errors == null &&
-          this.redirectURIs.value.length > 0 &&
-          this.redirectURIs.value[0] !== null &&
-          this.redirectURIs.value[0].trim() !== '';
       }
     }
     return false;
+  }
+
+  hasValidClientId(plan) {
+    if (this.isSimpleApp
+      && (plan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 || plan.security.toUpperCase() === Plan.SecurityEnum.JWT)) {
+      const { settings } = this.applicationForm.getRawValue();
+      if (settings.app) {
+        if (settings.app.client_id == null || settings.app.client_id.trim() === '') {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   hasValidSubscriptions() {
@@ -398,21 +172,60 @@ export class ApplicationCreationComponent implements OnInit {
       && this.subscribeList.find((s) => this.hasRequireComment(s.plan) && (s.request == null || s.request.trim() === '')) == null;
   }
 
+  hasRequireComment(plan) {
+    return plan && plan.comment_required;
+  }
+
+  onStepOneUpdated(stepOneForm: FormGroup) {
+    this.stepOneForm = stepOneForm;
+    this.applicationForm.patchValue(this.stepOneForm.getRawValue());
+    this.updateSteps();
+  }
+
+  get stepOneState(): StepState {
+    if (this.stepOneForm) {
+      return { description: this.stepOneForm.get('name').value, validate: this.stepOneForm.valid };
+    }
+    return { description: '', validate: false };
+  }
+
+  onStepTwoUpdated(stepTwoForm: FormGroup) {
+    this.stepTwoForm = stepTwoForm;
+    this.applicationForm.get('settings').patchValue(this.stepTwoForm.getRawValue());
+    this.updateSteps();
+  }
+
+  get stepTwoState(): StepState {
+    if (this.stepTwoForm) {
+      const description = this.readSteps.includes(2) && this.applicationType ? this.applicationType.name : '';
+      return { description, validate: this.stepTwoForm.valid };
+    }
+    return { description: '', validate: false };
+  }
+
+  onStepThreeUpdated(subscribeList: any[]) {
+    this.subscribeList = subscribeList;
+    this.updateSteps().then(() => this.ref.detectChanges());
+  }
+
+  async stepThreeState(): Promise<StepState> {
+    if (this.subscribeList) {
+      const description = await this.translateService.get(
+        i18n('applicationCreation.subscription.description'), { count: this.subscribeList.length }).toPromise();
+      return { description, validate: this.hasValidSubscriptions() };
+    }
+    return { description: '', validate: false };
+  }
+
   private async updateSteps() {
-    const appTypeDescription = this.readSteps.includes(2) ? this.applicationTypeEntity.name : '';
-    const subscriptionDescription = this.readSteps.includes(3) ?
-      await this.translateService
-        .get(i18n('applicationCreation.subscription.description'), { count: this.subscribeList.length })
-        .toPromise() : '';
     const createdAt = this.createdApplication ?
       new Date(this.createdApplication.created_at).toLocaleString(this.translateService.currentLang) : '';
+
+    const stepThreeStep = await this.stepThreeState();
     this.steps = [
-      { description: this.applicationForm.get('name').value, validate: !this.isInvalid('name', 'description') },
-      { description: appTypeDescription, validate: this.hasValidType() },
-      {
-        description: subscriptionDescription,
-        validate: this.hasValidSubscriptions(),
-      },
+      this.stepOneState,
+      this.stepTwoState,
+      stepThreeStep,
       { description: createdAt, validate: this.creationSuccess }
     ].map(({ description, validate }, index) => {
       const step = this._allSteps[index];
@@ -446,46 +259,6 @@ export class ApplicationCreationComponent implements OnInit {
     this.router.navigate(['../'], { relativeTo: this.route });
   }
 
-  get requiresRedirectUris() {
-    return this.applicationTypeEntity.requires_redirect_uris;
-  }
-
-  get selectedApiName() {
-    return this.selectedApi ? this.selectedApi.name : '';
-  }
-
-  addRedirectUri(event) {
-    if (event.target.valid) {
-      const value = event.target.value;
-      if (value && value.trim() !== '') {
-        this.redirectURIs.push(new FormControl(value, Validators.required));
-        event.target.value = '';
-      }
-    }
-  }
-
-  removeRedirectUri(index: number) {
-    this.redirectURIs.removeAt(index);
-  }
-
-  get hasRedirectUris() {
-    return this.redirectURIs.length > 0;
-  }
-
-  onClientIdChange() {
-    const clientId = this.appClientId;
-    if (clientId == null || clientId.trim() === '') {
-      this.subscribeList = this.subscribeList.filter((s) => this.hasValidClientId(s.plan));
-    }
-  }
-
-  focusClientId() {
-    this.currentStep = 2;
-    setTimeout(() => {
-      this.clientId.nativeElement.focus();
-    }, 0);
-  }
-
   canValidate() {
     if (this.steps && !this.creationSuccess) {
       const firstThree = this.steps.filter((step, index) => (index <= 2 && step.validate));
@@ -507,11 +280,6 @@ export class ApplicationCreationComponent implements OnInit {
   createApp() {
     this.creationInProgress = true;
     const applicationInput = this.applicationForm.getRawValue() as ApplicationInput;
-    if (this.isOAuthClient()) {
-      delete applicationInput.settings.app;
-    } else {
-      delete applicationInput.settings.oauth;
-    }
 
     this.applicationService.createApplication({ ApplicationInput: applicationInput })
       .toPromise()
@@ -544,32 +312,28 @@ export class ApplicationCreationComponent implements OnInit {
     });
   }
 
-  requireComment() {
-    return this.hasRequireComment(this.selectedPlan);
+
+  onApplicationTypeSelected(applicationTypeOption: ApplicationTypeOption) {
+    setTimeout(() => {
+      this.applicationType = applicationTypeOption;
+      this.updateSteps();
+    }, 0);
   }
 
-  hasRequireComment(plan) {
-    return plan && plan.comment_required;
+  get isSimpleApp() {
+    return this.applicationType.id.toLowerCase() === 'simple';
   }
 
-  onSwitchGrant(event, grantType) {
-    if (event.target.value) {
-      this.grantTypes.push(new FormControl(grantType.type));
-    } else {
-      let index = -1;
-      this.grantTypes.controls.forEach((control, i) => {
-        if (control.value === grantType.type) {
-          index = i;
-          return;
+  onRequireChangeStep($event: { step, fragment }) {
+    this.setCurrentStep($event.step);
+    if ($event.fragment) {
+      setTimeout(() => {
+        const element = document.getElementById($event.fragment);
+        if (element) {
+          element.focus();
         }
       });
-      this.grantTypes.removeAt(index);
     }
-  }
-
-  onRequestChange($event: any) {
-    clearTimeout(this.updateStepsTimer);
-    this.updateStepsTimer = setTimeout(() => this.updateSteps(), 200);
   }
 
 }

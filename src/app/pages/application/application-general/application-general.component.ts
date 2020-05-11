@@ -26,12 +26,12 @@ import {
   ApiService,
   SubscriptionService,
   PermissionsService,
-  PermissionsResponse, Subscription
+  PermissionsResponse, Subscription, ApplicationType
 } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { GvHeaderItemComponent } from '../../../components/gv-header-item/gv-header-item.component';
 import { EventService, GvEvent } from '../../../services/event.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -54,6 +54,9 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   isDeleting: boolean;
   isRenewing: boolean;
 
+  allGrantTypes: { name?: string; disabled: boolean; type?: string; value: boolean }[];
+  private applicationTypeEntity: ApplicationType;
+
   constructor(
     private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
@@ -64,32 +67,24 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
     private permissionsService: PermissionsService,
-    private eventService: EventService
+    private eventService: EventService,
   ) {
   }
 
   ngOnDestroy() {
-    this.reset();
+    this.initForm();
   }
 
   ngOnInit() {
     this.application = this.route.snapshot.data.application;
     this.permissions = this.route.snapshot.data.permissions;
     if (this.application) {
+      this.applicationTypeEntity = this.route.snapshot.data.applicationType;
       this.canDelete = this.permissions.DEFINITION && this.permissions.DEFINITION.includes('D');
       this.canUpdate = this.permissions.DEFINITION && this.permissions.DEFINITION.includes('U');
-      this.applicationForm = this.formBuilder.group(this.application);
-      this.applicationForm.setControl('picture', new FormControl(this.application.picture));
-      this.applicationForm.setControl('settings', new FormGroup({
-        app: new FormGroup({
-          type: new FormControl(''),
-        }),
-        oauth: new FormGroup({
-          client_id: new FormControl(''),
-          client_secret: new FormControl(''),
-        })
-      }));
-      this.reset();
+
+      this.initForm();
+      this.updateGrantTypes();
       this.applicationForm.get('picture').valueChanges.subscribe((picture) => {
         this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.UPDATE_PICTURE, { data: picture }));
       });
@@ -134,15 +129,122 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   }
 
   reset() {
-    if (this.applicationForm) {
-      this.applicationForm.reset(this.application);
+    this.applicationForm.reset(this.application);
+    this.updateGrantTypes();
+  }
+
+  isOAuth() {
+    return this.application.settings.oauth != null;
+  }
+
+  initForm() {
+    let settings;
+    if (this.isOAuth()) {
+      settings = this.formBuilder.group({
+        oauth: this.formBuilder.group({
+          client_secret: new FormControl(this.application.settings.oauth.client_secret, null),
+          client_id: new FormControl(this.application.settings.oauth.client_id, null),
+          redirect_uris: new FormArray([]),
+          grant_types: new FormArray([]),
+        })
+      });
+    } else {
+      settings = this.formBuilder.group({
+        app: this.formBuilder.group({
+          type: new FormControl(this.application.settings.app.type, null),
+          client_id: new FormControl(this.application.settings.app.client_id, null),
+        })
+      });
     }
+
+    this.applicationForm = this.formBuilder.group({
+      id: this.application.id,
+      name: new FormControl(this.application.name, [Validators.required]),
+      description: new FormControl(this.application.description, [Validators.required]),
+      picture: new FormControl(this.application.picture),
+      settings
+    });
+  }
+
+  onSwitchGrant(event, grantType) {
+    if (event.target.value) {
+      this.grantTypes.push(new FormControl(grantType.type));
+    } else {
+      let index = -1;
+      this.grantTypes.controls.forEach((control, i) => {
+        if (control.value === grantType.type) {
+          index = i;
+          return;
+        }
+      });
+      this.grantTypes.removeAt(index);
+    }
+    this.applicationForm.markAsDirty();
+  }
+
+  updateGrantTypes() {
+    if (this.isOAuth()) {
+      this.grantTypes.clear();
+      this.allGrantTypes = this.applicationTypeEntity.allowed_grant_types.map((allowedGrantType) => {
+
+        const value = this.application.settings.oauth.grant_types.find((grant) => allowedGrantType.type === grant) != null;
+
+        const disabled = this.applicationTypeEntity.mandatory_grant_types
+          .find((grant) => allowedGrantType.type === grant.type) != null;
+
+        if (value === true) {
+          this.grantTypes.push(new FormControl(allowedGrantType.type));
+        }
+        return { ...allowedGrantType, disabled, value };
+      });
+      if (this.requiresRedirectUris) {
+        this.redirectURIs.setValidators(Validators.required);
+      }
+      this.redirectURIs.clear();
+      this.application.settings.oauth.redirect_uris.forEach((value) => {
+        this.redirectURIs.push(new FormControl(value));
+      });
+    }
+  }
+
+  get grantTypes() {
+    return this.applicationForm.get('settings.oauth.grant_types') as FormArray;
+  }
+
+  get requiresRedirectUris() {
+    return this.applicationTypeEntity ? this.applicationTypeEntity.requires_redirect_uris : false;
+  }
+
+  addRedirectUri(event) {
+    if (event.target.valid) {
+      const value = event.target.value;
+      if (value && value.trim() !== '') {
+        if (!this.redirectURIs.controls.map((c) => c.value).includes(value)) {
+          this.redirectURIs.push(new FormControl(value, Validators.required));
+          this.applicationForm.markAsDirty();
+        }
+        event.target.value = '';
+      }
+    }
+  }
+
+  get redirectURIs() {
+    return this.applicationForm.get('settings.oauth.redirect_uris') as FormArray;
+  }
+
+  removeRedirectUri(index: number) {
+    this.redirectURIs.removeAt(index);
+    this.applicationForm.markAsDirty();
+  }
+
+  get validRedirectUris() {
+    return this.requiresRedirectUris && this.redirectURIs.length > 0 || !this.requiresRedirectUris;
   }
 
   submit() {
     this.isSaving = true;
     this.applicationService.updateApplicationByApplicationId(
-      { applicationId: this.application.id, Application: this.applicationForm.value }).toPromise().then((application) => {
+      { applicationId: this.application.id, Application: this.applicationForm.getRawValue() }).toPromise().then((application) => {
       this.application = application;
       this.reset();
       this.notificationService.success(i18n('application.success.save'));
@@ -159,7 +261,8 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
     this.applicationService.deleteApplicationByApplicationId({ applicationId: this.application.id }).toPromise().then(() => {
       this.router.navigate(['applications']);
       this.notificationService.success(i18n('application.success.delete'));
-    }).finally(() => this.isDeleting = false);
+    })
+      .finally(() => this.isDeleting = false);
   }
 
   renewSecret() {

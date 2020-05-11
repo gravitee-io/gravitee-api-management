@@ -25,6 +25,10 @@ import { GvButtonCreateApplicationComponent } from '../../components/gv-button-c
 import { GvSelectDashboardComponent } from '../../components/gv-select-dashboard/gv-select-dashboard.component';
 import { SharedModule } from '../../shared/shared.module';
 import { ApplicationAnalyticsComponent } from '../application/application-analytics/application-analytics.component';
+import { ApplicationCreationStep1Component } from '../application/application-creation/application-creation-step1/application-creation-step1.component';
+import { ApplicationCreationStep2Component } from '../application/application-creation/application-creation-step2/application-creation-step2.component';
+import { ApplicationCreationStep3Component } from '../application/application-creation/application-creation-step3/application-creation-step3.component';
+import { ApplicationCreationStep4Component } from '../application/application-creation/application-creation-step4/application-creation-step4.component';
 import { ApplicationCreationComponent } from '../application/application-creation/application-creation.component';
 import { ApplicationGeneralComponent } from '../application/application-general/application-general.component';
 import { ApplicationLogsComponent } from '../application/application-logs/application-logs.component';
@@ -46,6 +50,10 @@ import { ApplicationsComponent } from './applications.component';
     ApplicationSubscriptionsComponent,
     SubscriptionsComponent,
     ApplicationCreationComponent,
+    ApplicationCreationStep1Component,
+    ApplicationCreationStep2Component,
+    ApplicationCreationStep3Component,
+    ApplicationCreationStep4Component,
     GvButtonCreateApplicationComponent,
     GvAnalyticsDashboardComponent,
     GvAnalyticsFiltersComponent,

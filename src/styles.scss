@@ -246,3 +246,13 @@ body {
   justify-content: center;
   display: flex;
 }
+
+
+.invalid {
+  color: var(--gv-theme-color-danger)
+}
+
+.invalid::after {
+  content: '*';
+  margin: 0 0.2rem;
+}

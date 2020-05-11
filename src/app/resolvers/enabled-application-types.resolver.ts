@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import '../../../css/form.css';
+import { Injectable } from '@angular/core';
+import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { ApplicationType, PortalService } from '@gravitee/ng-portal-webclient';
 
-.page__box {
-  max-width: 30rem;
-  margin: auto;
-}
+@Injectable({ providedIn: 'root' })
+export class EnabledApplicationTypesResolver implements Resolve<Array<ApplicationType>> {
 
-.form .form__actions {
-  display: flex;
-  flex-direction: column;
-}
+  constructor(
+    private portalService: PortalService,
+  ) {}
 
-.row {
-  display: inline-flex;
-  margin: 1rem 0;
-  justify-content: center;
-}
+  resolve(route: ActivatedRouteSnapshot) {
+    return this.portalService.getEnabledApplicationTypes()
+      .toPromise()
+      .then((response) => response.data);
+  }
 
-.row div {
-  display: flex;
-  flex-direction: column-reverse;
 }

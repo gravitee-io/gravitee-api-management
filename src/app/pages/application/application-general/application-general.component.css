@@ -36,3 +36,19 @@ gv-identity-picture {
   display: flex;
   flex-direction: row;
 }
+
+
+.grid-content {
+  display: grid;
+  grid-gap: 4rem;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  flex: 1;
+  margin: 2rem 0.2rem 1rem 0.2rem;
+}
+
+.grid-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}

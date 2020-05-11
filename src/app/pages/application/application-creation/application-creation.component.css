@@ -19,7 +19,6 @@
   --gv-table-header--fz: var(--gv-theme-font-size--m, 14px);
   --gv-table-header--p: 0;
   --gv-button--fz: var(--gv-theme-font-size-l);
-  --gv-button--p: 6px 12px;
 }
 
 .page__content {
@@ -41,20 +40,34 @@
 }
 
 .step-content {
-  padding: 1.5rem 3rem;
-  min-height: 480px;
-  max-height: 480px;
-  height: 480px;
+  padding: 1rem 2rem;
+  min-height: 490px;
+  max-height: 490px;
+  height: 490px;
   display: flex;
   flex-direction: column;
 }
 
-.step, .application-creation__form, .application-creation__subscription-form {
+.step-content > * {
+  height: 100%;
+}
+
+.application-creation__form, .application-creation__subscription-form {
+  display: none;
+}
+
+app-application-creation-step1,
+app-application-creation-step2,
+app-application-creation-step3,
+app-application-creation-step4 {
   display: none;
   opacity: 0;
 }
 
-.one .step-1, .two .step-2, .three .step-3, .four .step-4 {
+.one app-application-creation-step1,
+.two app-application-creation-step2,
+.three app-application-creation-step3,
+.four app-application-creation-step4 {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -93,15 +106,15 @@
   }
 }
 
-.step-1 .step-grid-content {
+app-application-creation-step1 .step-grid-content {
   margin-top: 3rem;
 }
 
-.step-3 .step-grid-content {
+app-application-creation-step3 .step-grid-content {
   grid-gap: 0.5rem;
 }
 
-.step-3 gv-option {
+app-application-creation-step3 gv-option {
   height: 410px;
   overflow-x: hidden;
 }
@@ -110,7 +123,7 @@ gv-table {
   height: 430px;
 }
 
-.step-3 gv-option.has-disabled-plans {
+app-application-creation-step3 gv-option.has-disabled-plans {
   height: 320px;
 }
 
@@ -118,7 +131,11 @@ gv-table {
   display: flex;
   justify-content: space-between;
   border-top: 1px solid var(--gv-theme-neutral-color-dark);
-  padding: 2rem 3rem;
+  padding: 2rem;
+}
+
+.application-creation__subscription-form__plans .actions {
+  padding: 0;
 }
 
 .label {
@@ -137,7 +154,7 @@ gv-table {
 .application-creation__stepper {
   display: flex;
   border-bottom: 1px solid var(--gv-theme-neutral-color-dark);
-  padding: 2rem 1rem 1rem 1rem;
+  padding: 1.5rem 1rem 1rem 1rem;
   min-height: 110px;
 }
 
@@ -164,7 +181,7 @@ gv-input, gv-text, gv-option, gv-select, .form-control-grants, gv-switch {
   width: 100%;
 }
 
-gv-file-upload {
+.application-creation__avatar {
   height: 225px;
 }
 
@@ -202,7 +219,6 @@ gv-file-upload {
 }
 
 .message-confirm, .message-pending, .message-error {
-  padding: 4rem;
   --gv-icon--s: 128px;
   display: flex;
   flex-direction: column;
@@ -215,7 +231,7 @@ gv-file-upload {
   --gv-icon--c: var(--gv-theme-font-color-light);
 }
 
-gv-image {
+.application-creation__picture {
   height: 100px;
   width: 100px;
   margin-right: 1rem;
@@ -253,7 +269,7 @@ gv-image {
   color: var(--gv-theme-neutral-color-darker);
 }
 
-gv-autocomplete {
+.application-creation__autocomplete {
   max-width: 600px;
   align-self: center;
 }

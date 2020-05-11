@@ -64,9 +64,6 @@
   max-width: 50%;
   margin-top: 200px;
   text-shadow: 1px 1px 1px #000;
-}
-
-.layout__header__homepage__link {
   --gv-button--p: 1rem 2rem;
   --gv-button--bdrs: 5px;
 }

@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-
-import { ApplicationCreationComponent } from './application-creation.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
-import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
+import { TranslateTestingModule } from '../../../../test/translate-testing-module';
 
-describe('ApplicationCreationComponent', () => {
-  let component: ApplicationCreationComponent;
-  let fixture: ComponentFixture<ApplicationCreationComponent>;
+import { ApplicationCreationStep4Component } from './application-creation-step4.component';
+
+describe('ApplicationCreationStep4Component', () => {
+  let component: ApplicationCreationStep4Component;
+  let fixture: ComponentFixture<ApplicationCreationStep4Component>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -37,18 +35,17 @@ describe('ApplicationCreationComponent', () => {
         FormsModule,
         ReactiveFormsModule
       ],
-      declarations: [ApplicationCreationComponent],
+      declarations: [ApplicationCreationStep4Component],
       schemas: [
         CUSTOM_ELEMENTS_SCHEMA,
       ],
-      providers: [ApiStatesPipe, ApiLabelsPipe]
     })
       .compileComponents();
   }));
 
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationCreationComponent);
+    fixture = TestBed.createComponent(ApplicationCreationStep4Component);
     component = fixture.componentInstance;
   });
 

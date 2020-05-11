@@ -31,10 +31,6 @@
   text-align: center;
 }
 
-.form gv-button {
-  --gv-button--p: 0.7rem 0.5rem
-}
-
 .form gv-input,
 .form gv-text,
 .form gv-select {
@@ -48,7 +44,7 @@
 .form .form__control_inline {
   display: flex;
   flex-direction: row;
-  margin: 0.2rem;
+  margin: 0.2rem 0.2rem 1rem 0.2rem;
   box-sizing: border-box;
   width: 100%;
 }
