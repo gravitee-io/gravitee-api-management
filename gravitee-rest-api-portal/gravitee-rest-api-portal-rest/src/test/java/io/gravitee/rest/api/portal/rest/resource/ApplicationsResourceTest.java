@@ -101,6 +101,44 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldGetApplicationsOrderByName() {
+        ApplicationListItem applicationListItem1 = new ApplicationListItem();
+        applicationListItem1.setId("A");
+        applicationListItem1.setName("A");
+
+        ApplicationListItem applicationListItem2 = new ApplicationListItem();
+        applicationListItem2.setId("B");
+        applicationListItem2.setName("b");
+
+        ApplicationListItem applicationListItem3 = new ApplicationListItem();
+        applicationListItem3.setId("C");
+        applicationListItem3.setName("C");
+        
+        ApplicationListItem applicationListItem4 = new ApplicationListItem();
+        applicationListItem4.setId("D");
+        applicationListItem4.setName("d");
+        
+        Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4));
+        doReturn(mockApplications).when(applicationService).findByUser(any());
+
+        doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
+        doReturn(new Application().id("B").name("b")).when(applicationMapper).convert(eq(applicationListItem2), any());
+        doReturn(new Application().id("C").name("C")).when(applicationMapper).convert(eq(applicationListItem3), any());
+        doReturn(new Application().id("D").name("d")).when(applicationMapper).convert(eq(applicationListItem4), any());
+        
+        
+        final Response response = target().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals(4, applicationsResponse.getData().size());
+        assertEquals("A", applicationsResponse.getData().get(0).getId());
+        assertEquals("B", applicationsResponse.getData().get(1).getId());
+        assertEquals("C", applicationsResponse.getData().get(2).getId());
+        assertEquals("D", applicationsResponse.getData().get(3).getId());
+    }
+    
+    @Test
     public void shouldGetApplicationsOrderByNbSubscriptionsDesc() {
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");
@@ -125,7 +163,66 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(3, subscriptionsMetadata.get("B"));
         assertEquals(2, subscriptionsMetadata.get("A"));
     }
-    
+
+    @Test
+    public void shouldGetApplicationsOrderByNbSubscriptionsDescAndName() {
+        ApplicationListItem applicationListItem1 = new ApplicationListItem();
+        applicationListItem1.setId("A");
+        applicationListItem1.setName("A");
+
+        ApplicationListItem applicationListItem2 = new ApplicationListItem();
+        applicationListItem2.setId("B");
+        applicationListItem2.setName("b");
+
+        ApplicationListItem applicationListItem3 = new ApplicationListItem();
+        applicationListItem3.setId("C");
+        applicationListItem3.setName("C");
+        
+        ApplicationListItem applicationListItem4 = new ApplicationListItem();
+        applicationListItem4.setId("D");
+        applicationListItem4.setName("d");
+        
+        Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4));
+        doReturn(mockApplications).when(applicationService).findByUser(any());
+
+        doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
+        doReturn(new Application().id("B").name("b")).when(applicationMapper).convert(eq(applicationListItem2), any());
+        doReturn(new Application().id("C").name("C")).when(applicationMapper).convert(eq(applicationListItem3), any());
+        doReturn(new Application().id("D").name("d")).when(applicationMapper).convert(eq(applicationListItem4), any());
+        
+        SubscriptionEntity subA1 = new SubscriptionEntity();
+        subA1.setApplication("A");
+        SubscriptionEntity subA2 = new SubscriptionEntity();
+        subA2.setApplication("A");
+        SubscriptionEntity subB1 = new SubscriptionEntity();
+        subB1.setApplication("B");
+        SubscriptionEntity subB2 = new SubscriptionEntity();
+        subB2.setApplication("B");
+        SubscriptionEntity subB3 = new SubscriptionEntity();
+        subB3.setApplication("B");
+        SubscriptionEntity subC1 = new SubscriptionEntity();
+        subC1.setApplication("C");
+        SubscriptionEntity subC2 = new SubscriptionEntity();
+        subC2.setApplication("C");
+        SubscriptionEntity subC3 = new SubscriptionEntity();
+        subC3.setApplication("C");
+        SubscriptionEntity subD1 = new SubscriptionEntity();
+        subD1.setApplication("D");
+        SubscriptionEntity subD2 = new SubscriptionEntity();
+        subD2.setApplication("D");
+        doReturn(Arrays.asList(subA1, subA2, subB1, subB2, subB3, subC1, subC2, subC3, subD1, subD2)).when(subscriptionService).search(any());
+        
+        final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+        assertEquals("B", applicationsResponse.getData().get(0).getId());
+        assertEquals("C", applicationsResponse.getData().get(1).getId());
+        assertEquals("A", applicationsResponse.getData().get(2).getId());
+        assertEquals("D", applicationsResponse.getData().get(3).getId());
+        
+    }
+
     @Test
     public void shouldGetApplicationsWithPaginatedLink() {
         final Response response = target().queryParam("page", 2).queryParam("size", 1).request().get();

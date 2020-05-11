@@ -197,7 +197,7 @@ public class ApplicationsResource extends AbstractResource {
         }
         return new FilteredApplication(applicationsWithCount.entrySet().stream()
                     .sorted(comparingByValue.thenComparing(
-                            Map.Entry.<Application, Long>comparingByKey(Comparator.comparing(Application::getName))))
+                            Map.Entry.<Application, Long>comparingByKey(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER))))
                     .map(Map.Entry::getKey).collect(Collectors.toList()), applicationsMetadata);
     }
 
