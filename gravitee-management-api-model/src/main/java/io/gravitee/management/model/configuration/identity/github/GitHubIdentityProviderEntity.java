@@ -95,7 +95,7 @@ public class GitHubIdentityProviderEntity extends SocialIdentityProviderEntity {
     public Map<String, String> getUserProfileMapping() {
         return new HashMap<String, String>() {
             {
-                put(UserProfile.ID, "email");
+                put(UserProfile.ID, isEmailRequired() ? "email" : "id");
                 put(UserProfile.SUB, "id");
                 put(UserProfile.EMAIL, "email");
                 put(UserProfile.FIRSTNAME, "{#jsonPath(#profile, '$.name').split(' ')[1]}");

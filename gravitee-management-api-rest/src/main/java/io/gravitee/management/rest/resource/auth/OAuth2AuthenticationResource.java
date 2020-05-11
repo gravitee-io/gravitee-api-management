@@ -349,7 +349,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     if (mapping.contains("{#")) {
                         map.put(field, templateEngine.convert(mapping));
                     } else {
-                        map.put(field, userInfoPath.read(mapping));
+                        map.put(field, userInfoPath.read(mapping).toString());
                     }
                 } catch (Exception e) {
                     LOGGER.warn("Using mapping: \"{}\", no fields are located in {}", mapping, userInfo);
