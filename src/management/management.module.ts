@@ -106,6 +106,7 @@ import ApiSubscriptionsComponent from '../management/api/portal/subscriptions/su
 import ApiSubscriptionComponent from '../management/api/portal/subscriptions/subscription.component';
 // Applications
 import ApplicationService from '../services/application.service';
+import ApplicationTypesService from '../services/applicationTypes.service';
 import ApplicationsComponent from './application/applications.component';
 import ApplicationsController from './application/applications.controller';
 
@@ -113,6 +114,7 @@ import ApplicationCreationComponent from './application/creation/steps/applicati
 import ApplicationCreationController from './application/creation/steps/application-creation.controller';
 import ApplicationCreationStep1Component from './application/creation/steps/application-creation-step1.component';
 import ApplicationCreationStep2Component from './application/creation/steps/application-creation-step2.component';
+import ApplicationCreationStep2Controller from './application/creation/steps/application-creation-step2.controller';
 import ApplicationCreationStep3Component from './application/creation/steps/application-creation-step3.component';
 import ApplicationCreationStep4Component from './application/creation/steps/application-creation-step4.component';
 
@@ -708,6 +710,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DialogReviewController', DialogReviewController)
   .controller('DialogRequestForChangesController', DialogRequestForChangesController)
   .service('ApplicationService', ApplicationService)
+  .service('ApplicationTypesService', ApplicationTypesService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
   .service('InstancesService', InstancesService)
@@ -823,6 +826,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('ApplicationCreationController', ApplicationCreationController)
   .component('applicationCreationStep1', ApplicationCreationStep1Component)
   .component('applicationCreationStep2', ApplicationCreationStep2Component)
+  .controller('ApplicationCreationStep2Controller', ApplicationCreationStep2Controller)
   .component('applicationCreationStep3', ApplicationCreationStep3Component)
   .component('applicationCreationStep4', ApplicationCreationStep4Component)
 

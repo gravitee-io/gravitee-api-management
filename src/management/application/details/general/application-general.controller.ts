@@ -18,9 +18,7 @@ import * as _ from 'lodash';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import SidenavService from '../../../../components/sidenav/sidenav.service';
-import {StateService} from '@uirouter/core';
-import {ApplicationType} from '../../../../entities/application';
-import {GrantType} from '../../../../entities/oauth';
+import { StateService } from '@uirouter/core';
 
 interface IApplicationScope extends ng.IScope {
   formApplication: any;
@@ -30,8 +28,6 @@ class ApplicationGeneralController {
 
   private application: any;
   private initialApplication: any;
-  private grantTypes = GrantType.TYPES;
-  private applicationType: ApplicationType;
 
   constructor(
     private ApplicationService: ApplicationService,
@@ -55,7 +51,6 @@ class ApplicationGeneralController {
     });
 
     this.initialApplication = _.cloneDeep(this.application);
-    this.applicationType = ApplicationType[this.application.type];
   }
 
   update() {
@@ -82,7 +77,7 @@ class ApplicationGeneralController {
   }
 
   isOAuthClient() {
-    return this.application.type !== ApplicationType.SIMPLE.value;
+    return this.application.type.toLowerCase() !== 'simple';
   }
 
   showDeleteApplicationConfirm(ev) {
@@ -101,7 +96,7 @@ class ApplicationGeneralController {
         validationValue: this.application.name,
         confirmButton: 'Yes, delete this application.'
       }
-    }).then(function (response) {
+    }).then(function(response) {
       if (response) {
         that.delete();
       }
@@ -120,7 +115,7 @@ class ApplicationGeneralController {
         title: 'Are you sure to renew the client secret?',
         confirmButton: 'Renew'
       }
-    }).then( (response) => {
+    }).then((response) => {
       if (response) {
         this.ApplicationService.renewClientSecret(this.application.id)
           .then((response) => {
@@ -131,12 +126,6 @@ class ApplicationGeneralController {
           });
       }
     });
-  }
-
-  updateGrantTypes() {
-    this.application.settings.oauth.response_types =
-      _.flatMap(this.application.settings.oauth.grant_types,
-        (selected) => _.find(this.grantTypes, (grantType) => grantType.type === selected).response_types);
   }
 
   onCopyClientIdSuccess(e) {

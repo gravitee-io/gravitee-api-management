@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
 import GroupService from '../../services/group.service';
 import * as _ from 'lodash';
 import UserService from '../../services/user.service';
-import {StateParams} from '@uirouter/core';
+import { StateParams } from '@uirouter/core';
 import ApiService from '../../services/api.service';
-import TenantService from '../../services/tenant.service';
-import TagService from '../../services/tag.service';
 import DashboardService from '../../services/dashboard.service';
+import ApplicationTypesService from '../../services/applicationTypes.service';
 
 export default applicationsConfig;
 
@@ -57,7 +57,9 @@ function applicationsConfig($stateProvider) {
       url: '/create',
       component: 'createApplication',
       resolve: {
-        apis: (ApiService: ApiService) => ApiService.list(null, true).then(response => response.data)
+        apis: (ApiService: ApiService) => ApiService.list(null, true).then(response => response.data),
+        enabledApplicationTypes: (ApplicationTypesService: ApplicationTypesService) =>
+          ApplicationTypesService.getEnabledApplicationTypes().then(response => response.data.map((appType) => new ApplicationType(appType))),
       },
       data: {
         perms: {
@@ -75,11 +77,13 @@ function applicationsConfig($stateProvider) {
       resolve: {
         application: ($stateParams, ApplicationService: ApplicationService) =>
           ApplicationService.get($stateParams.applicationId).then(response => response.data),
+        applicationType: ($stateParams, ApplicationService: ApplicationService) =>
+          ApplicationService.getApplicationType($stateParams.applicationId).then(response => response.data),
         resolvedApplicationPermissions: (ApplicationService, $stateParams) => ApplicationService.getPermissions($stateParams.applicationId),
-        onEnter: function (UserService, resolvedApplicationPermissions) {
+        onEnter: function(UserService, resolvedApplicationPermissions) {
           UserService.currentUser.userApplicationPermissions = [];
-          _.forEach(_.keys(resolvedApplicationPermissions.data), function (permission) {
-            _.forEach(resolvedApplicationPermissions.data[permission], function (right) {
+          _.forEach(_.keys(resolvedApplicationPermissions.data), function(permission) {
+            _.forEach(resolvedApplicationPermissions.data[permission], function(right) {
               let permissionName = 'APPLICATION-' + permission + '-' + right;
               UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
             });
@@ -106,7 +110,7 @@ function applicationsConfig($stateProvider) {
       resolve: {
         groups: (UserService: UserService, GroupService: GroupService) => {
           return GroupService.list().then((groups) => {
-            return  _.filter(groups.data, 'manageable');
+            return _.filter(groups.data, 'manageable');
           });
         }
       }

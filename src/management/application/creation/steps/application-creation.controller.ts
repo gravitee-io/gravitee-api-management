@@ -15,6 +15,7 @@
  */
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
+import _ = require('lodash');
 
 class ApplicationCreationController {
   private application: any;

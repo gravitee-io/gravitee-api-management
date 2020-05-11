@@ -24,9 +24,9 @@
               <div layout="row" layout-margin layout-align="center center">
                 <div flex="20" layout="column"
                      class="application-type-box"
-                     ng-class="{'application-type-box-selected' : type.value === $ctrl.selectedType.value, 'application-type-box-unselected' : type.value !== $ctrl.selectedType.value}"
+                     ng-class="{'application-type-box-selected' : type.id === $ctrl.selectedType.id, 'application-type-box-unselected' : type.id !== $ctrl.selectedType.id}"
                      ng-click="$ctrl.selectType(type)"
-                     ng-repeat="type in $ctrl.allowedTypes">
+                     ng-repeat="type in $ctrl.parent.enabledApplicationTypes">
                   <ng-md-icon class="icon" size="48" icon="{{::type.icon}}"></ng-md-icon>
                   <span class="title">{{::type.name}}</span>
                   <span class="description">{{::type.description}}</span>
@@ -34,8 +34,8 @@
               </div>
             </div>
 
-            <div ng-if="$ctrl.parent.isOAuthClient()">
-              <div class="gv-form-content" layout="column" ng-if="$ctrl.selectedType.oauth.allowed_grant_types">
+            <div ng-if="$ctrl.selectedType.isOauth()">
+              <div class="gv-form-content" layout="column" ng-if="$ctrl.selectedType.allowed_grant_types">
                 <md-input-container class="md-block">
                   <label>Allowed grant types</label>
                   <md-select ng-model="$ctrl.parent.application.settings.oauth.grant_types"
@@ -43,7 +43,7 @@
                              multiple required>
                     <md-option
                       ng-value="grantType.type"
-                      ng-repeat="grantType in $ctrl.selectedType.oauth.allowed_grant_types"
+                      ng-repeat="grantType in $ctrl.selectedType.allowed_grant_types"
                       ng-disabled="$ctrl.selectedType.isGrantTypeMandatory(grantType)">
                       {{::grantType.name}}
                     </md-option>
@@ -53,7 +53,7 @@
                   </div>
                 </md-input-container>
 
-                <md-input-container class="md-block" ng-if="$ctrl.selectedType.oauth.requires_redirect_uris">
+                <md-input-container class="md-block" ng-if="$ctrl.displayRedirectUris()">
                   <label>Redirect URIs *</label>
                   <md-chips
                     required

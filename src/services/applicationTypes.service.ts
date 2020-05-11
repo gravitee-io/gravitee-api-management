@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationCreationComponent: ng.IComponentOptions = {
-  bindings: {
-    apis: '<',
-    enabledApplicationTypes: '<',
-  },
-  template: require('./application-creation.html'),
-  controller: 'ApplicationCreationController'
-};
 
-export default ApplicationCreationComponent;
+import { ApplicationType } from '../entities/application';
+
+class ApplicationTypesService {
+  private URL: string;
+
+  constructor(private $http: ng.IHttpService, Constants) {
+    'ngInject';
+    this.URL = `${Constants.baseURL}configuration/applications/types`;
+  }
+
+  getEnabledApplicationTypes(): ng.IHttpPromise<Array<ApplicationType>> {
+    return this.$http.get(this.URL);
+  }
+
+}
+
+export default ApplicationTypesService;

@@ -16,7 +16,8 @@
 const ApplicationGeneralComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
-    groups: '<'
+    groups: '<',
+    applicationType: '<'
   },
   controller: 'ApplicationGeneralController',
   template: require('./application-general.html')

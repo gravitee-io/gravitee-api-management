@@ -135,7 +135,7 @@
                      multiple required>
             <md-option
               ng-value="grantType.type"
-              ng-repeat="grantType in $ctrl.applicationType.oauth.allowed_grant_types"
+              ng-repeat="grantType in $ctrl.applicationType.allowed_grant_types"
               ng-disabled="$ctrl.applicationType.isGrantTypeMandatory(grantType)">
               {{::grantType.name}}
             </md-option>
@@ -145,7 +145,7 @@
           </div>
         </md-input-container>
 
-        <md-input-container class="md-block" ng-if="$ctrl.applicationType.oauth.requires_redirect_uris">
+        <md-input-container class="md-block" ng-if="$ctrl.applicationType.requires_redirect_uris">
           <label>Redirect URIs</label>
           <md-chips required
                     ng-model="$ctrl.application.settings.oauth.redirect_uris"

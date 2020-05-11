@@ -16,6 +16,8 @@
 import ApiService from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
+import _ = require('lodash');
+
 class ApplicationSubscribeController {
   private subscriptions: any;
   private subscribedAPIs: any[] = [];
