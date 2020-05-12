@@ -100,7 +100,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         
         when(groupService.findById(GROUP_ID)).thenReturn(groupEntityMock);
         when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(userEntity.getId(), io.gravitee.repository.management.model.MembershipMemberType.USER ,io.gravitee.repository.management.model.MembershipReferenceType.GROUP, GROUP_ID))
-            .thenReturn(Collections.emptySet(), new HashSet<>(Arrays.asList(newMembership)));
+            .thenReturn(new HashSet<>(Arrays.asList(newMembership)), Collections.emptySet());
         when(membershipRepository.create(any())).thenReturn(newMembership);
 
         membershipService.addRoleToMemberOnReference(
@@ -109,7 +109,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
 
         verify(userService, times(1)).findById(userEntity.getId());
-        verify(membershipRepository, times(1)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(userEntity.getId(), io.gravitee.repository.management.model.MembershipMemberType.USER ,io.gravitee.repository.management.model.MembershipReferenceType.GROUP, GROUP_ID);
+        verify(membershipRepository, times(2)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(userEntity.getId(), io.gravitee.repository.management.model.MembershipMemberType.USER ,io.gravitee.repository.management.model.MembershipReferenceType.GROUP, GROUP_ID);
         verify(membershipRepository, times(1)).create(any());
         verify(membershipRepository, never()).update(any());
         verify(emailService, times(1)).sendAsyncEmailNotification(any());
