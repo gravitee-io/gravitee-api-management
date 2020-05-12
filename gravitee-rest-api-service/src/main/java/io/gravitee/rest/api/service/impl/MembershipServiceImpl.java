@@ -136,7 +136,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     membershipRepository.create(membership);
                     createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
 
-                    if (userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
+                    Set<io.gravitee.repository.management.model.Membership> userRolesOnReference = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(userEntity.getId(), convert(member.getMemberType()), convert(reference.getType()), reference.getId());
+                    if (userRolesOnReference != null && userRolesOnReference.size() == 1 && userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
                         EmailNotification emailNotification = buildEmailNotification(userEntity, reference.getType(), reference.getId());
                         if (emailNotification != null) {
                             emailService.sendAsyncEmailNotification(emailNotification);
