@@ -150,7 +150,7 @@ function managementRouterConfig($stateProvider) {
           only: ['environment-platform-r']
         },
         docs: {
-          page: 'environment-dashboard'
+          page: 'management-api-logs'
         }
       },
       params: {
@@ -194,7 +194,7 @@ function managementRouterConfig($stateProvider) {
           only: ['environment-platform-r']
         },
         docs: {
-          page: 'environment-dashboard'
+          page: 'management-api-log'
         }
       }
     })
