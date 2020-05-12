@@ -25,6 +25,7 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ConfigurationService } from '../services/configuration.service';
 
 export const SILENT_CODES = ['errors.rating.disabled', 'errors.analytics.calculate'];
+export const SILENT_URLS = ['/user/notifications'];
 
 @Injectable()
 export class ApiRequestInterceptor implements HttpInterceptor {
@@ -54,19 +55,24 @@ export class ApiRequestInterceptor implements HttpInterceptor {
         }
       },
       (err: any) => {
+        const silentCall = SILENT_URLS.find(silentUrl => err.url.includes(silentUrl));
         if (err.status === 404) {
-          this.router.navigate(['/404']);
+          if (!silentCall) {
+            this.router.navigate(['/404']);
+          }
         }
         if (err instanceof HttpErrorResponse) {
           if (err.status === 0) {
-            this.notificationService.error(i18n('errors.server.unavailable'));
+            if (!silentCall) {
+              this.notificationService.error(i18n('errors.server.unavailable'));
+            }
           } else if (err.status === 401) {
             this.currentUserService.revokeUser();
           }
         }
         if (err.error && err.error.errors) {
           const error = err.error.errors[0];
-          if (!SILENT_CODES.includes(error.code)) {
+          if (!SILENT_CODES.includes(error.code) && !silentCall) {
             this.notificationService.error(error.code, error.parameters, error.message);
           }
 
