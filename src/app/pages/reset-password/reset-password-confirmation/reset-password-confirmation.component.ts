@@ -17,8 +17,6 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-webclient';
-import { NotificationService } from '../../../services/notification.service';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TokenService } from '../../../services/token.service';
 import { GvValidators } from '../../../utils/gv-validators';
 
@@ -39,7 +37,6 @@ export class ResetPasswordConfirmationComponent implements OnInit {
     private usersService: UsersService,
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
-    private notificationService: NotificationService,
     private tokenService: TokenService,
   ) {
   }
@@ -60,10 +57,6 @@ export class ResetPasswordConfirmationComponent implements OnInit {
 
     this.resetPasswordConfirmationForm.get('confirmedPassword')
       .setValidators([Validators.required, GvValidators.sameValueValidator(this.resetPasswordConfirmationForm.get('password'))]);
-
-    if (this.isTokenExpired) {
-      this.notificationService.info(i18n('resetPasswordConfirmation.tokenExpired'));
-    }
   }
 
   onSubmitResetPasswordConfirmationForm() {
@@ -75,13 +68,9 @@ export class ResetPasswordConfirmationComponent implements OnInit {
         firstname: this.userFromToken.firstname,
         lastname: this.userFromToken.lastname
       };
-      // call the register resource from the API.
-      this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input }).subscribe(
-        () => {
-          this.notificationService.success(i18n('resetPasswordConfirmation.notification.success'));
-          this.isSubmitted = true;
-        }
-      );
+      this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input })
+        .toPromise()
+        .then(() => this.isSubmitted = true);
     }
   }
 }

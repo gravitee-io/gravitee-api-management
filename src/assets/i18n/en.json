@@ -796,8 +796,9 @@
     "email": "Email",
     "firstname": "First name",
     "lastname": "Last name",
-    "notification": {
-      "success": "Registration confirmed! An email has been sent to: {email}"
+    "success": {
+      "message": "An email has been sent to: {email}",
+      "title": "Registration confirmed!"
     },
     "title": "Create an account"
   },
@@ -810,10 +811,11 @@
     "email": "Email",
     "firstname": "First name",
     "lastname": "Last name",
-    "notification": {
-      "success": "Your account creation is confirmed"
-    },
     "password": "Choose a password",
+    "success": {
+      "message": "Your account creation has been confirmed",
+      "title": "Registration succeeded"
+    },
     "title": "Confirm the registration",
     "tokenExpired": "Your account creation request has expired"
   },
@@ -821,8 +823,9 @@
     "backHome": "Back to portal",
     "backLogin": "Back to Sign in",
     "button": "Reset your password",
-    "notification": {
-      "success": "Password reset confirmed! If the account exists an email will be sent."
+    "success": {
+      "message": "If the account exists an email will be sent.",
+      "title": "Password reset confirmed!"
     },
     "title": "Reset your password",
     "username": "Username"
@@ -836,10 +839,11 @@
     "email": "Email",
     "firstname": "First name",
     "lastname": "Last name",
-    "notification": {
-      "success": "Your password has been modified"
-    },
     "password": "Choose a password",
+    "success": {
+      "message": "Your password has been modified",
+      "title": "Reset succeeded"
+    },
     "title": "Choose a password",
     "tokenExpired": "Your password reset request has expired"
   },

@@ -796,8 +796,9 @@
     "email": "Email",
     "firstname": "Křestní jméno",
     "lastname": "Přijmení",
-    "notification": {
-      "success": "Registrace potvrzena! E-mail byl odeslán na adresu: {email}"
+    "success": {
+      "message": "E-mail byl odeslán na adresu: {email}",
+      "title": "Registrace potvrzena!"
     },
     "title": "Vytvořit účet"
   },
@@ -810,10 +811,11 @@
     "email": "Email",
     "firstname": "Křestní jméno",
     "lastname": "Přijmení",
-    "notification": {
-      "success": "Vytvoření vašeho účtu je potvrzeno"
-    },
     "password": "Vyberte heslo",
+    "success": {
+      "message": "Vytvoření vašeho účtu bylo potvrzeno",
+      "title": "Registrace proběhla úspěšně"
+    },
     "title": "Potvrdit registraci",
     "tokenExpired": "Platnost vašeho požadavku na vytvoření účtu vypršela"
   },
@@ -821,8 +823,9 @@
     "backHome": "Zpátky na portal",
     "backLogin": "Zpátky na přihlášení",
     "button": "Obnovit heslo",
-    "notification": {
-      "success": "Obnovení hesla bylo potvrzeno! Pokud účet existuje, bude zaslán e-mail."
+    "success": {
+      "message": "Pokud účet existuje, bude zaslán e-mail.",
+      "title": "Obnovení hesla bylo potvrzeno!"
     },
     "title": "Obnovit heslo",
     "username": "Uživatelské jméno"
@@ -836,10 +839,11 @@
     "email": "Email",
     "firstname": "Křestní jméno",
     "lastname": "Přijmení",
-    "notification": {
-      "success": "Vaše heslo bylo obnoveno"
-    },
     "password": "Vyberte heslo",
+    "success": {
+      "message": "Vaše heslo bylo obnoveno",
+      "title": "Obnovit proběhla úspěšně"
+    },
     "title": "Vyberte heslo",
     "tokenExpired": "Platnost vašeho požadavku na resetování hesla vypršela"
   },

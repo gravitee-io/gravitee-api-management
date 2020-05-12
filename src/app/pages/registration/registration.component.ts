@@ -16,7 +16,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { RegisterUserInput, UsersService } from '@gravitee/ng-portal-webclient';
-import { NotificationService } from '../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
@@ -31,7 +30,6 @@ export class RegistrationComponent implements OnInit {
   constructor(
     private usersService: UsersService,
     private formBuilder: FormBuilder,
-    private notificationService: NotificationService,
   ) {
     this.isSubmitted = false;
   }
@@ -52,13 +50,9 @@ export class RegistrationComponent implements OnInit {
         lastname: this.registrationForm.value.lastname,
         confirmation_page_url: window.location.href + '/confirm'
       };
-      // call the register resource from the API.
-      this.usersService.registerNewUser({ RegisterUserInput: input }).subscribe(
-        user => {
-          this.notificationService.success(i18n('registration.notification.success'), { email: user.email });
-          this.isSubmitted = true;
-        }
-      );
+      this.usersService.registerNewUser({ RegisterUserInput: input })
+        .toPromise()
+        .then(() => this.isSubmitted = true);
     }
   }
 }

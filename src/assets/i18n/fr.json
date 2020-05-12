@@ -796,8 +796,9 @@
     "email": "Adresse email",
     "firstname": "Prénom",
     "lastname": "Nom",
-    "notification": {
-      "success": "Enregistrement confirmé ! Un email a été envoyé à : {email}"
+    "success": {
+      "message": "Un email a été envoyé à : {email}",
+      "title": "Enregistrement confirmé !"
     },
     "title": "Créer un compte"
   },
@@ -810,10 +811,11 @@
     "email": "Adresse email",
     "firstname": "Prénom",
     "lastname": "Nom",
-    "notification": {
-      "success": "Votre création de compte est confirmé"
-    },
     "password": "Choisissez un mot de passe",
+    "success": {
+      "message": "Votre création de compte est confirmée",
+      "title": "Inscription réussie"
+    },
     "title": "Finaliser son inscription",
     "tokenExpired": "Votre demande de création de compte a expiré"
   },
@@ -821,8 +823,9 @@
     "backHome": "Retour au portail",
     "backLogin": "Retour à la page d'identification",
     "button": "Réinitialisez votre mot de passe",
-    "notification": {
-      "success": "Réinitilisation du mot de passe confirmée! Si le compte existe, un email sera envoyé."
+    "success": {
+      "message": "Si le compte existe, un email sera envoyé.",
+      "title": "Réinitilisation du mot de passe confirmée!"
     },
     "title": "Réinitialisez votre mot de passe",
     "username": "Identifiant"
@@ -830,16 +833,17 @@
   "resetPasswordConfirmation": {
     "backHome": "Retour au portail",
     "backLogin": "Retour à la page d'identification",
-    "backResetPassword": "Retour à la page de demande de réinitialisation de mot de passe",
+    "backResetPassword": "Retour à la page<br/>de réinitialisation de mot de passe",
     "button": "Confirmer",
     "confirmedPassword": "Confirmez le mot de passe",
     "email": "Email",
     "firstname": "Prénom",
     "lastname": "Nom",
-    "notification": {
-      "success": "Votre mot de passe a bien été modifié"
-    },
     "password": "Choisissez un mot de passe",
+    "success": {
+      "message": "Votre mot de passe a bien été modifié",
+      "title": "Modification réussie"
+    },
     "title": "Modification de mot de passe",
     "tokenExpired": "Votre demande de réinitialisation de mot de passe a expiré"
   },

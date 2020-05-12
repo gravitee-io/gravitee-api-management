@@ -13,23 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import {
-  AbstractControl,
-  AbstractControlOptions, AsyncValidatorFn,
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ValidationErrors,
-  ValidatorFn,
-  Validators
-} from '@angular/forms';
-import { unwrapLazyLoadHelperCall } from '@angular/localize/src/tools/src/translate/source_files/source_file_utils';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-webclient';
-import { NotificationService } from '../../../services/notification.service';
 import { TokenService } from '../../../services/token.service';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { GvValidators } from '../../../utils/gv-validators';
 
 @Component({
@@ -49,7 +37,6 @@ export class RegistrationConfirmationComponent implements OnInit {
     private usersService: UsersService,
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
-    private notificationService: NotificationService,
     private tokenService: TokenService,
   ) {
   }
@@ -71,9 +58,6 @@ export class RegistrationConfirmationComponent implements OnInit {
     this.registrationConfirmationForm.get('confirmedPassword')
       .setValidators([Validators.required, GvValidators.sameValueValidator(this.registrationConfirmationForm.get('password'))]);
 
-    if (this.isTokenExpired) {
-      this.notificationService.info(i18n('registrationConfirmation.tokenExpired'));
-    }
   }
 
   onSubmitRegistrationConfirmationForm() {
@@ -84,12 +68,9 @@ export class RegistrationConfirmationComponent implements OnInit {
         firstname:this.userFromToken.firstname,
         lastname: this.userFromToken.lastname
       };
-      this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input }).subscribe(
-        () => {
-          this.notificationService.success(i18n('registrationConfirmation.notification.success'));
-          this.isSubmitted = true;
-        }
-      );
+      this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input })
+        .toPromise()
+        .then(() => this.isSubmitted = true);
     }
   }
 }

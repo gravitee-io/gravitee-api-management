@@ -16,8 +16,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { UsersService, ResetUserPasswordInput } from '@gravitee/ng-portal-webclient';
-import { NotificationService } from '../../services/notification.service';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 @Component({
   selector: 'app-reset-password',
@@ -31,32 +29,25 @@ export class ResetPasswordComponent implements OnInit {
   constructor(
     private usersService: UsersService,
     private formBuilder: FormBuilder,
-    private notificationService: NotificationService,
-  ) {}
+  ) {
+    this.isSubmitted = false;
+  }
 
   ngOnInit() {
     this.resetPasswordForm = this.formBuilder.group({
       username: ''
     });
-
-    this.isSubmitted = false;
   }
-
 
   onSubmitResetPassword() {
     if (this.resetPasswordForm.valid && !this.isSubmitted) {
-
       const input: ResetUserPasswordInput = {
         username: this.resetPasswordForm.value.username,
         reset_page_url: window.location.href + '/confirm'
       };
-      // call the register resource from the API.
-      this.usersService.resetUserPassword({ ResetUserPasswordInput: input }).subscribe(
-        (user) => {
-          this.notificationService.success(i18n('resetPassword.notification.success'));
-          this.isSubmitted = true;
-        }
-      );
+      this.usersService.resetUserPassword({ ResetUserPasswordInput: input })
+        .toPromise()
+        .then(() => this.isSubmitted = true);
     }
   }
 }

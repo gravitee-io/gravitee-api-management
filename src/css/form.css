@@ -57,3 +57,24 @@
 .form .form__control_inline > *:first-child {
   margin: 0;
 }
+
+.form .form__message {
+  align-content: center;
+  align-items: center;
+  background-color: var(--gv-theme-color);
+  border-radius: 2px;
+  color: var(--gv-theme-font-color-light);
+  --gv-icon--c: var(--gv-theme-font-color-light);
+  --gv-icon--s: 100px;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--gv-theme-font-size-xs);
+  justify-content: space-around;
+  line-height: 22px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.form .form__message > * {
+  margin: 1rem 0;
+}
