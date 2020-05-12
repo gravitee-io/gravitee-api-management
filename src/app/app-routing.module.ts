@@ -63,7 +63,7 @@ export const routes: Routes = [
     data: {
       title: i18n('route.catalog'),
       menu: { hiddenPaths: ['categories/:categoryId', 'api/'] },
-      fallbackRedirectTo: 'catalog/featured',
+      fallbackRedirectTo: 'catalog/all',
     },
     children: [
       { path: '', redirectTo: 'categories', pathMatch: 'full' },
@@ -145,6 +145,17 @@ export const routes: Routes = [
         },
       },
       {
+        path: 'all',
+        component: FilteredCatalogComponent,
+        data: {
+          title: i18n('route.catalogAll'),
+          icon: 'code:git#2',
+          menu: { slots: { 'right-transition': GvSearchApiComponent } },
+          categoryApiQuery: null,
+          animation: { type: 'slide', group: 'catalog', index: 2 }
+        }
+      },
+      {
         path: 'featured',
         component: FilteredCatalogComponent,
         data: {
@@ -152,7 +163,7 @@ export const routes: Routes = [
           icon: 'home:flower#2',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           categoryApiQuery: CategoryApiQuery.FEATURED,
-          animation: { type: 'slide', group: 'catalog', index: 2 }
+          animation: { type: 'slide', group: 'catalog', index: 3 }
         }
       },
       {
@@ -165,7 +176,7 @@ export const routes: Routes = [
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           categoryApiQuery: CategoryApiQuery.STARRED,
           expectedFeature: FeatureEnum.rating,
-          animation: { type: 'slide', group: 'catalog', index: 3 }
+          animation: { type: 'slide', group: 'catalog', index: 4 }
         }
       },
       {
@@ -176,7 +187,7 @@ export const routes: Routes = [
           icon: 'home:fireplace',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           categoryApiQuery: CategoryApiQuery.TRENDINGS,
-          animation: { type: 'slide', group: 'catalog', index: 4 }
+          animation: { type: 'slide', group: 'catalog', index: 5 }
         }
       }
     ]

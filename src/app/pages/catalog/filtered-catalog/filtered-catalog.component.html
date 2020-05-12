@@ -29,7 +29,7 @@
                 [href]="this.promotedApiPath"
                 (:gv-promote:click)="goToApi(promotedApi)"></gv-promote>
 
-    <article class="catalog__article__random" *ngIf="!inCategory()">
+    <article class="catalog__article__random" *ngIf="!inCategory() && !inCategoryAll()">
       <h3 class="title">{{'catalog.othersApi.title' | translate}}
         <p>{{'catalog.othersApi.subTitle' | translate}}</p></h3>
 
