@@ -71,7 +71,7 @@
     </div>
 
     <footer class="layout__footer">
-        <section class="layout__footer__top">
+        <section class="layout__footer__top" *ngIf="links.footer">
             <div class="layout__footer__top__logo">
                 <a [routerLink]="'/'" title="{{ 'site.title' | translate }}"></a>
             </div>
