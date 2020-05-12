@@ -23,7 +23,7 @@ import { applyTheme } from '@gravitee/ui-components/src/lib/theme';
 })
 export class ConfigurationService {
 
-  private config: object;
+  private config: any;
 
   constructor(private http: HttpClient) {
   }
@@ -36,18 +36,16 @@ export class ConfigurationService {
     return new Promise((resolve) => {
       this.http.get('./assets/config.json').subscribe((configJson: any) => {
         document.documentElement.style.setProperty('--gv-theme-loader', `url('${configJson.loaderUrl}')`);
-        this.http.get(configJson.baseUrl + '/configuration').subscribe((configPortal) => {
-          this.config = this._deepMerge(configJson, configPortal);
-          resolve(true);
-        }, () => resolve(false));
 
         this.http.get(configJson.baseUrl + '/theme').toPromise()
           .then((theme) => {
             applyTheme(theme);
-          })
-          .catch(() => {
           });
 
+        this.http.get(configJson.baseUrl + '/configuration').subscribe((configPortal) => {
+          this.config = this._deepMerge(configJson, configPortal);
+          resolve(true);
+        }, () => resolve(false));
       });
     });
   }

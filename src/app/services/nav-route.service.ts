@@ -196,39 +196,6 @@ export class NavRouteService {
     return null;
   }
 
-  getBreadcrumbs(route: ActivatedRoute, url: string = '', breadcrumbs: INavRoute[] = []): Promise<INavRoute[]> {
-    const ROUTE_DATA_BREADCRUMB = 'breadcrumb';
-
-    const children: ActivatedRoute[] = route.children;
-
-    if (children.length === 0) {
-      // @ts-ignore
-      return breadcrumbs;
-    }
-
-    for (const child of children) {
-      if (child.outlet !== PRIMARY_OUTLET) {
-        continue;
-      }
-
-      if (!child.snapshot.data.hasOwnProperty(ROUTE_DATA_BREADCRUMB)) {
-        return this.getBreadcrumbs(child, url, breadcrumbs);
-      }
-
-      if (child.snapshot.data[ROUTE_DATA_BREADCRUMB] === true) {
-        const routeURL: string = child.snapshot.url.map(segment => segment.path).join('/');
-        url += `/${routeURL}`;
-
-        const breadcrumb = this.translateService.get(child.snapshot.data.title)
-          .toPromise()
-          .then((_title) => ({ title: _title, path: url }));
-        // @ts-ignore
-        breadcrumbs.push(breadcrumb);
-      }
-      return this.getBreadcrumbs(child, url, breadcrumbs);
-    }
-  }
-
   navigateForceRefresh(commands: any[], extras?: NavigationExtras) {
     this.router.navigate([], { ...extras, ...{
         queryParams: { skipRefresh: true },

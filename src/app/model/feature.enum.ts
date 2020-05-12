@@ -17,6 +17,7 @@ export enum FeatureEnum {
   applications = 'portal.applications.enabled',
   applicationCreation = 'portal.applicationCreation.enabled',
   contact = 'portal.support.enabled',
+  forceLogin = 'authentication.forceLogin.enabled',
   googleAnalytics = 'portal.analytics.enabled',
   localLogin = 'authentication.localLogin.enabled',
   rating = 'portal.rating.enabled',

@@ -21,12 +21,13 @@ import '@gravitee/ui-components/wc/gv-user-menu';
 import '@gravitee/ui-components/wc/gv-theme';
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ComponentFactoryResolver,
   HostListener,
+  OnDestroy,
   OnInit,
   ViewChild,
-  OnDestroy, ChangeDetectorRef,
 } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
@@ -112,6 +113,10 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       if (event instanceof NavigationStart) {
         this.notificationService.reset();
       } else if (event instanceof NavigationEnd) {
+        if (!this.currentUserService.exist() && !this.isInLogin() && this.forceLogin()) {
+          const redirectUrl = this.router.routerState.snapshot.url;
+          this.router.navigate(['/user/login'], { replaceUrl: true, queryParams: { redirectUrl } });
+        }
         const currentRoute: ActivatedRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
         this._setBrowserTitle(currentRoute);
         this.isPreview = previewService.isActive();
@@ -413,6 +418,14 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   goTo(path: string) {
     this.router.navigate([path]);
+  }
+
+  isInLogin(): boolean {
+    return this.router.routerState.snapshot.url.startsWith('/user/login');
+  }
+
+  forceLogin(): boolean {
+    return this.configurationService.hasFeature(FeatureEnum.forceLogin);
   }
 
   @HostListener(':gv-list:click', ['$event.detail'])
