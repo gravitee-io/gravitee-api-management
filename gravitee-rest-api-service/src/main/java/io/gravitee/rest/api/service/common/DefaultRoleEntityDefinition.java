@@ -30,10 +30,8 @@ public interface DefaultRoleEntityDefinition {
             ORGANIZATION,
             true,
             Maps.<String, char[]>builder()
-                .put(OrganizationPermission.USER.getName(), new char[]{READ.getId()})
                 .put(OrganizationPermission.ENVIRONMENT.getName(), new char[]{READ.getId()})
                 .put(OrganizationPermission.ROLE.getName(), new char[]{READ.getId()})
-
                 .build()
             );
 

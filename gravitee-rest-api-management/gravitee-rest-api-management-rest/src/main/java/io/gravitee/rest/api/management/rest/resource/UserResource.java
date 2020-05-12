@@ -178,6 +178,9 @@ public class UserResource extends AbstractResource {
     
     @PUT
     @Path("/roles")
+    @Permissions(
+            @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE)
+    )
     public Response updateUserRoles(@PathParam("id") String userId, List<String> roleIds ) {
         userService.updateUserRoles(userId, roleIds);
         return Response.ok().build();
