@@ -126,7 +126,7 @@ export class AuthService {
 
   private _fetchProviderAndConfigure(): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
-      this.portalService.getPortalIdentityProvider({ identityProviderId: this.getProviderId() }).subscribe(
+      this.portalService.getPortalIdentityProvider({ identityProviderId: this.getProviderId() }).toPromise().then(
         (identityProvider) => {
           if (identityProvider) {
             this._configure(identityProvider);

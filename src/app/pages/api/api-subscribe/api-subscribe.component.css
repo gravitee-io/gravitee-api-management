@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 .api-subscribe__header {
   background-color: var(--gv-theme-color-dark);
   color: var(--gv-theme-font-color-light);
@@ -132,8 +131,4 @@
 aside {
   display: flex;
   flex-direction: column;
-}
-
-gv-info-api {
-  margin-bottom: 1rem;
 }
