@@ -201,7 +201,7 @@
 }
 
 .layout__footer__top__logo a {
-  background-image: var(--gv-theme-logo-optional);
+  background-image: var(--gv-theme-optional-logo);
   background-size: contain;
   background-repeat: no-repeat;
   display: inline-block;
