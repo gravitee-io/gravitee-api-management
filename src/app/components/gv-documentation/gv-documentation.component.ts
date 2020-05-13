@@ -81,6 +81,7 @@ export class GvDocumentationComponent {
 
   static MENU_TOP = 128;
   static MENU_BOTTOM = 42;
+  static PAGE_COMPONENT = 'app-gv-page';
 
   currentPage: Page;
   currentMenuItem: TreeItem;
@@ -98,10 +99,10 @@ export class GvDocumentationComponent {
   @Input() fragment: string;
 
   static updateMenuPosition(menuElement, lastTop) {
-      const scrollTop = document.scrollingElement.scrollTop;
-    if (menuElement && document.querySelector('.gv-documentation__content')) {
+    const scrollTop = document.scrollingElement.scrollTop;
+    if (menuElement && document.querySelector(this.PAGE_COMPONENT)) {
       const { height } = menuElement.getBoundingClientRect();
-      const contentHeight = document.querySelector('.gv-documentation__content').getBoundingClientRect().height;
+      const contentHeight = document.querySelector(this.PAGE_COMPONENT).getBoundingClientRect().height;
       if (contentHeight - scrollTop <= height) {
         menuElement.style.top = `${lastTop}px`;
         menuElement.style.bottom = `${contentHeight - scrollTop}px`;
@@ -112,7 +113,6 @@ export class GvDocumentationComponent {
         return scrollTop + GvDocumentationComponent.MENU_TOP;
       }
     } else {
-
       this.reset(menuElement);
       return scrollTop + GvDocumentationComponent.MENU_TOP;
     }

@@ -139,7 +139,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
       // @ts-ignore
       document.querySelector('.layout__content').style.height = height;
       // @ts-ignore
-      document.querySelector('.gv-documentation__content').style.height = height;
+      document.querySelector(GvDocumentationComponent.PAGE_COMPONENT).style.height = height;
       // @ts-ignore
       this.redocMenu.style.position = 'fixed';
       // @ts-ignore
@@ -168,7 +168,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
 
 
   ngOnDestroy() {
-    ['.layout__content', '.gv-documentation__content'].forEach((xpath) => {
+    ['.layout__content', GvDocumentationComponent.PAGE_COMPONENT].forEach((xpath) => {
       const element = document.querySelector(xpath);
       if (element) {
         // @ts-ignore
