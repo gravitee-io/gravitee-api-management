@@ -65,7 +65,7 @@ function configurationRouterConfig($stateProvider) {
       url: '/views',
       component: 'views',
       resolve: {
-        views: (ViewService: ViewService) => ViewService.list(true).then(response => response.data)
+        views: (ViewService: ViewService) => ViewService.list().then(response => response.data)
       },
       data: {
         menu: null,
@@ -330,7 +330,7 @@ function configurationRouterConfig($stateProvider) {
         },
         viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
-            return ViewService.list(true).then(response => response.data);
+            return ViewService.list().then(response => response.data);
           }
         }
       },
@@ -418,7 +418,7 @@ function configurationRouterConfig($stateProvider) {
         },
         viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
-            return ViewService.list(true).then(response => response.data);
+            return ViewService.list().then(response => response.data);
           }
         }
       },

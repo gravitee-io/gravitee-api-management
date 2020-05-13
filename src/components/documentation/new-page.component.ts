@@ -64,7 +64,6 @@ const NewPageComponent: ng.IComponentOptions = {
       this.foldersById = _.keyBy(this.folders, 'id');
       this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
       this.pageList = this.buildPageList(this.pageResources);
-      this.viewResources = _.filter(this.viewResources, (v) => v.id !== 'all');
 
       this.fetchers = this.resolvedFetchers;
       if (DocumentationService.supportedTypes(this.getFolderSituation(this.page.parentId)).indexOf(this.page.type) < 0) {

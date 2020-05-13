@@ -393,7 +393,7 @@ function apisPortalRouterConfig($stateProvider) {
         },
         viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
-            return ViewService.list(true).then(response => response.data);
+            return ViewService.list().then(response => response.data);
           }
         }
       },
@@ -481,7 +481,7 @@ function apisPortalRouterConfig($stateProvider) {
         },
         viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
-            return ViewService.list(true).then(response => response.data);
+            return ViewService.list().then(response => response.data);
           }
         }
       },

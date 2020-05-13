@@ -110,9 +110,6 @@ class ApiPortalController {
     this.initState();
 
     this.views = resolvedViews;
-    _.remove( this.views, (item) => {
-      return item.id === 'all';
-    });
 
     this.tags = resolvedTags;
     this.groups = resolvedGroups;

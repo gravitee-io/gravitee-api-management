@@ -49,17 +49,6 @@ class ViewsController {
     });
   }
 
-  toggleDefault(view) {
-    _.forEach(this.views, (v) => {
-      if (v.id !== view.id && v.defaultView) {
-        v.defaultView = false;
-        this.viewsToUpdate.push(v);
-      }
-    });
-    this.viewsToUpdate.push(view);
-    this.save();
-  }
-
   toggleVisibility(view) {
     let that = this;
     view.hidden = !view.hidden;

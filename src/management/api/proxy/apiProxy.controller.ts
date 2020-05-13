@@ -99,9 +99,6 @@ class ApiProxyController {
     this.initState();
 
     this.views = resolvedViews;
-    _.remove( this.views, (item: any) => {
-      return item.id === 'all';
-    });
 
     this.tags = resolvedTags;
     this.groups = resolvedGroups;
