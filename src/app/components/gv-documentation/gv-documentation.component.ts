@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostListener, Input, ViewChild } from '@angular/core';
 import { Page } from '@gravitee/ng-portal-webclient';
 import { TreeItem } from '../../model/tree-item';
 import { NotificationService } from '../../services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import '@gravitee/ui-components/wc/gv-tree';
 import { animate, style, transition, trigger } from '@angular/animations';
+import { ScrollService } from '../../services/scroll.service';
 
 @Component({
   selector: 'app-gv-documentation',
@@ -35,14 +36,9 @@ import { animate, style, transition, trigger } from '@angular/animations';
     ])
   ]
 })
-export class GvDocumentationComponent {
+export class GvDocumentationComponent implements AfterViewInit {
 
   @Input() set pages(pages: Page[]) {
-    if (this.route.snapshot.params.apiId) {
-      GvDocumentationComponent.MENU_TOP = 260;
-    } else {
-      GvDocumentationComponent.MENU_TOP = 128;
-    }
     clearTimeout(this.loadingTimer);
     if (pages && pages.length) {
       if (this._pages !== pages) {
@@ -79,7 +75,6 @@ export class GvDocumentationComponent {
   ) {
   }
 
-  static MENU_TOP = 128;
   static MENU_BOTTOM = 42;
   static PAGE_COMPONENT = 'app-gv-page';
 
@@ -98,6 +93,11 @@ export class GvDocumentationComponent {
 
   @Input() fragment: string;
 
+  static updateMenuHeight(menuElement) {
+    const viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+    menuElement.style.height = `${viewportHeight - (ScrollService.getHeaderHeight() + 2 * GvDocumentationComponent.MENU_BOTTOM)}px`;
+  }
+
   static updateMenuPosition(menuElement, lastTop) {
     const scrollTop = document.scrollingElement.scrollTop;
     if (menuElement && document.querySelector(this.PAGE_COMPONENT)) {
@@ -110,17 +110,18 @@ export class GvDocumentationComponent {
         return null;
       } else {
         this.reset(menuElement);
-        return scrollTop + GvDocumentationComponent.MENU_TOP;
+        return scrollTop + ScrollService.getHeaderHeight();
       }
     } else {
       this.reset(menuElement);
-      return scrollTop + GvDocumentationComponent.MENU_TOP;
+      return scrollTop + ScrollService.getHeaderHeight();
     }
   }
 
   static reset(menuElement) {
+    const top = ScrollService.getHeaderHeight() + GvDocumentationComponent.MENU_BOTTOM;
     menuElement.style.bottom = `${GvDocumentationComponent.MENU_BOTTOM}px`;
-    menuElement.style.top = `${GvDocumentationComponent.MENU_TOP}px`;
+    menuElement.style.top = `${top}px`;
     menuElement.style.position = `fixed`;
   }
 
@@ -180,13 +181,25 @@ export class GvDocumentationComponent {
     });
   }
 
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      GvDocumentationComponent.updateMenuHeight(this.treeMenu.nativeElement);
+    }, 0);
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    window.requestAnimationFrame(() => {
+      GvDocumentationComponent.updateMenuHeight(this.treeMenu.nativeElement);
+    });
+  }
+
 
   @HostListener('window:scroll')
   onScroll() {
     window.requestAnimationFrame(() => {
       this.lastTop = GvDocumentationComponent.updateMenuPosition(this.treeMenu.nativeElement, this.lastTop);
     });
-
   }
 
   @HostListener(':gv-tree:select', ['$event.detail.value'])

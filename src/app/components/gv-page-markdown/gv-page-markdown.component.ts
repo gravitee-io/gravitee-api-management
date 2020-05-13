@@ -68,7 +68,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
         if (element && element.id && ['H2', 'H3', 'H4', 'H5', 'H6'].includes(element.tagName)) {
           this.pageElementsPosition.push({
             id: element.id,
-            offsetTop: document.getElementById(element.id).offsetTop - this.scrollService.getHeaderHeight()
+            offsetTop: document.getElementById(element.id).offsetTop - ScrollService.getHeaderHeight()
           });
         }
       });

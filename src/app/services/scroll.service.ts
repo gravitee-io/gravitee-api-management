@@ -23,6 +23,15 @@ export class ScrollService {
   constructor() {
   }
 
+  static getHeaderHeight(): number {
+    const header = document.querySelector('header');
+    if (header) {
+      const { height } = window.getComputedStyle(header);
+      return parseInt(height.replace('px', ''), 10);
+    }
+    return 0;
+  }
+
   scrollToAnchor(anchor) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -32,7 +41,7 @@ export class ScrollService {
           setTimeout(() => {
             const { top, left } = element.getBoundingClientRect();
             window.scrollBy({
-              top: top - this.getHeaderHeight(),
+              top: top - ScrollService.getHeaderHeight(),
               left,
               behavior: 'smooth'
             });
@@ -47,12 +56,6 @@ export class ScrollService {
     });
 
   }
-
-  getHeaderHeight(): number {
-    const { height } = window.getComputedStyle(document.querySelector('header'));
-    return parseInt(height.replace('px', ''), 10);
-  }
-
 
   scrollToStickyMenu() {
     if (window.pageYOffset < 100) {

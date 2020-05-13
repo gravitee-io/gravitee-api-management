@@ -27,7 +27,7 @@
   position: fixed;
   left: 42px;
   z-index: 100;
-  height: calc(100vh - 125px - 42px);
+  height: 75vh;
   bottom: 42px;
 }
 

@@ -89,14 +89,13 @@
 }
 
 .layout__header__container {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 75px 1fr auto;
+  grid-gap: 0.5rem;
   padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pr) var(--gv-theme-layout--pb) var(--gv-theme-layout--pl);
 }
 
 .layout__header__logo {
-  display: table-cell;
-  width: 20%;
 }
 
 .layout__header__logo a {
@@ -132,9 +131,7 @@
 }
 
 .layout__nav__container {
-  display: table-cell;
   text-align: right;
-  width: 20%;
 }
 
 .layout__nav {
@@ -258,7 +255,7 @@ gv-menu gv-input {
 }
 
 gv-nav {
-  display: table-cell;
-  text-align: right;
-  width: 60%;
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
 }
