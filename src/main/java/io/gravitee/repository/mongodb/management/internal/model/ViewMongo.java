@@ -33,7 +33,6 @@ public class ViewMongo extends Auditable{
 	private String name;
     private String environmentId;
 	private String description;
-	private boolean defaultView;
 	private boolean hidden;
 	private int order;
 	private String highlightApi;
@@ -73,13 +72,6 @@ public class ViewMongo extends Auditable{
 	}
 	public void setDescription(String description) {
 		this.description = description;
-	}
-
-	public boolean isDefaultView() {
-		return defaultView;
-	}
-	public void setDefaultView(boolean defaultView) {
-		this.defaultView = defaultView;
 	}
 
 	public boolean isHidden() {
@@ -133,7 +125,6 @@ public class ViewMongo extends Auditable{
 				", name='" + name + '\'' +
 				", environmentId='" + environmentId + '\'' +
 				", description='" + description + '\'' +
-				", defaultView='" + defaultView + '\'' +
 				", hidden='" + hidden + '\'' +
 				", order='" + order + '\'' +
 				", highlightApi='" + highlightApi + '\'' +
