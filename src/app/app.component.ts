@@ -35,7 +35,15 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 import { CurrentUserService } from './services/current-user.service';
 import { NotificationService } from './services/notification.service';
-import { ActivatedRoute, NavigationEnd, NavigationStart, Router, RouterOutlet } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  NavigationStart, PRIMARY_OUTLET,
+  Router,
+  RouterOutlet,
+  UrlSegmentGroup,
+  UrlTree
+} from '@angular/router';
 import { INavRoute, NavRouteService } from './services/nav-route.service';
 import { animation } from './route-animation';
 import { Link, PortalService, User, UserService } from '@gravitee/ng-portal-webclient';
@@ -98,7 +106,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private eventService: EventService,
     private ref: ChangeDetectorRef,
     private googleAnalyticsService: GoogleAnalyticsService,
-    private previewService: PreviewService
+    private previewService: PreviewService,
   ) {
 
     this.activatedRoute.queryParamMap.subscribe(params => {
@@ -120,7 +128,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
         const currentRoute: ActivatedRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
         this._setBrowserTitle(currentRoute);
         this.isPreview = previewService.isActive();
-        this._onNavigationEnd();
+        this._onNavigationEnd(event);
       }
     });
   }
@@ -327,8 +335,17 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  private _onNavigationEnd() {
-    this.isHomepage = '/' === this.router.url;
+  isHomepageUrl(url) {
+    const tree: UrlTree = this.router.parseUrl(url);
+    const g: UrlSegmentGroup = tree.root.children[PRIMARY_OUTLET];
+    if (g == null) {
+      return true;
+    }
+    return false;
+  }
+
+  private _onNavigationEnd(event: NavigationEnd) {
+    this.isHomepage = this.isHomepageUrl(event.url);
     this.portalService.getPortalLinks().subscribe((portalLinks) => {
       if (portalLinks.slots) {
 
