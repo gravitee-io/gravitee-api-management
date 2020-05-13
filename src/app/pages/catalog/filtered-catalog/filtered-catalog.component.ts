@@ -39,7 +39,6 @@ import { createPromiseList } from 'src/app/utils/utils';
 export class FilteredCatalogComponent implements OnInit {
 
   static readonly RANDOM_MAX_SIZE = 4;
-  static readonly DEFAULT_VIEW = 'all';
   static readonly DEFAULT_DISPLAY = 'cards';
 
   private page: number;
@@ -78,7 +77,7 @@ export class FilteredCatalogComponent implements OnInit {
   ngOnInit() {
     this.translateService.get(i18n('catalog.defaultView')).toPromise()
       .then((label) => this.defaultView = {
-        value: FilteredCatalogComponent.DEFAULT_VIEW,
+        value: '',
         label
       });
     this.currentDisplay = this.activatedRoute.snapshot.queryParamMap.get('display') ||
@@ -100,7 +99,7 @@ export class FilteredCatalogComponent implements OnInit {
           this._loadCategory();
         }
       } else {
-        const view = params.get('view') || FilteredCatalogComponent.DEFAULT_VIEW;
+        const view = params.get('view');
         if (this.currentView !== view || this.page !== page || this.size !== size) {
           this.currentView = view;
           this.page = page;
