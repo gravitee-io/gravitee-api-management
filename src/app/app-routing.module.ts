@@ -288,12 +288,11 @@ export const routes: Routes = [
   {
     path: 'applications',
     loadChildren: () => import('./pages/applications/applications.module').then(m => m.ApplicationsModule),
-    canActivate: [AuthGuardService, FeatureGuardService],
+    canActivate: [AuthGuardService],
     data: {
       title: i18n('route.applications'),
       menu: { hiddenPaths: ['creation'] },
       expectedRole: Role.AUTH_USER,
-      expectedFeature: FeatureEnum.applications,
       animation: {}
     },
   },
