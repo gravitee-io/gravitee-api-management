@@ -73,7 +73,7 @@
                         <label>Target</label>
                         <md-select ng-model="$ctrl.page.content" required>
                             <md-option  ng-repeat="resource in $ctrl.viewResources"
-                                        ng-value="resource.id"
+                                        ng-value="resource.key"
                                         ng-click="$ctrl.updateLinkName(resource.name)">
                                 {{ resource.name }}
                             </md-option>
