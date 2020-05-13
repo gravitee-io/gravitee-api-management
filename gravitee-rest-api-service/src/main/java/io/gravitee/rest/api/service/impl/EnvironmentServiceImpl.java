@@ -107,7 +107,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 
                 //create Default items for environment
                 apiHeaderService.initialize(createdEnvironment.getId());
-                viewService.initialize(createdEnvironment.getId());
                 pageService.initialize(createdEnvironment.getId());
                 
                 return createdEnvironment;

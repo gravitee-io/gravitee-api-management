@@ -93,7 +93,6 @@ public class ViewService_UpdateTest {
         when(updatedView.getId()).thenReturn("view-id");
         when(updatedView.getName()).thenReturn("view-name");
         when(updatedView.getDescription()).thenReturn("view-description");
-        when(updatedView.isDefaultView()).thenReturn(true);
         when(updatedView.getOrder()).thenReturn(1);
         when(updatedView.isHidden()).thenReturn(true);
         when(updatedView.getUpdatedAt()).thenReturn(new Date(1234567890L));
@@ -108,7 +107,6 @@ public class ViewService_UpdateTest {
         assertEquals("Name", "view-name", list.get(0).getName());
         assertEquals("Description", "view-description", list.get(0).getDescription());
         assertEquals("Total APIs", 0, list.get(0).getTotalApis());
-        assertEquals("default View", true, list.get(0).isDefaultView());
         assertEquals("Order", 1, list.get(0).getOrder());
         assertEquals("Hidden", true, list.get(0).isHidden());
         assertEquals("UpdatedAt", new Date(1234567890L), list.get(0).getUpdatedAt());
@@ -128,7 +126,6 @@ public class ViewService_UpdateTest {
         when(updatedView.getId()).thenReturn("view-id");
         when(updatedView.getName()).thenReturn("view-name");
         when(updatedView.getDescription()).thenReturn("view-description");
-        when(updatedView.isDefaultView()).thenReturn(true);
         when(updatedView.getOrder()).thenReturn(1);
         when(updatedView.isHidden()).thenReturn(true);
         when(updatedView.getUpdatedAt()).thenReturn(new Date(1234567890L));
@@ -142,7 +139,6 @@ public class ViewService_UpdateTest {
         assertEquals("Name", "view-name", view.getName());
         assertEquals("Description", "view-description", view.getDescription());
         assertEquals("Total APIs", 0, view.getTotalApis());
-        assertEquals("default View", true, view.isDefaultView());
         assertEquals("Order", 1, view.getOrder());
         assertEquals("Hidden", true, view.isHidden());
         assertEquals("UpdatedAt", new Date(1234567890L), view.getUpdatedAt());

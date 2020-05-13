@@ -34,7 +34,6 @@ public class ViewEntity {
     private String name;
     private String key;
     private String description;
-    private boolean defaultView;
     private boolean hidden;
     private int order;
     private Date createdAt;
@@ -83,14 +82,6 @@ public class ViewEntity {
 
     public void setTotalApis(long totalApis) {
         this.totalApis = totalApis;
-    }
-
-    public boolean isDefaultView() {
-        return defaultView;
-    }
-
-    public void setDefaultView(boolean defaultView) {
-        this.defaultView = defaultView;
     }
 
     public int getOrder() {
@@ -172,7 +163,6 @@ public class ViewEntity {
                 ", key='" + key + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", defaultView='" + defaultView + '\'' +
                 ", order='" + order + '\'' +
                 ", hidden='" + hidden + '\'' +
                 ", updatedAt='" + updatedAt + '\'' +

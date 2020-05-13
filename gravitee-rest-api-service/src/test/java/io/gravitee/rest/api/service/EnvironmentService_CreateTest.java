@@ -93,7 +93,6 @@ public class EnvironmentService_CreateTest {
             ));
         verify(mockEnvironmentRepository, never()).update(any());
         verify(mockAPIHeaderService, times(1)).initialize("env_id");
-        verify(mockViewService, times(1)).initialize("env_id");
         verify(mockPageService, times(1)).initialize("env_id");
     }
     
@@ -126,7 +125,6 @@ public class EnvironmentService_CreateTest {
             ));
         verify(mockEnvironmentRepository, never()).create(any());
         verify(mockAPIHeaderService, never()).initialize("env_id");
-        verify(mockViewService, never()).initialize("env_id");
         verify(mockPageService, never()).initialize("env_id");
     }
     

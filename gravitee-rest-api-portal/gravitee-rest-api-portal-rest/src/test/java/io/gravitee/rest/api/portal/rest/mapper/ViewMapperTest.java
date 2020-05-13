@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.time.Instant;
 import java.util.Date;
@@ -60,7 +59,6 @@ public class ViewMapperTest {
 
         ViewEntity viewEntity = new ViewEntity();
         viewEntity.setCreatedAt(nowDate);
-        viewEntity.setDefaultView(true);
         viewEntity.setDescription(VIEW_DESCRIPTION);
         viewEntity.setHidden(true);
         viewEntity.setHighlightApi(VIEW_HIGHLIGHT_API);
@@ -76,7 +74,6 @@ public class ViewMapperTest {
         
         //init
         View view = viewMapper.convert(viewEntity, UriBuilder.fromPath(VIEW_BASE_URL));
-        assertTrue(view.getDefaultView());
         assertEquals(VIEW_DESCRIPTION, view.getDescription());
         assertEquals(VIEW_KEY, view.getId());
         assertEquals(VIEW_NAME, view.getName());

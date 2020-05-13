@@ -64,7 +64,6 @@ public class ViewService_FindTest {
         when(view.getId()).thenReturn("view-id");
         when(view.getName()).thenReturn("view-name");
         when(view.getDescription()).thenReturn("view-description");
-        when(view.isDefaultView()).thenReturn(true);
         when(view.getOrder()).thenReturn(1);
         when(view.isHidden()).thenReturn(true);
         when(view.getUpdatedAt()).thenReturn(new Date(1234567890L));
@@ -79,7 +78,6 @@ public class ViewService_FindTest {
         assertEquals("Name", "view-name", list.get(0).getName());
         assertEquals("Description", "view-description", list.get(0).getDescription());
         assertEquals("Total APIs", 0, list.get(0).getTotalApis());
-        assertEquals("default View", true, list.get(0).isDefaultView());
         assertEquals("Order", 1, list.get(0).getOrder());
         assertEquals("Hidden", true, list.get(0).isHidden());
         assertEquals("UpdatedAt", new Date(1234567890L), list.get(0).getUpdatedAt());

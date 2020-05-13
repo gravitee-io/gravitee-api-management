@@ -38,8 +38,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.gravitee.repository.management.model.View.ALL_ID;
-
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
@@ -63,7 +61,6 @@ public class ViewsResource extends AbstractResource {
         List<View> viewsList = viewService.findAll()
                 .stream()
                 .filter(v -> !v.isHidden())
-                .filter(v -> !ALL_ID.equals(v.getId()))
                 .sorted(Comparator.comparingInt(ViewEntity::getOrder))
                 .map(v -> {
                     v.setTotalApis(viewService.getTotalApisByView(apis, v));

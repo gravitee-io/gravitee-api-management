@@ -37,7 +37,6 @@ public class ViewMapper {
     public View convert(ViewEntity viewEntity, UriBuilder baseUriBuilder) {
         final View view = new View();
 
-        view.setDefaultView(viewEntity.isDefaultView());
         view.setDescription(viewEntity.getDescription());
         view.setId(viewEntity.getKey());
         view.setName(viewEntity.getName());

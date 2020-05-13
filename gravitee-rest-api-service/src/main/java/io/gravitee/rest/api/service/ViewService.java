@@ -37,7 +37,6 @@ public interface ViewService {
     ViewEntity update(String viewId, UpdateViewEntity view);
     List<ViewEntity> update(List<UpdateViewEntity> views);
     void delete(String viewId);
-    void initialize(String environmentId);
     long getTotalApisByView(Set<ApiEntity> apis, ViewEntity view);
     InlinePictureEntity getPicture(String viewId);
 }

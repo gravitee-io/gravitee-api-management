@@ -47,11 +47,9 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static io.gravitee.rest.api.model.Visibility.PUBLIC;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
-import static io.gravitee.repository.management.model.View.ALL_ID;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -102,7 +100,7 @@ public class ApisResource extends AbstractResource {
         apiQuery.setName(apisParam.getName());
         apiQuery.setTag(apisParam.getTag());
         apiQuery.setState(apisParam.getState());
-        if (apisParam.getView() != null && !ALL_ID.equals(apisParam.getView())) {
+        if (apisParam.getView() != null) {
             apiQuery.setView(viewService.findById(apisParam.getView()).getId());
         }
 

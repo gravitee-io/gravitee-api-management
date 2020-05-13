@@ -17,14 +17,9 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ViewRepository;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.View;
-import io.gravitee.rest.api.model.ViewEntity;
 import io.gravitee.rest.api.service.Upgrader;
-import io.gravitee.rest.api.service.ViewService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,11 +42,7 @@ public class DefaultViewUpgrader implements Upgrader, Ordered {
     private final Logger logger = LoggerFactory.getLogger(DefaultViewUpgrader.class);
 
     @Autowired
-    private ViewService viewService;
-    @Autowired
     private ViewRepository viewRepository;
-    @Autowired
-    private ApiRepository apiRepository;
 
     @Override
     public boolean upgrade() {
@@ -59,25 +50,19 @@ public class DefaultViewUpgrader implements Upgrader, Ordered {
         final Set<View> views;
         try {
             views = viewRepository.findAll();
-            Optional<View> optionalAllView = views.
+            Optional<View> optionalKeyLessView = views.
                     stream().
-                    filter(v -> v.getId().equals(View.ALL_ID)).
+                    filter(v -> v.getKey() == null || v.getKey().isEmpty()).
                     findFirst();
-            if (optionalAllView.isPresent()) {
-                final String key = optionalAllView.get().getKey();
-                if (key == null || key.isEmpty()) {
-                    logger.info("Update views to add field key");
-                    for (final View view : views) {
-                        view.setKey(IdGenerator.generate(view.getName()));
-                        viewRepository.update(view);
-                    }
+            if (optionalKeyLessView.isPresent()) {
+                logger.info("Update views to add field key");
+                for (final View view : views) {
+                    view.setKey(IdGenerator.generate(view.getName()));
+                    viewRepository.update(view);
                 }
-            } else {
-                logger.info("Create default View");
-                viewService.initialize(GraviteeContext.getDefaultEnvironment());
             }
         } catch (TechnicalException e) {
-            e.printStackTrace();
+            logger.error("Error while upgrading views : {}", e);
         }
         return true;
     }

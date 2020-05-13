@@ -22,7 +22,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ViewService;
 import io.swagger.annotations.Api;
 
@@ -53,12 +52,9 @@ public class ViewsResource extends AbstractViewResource  {
     @Autowired
     private ViewService viewService;
 
-    @Autowired
-    private ApiService apiService;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ViewEntity> list(@QueryParam("all") boolean all)  {
+    public List<ViewEntity> list()  {
         Set<ApiEntity> apis;
         if (isAdmin()) {
             apis = apiService.findAll();
@@ -68,7 +64,7 @@ public class ViewsResource extends AbstractViewResource  {
             apis = apiService.findByVisibility(Visibility.PUBLIC);
         }
 
-        boolean viewAll = (all && hasPermission(RolePermission.ENVIRONMENT_VIEW, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE));
+        boolean viewAll = hasPermission(RolePermission.ENVIRONMENT_VIEW, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE);
 
         return viewService.findAll()
                 .stream()
@@ -81,21 +77,6 @@ public class ViewsResource extends AbstractViewResource  {
                     return v;
                 })
                 .collect(Collectors.toList());
-    }
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/default")
-    public ViewEntity getDefault() {
-        List<ViewEntity> views = this.list(false);
-        return views.
-                stream().
-                filter(ViewEntity::isDefaultView).
-                findFirst().
-                orElse(views.
-                        stream().
-                        findFirst().
-                        orElse(null));
     }
 
     @POST

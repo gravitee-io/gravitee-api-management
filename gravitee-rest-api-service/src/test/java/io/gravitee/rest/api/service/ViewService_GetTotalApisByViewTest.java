@@ -74,14 +74,4 @@ public class ViewService_GetTotalApisByViewTest {
        
         assertEquals(2, totalApisByView);
     }
-    
-    @Test
-    public void testEnhanceForAllView() {
-        ViewEntity v = new ViewEntity();
-        v.setKey("all");
-        
-        long totalApisByView = viewService.getTotalApisByView(apis, v);
-        
-        assertEquals(4, totalApisByView);
-    }
 }

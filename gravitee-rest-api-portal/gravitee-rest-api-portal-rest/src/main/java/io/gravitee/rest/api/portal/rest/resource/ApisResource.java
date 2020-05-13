@@ -45,8 +45,6 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.gravitee.repository.management.model.View.ALL_ID;
-
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
@@ -115,7 +113,7 @@ public class ApisResource extends AbstractResource {
             apiQuery.setName(apisParam.getName());
             apiQuery.setTag(apisParam.getTag());
             apiQuery.setVersion(apisParam.getVersion());
-            if (!ALL_ID.equals(apisParam.getView())) {
+            if (apisParam.getView() != null) {
                 apiQuery.setView(apisParam.getView());
             }
         }

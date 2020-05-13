@@ -3380,8 +3380,6 @@ components:
           type: string
         description:
           type: string
-        default_view:
-          type: boolean
         order:
           type: integer
         total_apis:
