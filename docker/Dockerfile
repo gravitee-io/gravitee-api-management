@@ -14,7 +14,7 @@ FROM adoptopenjdk/openjdk11:jre-11.0.7_10-alpine
 LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
-ARG GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributionss
+ARG GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions
 ENV GRAVITEEIO_HOME /opt/graviteeio-management-api
 
 RUN apk update \
