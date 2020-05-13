@@ -720,7 +720,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 if(poMember.isPresent()) {
                     return convert(poMember.get());
                 } else {
-                    throw new MembershipNotFoundException(referenceType.name() + "_PRIMARY_OWNER");
+                    return null;
                 }
             } catch (TechnicalException ex) {
                 LOGGER.error("An error occurs while trying to get primary owner for {} {} and role", referenceType, referenceId, ex);
