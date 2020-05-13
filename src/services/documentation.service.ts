@@ -39,6 +39,7 @@ export class ImportPageEntity {
 
 export enum FolderSituation {
   SYSTEM_FOLDER,
+  SYSTEM_FOLDER_WITH_FOLDERS,
   FOLDER_IN_SYSTEM_FOLDER,
   ROOT,
   FOLDER_IN_FOLDER
@@ -66,6 +67,8 @@ class DocumentationService {
       case FolderSituation.ROOT:
         return ['SWAGGER', 'MARKDOWN', 'FOLDER'];
       case FolderSituation.SYSTEM_FOLDER:
+        return ['LINK'];
+      case FolderSituation.SYSTEM_FOLDER_WITH_FOLDERS:
         return ['FOLDER', 'LINK'];
       case FolderSituation.FOLDER_IN_FOLDER:
         return ['SWAGGER', 'MARKDOWN', 'FOLDER'];

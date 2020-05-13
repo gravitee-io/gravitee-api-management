@@ -63,8 +63,13 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       if (!folderId) {
         return FolderSituation.ROOT;
       }
+
       if (this.systemFoldersById[folderId]) {
-        return FolderSituation.SYSTEM_FOLDER;
+        if ('TOPFOOTER' === this.systemFoldersById[folderId].name.toUpperCase()) {
+          return FolderSituation.SYSTEM_FOLDER_WITH_FOLDERS;
+        } else {
+          return FolderSituation.SYSTEM_FOLDER;
+        }
       }
       if (this.foldersById[folderId]) {
         const parentFolderId = this.foldersById[folderId].parentId;
@@ -159,7 +164,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
         const allFolders = _.concat(this.folders, this.systemFolders);
         _.forEach(allFolders, (f) => {
           const situation = this.getFolderSituation(f.id);
-          if (situation === FolderSituation.SYSTEM_FOLDER || situation === FolderSituation.FOLDER_IN_SYSTEM_FOLDER) {
+          if (situation === FolderSituation.SYSTEM_FOLDER || situation === FolderSituation.SYSTEM_FOLDER_WITH_FOLDERS || situation === FolderSituation.FOLDER_IN_SYSTEM_FOLDER) {
             const path = this.getFolderPath(f.id);
             if (path) {
               result.push({
@@ -213,7 +218,10 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
           const situation = this.getFolderSituation(f.id);
           if (
               (canBeALink && (situation === FolderSituation.ROOT || situation === FolderSituation.FOLDER_IN_FOLDER))
-              || (!canBeALink && (situation === FolderSituation.SYSTEM_FOLDER || situation === FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
+              || (!canBeALink && (
+                (pageType === 'FOLDER' && situation === FolderSituation.SYSTEM_FOLDER_WITH_FOLDERS)
+                 || (pageType !== 'FOLDER' && (situation === FolderSituation.SYSTEM_FOLDER || situation === FolderSituation.SYSTEM_FOLDER_WITH_FOLDERS || situation === FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
+                ))
           ) {
             const path = this.getFolderPath(f.id, pageId);
             if (path) {
