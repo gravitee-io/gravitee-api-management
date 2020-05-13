@@ -229,11 +229,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     this.computeMenuMode();
   }
 
-  @HostListener('window:resize')
-  onResize() {
-    this.computeHomepageHeight();
-  }
-
   private computeMenuMode() {
     const pageYOffset = window.pageYOffset;
     window.requestAnimationFrame(() => {
