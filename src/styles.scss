@@ -71,7 +71,7 @@
 .page__content {
   padding: var(--gv-theme-page--pt) var(--gv-theme-layout--pr) var(--gv-theme-page--pb) var(--gv-theme-layout--pl);
   max-width: calc(1412 + var(--gv-theme-page--pr) + var(--gv-theme-page--pl));
-  min-height: calc(100vh - var(--gv-theme-layout-header--h));
+  min-height: 30vh;
 }
 
 .page__content-with-aside {
