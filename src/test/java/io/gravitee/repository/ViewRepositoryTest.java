@@ -70,7 +70,6 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         view.setUpdatedAt(new Date(1486771200000L));
         view.setHidden(true);
         view.setOrder(1);
-        view.setDefaultView(true);
         view.setPicture("New picture");
 
         int nbViewsBeforeCreation = viewRepository.findAll().size();
@@ -92,7 +91,6 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid view updatedAt.", view.getUpdatedAt(), viewSaved.getUpdatedAt());
         Assert.assertEquals("Invalid view hidden.", view.isHidden(), viewSaved.isHidden());
         Assert.assertEquals("Invalid view order.", view.getOrder(), viewSaved.getOrder());
-        Assert.assertEquals("Invalid view defaultView.", view.isDefaultView(), viewSaved.isDefaultView());
         Assert.assertEquals("Invalid view picture.", "New picture", viewSaved.getPicture());
     }
 
@@ -106,7 +104,6 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         view.setName("New product");
         view.setDescription("New description");
         view.setOrder(10);
-        view.setDefaultView(true);
         view.setHidden(true);
         view.setCreatedAt(new Date(1486771200000L));
         view.setUpdatedAt(new Date(1486771200000L));
@@ -130,7 +127,6 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid view updatedAt.", view.getUpdatedAt(), viewUpdated.getUpdatedAt());
         Assert.assertEquals("Invalid view hidden.", view.isHidden(), viewUpdated.isHidden());
         Assert.assertEquals("Invalid view order.", view.getOrder(), viewUpdated.getOrder());
-        Assert.assertEquals("Invalid view defaultView.", view.isDefaultView(), viewUpdated.isDefaultView());
         Assert.assertEquals("Invalid view highlight API.", view.getHighlightApi(), viewUpdated.getHighlightApi());
         Assert.assertEquals("Invalid view picture.", "New picture", viewUpdated.getPicture());
     }

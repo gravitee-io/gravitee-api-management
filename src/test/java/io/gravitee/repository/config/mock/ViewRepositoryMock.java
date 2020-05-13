@@ -49,7 +49,6 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
         when(newView.getUpdatedAt()).thenReturn(new Date(1486771200000L));
         when(newView.isHidden()).thenReturn(true);
         when(newView.getOrder()).thenReturn(1);
-        when(newView.isDefaultView()).thenReturn(true);
         when(newView.getPicture()).thenReturn("New picture");
 
         final View viewProducts = new View();
@@ -60,7 +59,6 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
         viewProducts.setUpdatedAt(new Date(1111111111111L));
         viewProducts.setHidden(false);
         viewProducts.setOrder(1);
-        viewProducts.setDefaultView(false);
 
         final View viewProductsUpdated = mock(View.class);
         when(viewProductsUpdated.getName()).thenReturn("New product");
@@ -70,7 +68,6 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
         when(viewProductsUpdated.getUpdatedAt()).thenReturn(new Date(1486771200000L));
         when(viewProductsUpdated.isHidden()).thenReturn(true);
         when(viewProductsUpdated.getOrder()).thenReturn(10);
-        when(viewProductsUpdated.isDefaultView()).thenReturn(true);
         when(viewProductsUpdated.getHighlightApi()).thenReturn("new Highlighted API");
         when(viewProductsUpdated.getPicture()).thenReturn("New picture");
 
@@ -82,7 +79,6 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
         myView.setUpdatedAt(new Date(1111111111111L));
         myView.setHidden(false);
         myView.setOrder(3);
-        myView.setDefaultView(false);
 
         final Set<View> views = newSet(newView, viewProducts, mock(View.class), myView);
         final Set<View> viewsAfterDelete = newSet(newView, viewProducts, myView);
