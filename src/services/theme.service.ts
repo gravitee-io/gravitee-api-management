@@ -25,7 +25,7 @@ class ThemeService {
   }
 
   get() {
-    return this.$http.get(`${ this.themeURL }`);
+    return this.$http.get(`${ this.themeURL }default`);
   }
 
   restoreDefaultTheme(theme: Theme) {
