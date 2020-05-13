@@ -60,7 +60,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ThemeServiceTest {
 
-    private static final String THEME_ID = "id-theme";
+    private static final String THEME_ID = "default";
 
     @InjectMocks
     private ThemeService themeService = new ThemeServiceImpl();
@@ -159,12 +159,12 @@ public class ThemeServiceTest {
     }
 
     @Test
-    public void shouldGetNullIfNoThemeEnabled() throws TechnicalException {
+    public void shouldGetDefaultIfNoThemeEnabled() throws TechnicalException {
         final Theme theme = mock(Theme.class);
         when(theme.isEnabled()).thenReturn(false);
         when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name())).thenReturn(singleton(theme));
 
-        assertNull(themeService.findEnabled());
+        assertNotNull(themeService.findEnabled());
     }
 
     @Test
@@ -304,19 +304,24 @@ public class ThemeServiceTest {
         themeService.update(updateThemeEntity);
     }
 
-    @Test(expected = ThemeNotFoundException.class)
+    @Test
     public void shouldNotUpdate() throws TechnicalException {
         final UpdateThemeEntity updateThemeEntity = new UpdateThemeEntity();
         updateThemeEntity.setId(THEME_ID);
-
         when(themeRepository.findById(THEME_ID)).thenReturn(empty());
 
+        final Theme theme = mock(Theme.class);
+        when(theme.getId()).thenReturn(THEME_ID);
+        when(theme.getName()).thenReturn("NAME");
+        when(theme.getDefinition()).thenReturn(themeServiceImpl.getDefaultDefinition());
+        when(themeRepository.create(any())).thenReturn(theme);
+
         themeService.update(updateThemeEntity);
+        verify(themeRepository).create(any());
     }
 
     @Test
     public void shouldResetToDefaultTheme() throws TechnicalException, JsonProcessingException {
-       ThemeDefinitionMapper mapper = new ThemeDefinitionMapper();
         ThemeDefinition themeDefinition = new ThemeDefinition();
         themeDefinition.setData(Collections.EMPTY_LIST);
 
@@ -328,22 +333,14 @@ public class ThemeServiceTest {
         theme.setReferenceType(ENVIRONMENT.name());
         theme.setCreatedAt(new Date());
         theme.setUpdatedAt(new Date());
-        when(themeRepository.update(any())).thenReturn(theme);
-        when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
 
         themeService.resetToDefaultTheme(THEME_ID);
 
-        verify(themeRepository, times(1)).update(argThat(argument ->
-                "NAME".equals(argument.getName()) &&
-                        mapper.isSame(argument.getDefinition(), themeServiceImpl.getDefaultDefinition()) &&
-                        "DEFAULT".equals(argument.getReferenceId()) &&
-                        ENVIRONMENT.name().equals(argument.getReferenceType()) &&
-                        THEME_ID.equals(argument.getId()) &&
-                        argument.getUpdatedAt() != null));
+        verify(themeRepository, times(1)).delete(THEME_ID);
 
         verify(auditService, times(1)).createPortalAuditLog(
                 eq(ImmutableMap.of(THEME, THEME_ID)),
-                eq(Theme.AuditEvent.THEME_UPDATED),
+                eq(Theme.AuditEvent.THEME_RESET),
                 any(Date.class),
                 any(),
                 any());
@@ -454,8 +451,13 @@ public class ThemeServiceTest {
 
     @Test
     public void shouldCreateDefaultTheme() throws TechnicalException, IOException {
-        ObjectMapper mapper = new ObjectMapper();
+        ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
         String definition = new ThemeServiceImpl().getDefaultDefinition();
+        final UpdateThemeEntity themeToCreate = new UpdateThemeEntity();
+        themeToCreate.setId(THEME_ID);
+        themeToCreate.setName("Default");
+        themeToCreate.setDefinition(definitionMapper.readDefinition(definition));
+
         final Theme createdTheme = new Theme();
         createdTheme.setId(THEME_ID);
         createdTheme.setName("Default");
@@ -463,16 +465,16 @@ public class ThemeServiceTest {
         createdTheme.setCreatedAt(new Date());
         createdTheme.setUpdatedAt(new Date());
         when(themeRepository.create(any())).thenReturn(createdTheme);
-        assertEquals(mapper.readTree(definition), mapper.readTree(definition));
+        assertEquals(definitionMapper.readTree(definition), definitionMapper.readTree(definition));
         assertEquals(definition, definition);
 
-        themeService.updateDefaultTheme();
+        themeService.update(themeToCreate);
 
         verify(themeRepository, times(1)).create(argThat(argument ->
         {
             try {
                 return "Default".equals(argument.getName()) &&
-                        mapper.readTree(argument.getDefinition()).equals(mapper.readTree(definition)) &&
+                        definitionMapper.readTree(argument.getDefinition()).equals(definitionMapper.readTree(definition)) &&
                         "DEFAULT".equals(argument.getReferenceId()) &&
                         ENVIRONMENT.name().equals(argument.getReferenceType()) &&
                         !argument.getId().isEmpty() &&
@@ -544,11 +546,12 @@ public class ThemeServiceTest {
     @Test
     public void shouldGetBackgroundImageUrl() throws TechnicalException {
         final Theme theme = mock(Theme.class);
-        Mockito.lenient().when(theme.getReferenceType()).thenReturn(ENVIRONMENT.name());
-        when(theme.getReferenceId()).thenReturn("DEFAULT");
         when(theme.getBackgroundImage()).thenReturn("http://localhost/image");
-
-        when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
+        when(theme.getId()).thenReturn(THEME_ID);
+        when(theme.getName()).thenReturn("NAME");
+        when(theme.isEnabled()).thenReturn(true);
+        when(theme.getDefinition()).thenReturn(themeServiceImpl.getDefaultDefinition());
+        when(themeRepository.findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ENVIRONMENT.name())).thenReturn(singleton(theme));
         PictureEntity backgroundImage = themeService.getBackgroundImage(THEME_ID);
         assertNotNull(backgroundImage);
         assertTrue(backgroundImage instanceof UrlPictureEntity);
@@ -558,9 +561,6 @@ public class ThemeServiceTest {
     public void shouldGetBackgroundImage() throws TechnicalException {
         final Theme theme = mock(Theme.class);
         Mockito.lenient().when(theme.getReferenceType()).thenReturn(ENVIRONMENT.name());
-        when(theme.getReferenceId()).thenReturn("DEFAULT");
-
-        when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
         PictureEntity backgroundImage = themeService.getBackgroundImage(THEME_ID);
         assertNull(backgroundImage);
     }
@@ -571,8 +571,6 @@ public class ThemeServiceTest {
         Mockito.lenient().when(theme.getReferenceType()).thenReturn(ENVIRONMENT.name());
         when(theme.getReferenceId()).thenReturn("DEFAULT");
         when(theme.getLogo()).thenReturn(themeServiceImpl.getDefaultLogo());
-
-        when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
 
         PictureEntity logo = themeService.getLogo(THEME_ID);
         assertNotNull(logo);

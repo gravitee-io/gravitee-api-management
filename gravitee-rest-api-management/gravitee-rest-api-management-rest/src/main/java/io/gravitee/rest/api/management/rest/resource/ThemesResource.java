@@ -31,7 +31,6 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import java.util.Set;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -45,16 +44,6 @@ public class ThemesResource extends AbstractResource {
 
     @Autowired
     private ThemeService themeService;
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Object get() {
-        Set<ThemeEntity> themes = themeService.findAll();
-        if (themes.isEmpty()) {
-            throw new NotFoundException();
-        }
-        return themes.iterator().next();
-    }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)

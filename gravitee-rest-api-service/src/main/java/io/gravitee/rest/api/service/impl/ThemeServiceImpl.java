@@ -18,16 +18,19 @@ package io.gravitee.rest.api.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.model.Theme;
 import io.gravitee.repository.management.model.ThemeReferenceType;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.PictureEntity;
+import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.theme.*;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.ThemeService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.DuplicateThemeNameException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -39,13 +42,10 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.THEME;
 import static io.gravitee.repository.management.model.Theme.AuditEvent.*;
-import static io.gravitee.repository.management.model.Theme.AuditEvent.THEME_CREATED;
-import static io.gravitee.repository.management.model.Theme.AuditEvent.THEME_DELETED;
 import static java.nio.charset.Charset.defaultCharset;
 
 /**
@@ -55,12 +55,14 @@ import static java.nio.charset.Charset.defaultCharset;
 @Component
 public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
-    public static final String DEFAULT_THEME_PATH = "/themes/default/definition.json";
     private final Logger LOGGER = LoggerFactory.getLogger(ThemeServiceImpl.class);
+    private static final ThemeDefinitionMapper MAPPER = new ThemeDefinitionMapper();
+    private static final String DEFAULT_THEME_PATH = "/themes/default/definition.json";
+    private static final String DEFAULT_THEME_ID = "default";
+
 
     @Autowired
     private ThemeRepository themeRepository;
-
     @Autowired
     private AuditService auditService;
 
@@ -162,8 +164,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                     theme.setName(updateThemeEntity.getName());
                 }
 
-                ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
-                theme.setDefinition(definitionMapper.writeValueAsString(updateThemeEntity.getDefinition()));
+                theme.setDefinition(MAPPER.writeValueAsString(updateThemeEntity.getDefinition()));
 
                 if (updateThemeEntity.getLogo() != null) {
                     theme.setLogo(updateThemeEntity.getLogo());
@@ -188,7 +189,14 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                         theme);
                 return savedTheme;
             } else {
-                throw new ThemeNotFoundException(updateThemeEntity.getId());
+                final NewThemeEntity newTheme = new NewThemeEntity();
+                newTheme.setName(updateThemeEntity.getName());
+                newTheme.setDefinition(updateThemeEntity.getDefinition());
+                newTheme.setBackgroundImage(updateThemeEntity.getBackgroundImage());
+                newTheme.setLogo(updateThemeEntity.getLogo());
+                newTheme.setOptionalLogo(updateThemeEntity.getOptionalLogo());
+                newTheme.setEnabled(updateThemeEntity.isEnabled());
+                return create(newTheme);
             }
         } catch (TechnicalException | JsonProcessingException ex) {
             final String error = "An error occurred while trying to update theme " + updateThemeEntity;
@@ -230,8 +238,18 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                 return convert(themeEnabled.get());
             }
 
-            return null;
+            final ThemeEntity theme = new ThemeEntity();
+            theme.setId(DEFAULT_THEME_ID);
+            theme.setName("Default theme");
+            theme.setDefinition(MAPPER.readDefinition(getDefaultDefinition()));
+            theme.setLogo(this.getDefaultLogo());
+            theme.setOptionalLogo(this.getDefaultOptionalLogo());
+            return theme;
 
+        } catch (IOException ex) {
+            final String error = "Error while trying to get the default theme";
+            LOGGER.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find all themes by reference type";
             LOGGER.error(error, ex);
@@ -246,23 +264,13 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                     .findByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), ThemeReferenceType.ENVIRONMENT.name());
 
             String defaultDefinition = this.getDefaultDefinition();
-            ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
-            if (themes == null || themes.isEmpty()) {
-
-                NewThemeEntity theme = new NewThemeEntity();
-                theme.setEnabled(false);
-                theme.setName("Default");
-                theme.setDefinition(definitionMapper.readDefinition(defaultDefinition));
-                theme.setLogo(this.getDefaultLogo());
-                theme.setOptionalLogo(this.getDefaultOptionalLogo());
-                this.create(theme);
-            } else {
+            if (themes != null && !themes.isEmpty()) {
                 themes.forEach(theme -> {
-                    if (!definitionMapper.isSame(defaultDefinition, theme.getDefinition())) {
+                    if (!MAPPER.isSame(defaultDefinition, theme.getDefinition())) {
                         try {
-                            ThemeDefinition mergeDefinition = definitionMapper.merge(defaultDefinition, theme.getDefinition());
+                            ThemeDefinition mergeDefinition = MAPPER.merge(defaultDefinition, theme.getDefinition());
                             Theme themeUpdate = new Theme(theme);
-                            themeUpdate.setDefinition(definitionMapper.writeValueAsString(mergeDefinition));
+                            themeUpdate.setDefinition(MAPPER.writeValueAsString(mergeDefinition));
                             theme.setUpdatedAt(new Date());
                             this.themeRepository.update(themeUpdate);
                             auditService.createPortalAuditLog(
@@ -284,10 +292,6 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                     }
                 });
             }
-        } catch (IOException ex) {
-            final String error = "Error while trying to create default theme from the definition path: "
-                    + DEFAULT_THEME_PATH;
-            LOGGER.error(error, ex);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all themes", ex);
         }
@@ -336,24 +340,16 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     public ThemeEntity resetToDefaultTheme(String themeId) {
         try {
             LOGGER.debug("Reset to default theme by ID: {}", themeId);
-
-            UpdateThemeEntity updateThemeEntity = new UpdateThemeEntity();
-            updateThemeEntity.setId(themeId);
-            ThemeDefinitionMapper themeDefinitionMapper = new ThemeDefinitionMapper();
-            updateThemeEntity.setDefinition(themeDefinitionMapper.readDefinition(getDefaultDefinition()));
-            updateThemeEntity.setLogo(this.getDefaultLogo());
-            updateThemeEntity.setOptionalLogo(this.getDefaultOptionalLogo());
-            updateThemeEntity.setBackgroundImage(null);
-
+            final ThemeEntity previousTheme = findEnabled();
+            themeRepository.delete(DEFAULT_THEME_ID);
             auditService.createPortalAuditLog(
                     Collections.singletonMap(THEME, themeId),
                     THEME_RESET,
                     new Date(),
-                    null,
-                    updateThemeEntity);
-
-            return this.update(updateThemeEntity);
-        } catch (IOException ex) {
+                    previousTheme,
+                    null);
+            return findEnabled();
+        } catch (Exception ex) {
             final String error = "Error while trying to reset a default theme";
             LOGGER.error(error, ex);
             throw new TechnicalManagementException(error, ex);
@@ -362,42 +358,39 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
     @Override
     public PictureEntity getLogo(String themeId) {
-        Theme theme = findByIdWithoutConvert(themeId);
-        String logo = theme.getLogo();
-        if (logo != null) {
-            try {
+        try {
+            final String logo = findEnabled().getLogo();
+            if (logo != null) {
                 return convertToPicture(logo);
-            } catch (Exception ex) {
-                LOGGER.warn("Unable to get logo picture theme for id[{}]", themeId);
             }
+        } catch (Exception ex) {
+            LOGGER.warn("Unable to get logo picture theme for id[{}]", themeId);
         }
         return null;
     }
 
     @Override
     public PictureEntity getOptionalLogo(String themeId) {
-        Theme theme = findByIdWithoutConvert(themeId);
-        String optionalLogo = theme.getOptionalLogo();
-        if (optionalLogo != null) {
-            try {
+        try {
+            final String optionalLogo = findEnabled().getOptionalLogo();
+            if (optionalLogo != null) {
                 return convertToPicture(optionalLogo);
-            } catch (Exception ex) {
-                LOGGER.warn("Unable to get logo light picture theme for id[{}]", themeId);
             }
+        } catch (Exception ex) {
+            LOGGER.warn("Unable to get optional logo theme for id[{}]", themeId);
         }
         return null;
     }
 
     @Override
     public PictureEntity getBackgroundImage(String themeId) {
-        Theme theme = findByIdWithoutConvert(themeId);
-        String backgroundImage = theme.getBackgroundImage();
-        if (backgroundImage != null) {
-            try {
+        try {
+            final String backgroundImage = findEnabled().getBackgroundImage();
+            if (backgroundImage != null) {
                 return convertToPicture(backgroundImage);
-            } catch (Exception ex) {
-                LOGGER.warn("Unable to get background picture theme for id[{}]", themeId);
             }
+        } catch (Exception ex) {
+            LOGGER.warn("Unable to get background image theme for id[{}]", themeId);
         }
         return null;
     }
@@ -417,17 +410,16 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
     private Theme convert(NewThemeEntity themeEntity) {
         try {
-            ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
             final Date now = new Date();
             final Theme theme = new Theme();
-            theme.setId(io.gravitee.common.utils.UUID.toString(UUID.random()));
+            theme.setId(DEFAULT_THEME_ID);
             theme.setCreatedAt(now);
             theme.setUpdatedAt(now);
             theme.setReferenceId(GraviteeContext.getCurrentEnvironment());
             theme.setReferenceType(ThemeReferenceType.ENVIRONMENT.name());
             theme.setLogo(themeEntity.getLogo());
             theme.setName(themeEntity.getName());
-            theme.setDefinition(definitionMapper.writeValueAsString(themeEntity.getDefinition()));
+            theme.setDefinition(MAPPER.writeValueAsString(themeEntity.getDefinition()));
             theme.setEnabled(themeEntity.isEnabled());
             theme.setBackgroundImage(themeEntity.getBackgroundImage());
             theme.setOptionalLogo(themeEntity.getOptionalLogo());
@@ -438,12 +430,11 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     private ThemeEntity convert(final Theme theme) {
-        ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
         final ThemeEntity themeEntity = new ThemeEntity();
         themeEntity.setId(theme.getId());
         themeEntity.setName(theme.getName());
         try {
-            themeEntity.setDefinition(definitionMapper.readDefinition(theme.getDefinition()));
+            themeEntity.setDefinition(MAPPER.readDefinition(theme.getDefinition()));
         } catch (IOException e) {
             LOGGER.error("Cannot read definition of theme " + theme.getId() + " definition:" + theme.getDefinition());
         }

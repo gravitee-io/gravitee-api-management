@@ -52,7 +52,7 @@ public class ThemeResource extends AbstractResource  {
             @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ)
     })
     public ThemeEntity get(final @PathParam("themeId") String themeId)  {
-        return themeService.findById(themeId);
+        return themeService.findEnabled();
     }
 
     @PUT
@@ -105,7 +105,7 @@ public class ThemeResource extends AbstractResource  {
 
     private Response buildPictureResponse(PictureEntity picture, @Context Request request) {
         if (picture == null) {
-            throw new NotFoundException();
+            return Response.ok().build();
         }
 
         if (picture instanceof UrlPictureEntity) {

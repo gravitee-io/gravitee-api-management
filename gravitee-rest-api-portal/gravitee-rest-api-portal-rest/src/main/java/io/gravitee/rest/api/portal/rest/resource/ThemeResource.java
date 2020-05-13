@@ -23,7 +23,6 @@ import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ThemeService;
-import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
@@ -43,7 +42,7 @@ public class ThemeResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalTheme() {
         ThemeEntity theme = themeService.findEnabled();
-        if (theme != null) {
+        if (theme.getId() != null) {
             String themeURL = PortalApiLinkHelper.themeURL(uriInfo.getBaseUriBuilder(), theme.getId());
             return Response.ok(themeMapper.convert(theme, themeURL)).build();
         }
@@ -74,7 +73,7 @@ public class ThemeResource extends AbstractResource {
 
     private Response buildPictureResponse(PictureEntity picture, @Context Request request) {
         if (picture == null) {
-            throw new NotFoundException();
+            return Response.ok().build();
         }
 
         if (picture instanceof UrlPictureEntity) {

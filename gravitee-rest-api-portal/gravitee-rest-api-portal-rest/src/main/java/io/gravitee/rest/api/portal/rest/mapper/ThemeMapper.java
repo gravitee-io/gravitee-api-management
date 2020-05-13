@@ -37,10 +37,10 @@ public class ThemeMapper {
     public ThemeLinks computeLinks(ThemeEntity themeEntity, String basePath) {
         ThemeLinks themeLinks = new ThemeLinks();
         themeLinks.setSelf(basePath);
-        Long updatedAt = themeEntity.getUpdatedAt().getTime();
-        themeLinks.setBackgroundImage(basePath + "/backgroundImage?" + updatedAt);
-        themeLinks.setLogo(basePath + "/logo?" + updatedAt);
-        themeLinks.setOptionalLogo(basePath + "/optionalLogo?" + updatedAt);
+        final String hash = themeEntity.getUpdatedAt() == null ? "" : String.valueOf(themeEntity.getUpdatedAt().getTime());
+        themeLinks.setBackgroundImage(basePath + "/backgroundImage?" + hash);
+        themeLinks.setLogo(basePath + "/logo?" + hash);
+        themeLinks.setOptionalLogo(basePath + "/optionalLogo?" + hash);
         return themeLinks;
     }
 }
