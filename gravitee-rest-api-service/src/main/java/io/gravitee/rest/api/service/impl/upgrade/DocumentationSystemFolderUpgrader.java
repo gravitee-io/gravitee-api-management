@@ -62,7 +62,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
             Map<SystemFolderType, String> systemFolderIds = pageService.initialize(GraviteeContext.getDefaultEnvironment());
             
             String headerSystemFolderId = systemFolderIds.get(SystemFolderType.HEADER);
-            String footerSystemFolderId = systemFolderIds.get(SystemFolderType.FOOTER);
+            String topFooterSystemFolderId = systemFolderIds.get(SystemFolderType.TOPFOOTER);
       
             // Create link to existing documentation in footer
             List<PageEntity> pagesToLink = pageService.search(new PageQuery.Builder().rootParent(true).build()).stream()
@@ -70,7 +70,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
             .collect(Collectors.toList());
             
             if(!pagesToLink.isEmpty()) {
-                PageEntity docFolder = createFolder(footerSystemFolderId, "Documentation");
+                PageEntity docFolder = createFolder(topFooterSystemFolderId, "Documentation");
                 pagesToLink.forEach(page -> createLink(docFolder.getId(), page.getName(), page.getId(), "page", Boolean.FALSE, Boolean.TRUE));                
             }
 

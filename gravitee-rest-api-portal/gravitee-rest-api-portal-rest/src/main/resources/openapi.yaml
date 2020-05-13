@@ -2760,8 +2760,8 @@ components:
             Map of CategorizedLinks. Keys of the map can be:
             * aside
             * header
+            * topfooter
             * footer
-            * subfooter
           additionalProperties:
             type: array
             items:

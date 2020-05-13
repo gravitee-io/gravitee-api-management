@@ -24,7 +24,7 @@ package io.gravitee.rest.api.model;
  */
 public enum SystemFolderType {
 
-    HEADER("Header"), FOOTER("Footer"), SUBFOOTER("SubFooter"), ASIDE("Aside");
+    HEADER("Header"), TOPFOOTER("TopFooter"), FOOTER("Footer"), ASIDE("Aside");
 
     String folderName;
 

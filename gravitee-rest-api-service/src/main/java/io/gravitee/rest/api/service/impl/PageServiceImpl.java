@@ -1736,10 +1736,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
         result.put(SystemFolderType.HEADER,
             createSystemFolder(null, SystemFolderType.HEADER, 1, environmentId).getId());
+        result.put(SystemFolderType.TOPFOOTER,
+            createSystemFolder(null, SystemFolderType.TOPFOOTER, 2, environmentId).getId());
         result.put(SystemFolderType.FOOTER,
-            createSystemFolder(null, SystemFolderType.FOOTER, 2, environmentId).getId());
-        result.put(SystemFolderType.SUBFOOTER,
-            createSystemFolder(null, SystemFolderType.SUBFOOTER, 3, environmentId).getId());
+            createSystemFolder(null, SystemFolderType.FOOTER, 3, environmentId).getId());
 
         return result;
     }
