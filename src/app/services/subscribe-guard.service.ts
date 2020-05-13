@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Router, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
 import { CurrentUserService } from './current-user.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NotificationService } from './notification.service';
@@ -27,10 +27,10 @@ export class SubscribeGuardService {
   constructor(private currentUserService: CurrentUserService, private router: Router, private notificationService: NotificationService) {
   }
 
-  canActivate(route: ActivatedRouteSnapshot): boolean {
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     const user = this.currentUserService.get().getValue();
     if (user == null) {
-      const redirectUrl = this.router.routerState.snapshot.url + '/subscribe';
+      const redirectUrl = state.url;
       this.router
         .navigate(['/user/login'], { replaceUrl: true, queryParams: { redirectUrl } })
         .then(() => this.notificationService.warning(i18n('apiSubscribe.errors.notConnected')));
