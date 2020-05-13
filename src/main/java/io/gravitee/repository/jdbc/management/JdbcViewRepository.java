@@ -27,13 +27,7 @@ import org.springframework.stereotype.Repository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ViewRepository;
-import io.gravitee.repository.management.model.Group;
-import io.gravitee.repository.management.model.Role;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.management.model.View;
-import org.springframework.stereotype.Repository;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
@@ -55,7 +49,6 @@ public class JdbcViewRepository implements ViewRepository {
             .addColumn("key", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("default_view", Types.BIT, boolean.class)
             .addColumn("hidden", Types.BIT, boolean.class)
             .addColumn("order", Types.INTEGER, int.class)
             .addColumn("highlight_api", Types.NVARCHAR, String.class)
@@ -119,7 +112,6 @@ public class JdbcViewRepository implements ViewRepository {
                                         + " , " + escapeReservedWord("key") + " = ?"
                                         + " , name = ?"
                                         + " , description = ?"
-                                        + " , default_view = ?"
                                         + " , hidden = ?"
                                         + " , " + escapeReservedWord("order") + " = ?"
                                         + " , highlight_api = ?"
@@ -135,7 +127,6 @@ public class JdbcViewRepository implements ViewRepository {
                                 , item.getKey()
                                 , item.getName()
                                 , item.getDescription()
-                                , item.isDefaultView()
                                 , item.isHidden()
                                 , item.getOrder()
                                 , item.getHighlightApi()

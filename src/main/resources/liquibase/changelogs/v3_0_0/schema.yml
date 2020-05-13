@@ -635,3 +635,9 @@ databaseChangeLog:
 
         - sql:
             sql: delete from parameters where key = 'portal.devMode.enabled';
+
+        - sql:
+            sql: delete from views where id = 'all';
+        - dropColumn:
+            columnName: default_view
+            tableName: views
