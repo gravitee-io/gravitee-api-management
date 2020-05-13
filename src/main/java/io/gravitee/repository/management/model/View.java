@@ -27,15 +27,12 @@ public class View {
         VIEW_CREATED, VIEW_UPDATED, VIEW_DELETED
     }
 
-    public static final String ALL_ID = "all";
-
     private String id;
     private String environmentId;
     private String key;
     private String environment;
     private String name;
     private String description;
-    private boolean defaultView;
     private boolean hidden;
     private int order;
     private String highlightApi;
@@ -81,14 +78,6 @@ public class View {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public boolean isDefaultView() {
-        return defaultView;
-    }
-
-    public void setDefaultView(boolean defaultView) {
-        this.defaultView = defaultView;
     }
 
     public int getOrder() {
@@ -164,7 +153,6 @@ public class View {
                 ", environment='" + environment + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", defaultView='" + defaultView + '\'' +
                 ", hidden='" + hidden + '\'' +
                 ", order='" + order + '\'' +
                 ", highlightApi='" + highlightApi + '\'' +
