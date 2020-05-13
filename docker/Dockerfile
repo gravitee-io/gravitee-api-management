@@ -31,7 +31,7 @@ COPY files/mysite.template /etc/nginx/conf.d/default.conf
 RUN wget https://download.gravitee.io/graviteeio-apim/components/gravitee-portal-webui/gravitee-portal-webui-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp/ \
     && unzip /tmp/gravitee-portal-webui-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
     && mkdir -p ${WWW_TARGET} \
-    && mv /tmp/gravitee-portal-webui-${GRAVITEEIO_VERSION}/* ${WWW_TARGET} \
+    && mv /tmp/gravitee-portal-webui-${GRAVITEEIO_VERSION}/gravitee-portal-webui/* ${WWW_TARGET} \
     && rm -rf /tmp/*
 
 ENV PORTAL_API_URL http://localhost/portal/
