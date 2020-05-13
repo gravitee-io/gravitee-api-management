@@ -353,15 +353,19 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
         if (portalLinks.slots.header) {
           const headerLinks = portalLinks.slots.header.find(catLinks => catLinks.root);
-          this.mainRoutes = this.mainRoutes.then(navRoutes => navRoutes.concat(this._buildLinks(headerLinks.links)));
+          if (headerLinks) {
+            this.mainRoutes = this.mainRoutes.then(navRoutes => navRoutes.concat(this._buildLinks(headerLinks.links)));
+          }
         }
-        if (portalLinks.slots.subfooter) {
-          const subfooterLinks = portalLinks.slots.subfooter.find(catLinks => catLinks.root);
-          this.links.subfooter = this._buildLinks(subfooterLinks.links);
+        if (portalLinks.slots.footer) {
+          const footerLinks = portalLinks.slots.footer.find(catLinks => catLinks.root);
+          if (footerLinks) {
+            this.links.footer = this._buildLinks(footerLinks.links);
+          }
         }
 
-        if (portalLinks.slots.footer) {
-          this.links.footer = portalLinks.slots.footer
+        if (portalLinks.slots.topfooter) {
+          this.links.topfooter = portalLinks.slots.topfooter
             .filter(catLinks => !catLinks.root)
             .map(catLinks => {
               return {
