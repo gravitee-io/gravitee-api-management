@@ -24,10 +24,3 @@ section {
 .table-between {
   width: 20%;
 }
-
-.applications {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 1rem;
-  width: 100%;
-}

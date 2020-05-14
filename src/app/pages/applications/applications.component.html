@@ -16,12 +16,9 @@
 
 -->
 <div class="page__content">
-  <h1 class="title">{{'applications.title' | translate}} <span>({{ nbApplications }})</span></h1>
+  <h1 class="title">{{'applications.title' | translate}} <span *ngIf="nbApplications">({{ nbApplications }})</span></h1>
   <section>
-    <div class="applications">
-      <gv-card-full *ngFor="let application of applications; let index = index" [item]="application"
-                    [metrics]="metrics[index]" (click)="goToApplication(application)"></gv-card-full>
-    </div>
+    <gv-card-list [items]="applications"></gv-card-list>
   </section>
 </div>
 

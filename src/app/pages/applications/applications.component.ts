@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { Application, ApplicationService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
-import '@gravitee/ui-components/wc/gv-table';
+import { Component, HostListener, OnInit } from '@angular/core';
+import { Api, Application, ApplicationService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
+import '@gravitee/ui-components/wc/gv-card-list';
 import { Router } from '@angular/router';
 import StatusEnum = Subscription.StatusEnum;
 
@@ -26,7 +26,7 @@ import StatusEnum = Subscription.StatusEnum;
 })
 export class ApplicationsComponent implements OnInit {
   nbApplications: number;
-  applications: Array<Application>;
+  applications: { item: Application; metrics: Promise<{ subscribers: number }> }[] = [];
   metrics: Array<any>;
 
   constructor(
@@ -39,20 +39,23 @@ export class ApplicationsComponent implements OnInit {
 
   ngOnInit() {
     this.applicationService.getApplications({ size: -1 }).toPromise().then((response) => {
-      this.applications = response.data;
-      this.metrics = this.applications.map((application) => this._getMetrics(application));
       // @ts-ignore
       this.nbApplications = response.metadata.data.total;
+      this.applications = response.data.map((application) => ({
+        item: application,
+        metrics: this._getMetrics(application)
+      }));
     });
   }
 
   private _getMetrics(application: Application) {
     return this.subscriptionService
-      .getSubscriptions({ size: -1, applicationId: application.id, statuses: [ StatusEnum.ACCEPTED ] })
+      .getSubscriptions({ size: -1, applicationId: application.id, statuses: [StatusEnum.ACCEPTED] })
       .toPromise()
       .then((r) => ({ subscribers: r.data.length }));
   }
 
+  @HostListener(':gv-card-full:click', ['$event.detail'])
   goToApplication(application: Promise<Application>) {
     Promise.resolve(application).then((_application) => {
       this.router.navigate(['/applications/' + _application.id]);
