@@ -292,15 +292,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
         return this.search(query, acceptedLocale, false);
     }
 
-    private boolean isPublished(String pageId) {
-        try {
-            Page page = this.pageRepository.findById(pageId).orElse(null);
-            return page != null && page.isPublished();
-        } catch (TechnicalException e) {
-            return false;
-        }
-    }
-
     private List<PageEntity> search(final PageQuery query, String acceptedLocale, boolean withTranslations) {
         try {
             Stream<Page> pagesStream = pageRepository.search(queryToCriteria(query)).stream();
@@ -344,7 +335,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 return pages.stream()
                     .filter(page -> {
                         if (page.getParentId() != null) {
-                            return this.isPublished(page.getParentId());
+                            return this.findById(page.getParentId()).isPublished();
                         }
                         return true;
                     })
