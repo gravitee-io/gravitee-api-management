@@ -25,9 +25,9 @@ export class PermissionGuardService implements CanActivate {
   }
 
   canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
-    const permissions = route.data.permissions;
     let canActivate: boolean | UrlTree = true;
-    if (route.data && route.data.expectedPermissions && permissions) {
+    const permissions = route.data.permissions;
+    if (permissions && route.data && route.data.expectedPermissions) {
       const expectedPermissions = route.data.expectedPermissions;
       const expectedPermissionsObject = {};
       expectedPermissions.map(perm => {

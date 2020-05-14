@@ -45,7 +45,7 @@ export class ApplicationsComponent implements OnInit {
       this.nbApplications = response.metadata.data.total;
     });
   }
-  ​
+
   private _getMetrics(application: Application) {
     return this.subscriptionService
       .getSubscriptions({ size: -1, applicationId: application.id, statuses: [ StatusEnum.ACCEPTED ] })

@@ -95,17 +95,15 @@ export class AuthService {
   }
 
   private _logout(resolve) {
-    this.authenticationService.logout().subscribe(
-      () => {
-        this.currentUserService.revokeUser();
-        if (this.getProviderId()) {
-          this.oauthService.logOut();
-        }
-        this.router.navigate(['']);
-      },
-      () => resolve(false),
-      () => resolve(true)
-    );
+    this.authenticationService.logout().toPromise().then(() => {
+      this.currentUserService.revokeUser();
+      if (this.getProviderId()) {
+        this.oauthService.logOut();
+      }
+      this.router.navigate(['']);
+    })
+    .catch(() => resolve(false))
+    .finally(() => resolve(true));
   }
 
   private _configure(provider) {

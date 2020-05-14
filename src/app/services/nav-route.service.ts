@@ -100,8 +100,9 @@ export class NavRouteService {
         .filter(child => child.data != null && child.data.title)
         .filter(this.isVisiblePath(_hiddenPaths))
         .map(child => {
-          child.data = { ...data, ...child.data };
-          return child;
+          const newChild = Object.assign({}, child);
+          newChild.data = { ...data, ...child.data };
+          return newChild;
         })
         .filter(child => this.featureGuardService.canActivate(child) === true)
         .filter(child => this.permissionGuardService.canActivate(child) === true)
@@ -202,7 +203,9 @@ export class NavRouteService {
         skipLocationChange: true
       }
     }).then(() => {
-      extras.queryParams.skipRefresh = null;
+      if (extras && extras.queryParams) {
+        extras.queryParams.skipRefresh = null;
+      }
       this.router.navigate(commands, extras);
     });
   }
