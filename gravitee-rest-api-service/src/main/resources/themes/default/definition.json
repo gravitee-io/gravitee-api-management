@@ -473,8 +473,8 @@
       "name": "gv-stepper",
       "css": [
         {
-          "name": "--gv-stepper-validate--bgc",
-          "description": "Validate background color",
+          "name": "--gv-stepper-valid--bgc",
+          "description": "Valid background color",
           "type": "color",
           "default": "var(--gv-theme-color, #5A7684)",
           "value": ""
