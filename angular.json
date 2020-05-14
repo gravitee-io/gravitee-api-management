@@ -38,6 +38,7 @@
             "styles": [
               "node_modules/@ibm/plex/scss/ibm-plex.scss",
               "src/styles.scss",
+              "node_modules/highlight.js/styles/a11y-light.css",
               {
                 "input": "node_modules/swagger-ui-dist/swagger-ui.css",
                 "lazy": true,
@@ -127,6 +128,7 @@
             "styles": [
               "node_modules/@ibm/plex/scss/ibm-plex.scss",
               "src/styles.scss",
+              "node_modules/highlight.js/styles/a11y-light.css",
               {
                 "input": "node_modules/swagger-ui-dist/swagger-ui.css",
                 "lazy": true,

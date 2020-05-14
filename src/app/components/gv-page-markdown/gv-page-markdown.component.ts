@@ -15,6 +15,7 @@
  */
 import { Component, OnInit, Input, HostListener, AfterViewChecked, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import * as marked from 'marked';
+import * as hljs from 'highlight.js';
 import { PageService } from 'src/app/services/page.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ScrollService } from 'src/app/services/scroll.service';
@@ -45,6 +46,12 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     const page = this.pageService.getCurrentPage();
     if (page && page.content) {
+      marked.setOptions({
+        highlight: (code, language) => {
+          const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+          return hljs.highlight(validLanguage, code).value;
+        },
+      });
       this.pageContent = marked(page.content);
     }
   }
