@@ -19,7 +19,7 @@ ARG GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distrib
 ENV CONFD_VERSION="0.16.0"
 ENV CONFD_URL="https://github.com/kelseyhightower/confd/releases/download"
 
-ENV WWW_TARGET /var/www/html/
+ENV WWW_TARGET /usr/share/nginx/html
 
 RUN apk update \
   && apk add --update --no-cache zip unzip netcat-openbsd wget \
@@ -32,8 +32,8 @@ RUN apk update \
   && chmod +x /bin/confd
 
 # Support running as arbitrary user which belongs to the root group
-RUN chgrp -R 0 /var/www/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/ && \
-    chmod -R g=u /var/www/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/
+RUN chgrp -R 0 /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/ && \
+    chmod -R g=u /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/
 
 ADD config /etc/confd
 

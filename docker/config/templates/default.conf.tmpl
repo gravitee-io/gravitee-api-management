@@ -15,10 +15,10 @@ server {
     gzip_buffers 16 8k;
     gzip_http_version 1.1;
     gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript;
-    
+
     location / {
         try_files $uri $uri/ =404;
-        root /var/www/html;
+        root /usr/share/nginx/html;
     }
 
     # redirect server error pages to the static page /50x.html
