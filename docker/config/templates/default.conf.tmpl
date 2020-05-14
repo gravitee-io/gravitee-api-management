@@ -1,8 +1,8 @@
 server {
-    listen 443;
-    listen 80;
-    server_name _;
-    root /var/www/html;
+    listen {{ getenv "HTTP_PORT" "80" }};
+    listen {{ getenv "HTTPS_PORT" "443" }};
+    server_name {{ getenv "SERVER_NAME" "_" }};
+
     index index.html index.htm;
     charset utf-8;
 
@@ -16,12 +16,14 @@ server {
     gzip_http_version 1.1;
     gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript;
 
-    location /portal/ {
-        rewrite ^/portal(.*)$ $1 last;
+    location / {
         try_files $uri $uri/ =404;
+        root /usr/share/nginx/html;
     }
 
-    location / {
-        try_files $uri$args $uri$args/ $uri $uri/ /index.html =404;
+    # redirect server error pages to the static page /50x.html
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
     }
 }

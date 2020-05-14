@@ -14,42 +14,33 @@
 # limitations under the License.
 #
 
-FROM nginx:1.16-alpine
-MAINTAINER Gravitee Team <http://gravitee.io>
+FROM nginx:1.18-alpine
+LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
+ARG GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions
 
-COPY files/*.sh /usr/local/bin/
-RUN chmod u+x /usr/local/bin/*.sh
+ENV CONFD_VERSION="0.16.0"
+ENV CONFD_URL="https://github.com/kelseyhightower/confd/releases/download"
 
-# Update to get support for Zip/Unzip, Bash
-RUN apk --update add zip unzip bash wget
+ENV WWW_TARGET /usr/share/nginx/html
 
-ENV WWW_TARGET /var/www/html/
-COPY files/mysite.template /etc/nginx/conf.d/default.conf
+RUN apk update \
+  && apk add --update --no-cache zip unzip netcat-openbsd wget \
+  && wget ${GRAVITEEIO_DOWNLOAD_URL}/graviteeio-full-${GRAVITEEIO_VERSION}.zip -P /tmp \
+  && unzip /tmp/graviteeio-full-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
+  && apk del zip unzip netcat-openbsd wget \
+  && cp -fr /tmp/graviteeio-portal-ui-${GRAVITEEIO_VERSION}/gravitee-portal-webui/* ${WWW_TARGET} \
+  && rm -rf /tmp/* \
+  && wget -T 5 ${CONFD_URL}/v${CONFD_VERSION}/confd-${CONFD_VERSION}-linux-amd64 -O /bin/confd \
+  && chmod +x /bin/confd
 
-RUN wget https://download.gravitee.io/graviteeio-apim/components/gravitee-portal-webui/gravitee-portal-webui-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp/ \
-    && unzip /tmp/gravitee-portal-webui-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
-    && mkdir -p ${WWW_TARGET} \
-    && mv /tmp/gravitee-portal-webui-${GRAVITEEIO_VERSION}/gravitee-portal-webui/* ${WWW_TARGET} \
-    && rm -rf /tmp/*
+# Support running as arbitrary user which belongs to the root group
+RUN chgrp -R 0 /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/ && \
+    chmod -R g=u /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/
 
-ENV PORTAL_API_URL http://localhost/portal/
+ADD config /etc/confd
 
-RUN cp /var/www/html/assets/config.json /var/www/html/assets/config.json.template
+COPY run.sh /run.sh
 
-# forward request and error logs to docker log collector
-#RUN ln -sf /dev/stdout /var/log/nginx/access.log \
-#	&& ln -sf /dev/stderr /var/log/nginx/error.log
-
-# chmod to be compliant with Opensifht
-# Openshift v3 uses a randomly User inside the container.
-# This makes the user and group setting in the most Dockerfile and app not
-# very helpfully.
-
-RUN chmod -R 755 /var/www/ /var/log/nginx /var/cache/nginx/ \
-    && chmod 644 /etc/nginx/*
-
-EXPOSE 80 443
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["sh", "/run.sh"]
