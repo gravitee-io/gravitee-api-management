@@ -81,7 +81,7 @@
 }
 
 .page__content section {
-  margin-top: 42px;
+  margin: 42px 0;
 }
 
 .page__box {
@@ -146,12 +146,12 @@
 
 .title {
   letter-spacing: 0.05rem;
+  margin: 0;
 }
 
 h1.title {
   font-size: var(--gv-theme-font-size-xxl);
   line-height: var(--gv-theme-font-size-xxl);
-  margin: 0;
 }
 
 .title span {
@@ -163,14 +163,12 @@ h1.title {
 }
 
 h2.title {
-  margin: 0;
   font-size: var(--gv-theme-font-size-xl);
   line-height: var(--gv-theme-font-size-xl);
   opacity: 0.5;
 }
 
 h3.title {
-  margin: 0;
   font-size: var(--gv-theme-font-size-l);
   line-height: var(--gv-theme-font-size-l);
   opacity: 0.6;
@@ -182,7 +180,6 @@ h3.title p {
 }
 
 h4.title {
-  margin: 0;
   font-size: var(--gv-theme-font-size-m);
   line-height: var(--gv-theme-font-size-m);
   opacity: 0.6;

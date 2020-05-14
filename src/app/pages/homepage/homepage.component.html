@@ -16,11 +16,11 @@
 
 -->
 <div class="page__content">
-  <section>
-    <app-gv-page *ngIf="homepage" [page]="homepage"></app-gv-page>
+  <section *ngIf="homepage">
+    <app-gv-page [page]="homepage"></app-gv-page>
   </section>
+  <h3 class="title">{{'homepage.apis' | translate}}</h3>
   <section *ngIf="topApis.length > 0">
-    <h2>{{'homepage.apis' | translate}}</h2>
     <gv-card-list [items]="topApis"></gv-card-list>
   </section>
 </div>
