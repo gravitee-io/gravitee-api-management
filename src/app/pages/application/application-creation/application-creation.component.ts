@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -48,14 +48,14 @@ export interface ApplicationTypeOption extends ApplicationType {
 
 interface StepState {
   description: string,
-  validate: boolean
+  valid: boolean,
+  invalid: boolean
 }
 
 @Component({
   selector: 'app-application-creation',
   templateUrl: './application-creation.component.html',
   styleUrls: ['./application-creation.component.css'],
-  encapsulation: ViewEncapsulation.None
 })
 export class ApplicationCreationComponent implements OnInit {
 
@@ -184,9 +184,13 @@ export class ApplicationCreationComponent implements OnInit {
 
   get stepOneState(): StepState {
     if (this.stepOneForm) {
-      return { description: this.stepOneForm.get('name').value, validate: this.stepOneForm.valid };
+      return {
+        description: this.stepOneForm.get('name').value,
+        valid: this.stepOneForm.valid,
+        invalid: this.readSteps.includes(2) && this.stepOneForm.invalid
+      };
     }
-    return { description: '', validate: false };
+    return { description: '', valid: false, invalid: false };
   }
 
   onStepTwoUpdated(stepTwoForm: FormGroup) {
@@ -198,9 +202,9 @@ export class ApplicationCreationComponent implements OnInit {
   get stepTwoState(): StepState {
     if (this.stepTwoForm) {
       const description = this.readSteps.includes(2) && this.applicationType ? this.applicationType.name : '';
-      return { description, validate: this.stepTwoForm.valid };
+      return { description, valid: this.stepTwoForm.valid, invalid: this.stepTwoForm.invalid };
     }
-    return { description: '', validate: false };
+    return { description: '', valid: false, invalid: false };
   }
 
   onStepThreeUpdated(subscribeList: any[]) {
@@ -212,9 +216,10 @@ export class ApplicationCreationComponent implements OnInit {
     if (this.subscribeList) {
       const description = await this.translateService.get(
         i18n('applicationCreation.subscription.description'), { count: this.subscribeList.length }).toPromise();
-      return { description, validate: this.hasValidSubscriptions() };
+      const valid = this.hasValidSubscriptions();
+      return { description, valid, invalid: !valid };
     }
-    return { description: '', validate: false };
+    return { description: '', valid: false, invalid: false };
   }
 
   private async updateSteps() {
@@ -226,11 +231,12 @@ export class ApplicationCreationComponent implements OnInit {
       this.stepOneState,
       this.stepTwoState,
       stepThreeStep,
-      { description: createdAt, validate: this.creationSuccess }
-    ].map(({ description, validate }, index) => {
+      { description: createdAt, valid: this.creationSuccess, invalid: false }
+    ].map(({ description, valid, invalid }, index) => {
       const step = this._allSteps[index];
       step.description = description;
-      step.validate = !!description && (typeof validate === 'boolean' ? validate : true);
+      step.valid = this.readSteps.includes(index + 1) && valid;
+      step.invalid = this.readSteps.includes(index + 1) && invalid;
       return step;
     });
   }
@@ -261,7 +267,7 @@ export class ApplicationCreationComponent implements OnInit {
 
   canValidate() {
     if (this.steps && !this.creationSuccess) {
-      const firstThree = this.steps.filter((step, index) => (index <= 2 && step.validate));
+      const firstThree = this.steps.filter((step, index) => (index <= 2 && step.valid));
       if (firstThree.length === 3) {
         return this.applicationForm.valid && this.hasValidSubscriptions();
       }

@@ -19,6 +19,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 @Component({
   selector: 'app-application-creation-step1',
   templateUrl: './application-creation-step1.component.html',
+  styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep1Component implements OnInit {
 
@@ -39,7 +40,9 @@ export class ApplicationCreationStep1Component implements OnInit {
     this.form.valueChanges.subscribe(() => {
       this.updated.emit(this.form);
     });
-
+    setTimeout(()=>{
+      this.updated.emit(this.form);
+    });
   }
 
 }

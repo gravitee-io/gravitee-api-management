@@ -156,12 +156,12 @@ export class ApiSubscribeComponent implements OnInit {
     const isValid = this.subscribeForm.get('application').errors == null && this.subscribeForm.get('request').errors == null;
     this.steps = [
       { description: this.getPlanName() },
-      { description: this.getApplicationName(), validate: isValid },
-      { description: this.getCreatedAt(), validate: this._subscription != null }
-    ].map(({ description, validate }, index) => {
+      { description: this.getApplicationName(), valid: isValid },
+      { description: this.getCreatedAt(), valid: this._subscription != null }
+    ].map(({ description, valid }, index) => {
       const step = this._allSteps[index];
       step.description = description;
-      step.validate = !!description && (typeof validate === 'boolean' ? validate : true);
+      step.valid = !!description && (typeof valid === 'boolean' ? valid : true);
       return step;
     }).slice(0, this.isKeyLess() ? 1 : this._allSteps.length);
   }

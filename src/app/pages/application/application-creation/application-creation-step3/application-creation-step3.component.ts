@@ -24,6 +24,7 @@ import { SearchRequestParams } from '../../../../utils/search-query-param.enum';
 @Component({
   selector: 'app-application-creation-step3',
   templateUrl: './application-creation-step3.component.html',
+  styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep3Component implements OnInit {
 

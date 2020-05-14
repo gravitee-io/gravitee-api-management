@@ -21,6 +21,7 @@ import { ApplicationTypeOption } from '../application-creation.component';
 @Component({
   selector: 'app-application-creation-step2',
   templateUrl: './application-creation-step2.component.html',
+  styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep2Component implements OnInit, OnChanges {
 

@@ -23,6 +23,7 @@ import { ApplicationTypeOption } from '../application-creation.component';
 @Component({
   selector: 'app-application-creation-step4',
   templateUrl: './application-creation-step4.component.html',
+  styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep4Component implements OnInit {
 

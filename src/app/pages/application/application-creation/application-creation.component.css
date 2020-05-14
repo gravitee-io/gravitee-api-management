@@ -52,10 +52,6 @@
   height: 100%;
 }
 
-.application-creation__form, .application-creation__subscription-form {
-  display: none;
-}
-
 app-application-creation-step1,
 app-application-creation-step2,
 app-application-creation-step3,
