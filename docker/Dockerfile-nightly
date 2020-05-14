@@ -27,7 +27,7 @@ COPY files/mysite-nightly.template /etc/nginx/conf.d/default.conf
 RUN wget https://dist.gravitee.io/master/dist/graviteeio-portal-ui-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp/ \
     && unzip /tmp/graviteeio-portal-ui-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
     && mkdir -p ${WWW_TARGET} \
-    && mv /tmp/graviteeio-portal-ui-${GRAVITEEIO_VERSION}/gravitee-portal-webui/* ${WWW_TARGET} \
+    && mv /tmp/graviteeio-portal-ui-${GRAVITEEIO_VERSION}/* ${WWW_TARGET} \
     && rm -rf /tmp/*
 
 ENV PORTAL_API_URL http://localhost/portal/
