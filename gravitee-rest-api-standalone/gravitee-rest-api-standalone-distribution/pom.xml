@@ -102,14 +102,6 @@
 
 		<dependency>
 			<groupId>io.gravitee.rest.api.services</groupId>
-            <artifactId>gravitee-rest-api-services-search-indexer</artifactId>
-			<version>${project.version}</version>
-			<scope>runtime</scope>
-			<type>zip</type>
-		</dependency>
-
-		<dependency>
-			<groupId>io.gravitee.rest.api.services</groupId>
 			<artifactId>gravitee-rest-api-services-sync</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>

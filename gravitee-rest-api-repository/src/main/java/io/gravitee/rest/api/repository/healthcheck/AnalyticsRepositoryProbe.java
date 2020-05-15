@@ -20,10 +20,7 @@ import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.count.CountQuery;
 import io.gravitee.rest.api.repository.vertx.VertxCompletableFuture;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -50,9 +47,9 @@ public class AnalyticsRepositoryProbe implements Probe {
     public CompletableFuture<Result> check() {
         Future<Result> future = Future.future();
 
-        vertx.executeBlocking(new Handler<Future<Result>>() {
+        vertx.executeBlocking(new Handler<Promise<Result>>() {
             @Override
-            public void handle(Future<Result> event) {
+            public void handle(Promise<Result> event) {
                 try {
                     analyticsRepository.query(new CountQuery());
                     event.complete(Result.healthy());
