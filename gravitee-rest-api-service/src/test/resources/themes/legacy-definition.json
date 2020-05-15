@@ -795,39 +795,6 @@
       ]
     },
     {
-      "name": "gv-info",
-      "css": [
-        {
-          "name": "--gv-info--bgc",
-          "description": "Background color",
-          "type": "color",
-          "value": "var(--gv-theme-neutral-lightest--c, #FFFFFF)",
-          "default": null
-        },
-        {
-          "name": "--gv-info-rating--s",
-          "description": "Height and rating width",
-          "type": "length",
-          "value": "24px",
-          "default": null
-        },
-        {
-          "name": "--gv-info-image--h",
-          "description": "Image height",
-          "type": "length",
-          "value": "32px",
-          "default": null
-        },
-        {
-          "name": "--gv-info-image--w",
-          "description": "Image width",
-          "type": "length",
-          "value": "32px",
-          "default": null
-        }
-      ]
-    },
-    {
       "name": "gv-confirm",
       "css": [
         {

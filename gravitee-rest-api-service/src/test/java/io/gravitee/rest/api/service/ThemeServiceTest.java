@@ -369,7 +369,7 @@ public class ThemeServiceTest {
         ThemeDefinition themeDefinition = mapper.readValue(definition, ThemeDefinition.class);
         assertNotNull(themeDefinition);
         assertNotNull(themeDefinition.getData());
-        assertEquals(themeDefinition.getData().size(), 41);
+        assertEquals(40, themeDefinition.getData().size());
     }
 
     @Test
@@ -379,7 +379,7 @@ public class ThemeServiceTest {
         ThemeDefinition baseDefinition = mapper.readValue(def, ThemeDefinition.class);
         String customDef = themeServiceImpl.getDefinition("/themes/custom-definition.json");
         ThemeDefinition customDefinition = mapper.readValue(customDef, ThemeDefinition.class);
-        assertEquals(customDefinition.getData().size(), 34);
+        assertEquals(33, customDefinition.getData().size());
         assertNull(mapper.getThemeComponentDefinition(baseDefinition, "gv-pagination"));
         assertNotNull(mapper.getThemeComponentDefinition(customDefinition, "gv-pagination"));
         assertEquals(mapper.getThemeComponentDefinition(baseDefinition, "gv-plans").getCss().size(), 5);
@@ -398,7 +398,7 @@ public class ThemeServiceTest {
 
         ThemeDefinition mergedDefinition = mapper.merge(def, customDef);
 
-        assertEquals(mergedDefinition.getData().size(), 35);
+        assertEquals(34, mergedDefinition.getData().size());
         assertNull(mapper.getThemeComponentDefinition(mergedDefinition, "gv-pagination"));
         assertEquals(mapper.getThemeComponentDefinition(mergedDefinition, "gv-plans").getCss().size(), 5);
         assertEquals(mapper.getThemeComponentDefinition(mergedDefinition, "gv-popover").getCss().size(), 2);
@@ -420,12 +420,12 @@ public class ThemeServiceTest {
         ThemeDefinition themeDefinition = mapper.readValue(def, ThemeDefinition.class);
         String customDef = themeServiceImpl.getDefinition("/themes/legacy-definition.json");
         ThemeDefinition legacyDefinition = mapper.readValue(customDef, ThemeDefinition.class);
-        assertEquals(themeDefinition.getData().size(), 41);
-        assertEquals(legacyDefinition.getData().size(), 36);
+        assertEquals(40, themeDefinition.getData().size());
+        assertEquals(35, legacyDefinition.getData().size());
 
         ThemeDefinition mergedDefinition = mapper.merge(def, customDef);
         assertNotNull(mergedDefinition);
-        assertEquals(mergedDefinition.getData().size(), 41);
+        assertEquals(40, mergedDefinition.getData().size());
 
         assertNotNull(mapper.getThemeCssDefinition(legacyDefinition, "gv-theme", "--gv-theme--c"));
         assertNull(mapper.getThemeCssDefinition(themeDefinition, "gv-theme", "--gv-theme--c"));
