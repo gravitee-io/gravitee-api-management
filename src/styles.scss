@@ -115,7 +115,6 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--gv-theme-neutral-color);
-  padding: 2rem 4rem;
 }
 
 .page__box-title .title {
@@ -128,9 +127,12 @@
   padding: 24px;
 }
 
-.page__box-content, .page__box-footer {
-  border-top: 1px solid var(--gv-theme-neutral-color);
+.page__box-title, .page__box-content, .page__box-footer {
   padding: 2rem 4rem;
+}
+
+.page__box-footer {
+  border-top: 1px solid var(--gv-theme-neutral-color);
 }
 
 .aside .page__box-content {

@@ -22,6 +22,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
 import { GvFormControlDirective } from '../directives/gv-form-control.directive';
+import { LocalizedDatePipe } from '../pipes/localized-date.pipe';
 
 import { ApiLabelsPipe } from './../pipes/api-labels.pipe';
 import { SafePipe } from './../pipes/safe.pipe';
@@ -30,6 +31,7 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
   declarations: [
     ApiLabelsPipe,
     ApiStatesPipe,
+    LocalizedDatePipe,
     SafePipe,
     GvFormControlDirective,
   ],
@@ -56,6 +58,7 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
     OAuthModule,
     GvFormControlDirective,
     SafePipe,
+    LocalizedDatePipe,
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA
@@ -63,6 +66,7 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
   providers: [
     ApiLabelsPipe,
     ApiStatesPipe,
+    LocalizedDatePipe
   ]
 })
 export class SharedModule {

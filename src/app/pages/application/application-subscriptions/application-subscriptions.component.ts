@@ -97,30 +97,26 @@ export class ApplicationSubscriptionsComponent implements OnInit {
             field: 'plan', label: i18n('application.subscriptions.plan'),
             format: (item) => this.metadata[item] && this.metadata[item].name
           },
-          { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at') },
+          { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at'), width: '160px' },
           {
             field: 'subscribed_by', label: i18n('application.subscriptions.subscribed_by'),
-            format: (item) => this.metadata[item] && this.metadata[item].name
+            format: (item) => this.metadata[item] && this.metadata[item].name, width: '190px'
           },
-          { field: 'processed_at', type: 'date', label: i18n('application.subscriptions.processed_at') },
-          { field: 'start_at', type: 'date', label: i18n('application.subscriptions.start_at') },
           {
-            field: 'status', label: i18n('application.subscriptions.status'),
+            field: 'status', label: i18n('application.subscriptions.status'), width: '80px',
             format: (key) => {
               const statusKey = 'common.status.' + key.toUpperCase();
               return this.translateService.get(statusKey).toPromise();
             },
-            headerStyle: 'justify-content: flex-end;',
             style: (item) => {
-              let style = 'text-align: right;';
               switch (item.status.toUpperCase()) {
                 case StatusEnum.ACCEPTED:
-                  return style += 'color: #009B5B';
+                  return 'color: #009B5B';
                 case StatusEnum.PAUSED:
                 case StatusEnum.PENDING:
-                  return style += 'color: #FA8C16';
+                  return 'color: #FA8C16';
                 case StatusEnum.REJECTED:
-                  return style += 'color: #F5222D';
+                  return 'color: #F5222D';
               }
             },
           },
@@ -255,10 +251,6 @@ export class ApplicationSubscriptionsComponent implements OnInit {
         return expiredApiKeys;
       }
     }
-  }
-
-  getDateAsString(timestamp, long?) {
-    return long ? new Date(timestamp).toLocaleString() : new Date(timestamp).toLocaleDateString();
   }
 
   endAt(apiKey) {

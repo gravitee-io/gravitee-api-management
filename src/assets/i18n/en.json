@@ -293,7 +293,7 @@
     "subscriptions": {
       "api": "API",
       "apiKey": {
-        "created_at": "Subscribe on",
+        "created_at": "Generated on",
         "end_at": "Ends on",
         "ended_at": "Completed on",
         "expired": {
@@ -330,6 +330,9 @@
       "renew": {
         "message": "Are you sure you want to renew this subscription?",
         "title": "Renew"
+      },
+      "selected": {
+        "title": "Subscription information"
       },
       "start_at": "Starting date",
       "status": "status",

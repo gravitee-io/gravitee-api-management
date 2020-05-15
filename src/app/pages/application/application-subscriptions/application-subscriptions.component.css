@@ -48,3 +48,13 @@ gv-confirm {
   display: flex;
   justify-content: flex-end;
 }
+
+.page__box-footer_subscriptions,
+.expired-keys .page__box-footer {
+  padding: 0.5rem;
+}
+
+.page__box-row {
+  margin: 0.2rem;
+  box-sizing: border-box;
+}

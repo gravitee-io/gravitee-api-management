@@ -293,7 +293,7 @@
     "subscriptions": {
       "api": "API",
       "apiKey": {
-        "created_at": "Souscrit le",
+        "created_at": "Générée le",
         "end_at": "Se termine",
         "ended_at": "Terminée le",
         "expired": {
@@ -330,6 +330,9 @@
       "renew": {
         "message": "Êtes-vous sûr de vouloir renouveler cette souscription ?",
         "title": "Renouveler"
+      },
+      "selected": {
+        "title": "Informations de souscription"
       },
       "start_at": "Date de démarrage",
       "status": "Status",

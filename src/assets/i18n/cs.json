@@ -293,7 +293,7 @@
     "subscriptions": {
       "api": "Api",
       "apiKey": {
-        "created_at": "Přihlásit se k odběru",
+        "created_at": "Vygenerováno dne",
         "end_at": "Končí dál",
         "ended_at": "Dokončeno",
         "expired": {
@@ -330,6 +330,9 @@
       "renew": {
         "message": "Opravdu chcete obnovit toto předplatné?",
         "title": "Obnovte"
+      },
+      "selected": {
+        "title": "Informace o předplatném"
       },
       "start_at": "Datum zahájení",
       "status": "Stav",

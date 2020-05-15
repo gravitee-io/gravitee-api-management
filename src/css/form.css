@@ -26,7 +26,6 @@
 
 .form.aside .form__actions,
 .form .aside .form__actions {
-  border: none;
   flex-direction: column;
   text-align: center;
 }
