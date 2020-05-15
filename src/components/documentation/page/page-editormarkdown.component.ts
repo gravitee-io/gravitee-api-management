@@ -17,6 +17,9 @@ import angular = require('angular');
 import { StateService, any } from '@uirouter/core';
 
 import * as Editor from '@toast-ui/editor';
+import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
+import hljs from 'highlight.js';
+
 
 class ComponentCtrl implements ng.IComponentController {
 
@@ -107,7 +110,8 @@ class ComponentCtrl implements ng.IComponentController {
 
           return false;
         }
-      }
+      },
+      plugins: [[codeSyntaxHighlight, { hljs }]]
     }, this.options));
   }
 }

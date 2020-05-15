@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 import * as Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
+import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
+import hljs from 'highlight.js';
+
 import * as _ from 'lodash';
 import * as remark from 'remark';
 
@@ -80,7 +83,8 @@ class ComponentCtrl implements ng.IComponentController {
                         '(#', '(' + this.$location.absUrl() + '#'),
                       'href="#', 'href="' + this.$location.absUrl() + '#'
       ),
-      useDefaultHTMLSanitizer: false
+      useDefaultHTMLSanitizer: false,
+      plugins: [[codeSyntaxHighlight, { hljs }]]
     }, this.options));
   }
 
