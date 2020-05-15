@@ -27,6 +27,8 @@ import io.gravitee.reporter.api.http.Metrics;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.streams.Pipe;
+import io.vertx.core.streams.WriteStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -217,7 +219,27 @@ public class VertxHttpClientTest {
         }
 
         @Override
+        public Pipe<HttpClientResponse> pipe() {
+            return null;
+        }
+
+        @Override
+        public void pipeTo(WriteStream<HttpClientResponse> dst) {
+
+        }
+
+        @Override
+        public void pipeTo(WriteStream<HttpClientResponse> dst, Handler<AsyncResult<Void>> handler) {
+
+        }
+
+        @Override
         public HttpClientRequest setFollowRedirects(boolean followRedirects) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest setMaxRedirects(int maxRedirects) {
             return null;
         }
 
@@ -387,6 +409,11 @@ public class VertxHttpClientTest {
         }
 
         @Override
+        public boolean reset() {
+            return false;
+        }
+
+        @Override
         public boolean reset(long code) {
             return false;
         }
@@ -403,6 +430,21 @@ public class VertxHttpClientTest {
 
         @Override
         public HttpClientRequest writeCustomFrame(int type, int flags, Buffer payload) {
+            return null;
+        }
+
+        @Override
+        public int streamId() {
+            return 0;
+        }
+
+        @Override
+        public HttpClientRequest writeCustomFrame(HttpFrame frame) {
+            return null;
+        }
+
+        @Override
+        public HttpClientRequest setStreamPriority(StreamPriority streamPriority) {
             return null;
         }
 

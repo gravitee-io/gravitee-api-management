@@ -32,7 +32,8 @@
     <packaging>pom</packaging>
 
     <properties>
-        <gravitee.gateway.log.dir>${gravitee.home}/logs</gravitee.gateway.log.dir>
+        <!--suppress UnresolvedMavenProperty -->
+		<gravitee.gateway.log.dir>${gravitee.home}/logs</gravitee.gateway.log.dir>
     </properties>
 
     <dependencies>
