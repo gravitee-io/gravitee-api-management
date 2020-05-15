@@ -10,13 +10,22 @@
     }
   },
   "api": {
-    "list": {
-      "connectedApp": "Připojené aplikace"
-    },
-    "miscellaneous": {
+    "information": {
+      "about": "Asi",
+      "beFirstToRate": "Buďte první hodnotící",
+      "categories": "Kategorie",
+      "entrypoints": "Přístupová URL",
+      "labels": "Tagy",
       "lastUpdate": "Poslední aktualizace: ",
+      "metrics": "Statistika",
+      "moreInfo": "Další informace",
       "publisher": "Vydavatel: ",
+      "ratings": "Poznámky",
+      "resources": "zdroje",
       "version": "Verze: "
+    },
+    "list": {
+      "connectedApps": "Připojené aplikace"
     }
   },
   "apiGeneral": {
@@ -47,7 +56,7 @@
       "comment": "Zanechte vlastníkovi API komentář",
       "createApp": "Chci vytvořit aplikaci",
       "description": "Tato aplikace představuje spojení mezi vámi jako spotřebitelem a přihlášením k odběru plánu API.",
-      "linkedApp": "V rozhraní API <b>{apiName}</b>již máte <b>{count}</b> {count, plural, =0{} one{application liée} other{applications liées}} .",
+      "connectedApps": "V rozhraní API <b>{apiName}</b>již máte <b>{count}</b> {count, plural, =0{} one{připojená aplikace} other{připojené aplikace}} .",
       "missingClientId": "client_id chybí",
       "noAvailableApplications": "Nejsou k dispozici žádné aplikace."
     },
@@ -57,7 +66,7 @@
     "choosePlan": {
       "title": "Volba plánu"
     },
-    "connectedApp": "{count, plural, =0{} one{Application liée} other{Applications liées}} v plánu {planName}",
+    "connectedApps": "{count, plural, =0{} one{Připojená aplikace} other{Připojené aplikace}} v plánu {planName}",
     "errors": {
       "information": "Během předplatného došlo k chybě.",
       "notConnected": "Přihlaste se nebo si vytvořte účet a přihlaste se k odběru API.",
@@ -152,6 +161,13 @@
       "title": "Description"
     },
     "general": "General",
+    "information": {
+      "createdDate": "Vytvořit",
+      "lastUpdate": "Upraveno",
+      "owner": "Majitel",
+      "title": "Informace",
+      "type": "Typ"
+    },
     "list": {
       "connectedApis": "Předplacená rozhraní API"
     },
@@ -231,12 +247,6 @@
         "title": "Změnit vlastníka",
         "transfer": "Převod"
       }
-    },
-    "miscellaneous": {
-      "createdDate": "Vytvořit",
-      "lastUpdate": "Upraveno",
-      "owner": "Owner",
-      "type": "Type"
     },
     "name": {
       "label": "Název aplikace",
@@ -685,18 +695,6 @@
     "empty": "Žádné rozhraní API k zobrazení zde",
     "error": "Při načítání API došlo k chybě.",
     "subscribe": "Předplatit"
-  },
-  "gv-info": {
-    "about": "Asi",
-    "beFirstToRate": "Buďte první hodnotící",
-    "categories": "Kategorie",
-    "entrypoints": "Přístupová URL",
-    "error": "Při načítání informací API došlo k chybě",
-    "labels": "Tagy",
-    "metrics": "Statistika",
-    "moreInfo": "Další informace",
-    "ratings": "Poznámky",
-    "resources": "zdroje"
   },
   "gv-input": {
     "copy": "Kopírovat do schránky",

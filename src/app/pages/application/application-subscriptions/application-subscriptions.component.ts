@@ -15,7 +15,6 @@
  */
 import { ChangeDetectorRef, Component, OnInit, NgZone } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
-import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
 import {
@@ -29,7 +28,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import StatusEnum = Subscription.StatusEnum;
 import { NotificationService } from '../../../services/notification.service';
-import { ScrollService } from '../../../services/scroll.service';
 
 @Component({
   selector: 'app-application-subscriptions',
@@ -67,7 +65,6 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     private formBuilder: FormBuilder,
     private permissionsService: PermissionsService,
     private ref: ChangeDetectorRef,
-    private scrollService: ScrollService,
     private ngZone: NgZone,
   ) {
   }
@@ -267,9 +264,6 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   }
 
   toggleDisplayExpired() {
-    if (!this.displayExpiredApiKeys) {
-      this.scrollService.scrollToAnchor('expired-keys');
-    }
     this.displayExpiredApiKeys = !this.displayExpiredApiKeys;
     this.ref.detectChanges();
   }

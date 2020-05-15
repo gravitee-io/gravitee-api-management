@@ -15,7 +15,7 @@
  */
 import { Component, OnInit, HostListener } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
-import '@gravitee/ui-components/wc/gv-info';
+import '@gravitee/ui-components/wc/gv-rating';
 import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
 import {
@@ -54,14 +54,13 @@ export class ApiGeneralComponent implements OnInit {
   private ratingsMetadata: any;
 
   canRate: boolean;
-  currentApi: Promise<Api>;
-  currentApiMetrics: Promise<ApiMetrics>;
+  currentApi: Api;
+  currentApiMetrics: ApiMetrics;
   currentOrder: any;
   currentUser: User;
   description: string;
   homepage: Page;
-  linkedApp: Promise<any[]>;
-  miscellaneous: any[];
+  connectedApps: Promise<any[]>;
   permissions: PermissionsResponse = {};
   ratingListPermissions: { update, delete, addAnswer, deleteAnswer };
   ratingForm: FormGroup;
@@ -118,9 +117,9 @@ export class ApiGeneralComponent implements OnInit {
           apiId,
           homepage: true
         }).subscribe(response => this.homepage = response.data[0]);
-        this.currentApiMetrics = this.apiService.getApiMetricsByApiId({ apiId }).toPromise();
-        const api = this.route.snapshot.data.api;
-        this.currentApi = Promise.resolve().then(() => api);
+        this.apiService.getApiMetricsByApiId({ apiId }).toPromise()
+          .then(metrics => this.currentApiMetrics = metrics);
+        this.currentApi = this.route.snapshot.data.api;
         this.apiService.getApiLinks({ apiId }).subscribe(apiLinks => {
           if (apiLinks.slots && apiLinks.slots.aside) {
             apiLinks.slots.aside.forEach((catLinks) => {
@@ -134,7 +133,7 @@ export class ApiGeneralComponent implements OnInit {
         this.currentUser = this.currentUserService.getUser();
         if (this.currentUser) {
           this._updateRatings();
-          this.linkedApp = this.apiService.getSubscriberApplicationsByApiId({
+          this.connectedApps = this.apiService.getSubscriberApplicationsByApiId({
             apiId,
             statuses: [StatusEnum.ACCEPTED],
           })
@@ -143,26 +142,9 @@ export class ApiGeneralComponent implements OnInit {
             .catch(() => []);
         }
 
-        this.description = api.description;
+        this.description = this.currentApi.description;
 
-        this.translateService.get([i18n('api.miscellaneous.version'), i18n('api.miscellaneous.lastUpdate'), i18n('api.miscellaneous.publisher')])
-          .subscribe(
-            ({
-               'api.miscellaneous.version': version,
-               'api.miscellaneous.lastUpdate': lastUpdate,
-               'api.miscellaneous.publisher': publisher
-             }) => {
-              this.miscellaneous = [
-                { key: version, value: api.version },
-                {
-                  key: lastUpdate,
-                  value: new Date(api.updated_at),
-                  date: 'relative'
-                },
-                { key: publisher, value: api.owner.display_name }
-              ];
-            });
-        return api;
+        return this.currentApi;
       }
     });
   }
@@ -241,17 +223,14 @@ export class ApiGeneralComponent implements OnInit {
     });
   }
 
-  @HostListener(':gv-info:click-view', ['$event.detail.tagValue'])
-  onClickView(tagValue: string) {
-    this.router.navigate(['catalog/categories', tagValue]);
+  goToCategory(view: string) {
+    this.router.navigate(['/catalog/categories', view])
   }
 
-  @HostListener(':gv-info:click-label', ['$event.detail.tagValue'])
-  onClickLabel(tagValue: string) {
-    this.router.navigate(['catalog/search'], { queryParams: { q: tagValue } });
+  goToSearch(tag: string) {
+    this.router.navigate(['catalog/search'], { queryParams: { q: tag } });
   }
 
-  @HostListener(':gv-info:click-resource', ['$event.detail'])
   onNavChange(route: INavRoute) {
     if (route.target && route.target === '_blank') {
       window.open(route.path, route.target);
@@ -266,13 +245,18 @@ export class ApiGeneralComponent implements OnInit {
   onUpdate({ rating }) {
     const apiId = this.apiId;
     const RatingInput = { title: rating.title, value: rating.value, comment: rating.comment };
-    this.apiService.updateApiRating({ apiId, ratingId: rating.id, RatingInput }).toPromise().then((res) => {
-      this.ratingForm = null;
-      this._updateRatings();
-      this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise();
-    }).then((response) => {
-      this.notificationService.info(i18n('apiGeneral.ratingUpdated'));
-    });
+    this.apiService.updateApiRating({ apiId, ratingId: rating.id, RatingInput })
+      .toPromise()
+      .then((res) => {
+        this.ratingForm = null;
+        this._updateRatings();
+        this.apiService.getApiByApiId({ apiId })
+        .toPromise()
+        .then((api) => this.currentApi = api);
+      })
+      .then(() =>
+        this.notificationService.info(i18n('apiGeneral.ratingUpdated'))
+      );
   }
 
   @HostListener(':gv-rating-list:delete', ['$event.detail'])
@@ -285,7 +269,9 @@ export class ApiGeneralComponent implements OnInit {
       })
       .finally(() => {
         this._updateRatings();
-        this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise();
+        this.apiService.getApiByApiId({ apiId })
+        .toPromise()
+        .then((api) => this.currentApi = api);
       });
   }
 
@@ -337,8 +323,10 @@ export class ApiGeneralComponent implements OnInit {
       this.ratingForm = null;
       this.notificationService.info(i18n('apiGeneral.ratingCreated'));
       this._updateRatings();
-      this.currentApi = this.apiService.getApiByApiId({ apiId }).toPromise();
-    });
+      this.apiService.getApiByApiId({ apiId })
+      .toPromise()
+      .then((api) => this.currentApi = api);
+  });
   }
 
   private _updateRatingForm() {
@@ -349,7 +337,6 @@ export class ApiGeneralComponent implements OnInit {
     }
   }
 
-  @HostListener(':gv-info:rating')
   onInfoRating() {
     if (this.hasRatingForm()) {
       let element = document.querySelector('.rating-form');

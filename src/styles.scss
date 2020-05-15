@@ -106,7 +106,7 @@
 }
 
 .aside {
-  min-width: 280px;
+  width: 280px;
 }
 
 .page__box-title {
@@ -125,6 +125,11 @@
 .aside .page__box-content,
 .aside .page__box-footer {
   padding: 24px;
+}
+
+.aside .page__box-title gv-identity-picture {
+  width: 32px;
+  height: 32px;
 }
 
 .page__box-title, .page__box-content, .page__box-footer {

@@ -10,13 +10,22 @@
     }
   },
   "api": {
-    "list": {
-      "connectedApp": "Connected App"
-    },
-    "miscellaneous": {
+    "information": {
+      "about": "About",
+      "beFirstToRate": "Be the first to rate",
+      "categories": "Categories",
+      "entrypoints": "Access URL",
+      "labels": "Labels",
       "lastUpdate": "Last update: ",
+      "metrics": "Metrics",
+      "moreInfo": "More information",
       "publisher": "Publisher: ",
+      "ratings": "Ratings",
+      "resources": "Resources",
       "version": "Version: "
+    },
+    "list": {
+      "connectedApps": "Connected applications"
     }
   },
   "apiGeneral": {
@@ -47,7 +56,7 @@
       "comment": "Leave a comment to the API owner",
       "createApp": "I want to create an application",
       "description": "The app is the link between you, as a consumer, and subscribing to an API plan.",
-      "linkedApp": "You already have <b>{count}</b> {count, plural, =0{} one{linked application} other{linked applications}} with the API <b>{apiName}</b>.",
+      "connectedApps": "You already have <b>{count}</b> {count, plural, =0{} one{connected application} other{connected applications}} with the API <b>{apiName}</b>.",
       "missingClientId": "Missing client_id",
       "noAvailableApplications": "There are no apps available."
     },
@@ -57,7 +66,7 @@
     "choosePlan": {
       "title": "Choice of plan"
     },
-    "connectedApp": "{count, plural, =0{} one{Linked application} other{Linked applications}} to {planName}",
+    "connectedApps": "{count, plural, =0{} one{Connected application} other{Connected applications}} to {planName}",
     "errors": {
       "information": "An error occurred during the subscription.",
       "notConnected": "Log in or create an account to subscribe to the API.",
@@ -152,6 +161,13 @@
       "title": "Description"
     },
     "general": "Général",
+    "information": {
+      "createdDate": "Created",
+      "lastUpdate": "Updated",
+      "owner": "Owner",
+      "title": "Information",
+      "type": "Type"
+    },
     "list": {
       "connectedApis": "Subscribed APIs"
     },
@@ -231,12 +247,6 @@
         "title": "Transfer Ownership",
         "transfer": "Transfer"
       }
-    },
-    "miscellaneous": {
-      "createdDate": "Created",
-      "lastUpdate": "Updated",
-      "owner": "Owner",
-      "type": "Type"
     },
     "name": {
       "label": "Name of the app",
@@ -685,18 +695,6 @@
     "empty": "No API to display here",
     "error": "An error occurred while loading the API",
     "subscribe": "Subscribe"
-  },
-  "gv-info": {
-    "about": "About",
-    "beFirstToRate": "Be the first to rate",
-    "categories": "Categories",
-    "entrypoints": "Access URL",
-    "error": "An error occurred while loading the API",
-    "labels": "Labels",
-    "metrics": "Metrics",
-    "moreInfo": "More information",
-    "ratings": "Ratings",
-    "resources": "Resources"
   },
   "gv-input": {
     "copy": "Copy to clipboard",

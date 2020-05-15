@@ -85,14 +85,68 @@
 
   </section>
 
-  <aside class="api__aside">
+  <aside class="aside">
+    <div class="page__box" *ngIf="currentApi">
+      <div class="page__box-content">
+        <div class="info" *ngIf="currentApi.entrypoints && currentApi.entrypoints.length > 0">
+          <h4 class="title">{{ 'api.information.entrypoints' | translate }}</h4>
+          <div *ngFor="let e of currentApi.entrypoints" class="info__resources"><a class="link" href="{{e}}" target="_blank">{{e}}</a></div>
+        </div>
 
-    <gv-info [item]="currentApi"
-             [metrics]="currentApiMetrics"
-             [resources]="resources"
-             [miscellaneous]="miscellaneous"></gv-info>
+        <div class="info" *ngIf="currentApi.views && currentApi.views.length > 0">
+          <h4 class="title">{{ 'api.information.categories' | translate }}</h4>
+          <span>
+            <gv-tag *ngFor="let view of currentApi.views" (click)="goToCategory(view)" [clickable]="true">{{view}}</gv-tag>
+          </span>
+        </div>
 
-    <gv-list *ngIf="linkedApp" [items]="linkedApp" title="{{ 'api.list.connectedApp' | translate }}"
+        <div class="info" *ngIf="currentApi.labels && currentApi.labels.length > 0">
+          <h4 class="title">{{ 'api.information.labels' | translate }}</h4>
+          <span>
+            <gv-tag *ngFor="let tag of currentApi.labels" (click)="goToSearch(tag)" [clickable]="true" major>{{tag}}</gv-tag>
+          </span>
+        </div>
+
+        <div class="info" *ngIf="currentApi.rating_summary">
+          <h4 class="title">{{ 'api.information.ratings' | translate }}</h4>
+          <span class="info__figures">
+            <span *ngIf="!currentApi.rating_summary.count">{{ 'api.information.beFirstToRate' | translate }}</span>
+            <gv-rating (click)="onInfoRating()" readonly [count]="currentApi.rating_summary.count" [value]="currentApi.rating_summary.average"></gv-rating>
+          </span>
+        </div>
+
+        <div class="info" *ngIf="currentApiMetrics && (currentApiMetrics.subscribers || currentApiMetrics.health || currentApiMetrics.hits)">
+          <h4 class="title">{{ 'api.information.metrics' | translate }}</h4>
+          <gv-metrics [metrics]="currentApiMetrics"></gv-metrics>
+        </div>
+
+        <div class="info" *ngIf="resources">
+          <h4 class="title">{{ 'api.information.resources' | translate }}</h4>
+          <span>
+              <div class="info__resources" *ngFor="let item of resources">
+                <a class="link" href="{{item.path}}" target="{{item.target}}" (click)="onNavChange(item)">{{item.title}}</a>
+              </div>
+          </span>
+        </div>
+
+        <div class="info">
+          <h4 class="title">{{ 'api.information.moreInfo' | translate }}</h4>
+          <ul class="info__miscellaneous">
+            <li class="info__miscellaneous_item">
+              <span>{{'api.information.version' | translate}}</span> {{ currentApi.version }}
+            </li>
+            <li class="info__miscellaneous_item">
+              <span>{{'api.information.lastUpdate' | translate}}</span> <gv-relative-time [datetime]="currentApi.updated_at" noFuture></gv-relative-time>
+            </li>
+            <li class="info__miscellaneous_item">
+              <span>{{'api.information.publisher' | translate}}</span> {{ currentApi.owner.display_name }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <gv-list *ngIf="connectedApps" [items]="connectedApps" title="{{ 'api.list.connectedApps' | translate }}"
              clickable></gv-list>
   </aside>
 </div>

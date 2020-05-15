@@ -33,7 +33,7 @@ import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-confirm';
 import '@gravitee/ui-components/wc/gv-icon';
 import '@gravitee/ui-components/wc/gv-identity-picture';
-import '@gravitee/ui-components/wc/gv-info';
+import '@gravitee/ui-components/wc/gv-relative-time';
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-select';
@@ -88,7 +88,6 @@ export class ApplicationMembersComponent implements OnInit {
   readonly = true;
   application: Application;
   connectedApis: Promise<any[]>;
-  miscellaneous: any[];
   members: Array<Member>;
   membersOptions: any;
   roles: Array<{ label: string, value: string }>;
@@ -172,31 +171,6 @@ export class ApplicationMembersComponent implements OnInit {
         .toPromise()
         .then((response) => response.data.map((api) => ({ item: api, type: ItemResourceTypeEnum.API })));
 
-      this.translateService.get([
-        i18n('application.miscellaneous.owner'),
-        i18n('application.miscellaneous.type'),
-        i18n('application.miscellaneous.createdDate'),
-        i18n('application.miscellaneous.lastUpdate'),
-        'application.types'
-      ], { type: this.application.applicationType })
-        .toPromise()
-        .then(translations => {
-          const infoTranslations = Object.values(translations);
-          this.miscellaneous = [
-            { key: infoTranslations[0], value: this.application.owner.display_name },
-            { key: infoTranslations[1], value: infoTranslations[4] },
-            {
-              key: infoTranslations[2],
-              value: new Date(this.application.created_at),
-              date: 'short'
-            },
-            {
-              key: infoTranslations[3],
-              value: new Date(this.application.updated_at),
-              date: 'relative'
-            },
-          ];
-        });
     }
   }
 
@@ -387,4 +361,7 @@ export class ApplicationMembersComponent implements OnInit {
     });
   }
 
+  toLocaleDateString(date: string) {
+    return new Date(date).toLocaleDateString(this.translateService.currentLang);
+  }
 }

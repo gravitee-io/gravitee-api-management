@@ -41,10 +41,6 @@
  margin-bottom: 32px;
 }
 
-.api__aside app-gv-markdown-toc {
-  margin-bottom: 0px;
- }
-
 .rating-form {
   display: flex;
   flex-direction: column;
@@ -90,4 +86,67 @@
 
 .api__section__ratings__title .title {
   flex: 1;
+}
+
+.info {
+  margin: 12px 0;
+}
+
+.info__description {
+  background-color: var(--gv-theme-neutral-color-lighter, #FAFAFA);
+  border-radius: 2px;
+  margin-top: 0px;
+  padding: 16px;
+}
+
+.info__resources {
+  word-break: break-all;
+}
+
+.info h4 {
+  margin-bottom: 10px;
+}
+
+.info__figures {
+  display: flex;
+  flex-direction: column;
+}
+
+.info gv-rating {
+  cursor: pointer;
+  --gv-rating--s: 24px;
+}
+
+.info gv-metrics {
+  display: grid;
+  grid-gap: 0.5rem;
+}
+
+.info__miscellaneous {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info__miscellaneous_item {
+  padding: 1px 0;
+  line-height: 22px;
+  vertical-align: middle;
+}
+
+.info__miscellaneous_item span {
+  padding: 1px 5px 1px 0;
+  opacity: 0.6;
+}
+
+.link, .link:visited {
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity .15s ease-in;
+  text-decoration: none;
+}
+
+.link:hover {
+  opacity: .7;
+  transition: opacity .15s ease-in;
 }

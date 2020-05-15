@@ -17,7 +17,6 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import '@gravitee/ui-components/wc/gv-stepper';
 import '@gravitee/ui-components/wc/gv-plans';
-import '@gravitee/ui-components/wc/gv-info';
 import '@gravitee/ui-components/wc/gv-code';
 import '@gravitee/ui-components/wc/gv-list';
 import {
@@ -37,6 +36,7 @@ import { distinctUntilChanged } from 'rxjs/operators';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
 import { FeatureEnum } from 'src/app/model/feature.enum';
+import { getPictureDisplayName, getPicture } from '@gravitee/ui-components/src/lib/item';
 
 @Component({
   selector: 'app-api-subscribe',
@@ -56,12 +56,12 @@ export class ApiSubscribeComponent implements OnInit {
 
   steps: any;
   currentStep: number;
-  api: Promise<Api>;
+  api: Api;
   plans: any;
   application: any;
   subscribeForm: FormGroup;
   availableApplications: { label: string; value: string }[];
-  linkedApps: any[];
+  connectedApps: any[];
   apiId: any;
   skeleton: boolean;
   code: any;
@@ -89,7 +89,7 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.linkedApps = [];
+    this.connectedApps = [];
     this.subscribeForm = this.formBuilder.group({
       application: new FormControl(null, [Validators.required]),
       plan: new FormControl(null, [Validators.required]),
@@ -109,12 +109,9 @@ export class ApiSubscribeComponent implements OnInit {
       });
 
     this.apiId = this.route.snapshot.params.apiId;
-    this.api = Promise.resolve().then(() => {
-      const api = this.route.snapshot.data.api;
-      this.apiSample = `$ curl "${api.entrypoints[0]}"`;
-      this.apiName = api.name;
-      return api;
-    });
+    this.api = this.route.snapshot.data.api;
+    this.apiSample = `$ curl "${this.api.entrypoints[0]}"`;
+    this.apiName = this.api.name;
 
     Promise.all([
       this.applicationService.getApplications({ size: -1, forSubscription: true }).toPromise(),
@@ -138,7 +135,7 @@ export class ApiSubscribeComponent implements OnInit {
       const plan = this.hasPlans() ? this.plans[0].id : null;
       this.subscribeForm.controls.plan.setValue(plan);
       this.skeleton = false;
-    }).catch(() => (this.linkedApps = []));
+    }).catch(() => (this.connectedApps = []));
 
     this._allSteps = await Promise.all([
       i18n('apiSubscribe.choosePlan.title'),
@@ -260,12 +257,12 @@ export class ApiSubscribeComponent implements OnInit {
     return currentPlan && currentPlan.comment_required === true;
   }
 
-  hasLinkedApp() {
-    return this.linkedApps && this.linkedApps.length > 0;
+  hasConnectedApps() {
+    return this.connectedApps && this.connectedApps.length > 0;
   }
 
-  getLinkedAppCount() {
-    return this.linkedApps ? this.linkedApps.length : 0;
+  getConnectedAppsCount() {
+    return this.connectedApps ? this.connectedApps.length : 0;
   }
 
   async onValidate() {
@@ -379,7 +376,7 @@ export class ApiSubscribeComponent implements OnInit {
 
         return { label, value: application.id, disabled, title };
       }).filter((app) => app !== null);
-      this.linkedApps = subscribedApps;
+      this.connectedApps = subscribedApps;
     }
   }
 
@@ -429,5 +426,21 @@ export class ApiSubscribeComponent implements OnInit {
 
   canCreateApp() {
     return this.configurationService.hasFeature(FeatureEnum.applicationCreation);
+  }
+
+  get displayName() {
+    return getPictureDisplayName(this.api);
+  }
+
+  get picture() {
+    return getPicture(this.api);
+  }
+
+  goToCategory(view: string) {
+    this.router.navigate(['/catalog/categories', view])
+  }
+
+  goToSearch(tag: string) {
+    this.router.navigate(['catalog/search'], { queryParams: { q: tag } });
   }
 }

@@ -48,8 +48,8 @@
         <div class="step step-2">
           <div class="message">
             <p>{{ 'apiSubscribe.apps.description' | translate }}</p>
-            <p *ngIf="hasLinkedApp()"
-               [innerHTML]="'apiSubscribe.apps.linkedApp' | translate:{ count: getLinkedAppCount(), apiName: apiName }"></p>
+            <p *ngIf="hasConnectedApps()"
+               [innerHTML]="'apiSubscribe.apps.connectedApps' | translate:{ count: getConnectedAppsCount(), apiName: apiName }"></p>
             <p *ngIf="!hasAvailableApplications()"> <b>{{ 'apiSubscribe.apps.noAvailableApplications' | translate }}</b> </p>
             <a *ngIf="!hasAvailableApplications() && canCreateApp()" [routerLink]="['/applications/creation']" [queryParams]="{api: apiId}">{{ 'apiSubscribe.apps.createApp' | translate }}</a>
           </div>
@@ -152,9 +152,40 @@
     </div>
   </div>
 
-  <aside>
-    <gv-info [item]="api" with-dc="true"></gv-info>
-    <gv-list [items]="linkedApps" title="{{ 'apiSubscribe.connectedApp' | translate: { planName: getPlanName(), count: linkedApps ? linkedApps.length : 0 } }}" clickable></gv-list>
+  <aside class="aside">
+    <div class="page__box" *ngIf="api">
+      <div class="page__box-title">
+        <gv-identity-picture [display_name]="displayName" [picture]="picture" ></gv-identity-picture>
+        <h4 class="title">{{api.name}}<span>{{api.version}}</span></h4>
+      </div>
+      <div class="page__box-content">
+        <div class="info info__description">
+          <h4 class="title">{{ 'api.information.about' | translate }}</h4>
+          {{ api.description }}
+        </div>
+
+        <div class="info" *ngIf="api.entrypoints && api.entrypoints.length > 0">
+          <h4 class="title">{{ 'api.information.entrypoints' | translate }}</h4>
+          <div *ngFor="let e of api.entrypoints" class="info__resources"><a class="link" href="{{e}}" target="_blank">{{e}}</a></div>
+        </div>
+
+        <div class="info" *ngIf="api.views && api.views.length > 0">
+          <h4 class="title">{{ 'api.information.categories' | translate }}</h4>
+          <span>
+            <gv-tag *ngFor="let view of api.views" (click)="goToCategory(view)" [clickable]="true">{{view}}</gv-tag>
+          </span>
+        </div>
+
+        <div class="info" *ngIf="api.labels && api.labels.length > 0">
+          <h4 class="title">{{ 'api.information.labels' | translate }}</h4>
+          <span>
+            <gv-tag *ngFor="let tag of api.labels" (click)="goToSearch(tag)" [clickable]="true" major>{{tag}}</gv-tag>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <gv-list [items]="connectedApps" title="{{ 'apiSubscribe.connectedApps' | translate: { planName: getPlanName(), count: connectedApps ? connectedApps.length : 0 } }}" clickable></gv-list>
   </aside>
 
 </div>

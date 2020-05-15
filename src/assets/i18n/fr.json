@@ -10,13 +10,22 @@
     }
   },
   "api": {
-    "list": {
-      "connectedApp": "Applications liées"
-    },
-    "miscellaneous": {
+    "information": {
+      "about": "À propos",
+      "beFirstToRate": "Soyez le premier à noter",
+      "categories": "Catégories",
+      "entrypoints": "URL d'accès",
+      "labels": "Tags",
       "lastUpdate": "Mise à jour :",
+      "metrics": "Statistiques",
+      "moreInfo": "Informations",
       "publisher": "Propriétaire :",
+      "ratings": "Notes",
+      "resources": "Ressources",
       "version": "Version :"
+    },
+    "list": {
+      "connectedApps": "Applications liées"
     }
   },
   "apiGeneral": {
@@ -47,7 +56,7 @@
       "comment": "Laisser un commentaire au propriétaire de l'API",
       "createApp": "Je souhaite créer une application",
       "description": "L’application est le lien entre vous, en tant que consommateur, et la souscription à un plan d’API.",
-      "linkedApp": "Vous avez déjà <b>{count}</b> {count, plural, =0{} one{application liée} other{applications liées}} à l'API <b>{apiName}</b>.",
+      "connectedApps": "Vous avez déjà <b>{count}</b> {count, plural, =0{} one{application liée} other{applications liées}} à l'API <b>{apiName}</b>.",
       "missingClientId": "client_id manquant",
       "noAvailableApplications": "Il n'y a aucune application disponible."
     },
@@ -57,7 +66,7 @@
     "choosePlan": {
       "title": "Choix du plan"
     },
-    "connectedApp": "{count, plural, =0{} one{Application liée} other{Applications liées}} au plan {planName}",
+    "connectedApps": "{count, plural, =0{} one{Application liée} other{Applications liées}} au plan {planName}",
     "errors": {
       "information": "Une erreur est survenue lors de la souscription.",
       "notConnected": "Connectez-vous ou créer un compte pour souscrire à l'API.",
@@ -152,6 +161,13 @@
       "title": "Description"
     },
     "general": "Général",
+    "information": {
+      "createdDate": "Crée le",
+      "lastUpdate": "Modifié",
+      "owner": "Propriétaire",
+      "title": "Informations",
+      "type": "Type"
+    },
     "list": {
       "connectedApis": "APIs souscrites"
     },
@@ -231,12 +247,6 @@
         "title": "Changer de propritétaire",
         "transfer": "Transférer"
       }
-    },
-    "miscellaneous": {
-      "createdDate": "Crée le",
-      "lastUpdate": "Modifié",
-      "owner": "Propriétaire",
-      "type": "Type"
     },
     "name": {
       "label": "Nom de l'app",
@@ -685,18 +695,6 @@
     "empty": "Aucune API à afficher ici",
     "error": "Une erreur est survenue pendant de le chargement de l'API.",
     "subscribe": "Souscrire"
-  },
-  "gv-info": {
-    "about": "À propos",
-    "beFirstToRate": "Soyez le premier à noter",
-    "categories": "Catégories",
-    "entrypoints": "URL d'accès",
-    "error": "Une erreur est survenue pendant le chargement des informations de l'API",
-    "labels": "Tags",
-    "metrics": "Statistiques",
-    "moreInfo": "Informations",
-    "ratings": "Notes",
-    "resources": "Ressources"
   },
   "gv-input": {
     "copy": "Copier dans le presse papier",

@@ -194,7 +194,28 @@
       </div>
     </div>
 
-    <gv-info class="page__box" [item]="application" [miscellaneous]="miscellaneous"></gv-info>
+    <div class="page__box">
+      <div class="page__box-title">
+        <h4 class="title">{{ 'application.information.title' | translate}}</h4>
+      </div>
+      <div class="page__box-content">
+        <ul class="info__miscellaneous">
+            <li class="info__miscellaneous_item">
+              <span>{{'application.information.owner' | translate}}</span> {{ application.owner.display_name }}
+            </li>
+            <li class="info__miscellaneous_item">
+              <span>{{'application.information.type' | translate}}</span> {{ 'application.types' | translate: {type: application.applicationType} }}
+            </li>
+            <li class="info__miscellaneous_item">
+              <span>{{'application.information.createdDate' | translate}}</span> {{ toLocaleDateString(application.created_at.toString()) }}
+            </li>
+            <li class="info__miscellaneous_item">
+              <span>{{'application.information.lastUpdate' | translate}}</span> <gv-relative-time [datetime]="application.updated_at" noFuture></gv-relative-time>
+            </li>
+        </ul>
+      </div>
+    </div>
+
     <gv-list class="page__box" [items]="connectedApis" title="{{ 'application.list.connectedApis' | translate }}" clickable></gv-list>
   </aside>
 

@@ -54,3 +54,20 @@ gv-identity-picture {
 .groupMembers.show .groupMembersTable, .groupMembers.show .hideTable {
   display: block;
 }
+
+.info__miscellaneous {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info__miscellaneous_item {
+  padding: 1px 0;
+  line-height: 22px;
+  vertical-align: middle;
+}
+
+.info__miscellaneous_item span {
+  padding: 1px 5px 1px 0;
+  opacity: 0.6;
+}

@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
-import '@gravitee/ui-components/wc/gv-info';
+import '@gravitee/ui-components/wc/gv-relative-time';
 import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
 import '@gravitee/ui-components/wc/gv-file-upload';
@@ -46,7 +46,6 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   applicationForm: FormGroup;
   application: Application;
   connectedApis: Promise<any[]>;
-  miscellaneous: any[];
   permissions: PermissionsResponse;
   canUpdate: boolean;
   canDelete: boolean;
@@ -59,14 +58,11 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
 
   constructor(
     private applicationService: ApplicationService,
-    private subscriptionService: SubscriptionService,
-    private apiService: ApiService,
     private translateService: TranslateService,
     private route: ActivatedRoute,
     private router: Router,
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
-    private permissionsService: PermissionsService,
     private eventService: EventService,
   ) {
   }
@@ -92,32 +88,6 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       this.applicationForm.get('name').valueChanges.subscribe((name) => {
         this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.UPDATE_NAME, { data: name }));
       });
-
-      this.translateService.get([
-        i18n('application.miscellaneous.owner'),
-        i18n('application.miscellaneous.type'),
-        i18n('application.miscellaneous.createdDate'),
-        i18n('application.miscellaneous.lastUpdate'),
-        'application.types'
-      ], { type: this.application.applicationType })
-        .toPromise()
-        .then(translations => {
-          const _translations = Object.values(translations);
-          this.miscellaneous = [
-            { key: _translations[0], value: this.application.owner.display_name },
-            { key: _translations[1], value: _translations[4] },
-            {
-              key: _translations[2],
-              value: new Date(this.application.created_at),
-              date: 'short'
-            },
-            {
-              key: _translations[3],
-              value: new Date(this.application.updated_at),
-              date: 'relative'
-            },
-          ];
-        });
 
       this.connectedApis = this.applicationService.getSubscriberApisByApplicationId({
         applicationId: this.application.id,
@@ -272,5 +242,9 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       this.reset();
       this.notificationService.success(i18n('application.success.renewSecret'));
     }).finally(() => this.isRenewing = false);
+  }
+
+  toLocaleDateString(date: string) {
+    return new Date(date).toLocaleDateString(this.translateService.currentLang);
   }
 }
