@@ -29,7 +29,7 @@ import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,9 +55,9 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
     public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
         ((MutableExecutionContext)context).request(new FailoverRequest(context.request()));
 
-        circuitBreaker.execute(new io.vertx.core.Handler<Future<ProxyConnection>>() {
+        circuitBreaker.execute(new io.vertx.core.Handler<Promise<ProxyConnection>>() {
             @Override
-            public void handle(Future<ProxyConnection> event) {
+            public void handle(Promise<ProxyConnection> event) {
                 FailoverInvoker.super.invoke(context, stream, proxyConnection -> {
                     proxyConnection.exceptionHandler(event::fail);
                     proxyConnection.responseHandler(response ->
