@@ -35,3 +35,10 @@
   grid-template-columns: repeat(4, 1fr);
   grid-gap: 1rem;
 }
+
+.grid-filters > * {
+  display: flex;
+  align-self: flex-end;
+  width: 100%;
+  flex-direction: column;
+}
