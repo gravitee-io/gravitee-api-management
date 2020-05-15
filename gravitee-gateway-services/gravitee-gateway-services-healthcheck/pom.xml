@@ -62,11 +62,13 @@
         <dependency>
             <groupId>io.gravitee.alert</groupId>
             <artifactId>gravitee-alert-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.plugin</groupId>
             <artifactId>gravitee-plugin-alert</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Jackson dependencies -->
