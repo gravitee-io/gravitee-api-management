@@ -3,48 +3,6 @@
     "row": 0,
     "col": 0,
     "sizeY": 1,
-    "sizeX": 3,
-    "title": "Top applications",
-    "subhead": "Ordered by application calls",
-    "chart": {
-      "type": "table",
-      "selectable": true,
-      "columns": [
-        "Application",
-        "Hits"
-      ],
-      "paging": 5,
-      "request": {
-        "type": "group_by",
-        "field": "application"
-      }
-    }
-  },
-  {
-    "row": 0,
-    "col": 3,
-    "sizeY": 1,
-    "sizeX": 3,
-    "title": "Top plans",
-    "subhead": "Hits repartition by API plan",
-    "chart": {
-      "type": "table",
-      "selectable": true,
-      "columns": [
-        "Plan",
-        "Hits"
-      ],
-      "paging": 5,
-      "request": {
-        "type": "group_by",
-        "field": "plan"
-      }
-    }
-  },
-  {
-    "row": 1,
-    "col": 0,
-    "sizeY": 1,
     "sizeX": 2,
     "title": "Geolocation by country",
     "subhead": "Hits repartition by country",
@@ -63,7 +21,7 @@
     }
   },
   {
-    "row": 2,
+    "row": 1,
     "col": 0,
     "sizeY": 1,
     "sizeX": 2,
@@ -84,7 +42,7 @@
     }
   },
   {
-    "row": 1,
+    "row": 0,
     "col": 2,
     "sizeY": 2,
     "sizeX": 4,
