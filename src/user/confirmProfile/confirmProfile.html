@@ -34,10 +34,13 @@
           <input ng-model="user.email" type="email" ng-required="user.newsletter">
         </md-input-container>
 
-        <md-checkbox style="font-size: 9px" ng-show="$ctrl.newsletterEnabled" ng-model="user.newsletter"
-                     aria-label="Subscribe to newsletter" flex ng-init="user.newsletter = true">
-          Subscribe to newsletter and receive information about new versions and updates
-        </md-checkbox>
+        <div style="font-size: 9px; padding-bottom: 5px;">
+          <md-checkbox ng-show="$ctrl.newsletterEnabled" ng-model="user.newsletter"
+                       aria-label="Subscribe to newsletter" flex>
+            Subscribe to newsletter and receive information about new versions and updates
+          </md-checkbox>
+          For more information check our <a href="https://gravitee.io/privacy" target="_blank">privacy policy</a>
+        </div>
 
         <md-button type="submit" class="md-raised md-primary" ng-disabled="isLoading || formConfirm.$invalid">Confirm profile</md-button>
       </form>
