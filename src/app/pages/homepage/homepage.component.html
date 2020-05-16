@@ -19,8 +19,8 @@
   <section *ngIf="homepage">
     <app-gv-page [page]="homepage"></app-gv-page>
   </section>
-  <h3 class="title">{{'homepage.apis' | translate}}</h3>
   <section *ngIf="topApis.length > 0">
+    <h3 class="title">{{'homepage.apis' | translate}}</h3>
     <gv-card-list [items]="topApis"></gv-card-list>
   </section>
 </div>

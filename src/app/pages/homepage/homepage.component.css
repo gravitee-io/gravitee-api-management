@@ -18,3 +18,7 @@ app-homepage {
   height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h));
   width: 100%;
 }
+
+gv-card-list {
+  padding-top: 10px;
+}

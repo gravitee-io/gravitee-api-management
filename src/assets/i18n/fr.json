@@ -768,7 +768,7 @@
     "rejected": "Rejeté"
   },
   "homepage": {
-    "apis": "Les APIs du moment",
+    "apis": "Les APIs à la une",
     "explore": "Explorez les APIs",
     "signup": "Créez un compte",
     "title": "Libérez la puissance de vos APIs."
@@ -862,7 +862,7 @@
     "catalogApiSubscribe": "Souscription",
     "catalogCategories": "Catégories",
     "catalogCategory": "Catégorie",
-    "catalogFeatured": "Les APIs mises en avant",
+    "catalogFeatured": "À la une",
     "catalogStarred": "Les mieux notées",
     "catalogTrending": "Les + tendances",
     "contact": "Contact",
