@@ -25,6 +25,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static io.gravitee.common.http.HttpMethod.POST;
 import static java.util.Collections.emptyMap;
 
@@ -43,14 +46,19 @@ public class NewsletterServiceImpl extends TransactionalService implements Newsl
     private ObjectMapper mapper;
     @Value("${newsletter.enabled:true}")
     private boolean newsletterEnabled;
+    @Value("${newsletter.url:https://newsletter.gravitee.io/}")
+    private String newsletterUrl;
 
     @Override
     @Async
     public void subscribe(final Object user) {
         try {
             if (isEnabled()) {
-                httpClientService.request(POST, "https://download.gravitee.io/newsletter", emptyMap(),
-                        mapper.writeValueAsString(user), null);
+                final Map<String, Object> userEntity = mapper.convertValue(user, Map.class);
+
+                final Map<String, Object> newsletterInfo = new HashMap<>();
+                newsletterInfo.put("email", userEntity.get("email"));
+                httpClientService.request(POST, newsletterUrl, emptyMap(), mapper.writeValueAsString(newsletterInfo), null);
             }
         } catch (final Exception e) {
             LOGGER.error("Error while subscribing to newsletters cause: {}", e.getMessage());
