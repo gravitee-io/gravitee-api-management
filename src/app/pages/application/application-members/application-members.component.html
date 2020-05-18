@@ -34,7 +34,7 @@
 
       <div class="page__box-title">
         <h3 class="title">{{'application.members.add.title' | translate}}</h3>
-        <gv-button link (click)="resetAddMember()">{{'application.members.add.reset' | translate}}</gv-button>
+        <gv-button link (:gv-button:click)="resetAddMember()">{{'application.members.add.reset' | translate}}</gv-button>
       </div>
 
       <div class="page__box-content">
@@ -77,7 +77,7 @@
       <div class="page__box-title">
         <h3 class="title">{{'application.members.transferOwnership.title' | translate}}</h3>
         <gv-button link
-                   (click)="resetTransferOwnership()">{{'application.members.transferOwnership.reset' | translate}}</gv-button>
+                   (:gv-button:click)="resetTransferOwnership()">{{'application.members.transferOwnership.reset' | translate}}</gv-button>
       </div>
 
       <div class="page__box-content">

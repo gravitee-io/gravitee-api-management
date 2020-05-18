@@ -92,7 +92,7 @@
           {{ 'gv-contact.button' | translate }}
         </gv-button>
 
-        <gv-button outlined (click)="reset()" [disabled]="contactForm.pristine">
+        <gv-button outlined  (:gv-button:click)="reset()" [disabled]="contactForm.pristine">
           {{ 'common.reset' | translate }}
         </gv-button>
 

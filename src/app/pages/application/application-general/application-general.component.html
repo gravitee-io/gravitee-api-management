@@ -178,7 +178,7 @@
                    [loading]="isSaving" icon="general:save">
           {{ 'common.save' | translate }}
         </gv-button>
-        <gv-button *ngIf="canUpdate" (click)="reset()" outlined
+        <gv-button *ngIf="canUpdate" (:gv-button:click)="reset()" outlined
                    [disabled]="applicationForm.pristine">
           {{ 'common.reset' | translate }}
         </gv-button>

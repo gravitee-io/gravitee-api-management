@@ -20,7 +20,7 @@
   <div class="page__box-title">
     <h3 class="title">{{'common.filters.title' | translate}}</h3>
 
-    <gv-button class="gv-analytics-filter__reset" link (click)="reset()">
+    <gv-button class="gv-analytics-filter__reset" link (:gv-button:click)="reset()">
       {{ 'common.reset' | translate }}
     </gv-button>
   </div>
@@ -47,7 +47,7 @@
 
         </gv-date-picker>
 
-        <gv-button link (click)="toggleFilters()" class="gv-analytics-filter__showhide">
+        <gv-button link (:gv-button:click)="toggleFilters()" class="gv-analytics-filter__showhide">
           <span *ngIf="advancedFiltersDisplayed">{{'application.analytics.filters.advanced.hide' | translate}}</span>
           <span *ngIf="!advancedFiltersDisplayed">{{'application.analytics.filters.advanced.show' | translate}}</span>
         </gv-button>

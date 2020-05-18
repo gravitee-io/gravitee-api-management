@@ -133,19 +133,21 @@
 
     <div class="actions" *ngIf="hasStepper()">
       <div>
-        <gv-button (click)="onExit()" outlined
+        <gv-button (:gv-button:click)="onExit()" outlined
                    *ngIf="!hasSubscription()"
                    icon="code:stop">{{ 'apiSubscribe.exit' | translate }}</gv-button>
-        <gv-button *ngIf="hasPreviousAction()" (click)="onPrevious()" primary outlined
+        <gv-button *ngIf="hasPreviousAction()"
+                   (:gv-button:click)="onPrevious()" primary outlined
                    [disabled]="!canPrevious()"
                    icon="navigation:angle-left">{{ 'apiSubscribe.previousStep' | translate }}</gv-button>
       </div>
 
       <gv-button *ngIf="hasNextAction()"
-                 (click)="onNext()" primary
+                 (:gv-button:click)="onNext()"
+                 primary
                  icon-right="navigation:angle-right">{{'apiSubscribe.nextStep' | translate }}</gv-button>
       <gv-button *ngIf="hasValidateAction()"
-                 (click)="onValidate()" primary
+                 (:gv-button:click)="onValidate()" primary
                  [disabled]="!subscribeForm.valid"
                  [loading]="showValidateLoader"
                  icon="code:check">{{'apiSubscribe.validate.subscription' | translate}}</gv-button>

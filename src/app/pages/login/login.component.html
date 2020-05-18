@@ -59,7 +59,7 @@
                  outlined
                  class="btn__provider"
                  [provider]="provider.type"
-                 (click)="authenticate(provider)">
+                 (:gv-button:click)="authenticate(provider)">
         {{ provider.name }}
       </gv-button>
 

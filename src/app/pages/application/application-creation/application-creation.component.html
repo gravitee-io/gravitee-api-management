@@ -55,16 +55,18 @@
 
     <div class="actions">
       <div>
-        <gv-button outlined (click)="onExit()"
+        <gv-button outlined
+                   (:gv-button:click)="onExit()"
                    icon="code:stop">{{ 'applicationCreation.exit' | translate }}</gv-button>
-        <gv-button primary outlined (click)="onPrevious()"
+        <gv-button primary outlined
+                   (:gv-button:click)="onPrevious()"
                    *ngIf="!this.creationSuccess"
                    [disabled]="!canPrevious()"
                    icon="navigation:angle-left">{{ 'applicationCreation.step.previous' | translate }}
         </gv-button>
       </div>
 
-      <gv-button primary (click)="onNext()"
+      <gv-button primary (:gv-button:click)="onNext()"
                  *ngIf="hasNext()"
                  icon-right="navigation:angle-right">{{'applicationCreation.step.next' | translate }}</gv-button>
       <gv-button *ngIf="hasCreate()"

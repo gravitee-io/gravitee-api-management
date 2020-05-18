@@ -293,7 +293,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
           target = '_self';
           break;
         case Link.ResourceTypeEnum.View:
-          path = '/categories/' + element.resourceRef;
+          path = '/catalog/categories/' + element.resourceRef;
           target = '_self';
           break;
       }
@@ -354,7 +354,16 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
         if (portalLinks.slots.header) {
           const headerLinks = portalLinks.slots.header.find(catLinks => catLinks.root);
           if (headerLinks) {
-            this.mainRoutes = this.mainRoutes.then(navRoutes => navRoutes.concat(this._buildLinks(headerLinks.links)));
+            const dynamicRoutes = this._buildLinks(headerLinks.links);
+            const hasDynamicRouteActive = dynamicRoutes.find((r) => r.active);
+            this.mainRoutes = this.mainRoutes.then(navRoutes => {
+              if (hasDynamicRouteActive) {
+                const activeRoute = navRoutes.find((r) => r.active);
+                activeRoute.active = false;
+              }
+              return [...navRoutes, ...dynamicRoutes];
+
+            });
           }
         }
         if (portalLinks.slots.footer) {

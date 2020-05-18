@@ -91,7 +91,7 @@ export class NavRouteService {
         .map((route) => route.routeConfig.path).join('/');
 
       let children = _route.routeConfig ? _route.routeConfig.children : _route.children;
-      if(_route.routeConfig && _route.routeConfig.loadChildren){
+      if (_route.routeConfig && _route.routeConfig.loadChildren) {
         children = _route.routeConfig._loadedConfig.routes;
       }
 
@@ -154,7 +154,7 @@ export class NavRouteService {
             return navRoutes.map((navRoute) => {
               for (const key of Object.keys(params)) {
                 navRoute.active = this.isActive(navRoute.path, this.router.url);
-                navRoute.path = navRoute.path.replace(`:${ key }`, params[key]);
+                navRoute.path = navRoute.path.replace(`:${key}`, params[key]);
               }
               return navRoute;
             });
@@ -198,7 +198,8 @@ export class NavRouteService {
   }
 
   navigateForceRefresh(commands: any[], extras?: NavigationExtras) {
-    this.router.navigate([], { ...extras, ...{
+    this.router.navigate([], {
+      ...extras, ...{
         queryParams: { skipRefresh: true },
         skipLocationChange: true
       }

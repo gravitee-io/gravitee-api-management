@@ -136,10 +136,8 @@ export const routes: Routes = [
       {
         path: 'categories/:categoryId',
         component: FilteredCatalogComponent,
-        canActivate: [FeatureGuardService],
         resolve: { category: CategoryResolver },
         data: {
-          expectedFeature: FeatureEnum.viewMode,
           title: i18n('route.catalogCategory'),
           menu: { hide: true, slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
         },
@@ -285,17 +283,6 @@ export const routes: Routes = [
   },
 
   { path: 'pages/:pageId', component: SinglePageComponent },
-  {
-    path: 'categories/:categoryId',
-    component: FilteredCatalogComponent,
-    canActivate: [FeatureGuardService],
-    resolve: { category: CategoryResolver },
-    data: {
-      expectedFeature: FeatureEnum.viewMode,
-      title: i18n('route.catalogCategory'),
-      menu: { hide: true, slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
-    },
-  },
   {
     path: 'applications',
     loadChildren: () => import('./pages/applications/applications.module').then(m => m.ApplicationsModule),

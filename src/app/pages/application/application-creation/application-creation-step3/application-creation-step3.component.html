@@ -47,13 +47,13 @@
                     ngDefaultControl></gv-plans>
 
           <div class="actions">
-            <gv-button *ngIf="requireClientId" link (click)="goToStep2()">
+            <gv-button *ngIf="requireClientId" link (:gv-button:click)="goToStep2()">
               {{ 'applicationCreation.subscription.disabledPlans' | translate: { count: disabledPlans } }}
             </gv-button>
             <div *ngIf="!requireClientId"></div>
             <gv-button
                 [disabled]="canAddPlan || requireClientId"
-                (click)="addPlan()"> {{ 'applicationCreation.subscription.subscribe' | translate }}
+                (:gv-button:click)="addPlan()"> {{ 'applicationCreation.subscription.subscribe' | translate }}
             </gv-button>
           </div>
         </div>

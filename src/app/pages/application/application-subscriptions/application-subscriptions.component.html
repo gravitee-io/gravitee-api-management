@@ -21,7 +21,7 @@
     <div class="page__box">
       <div class="page__box-title">
         <h3 class="title">{{ "application.subscriptions.title" | translate}}</h3>
-        <gv-button link (click)="reset()">
+        <gv-button link (:gv-button:click)="reset()">
           {{ 'common.reset' | translate }}
         </gv-button>
       </div>

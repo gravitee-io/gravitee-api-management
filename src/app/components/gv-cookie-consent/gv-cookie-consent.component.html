@@ -21,10 +21,10 @@
     <p [innerHTML]="'cookies.information.withAnalytics' | translate"></p>
 
     <p>{{ 'cookies.confirmation' | translate}}</p>
-        
+
     <div class="cookie__consent__actions">
-      <gv-button primary (click)="onAcceptClick()">{{ 'cookies.actions.ok' | translate}}</gv-button>
-      <gv-button primary outlined (click)="onDeclineClick()">{{ 'cookies.actions.decline' | translate}}</gv-button>
+      <gv-button primary (:gv-button:click)="onAcceptClick()">{{ 'cookies.actions.ok' | translate}}</gv-button>
+      <gv-button primary outlined (:gv-button:click)="onDeclineClick()">{{ 'cookies.actions.decline' | translate}}</gv-button>
     </div>
   </div>
 </gv-message>
