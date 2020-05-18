@@ -22,7 +22,6 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactor.Reactable;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.mockito.Mockito.mock;
@@ -44,11 +43,6 @@ public class DummyReactorHandler extends AbstractReactorHandler {
 
             @Override
             public Set dependencies(Class type) {
-                return null;
-            }
-
-            @Override
-            public Map<String, Object> properties() {
                 return null;
             }
 

@@ -53,7 +53,7 @@ public class SecurityPolicyChainProviderTest {
     }
 
     @Test
-    public void shouldReturRequestPolicyChain() {
+    public void shouldReturnRequestPolicyChain() {
         Mockito.when(policyResolver.resolve(StreamType.ON_REQUEST, executionContext)).thenReturn(Collections.singletonList(Mockito.mock(Policy.class)));
         StreamableProcessor<ExecutionContext, Buffer> processor = securityPolicyChainResolver.provide(executionContext);
 
@@ -67,5 +67,7 @@ public class SecurityPolicyChainProviderTest {
         StreamableProcessor<ExecutionContext, Buffer> processor = securityPolicyChainResolver.provide(executionContext);
 
         Assert.assertEquals(DirectPolicyChain.class, processor.getClass());
+        Assert.assertNotNull(((DirectPolicyChain) processor).policyResult());
+        Assert.assertEquals(SecurityPolicyChainProvider.PLAN_UNRESOLVABLE, ((DirectPolicyChain) processor).policyResult().key());
     }
 }

@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class SecurityPolicyChainProvider extends AbstractPolicyChainProvider {
 
-    private static final String GATEWAY_MISSING_SECURITY_PROVIDER_KEY = "GATEWAY_MISSING_SECURITY_PROVIDER";
+    static final String PLAN_UNRESOLVABLE = "GATEWAY_PLAN_UNRESOLVABLE";
 
     public SecurityPolicyChainProvider(final PolicyResolver policyResolver) {
         super(policyResolver);
@@ -45,7 +45,7 @@ public class SecurityPolicyChainProvider extends AbstractPolicyChainProvider {
         if (policies == null) {
             return new DirectPolicyChain(
                     PolicyResult.failure(
-                            GATEWAY_MISSING_SECURITY_PROVIDER_KEY,
+                            PLAN_UNRESOLVABLE,
                             HttpStatusCode.UNAUTHORIZED_401,
                             "Unauthorized"), context);
         }

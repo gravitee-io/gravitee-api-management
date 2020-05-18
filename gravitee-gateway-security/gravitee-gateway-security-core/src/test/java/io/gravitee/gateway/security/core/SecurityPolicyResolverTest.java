@@ -17,7 +17,6 @@ package io.gravitee.gateway.security.core;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.StreamType;
@@ -30,7 +29,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -57,15 +55,6 @@ public class SecurityPolicyResolverTest {
         securityPolicyResolver.setAuthenticationHandlerSelector(handlerSelector);
 
         when(executionContext.request()).thenReturn(request);
-    }
-
-    @Test
-    public void shouldReturnUnauthorizedPolicyChain_onRequest() {
-        when(handlerSelector.select(request)).thenReturn(null);
-
-        List<Policy> policies = securityPolicyResolver.resolve(StreamType.ON_REQUEST, executionContext);
-
-        assertNull(policies);
     }
 
     @Test

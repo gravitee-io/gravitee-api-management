@@ -226,13 +226,12 @@
     </dependencies>
 
     <properties>
-        <gravitee-node.version>1.6.4</gravitee-node.version>
+        <gravitee-node.version>1.6.5</gravitee-node.version>
         <gravitee-definition.version>1.21.0-SNAPSHOT</gravitee-definition.version>
-        <gravitee-common.version>1.16.0</gravitee-common.version>
+        <gravitee-common.version>1.16.2</gravitee-common.version>
         <gravitee-expression-language.version>1.4.0-SNAPSHOT</gravitee-expression-language.version>
         <gravitee-repository.version>3.0.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-plugin-resource.version>1.10.0</gravitee-plugin-resource.version>
-        <gravitee-common.version>1.16.2</gravitee-common.version>
         <gravitee-plugin-core.version>1.10.0</gravitee-plugin-core.version>
         <gravitee-plugin-policy.version>1.10.0</gravitee-plugin-policy.version>
         <gravitee-plugin-alert.version>1.10.0</gravitee-plugin-alert.version>
@@ -248,8 +247,8 @@
         <snakeyaml.version>1.26</snakeyaml.version>
         <commons-io.version>2.5</commons-io.version>
         <commons-validator.version>1.4.1</commons-validator.version>
-        <json-path.version>2.2.0</json-path.version>
-        <wiremock.version>2.26.3</wiremock.version>
+        <json-path.version>2.4.0</json-path.version>
+        <wiremock.version>2.21.0</wiremock.version>
         <guava.version>29.0-jre</guava.version>
         <powermock.version>2.0.0</powermock.version>
         <nimbus-jwt.version>8.16</nimbus-jwt.version>
