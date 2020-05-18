@@ -26,7 +26,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.mockito.Mockito.mock;
@@ -224,11 +223,6 @@ public class ReactorHandlerRegistryTest {
 
         @Override
         public <D> Set<D> dependencies(Class<D> type) {
-            return null;
-        }
-
-        @Override
-        public Map<String, Object> properties() {
             return null;
         }
 

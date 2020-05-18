@@ -20,9 +20,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <properties>
-        <jetty92.wiremock.version>9.2.30.v20200428</jetty92.wiremock.version>
-    </properties>
 
     <parent>
         <groupId>io.gravitee.gateway.standalone</groupId>
@@ -32,6 +29,10 @@
 
     <artifactId>gravitee-gateway-standalone-container</artifactId>
     <name>Gravitee.io APIM - Gateway - Standalone - Container</name>
+
+    <properties>
+        <jetty92.wiremock.version>9.2.30.v20200428</jetty92.wiremock.version>
+    </properties>
 
     <dependencyManagement>
         <dependencies>
