@@ -270,8 +270,10 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldGetFeaturedApis() {
         TopApiEntity topApi5 = new TopApiEntity();
         topApi5.setApi("5");
+        topApi5.setOrder(1);
         TopApiEntity topApi6 = new TopApiEntity();
         topApi6.setApi("6");
+        topApi6.setOrder(2);
         doReturn(Arrays.asList(topApi5, topApi6)).when(topApiService).findAll();
 
         final Response response = target().queryParam("cat", "FEATURED").request().get();

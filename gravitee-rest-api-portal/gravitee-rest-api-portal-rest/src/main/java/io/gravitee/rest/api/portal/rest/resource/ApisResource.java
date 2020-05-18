@@ -159,12 +159,13 @@ public class ApisResource extends AbstractResource {
     }
 
     private FilteredApi getTopApis(Collection<ApiEntity> apis, boolean excluded) {
-        List<String> topApiIdList = topApiService.findAll().stream().map(TopApiEntity::getApi).collect(Collectors.toList());
+        Map<String, Integer> topApiIdAndOrderMap = topApiService.findAll().stream().collect(Collectors.toMap(TopApiEntity::getApi, TopApiEntity::getOrder));
+        
         return new FilteredApi(
                 apis.stream()
-                    .filter(api-> (!excluded && topApiIdList.contains(api.getId())) ||
-                            (excluded && !topApiIdList.contains(api.getId())) )
-                    .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+                    .filter(api-> (!excluded && topApiIdAndOrderMap.keySet().contains(api.getId())) ||
+                            (excluded && !topApiIdAndOrderMap.keySet().contains(api.getId())) )
+                    .sorted((o1, o2) -> topApiIdAndOrderMap.get(o1.getId()).compareTo(topApiIdAndOrderMap.get(o2.getId())))
                     .collect(Collectors.toList())
                 , null
                 );
