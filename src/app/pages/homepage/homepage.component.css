@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+:host {
+  --gv-page-markdown--bgc: transparent;
+}
+
 app-homepage {
   background-color: var(--gv-theme-neutral-color-lightest);
   height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h));

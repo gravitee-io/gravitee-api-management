@@ -16,29 +16,42 @@
 
 .markdown {
   overflow: auto;
-  width: calc(100% - 84px);
 }
 
-.page__content-with-aside.markdown {
-  padding: 0 42px;
+.with-toc .page__box-content {
+  max-width: calc(100% - 250px - 1rem);
+  flex: 1;
+  box-sizing: border-box;
 }
 
 .markdown-content {
-  border: none;
-  padding: 0;
-}
-
-.page__content-with-aside .markdown-content {
-  padding: 2rem 4rem;
+  background-color: var(--gv-page-markdown--bgc, var(--gv-theme-neutral-color-lightest));
 }
 
 .markdown.with-toc {
-  width: calc(100% - 364px);
+  display: flex;
+}
+:host ::ng-deep code {
+  max-width: 100%;
+  display: block;
+  overflow: auto;
 }
 
-.aside {
+app-gv-markdown-toc {
   position: fixed;
   right: 42px;
   z-index: 100;
   height: calc(100vh - 125px - 42px);
+}
+
+/* (1440x900) WXGA+ Display */
+@media screen and (max-width: 1440px) {
+  app-gv-markdown-toc {
+    right: 5px;
+  }
+
+  .page__box-content {
+    padding: 2rem;
+  }
+
 }

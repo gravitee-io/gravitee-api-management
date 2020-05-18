@@ -21,9 +21,18 @@
 .content {
   margin-top: 0.5rem;
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: 1fr auto;
   grid-gap: 0.5rem;
   justify-content: start;
+}
+
+.content.two-cards {
+  grid-template-columns: minmax(66%, auto) auto;
+}
+
+
+.content.one-card {
+  grid-template-columns: minmax(33%, auto) auto;
 }
 
 gv-card-list {

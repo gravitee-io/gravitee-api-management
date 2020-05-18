@@ -21,14 +21,8 @@
   </div>
 </ng-container>
 <ng-container *ngIf="withToc">
-  <div class="gv-page-container markdown page__content page__content-with-aside with-toc">
-    <div class="main">
-      <div class="page__box">
-        <div #mdContent *ngIf="pageContent" class="page__box-content markdown-content" [innerHTML]="pageContent | safe: 'html'"></div>
-      </div>
-    </div>
-    <aside class="aside">
-      <app-gv-markdown-toc></app-gv-markdown-toc>
-    </aside>
+  <div class="gv-page-container markdown with-toc">
+    <div #mdContent *ngIf="pageContent" class="page__box-content markdown-content" [innerHTML]="pageContent | safe: 'html'"></div>
+    <app-gv-markdown-toc></app-gv-markdown-toc>
   </div>
 </ng-container>

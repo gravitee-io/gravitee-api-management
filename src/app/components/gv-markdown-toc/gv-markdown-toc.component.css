@@ -13,9 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+.page__box {
+  max-width: 250px;
+}
+
 .markdown-toc {
-  max-width: 200px;
   overflow-y: auto
+}
+
+.page__box-title {
+  padding: 2rem;
+}
+.page__box-content {
+  padding: 2rem 1rem;
 }
 
 .markdown-toc>.toc-list {
@@ -41,11 +52,11 @@ a.toc-link.is-active-link::before {
 }
 
 a.toc-link {
-  color: currentColor;
   text-decoration: none;
   height: 100%;
   cursor: pointer;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 a.toc-link::before {
@@ -60,7 +71,7 @@ a.toc-link::before {
 }
 
 a.toc-link:hover {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 a.toc-link:hover::before {

@@ -47,7 +47,7 @@ export class ScrollService {
             });
             setTimeout(() => {
               resolve();
-            }, 500);
+            }, 750);
           }, 50);
         } else {
           reject();

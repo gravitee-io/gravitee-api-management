@@ -34,7 +34,7 @@
 
     <section *ngIf="applications && applications.length">
       <h3 class="title" translate="dashboard.applications.title"></h3>
-      <div class="content">
+      <div class="content" [ngClass]="{'one-card': applications.length === 1, 'two-cards': applications.length === 2}">
         <gv-card-list [items]="applications" [style]="cardListGridTemplate"></gv-card-list>
 
         <div class="buttons">

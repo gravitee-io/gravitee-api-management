@@ -31,6 +31,17 @@
   bottom: 42px;
 }
 
+/* (1440x900) WXGA+ Display */
+@media screen and (max-width: 1440px) {
+  .gv-documentation {
+    padding: 42px 5px;
+  }
+
+  .gv-documentation__menu {
+    left: 5px;
+  }
+}
+
 .gv-documentation__menu.show {
   display: block;
 }
