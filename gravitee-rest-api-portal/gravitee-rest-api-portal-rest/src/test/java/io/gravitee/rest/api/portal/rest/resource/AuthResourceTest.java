@@ -81,7 +81,7 @@ public class AuthResourceTest extends AbstractResourceTest {
         SecurityContextHolder.setContext(securityContext);
 
         Cookie bearer = new Cookie("FOO", "BAR");
-        doReturn(bearer).when(jwtCookieGenerator).generate(any());
+        doReturn(bearer).when(cookieGenerator).generate(any());
         
         final Response response = target().path("login").request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

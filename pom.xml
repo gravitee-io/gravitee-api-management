@@ -33,9 +33,10 @@
     <name>Gravitee.io Rest APIs</name>
 
     <properties>
-        <gravitee-node.version>1.6.4</gravitee-node.version>
+        <gravitee-node.version>1.6.5</gravitee-node.version>
+        <spring.version>5.2.5.RELEASE</spring.version>
         <gravitee-definition.version>1.21.0-SNAPSHOT</gravitee-definition.version>
-        <gravitee-common.version>1.16.2</gravitee-common.version>
+        <gravitee-common.version>1.17.0</gravitee-common.version>
         <gravitee-plugin.version>1.10.0</gravitee-plugin.version>
         <gravitee-repository.version>3.0.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-gateway-api.version>1.20.0</gravitee-gateway-api.version>
@@ -51,7 +52,7 @@
         <validation-api.version>2.0.1.Final</validation-api.version>
         <mail.version>1.4.7</mail.version>
         <freemarker.version>2.3.30</freemarker.version>
-        <java-jwt.version>2.2.1</java-jwt.version>
+        <java-jwt.version>3.10.2</java-jwt.version>
         <guava.version>29.0-jre</guava.version>
         <jsonpath.version>2.4.0</jsonpath.version>
         <lucene.version>7.5.0</lucene.version>
@@ -59,6 +60,8 @@
         <commons-lang3.version>3.9</commons-lang3.version>
         <swagger.version>1.6.1</swagger.version>
         <nimbus-jose-jwt.version>8.15</nimbus-jose-jwt.version>
+        <flexmark.version>0.61.16</flexmark.version>
+        <owasp-java-html-sanitizer.version>20191001.1</owasp-java-html-sanitizer.version>
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
         <snakeyaml.version>1.26</snakeyaml.version>
         <jackson.version>2.10.3</jackson.version>
@@ -68,7 +71,7 @@
     <modules>
         <module>gravitee-rest-api-fetcher</module>
         <module>gravitee-rest-api-model</module>
-        <module>gravitee-rest-api-idp</module>        
+        <module>gravitee-rest-api-idp</module>
         <module>gravitee-rest-api-repository</module>
         <module>gravitee-rest-api-service</module>
         <module>gravitee-rest-api-security</module>
@@ -259,6 +262,7 @@
                 <artifactId>snakeyaml</artifactId>
                 <version>${snakeyaml.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
@@ -280,6 +284,21 @@
                 <groupId>org.freemarker</groupId>
                 <artifactId>freemarker</artifactId>
                 <version>${freemarker.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.java-json-tools</groupId>
+                <artifactId>json-schema-validator</artifactId>
+                <version>${json-schema-validator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.vladsch.flexmark</groupId>
+                <artifactId>flexmark-html2md-converter</artifactId>
+                <version>${flexmark.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+                <artifactId>owasp-java-html-sanitizer</artifactId>
+                <version>${owasp-java-html-sanitizer.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -22,4 +22,5 @@ package io.gravitee.rest.api.model.search;
  */
 public interface Indexable {
     String getId();
+    void setId(String id);
 }

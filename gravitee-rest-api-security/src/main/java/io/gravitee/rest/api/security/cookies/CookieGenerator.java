@@ -18,15 +18,17 @@ package io.gravitee.rest.api.security.cookies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
-
 import javax.servlet.http.Cookie;
 
+import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
+
+
 /**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Azize Elamrani (azize at gravitee.io)
  * @author GraviteeSource Team
  */
-public class JWTCookieGenerator {
+public class CookieGenerator {
 
     private static final boolean DEFAULT_JWT_COOKIE_SECURE = false;
     private static final String DEFAULT_JWT_COOKIE_PATH = "/";
@@ -35,13 +37,22 @@ public class JWTCookieGenerator {
     @Autowired
     private Environment environment;
 
-    public Cookie generate(final String value) {
-        final Cookie cookie = new Cookie("Auth-Graviteeio-APIM", value);
-        cookie.setHttpOnly(true);
+    public Cookie generate(final String name, final String value, final boolean httpOnly) {
+        final Cookie cookie = new Cookie(name, value);
+        cookie.setHttpOnly(httpOnly);
         cookie.setSecure(environment.getProperty("jwt.cookie-secure", Boolean.class, DEFAULT_JWT_COOKIE_SECURE));
         cookie.setPath(environment.getProperty("jwt.cookie-path", DEFAULT_JWT_COOKIE_PATH));
         cookie.setDomain(environment.getProperty("jwt.cookie-domain", DEFAULT_JWT_COOKIE_DOMAIN));
-        cookie.setMaxAge(value == null? 0 : environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER));
+        cookie.setMaxAge(value == null ? 0 : environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER));
         return cookie;
+    }
+
+    public Cookie generate(final String name, final String value) {
+        return generate(name, value, true);
+    }
+
+    public Cookie generate(final String value) {
+
+        return generate("Auth-Graviteeio-APIM", value);
     }
 }

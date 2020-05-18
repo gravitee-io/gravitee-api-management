@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import com.auth0.jwt.JWTSigner;
+import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.gravitee.common.data.domain.Page;
@@ -62,9 +64,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import javax.xml.bind.DatatypeConverter;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -128,6 +130,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
     private OrganizationService organizationService;
     @Autowired
     private NewsletterService newsletterService;
+    @Autowired
+    private PasswordValidator passwordValidator;
 
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
@@ -146,7 +150,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             LOGGER.trace("Loading class to initialize properly JsonPath Cache provider : fail");
         }
     }
-    
+
     @Override
     public UserEntity connect(String userId) {
         try {
@@ -302,13 +306,20 @@ public class UserServiceImpl extends AbstractService implements UserService {
             if (jwtSecret == null || jwtSecret.isEmpty()) {
                 throw new IllegalStateException("JWT secret is mandatory");
             }
-            final Map<String, Object> claims = new JWTVerifier(jwtSecret).verify(registerUserEntity.getToken());
-            final String action = claims.get(Claims.ACTION).toString();
+
+            Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                    .build();
+
+            DecodedJWT jwt = verifier.verify(registerUserEntity.getToken());
+
+            final String action = jwt.getClaim(Claims.ACTION).asString();
             if (USER_REGISTRATION.name().equals(action)) {
                 checkUserRegistrationEnabled();
             } else if (GROUP_INVITATION.name().equals(action)) {
                 // check invitations
-                final String email = claims.get(Claims.EMAIL).toString();
+                final String email = jwt.getClaim(Claims.EMAIL).asString();
                 final List<InvitationEntity> invitations = invitationService.findAll();
                 final List<InvitationEntity> userInvitations = invitations.stream()
                         .filter(invitation -> invitation.getEmail().equals(email))
@@ -317,11 +328,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     throw new IllegalStateException("Invitation has been canceled");
                 }
             }
-            final Object subject = claims.get(Claims.SUBJECT);
+            final Object subject = jwt.getSubject();
             User user;
             if (subject == null) {
                 final NewExternalUserEntity externalUser = new NewExternalUserEntity();
-                final String email = claims.get(Claims.EMAIL).toString();
+                final String email = jwt.getClaim(Claims.EMAIL).asString();
                 externalUser.setSource(IDP_SOURCE_GRAVITEE);
                 externalUser.setSourceId(email);
                 externalUser.setFirstname(registerUserEntity.getFirstname());
@@ -354,9 +365,14 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             // Set date fields
             user.setUpdatedAt(new Date());
+
             // Encrypt password if internal user
             if (registerUserEntity.getPassword() != null) {
-                user.setPassword(passwordEncoder.encode(registerUserEntity.getPassword()));
+                if (passwordValidator.validate(registerUserEntity.getPassword())) {
+                    user.setPassword(passwordEncoder.encode(registerUserEntity.getPassword()));
+                } else {
+                    throw new PasswordFormatInvalidException();
+                }
             }
 
             user = userRepository.update(user);
@@ -366,6 +382,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     user.getUpdatedAt(),
                     null,
                     user);
+
+            // Do not send back the password
+            user.setPassword(null);
 
             final UserEntity userEntity = convert(user, true);
             searchEngineService.index(userEntity, false);
@@ -417,7 +436,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         try {
             String referenceId = GraviteeContext.getCurrentOrganization();
             UserReferenceType referenceType = UserReferenceType.ORGANIZATION;
-            
+
             // First we check that organization exist
             this.organizationService.findById(referenceId);
 
@@ -491,7 +510,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     public UserEntity register(final NewExternalUserEntity newExternalUserEntity) {
         return register(newExternalUserEntity, null);
     }
-    
+
     @Override
     public UserEntity register(final NewExternalUserEntity newExternalUserEntity, final String confirmationPageUrl) {
         checkUserRegistrationEnabled();
@@ -507,9 +526,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
      * Allows to create an user and send an email notification to finalize its creation.
      */
     private UserEntity createAndSendEmail(final NewExternalUserEntity newExternalUserEntity, final ACTION action, final String confirmationPageUrl) {
-        try {
-            new InternetAddress(newExternalUserEntity.getEmail()).validate();
-        } catch (final AddressException ex) {
+        if (!EmailValidator.isValid(newExternalUserEntity.getEmail())){
             throw new EmailFormatInvalidException(newExternalUserEntity.getEmail());
         }
 
@@ -554,35 +571,33 @@ public class UserServiceImpl extends AbstractService implements UserService {
                                                           final ACTION action) {
         return getTokenRegistrationParams(userEntity, portalUri, action, null);
     }
-    
+
     @Override
     public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri,
                                                           final ACTION action, final String targetPageUrl) {
         // generate a JWT to store user's information and for security purpose
-        final Map<String, Object> claims = new HashMap<>();
-        claims.put(Claims.ISSUER, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER));
-
-        claims.put(Claims.SUBJECT, userEntity.getId());
-        claims.put(Claims.EMAIL, userEntity.getEmail());
-        claims.put(Claims.FIRSTNAME, userEntity.getFirstname());
-        claims.put(Claims.LASTNAME, userEntity.getLastname());
-        claims.put(Claims.ACTION, action);
-
-        final JWTSigner.Options options = new JWTSigner.Options();
-        options.setExpirySeconds(environment.getProperty("user.creation.token.expire-after",
-                Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER));
-        options.setIssuedAt(true);
-        options.setJwtId(true);
-
-        // send a confirm email with the token
         final String jwtSecret = environment.getProperty("jwt.secret");
         if (jwtSecret == null || jwtSecret.isEmpty()) {
             throw new IllegalStateException("JWT secret is mandatory");
         }
 
-        final String token = new JWTSigner(jwtSecret).sign(claims, options);
-        
-        
+        Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
+
+        Date issueAt = new Date();
+        Instant expireAt = issueAt.toInstant().plus(Duration.ofSeconds(environment.getProperty("user.creation.token.expire-after",
+                Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER)));
+
+        final String token = JWT.create()
+                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                .withIssuedAt(issueAt)
+                .withExpiresAt(Date.from(expireAt))
+                .withSubject(userEntity.getId())
+                .withClaim(Claims.EMAIL, userEntity.getEmail())
+                .withClaim(Claims.FIRSTNAME, userEntity.getFirstname())
+                .withClaim(Claims.LASTNAME, userEntity.getLastname())
+                .withClaim(Claims.ACTION, action.name())
+                .sign(algorithm);
+
         String registrationUrl= "";
         if (targetPageUrl != null && !targetPageUrl.isEmpty()) {
             registrationUrl += targetPageUrl;
@@ -598,6 +613,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             registrationUrl = portalUrl + portalUri + token;
         }
 
+        // send a confirm email with the token
         return new NotificationParamsBuilder()
                 .user(userEntity)
                 .token(token)
@@ -801,7 +817,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     public void resetPassword(final String id) {
         this.resetPassword(id, null);
     }
-            
+
     @Override
     public UserEntity resetPasswordFromSourceId(String sourceId, String resetPageUrl) {
         if (sourceId.startsWith("deleted")) {
@@ -815,7 +831,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             throw new UserNotActiveException(foundUser.getSourceId());
         }
     }
-    
+
     private void resetPassword(final String id, final String resetPageUrl) {
         try {
             LOGGER.debug("Resetting password of user id {}", id);
@@ -921,7 +937,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             if (!roleEntities.isEmpty()) {
                 roleEntities.forEach(roleEntity -> roles.add(convert(roleEntity)));
             }
-            
+
             roleEntities = membershipService.getRoles(
                     MembershipReferenceType.ENVIRONMENT,
                     GraviteeContext.getCurrentEnvironment(),
@@ -930,7 +946,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             if (!roleEntities.isEmpty()) {
                 roleEntities.forEach(roleEntity -> roles.add(convert(roleEntity)));
             }
-            
+
             userEntity.setRoles(roles);
         }
 
@@ -968,7 +984,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             return createNewExternalUser(socialProvider, userInfo, attrs, email);
         }
     }
-    
+
     private HashMap<String, String> getUserProfileAttrs(Map<String, String> userProfileMapping, String userInfo) {
         TemplateEngine templateEngine = TemplateEngine.templateEngine();
         templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
@@ -995,7 +1011,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         return map;
     }
-    
+
     private UserEntity createNewExternalUser(final SocialIdentityProviderEntity socialProvider, final String userInfo, HashMap<String, String> attrs, String email) {
         final NewExternalUserEntity newUser = new NewExternalUserEntity();
         newUser.setEmail(email);
@@ -1026,7 +1042,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             createdUser = this.create(newUser, true);
             userId = createdUser.getId();
         }
-        
+
         if (socialProvider.getRoleMappings() != null && !socialProvider.getRoleMappings().isEmpty()) {
             Set<RoleEntity> rolesToAdd = getRolesToAddUser(userId, socialProvider.getRoleMappings(), userInfo);
             addRolesToUser(userId, rolesToAdd);
@@ -1055,7 +1071,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         return this.update(userId, user);
     }
-    
+
     private Set<GroupEntity> getGroupsToAddUser(String userId, List<GroupMappingEntity> mappings, String userInfo) {
         Set<GroupEntity> groupsToAdd = new HashSet<>();
 
@@ -1080,7 +1096,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
         return groupsToAdd;
     }
-    
+
     private Set<RoleEntity> getRolesToAddUser(String username, List<RoleMappingEntity> mappings, String userInfo) {
         Set<RoleEntity> rolesToAdd = new HashSet<>();
 
@@ -1104,7 +1120,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
         return rolesToAdd;
     }
-    
+
     private void addRoleScope(Set<RoleEntity> rolesToAdd, String mappingRole, RoleScope roleScope) {
         if (mappingRole != null) {
             Optional<RoleEntity> optRoleEntity = roleService.findByScopeAndName(roleScope, mappingRole);
@@ -1115,7 +1131,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
         }
     }
-    
+
     private void addUserToApiAndAppGroupsWithDefaultRole(String userId, Collection<GroupEntity> groupsToAdd) {
         // Get the default role from system
         List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION);
@@ -1163,7 +1179,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                             roleEntity.getName()));
         }
     }
-    
+
     private void trace(String userId, boolean match, String condition) {
         if (LOGGER.isDebugEnabled()) {
             if (match) {
@@ -1178,7 +1194,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     public void updateUserRoles(String userId, List<String> roleIds) {
         // check if user exist
         this.findById(userId);
-        
+
         Set<MembershipEntity> userMemberships = membershipService.getMembershipsByMember(MembershipMemberType.USER, userId).stream()
                 .filter(membership -> membership.getReferenceType().equals(MembershipReferenceType.ENVIRONMENT) || membership.getReferenceType().equals(MembershipReferenceType.ORGANIZATION))
                 .collect(Collectors.toSet());
@@ -1192,6 +1208,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
         if (!roleIds.isEmpty()) {
             this.addRolesToUser(userId, roleIds.stream().map(roleService::findById).collect(Collectors.toSet()));
         }
-        
+
     }
 }

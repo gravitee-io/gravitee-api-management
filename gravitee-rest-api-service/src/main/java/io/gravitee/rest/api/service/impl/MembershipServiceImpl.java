@@ -350,26 +350,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public void deleteMember(MembershipMemberType memberType, String memberId) {
-        try {
-            Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByMemberIdAndMemberType(memberId, convert(memberType));
-            if (!memberships.isEmpty()) {
-                for(io.gravitee.repository.management.model.Membership membership: memberships) {
-                    LOGGER.debug("Delete membership {}", membership.getId());
-                    membershipRepository.delete(membership.getId());
-                    createAuditLog(MEMBERSHIP_DELETED, new Date(), membership, null);
-                };
-            } else {
-                throw new MembershipNotFoundException(memberType.name() + "_" + memberId);
-            }
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete memberships for {} {}", memberType, memberId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete memberships for " + memberType + " " + memberId, ex);
-        }
-        
-    }
-
-    @Override
     public void deleteMembership(String membershipId) {
         try {
             Optional<io.gravitee.repository.management.model.Membership> membership = membershipRepository.findById(membershipId);
@@ -404,17 +384,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             throw new TechnicalManagementException("An error occurs while trying to delete memberships for " + referenceType + " " + referenceId, ex);
         }
         
-    }
-
-    @Override
-    public void deleteMembers(MembershipReferenceType referenceType, String referenceId) {
-        try {
-            LOGGER.debug("Delete members for {} {}", referenceType, referenceId);
-            membershipRepository.deleteMembers(convert(referenceType), referenceId);
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete members for {} {}", referenceType, referenceId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete members for " + referenceType + " " + referenceId, ex);
-        }
     }
 
     @Override

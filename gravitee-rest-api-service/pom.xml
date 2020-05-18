@@ -23,8 +23,8 @@
 	<properties>
 		<jsoup.version>1.10.1</jsoup.version>
 		<json-patch.version>1.9</json-patch.version>
-		<swagger-compat-spec-parser.version>1.0.34</swagger-compat-spec-parser.version>
-		<swagger-parser.version>2.0.9</swagger-parser.version>
+		<swagger-compat-spec-parser.version>1.0.46</swagger-compat-spec-parser.version>
+		<swagger-parser.version>2.0.14</swagger-parser.version>
 	</properties>
 
 	<parent>
@@ -40,6 +40,17 @@
 	<description>Gravitee IO Manager Service</description>
 
 	<dependencies>
+		<!-- https://mvnrepository.com/artifact/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer -->
+		<dependency>
+			<groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+			<artifactId>owasp-java-html-sanitizer</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.vladsch.flexmark</groupId>
+			<artifactId>flexmark-html2md-converter</artifactId>
+		</dependency>
+
 		<!-- Gravitee Management dependencies -->
 		<dependency>
 			<groupId>io.gravitee.rest.api</groupId>

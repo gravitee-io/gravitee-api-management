@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.PageSourceEntity;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -73,6 +74,9 @@ public class PageService_ImportDirectoryTest {
 
     @Mock
     private GraviteeDescriptorService graviteeDescriptorService;
+
+    @Mock
+    private ImportConfiguration importConfiguration;
 
     private ObjectMapper mapper = new ObjectMapper();
 

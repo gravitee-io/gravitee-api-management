@@ -16,14 +16,17 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.swagger.annotations.Api;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -52,17 +55,24 @@ public class PortalMediaResource extends AbstractResource {
             @FormDataParam("file") final FormDataBodyPart body
     ) throws IOException {
         String mediaId;
-        checkImageFormat(body.getMediaType());
+
         if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
             throw new UploadUnauthorized("Max size achieved " + fileDetail.getSize());
         } else {
-            mediaId = mediaService.savePortalMedia(new MediaEntity(
-                    uploadedInputStream,
+            MediaEntity mediaEntity = new MediaEntity(
+                    IOUtils.toByteArray(uploadedInputStream),
                     body.getMediaType().getType(),
                     body.getMediaType().getSubtype(),
                     fileDetail.getFileName(),
-                    fileDetail.getSize()
-            ));
+                    fileDetail.getSize());
+
+            try {
+                ImageUtils.verify(body.getMediaType().getType(), body.getMediaType().getSubtype(), mediaEntity.getData());
+            } catch (InvalidImageException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
+            }
+
+            mediaId = mediaService.savePortalMedia(mediaEntity);
         }
 
         return Response.status(200).entity(mediaId).build();

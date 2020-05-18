@@ -29,9 +29,9 @@ public class MediaEntity {
     private Date createAt;
     private long size;
 
-    private InputStream data;
+    private byte [] data;
 
-    public MediaEntity(InputStream data, String type, String subType, String fileName, long size) {
+    public MediaEntity(byte [] data, String type, String subType, String fileName, long size) {
         this.type = type;
         this.subType = subType;
         this.fileName = fileName;
@@ -79,11 +79,11 @@ public class MediaEntity {
         this.size = size;
     }
 
-    public InputStream getData() {
+    public byte[] getData() {
         return data;
     }
 
-    public void setData(InputStream data) {
+    public void setData(byte[] data) {
         this.data = data;
     }
 

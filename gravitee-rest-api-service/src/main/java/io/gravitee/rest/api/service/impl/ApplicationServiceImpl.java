@@ -610,6 +610,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             applicationRepository.update(application);
             // remove notifications
             genericNotificationConfigService.deleteReference(NotificationReferenceType.APPLICATION, applicationId);
+            // delete memberships
+            membershipService.deleteReference(MembershipReferenceType.APPLICATION, applicationId);
             // Audit
             auditService.createApplicationAuditLog(
                 application.getId(),
@@ -618,9 +620,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 application.getUpdatedAt(),
                 previousApplication,
                 application);
-            // delete memberships
-            membershipService.deleteReference(MembershipReferenceType.APPLICATION, applicationId);
-
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete application {}", applicationId, ex);
             throw new TechnicalManagementException(String.format(

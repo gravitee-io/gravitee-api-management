@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import freemarker.template.Configuration;
@@ -49,7 +50,10 @@ import io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints.Entrypo
 import io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints.EntrypointsSwaggerV2Transformer;
 import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
 import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationSwaggerV2Transformer;
+import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
+import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
 import io.gravitee.rest.api.service.swagger.SwaggerV2Descriptor;
@@ -58,6 +62,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
@@ -90,37 +95,41 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
     private static final Logger logger = LoggerFactory.getLogger(PageServiceImpl.class);
 
-    private static final String SENSITIVE_DATA_REPLACEMENT = "********";
+	private static final String SENSITIVE_DATA_REPLACEMENT = "********";
 
-    @Autowired
-    private PageRepository pageRepository;
-    @Autowired
-    private ApiService apiService;
-    @Autowired
-    private SwaggerService swaggerService;
-    @Autowired
-    private PluginManager<FetcherPlugin> fetcherPluginManager;
-    @Autowired
-    private FetcherConfigurationFactory fetcherConfigurationFactory;
-    @Autowired
-    private Configuration freemarkerConfiguration;
-    @Autowired
-    private ApplicationContext applicationContext;
-    @Autowired
-    private MembershipService membershipService;
-    @Autowired
-    private RoleService roleService;
-    @Autowired
-    private AuditService auditService;
-    @Autowired
-    private SearchEngineService searchEngineService;
-    @Autowired
-    private MetadataService metadataService;
+    @Value("${documentation.markdown.sanitize:false}")
+    private boolean markdownSanitize;
+
+	@Autowired
+	private PageRepository pageRepository;
+	@Autowired
+	private ApiService apiService;
+	@Autowired
+	private SwaggerService swaggerService;
+	@Autowired
+	private PluginManager<FetcherPlugin> fetcherPluginManager;
+	@Autowired
+	private FetcherConfigurationFactory fetcherConfigurationFactory;
+	@Autowired
+	private Configuration freemarkerConfiguration;
+	@Autowired
+	private ApplicationContext applicationContext;
+	@Autowired
+	private MembershipService membershipService;
+	@Autowired
+	private RoleService roleService;
+	@Autowired
+	private AuditService auditService;
+	@Autowired
+	private SearchEngineService searchEngineService;
+	@Autowired
+	private MetadataService metadataService;
 
     @Autowired
     private GraviteeDescriptorService graviteeDescriptorService;
 
-    private enum PageSituation {
+    @Autowired
+	private ImportConfiguration importConfiguration;private enum PageSituation {
         ROOT, IN_ROOT, IN_FOLDER_IN_ROOT, IN_FOLDER_IN_FOLDER, SYSTEM_FOLDER, IN_SYSTEM_FOLDER, IN_FOLDER_IN_SYSTEM_FOLDER, TRANSLATION;
     }
 
@@ -144,31 +153,31 @@ public class PageServiceImpl extends TransactionalService implements PageService
                     return PageSituation.IN_ROOT;
                 }
 
-                Optional<Page> optionalParent = pageRepository.findById(parentId);
-                if (optionalParent.isPresent()) {
-                    Page parentPage = optionalParent.get();
-                    if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
-                        return PageSituation.IN_SYSTEM_FOLDER;
-                    }
+				Optional<Page> optionalParent = pageRepository.findById(parentId);
+				if (optionalParent.isPresent()) {
+					Page parentPage = optionalParent.get();
+					if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
+						return PageSituation.IN_SYSTEM_FOLDER;
+					}
 
-                    if (PageType.FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
-                        String grandParentId = parentPage.getParentId();
-                        if (grandParentId == null) {
-                            return PageSituation.IN_FOLDER_IN_ROOT;
-                        }
+					if (PageType.FOLDER.name().equalsIgnoreCase(parentPage.getType())) {
+						String grandParentId = parentPage.getParentId();
+						if (grandParentId == null) {
+							return PageSituation.IN_FOLDER_IN_ROOT;
+						}
 
-                        Optional<Page> optionalGrandParent = pageRepository.findById(grandParentId);
-                        if (optionalGrandParent.isPresent()) {
-                            Page grandParentPage = optionalGrandParent.get();
-                            if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
-                                return PageSituation.IN_FOLDER_IN_SYSTEM_FOLDER;
-                            }
-                            if (PageType.FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
-                                return PageSituation.IN_FOLDER_IN_FOLDER;
-                            }
-                        }
-                    }
-                }
+						Optional<Page> optionalGrandParent = pageRepository.findById(grandParentId);
+						if (optionalGrandParent.isPresent()) {
+							Page grandParentPage = optionalGrandParent.get();
+							if (PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
+								return PageSituation.IN_FOLDER_IN_SYSTEM_FOLDER;
+							}
+							if (PageType.FOLDER.name().equalsIgnoreCase(grandParentPage.getType())) {
+								return PageSituation.IN_FOLDER_IN_FOLDER;
+							}
+						}
+					}
+				}
 
             }
             logger.debug("Impossible to determine page situation for the page " + pageId);
@@ -226,7 +235,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
             apiId = ((ApiPageEntity) pageEntity).getApi();
         }
         transformSwagger(pageEntity, apiId);
-    }
+	}
 
     @Override
     public void transformSwagger(PageEntity pageEntity, String apiId) {
@@ -235,9 +244,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
             transformWithTemplate(pageEntity, apiId);
         }
 
-        // If swagger page, let's try to apply transformations
-        if (PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
-            SwaggerDescriptor<?> descriptor = swaggerService.parse(pageEntity.getContent());
+		if (markdownSanitize && PageType.MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
+			pageEntity.setContent(HtmlSanitizer.sanitize(pageEntity.getContent()));
+		}else if (PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
+			// If swagger page, let's try to apply transformations
+			SwaggerDescriptor<?> descriptor = swaggerService.parse(pageEntity.getContent());
 
             if (descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V1 || descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V2) {
                 Collection<SwaggerTransformer<SwaggerV2Descriptor>> transformers = new ArrayList<>();
@@ -283,9 +294,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
     }
 
     @Override
-    public List<PageEntity> search(final PageQuery query, boolean withTranslations) {
-        return this.search(query, null, withTranslations);
-    }
+	public List<PageEntity> search(final PageQuery query, boolean withTranslations) {
+		return this.search(query, null, withTranslations);
+	}
 
     @Override
     public List<PageEntity> search(final PageQuery query, String acceptedLocale) {
@@ -440,27 +451,27 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 checkFolderConsistency(newPageEntity);
             }
 
-            if (PageType.LINK.equals(newPageType)) {
-                String resourceType = newPageEntity.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE);
-                String content = newPageEntity.getContent();
-                if (content == null || content.isEmpty()) {
-                    throw new PageActionException(PageType.LINK, "be created. It must have a URL, a page Id or a view Id");
-                }
-                if ("root".equals(content) || PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) || PageConfigurationKeys.LINK_RESOURCE_TYPE_VIEW.equals(resourceType)) {
-                    newPageEntity.setPublished(true);
-                } else {
-                    Optional<Page> optionalRelatedPage = pageRepository.findById(content);
-                    if (optionalRelatedPage.isPresent()) {
-                        Page relatedPage = optionalRelatedPage.get();
-                        checkLinkRelatedPageType(relatedPage);
-                        newPageEntity.setPublished(relatedPage.isPublished());
-                    }
-                }
-            }
+			if (PageType.LINK.equals(newPageType)) {
+				String resourceType = newPageEntity.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE);
+				String content = newPageEntity.getContent();
+				if (content == null || content.isEmpty()) {
+					throw new PageActionException(PageType.LINK, "be created. It must have a URL, a page Id or a view Id");
+				}
+				if ("root".equals(content) || PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) || PageConfigurationKeys.LINK_RESOURCE_TYPE_VIEW.equals(resourceType)) {
+					newPageEntity.setPublished(true);
+				} else {
+					Optional<Page> optionalRelatedPage = pageRepository.findById(content);
+					if (optionalRelatedPage.isPresent()) {
+						Page relatedPage = optionalRelatedPage.get();
+						checkLinkRelatedPageType(relatedPage);
+						newPageEntity.setPublished(relatedPage.isPublished());
+					}
+				}
+			}
 
-            if (PageType.SWAGGER == newPageType || PageType.MARKDOWN == newPageType) {
-                checkMarkdownOrSwaggerConsistency(newPageEntity, newPageType);
-            }
+			if (PageType.SWAGGER == newPageType || PageType.MARKDOWN == newPageType) {
+				checkMarkdownOrSwaggerConsistency(newPageEntity, newPageType);
+			}
 
             Page page = convert(newPageEntity);
 
@@ -481,7 +492,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
             page.setCreatedAt(new Date());
             page.setUpdatedAt(page.getCreatedAt());
 
-            Page createdPage = pageRepository.create(page);
+            Page createdPage = validateContentAndCreate(page);
 
             //only one homepage is allowed
             onlyOneHomepage(page);
@@ -509,20 +520,20 @@ public class PageServiceImpl extends TransactionalService implements PageService
     }
 
 
-    private void checkFolderConsistency(NewPageEntity newPageEntity) throws TechnicalException {
-        if (newPageEntity.getContent() != null && newPageEntity.getContent().length() > 0) {
-            throw new PageFolderActionException("have a content");
-        }
+	private void checkFolderConsistency(NewPageEntity newPageEntity) throws TechnicalException {
+		if (newPageEntity.getContent() != null && newPageEntity.getContent().length() > 0) {
+			throw new PageFolderActionException("have a content");
+		}
 
-        if (newPageEntity.isHomepage()) {
-            throw new PageFolderActionException("be affected to the home page");
-        }
+		if (newPageEntity.isHomepage()) {
+			throw new PageFolderActionException("be affected to the home page");
+		}
 
-        PageSituation newPageParentSituation = getPageSituation(newPageEntity.getParentId());
-        if (newPageParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
-            throw new PageFolderActionException("be created in a folder of a system folder");
-        }
-    }
+		PageSituation newPageParentSituation = getPageSituation(newPageEntity.getParentId());
+		if (newPageParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
+			throw new PageFolderActionException("be created in a folder of a system folder");
+		}
+	}
 
     private void checkTranslationConsistency(String parentId, Map<String, String> configuration, boolean forCreation) throws TechnicalException {
         if (parentId == null || parentId.isEmpty()) {
@@ -557,8 +568,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
         }
     }
 
-    private void checkLinkRelatedPageType(Page relatedPage) throws TechnicalException {
-        PageSituation relatedPageSituation = getPageSituation(relatedPage.getId());
+	private void checkLinkRelatedPageType(Page relatedPage) throws TechnicalException {
+		PageSituation relatedPageSituation = getPageSituation(relatedPage.getId());
 
         if (PageType.LINK.name().equalsIgnoreCase(relatedPage.getType())
             || PageType.SYSTEM_FOLDER.name().equalsIgnoreCase(relatedPage.getType())
@@ -597,14 +608,14 @@ public class PageServiceImpl extends TransactionalService implements PageService
         }
     }
 
-    @Override
-    public PageEntity update(String pageId, UpdatePageEntity updatePageEntity) {
-        return this.update(pageId, updatePageEntity, false);
-    }
+	@Override
+	public PageEntity update(String pageId, UpdatePageEntity updatePageEntity) {
+		return this.update(pageId, updatePageEntity, false);
+	}
 
-    @Override
-    public PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial) {
-        try {
+	@Override
+	public PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial) {
+		try {
             logger.debug("Update Page {}", pageId);
 
             Optional<Page> optPageToUpdate = pageRepository.findById(pageId);
@@ -617,9 +628,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
             String pageType = pageToUpdate.getType();
 
-            if (PageType.LINK.name().equalsIgnoreCase(pageType)) {
-                String newResourceRef = updatePageEntity.getContent();
-                String actualResourceRef = pageToUpdate.getContent();
+			if (PageType.LINK.name().equalsIgnoreCase(pageType)) {
+				String newResourceRef = updatePageEntity.getContent();
+				String actualResourceRef = pageToUpdate.getContent();
 
                 if (newResourceRef != null && !newResourceRef.equals(actualResourceRef)) {
                     String resourceType = (updatePageEntity.getConfiguration() != null
@@ -662,10 +673,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 }
             }
 
-            if (partial) {
-                page = merge(updatePageEntity, pageToUpdate);
-            } else {
-                page = convert(updatePageEntity);
+			if (partial) {
+				page = merge(updatePageEntity, pageToUpdate);
+			} else {
+				page = convert(updatePageEntity);
             }
 
             if (page.getSource() != null) {
@@ -694,7 +705,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 reorderAndSavePages(page);
                 return null;
             } else {
-                Page updatedPage = pageRepository.update(page);
+                Page updatedPage = validateContentAndUpdate(page);
 
                 if (pageToUpdate.isPublished() != page.isPublished()
                     && !PageType.LINK.name().equalsIgnoreCase(pageType)
@@ -717,51 +728,51 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 return pageEntity;
             }
         } catch (TechnicalException ex) {
-            throw onUpdateFail(pageId, ex);
+			throw onUpdateFail(pageId, ex);
         }
     }
 
-    private void checkUpdatedPageSituation(UpdatePageEntity updatePageEntity, String pageType, String pageId) throws TechnicalException {
-        PageSituation newParentSituation = getPageSituation(updatePageEntity.getParentId());
-        switch (pageType) {
-            case "SYSTEM_FOLDER":
-                if (newParentSituation != PageSituation.ROOT) {
-                    throw new PageActionException(PageType.SYSTEM_FOLDER, " be moved in this folder");
-                }
-                break;
-            case "MARKDOWN":
-                if (newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
-                    throw new PageActionException(PageType.MARKDOWN, " be moved in a system folder or in a folder of a system folder");
-                }
-                break;
-            case "SWAGGER":
-                if (newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
-                    throw new PageActionException(PageType.SWAGGER, " be moved in a system folder or in a folder of a system folder");
-                }
-                break;
-            case "FOLDER":
-                PageSituation folderSituation = getPageSituation(pageId);
-                if (folderSituation == PageSituation.IN_SYSTEM_FOLDER && newParentSituation != PageSituation.SYSTEM_FOLDER) {
-                    throw new PageActionException(PageType.FOLDER, " be moved anywhere other than in a system folder");
-                } else if (folderSituation != PageSituation.IN_SYSTEM_FOLDER && newParentSituation == PageSituation.SYSTEM_FOLDER) {
-                    throw new PageActionException(PageType.FOLDER, " be moved in a system folder");
-                }
-                break;
-            case "LINK":
-                if (newParentSituation != PageSituation.SYSTEM_FOLDER && newParentSituation != PageSituation.IN_SYSTEM_FOLDER) {
-                    throw new PageActionException(PageType.LINK, " be moved anywhere other than in a system folder or in a folder of a system folder");
-                }
-                break;
-            case "TRANSLATION":
-                if (newParentSituation == PageSituation.ROOT || newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.TRANSLATION) {
-                    throw new PageActionException(PageType.TRANSLATION, "be updated. Parent " + updatePageEntity.getParentId() + " is not one of this type : FOLDER, LINK, MARKDOWN, SWAGGER");
-                }
-                break;
-            default:
-                break;
-        }
+	private void checkUpdatedPageSituation(UpdatePageEntity updatePageEntity, String pageType, String pageId) throws TechnicalException {
+		PageSituation newParentSituation = getPageSituation(updatePageEntity.getParentId());
+		switch (pageType) {
+			case "SYSTEM_FOLDER":
+				if (newParentSituation != PageSituation.ROOT) {
+					throw new PageActionException(PageType.SYSTEM_FOLDER, " be moved in this folder");
+				}
+				break;
+			case "MARKDOWN":
+				if (newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
+					throw new PageActionException(PageType.MARKDOWN, " be moved in a system folder or in a folder of a system folder");
+				}
+				break;
+			case "SWAGGER":
+				if (newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.IN_SYSTEM_FOLDER) {
+					throw new PageActionException(PageType.SWAGGER, " be moved in a system folder or in a folder of a system folder");
+				}
+				break;
+			case "FOLDER":
+				PageSituation folderSituation = getPageSituation(pageId);
+				if (folderSituation == PageSituation.IN_SYSTEM_FOLDER && newParentSituation != PageSituation.SYSTEM_FOLDER) {
+					throw new PageActionException(PageType.FOLDER, " be moved anywhere other than in a system folder");
+				} else if (folderSituation != PageSituation.IN_SYSTEM_FOLDER && newParentSituation == PageSituation.SYSTEM_FOLDER) {
+					throw new PageActionException(PageType.FOLDER, " be moved in a system folder");
+				}
+				break;
+			case "LINK":
+				if (newParentSituation != PageSituation.SYSTEM_FOLDER && newParentSituation != PageSituation.IN_SYSTEM_FOLDER) {
+					throw new PageActionException(PageType.LINK, " be moved anywhere other than in a system folder or in a folder of a system folder");
+				}
+				break;
+			case "TRANSLATION":
+				if (newParentSituation == PageSituation.ROOT || newParentSituation == PageSituation.SYSTEM_FOLDER || newParentSituation == PageSituation.TRANSLATION) {
+					throw new PageActionException(PageType.TRANSLATION, "be updated. Parent " + updatePageEntity.getParentId() + " is not one of this type : FOLDER, LINK, MARKDOWN, SWAGGER");
+				}
+				break;
+			default:
+				break;
+		}
 
-    }
+	}
 
 
     private void changeRelatedPagesPublicationStatus(String pageId, Boolean published) {
@@ -852,7 +863,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
     }
 
-    private void fetchPage(final Page page) throws FetcherException {
+    private void fetchPage(final Page page) throws FetcherException {validateSafeSource(page);
         Fetcher fetcher = this.getFetcher(page.getSource());
         if (fetcher != null) {
             try {
@@ -1190,11 +1201,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
             page.setReferenceId(apiId);
             if (searchResult.isEmpty()) {
                 page.setId(RandomString.generate());
-                return pageRepository.create(page);
+                return validateContentAndCreate(page);
             } else {
                 page.setId(searchResult.get(0).getId());
                 mergeSensitiveData(this.getFetcher(searchResult.get(0).getSource()).getConfiguration(), page);
-                return pageRepository.update(page);
+                return validateContentAndUpdate(page);
             }
         } catch (TechnicalException | FetcherException ex) {
             logger.error("An error occurs while trying to save the configuration", ex);
@@ -1256,7 +1267,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
         return new TechnicalManagementException("An error occurs while trying to fetch content. " + ex.getMessage(), ex);
     }
 
-    @Override
+	@Override
     public void delete(String pageId) {
         try {
             logger.debug("Delete Page : {}", pageId);
@@ -1282,9 +1293,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 this.deleteRelatedPages(pageId);
             }
 
-            createAuditLog(page.getReferenceId(), PAGE_DELETED, new Date(), page, null);
+			createAuditLog(page.getReferenceId(), PAGE_DELETED, new Date(), page, null);
 
-            // remove from search engine
+			// remove from search engine
             searchEngineService.delete(convert(page), false);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to delete Page {}", pageId, ex);
@@ -1337,15 +1348,15 @@ public class PageServiceImpl extends TransactionalService implements PageService
         return isDisplayable;
     }
 
-    private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {
-        // if not member => not displayable
-        if (member == null) {
-            return false;
-        }
-        // if member && published page => displayable
-        if (pageIsPublished) {
-            return true;
-        }
+	private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {
+		// if not member => not displayable
+		if (member == null) {
+			return false;
+		}
+		// if member && published page => displayable
+		if (pageIsPublished) {
+			return true;
+		}
 
         // only members which could modify a page can see an unpublished page
         return roleService.hasPermission(member.getPermissions(), ApiPermission.DOCUMENTATION,
@@ -1378,7 +1389,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
             page.setUpdatedAt(new Date());
             page.setLastContributor(contributor);
 
-            Page updatedPage = pageRepository.update(page);
+            Page updatedPage = validateContentAndUpdate(page);
             createAuditLog(page.getReferenceId(), PAGE_UPDATED, page.getUpdatedAt(), page, page);
             return convert(updatedPage);
         } catch (TechnicalException ex) {
@@ -1686,7 +1697,55 @@ public class PageServiceImpl extends TransactionalService implements PageService
         this.applicationContext = applicationContext;
     }
 
-    private void createAuditLog(String apiId, Audit.AuditEvent event, Date createdAt, Page oldValue, Page newValue) {
+    private Page validateContentAndCreate(Page page) throws TechnicalException {
+
+        validateSafeContent(page);
+		return pageRepository.create(page);
+	}
+
+    private Page validateContentAndUpdate(Page page) throws TechnicalException {
+
+        validateSafeContent(page);
+        return pageRepository.update(page);
+    }
+
+    private void validateSafeContent(Page page) {
+
+        if (markdownSanitize && PageType.MARKDOWN.name().equals(page.getType())) {
+			HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(page.getContent());
+
+			if(!sanitizeInfos.isSafe()) {
+				throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
+			}
+        }
+    }
+
+    private void validateSafeSource(Page page) {
+
+		if (importConfiguration.isAllowImportFromPrivate() || page.getSource() == null || page.getSource().getConfiguration() == null) {
+			return;
+		}
+
+		PageSource source = page.getSource();
+		Map<String, String> map;
+
+		try {
+			map = new ObjectMapper().readValue(source.getConfiguration(), new TypeReference<Map<String, String>>() {
+			});
+		} catch (IOException e) {
+			throw new InvalidDataException("Source is invalid", e);
+		}
+
+		Optional<String> urlOpt = map.entrySet().stream().filter(e -> e.getKey().equals("repository") || e.getKey().matches(".*[uU]rl")).map(Map.Entry::getValue).findFirst();
+
+		if (!urlOpt.isPresent()) {
+			// There is no source to validate.
+			return;
+		}
+
+		// Validate the url is allowed.
+		UrlSanitizerUtils.checkAllowed(urlOpt.get(), importConfiguration.getImportWhitelist(), false);
+	}private void createAuditLog(String apiId, Audit.AuditEvent event, Date createdAt, Page oldValue, Page newValue) {
         String pageId = oldValue != null ? oldValue.getId() : newValue.getId();
         if (apiId == null) {
             auditService.createPortalAuditLog(
@@ -1740,7 +1799,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
             createSystemFolder(null, SystemFolderType.TOPFOOTER, 2, environmentId).getId());
         result.put(SystemFolderType.FOOTER,
             createSystemFolder(null, SystemFolderType.FOOTER, 3, environmentId).getId());
-
         return result;
     }
 

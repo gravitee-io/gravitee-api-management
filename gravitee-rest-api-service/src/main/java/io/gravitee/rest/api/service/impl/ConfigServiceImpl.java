@@ -22,7 +22,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
-
+import io.gravitee.rest.api.service.ReCaptchaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +53,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private ConfigurableEnvironment environment;
     @Autowired
     private NewsletterService newsletterService;
+    @Autowired
+    private ReCaptchaService reCaptchaService;
 
     @Override
     public PortalConfigEntity getPortalConfig() {
@@ -158,6 +160,11 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             }
             idx++;
         }
+
+        final PortalConfigEntity.ReCaptcha reCaptcha = new PortalConfigEntity.ReCaptcha();
+        reCaptcha.setEnabled(reCaptchaService.isEnabled());
+        reCaptcha.setSiteKey(reCaptchaService.getSiteKey());
+        portalConfigEntity.setReCaptcha(reCaptcha);
 
         final PortalConfigEntity.Newsletter newsletter = new PortalConfigEntity.Newsletter();
         newsletter.setEnabled(newsletterService.isEnabled());

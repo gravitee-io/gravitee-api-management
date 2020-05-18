@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
-import com.auth0.jwt.JWTSigner;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
@@ -43,14 +44,17 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.expression.spel.SpelEvaluationException;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
+import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
+import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
@@ -85,6 +89,8 @@ public class UserServiceTest {
     @InjectMocks
     private UserServiceImpl userService = new UserServiceImpl();
 
+    @Mock
+    private PasswordValidator passwordValidator;
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -311,10 +317,31 @@ public class UserServiceTest {
 
     }
 
+    @Test (expected = PasswordFormatInvalidException.class)
+    public void createAlreadyPreRegisteredUser_invalidPassword() throws TechnicalException {
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
+
+        User user = new User();
+        user.setId("CUSTOM_LONG_ID");
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
+
+        RegisterUserEntity userEntity = new RegisterUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));
+        userEntity.setPassword(PASSWORD);
+
+        userService.finalizeRegistration(userEntity);
+    }
+
     @Test
     public void createAlreadyPreRegisteredUser() throws TechnicalException {
         when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
+        when(passwordValidator.validate(anyString())).thenReturn(true);
 
         User user = new User();
         user.setId("CUSTOM_LONG_ID");
@@ -333,11 +360,10 @@ public class UserServiceTest {
         verify(userRepository).update(argThat(userToCreate -> "CUSTOM_LONG_ID".equals(userToCreate.getId()) &&
                 EMAIL.equals(userToCreate.getEmail()) &&
                 FIRST_NAME.equals(userToCreate.getFirstname()) &&
-                LAST_NAME.equals(userToCreate.getLastname()) &&
-                !StringUtils.isEmpty(userToCreate.getPassword())));
+                LAST_NAME.equals(userToCreate.getLastname())));
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test(expected = UserRegistrationUnavailableException.class)
     public void shouldValidateJWTokenAndFail() throws TechnicalException {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
 
@@ -353,6 +379,8 @@ public class UserServiceTest {
     @Test
     public void shouldResetPassword() throws TechnicalException {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER))
+                .thenReturn(1000);
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
@@ -408,6 +436,23 @@ public class UserServiceTest {
     }
 
     private String createJWT(long expirationSeconds) {
+        Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
+
+        Date issueAt = new Date();
+        Instant expireAt = issueAt.toInstant().plus(Duration.ofSeconds(expirationSeconds));
+
+        return JWT.create()
+                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                .withIssuedAt(issueAt)
+                .withExpiresAt(Date.from(expireAt))
+                .withSubject(USER_NAME)
+                .withClaim(JWTHelper.Claims.EMAIL, EMAIL)
+                .withClaim(JWTHelper.Claims.FIRSTNAME, FIRST_NAME)
+                .withClaim(JWTHelper.Claims.LASTNAME, LAST_NAME)
+                .withClaim(JWTHelper.Claims.ACTION, USER_REGISTRATION.name())
+                .sign(algorithm);
+
+        /*
         HashMap<String, Object> claims = new HashMap<>();
         claims.put(JWTHelper.Claims.SUBJECT, USER_NAME);
         claims.put(JWTHelper.Claims.EMAIL, EMAIL);
@@ -416,6 +461,7 @@ public class UserServiceTest {
         claims.put(JWTHelper.Claims.ACTION, USER_REGISTRATION);
         claims.put("exp", expirationSeconds);
         return new JWTSigner(JWT_SECRET).sign(claims);
+         */
     }
 
     @Test

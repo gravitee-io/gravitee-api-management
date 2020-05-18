@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.model.View;
 import io.gravitee.rest.api.service.Upgrader;
@@ -43,6 +44,8 @@ public class DefaultViewUpgrader implements Upgrader, Ordered {
 
     @Autowired
     private ViewRepository viewRepository;
+    @Autowired
+    private ApiRepository apiRepository;
 
     @Override
     public boolean upgrade() {

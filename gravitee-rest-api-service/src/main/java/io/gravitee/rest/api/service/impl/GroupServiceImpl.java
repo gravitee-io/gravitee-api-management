@@ -365,7 +365,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 throw new GroupNotFoundException(groupId);
             }
             //remove all members
-            membershipService.deleteMember(MembershipMemberType.GROUP, groupId);
             membershipService.deleteReference(MembershipReferenceType.GROUP, groupId);
             
             //remove all applications or apis

@@ -56,13 +56,19 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
 
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
-        doc.add(new StringField(FIELD_NAME, api.getName(), Field.Store.NO));
-        doc.add(new StringField(FIELD_NAME_LOWERCASE, api.getName().toLowerCase(), Field.Store.NO));
-        doc.add(new TextField(FIELD_NAME_SPLIT, api.getName(), Field.Store.NO));
-        doc.add(new TextField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
-        doc.add(new TextField(FIELD_OWNER, api.getPrimaryOwner().getDisplayName(), Field.Store.NO));
-        if (api.getPrimaryOwner().getEmail() != null) {
-            doc.add(new TextField(FIELD_OWNER_MAIL, api.getPrimaryOwner().getEmail(), Field.Store.NO));
+        if (api.getName() != null) {
+            doc.add(new StringField(FIELD_NAME, api.getName(), Field.Store.NO));
+            doc.add(new StringField(FIELD_NAME_LOWERCASE, api.getName().toLowerCase(), Field.Store.NO));
+            doc.add(new TextField(FIELD_NAME_SPLIT, api.getName(), Field.Store.NO));
+        }
+        if (api.getDescription() != null) {
+            doc.add(new TextField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
+        }
+        if (api.getPrimaryOwner() != null) {
+            doc.add(new TextField(FIELD_OWNER, api.getPrimaryOwner().getDisplayName(), Field.Store.NO));
+            if (api.getPrimaryOwner().getEmail() != null) {
+                doc.add(new TextField(FIELD_OWNER_MAIL, api.getPrimaryOwner().getEmail(), Field.Store.NO));
+            }
         }
 
         api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
@@ -99,8 +105,12 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
             }
         }
 
-        doc.add(new LongPoint(FIELD_CREATED_AT, api.getCreatedAt().getTime()));
-        doc.add(new LongPoint(FIELD_UPDATED_AT, api.getUpdatedAt().getTime()));
+        if (api.getCreatedAt() != null) {
+            doc.add(new LongPoint(FIELD_CREATED_AT, api.getCreatedAt().getTime()));
+        }
+        if (api.getUpdatedAt() != null) {
+            doc.add(new LongPoint(FIELD_UPDATED_AT, api.getUpdatedAt().getTime()));
+        }
 
         return doc;
     }

@@ -19,7 +19,7 @@ import io.gravitee.rest.api.portal.rest.JerseySpringTest;
 import io.gravitee.rest.api.portal.rest.mapper.*;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
-import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
+import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import org.junit.runner.RunWith;
@@ -83,7 +83,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(ticketService);
         reset(configService);
         reset(authenticationProvider);
-        reset(jwtCookieGenerator);
+        reset(cookieGenerator);
         reset(apiMapper);
         reset(pageMapper);
         reset(planMapper);
@@ -231,7 +231,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ConfigService configService;
 
     @Autowired
-    protected JWTCookieGenerator jwtCookieGenerator;
+    protected CookieGenerator cookieGenerator;
 
     @Autowired
     protected ApiMapper apiMapper;
@@ -372,8 +372,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
-        public JWTCookieGenerator jwtCookieGenerator() {
-            return mock(JWTCookieGenerator.class);
+        public CookieGenerator jwtCookieGenerator() {
+            return mock(CookieGenerator.class);
         }
 
         @Bean

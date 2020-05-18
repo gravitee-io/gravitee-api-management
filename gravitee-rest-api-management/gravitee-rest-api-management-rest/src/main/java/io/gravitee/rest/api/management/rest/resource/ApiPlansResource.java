@@ -22,6 +22,7 @@ import io.gravitee.rest.api.management.rest.resource.param.PlanSecurityParam;
 import io.gravitee.rest.api.management.rest.resource.param.PlanStatusParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PlanService;
@@ -37,6 +38,7 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_GATEWAY_DEFINITION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_PLAN;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 
@@ -44,6 +46,8 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -98,14 +102,15 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-            || hasPermission(API_PLAN, api, READ)) {
+                || hasPermission(API_PLAN, api, READ)) {
 
             return planService.findByApi(api).stream()
                     .filter(plan -> status.getStatuses().contains(plan.getStatus())
-                            && ( (isAuthenticated() && isAdmin()) || groupService.
+                            && ((isAuthenticated() && isAdmin()) || groupService.
                             isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())))
                     .filter(plan -> security == null || security.getSecurities().contains(plan.getSecurity()))
                     .sorted(Comparator.comparingInt(PlanEntity::getOrder))
+                    .map(this::filterSensitiveData)
                     .collect(Collectors.toList());
         }
 
@@ -155,7 +160,7 @@ public class ApiPlansResource extends AbstractResource {
             @PathParam("plan") String plan,
             @ApiParam(name = "plan", required = true) @Valid @NotNull UpdatePlanEntity updatePlanEntity) {
 
-        if (updatePlanEntity.getId() != null && ! plan.equals(updatePlanEntity.getId())) {
+        if (updatePlanEntity.getId() != null && !plan.equals(updatePlanEntity.getId())) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity("'plan' parameter does not correspond to the plan to update")
@@ -166,7 +171,7 @@ public class ApiPlansResource extends AbstractResource {
         updatePlanEntity.setId(plan);
 
         PlanEntity planEntity = planService.findById(plan);
-        if (! planEntity.getApi().equals(api)) {
+        if (! planEntity.getApi().contains(api)) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity("'plan' parameter does not correspond to the current API")
@@ -304,5 +309,30 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         return Response.ok(planService.depreciate(plan)).build();
+    }
+
+    private PlanEntity filterSensitiveData(PlanEntity entity) {
+
+        if ( hasPermission(API_GATEWAY_DEFINITION, entity.getApi(), RolePermissionAction.READ)
+                && hasPermission(API_PLAN, entity.getApi(), RolePermissionAction.READ) ) {
+
+            // Return complete information if user has permission.
+            return entity;
+        }
+
+        PlanEntity filtered = new PlanEntity();
+
+        filtered.setId(entity.getId());
+        filtered.setCharacteristics(entity.getCharacteristics());
+        filtered.setName(entity.getName());
+        filtered.setDescription(entity.getDescription());
+        filtered.setOrder(entity.getOrder());
+        filtered.setSecurity(entity.getSecurity());
+        filtered.setType(filtered.getType());
+        filtered.setValidation(filtered.getValidation());
+        filtered.setCommentRequired(entity.isCommentRequired());
+        filtered.setCommentMessage(entity.getCommentMessage());
+
+        return filtered;
     }
 }

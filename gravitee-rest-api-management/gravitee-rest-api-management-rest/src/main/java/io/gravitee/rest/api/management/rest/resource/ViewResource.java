@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.UpdateViewEntity;
 import io.gravitee.rest.api.model.ViewEntity;
@@ -23,6 +24,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.ViewService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
@@ -133,13 +135,17 @@ public class ViewResource extends AbstractViewResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_VIEW, acls = RolePermissionAction.UPDATE)
     })
-    public ViewEntity update(@PathParam("id") String viewId, @Valid @NotNull final UpdateViewEntity view) {
-        checkAndScaleImage(view.getPicture());
+    public Response update(@PathParam("id") String viewId, @Valid @NotNull final UpdateViewEntity view) {
+        try {
+            ImageUtils.verify(view.getPicture());
+        } catch (InvalidImageException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
+        }
 
         ViewEntity viewEntity = viewService.update(viewId, view);
         setPicture(viewEntity, false);
 
-        return viewEntity;
+        return Response.ok(viewEntity).build();
     }
 
     @DELETE

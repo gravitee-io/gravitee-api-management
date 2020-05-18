@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
@@ -477,7 +478,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
     private ClientRegistrationProvider convert(NewClientRegistrationProviderEntity newClientRegistrationProvider) {
         ClientRegistrationProvider provider = new ClientRegistrationProvider();
-
+        provider.setId(UUID.toString(UUID.random()));
         provider.setName(newClientRegistrationProvider.getName());
         provider.setDescription(newClientRegistrationProvider.getDescription());
         provider.setDiscoveryEndpoint(newClientRegistrationProvider.getDiscoveryEndpoint());

@@ -31,8 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
@@ -61,8 +59,7 @@ public class MediaServiceImpl implements MediaService {
 
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");
-            byte[] fileBites = IOUtils.toByteArray(mediaEntity.getData());
-            byte[] hash = digest.digest(fileBites);
+            byte[] hash = digest.digest(mediaEntity.getData());
             String hashString = DatatypeConverter.printHexBinary(hash);
 
             String id = RandomString.generate();
@@ -82,15 +79,15 @@ public class MediaServiceImpl implements MediaService {
                 Media media = convert(mediaEntity);
                 media.setId(id);
                 media.setHash(hashString);
-                media.setSize((long) fileBites.length);
+                media.setSize((long) mediaEntity.getData().length);
                 media.setApi(api);
-                media.setData(fileBites);
+                media.setData(mediaEntity.getData());
                 mediaRepository.save(media);
 
                 return hashString;
             }
 
-        } catch (TechnicalException | NoSuchAlgorithmException | IOException ex) {
+        } catch (TechnicalException | NoSuchAlgorithmException ex) {
             logger.error("An error occurs while trying to create {}", mediaEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + mediaEntity, ex);
         }
@@ -124,7 +121,7 @@ public class MediaServiceImpl implements MediaService {
 
     private static MediaEntity convert(Media media) {
         MediaEntity mediaEntity = new MediaEntity(
-                new ByteArrayInputStream(media.getData()),
+                media.getData(),
                 media.getType(),
                 media.getSubType(),
                 media.getFileName(),

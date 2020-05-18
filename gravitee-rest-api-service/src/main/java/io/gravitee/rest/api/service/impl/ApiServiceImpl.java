@@ -64,9 +64,11 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.processor.ApiSynchronizationProcessor;
+import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -175,6 +177,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private ViewService viewService;
     @Autowired
     private ApplicationService applicationService;
+    @Autowired
+    private ImportConfiguration importConfiguration;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
@@ -319,7 +323,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private ApiEntity create0(UpdateApiEntity api, String userId) throws ApiAlreadyExistsException {
         return this.create0(api, userId, true);
     }
-    
+
     private ApiEntity create0(UpdateApiEntity api, String userId, boolean createSystemFolder) throws ApiAlreadyExistsException {
         try {
             LOGGER.debug("Create {} for user {}", api, userId);
@@ -390,7 +394,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
                     pageService.createPage(createdApi.getId(), asideSystemFolder);
                 }
-                
+
                 // Audit
                 auditService.createApiAuditLog(
                         createdApi.getId(),
@@ -407,7 +411,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
                             new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                             new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
-                    
+
                     // create the default mail notification
                    final String emailMetadataValue = "${(api.primaryOwner.email)!''}";
 
@@ -428,7 +432,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     newApiMetadataEntity.setValue(emailMetadataValue);
                     newApiMetadataEntity.setApiId(createdApi.getId());
                     apiMetadataService.create(newApiMetadataEntity);
-    
+
                     //TODO add membership log
                     ApiEntity apiEntity = convert(createdApi, primaryOwner);
                     searchEngineService.index(apiEntity, false);
@@ -1037,6 +1041,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 topApiService.delete(apiId);
                 // Delete API
                 apiRepository.delete(apiId);
+                // Delete memberships
+                membershipService.deleteReference(MembershipReferenceType.API, apiId);
                 // Delete notifications
                 genericNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
                 portalNotificationConfigService.deleteReference(NotificationReferenceType.API, apiId);
@@ -1053,9 +1059,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         new Date(),
                         optApi.get(),
                         null);
-                
-                // delete memberships
-                membershipService.deleteReference(MembershipReferenceType.API, apiId);
+                // remove from search engine
+                searchEngineService.delete(convert(optApi.get()), false);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete API {}", apiId, ex);
@@ -1348,11 +1353,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             .filter(memberToImport -> memberToImport.getRoles().contains(poRoleId))
                             .findFirst()
                             .orElse(new MemberToImport());
-    
+
                     List<String> roleUsedInTransfert = null;
                     MemberToImport futurePO = null;
-                        
-        
+
+
                     // upsert members
                     for (final JsonNode memberNode : membersToImport) {
                         MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
@@ -1377,12 +1382,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                 .stream()
                                 .anyMatch(m -> {
                                     m.getRoles().sort(Comparator.naturalOrder());
-                                    return 
+                                    return
                                         m.getRoles().equals(memberToImport.getRoles())
                                         && (m.getSourceId().equals(memberToImport.getSourceId())
                                             && m.getSource().equals(memberToImport.getSource()));
                                 });
-    
+
                         // add/update members if :
                         //  - not already present with the same role
                         //  - not the new PO
@@ -1393,8 +1398,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                     && memberToImport.getSource().equals(currentPo.getSource()))) {
                             try {
                                 UserEntity userEntity = userService.findBySource(memberToImport.getSource(), memberToImport.getSourceId(), false);
-                                
-                                rolesToImport.forEach(role -> 
+
+                                rolesToImport.forEach(role ->
                                     membershipService.addRoleToMemberOnReference(
                                             MembershipReferenceType.API,
                                             createdOrUpdatedApiEntity.getId(),
@@ -1403,22 +1408,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                             role)
                                     );
                             } catch (UserNotFoundException unfe) {
-    
+
                             }
                         }
-    
+
                         // get the future role of the current PO
                         if (currentPo.getSourceId().equals(memberToImport.getSourceId())
                                 && currentPo.getSource().equals(memberToImport.getSource())
                                 && !rolesToImport.contains(poRoleId)) {
                             roleUsedInTransfert = rolesToImport;
                         }
-    
+
                         if (rolesToImport.contains(poRoleId)) {
                             futurePO = memberToImport;
                         }
                     }
-    
+
                     // transfer the ownership
                     if (futurePO != null
                             && !(currentPo.getSource().equals(futurePO.getSource())
@@ -1434,7 +1439,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                     new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
                                     roleEntity);
                         } catch (UserNotFoundException unfe) {
-    
+
                         }
                     }
                 }
@@ -1457,7 +1462,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     PlanQuery query = new PlanQuery.Builder().
                             api(createdOrUpdatedApiEntity.getId()).
                             name(planNode.get("name").asText()).
-                            security(PlanSecurityType.valueOf(planNode.get("security").asText())).
+                            security(PlanSecurityType.valueOf(planNode.get("security").asText().toUpperCase())).
                             build();
                     List<PlanEntity> planEntities = planService.search(query);
                     if (planEntities == null || planEntities.isEmpty()) {
@@ -1496,6 +1501,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {
+        UrlSanitizerUtils.checkAllowed(apiDefinitionOrURL, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
         Buffer buffer = httpClientService.request(HttpMethod.GET, apiDefinitionOrURL, null, null, null);
         return buffer.toString();
     }
@@ -1825,7 +1831,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 String primaryOwnerRoleId = optPrimaryOwnerRole.get().getId();
                 membershipsToDuplicate.forEach(membership -> {
                     String roleId = membership.getRoleId();
-                    if (!primaryOwnerRoleId.equals(roleId)) {   
+                    if (!primaryOwnerRoleId.equals(roleId)) {
                         membershipService.addRoleToMemberOnReference(io.gravitee.rest.api.model.MembershipReferenceType.API, duplicatedApi.getId(), membership.getMemberType(), membership.getMemberId(), roleId);
                     }
                 });
@@ -1892,7 +1898,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         if (!isBlank(query.getView())) {
             builder.view(viewService.findById(query.getView()).getId());
-        }      
+        }
         if (query.getGroups() != null && !query.getGroups().isEmpty()) {
             builder.groups(query.getGroups().toArray(new String[0]));
         }

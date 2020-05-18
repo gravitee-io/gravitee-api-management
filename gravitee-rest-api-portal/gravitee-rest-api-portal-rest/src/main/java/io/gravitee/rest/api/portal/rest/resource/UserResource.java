@@ -22,7 +22,7 @@ import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserConfig;
 import io.gravitee.rest.api.portal.rest.model.UserInput;
-import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
+import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
@@ -60,7 +60,7 @@ public class UserResource extends AbstractResource {
     @Context
     private HttpServletResponse response;
     @Autowired
-    private JWTCookieGenerator jwtCookieGenerator;
+    private CookieGenerator cookieGenerator;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -85,7 +85,7 @@ public class UserResource extends AbstractResource {
                     .ok(currentUser)
                     .build();
         } catch (final UserNotFoundException unfe) {
-            response.addCookie(jwtCookieGenerator.generate(null));
+            response.addCookie(cookieGenerator.generate(null));
             return status(Response.Status.UNAUTHORIZED).build();
         }
     }

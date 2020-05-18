@@ -15,25 +15,23 @@
  */
 package io.gravitee.rest.api.service;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.rest.api.model.NewPageEntity;
-import io.gravitee.rest.api.model.PageConfigurationKeys;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.service.exceptions.PageActionException;
-import io.gravitee.rest.api.service.exceptions.PageFolderActionException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -43,6 +41,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -71,6 +70,9 @@ public class PageService_CreateTest {
 
     @Mock
     private SearchEngineService searchEngineService;
+
+    @Mock
+    private ImportConfiguration importConfiguration;
 
     @Test
     public void shouldCreatePage() throws TechnicalException {
@@ -397,5 +399,46 @@ public class PageService_CreateTest {
         pageService.createPage(newTranslation);
         verify(pageRepository).create(argThat(p -> p.isPublished() == true));
 
+    }
+
+
+    @Test(expected = UrlForbiddenException.class)
+    public void shouldNotCreateBecauseUrlForbiddenException() throws TechnicalException {
+
+        PageSourceEntity pageSource = new PageSourceEntity();
+        pageSource.setType("HTTP");
+        pageSource.setConfiguration(JsonNodeFactory.instance.objectNode().put("url", "http://localhost"));
+
+        final String name = "PAGE_NAME";
+
+        when(newPage.getName()).thenReturn(name);
+        when(newPage.getSource()).thenReturn(pageSource);
+
+        when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
+        when(importConfiguration.getImportWhitelist()).thenReturn(Collections.emptyList());
+
+        pageService.createPage(API_ID, newPage);
+
+        verify(pageRepository, never()).create(any());
+    }
+
+    @Test(expected = PageContentUnsafeException.class)
+    public void shouldNotCreateBecausePageContentUnsafeException() throws TechnicalException {
+
+        setField(pageService, "markdownSanitize", true);
+
+        final String name = "MARKDOWN";
+        final String contrib = "contrib";
+        final String content = "<script />";
+
+        when(newPage.getName()).thenReturn(name);
+        when(newPage.getOrder()).thenReturn(1);
+        when(newPage.getContent()).thenReturn(content);
+        when(newPage.getLastContributor()).thenReturn(contrib);
+        when(newPage.getType()).thenReturn(PageType.MARKDOWN);
+
+        this.pageService.createPage(API_ID, newPage);
+
+        verify(pageRepository, never()).create(any());
     }
 }

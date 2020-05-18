@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -93,6 +94,12 @@ public class ApiService_DeleteTest {
     private PortalNotificationConfigService portalNotificationConfigService;
     @Mock
     private ApiQualityRuleRepository apiQualityRuleRepository;
+    @Mock
+    private SearchEngineService searchEngineService;
+    @Mock
+    private ViewService viewService;
+    @Mock
+    private ParameterService parameterService;
 
     @Before
     public void setUp() {

@@ -20,14 +20,18 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
@@ -43,12 +47,11 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(MockitoJUnitRunner.class)
 public class SwaggerService_ParseTest {
 
-    private SwaggerService swaggerService;
+    @InjectMocks
+    private SwaggerServiceImpl swaggerService;
 
-    @Before
-    public void setUp() {
-        swaggerService = new SwaggerServiceImpl();
-    }
+    @Mock
+    private ImportConfiguration importConfiguration;
 
     private PageEntity getPage(String resource, String contentType) throws IOException {
         URL url = Resources.getResource(resource);
@@ -112,6 +115,14 @@ public class SwaggerService_ParseTest {
         assertNotNull(descriptor);
         assertEquals(SwaggerDescriptor.Version.OAI_V3, descriptor.getVersion());
         validateV3(Yaml.mapper().readTree(descriptor.toYaml()));
+    }
+
+    @Test(expected = UrlForbiddenException.class)
+    public void shouldThrowUrlForbiddenException()  {
+        PageEntity pageEntity = new PageEntity();
+        pageEntity.setContent("http://localhost");
+
+        swaggerService.parse(pageEntity.getContent());
     }
 
     private void validateV2(JsonNode node) {

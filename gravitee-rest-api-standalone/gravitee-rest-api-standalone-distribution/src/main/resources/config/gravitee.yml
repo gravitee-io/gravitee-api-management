@@ -59,8 +59,11 @@ http:
     #max-age: 864000
     # Which methods to allow (default value: OPTIONS, GET, POST, PUT, DELETE)
     #allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
-    # Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match)
+    # Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, X-Xsrf-Token)
     #allow-headers: 'X-Requested-With'
+  #csrf:
+    # Allows to enable or disable the CSRF protection (default is disabled).
+  #  enabled: false
   hsts:
     enabled: true
     include-sub-domains: true
@@ -320,10 +323,27 @@ swagger:
   # Default scheme used when creating an API from a Swagger descriptor if there is no scheme specified.
   scheme: https
 
+# User management configuration
 user:
   login:
     # Create a default application when user connects to the portal for the very first time (default true)
     #defaultApplication: true
+
+  # Password complexity validation policy
+  # Applications should enforce password complexity rules to discourage easy to guess passwords.
+  # Passwords should require a minimum level of complexity that makes sense for the application and its user population.
+  #password:
+  #  policy:
+  #    pattern: ^(?=\s*\S).*$ # Regex pattern for password validation (default to ^(?=\s*\S).*$ (non empty string))
+  # Example : ^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\S+$).{8,}$
+  # ^                # start-of-string
+  #(?=.*[0-9])       # a digit must occur at least once
+  #(?=.*[a-z])       # a lower case letter must occur at least once
+  #(?=.*[A-Z])       # an upper case letter must occur at least once
+  #(?=.*[@#$%^&+=])  # a special character must occur at least once
+  #(?=\S+$)          # no whitespace allowed in the entire string
+  #.{8,}             # anything, at least eight places though
+  #$                 # end-of-string
   creation:
     token:
       #expire-after: 86400
@@ -336,6 +356,19 @@ user:
 
 # The portal URL used in emails
 portalURL: http://localhost:3000/
+
+# Enable / disable documentation sanitize. Disabled by default.
+#documentation:
+#  markdown:
+#    sanitize: false
+
+#imports:
+  # Enable / disable import from private hosts. Enabled by default. (See https://en.wikipedia.org/wiki/Private_network)
+#  allow-from-private: true
+  # Empty whitelist means all urls are allowed. Note: allow-from-private is ignored when whitelist is defined.
+#  whitelist:
+#      - https://whitelist.domain1.com
+#      - https://restricted.domain2.com/whitelisted/path
 
 search:
   data: ${gravitee.home}/data
@@ -370,6 +403,20 @@ notifiers:
 #      trustAll: false
 #      keyStore:
 #      keyStorePassword:
+#  webhook:
+#    enabled: true
+    # Empty whitelist means all urls are allowed.
+#    whitelist:
+#      - https://whitelist.domain1.com
+#      - https://restricted.domain2.com/whitelisted/path
+
+# Allows to enable or disable recaptcha (see https://developers.google.com/recaptcha/docs/v3). Currently, it only affect the user registration route.
+#reCaptcha:
+#  enabled: false
+#  siteKey:
+#  secretKey:
+#  minScore: 0.5
+#  serviceUrl: https://www.google.com/recaptcha/api/siteverify
 
 #el:
   # Allows to define which methods or classes are accessible to the Expression Language engine (/!\ caution, changing default whitelist may expose you to security issues).

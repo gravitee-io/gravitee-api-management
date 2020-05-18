@@ -45,13 +45,15 @@ public class PageDocumentTransformer implements DocumentTransformer<PageEntity> 
 
         doc.add(new StringField(FIELD_ID, page.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
-        doc.add(new TextField(FIELD_NAME, page.getName(), Field.Store.NO));
+        if (page.getName() != null) {
+            doc.add(new TextField(FIELD_NAME, page.getName(), Field.Store.NO));
+        }
 
         if (page.getContent() != null) {
             doc.add(new TextField(FIELD_CONTENT, page.getContent(), Field.Store.NO));
         }
 
-        if (page instanceof ApiPageEntity) {
+        if (page instanceof ApiPageEntity && ((ApiPageEntity)page).getApi() != null) {
             doc.add(new StringField(FIELD_API, ((ApiPageEntity)page).getApi(), Field.Store.YES));
         }
 

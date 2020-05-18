@@ -18,7 +18,6 @@ package io.gravitee.rest.api.portal.security.config;
 import static java.util.Arrays.asList;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,13 +25,13 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
@@ -53,7 +52,6 @@ import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
-import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
 import io.gravitee.rest.api.security.filter.JWTAuthenticationFilter;
 import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
@@ -78,7 +76,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     @Autowired
     private AuthenticationProviderManager authenticationProviderManager;
     @Autowired
-    private JWTCookieGenerator jwtCookieGenerator;
+    private CookieGenerator cookieGenerator;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -186,7 +184,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         cors(http);
 
         http
-                .addFilterBefore(new JWTAuthenticationFilter(jwtSecret, jwtCookieGenerator), BasicAuthenticationFilter.class);
+                .addFilterBefore(new JWTAuthenticationFilter(jwtSecret, cookieGenerator), BasicAuthenticationFilter.class);
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {

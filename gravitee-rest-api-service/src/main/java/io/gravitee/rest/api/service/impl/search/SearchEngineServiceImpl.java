@@ -44,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.util.*;
 
@@ -120,6 +121,26 @@ public class SearchEngineServiceImpl implements SearchEngineService {
         }
     }
 
+    @Override
+    public void process(CommandSearchIndexerEntity content) {
+        if (ACTION_DELETE.equals(content.getAction())) {
+            try {
+                Indexable source = createInstance(content.getClazz());
+                source.setId(content.getId());
+                deleteLocally(source);
+            } catch (Exception ex) {
+                throw new TechnicalManagementException("Unable to delete document for content [ " + content.getId() + " - " + content.getClazz() + " ]", ex);
+            }
+        } else if (ACTION_INDEX.equals(content.getAction())) {
+            Indexable source = getSource(content.getClazz(), content.getId());
+            if (source == null) {
+                logger.error("Unable to get source from message content [{}]", content);
+                throw new TechnicalManagementException("Unable to get source from message content [" + content + "]");
+            }
+            indexLocally(source);
+        }
+    }
+
     private void sendCommands(CommandSearchIndexerEntity content) {
         try {
             NewCommandEntity msg = new NewCommandEntity();
@@ -130,21 +151,6 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             commandService.send(msg);
         } catch (JsonProcessingException e) {
             logger.error("Unexpected error while sending a message", e);
-        }
-    }
-
-    @Override
-    public void process(CommandSearchIndexerEntity content) {
-        Indexable source = getSource(content.getClazz(), content.getId());
-        if (source == null) {
-            logger.error("Unable to get source from message content [{}]", content);
-            throw new TechnicalManagementException("Unable to get source from message content [" + content + "]");
-        }
-
-        if (ACTION_DELETE.equals(content.getAction())) {
-            deleteLocally(source);
-        } else if (ACTION_INDEX.equals(content.getAction())) {
-            indexLocally(source);
         }
     }
 
@@ -185,6 +191,17 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                 });
     }
 
+    private Indexable createInstance(String className) throws Exception {
+        try {
+            final Class<?> clazz = Class.forName(className);
+            Assert.isAssignable(Indexable.class, clazz);
+            return (Indexable) clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+            logger.error("Unable to instantiate class: {}", ex);
+            throw ex;
+        }
+    }
+
     @Override
     public SearchResult search(io.gravitee.rest.api.service.search.query.Query<? extends Indexable> query) {
         Optional<SearchResult> results = searchers.stream()
@@ -201,5 +218,4 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
         return results.get();
     }
-
 }

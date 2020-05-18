@@ -52,6 +52,9 @@ public class ConfigServiceTest {
     @Mock
     private ParameterService mockParameterService;
     @Mock
+    private ReCaptchaService reCaptchaService;
+
+    @Mock
     private ConfigurableEnvironment environment;
     @Mock
     private NewsletterService newsletterService;
@@ -66,6 +69,8 @@ public class ConfigServiceTest {
         params.put(Key.SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.PORTAL_ANALYTICS_ENABLED.key(), singletonList("true"));
         when(mockParameterService.findAll(any(List.class))).thenReturn(params);
+        when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
+        when(reCaptchaService.isEnabled()).thenReturn(true);
 
         PortalConfigEntity portalConfig = configService.getPortalConfig();
 
@@ -75,10 +80,12 @@ public class ConfigServiceTest {
         assertEquals("scopes", 2, portalConfig.getAuthentication().getOauth2().getScope().size());
         assertEquals("scheduler notifications", Integer.valueOf(11), portalConfig.getScheduler().getNotificationsInSeconds());
         assertEquals("analytics", Boolean.TRUE, portalConfig.getPortal().getAnalytics().isEnabled());
+        assertEquals("recaptcha siteKey", "my-site-key", portalConfig.getReCaptcha().getSiteKey());
+        assertEquals("recaptcha enabled", Boolean.TRUE, portalConfig.getReCaptcha().getEnabled());
     }
 
     @Test
-    public void shouldCreateProtalConfig() {
+    public void shouldCreatePortalConfig() {
         PortalConfigEntity portalConfigEntity = new PortalConfigEntity();
         portalConfigEntity.getCompany().setName("ACME");
         when(mockParameterService.save(COMPANY_NAME, "ACME")).thenReturn(new Parameter());

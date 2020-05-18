@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam.LifecycleAction;
 import io.gravitee.rest.api.management.rest.resource.param.ReviewActionParam;
@@ -29,6 +30,7 @@ import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -235,7 +237,11 @@ public class ApiResource extends AbstractResource {
             return builder.build();
         }
 
-        checkAndScaleImage(apiToUpdate.getPicture());
+        try {
+            ImageUtils.verify(apiToUpdate.getPicture());
+        } catch (InvalidImageException e) {
+            return Response.status(Status.BAD_REQUEST).entity("Invalid image format").build();
+        }
 
         final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
         // Force context-path if user is not the primary_owner or an administrator
@@ -729,6 +735,7 @@ public class ApiResource extends AbstractResource {
             entity.setServices(null);
             entity.setResources(null);
             entity.setPathMappings(null);
+            entity.setResponseTemplates(null);
         }
     }
 }

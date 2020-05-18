@@ -153,7 +153,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("The image is too big"));
+        assertTrue(message, message.contains("Invalid image format"));
     }
 
     @Test
@@ -163,7 +163,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("The image is not in a valid format"));
+        assertTrue(message, message.contains("Invalid image format"));
     }
 
     @Test
@@ -173,7 +173,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("SVG format is not supported"));
+        assertTrue(message, message.contains("Invalid image format"));
     }
 
     @Test
@@ -183,7 +183,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Image file format unauthorized text/plain"));
+        assertTrue(message, message.contains("Invalid image format"));
     }
 
     public void shouldUploadApiMedia() {
@@ -236,6 +236,6 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("SVG format is not supported"));
+        assertTrue(message, message.contains("Invalid image format"));
     }
 }

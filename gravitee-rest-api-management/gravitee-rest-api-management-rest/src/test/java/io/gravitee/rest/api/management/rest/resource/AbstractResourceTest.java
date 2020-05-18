@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
-import io.gravitee.rest.api.security.cookies.JWTCookieGenerator;
+import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
@@ -231,8 +231,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
-        public JWTCookieGenerator jwtCookieGenerator() {
-            return mock(JWTCookieGenerator.class);
+        public CookieGenerator jwtCookieGenerator() {
+    	    return mock(CookieGenerator.class);
         }
 
         @Bean
