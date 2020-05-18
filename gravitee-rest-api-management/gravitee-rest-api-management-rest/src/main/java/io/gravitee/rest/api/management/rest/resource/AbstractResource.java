@@ -44,13 +44,13 @@ public abstract class AbstractResource {
     protected SecurityContext securityContext;
 
     @Inject
-    MembershipService membershipService;
+    protected MembershipService membershipService;
     @Inject
-    RoleService roleService;
+    protected RoleService roleService;
     @Inject
-    ApiService apiService;
+    protected ApiService apiService;
     @Inject
-    PermissionService permissionService;
+    protected PermissionService permissionService;
 
     UserDetails getAuthenticatedUserDetails() {
         return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

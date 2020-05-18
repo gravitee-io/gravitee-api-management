@@ -20,7 +20,8 @@ import io.gravitee.common.http.HttpStatusCode;
 import java.util.Map;
 
 /**
- * @author Azize Elamrani (azize at gravitee.io)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class UnauthorizedAccessException extends AbstractManagementException {
 

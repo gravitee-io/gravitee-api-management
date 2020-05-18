@@ -107,11 +107,6 @@ public class ApiListItem {
     private List<String> labels;
 
     @ApiModelProperty(
-            value = "true if the user can administrate the API, false otherwise",
-            example = "true")
-    private boolean manageable;
-
-    @ApiModelProperty(
             value = "How consumers have evaluated the API (between 0 to 5)",
             example = "4")
     private Double rate;
@@ -245,14 +240,6 @@ public class ApiListItem {
         this.labels = labels;
     }
 
-    public boolean isManageable() {
-        return manageable;
-    }
-
-    public void setManageable(boolean manageable) {
-        this.manageable = manageable;
-    }
-
     public Double getRate() {
         return rate;
     }
@@ -319,7 +306,6 @@ public class ApiListItem {
                 ", state=" + state +
                 ", primaryOwner=" + primaryOwner +
                 ", role=" + role +
-                ", manageable=" + manageable +
                 ", rate=" + rate +
                 ", numberOfRatings=" + numberOfRatings +
                 ", tags=" + tags +

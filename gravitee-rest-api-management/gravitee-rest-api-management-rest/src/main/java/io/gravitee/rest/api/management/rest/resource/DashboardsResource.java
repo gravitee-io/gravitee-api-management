@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.DashboardService;
 import io.gravitee.repository.management.model.DashboardReferenceType;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -46,6 +47,12 @@ public class DashboardsResource extends AbstractResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<DashboardEntity> list(final @QueryParam("reference_type") DashboardReferenceType referenceType)  {
+        // check if the user can access to at least one API to be authorized to get quality rules
+        if (apiService.search(null).stream()
+                .noneMatch(api -> isAuthenticated() &&
+                        (isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), RolePermissionAction.READ)))) {
+            throw new ForbiddenAccessException();
+        }
         if (referenceType == null) {
             return dashboardService.findAll();
         } else {

@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.quality.NewQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.service.QualityRuleService;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,6 +52,12 @@ public class QualityRulesResource extends AbstractResource {
     @GET
     @Produces(APPLICATION_JSON)
     public List<QualityRuleEntity> get() {
+        // check if the user can access to at least one API to be authorized to get quality rules
+        if (apiService.search(null).stream()
+            .noneMatch(api -> isAuthenticated() &&
+                (isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), RolePermissionAction.READ)))) {
+            throw new ForbiddenAccessException();
+        }
         return qualityRuleService.findAll();
     }
 
