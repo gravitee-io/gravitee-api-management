@@ -29,16 +29,16 @@
         </form>
       </div>
       <div class="gv-form-content" id="apis-container" style="height: calc(100vh - 200px); overflow-y: auto">
-        <div layout="row" layout-wrap class="inset" infinite-scroll="$ctrl.loadMore(query.order, true)"
+        <div layout="row" layout-wrap class="inset" infinite-scroll="$ctrl.loadMore($ctrl.order, true)"
              infinite-scroll-distance="1" infinite-scroll-container="'#apis-container'">
           <md-table-container style="width: 100%; min-height: 200px; text-align: center;">
             <table md-table ng-model="$ctrl.selectedApis">
-              <thead md-head md-order="query.order">
+              <thead md-head md-order="$ctrl.order">
               <tr md-row>
                 <th md-column width="1%"></th>
-                <th md-column width="15%" md-order-by="name" ng-click="$ctrl.loadMore(query.order, false)"><span>Name</span></th>
+                <th md-column width="15%" md-order-by="name" ng-click="$ctrl.loadMore($ctrl.order, false)"><span>Name</span></th>
                 <th md-column width="1%"></th>
-                <th md-column md-order-by="virtual_hosts" ng-click="$ctrl.loadMore(query.order, false)">Context paths</th>
+                <th md-column md-order-by="virtual_hosts" ng-click="$ctrl.loadMore($ctrl.order, false)">Context paths</th>
                 <th md-column width="1%">Tags</th>
                 <th md-column width="1%" ng-if="$ctrl.isQualityDisplayed">Quality</th>
                 <th md-column width="1%">Owner</th>
@@ -53,7 +53,7 @@
               <tr md-row
                   ng-repeat="api in $ctrl.apis track by api.id">
                 <td md-cell nowrap>
-                  <gravitee-identity-picture 
+                  <gravitee-identity-picture
                     image-id="api.id"
                     image-url="::api.picture_url"
                     image-name="api.name + '  ' + api.version"

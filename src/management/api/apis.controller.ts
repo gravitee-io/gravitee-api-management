@@ -27,6 +27,7 @@ interface IApisScope extends ng.IScope {
 export class ApisController {
 
   private query: string = '';
+  private order: string = '';
   private apisProvider: any;
   private apis: any;
   private graviteeUIVersion: string;
@@ -63,7 +64,7 @@ export class ApisController {
     this.graviteeUIVersion = Build.version;
     this.portalTitle = Constants.portal.title;
     this.query = $state.params.q;
-    this.apisProvider = _.filter(resolvedApis.data, 'manageable');
+    this.apisProvider = resolvedApis.data;
     if (!this.apisProvider.length) {
       // if no APIs, maybe the auth token has been expired
       UserService.current();
@@ -111,8 +112,8 @@ export class ApisController {
     }
 
     promise.then( (response) => {
-      this.apisProvider = _.filter(response.data, 'manageable');
-      this.loadMore(this.query.order, false);
+      this.apisProvider = response.data;
+      this.loadMore(this.order, false);
       this.$scope.apisLoading = false;
     });
   }
