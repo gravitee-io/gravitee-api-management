@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import ReCaptchaService from '../../services/reCaptcha.service';
+
 class ResetPasswordController {
-  constructor(jwtHelper, $state, $scope, UserService, NotificationService) {
+  constructor(jwtHelper, $state, $scope, UserService, NotificationService, ReCaptchaService: ReCaptchaService) {
     'ngInject';
+
+    ReCaptchaService.displayBadge();
+
     if (!$state.params.token) {
       $state.go('management');
     }
@@ -23,19 +28,23 @@ class ResetPasswordController {
       if (jwtHelper.isTokenExpired($state.params.token)) {
         $scope.error = 'Your token is expired!';
       } else {
-        $scope.user = jwtHelper.decodeToken($state.params.token);
+          $scope.user = jwtHelper.decodeToken($state.params.token);
       }
     } catch (e) {
       $scope.error = e.toString();
     }
 
     $scope.changePassword = function () {
-      UserService.finalizeRegistration({token: $state.params.token, password: $scope.confirmPassword,
-        firstname: $scope.user.firstname, lastname: $scope.user.lastname}).then(function () {
-        $scope.formConfirm.$setPristine();
-        NotificationService.show('Your password has been initialized successfully, you can now login...');
-        $state.go('login');
-      });
+       ReCaptchaService.execute('finalizeRegistration').then(() => {
+         UserService.finalizeRegistration({
+           token: $state.params.token, password: $scope.confirmPassword,
+           firstname: $scope.user.firstname, lastname: $scope.user.lastname
+         }).then(function () {
+           $scope.formConfirm.$setPristine();
+           NotificationService.show('Your password has been initialized successfully, you can now login...');
+           $state.go('login');
+         });
+       });
     };
 
     $scope.isInvalidPassword = function () {

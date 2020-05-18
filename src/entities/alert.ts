@@ -137,7 +137,6 @@ export abstract class Condition {
 }
 
 export class ThresholdCondition extends Condition {
-
   static TYPE: string = 'threshold';
 
   static LT: Operator = new Operator('lt', 'less than');

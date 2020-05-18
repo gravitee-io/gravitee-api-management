@@ -7,7 +7,7 @@ endif::[]
 
 == Install
 
-**Npm tasks are ran from this base dir.**
+**NPM tasks are ran from this base dir.**
 
 - Install http://nodejs.org[nodejs], it comes with http://npmjs.org[npm]
 - Then install node modules with:

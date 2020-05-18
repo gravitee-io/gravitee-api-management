@@ -460,6 +460,8 @@ import DeleteApiQualityRuleDialogController from '../management/configuration/ap
 import DialogQueryFilterInformationController
   from './configuration/analytics/dashboard/query-filter-information.dialog.controller';
 
+import ReCaptchaService from '../services/reCaptcha.service';
+
 import ThemeController from './configuration/theme/theme.controller';
 import ThemeComponent from './configuration/theme/theme.component';
 import ThemeService from '../services/theme.service';
@@ -558,7 +560,6 @@ require('angular-moment-picker');
 
 (<any>window).tinycolor = tinycolor;
 require('md-color-picker');
-
 
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -740,6 +741,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('MessageService', MessageService)
   .service('PortalService', PortalService)
   .service('ThemeService', ThemeService)
+  .service('ReCaptchaService', ReCaptchaService)
 
   .directive('filecontent', () => FileContentDirective)
   .directive('noDirtyCheck', () => new FormDirective())

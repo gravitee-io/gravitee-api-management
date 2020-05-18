@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {ApiMetrics} from '../../../../entities/alerts/api.metrics';
-import {NodeLifecycleMetrics, NodeMetrics} from '../../../../entities/alerts/node.metrics';
+import {NodeHealthcheckMetrics, NodeLifecycleMetrics, NodeMetrics} from '../../../../entities/alerts/node.metrics';
 import {HealthcheckMetrics} from '../../../../entities/alerts/healthcheck.metrics';
 import {Metrics} from '../../../../entities/alert';
 

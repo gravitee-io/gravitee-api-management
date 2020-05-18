@@ -61,6 +61,7 @@
             <exclude>**/*.ttf</exclude>
             <exclude>**/*.woff2</exclude>
             <exclude>**/*.eot</exclude>
+            <exclude>package-json.lock</exclude>
           </excludes>
         </configuration>
       </plugin>

@@ -13,9 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import ReCaptchaService from '../../../services/reCaptcha.service';
+
 class ConfirmController {
-  constructor(jwtHelper, $state, $scope, UserService, NotificationService) {
+
+  constructor(jwtHelper, $state, $scope, UserService, NotificationService, ReCaptchaService: ReCaptchaService) {
     'ngInject';
+
+    ReCaptchaService.displayBadge();
+
     if (!$state.params.token) {
       $state.go('management');
     }
@@ -23,23 +29,25 @@ class ConfirmController {
       if (jwtHelper.isTokenExpired($state.params.token)) {
         $scope.error = 'Your registration is expired!';
       } else {
-        $scope.user = jwtHelper.decodeToken($state.params.token);
-        if ($scope.user.firstname) {
-          $scope.registrationMode = true;
-        }
+          $scope.user = jwtHelper.decodeToken($state.params.token);
+          if ($scope.user.firstname) {
+            $scope.registrationMode = true;
+          }
       }
     } catch (e) {
       $scope.error = e.toString();
     }
 
     $scope.confirmRegistration = function () {
-      UserService.finalizeRegistration({
-        token: $state.params.token, password: $scope.confirmPassword,
-        firstname: $scope.user.firstname, lastname: $scope.user.lastname
-      }).then(function () {
-        $scope.formConfirm.$setPristine();
-        NotificationService.show('Your account has been created successfully, you can now login...');
-        $state.go('login');
+      ReCaptchaService.execute('finalizeRegistration').then(() => {
+        UserService.finalizeRegistration({
+          token: $state.params.token, password: $scope.confirmPassword,
+          firstname: $scope.user.firstname, lastname: $scope.user.lastname
+        }).then(function () {
+          $scope.formConfirm.$setPristine();
+          NotificationService.show('Your account has been created successfully, you can now login...');
+          $state.go('login');
+        });
       });
     };
 

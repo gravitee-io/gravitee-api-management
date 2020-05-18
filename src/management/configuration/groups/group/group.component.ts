@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import GroupService from '../../../services/group.service';
-import NotificationService from '../../../services/notification.service';
+import GroupService from '../../../../services/group.service';
+import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 import _ = require('lodash');
-import UserService from '../../../services/user.service';
+import UserService from '../../../../services/user.service';
 
 interface IGroupDetailComponentScope extends ng.IScope {
   groupApis: any[];

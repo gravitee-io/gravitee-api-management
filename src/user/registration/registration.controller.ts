@@ -1,3 +1,7 @@
+import ReCaptchaService from '../../services/reCaptcha.service';
+import NotificationService from '../../services/notification.service';
+import UserService from '../../services/user.service';
+
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -14,16 +18,34 @@
  * limitations under the License.
  */
 class RegistrationController {
-  newsletterEnabled: boolean;
+  user: any = {};
 
-  constructor(UserService, $scope, NotificationService) {
+  constructor(private UserService: UserService,
+              private $scope,
+              private NotificationService: NotificationService,
+              private ReCaptchaService: ReCaptchaService) {
     'ngInject';
-    $scope.register = function () {
-      UserService.register($scope.user).then(function () {
-        $scope.formRegistration.$setPristine();
-        NotificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
-      });
-    };
+    this.UserService = UserService;
+    this.$scope = $scope;
+    this.NotificationService = NotificationService;
+    this.ReCaptchaService = ReCaptchaService;
+  }
+
+  $onInit() {
+    this.ReCaptchaService.displayBadge();
+  }
+
+  register() {
+    let scope = this.$scope;
+    let notificationService = this.NotificationService;
+    let self = this;
+
+    this.ReCaptchaService.execute('register').then(() => this.UserService.register(this.user).then(function () {
+      scope.formRegistration.$setPristine();
+      notificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
+    }, function (e) {
+      notificationService.showError(e);
+    }));
   }
 }
 

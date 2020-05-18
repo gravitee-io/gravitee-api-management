@@ -22,6 +22,7 @@ import StringService from './string.service';
 import { UrlService } from '@uirouter/angularjs';
 import { PagedResult } from '../entities/pagedResult';
 import Base64Service from './base64.service';
+import {IRequestShortcutConfig} from 'angular';
 
 class UserService {
 
@@ -191,6 +192,7 @@ class UserService {
   }
 
   login(user): ng.IPromise<any> {
+
     return this.$http.post(`${this.userURL}login`, {}, {
       headers: {
         Authorization: `Basic ${this.Base64Service.encode(`${user.username}:${user.password}`)}`

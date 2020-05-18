@@ -15,6 +15,7 @@
  */
 import NotificationService from '../services/notification.service';
 import UserService from '../services/user.service';
+import ReCaptchaService from '../services/reCaptcha.service';
 
 function interceptorConfig(
   $httpProvider: angular.IHttpProvider
@@ -23,6 +24,10 @@ function interceptorConfig(
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
   $httpProvider.defaults.withCredentials = true;
+
+  // Explicitly disable automatic csrf handling as it will not work for cross-domain (using custom csrf interceptor).
+  $httpProvider.defaults.xsrfCookieName = 'none';
+  $httpProvider.defaults.xsrfHeaderName = 'none';
 
   let sessionExpired;
 
@@ -106,8 +111,46 @@ function interceptorConfig(
     };
   };
 
+  let xsrfToken;
+
+  const csrfInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
+    return {
+      request: function (config) {
+        config.headers['X-Xsrf-Token'] = xsrfToken;
+        return config;
+      },
+      response: function(response) {
+        if (response.headers('X-Xsrf-Token')) {
+          xsrfToken = response.headers('X-Xsrf-Token');
+        }
+        return response;
+      },
+      responseError: function(response) {
+        if (response.headers('X-Xsrf-Token')) {
+          xsrfToken = response.headers('X-Xsrf-Token');
+        }
+        return $q.reject(response);
+      }
+    };
+  };
+
+  const reCaptchaInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
+
+    return {
+      request: function (config) {
+        let reCaptchaService: ReCaptchaService = $injector.get('ReCaptchaService');
+
+        if (reCaptchaService && reCaptchaService.isEnabled()) {
+          config.headers[reCaptchaService.getHeaderName()] = reCaptchaService.getCurrentToken();
+        }
+        return config;
+      }
+    };
+  };
 
   if ($httpProvider.interceptors) {
+    $httpProvider.interceptors.push(csrfInterceptor);
+    $httpProvider.interceptors.push(reCaptchaInterceptor);
     $httpProvider.interceptors.push(interceptorUnauthorized);
     $httpProvider.interceptors.push(interceptorTimeout);
   }

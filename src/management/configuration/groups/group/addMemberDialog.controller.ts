@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import UserService from '../../../services/user.service';
+import UserService from '../../../../services/user.service';
 
 export class Role {
   default: boolean;

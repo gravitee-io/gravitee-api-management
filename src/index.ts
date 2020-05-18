@@ -80,6 +80,10 @@ function initTheme(constants: any) {
   return $http.get(`./themes/${constants.theme.name}-theme.json`, configNoCache)
     .then((response: any) => {
       angular.module('gravitee-management').constant('Theme', response.data);
+    }).catch(() => {
+      return $http.get('./themes/default-theme.json', configNoCache).then((response: any) => {
+        angular.module('gravitee-management').constant('Theme', response.data);
+      });
     });
 }
 

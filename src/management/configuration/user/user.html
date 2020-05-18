@@ -17,7 +17,7 @@
 -->
 <div class="gv-forms" layout="column">
     <div layout="row" layout-align="start end" class="gv-forms-header" style="display: flex; align-items: center; margin-top: 16px;">
-        <gravitee-identity-picture 
+        <gravitee-identity-picture
           image-id="$ctrl.selectedUser.id"
           image-url="$ctrl.getUserPicture()"
           image-name="$ctrl.selectedUser.displayName"
@@ -57,7 +57,7 @@
                     ng-model="selectedOrganizationRole"
                     aria-label="organization Role"
                     md-on-open="selectOpened = true"
-                    md-on-close="selectOpened = false"    
+                    md-on-close="selectOpened = false"
                     ng-change="$ctrl.updateOrganizationsRole(selectOpened, selectedOrganizationRole)"
                     multiple>
                     <md-option ng-value="role.id" ng-repeat="role in $ctrl.organizationRoles">{{role.name}}</md-option>
@@ -70,7 +70,7 @@
                     ng-model="selectedEnvironmentRole"
                     aria-label="Environment Role"
                     md-on-open="selectOpened = true"
-                    md-on-close="selectOpened = false"    
+                    md-on-close="selectOpened = false"
                     ng-change="$ctrl.updateEnvironmentsRole(selectOpened, selectedEnvironmentRole)"
                     multiple>
                     <md-option ng-value="role.id" ng-repeat="role in $ctrl.environmentRoles">{{role.name}}</md-option>

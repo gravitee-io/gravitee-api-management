@@ -45,7 +45,7 @@
         <tbody md-body>
         <tr md-row ng-repeat="user in $ctrl.usersPage.data | orderBy: orderUser">
             <td md-cell>
-              <gravitee-identity-picture 
+              <gravitee-identity-picture
                 image-id="user.id"
                 image-url="$ctrl.getUserPicture(user)"
                 image-name="user.displayName"

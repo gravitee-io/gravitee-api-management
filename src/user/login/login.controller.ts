@@ -22,6 +22,7 @@ import * as _ from 'lodash';
 import { IdentityProvider } from '../../entities/identityProvider';
 import AuthenticationService from '../../services/authentication.service';
 import {log} from 'util';
+import ReCaptchaService from '../../services/reCaptcha.service';
 
 class LoginController {
   user: any = {};
@@ -39,6 +40,7 @@ class LoginController {
     private $window,
     private $stateParams: StateParams,
     private $scope,
+    private ReCaptchaService: ReCaptchaService
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.portal.userCreation.enabled;
@@ -50,6 +52,7 @@ class LoginController {
   }
 
   $onInit() {
+    this.ReCaptchaService.displayBadge();
     document.addEventListener('click', this._toDisabledMode);
   }
 
@@ -74,14 +77,15 @@ class LoginController {
   }
 
   login() {
-    this.UserService.login(this.user).then(() => {
-      this.UserService.current().then((user) => {
-        this.loginSuccess(user);
-      });
-    }).catch(() => {
-      this.user.username = '';
-      this.user.password = '';
-    });
+    this.ReCaptchaService.execute('login').then(() =>
+      this.UserService.login(this.user).then(() => {
+        this.UserService.current().then((user) => {
+          this.loginSuccess(user);
+        });
+      }).catch(() => {
+        this.user.username = '';
+        this.user.password = '';
+      }));
   }
 
   loginSuccess(user: User) {

@@ -100,7 +100,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       url: '/registration',
       template: require('./user/registration/registration.html'),
       controller: 'RegistrationController',
-      controllerAs: 'registrationCtrl',
+      controllerAs: '$ctrl',
       resolve: {
         checkUser : function (UserService, $state) {
           if (UserService.currentUser && UserService.currentUser.id) {
