@@ -37,7 +37,7 @@ import { AnalyticsService } from '../../services/analytics.service';
 export class DashboardComponent implements OnInit {
 
   public currentUser: User;
-  applications: { item: Promise<Application>; metrics: Promise<{ subscribers: number }> }[];
+  applications: { item: Promise<Application>; metrics: Promise<{ subscribers: { clickable: boolean; value: number, title: string } }> }[];
   metrics: Array<any>;
   subscriptions: Array<any> = [];
   optionsSubscriptions: object;
@@ -100,7 +100,7 @@ export class DashboardComponent implements OnInit {
     return this.subscriptionService
       .getSubscriptions({ size: -1, applicationId: application.id, statuses: [StatusEnum.ACCEPTED] })
       .toPromise()
-      .then((r) => {
+      .then(async (r) => {
         r.data.forEach(sub => {
           this.subscriptions = this.subscriptions.concat({
             application,
@@ -108,7 +108,13 @@ export class DashboardComponent implements OnInit {
             plan: r.metadata[sub.plan],
           });
         });
-        return { subscribers: r.data.length };
+        const count = r.data.length;
+        const title = await this.translateService.get('applications.subscribers.title', {
+          count,
+          appName: application.name,
+        }).toPromise();
+
+        return { subscribers: { value: count, clickable: true, title } };
       });
   }
 
@@ -117,6 +123,13 @@ export class DashboardComponent implements OnInit {
     Promise.resolve(application).then((app) => {
       this.router.navigate(['/applications/' + app.id]);
     });
+  }
+
+  @HostListener(':gv-metrics:click', ['$event.detail'])
+  onClickToAppSubscribers({ key, item }) {
+    if (key === 'subscribers') {
+      this.router.navigate(['/applications/' + item.id + '/subscriptions']);
+    }
   }
 
   applicationCreationEnabled() {

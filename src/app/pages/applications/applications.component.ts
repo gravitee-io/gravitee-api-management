@@ -17,6 +17,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { Api, Application, ApplicationService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-card-list';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import StatusEnum = Subscription.StatusEnum;
 
 @Component({
@@ -26,7 +27,7 @@ import StatusEnum = Subscription.StatusEnum;
 })
 export class ApplicationsComponent implements OnInit {
   nbApplications: number;
-  applications: { item: Application; metrics: Promise<{ subscribers: number }> }[] = [];
+  applications: { item: Application; metrics: Promise<{ subscribers: { clickable: boolean; value: number } }> }[] = [];
   metrics: Array<any>;
   empty: boolean;
 
@@ -34,6 +35,7 @@ export class ApplicationsComponent implements OnInit {
     private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
     private router: Router,
+    private translateService: TranslateService,
   ) {
     this.metrics = [];
   }
@@ -55,13 +57,34 @@ export class ApplicationsComponent implements OnInit {
     return this.subscriptionService
       .getSubscriptions({ size: -1, applicationId: application.id, statuses: [StatusEnum.ACCEPTED] })
       .toPromise()
-      .then((r) => ({ subscribers: r.data.length }));
+      .then(async (r) => {
+        const count = r.data.length;
+        const title = await this.translateService.get('applications.subscribers.title', {
+          count,
+          appName: application.name,
+        }).toPromise();
+        return {
+          subscribers: {
+            value: r.data.length,
+            clickable: true,
+            title
+          }
+        };
+      });
   }
 
   @HostListener(':gv-card-full:click', ['$event.detail'])
-  goToApplication(application: Promise<Application>) {
+  onClickToApp(application: Promise<Application>) {
     Promise.resolve(application).then((_application) => {
-      this.router.navigate(['/applications/' + _application.id]);
+      this.router.navigate(['/applications', _application.id]);
     });
   }
+
+  @HostListener(':gv-metrics:click', ['$event.detail'])
+  onClickToAppSubscribers({ key, item }) {
+    if (key === 'subscribers') {
+      this.router.navigate(['/applications/' + item.id + '/subscriptions']);
+    }
+  }
+
 }

@@ -473,6 +473,9 @@
     }
   },
   "applications": {
+    "subscribers": {
+      "title": "Voir {count, plural, one{la souscription} other{les souscriptions}} de l'application {appName}"
+    },
     "title": "Mes applications"
   },
   "catalog": {

@@ -473,6 +473,9 @@
     }
   },
   "applications": {
+    "subscribers": {
+      "title": "See {count, plural, one{the subscription} other{subscriptions}} of the application {appName}"
+    },
     "title": "Applications"
   },
   "catalog": {

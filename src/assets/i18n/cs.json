@@ -473,6 +473,9 @@
     }
   },
   "applications": {
+    "subscribers": {
+      "title": "Viz {count, plural, one{předplatné} other{předplatné}} aplikace {appName}"
+    },
     "title": "Moje aplikace"
   },
   "catalog": {
