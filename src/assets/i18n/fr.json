@@ -476,12 +476,26 @@
     "title": "Mes applications"
   },
   "catalog": {
+    "ALL": {
+      "emptyMessage": "Le portail ne contient aucune API"
+    },
+    "FEATURED": {
+      "emptyMessage": "Il n'y a pas d'API à la une"
+    },
+    "STARRED": {
+      "emptyMessage": "Il n'y a pas encore de note"
+    },
+    "TRENDINGS": {
+      "emptyMessage": "Il n'y a pas encore d'API tendance"
+    },
+    "categories": {
+      "emptyMessage": "La catégorie ne contient aucune API"
+    },
     "defaultView": "Toutes les APIs",
     "display": {
       "cards": "Affichage carte",
       "list": "Affichage liste"
     },
-    "empty": "Il n'y a aucune API dans cette catégorie. <br/> Vous pouvez utiliser la recherche pour découvrir le catalogue.",
     "filter": "Filtrer les résultats",
     "othersApi": {
       "subTitle": "Découvrez les différentes APIs à la une ce mois-ci",
@@ -490,6 +504,7 @@
     "search": "Rechercher une API"
   },
   "categories": {
+    "empty": "Il n'y a pas de catégories",
     "title": "Catégories"
   },
   "common": {
@@ -538,9 +553,11 @@
   "dashboard": {
     "applications": {
       "create": "Créer une application",
+      "createFirst": "Créer ma première application",
       "list": "Voir vos applications",
       "title": "Vos applications"
     },
+    "empty": "Vous n'avez pas encore d'application",
     "stats": {
       "avg": "temps de réponse moyen",
       "max": "temps de réponse maximum",

@@ -62,6 +62,8 @@ export class FilteredCatalogComponent implements OnInit {
     filter: 'filter'
   };
   private defaultView: { value, label };
+  emptyIcon: string;
+  emptyMessage: any;
 
   constructor(private apiService: ApiService,
               private translateService: TranslateService,
@@ -75,6 +77,7 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.emptyIcon = this.activatedRoute.snapshot.data.icon || 'general:sad';
     this.translateService.get(i18n('catalog.defaultView')).toPromise()
       .then((label) => this.defaultView = {
         value: '',
@@ -162,7 +165,12 @@ export class FilteredCatalogComponent implements OnInit {
           this.promotedMetrics = await this.apiService.getApiMetricsByApiId({ apiId: promoted.id }).toPromise();
           this.promotedApiPath = `/catalog/api/${promoted.id}`;
         } else {
-          this.empty = true;
+          const key = this.inCategory() ?
+            i18n('catalog.categories.emptyMessage') : `catalog.${this.categoryApiQuery || 'ALL'}.emptyMessage`;
+          this.translateService.get(key).toPromise().then((translation) => {
+            this.emptyMessage = translation;
+            this.empty = true;
+          });
         }
         return promoted;
       });

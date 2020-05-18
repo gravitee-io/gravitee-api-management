@@ -21,8 +21,19 @@
     <h1 *ngIf="currentUser"
         class="title">{{'dashboard.welcome' | translate : { username: currentUser.first_name || currentUser.display_name } }}</h1>
 
-    <section>
-      <h3 *ngIf="applications && applications.length" class="title" translate="dashboard.applications.title"></h3>
+    <section *ngIf="empty">
+      <gv-message class="message-empty">
+        <gv-icon shape="code:plus"></gv-icon>
+        <div class="title" [innerHTML]="'dashboard.empty' | translate"></div>
+        <gv-button primary *ngIf="applicationCreationEnabled()" [routerLink]="'/applications/creation/'"
+                   href="/applications/creation/" >
+          {{ 'dashboard.applications.createFirst' | translate }}
+        </gv-button>
+      </gv-message>
+    </section>
+
+    <section *ngIf="applications && applications.length">
+      <h3 class="title" translate="dashboard.applications.title"></h3>
       <div class="content">
         <gv-card-list [items]="applications" [style]="cardListGridTemplate"></gv-card-list>
 
@@ -44,8 +55,6 @@
           </gv-button>
         </div>
       </div>
-
-
     </section>
 
 

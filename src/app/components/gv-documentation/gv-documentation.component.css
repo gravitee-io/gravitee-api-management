@@ -35,13 +35,6 @@
   display: block;
 }
 
-.gv-documentation__empty {
-  font-size: var(--gv-theme-font-size-xxl);
-  margin: 100px 0;
-  text-align: center;
-  opacity: 0.6;
-}
-
 .gv-documentation__content {
   background-color: var(--gv-theme-neutral-color);
   flex: 1;

@@ -476,12 +476,26 @@
     "title": "Applications"
   },
   "catalog": {
+    "ALL": {
+      "emptyMessage": "The portal does not contain any API"
+    },
+    "FEATURED": {
+      "emptyMessage": "There is no featured API"
+    },
+    "STARRED": {
+      "emptyMessage": "There are no notes yet"
+    },
+    "TRENDINGS": {
+      "emptyMessage": "There is no trend API yet"
+    },
+    "categories": {
+      "emptyMessage": "Category does not contain any API"
+    },
     "defaultView": "All the APIs",
     "display": {
       "cards": "Display cards",
       "list": "Display list"
     },
-    "empty": "There are no APIs in this category. <br/> You can use the search to browse the catalog.",
     "filter": "Filter the results",
     "othersApi": {
       "subTitle": "Discover the different APIs in the headlines this month",
@@ -490,6 +504,7 @@
     "search": "Search API"
   },
   "categories": {
+    "empty": "There are no categories",
     "title": "Categories"
   },
   "common": {
@@ -538,9 +553,11 @@
   "dashboard": {
     "applications": {
       "create": "Create an application",
+      "createFirst": "Create my first application",
       "list": "See your applications",
       "title": "Your applications"
     },
+    "empty": "You don't have an application yet",
     "stats": {
       "avg": "average response time",
       "max": "maximum response time",

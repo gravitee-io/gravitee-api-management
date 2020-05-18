@@ -16,8 +16,16 @@
 
 -->
 <div class="page__content">
-  <h1 class="title">{{'applications.title' | translate}} <span *ngIf="nbApplications">({{ nbApplications }})</span></h1>
-  <section>
+  <h1 class="title" *ngIf="!empty">{{'applications.title' | translate}} <span>({{ nbApplications }})</span></h1>
+
+  <section *ngIf="empty">
+    <gv-message class="message-empty">
+      <gv-icon shape="code:plus"></gv-icon>
+      <div class="title" [innerHTML]="'dashboard.empty' | translate"></div>
+    </gv-message>
+  </section>
+
+  <section *ngIf="!empty">
     <gv-card-list [items]="applications"></gv-card-list>
   </section>
 </div>

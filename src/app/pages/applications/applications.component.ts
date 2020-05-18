@@ -28,6 +28,7 @@ export class ApplicationsComponent implements OnInit {
   nbApplications: number;
   applications: { item: Application; metrics: Promise<{ subscribers: number }> }[] = [];
   metrics: Array<any>;
+  empty: boolean;
 
   constructor(
     private applicationService: ApplicationService,
@@ -38,6 +39,7 @@ export class ApplicationsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.empty = false;
     this.applicationService.getApplications({ size: -1 }).toPromise().then((response) => {
       // @ts-ignore
       this.nbApplications = response.metadata.data.total;
@@ -45,6 +47,7 @@ export class ApplicationsComponent implements OnInit {
         item: application,
         metrics: this._getMetrics(application)
       }));
+      this.empty = this.applications.length === 0;
     });
   }
 

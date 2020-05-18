@@ -16,14 +16,17 @@
 
 -->
 <div class="page__content">
-  <h1 class="title" *ngIf="!inCategory()">{{getRouteTitle() | translate}}</h1>
-  <h3 class="title" *ngIf="inCategory()">{{category.description}}</h3>
+  <h1 class="title" *ngIf="!inCategory() && !this.empty">{{getRouteTitle() | translate}}</h1>
+  <h3 class="title" *ngIf="inCategory() && !this.empty">{{category.description}}</h3>
 
   <section *ngIf="empty">
-    <div class="empty" [innerHTML]="'catalog.empty' | translate"></div>
+    <gv-message class="message-empty">
+      <gv-icon [shape]="emptyIcon"></gv-icon>
+      <div class="title" [innerHTML]="emptyMessage"></div>
+    </gv-message>
   </section>
 
-  <section class="catalog__section__top">
+  <section class="catalog__section__top" *ngIf="!empty">
 
     <gv-promote [item]="promotedApi" [metrics]="promotedMetrics"
                 [href]="this.promotedApiPath"
@@ -43,11 +46,11 @@
     <div class="catalog__section__content__title" [id]="fragments.filter">
       <h2 class="title"></h2>
       <gv-select
-                 *ngIf="canFilter"
-                 [value]="this.currentView"
-                 (input)="this.onSelectView($event)"
-                 [attr.placeholder]="'catalog.filter' | translate"
-                 [options]="this.views">
+          *ngIf="canFilter"
+          [value]="this.currentView"
+          (input)="this.onSelectView($event)"
+          [attr.placeholder]="'catalog.filter' | translate"
+          [options]="this.views">
       </gv-select>
       <gv-option [options]="options" *ngIf="allApis.length > 0" [value]="this.currentDisplay"></gv-option>
     </div>

@@ -45,6 +45,8 @@ export class DashboardComponent implements OnInit {
   stats: object;
   optionsStats: object;
   cardListGridTemplate: string;
+  empty: boolean;
+
   constructor(
     private currentUserService: CurrentUserService,
     private applicationService: ApplicationService,
@@ -66,6 +68,7 @@ export class DashboardComponent implements OnInit {
         const item = metrics.then(() =>  application);
         return { item, metrics };
       });
+      this.empty = (this.applications.length === 0);
       this.cardListGridTemplate = `grid-template-columns: repeat(${this.applications?this.applications.length:0}, 1fr)`;
     });
 

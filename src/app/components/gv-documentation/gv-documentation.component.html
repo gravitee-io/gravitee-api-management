@@ -28,6 +28,14 @@
                class="gv-documentation__content"></app-gv-page>
 </div>
 
-<div *ngIf="isEmpty()" class="gv-documentation__empty">
-  {{'gv-documentation.empty' | translate}}
+<div class="page__content" *ngIf="isEmpty()">
+  <section>
+    <gv-message class="message-empty">
+      <gv-icon shape="home:library"></gv-icon>
+      <div class="title">
+        {{'gv-documentation.empty' | translate}}
+      </div>
+    </gv-message>
+  </section>
 </div>
+

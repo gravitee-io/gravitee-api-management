@@ -476,12 +476,26 @@
     "title": "Moje aplikace"
   },
   "catalog": {
+    "ALL": {
+      "emptyMessage": "Portál neobsahuje žádné API"
+    },
+    "FEATURED": {
+      "emptyMessage": "Neexistuje žádné doporučené API"
+    },
+    "STARRED": {
+      "emptyMessage": "Zatím nejsou k dispozici žádné poznámky"
+    },
+    "TRENDINGS": {
+      "emptyMessage": "Zatím neexistuje žádné trendové API"
+    },
+    "categories": {
+      "emptyMessage": "Kategorie neobsahuje žádné API"
+    },
     "defaultView": "Všechna API",
     "display": {
       "cards": "Zobrazovací karty",
       "list": "Zobrazit seznam"
     },
-    "empty": "V této kategorii nejsou žádná API. <br/> Pomocí vyhledávání můžete procházet katalog.",
     "filter": "Filtrujte výsledky",
     "othersApi": {
       "subTitle": "Objevte různá API v titulcích tento měsíc",
@@ -490,6 +504,7 @@
     "search": "Vyhledat API..."
   },
   "categories": {
+    "empty": "Nejsou žádné kategorie",
     "title": "Kategories"
   },
   "common": {
@@ -538,9 +553,11 @@
   "dashboard": {
     "applications": {
       "create": "Vytvořte novou aplikaci",
+      "createFirst": "Vytvořit moji první aplikaci",
       "list": "Podívejte se na všechny své aplikace",
       "title": "Vaše aplikace"
     },
+    "empty": "Zatím nemáte aplikaci",
     "stats": {
       "avg": "průměrná doba odezvy",
       "max": "maximální doba odezvy",
