@@ -357,8 +357,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 LOGGER.debug("Delete membership {}", membership.get());
                 membershipRepository.delete(membershipId);
                 createAuditLog(MEMBERSHIP_DELETED, new Date(), membership.get(), null);
-            } else {
-                throw new MembershipNotFoundException(membershipId);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete membership {}", membershipId, ex);
@@ -375,9 +373,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     LOGGER.debug("Delete membership {}", membership.getId());
                     membershipRepository.delete(membership.getId());
                     createAuditLog(MEMBERSHIP_DELETED, new Date(), membership, null);
-                };
-            } else {
-                throw new MembershipNotFoundException(referenceType.name() + "_" + referenceId);
+                }
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete memberships for {} {}", referenceType, referenceId, ex);
@@ -396,8 +392,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     membershipRepository.delete(membership.getId());
                     createAuditLog(MEMBERSHIP_DELETED, new Date(), membership, null);
                 };
-            } else {
-                throw new MembershipNotFoundException(memberType.name() + "_" + memberId + "_" + referenceType.name() + "_" + referenceId);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete memberships for {} {} {} {}", referenceType, referenceId, memberType, memberId, ex);
