@@ -24,8 +24,9 @@ export class ApplicationResolver implements Resolve<Application> {
     private applicationService: ApplicationService,
   ) {}
 
-  resolve(route: ActivatedRouteSnapshot) {
-    const applicationId = route.params.applicationId;
+  resolve(route: ActivatedRouteSnapshot|ActivatedRoute) {
+    const applicationId = route instanceof ActivatedRouteSnapshot ? route.params.applicationId : route.snapshot.params.applicationId;
     return this.applicationService.getApplicationByApplicationId({ applicationId });
   }
+
 }

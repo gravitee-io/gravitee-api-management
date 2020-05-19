@@ -20,11 +20,6 @@
   margin: auto;
 }
 
-.form .form__actions {
-  display: flex;
-  flex-direction: column;
-}
-
 .row {
   display: inline-flex;
   margin: 1rem 0;

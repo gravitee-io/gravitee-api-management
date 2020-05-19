@@ -359,7 +359,9 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
             this.mainRoutes = this.mainRoutes.then(navRoutes => {
               if (hasDynamicRouteActive) {
                 const activeRoute = navRoutes.find((r) => r.active);
-                activeRoute.active = false;
+                if (activeRoute) {
+                  activeRoute.active = false;
+                }
               }
               return [...navRoutes, ...dynamicRoutes];
 

@@ -17,6 +17,7 @@ import '@gravitee/ui-components/wc/gv-header';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Api, Application, User, PortalService } from '@gravitee/ng-portal-webclient';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { ApplicationResolver } from '../../resolvers/application.resolver';
 import { CurrentUserService } from '../../services/current-user.service';
 import { EventService } from '../../services/event.service';
 import { NavRouteService } from '../../services/nav-route.service';
@@ -42,6 +43,7 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
               public currentUserService: CurrentUserService,
               public portalService: PortalService,
               public eventService: EventService,
+              private applicationResolver: ApplicationResolver,
   ) {
   }
 
@@ -56,7 +58,7 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
 
     this.eventService.subscribe((event) => {
       if (event.type === GvHeaderItemComponent.RELOAD_EVENT) {
-        this.loadData();
+        this.loadData(true);
       } else if (event.type === GvHeaderItemComponent.UPDATE_PICTURE) {
         this.item = Object.assign({}, this.item, { picture: event.details.data });
       } else if (event.type === GvHeaderItemComponent.UPDATE_NAME) {
@@ -69,7 +71,7 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
     this.eventService.unsubscribe();
   }
 
-  private loadData() {
+  private loadData(force = false) {
     this.currentRoute = this.navRouteService.findCurrentRoute(this.activatedRoute);
     if (this.currentRoute) {
       const params = this.currentRoute.snapshot.params;
@@ -77,8 +79,11 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
         this.itemId = params.apiId;
         this._subscribeUrl = `catalog/api/${this.itemId}/subscribe`;
         this.item = this.currentRoute.snapshot.data.api;
-      } else if (params.applicationId && params.applicationId !== this.itemId) {
+      } else if (params.applicationId && (force || params.applicationId !== this.itemId)) {
         this.itemId = params.applicationId;
+        if (force) {
+          this.currentRoute.snapshot.data.application = this.applicationResolver.resolve(this.currentRoute).toPromise();
+        }
         this.item = this.currentRoute.snapshot.data.application;
       } else if (params.categoryId && params.categoryId !== this.itemId) {
         this.itemId = params.categoryId;

@@ -85,10 +85,6 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
         this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.UPDATE_PICTURE, { data: picture }));
       });
 
-      this.applicationForm.get('name').valueChanges.subscribe((name) => {
-        this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.UPDATE_NAME, { data: name }));
-      });
-
       this.connectedApis = this.applicationService.getSubscriberApisByApplicationId({
         applicationId: this.application.id,
         statuses: [StatusEnum.ACCEPTED],

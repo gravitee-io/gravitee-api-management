@@ -26,9 +26,11 @@
 }
 
 .form.aside .form__actions,
-.form .aside .form__actions {
+.form .aside .form__actions,
+.form .form__actions-column {
   flex-direction: column;
   text-align: center;
+  align-items: stretch;
 }
 
 .form gv-input,

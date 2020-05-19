@@ -22,7 +22,7 @@
       <div class="page__box-title">
         <h3>{{ 'registrationConfirmation.title' | translate }}</h3>
       </div>
-  
+
       <div class="page__box-content">
         <gv-input
             large
@@ -76,8 +76,8 @@
             class="form__control">
         </gv-input>
       </div>
-  
-      <div class="page__box-footer form__actions">
+
+      <div class="page__box-footer form__actions form__actions-column">
         <gv-button
             [disabled]="this.registrationConfirmationForm.pristine || this.registrationConfirmationForm.invalid"
             primary
@@ -85,7 +85,7 @@
             type="submit">
           {{ 'registrationConfirmation.button' | translate }}
         </gv-button>
-  
+
         <p class="text-center">
           <gv-button link routerLink="/">{{ 'registrationConfirmation.backHome' | translate }}</gv-button>
           </p>
