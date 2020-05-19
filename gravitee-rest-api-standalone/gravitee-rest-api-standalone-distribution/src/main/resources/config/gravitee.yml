@@ -435,3 +435,7 @@ notifiers:
 #      - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
       # Ex: allow access to all methods of DateTimeFormatter class
 #      - class java.time.format.DateTimeFormatter
+
+# Allows to enable or disable the 'Subscribe to newsletter' feature when user completes his profile on first log in. Default is enabled.
+#newsletter:
+#  enabled: true
