@@ -19,6 +19,7 @@ import { ActivatedRoute } from '@angular/router';
 import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-webclient';
 import { TokenService } from '../../../services/token.service';
 import { GvValidators } from '../../../utils/gv-validators';
+import { ReCaptchaService } from '../../../services/recaptcha.service';
 
 @Component({
   selector: 'app-reset-password-confirmation',
@@ -38,6 +39,7 @@ export class ResetPasswordConfirmationComponent implements OnInit {
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private tokenService: TokenService,
+    private reCaptchaService: ReCaptchaService,
   ) {
   }
 
@@ -57,6 +59,7 @@ export class ResetPasswordConfirmationComponent implements OnInit {
 
     this.resetPasswordConfirmationForm.get('confirmedPassword')
       .setValidators([Validators.required, GvValidators.sameValueValidator(this.resetPasswordConfirmationForm.get('password'))]);
+    this.reCaptchaService.displayBadge();
   }
 
   onSubmitResetPasswordConfirmationForm() {
@@ -68,9 +71,11 @@ export class ResetPasswordConfirmationComponent implements OnInit {
         firstname: this.userFromToken.firstname,
         lastname: this.userFromToken.lastname
       };
-      this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input })
-        .toPromise()
-        .then(() => this.isSubmitted = true);
+      this.reCaptchaService.execute('reset_password_confirmation').then(() => {
+        this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input })
+          .toPromise()
+          .then(() => this.isSubmitted = true);
+      });
     }
   }
 }

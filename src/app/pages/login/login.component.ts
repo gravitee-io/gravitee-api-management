@@ -26,6 +26,7 @@ import { NotificationService } from '../../services/notification.service';
 import { ConfigurationService } from '../../services/configuration.service';
 import { FeatureEnum } from '../../model/feature.enum';
 import { AuthService } from '../../services/auth.service';
+import { ReCaptchaService } from '../../services/recaptcha.service';
 
 @Component({
   selector: 'app-login',
@@ -50,6 +51,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     private config: ConfigurationService,
     private authService: AuthService,
     private activatedRoute: ActivatedRoute,
+    private reCaptchaService: ReCaptchaService,
   ) {
 
 
@@ -70,7 +72,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
         console.error('something wrong occurred with identity providers: ' + error.statusText);
       }
     );
-
+    this.reCaptchaService.displayBadge();
   }
 
   private onFirstClick() {
@@ -95,13 +97,14 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   login() {
     if (this.isFormValid()) {
-      this.authService.login(this.loginForm.value.username, this.loginForm.value.password, this.redirectUrl).then(
-        () => {
-        },
-        () => {
-          this.loginForm.setValue({ username: this.loginForm.value.username, password: '' });
-        }
-      );
+      this.reCaptchaService.execute('login').then(() =>{
+        this.authService.login(this.loginForm.value.username, this.loginForm.value.password, this.redirectUrl).then(
+          () => {
+          },
+          () => {
+            this.loginForm.setValue({ username: this.loginForm.value.username, password: '' });
+          }
+        )});
     }
   }
 

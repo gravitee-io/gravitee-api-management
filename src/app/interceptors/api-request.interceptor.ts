@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse,
+  HttpResponse, HttpResponseBase } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -23,40 +24,54 @@ import { CurrentUserService } from '../services/current-user.service';
 import { NotificationService } from '../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ConfigurationService } from '../services/configuration.service';
+import { ReCaptchaService } from '../services/recaptcha.service';
 
 export const SILENT_CODES = ['errors.rating.disabled', 'errors.analytics.calculate', 'errors.identityProvider.notFound'];
 export const SILENT_URLS = ['/user/notifications'];
 
 @Injectable()
 export class ApiRequestInterceptor implements HttpInterceptor {
+
+  private xsrfToken: string;
+
   constructor(
     private router: Router,
     private currentUserService: CurrentUserService,
     private notificationService: NotificationService,
     private configService: ConfigurationService,
+    private reCaptchaService: ReCaptchaService
   ) {
   }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
     request = request.clone({
       setHeaders: {
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-Xsrf-Token': [ this.xsrfToken ],
+        'X-Recaptcha-Token': [ this.reCaptchaService.getCurrentToken() ]
       },
       withCredentials: true
     });
 
     return next.handle(request).pipe(tap(
-      () => {
+      (event: HttpEvent<any>) => {
         if (request.url.endsWith('_export')) {
           /* tslint:disable:no-string-literal */
           // @ts-ignore hack because of the sdk client limitations
           request['responseType'] = 'text';
           /* tslint:enable:no-string-literal */
         }
+
+        if (event instanceof HttpResponse) {
+          this.saveXsrfToken(event);
+        }
       },
       (err: any) => {
         const silentCall = SILENT_URLS.find(silentUrl => err.url.includes(silentUrl));
         if (err instanceof HttpErrorResponse) {
+          this.saveXsrfToken(err);
+
           if (err.status === 0) {
             if (!silentCall) {
               this.notificationService.error(i18n('errors.server.unavailable'));
@@ -84,5 +99,14 @@ export class ApiRequestInterceptor implements HttpInterceptor {
         }
       }
     ));
+  }
+
+  private saveXsrfToken(response: HttpResponseBase) {
+
+    const xsrfTokenHeader = response.headers.get('X-Xsrf-Token');
+
+    if(xsrfTokenHeader !== null) {
+      this.xsrfToken = xsrfTokenHeader;
+    }
   }
 }

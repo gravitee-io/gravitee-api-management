@@ -16,6 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { UsersService, ResetUserPasswordInput } from '@gravitee/ng-portal-webclient';
+import { ReCaptchaService } from '../../services/recaptcha.service';
 
 @Component({
   selector: 'app-reset-password',
@@ -29,6 +30,7 @@ export class ResetPasswordComponent implements OnInit {
   constructor(
     private usersService: UsersService,
     private formBuilder: FormBuilder,
+    private reCaptchaService: ReCaptchaService,
   ) {
     this.isSubmitted = false;
   }
@@ -37,6 +39,7 @@ export class ResetPasswordComponent implements OnInit {
     this.resetPasswordForm = this.formBuilder.group({
       username: ''
     });
+    this.reCaptchaService.displayBadge();
   }
 
   onSubmitResetPassword() {
@@ -45,9 +48,11 @@ export class ResetPasswordComponent implements OnInit {
         username: this.resetPasswordForm.value.username,
         reset_page_url: window.location.href + '/confirm'
       };
-      this.usersService.resetUserPassword({ ResetUserPasswordInput: input })
-        .toPromise()
-        .then(() => this.isSubmitted = true);
+      this.reCaptchaService.execute('reset_password').then(() => {
+        this.usersService.resetUserPassword({ ResetUserPasswordInput: input })
+          .toPromise()
+          .then(() => this.isSubmitted = true)
+      });
     }
   }
 }

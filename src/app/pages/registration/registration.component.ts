@@ -17,6 +17,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { RegisterUserInput, UsersService } from '@gravitee/ng-portal-webclient';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { ReCaptchaService } from '../../services/recaptcha.service';
 
 @Component({
   selector: 'app-registration',
@@ -30,6 +31,7 @@ export class RegistrationComponent implements OnInit {
   constructor(
     private usersService: UsersService,
     private formBuilder: FormBuilder,
+    private reCaptchaService: ReCaptchaService,
   ) {
     this.isSubmitted = false;
   }
@@ -40,6 +42,7 @@ export class RegistrationComponent implements OnInit {
       lastname: new FormControl('', Validators.required),
       email: new FormControl('', [Validators.required, Validators.email]),
     });
+    this.reCaptchaService.displayBadge();
   }
 
   onSubmitRegistration() {
@@ -50,9 +53,11 @@ export class RegistrationComponent implements OnInit {
         lastname: this.registrationForm.value.lastname,
         confirmation_page_url: window.location.href + '/confirm'
       };
-      this.usersService.registerNewUser({ RegisterUserInput: input })
-        .toPromise()
-        .then(() => this.isSubmitted = true);
+      this.reCaptchaService.execute('registration').then(() => {
+        this.usersService.registerNewUser({ RegisterUserInput: input })
+          .toPromise()
+          .then(() => this.isSubmitted = true);
+      });
     }
   }
 }

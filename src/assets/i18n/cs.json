@@ -54,9 +54,9 @@
     "apps": {
       "chooseApp": "Vyberte aplikaci",
       "comment": "Zanechte vlastníkovi API komentář",
+      "connectedApps": "V rozhraní API <b>{apiName}</b>již máte <b>{count}</b> {count, plural, =0{} one{připojená aplikace} other{připojené aplikace}} .",
       "createApp": "Chci vytvořit aplikaci",
       "description": "Tato aplikace představuje spojení mezi vámi jako spotřebitelem a přihlášením k odběru plánu API.",
-      "connectedApps": "V rozhraní API <b>{apiName}</b>již máte <b>{count}</b> {count, plural, =0{} one{připojená aplikace} other{připojené aplikace}} .",
       "missingClientId": "client_id chybí",
       "noAvailableApplications": "Nejsou k dispozici žádné aplikace."
     },
@@ -601,6 +601,9 @@
       "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
     },
     "forbidden": "Nemáte dostatečná práva pro přístup k tomuto prostředku",
+    "passwordFormat": {
+      "invalid": "Heslo není platné podle platných pravidel\n"
+    },
     "plan": {
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."

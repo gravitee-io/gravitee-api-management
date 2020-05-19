@@ -72,6 +72,7 @@ import { UserAccountComponent } from './pages/user/user-account/user-account.com
 import { UserContactComponent } from './pages/user/user-contact/user-contact.component';
 import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 import { ViewportScroller } from '@angular/common';
+import { ReCaptchaService } from './services/recaptcha.service';
 
 @NgModule({
   declarations: [
@@ -137,7 +138,7 @@ import { ViewportScroller } from '@angular/common';
     {
       provide: APP_INITIALIZER,
       useFactory: initApp,
-      deps: [ConfigurationService, AuthService, CurrentUserService, TranslationService],
+      deps: [ConfigurationService, AuthService, CurrentUserService, TranslationService, ReCaptchaService],
       multi: true
     },
     { provide: BASE_PATH, useFactory: (config: ConfigurationService) => config.get('baseUrl'), deps: [ConfigurationService] },
@@ -174,9 +175,10 @@ export class AppModule {
 }
 
 export function initApp(configurationService: ConfigurationService, authService: AuthService, currentUserService: CurrentUserService,
-                        translationService: TranslationService) {
+                        translationService: TranslationService, reCaptchaService: ReCaptchaService) {
   return () => configurationService.load().then(() => {
-      return authService.load().then(() => currentUserService.load().then(() => translationService.load()));
+      return authService.load().then(() => currentUserService.load().then(() => translationService.load()
+        .then(() => reCaptchaService.load())));
     }
   );
 

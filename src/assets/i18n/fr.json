@@ -54,9 +54,9 @@
     "apps": {
       "chooseApp": "Sélectionner une application",
       "comment": "Laisser un commentaire au propriétaire de l'API",
+      "connectedApps": "Vous avez déjà <b>{count}</b> {count, plural, =0{} one{application liée} other{applications liées}} à l'API <b>{apiName}</b>.",
       "createApp": "Je souhaite créer une application",
       "description": "L’application est le lien entre vous, en tant que consommateur, et la souscription à un plan d’API.",
-      "connectedApps": "Vous avez déjà <b>{count}</b> {count, plural, =0{} one{application liée} other{applications liées}} à l'API <b>{apiName}</b>.",
       "missingClientId": "client_id manquant",
       "noAvailableApplications": "Il n'y a aucune application disponible."
     },
@@ -601,6 +601,9 @@
       "required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
     },
     "forbidden": "Vous n'avez pas les droits suffisants pour effectuer cette action",
+    "passwordFormat": {
+      "invalid": "Le mot de passe n'est pas valide selon les règles en vigueur"
+    },
     "plan": {
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."

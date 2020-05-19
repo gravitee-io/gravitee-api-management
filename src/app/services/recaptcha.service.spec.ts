@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { TestBed } from '@angular/core/testing';
+import { ReCaptchaService } from './recaptcha.service';
+import { provideMock } from '../test/mock.helper.spec';
+import { HttpClient } from '@angular/common/http';
+import { RouterTestingModule } from '@angular/router/testing';
 
-i18n([
-  'errors.clientRegistrationProvider.exception',
-  'errors.email.required',
-  'errors.forbidden',
-  'errors.passwordFormat.invalid',
-  'errors.plan.notSubscribable',
-  'errors.plan.subscribed',
-  'errors.support.disabled',
-  'errors.unexpected',
-  'errors.user.exists',
-  'errors.user.finalized',
-]);
+describe('ReCaptchaService', () => {
+  beforeEach(() => TestBed.configureTestingModule({
+    imports: [ RouterTestingModule ],
+    providers: [
+      provideMock(HttpClient),
+    ]
+  }));
+
+  it('should be created', () => {
+    const service: ReCaptchaService = TestBed.inject(ReCaptchaService);
+    expect(service).toBeTruthy();
+  });
+});

@@ -19,6 +19,7 @@ import { ActivatedRoute } from '@angular/router';
 import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-webclient';
 import { TokenService } from '../../../services/token.service';
 import { GvValidators } from '../../../utils/gv-validators';
+import { ReCaptchaService } from '../../../services/recaptcha.service';
 
 @Component({
   selector: 'app-registration-confirmation',
@@ -38,6 +39,7 @@ export class RegistrationConfirmationComponent implements OnInit {
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private tokenService: TokenService,
+    private reCaptchaService: ReCaptchaService,
   ) {
   }
 
@@ -57,7 +59,7 @@ export class RegistrationConfirmationComponent implements OnInit {
 
     this.registrationConfirmationForm.get('confirmedPassword')
       .setValidators([Validators.required, GvValidators.sameValueValidator(this.registrationConfirmationForm.get('password'))]);
-
+    this.reCaptchaService.displayBadge();
   }
 
   onSubmitRegistrationConfirmationForm() {
@@ -68,9 +70,11 @@ export class RegistrationConfirmationComponent implements OnInit {
         firstname:this.userFromToken.firstname,
         lastname: this.userFromToken.lastname
       };
-      this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input })
-        .toPromise()
-        .then(() => this.isSubmitted = true);
+      this.reCaptchaService.execute('registration_confirmation').then(() => {
+        this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input })
+          .toPromise()
+          .then(() => this.isSubmitted = true);
+      });
     }
   }
 }
