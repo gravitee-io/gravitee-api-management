@@ -149,7 +149,7 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
         // : is forbidden thanks to https://github.com/gravitee-io/issues/issues/1939
         final String serviceName = "sd#" + service.id().replaceAll(":", "#");
         final DiscoveredEndpoint discoveredEndpoint = new DiscoveredEndpoint(serviceName,
-                scheme + "://" + service.host() + (service.port() > 0 ? ':' + service.port() : "") + basePath);
+                scheme + "://" + service.host() + (service.port() > 0 ? ":" + service.port() : "") + basePath);
         discoveredEndpoint.setHttpClientOptions(group.getHttpClientOptions());
 
         if (Service.HTTPS_SCHEME.equalsIgnoreCase(scheme)) {
