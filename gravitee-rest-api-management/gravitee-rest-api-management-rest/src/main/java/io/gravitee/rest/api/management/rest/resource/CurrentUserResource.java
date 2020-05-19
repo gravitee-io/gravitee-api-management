@@ -155,7 +155,9 @@ public class CurrentUserResource extends AbstractResource {
     public Response updateCurrentUser(@Valid @NotNull final UpdateUserEntity user) {
         UserEntity userEntity = userService.findById(getAuthenticatedUser());
         try {
-            user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
+            if (user.getPicture() != null) {
+                user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
+            }
         } catch (InvalidImageException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
         }
