@@ -75,23 +75,24 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy {
     const currentNodeByLevel = {};
     const nodeMap = [];
 
-    const tokens = marked.lexer(content);
-    tokens
+    const tokens = marked.lexer(content)
       .filter((item) => item.type === 'heading' && item.depth > 1)
-      .forEach((item: any) => {
-        const currentNode: TocModel = {
+      .map((item) => ({
           anchor: this._computeAnchor(item),
           text: this._computeText(item),
-          children: []
-        };
-        currentNodeByLevel[item.depth] = currentNode;
-        const parentNode = currentNodeByLevel[item.depth - 1];
-        if (parentNode) {
-          parentNode.children.push(currentNode);
-        } else {
-          nodeMap.push(currentNode);
-        }
-      });
+          children: [],
+          level: item.depth
+        }));
+
+    for (let index = 0; index < tokens.length; index++) {
+      const node: TocModel = tokens[index];
+      const parentNode = this._findParentNode(tokens, node, index);
+      if (parentNode) {
+        parentNode.children.push(node);
+      } else {
+        nodeMap.push(node);
+      }
+    }
     return nodeMap;
   }
 
@@ -103,6 +104,13 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy {
     return this.slugger.slug(this._unescape(this.parser.parseInline(item.tokens, this.textRenderer)));
   }
 
+  _findParentNode(tokens: TocModel[], child: TocModel, childIndex: number): any {
+    for (let index = childIndex - 1; index > 1 ; index--) {
+      if (tokens[index] && tokens[index].level < child.level) {
+        return tokens[index];
+      }
+    }
+  }
 
   _unescape(html) {
     const unescapeTest = /&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig;
@@ -128,4 +136,5 @@ class TocModel {
   public anchor: string;
   public text: string;
   public children?: TocModel[];
+  public level: number;
 }
