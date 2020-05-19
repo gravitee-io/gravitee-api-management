@@ -32,10 +32,3 @@ app-homepage {
 gv-card-list {
   padding-top: 10px;
 }
-
-@media screen and (max-width: 1440px) {
-  :host {
-    --gv-page-markdown--p: 0;
-  }
-
-}
