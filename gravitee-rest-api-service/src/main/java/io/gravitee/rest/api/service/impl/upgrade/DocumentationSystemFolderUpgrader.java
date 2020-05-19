@@ -65,7 +65,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
             String topFooterSystemFolderId = systemFolderIds.get(SystemFolderType.TOPFOOTER);
       
             // Create link to existing documentation in footer
-            List<PageEntity> pagesToLink = pageService.search(new PageQuery.Builder().rootParent(true).build()).stream()
+            List<PageEntity> pagesToLink = pageService.search(new PageQuery.Builder().homepage(false).rootParent(true).build()).stream()
             .filter(p -> PageType.SWAGGER.name().equals(p.getType()) || PageType.MARKDOWN.name().equals(p.getType()))
             .collect(Collectors.toList());
             
