@@ -44,6 +44,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -153,22 +154,34 @@ public class ApisResource extends AbstractResource {
 
         // No category was applied but at least, the list is ordered
         return new FilteredApi(
-                apis.stream().sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-                        .collect(Collectors.toList()),
-                null);
+            apis.stream().sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+                .collect(Collectors.toList()),
+            null);
+    }
+
+    private FilteredApi convert(Stream<ApiEntity> apiEntities) {
+        return new FilteredApi(apiEntities.collect(Collectors.toList()), null);
     }
 
     private FilteredApi getTopApis(Collection<ApiEntity> apis, boolean excluded) {
         Map<String, Integer> topApiIdAndOrderMap = topApiService.findAll().stream().collect(Collectors.toMap(TopApiEntity::getApi, TopApiEntity::getOrder));
-        
-        return new FilteredApi(
-                apis.stream()
-                    .filter(api-> (!excluded && topApiIdAndOrderMap.keySet().contains(api.getId())) ||
-                            (excluded && !topApiIdAndOrderMap.keySet().contains(api.getId())) )
-                    .sorted((o1, o2) -> topApiIdAndOrderMap.get(o1.getId()).compareTo(topApiIdAndOrderMap.get(o2.getId())))
-                    .collect(Collectors.toList())
-                , null
-                );
+
+        if (topApiIdAndOrderMap.isEmpty()) {
+            if (excluded) {
+                return convert(apis.stream().sorted(Comparator.comparing(ApiEntity::getName)));
+            } else {
+                return new FilteredApi(Collections.emptyList(), null);
+            }
+        } else if (excluded) {
+            return convert(apis.stream()
+                .filter(api -> (!topApiIdAndOrderMap.containsKey(api.getId())))
+                .sorted(Comparator.comparing(ApiEntity::getName)));
+        } else {
+            return convert(apis.stream()
+                .filter(api -> topApiIdAndOrderMap.containsKey(api.getId()))
+                .sorted(Comparator.comparing(o -> topApiIdAndOrderMap.get(o.getId()))));
+
+        }
     }
 
     protected FilteredApi getApisOrderByNumberOfSubscriptions(Collection<ApiEntity> apis, boolean excluded) {
