@@ -18,7 +18,7 @@
   overflow: auto;
 }
 
-.with-toc .page__box-content {
+.with-toc .markdown-content {
   max-width: calc(100% - 250px - 1rem);
   flex: 1;
   box-sizing: border-box;
@@ -26,6 +26,7 @@
 
 .markdown-content {
   background-color: var(--gv-page-markdown--bgc, var(--gv-theme-neutral-color-lightest));
+  padding: var(--gv-page-markdown--p, 2rem 4rem);
 }
 
 .markdown.with-toc {
@@ -51,7 +52,7 @@ app-gv-markdown-toc {
   }
 
   .page__box-content {
-    padding: 2rem;
+    padding: var(--gv-page-markdown--p, 2rem);
   }
 
 }

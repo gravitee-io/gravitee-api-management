@@ -16,6 +16,7 @@
 
 :host {
   --gv-page-markdown--bgc: transparent;
+  --gv-page-markdown--p: 0;
 }
 
 app-homepage {
@@ -24,6 +25,17 @@ app-homepage {
   width: 100%;
 }
 
+.page__box-content {
+  padding: 0;
+}
+
 gv-card-list {
   padding-top: 10px;
+}
+
+@media screen and (max-width: 1440px) {
+  :host {
+    --gv-page-markdown--p: 0;
+  }
+
 }

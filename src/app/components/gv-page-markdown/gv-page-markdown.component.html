@@ -17,12 +17,12 @@
 -->
 <ng-container *ngIf="!withToc">
   <div class="gv-page-container markdown">
-    <div *ngIf="pageContent" class="page__box-content markdown-content" [innerHTML]="pageContent | safe: 'html'"></div>
+    <div *ngIf="pageContent" class="markdown-content" [innerHTML]="pageContent | safe: 'html'"></div>
   </div>
 </ng-container>
 <ng-container *ngIf="withToc">
   <div class="gv-page-container markdown with-toc">
-    <div #mdContent *ngIf="pageContent" class="page__box-content markdown-content" [innerHTML]="pageContent | safe: 'html'"></div>
+    <div #mdContent *ngIf="pageContent" class="markdown-content" [innerHTML]="pageContent | safe: 'html'"></div>
     <app-gv-markdown-toc></app-gv-markdown-toc>
   </div>
 </ng-container>
