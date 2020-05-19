@@ -41,6 +41,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { ConfigurationService } from '../../../services/configuration.service';
 import StatusEnum = Subscription.StatusEnum;
 import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
+import { ScrollService } from '../../../services/scroll.service';
 
 @Component({
   selector: 'app-api-general',
@@ -59,7 +60,7 @@ export class ApiGeneralComponent implements OnInit {
   currentOrder: any;
   currentUser: User;
   description: string;
-  homepage: Page;
+  apiHomepage: Page;
   connectedApps: Promise<any[]>;
   permissions: PermissionsResponse = {};
   ratingListPermissions: { update, delete, addAnswer, deleteAnswer };
@@ -68,6 +69,7 @@ export class ApiGeneralComponent implements OnInit {
   ratingsSortOptions: any;
   resources: any[];
   userRating: Rating;
+  apiHomepageLoaded: boolean;
 
   constructor(
     private apiService: ApiService,
@@ -78,7 +80,8 @@ export class ApiGeneralComponent implements OnInit {
     private permissionsService: PermissionsService,
     private notificationService: NotificationService,
     private configService: ConfigurationService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private scrollService: ScrollService,
   ) {
     this.ratingListPermissions = {
       update: [], delete: false, addAnswer: false, deleteAnswer: false
@@ -88,10 +91,13 @@ export class ApiGeneralComponent implements OnInit {
   ngOnInit() {
     const apiId = this.route.snapshot.params.apiId;
     this.permissions = this.route.snapshot.data.permissions;
+    this.apiHomepage = this.route.snapshot.data.apiHomepage;
+    if (this.apiHomepage == null) {
+      this.apiHomepageLoaded = true;
+    }
     this.route.params.subscribe(() => {
       if (apiId) {
         if (this.hasRatingFeature()) {
-
           this.translateService.get([
               i18n('apiGeneral.ratingsSortOptions.newest'),
               i18n('apiGeneral.ratingsSortOptions.oldest'),
@@ -113,10 +119,6 @@ export class ApiGeneralComponent implements OnInit {
 
         this.apiId = apiId;
 
-        this.apiService.getPagesByApiId({
-          apiId,
-          homepage: true
-        }).subscribe(response => this.homepage = response.data[0]);
         this.apiService.getApiMetricsByApiId({ apiId }).toPromise()
           .then(metrics => this.currentApiMetrics = metrics);
         this.currentApi = this.route.snapshot.data.api;
@@ -224,7 +226,7 @@ export class ApiGeneralComponent implements OnInit {
   }
 
   goToCategory(view: string) {
-    this.router.navigate(['/catalog/categories', view])
+    this.router.navigate(['/catalog/categories', view]);
   }
 
   goToSearch(tag: string) {
@@ -251,8 +253,8 @@ export class ApiGeneralComponent implements OnInit {
         this.ratingForm = null;
         this._updateRatings();
         this.apiService.getApiByApiId({ apiId })
-        .toPromise()
-        .then((api) => this.currentApi = api);
+          .toPromise()
+          .then((api) => this.currentApi = api);
       })
       .then(() =>
         this.notificationService.info(i18n('apiGeneral.ratingUpdated'))
@@ -270,8 +272,8 @@ export class ApiGeneralComponent implements OnInit {
       .finally(() => {
         this._updateRatings();
         this.apiService.getApiByApiId({ apiId })
-        .toPromise()
-        .then((api) => this.currentApi = api);
+          .toPromise()
+          .then((api) => this.currentApi = api);
       });
   }
 
@@ -324,9 +326,9 @@ export class ApiGeneralComponent implements OnInit {
       this.notificationService.info(i18n('apiGeneral.ratingCreated'));
       this._updateRatings();
       this.apiService.getApiByApiId({ apiId })
-      .toPromise()
-      .then((api) => this.currentApi = api);
-  });
+        .toPromise()
+        .then((api) => this.currentApi = api);
+    });
   }
 
   private _updateRatingForm() {
@@ -338,13 +340,10 @@ export class ApiGeneralComponent implements OnInit {
   }
 
   onInfoRating() {
-    if (this.hasRatingForm()) {
-      let element = document.querySelector('.rating-form');
-      if (element == null) {
-        element = document.querySelector('gv-rating-list');
-      }
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    this.scrollService.scrollToAnchor('apiRatingForm')
+      .catch(() => {
+        this.scrollService.scrollToAnchor('apiRatings');
+      });
   }
 
   hasMoreRatings() {

@@ -23,13 +23,17 @@ export class ScrollService {
   constructor() {
   }
 
+  static pxToInt(size: string) {
+    const intValue = parseInt(size.replace('px', ''), 10);
+    return isNaN(intValue) ? 0 : intValue;
+  }
+
   static getHeaderHeight(): number {
+    const homepageHeader = document.querySelector('.layout__header__homepage__background');
     const header = document.querySelector('header');
-    if (header) {
-      const { height } = window.getComputedStyle(header);
-      return parseInt(height.replace('px', ''), 10);
-    }
-    return 0;
+    const homepageHeaderHeight = homepageHeader ? this.pxToInt(window.getComputedStyle(homepageHeader).height) - window.scrollY : 0;
+    const headerHeight = header ? this.pxToInt(window.getComputedStyle(header).height) : 0;
+    return Math.max(homepageHeaderHeight, headerHeight);
   }
 
   scrollToAnchor(anchor) {
@@ -40,14 +44,18 @@ export class ScrollService {
           this.scrollToStickyMenu();
           setTimeout(() => {
             const { top, left } = element.getBoundingClientRect();
-            window.scrollBy({
-              top: top - ScrollService.getHeaderHeight(),
-              left,
-              behavior: 'smooth'
-            });
+            const scrollY = top - ScrollService.getHeaderHeight();
+            let resolutionTime = 500;
+            let behavior = 'smooth';
+            if (Math.abs(scrollY) > 5000) {
+              resolutionTime = 250;
+              behavior = 'auto';
+            }
+            // @ts-ignore
+            window.scrollBy({ top: scrollY, left, behavior });
             setTimeout(() => {
               resolve();
-            }, 750);
+            }, resolutionTime);
           }, 50);
         } else {
           reject();

@@ -15,138 +15,173 @@
     limitations under the License.
 
 -->
-<div class="page__content api" *ngIf="currentApi">
-  <section class="api__section">
+<div *ngIf="currentApi" class="page__content page__content-with-aside">
+  <div class="main">
 
-    <div *ngIf="description" class="api__section__block">
-      <h4 class="title">{{ "apiGeneral.description" | translate}}</h4>
-      <p>{{ description }}</p>
+    <div *ngIf="description && !apiHomepage" class="page__box">
+
+      <div class="page__box-title">
+        <h3 class="title">{{ "apiGeneral.description" | translate}}</h3>
+      </div>
+
+      <div class="page__box-content">
+        {{ description }}
+      </div>
+
     </div>
 
-    <app-gv-page *ngIf="homepage" [page]="homepage" class="api__section__block"></app-gv-page>
+    <app-gv-page *ngIf="apiHomepage" [page]="apiHomepage" class="page__box page__box-homepage" (loaded)="apiHomepageLoaded = true"></app-gv-page>
 
-    <div class="api__section__block" *ngIf="canRate">
-      <h4 class="title">{{ "apiGeneral.giveRating" | translate}}</h4>
+    <div *ngIf="canRate" class="page__box">
 
-      <form class="rating-form" *ngIf="hasRatingForm()" [formGroup]="ratingForm" (ngSubmit)="rate();">
+      <div class="page__box-title">
+        <h3 class="title">{{ "apiGeneral.giveRating" | translate}}</h3>
+      </div>
 
-        <div class="rating-form-content">
+      <form id="apiRatingForm" (ngSubmit)="rate();" *ngIf="hasRatingForm()" [formGroup]="ratingForm" class="form rating-form">
 
-          <gv-input formControlName="title"
-                    name="title"
+        <div class="page__box-content">
+          <gv-input [value]="userRating?.title"
+                    class="form__control"
+                    formControlName="title"
                     label="{{ 'apiGeneral.rateTitle' | translate}}"
-                    placeholder="{{ 'apiGeneral.rateTitlePlaceholder' | translate}}"
+                    name="title"
                     ngDefaultControl
-                    [value]="userRating?.title"></gv-input>
+                    placeholder="{{ 'apiGeneral.rateTitlePlaceholder' | translate}}"></gv-input>
 
-          <gv-text formControlName="comment"
+          <gv-text [value]="userRating?.comment"
+                   class="form__control"
+                   formControlName="comment"
                    name="comment"
                    ngDefaultControl
-                   rows="5"
                    placeholder="{{ 'apiGeneral.rateComment' | translate}}"
-                   [value]="userRating?.comment"></gv-text>
+                   rows="5"></gv-text>
         </div>
 
-        <div class="rating-form-actions">
-          <gv-rating required
+        <div class="page__box-footer form__actions form__actions-rating">
+          <gv-rating [value]="userRating?.value"
                      formControlName="value"
                      name="value"
                      ngDefaultControl
-                     with-description
-                     [value]="userRating?.value"></gv-rating>
+                     required
+                     with-description></gv-rating>
 
-          <gv-button type="submit" primary
-                     [disabled]="!hasValidRatingForm()">{{ "apiGeneral.rate" | translate}}</gv-button>
-
+          <gv-button [disabled]="!hasValidRatingForm()" primary
+                     type="submit">{{ "apiGeneral.rate" | translate}}</gv-button>
         </div>
+
       </form>
 
     </div>
 
-    <div class="api__section__block" *ngIf="hasRatings()">
-      <div class="api__section__ratings__title">
-        <h4 class="title">{{ "apiGeneral.userRatings" | translate}} <span>({{getRatingsLength()}})</span></h4>
+    <div id="apiRatings" *ngIf="hasRatings() && apiHomepageLoaded" class="page__box">
+
+      <div class="page__box-title">
+        <h3 class="title">{{ "apiGeneral.userRatings" | translate}} <span>({{getRatingsLength()}})</span></h3>
         <gv-select
-            small
             (input)="onSortRatings($event)"
+            [options]="ratingsSortOptions"
             [value]="currentOrder"
-            [options]="ratingsSortOptions"></gv-select>
+            small></gv-select>
       </div>
 
-
-      <gv-rating-list [ratings]="ratings" [user]="currentUser" [permissions]="ratingListPermissions"></gv-rating-list>
-      <div class="rating-list-actions">
-        <gv-button *ngIf="hasMoreRatings()" (:gv-button:click)="onShowMoreRatings()" primary
-                   outlined>{{"apiGeneral.showMore" | translate}} ({{getShowMoreLength()}})
-        </gv-button>
+      <div class="page__box-content">
+        <gv-rating-list [permissions]="ratingListPermissions" [ratings]="ratings" [user]="currentUser"></gv-rating-list>
+        <div class="rating-list-actions">
+          <gv-button (:gv-button:click)="onShowMoreRatings()" *ngIf="hasMoreRatings()" outlined
+                     primary>{{"apiGeneral.showMore" | translate}} ({{getShowMoreLength()}})
+          </gv-button>
+        </div>
       </div>
-
     </div>
 
-  </section>
+  </div>
 
-  <aside class="aside">
-    <div class="page__box" *ngIf="currentApi">
-      <div class="page__box-content">
-        <div class="info" *ngIf="currentApi.entrypoints && currentApi.entrypoints.length > 0">
-          <h4 class="title">{{ 'api.information.entrypoints' | translate }}</h4>
-          <div *ngFor="let e of currentApi.entrypoints" class="info__resources"><a class="link" href="{{e}}" target="_blank">{{e}}</a></div>
-        </div>
 
-        <div class="info" *ngIf="currentApi.views && currentApi.views.length > 0">
-          <h4 class="title">{{ 'api.information.categories' | translate }}</h4>
-          <span>
-            <gv-tag *ngFor="let view of currentApi.views" (click)="goToCategory(view)" [clickable]="true">{{view}}</gv-tag>
+<aside class="aside">
+
+  <div *ngIf="description && apiHomepage" class="page__box">
+
+    <div class="page__box-title">
+      <h4 class="title">{{ "apiGeneral.description" | translate}}</h4>
+    </div>
+
+    <div class="page__box-content">
+      {{ description }}
+    </div>
+
+  </div>
+
+  <div *ngIf="currentApi" class="page__box">
+    <div class="page__box-content">
+      <div *ngIf="currentApi.entrypoints && currentApi.entrypoints.length > 0" class="info">
+        <h4 class="title">{{ 'api.information.entrypoints' | translate }}</h4>
+        <div *ngFor="let e of currentApi.entrypoints" class="info__resources"><a class="link" href="{{e}}"
+                                                                                 target="_blank">{{e}}</a></div>
+      </div>
+
+      <div *ngIf="currentApi.views && currentApi.views.length > 0" class="info">
+        <h4 class="title">{{ 'api.information.categories' | translate }}</h4>
+        <span>
+            <gv-tag (click)="goToCategory(view)" *ngFor="let view of currentApi.views"
+                    [clickable]="true">{{view}}</gv-tag>
           </span>
-        </div>
+      </div>
 
-        <div class="info" *ngIf="currentApi.labels && currentApi.labels.length > 0">
-          <h4 class="title">{{ 'api.information.labels' | translate }}</h4>
-          <span>
-            <gv-tag *ngFor="let tag of currentApi.labels" (click)="goToSearch(tag)" [clickable]="true" major>{{tag}}</gv-tag>
+      <div *ngIf="currentApi.labels && currentApi.labels.length > 0" class="info">
+        <h4 class="title">{{ 'api.information.labels' | translate }}</h4>
+        <span>
+            <gv-tag (click)="goToSearch(tag)" *ngFor="let tag of currentApi.labels" [clickable]="true"
+                    major>{{tag}}</gv-tag>
           </span>
-        </div>
+      </div>
 
-        <div class="info" *ngIf="currentApi.rating_summary">
-          <h4 class="title">{{ 'api.information.ratings' | translate }}</h4>
-          <span class="info__figures">
+      <div *ngIf="currentApi.rating_summary" class="info">
+        <h4 class="title">{{ 'api.information.ratings' | translate }}</h4>
+        <span class="info__figures">
             <span *ngIf="!currentApi.rating_summary.count">{{ 'api.information.beFirstToRate' | translate }}</span>
-            <gv-rating (click)="onInfoRating()" readonly [count]="currentApi.rating_summary.count" [value]="currentApi.rating_summary.average"></gv-rating>
+            <gv-rating (click)="onInfoRating()" [count]="currentApi.rating_summary.count"
+                       [value]="currentApi.rating_summary.average"
+                       readonly></gv-rating>
           </span>
-        </div>
+      </div>
 
-        <div class="info" *ngIf="currentApiMetrics && (currentApiMetrics.subscribers || currentApiMetrics.health || currentApiMetrics.hits)">
-          <h4 class="title">{{ 'api.information.metrics' | translate }}</h4>
-          <gv-metrics [metrics]="currentApiMetrics"></gv-metrics>
-        </div>
+      <div
+          *ngIf="currentApiMetrics && (currentApiMetrics.subscribers || currentApiMetrics.health || currentApiMetrics.hits)"
+          class="info">
+        <h4 class="title">{{ 'api.information.metrics' | translate }}</h4>
+        <gv-metrics [metrics]="currentApiMetrics"></gv-metrics>
+      </div>
 
-        <div class="info" *ngIf="resources">
-          <h4 class="title">{{ 'api.information.resources' | translate }}</h4>
-          <span>
-              <div class="info__resources" *ngFor="let item of resources">
-                <a class="link" href="{{item.path}}" target="{{item.target}}" (click)="onNavChange(item)">{{item.title}}</a>
+      <div *ngIf="resources" class="info">
+        <h4 class="title">{{ 'api.information.resources' | translate }}</h4>
+        <span>
+              <div *ngFor="let item of resources" class="info__resources">
+                <a (click)="onNavChange(item)" class="link" href="{{item.path}}"
+                   target="{{item.target}}">{{item.title}}</a>
               </div>
           </span>
-        </div>
+      </div>
 
-        <div class="info">
-          <h4 class="title">{{ 'api.information.moreInfo' | translate }}</h4>
-          <ul class="info__miscellaneous">
-            <li class="info__miscellaneous_item">
-              <span>{{'api.information.version' | translate}}</span> {{ currentApi.version }}
-            </li>
-            <li class="info__miscellaneous_item">
-              <span>{{'api.information.lastUpdate' | translate}}</span> <gv-relative-time [datetime]="currentApi.updated_at" noFuture></gv-relative-time>
-            </li>
-            <li class="info__miscellaneous_item">
-              <span>{{'api.information.publisher' | translate}}</span> {{ currentApi.owner.display_name }}
-            </li>
-          </ul>
-        </div>
+      <div class="info">
+        <h4 class="title">{{ 'api.information.moreInfo' | translate }}</h4>
+        <ul class="info__miscellaneous">
+          <li class="info__miscellaneous_item">
+            <span>{{'api.information.version' | translate}}</span> {{ currentApi.version }}
+          </li>
+          <li class="info__miscellaneous_item">
+            <span>{{'api.information.lastUpdate' | translate}}</span>
+            <gv-relative-time [datetime]="currentApi.updated_at" noFuture></gv-relative-time>
+          </li>
+          <li class="info__miscellaneous_item">
+            <span>{{'api.information.publisher' | translate}}</span> {{ currentApi.owner.display_name }}
+          </li>
+        </ul>
       </div>
     </div>
+  </div>
 
-    <gv-list *ngIf="connectedApps" [items]="connectedApps" title="{{ 'api.list.connectedApps' | translate }}"
-             clickable></gv-list>
-  </aside>
+  <gv-list *ngIf="connectedApps" [items]="connectedApps" clickable
+           title="{{ 'api.list.connectedApps' | translate }}"></gv-list>
+</aside>
 </div>

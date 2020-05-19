@@ -16,6 +16,7 @@
 import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
 import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
+import { ApiHomepageResolver } from './resolvers/api-homepage.resolver';
 import { ApiResolver } from './resolvers/api.resolver';
 import { ApiSubscribeComponent } from './pages/api/api-subscribe/api-subscribe.component';
 import { AuthGuardService } from './services/auth-guard.service';
@@ -86,7 +87,10 @@ export const routes: Routes = [
               icon: 'general:clipboard',
               title: i18n('route.catalogApi'),
               animation: { type: 'slide', group: 'api', index: 1 }
-            }
+            },
+            resolve: {
+              apiHomepage: ApiHomepageResolver,
+            },
           },
           {
             path: 'doc',

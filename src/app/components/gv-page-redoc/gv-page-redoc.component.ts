@@ -17,6 +17,7 @@ import { Component, HostListener, Input, OnDestroy, ViewChild, OnInit } from '@a
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NotificationService } from '../../services/notification.service';
 import { getCssVar } from '@gravitee/ui-components/src/lib/style';
+import { ScrollService } from '../../services/scroll.service';
 import { GvDocumentationComponent } from '../gv-documentation/gv-documentation.component';
 import { PageService } from 'src/app/services/page.service';
 
@@ -43,17 +44,18 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
 
   }
 
-  ngOnInit(){
+  ngOnInit() {
     const page = this.pageService.getCurrentPage();
     this.loadScript()
       .then(() => this.refresh(page));
   }
 
+  @HostListener('window:resize')
   @HostListener('window:scroll')
   onScroll() {
     window.requestAnimationFrame(() => {
       this.lastTop = GvDocumentationComponent.updateMenuPosition(this.redocMenu, this.lastTop);
-      if(this.lastTop) {
+      if (this.lastTop) {
         this.lastTop -= 108;
       }
     });
@@ -133,19 +135,27 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
     }
     this.isLoaded = true;
     setTimeout(() => {
+
+      const top = ScrollService.getHeaderHeight() + GvDocumentationComponent.MENU_BOTTOM;
+
       const wrap = document.querySelector('.redoc-wrap');
       // @ts-ignore
       const height = window.getComputedStyle(wrap).height;
+
+      let container = document.querySelector('.page__content');
+      if (container == null) {
+        container = document.querySelector('.layout__content');
+      }
       // @ts-ignore
-      document.querySelector('.layout__content').style.height = height;
+      container.style.minHeight = height;
       // @ts-ignore
       document.querySelector(GvDocumentationComponent.PAGE_COMPONENT).style.height = height;
       // @ts-ignore
       this.redocMenu.style.position = 'fixed';
       // @ts-ignore
-      this.redocMenu.style.height = ` ${(window.innerHeight - GvDocumentationComponent.MENU_TOP - GvDocumentationComponent.MENU_BOTTOM)}px`;
+      this.redocMenu.style.height = ` ${(window.innerHeight - top - GvDocumentationComponent.MENU_BOTTOM)}px`;
       // @ts-ignore
-      this.redocMenu.style.top = `${GvDocumentationComponent.MENU_TOP}px`;
+      this.redocMenu.style.top = `${top}px`;
       // @ts-ignore
       this.redocMenu.style.bottom = `${GvDocumentationComponent.MENU_BOTTOM}px`;
       const width = window.getComputedStyle(document.querySelector('.menu-content')).width;
@@ -168,7 +178,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
 
 
   ngOnDestroy() {
-    ['.layout__content', GvDocumentationComponent.PAGE_COMPONENT].forEach((xpath) => {
+    ['.layout__content', '.page__content', GvDocumentationComponent.PAGE_COMPONENT].forEach((xpath) => {
       const element = document.querySelector(xpath);
       if (element) {
         // @ts-ignore

@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ViewChild, ComponentFactoryResolver, Input, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
+import {
+  Component,
+  ViewChild,
+  ComponentFactoryResolver,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  OnDestroy,
+  Output,
+  EventEmitter
+} from '@angular/core';
 import { Page, PageConfiguration, PortalService, ApiService } from '@gravitee/ng-portal-webclient';
 import { GvPageContentSlotDirective } from 'src/app/directives/gv-page-content-slot.directive';
 import { ActivatedRoute } from '@angular/router';
@@ -27,6 +37,8 @@ import { PageService } from 'src/app/services/page.service';
 export class GvPageComponent implements OnChanges, OnDestroy {
 
   @ViewChild(GvPageContentSlotDirective, { static: true }) appGvPageContentSlot: GvPageContentSlotDirective;
+
+  @Output() loaded = new EventEmitter<boolean>();
 
   @Input() page: Page;
 
@@ -78,6 +90,7 @@ export class GvPageComponent implements OnChanges, OnDestroy {
             this.pageService.set(page);
             viewerPage.instance.fragment = this.fragment;
             viewerPage.instance.withToc = this.withToc;
+            this.loaded.emit(true);
           });
       }
     }

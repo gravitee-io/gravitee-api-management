@@ -41,7 +41,7 @@ describe('ApiGeneralComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ApiGeneralComponent);
     component = fixture.componentInstance;
-    component.homepage = null;
+    component.apiHomepage = null;
     fixture.detectChanges();
   });
 

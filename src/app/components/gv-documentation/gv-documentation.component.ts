@@ -94,28 +94,33 @@ export class GvDocumentationComponent implements AfterViewInit {
   @Input() fragment: string;
 
   static updateMenuHeight(menuElement) {
-    const viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-    menuElement.style.height = `${viewportHeight - (ScrollService.getHeaderHeight() + 2 * GvDocumentationComponent.MENU_BOTTOM)}px`;
+    if(menuElement){
+      const viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+      menuElement.style.height = `${viewportHeight - (ScrollService.getHeaderHeight() + 2 * GvDocumentationComponent.MENU_BOTTOM)}px`;
+    }
   }
 
   static updateMenuPosition(menuElement, lastTop) {
-    const scrollTop = document.scrollingElement.scrollTop;
-    if (menuElement && document.querySelector(this.PAGE_COMPONENT)) {
-      const { height } = menuElement.getBoundingClientRect();
-      const contentHeight = document.querySelector(this.PAGE_COMPONENT).getBoundingClientRect().height;
-      if (contentHeight - scrollTop <= height) {
-        menuElement.style.top = `${lastTop}px`;
-        menuElement.style.bottom = `${contentHeight - scrollTop}px`;
-        menuElement.style.position = `absolute`;
-        return null;
+    if (menuElement) {
+      const scrollTop = document.scrollingElement.scrollTop;
+      if (document.querySelector(this.PAGE_COMPONENT)) {
+        const { height } = menuElement.getBoundingClientRect();
+        const contentHeight = document.querySelector(this.PAGE_COMPONENT).getBoundingClientRect().height;
+        if (contentHeight - scrollTop <= height) {
+          menuElement.style.top = `${lastTop}px`;
+          menuElement.style.bottom = `${contentHeight - scrollTop}px`;
+          menuElement.style.position = `absolute`;
+          return null;
+        } else {
+          this.reset(menuElement);
+          return scrollTop + ScrollService.getHeaderHeight();
+        }
       } else {
         this.reset(menuElement);
         return scrollTop + ScrollService.getHeaderHeight();
       }
-    } else {
-      this.reset(menuElement);
-      return scrollTop + ScrollService.getHeaderHeight();
     }
+
   }
 
   static reset(menuElement) {
@@ -123,6 +128,7 @@ export class GvDocumentationComponent implements AfterViewInit {
     menuElement.style.bottom = `${GvDocumentationComponent.MENU_BOTTOM}px`;
     menuElement.style.top = `${top}px`;
     menuElement.style.position = `fixed`;
+    this.updateMenuHeight(menuElement);
   }
 
   private initTree(pages: Page[], selectedPage?: string) {
@@ -189,17 +195,21 @@ export class GvDocumentationComponent implements AfterViewInit {
 
   @HostListener('window:resize')
   onResize() {
-    window.requestAnimationFrame(() => {
-      GvDocumentationComponent.updateMenuHeight(this.treeMenu.nativeElement);
-    });
+    if (this.treeMenu) {
+      window.requestAnimationFrame(() => {
+        GvDocumentationComponent.updateMenuHeight(this.treeMenu.nativeElement);
+      });
+    }
   }
 
 
   @HostListener('window:scroll')
   onScroll() {
-    window.requestAnimationFrame(() => {
-      this.lastTop = GvDocumentationComponent.updateMenuPosition(this.treeMenu.nativeElement, this.lastTop);
-    });
+    if (this.treeMenu) {
+      window.requestAnimationFrame(() => {
+        this.lastTop = GvDocumentationComponent.updateMenuPosition(this.treeMenu.nativeElement, this.lastTop);
+      });
+    }
   }
 
   @HostListener(':gv-tree:select', ['$event.detail.value'])

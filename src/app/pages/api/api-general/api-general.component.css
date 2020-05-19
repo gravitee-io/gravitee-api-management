@@ -14,78 +14,18 @@
  * limitations under the License.
  */
 
- .api {
-  display: flex;
-}
+@import '../../../../css/form.css';
 
-.api__section {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  max-width: 80%;
-  margin: 0 32px;
-}
-
-.api__section__block {
- background-color: var(--gv-theme-neutral-color-lightest);
- border-radius: 4px;
- padding: 24px 50px;
-}
-
-.api__aside {
-  display: flex;
-  flex-direction: column;
-}
-
-.api__section > *, .api__aside > * {
- margin-bottom: 32px;
+.page__box-homepage {
+  margin-bottom: 84px;
 }
 
 .rating-form {
-  display: flex;
-  flex-direction: column;
-}
-
-.rating-form gv-button {
-  text-align: right;
-  align-self: flex-end;
-}
-
-.rating-form-content {
-  display: flex;
-  flex-direction: column;
-  background-color: var(--gv-theme-neutral-color);
-  padding: 1rem;
-  margin: 1rem 0;
-}
-
-.rating-form-content gv-rating {
-  align-self: center;
-  margin: 1rem 0;
-
-}
-
-.rating-form-actions {
-  display: flex;
-  height: 30px;
   --gv-rating--s: 26px;
-}
-
-.rating-form-actions gv-rating {
-  flex: 1;
-  text-align: right;
 }
 
 .rating-list-actions {
   text-align: center;
-}
-
-.api__section__ratings__title {
-  display: flex;
-}
-
-.api__section__ratings__title .title {
-  flex: 1;
 }
 
 .info {
