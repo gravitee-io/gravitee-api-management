@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.portal.security.config;
 
+import static io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository.DEFAULT_CSRF_HEADER_NAME;
+import static io.gravitee.rest.api.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
 import static java.util.Arrays.asList;
 
 import java.util.Collection;
@@ -25,7 +27,13 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
+import io.gravitee.rest.api.security.csrf.CsrfRequestMatcher;
+import io.gravitee.rest.api.security.filter.CsrfIncludeFilter;
+import io.gravitee.rest.api.security.filter.RecaptchaFilter;
+import io.gravitee.rest.api.service.ReCaptchaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +51,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -77,6 +86,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     private AuthenticationProviderManager authenticationProviderManager;
     @Autowired
     private CookieGenerator cookieGenerator;
+    @Autowired
+    private ReCaptchaService reCaptchaService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -132,13 +145,18 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     @Bean
+    public CookieCsrfSignedTokenRepository cookieCsrfSignedTokenRepository() {
+        return new CookieCsrfSignedTokenRepository();
+    }
+
+    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(getPropertiesAsList("http.cors.allow-origin", "*"));
-        config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With"));
+        config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, " + DEFAULT_CSRF_HEADER_NAME + ", " + DEFAULT_RECAPTCHA_HEADER_NAME));
         config.setAllowedMethods(getPropertiesAsList("http.cors.allow-methods", "OPTIONS, GET, POST, PUT, DELETE, PATCH"));
-        config.setExposedHeaders(getPropertiesAsList("http.cors.exposed-headers", ""));
+        config.setExposedHeaders(getPropertiesAsList("http.cors.exposed-headers", DEFAULT_CSRF_HEADER_NAME));
         config.setMaxAge(environment.getProperty("http.cors.max-age", Long.class, 1728000L));
 
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -185,6 +203,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
         http
                 .addFilterBefore(new JWTAuthenticationFilter(jwtSecret, cookieGenerator), BasicAuthenticationFilter.class);
+
+        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), JWTAuthenticationFilter.class);
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {
@@ -264,7 +284,16 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity csrf(HttpSecurity security) throws Exception {
-        return security.csrf().disable();
+
+        if(environment.getProperty("http.csrf.enabled", Boolean.class, false)) {
+            return security.csrf()
+                    .csrfTokenRepository(cookieCsrfSignedTokenRepository())
+                    .requireCsrfProtectionMatcher(new CsrfRequestMatcher())
+                    .and()
+                    .addFilterAfter(new CsrfIncludeFilter(), CsrfFilter.class);
+        }else {
+            return security.csrf().disable();
+        }
     }
 
     private HttpSecurity cors(HttpSecurity security) throws Exception {

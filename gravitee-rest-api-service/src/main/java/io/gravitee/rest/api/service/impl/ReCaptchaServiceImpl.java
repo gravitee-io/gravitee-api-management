@@ -44,10 +44,10 @@ public class ReCaptchaServiceImpl implements ReCaptchaService {
     @Value("${reCaptcha.enabled:false}")
     private boolean enabled;
 
-    @Value("${reCaptcha.siteKey}")
+    @Value("${reCaptcha.siteKey:}")
     private String siteKey;
 
-    @Value("${reCaptcha.secretKey}")
+    @Value("${reCaptcha.secretKey:}")
     private String secretKey;
 
     @Value("${reCaptcha.minScore:0.5}")

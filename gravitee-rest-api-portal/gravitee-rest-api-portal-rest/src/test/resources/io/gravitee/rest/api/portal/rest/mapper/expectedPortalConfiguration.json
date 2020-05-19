@@ -111,5 +111,9 @@
         "enabled" : true
       }
     }
+  },
+  "recaptcha" : {
+    "enabled" : true,
+    "siteKey" : "testSiteKey"
   }
 }

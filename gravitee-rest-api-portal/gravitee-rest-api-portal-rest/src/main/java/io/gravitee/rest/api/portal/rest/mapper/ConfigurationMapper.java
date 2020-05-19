@@ -46,6 +46,7 @@ public class ConfigurationMapper {
         configuration.setPlan(convert(configEntity.getPlan()));
         configuration.setPortal(convert(configEntity.getPortal(), configEntity.getApplication()));
         configuration.setScheduler(convert(configEntity.getScheduler()));
+        configuration.setRecaptcha(convert(configEntity.getReCaptcha()));
         return configuration;
     }
 
@@ -200,6 +201,13 @@ public class ConfigurationMapper {
     private ConfigurationAnalytics convert(Analytics analytics) {
         ConfigurationAnalytics configuration = new ConfigurationAnalytics();
         configuration.setClientTimeout(analytics.getClientTimeout());
+        return configuration;
+    }
+
+    private ConfigurationReCaptcha convert(ReCaptcha reCaptcha) {
+        ConfigurationReCaptcha configuration = new ConfigurationReCaptcha();
+        configuration.setEnabled(reCaptcha.getEnabled());
+        configuration.setSiteKey(reCaptcha.getSiteKey());
         return configuration;
     }
 

@@ -3548,6 +3548,8 @@ components:
           $ref: '#/components/schemas/ConfigurationAnalytics'
         application:
           $ref: '#/components/schemas/ConfigurationApplication'
+        recaptcha:
+          $ref: '#/components/schemas/ConfigurationReCaptcha'
     ConfigurationCompany:
       properties:
         name:
@@ -3708,6 +3710,14 @@ components:
           $ref: '#/components/schemas/Enabled'
         backend_to_backend:
           $ref: '#/components/schemas/Enabled'
+    ConfigurationReCaptcha:
+      properties:
+        enabled:
+          description: flag indication if recaptcha is enabled or not
+          type: boolean
+        siteKey:
+          description: reCaptcha site key
+          type: string
 
     CategorizedLinks:
       properties:

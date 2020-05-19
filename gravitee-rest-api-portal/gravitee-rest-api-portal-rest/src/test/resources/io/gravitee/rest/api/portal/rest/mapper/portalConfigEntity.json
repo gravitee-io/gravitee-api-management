@@ -135,5 +135,9 @@
         "enabled" : true
       }
     }
+  },
+  "reCaptcha": {
+    "enabled": true,
+    "siteKey": "testSiteKey"
   }
 }
