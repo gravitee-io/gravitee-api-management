@@ -21,12 +21,19 @@
 }
 
 .row {
-  display: inline-flex;
+  display: flex;
   margin: 1rem 0;
   justify-content: center;
+  align-items: stretch;
 }
 
-.row div {
+.row > div {
   display: flex;
-  flex-direction: column-reverse;
+  align-items: center;
+  margin: 0.2rem 0;
+  box-sizing: border-box;
+}
+
+.signin {
+  margin-bottom: 1rem;
 }

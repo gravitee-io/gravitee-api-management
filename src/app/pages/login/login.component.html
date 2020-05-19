@@ -51,21 +51,23 @@
     <div class="page__box-footer form__actions form__actions-column">
       <gv-button
           *ngIf="loginEnabled"
+          class="signin"
           [disabled]="!isFormValid()"
           primary
+          icon="navigation:sign-in"
           type="submit">{{ 'login.button' | translate }}</gv-button>
 
       <gv-button *ngFor="let provider of providers"
-                 outlined
                  class="btn__provider"
                  [provider]="provider.type"
+                 [style]="getProviderStyle(provider)"
                  (:gv-button:click)="authenticate(provider)">
         {{ provider.name }}
       </gv-button>
 
       <div *ngIf="loginEnabled && registrationEnabled" class="row">
         <div>{{ 'login.signup.text' | translate }}</div>
-        <gv-button link routerLink="/user/registration"><span>{{ 'login.signup.link' | translate }}</span></gv-button>
+        <gv-button link routerLink="/user/registration">{{ 'login.signup.link' | translate }}</gv-button>
       </div>
       <div *ngIf="loginEnabled" class="row">
         <gv-button link routerLink="/user/resetPassword">{{ 'login.resetPassword' | translate }}</gv-button>
