@@ -102,6 +102,33 @@ class LoginController {
       }
     }
   }
+
+  getProviderBackGroundColor(provider: any) {
+    if (provider.color) {
+      return provider.color;
+    }
+    if (provider.type === 'oidc') {
+      return 'black';
+    }
+    if (provider.type === 'graviteeio_am') {
+      return '#86c3d0';
+    }
+    return '';
+  }
+
+  getProviderColor(provider: any) {
+    if (provider.type === 'graviteeio_am') {
+      return '#383E3F';
+    }
+    return 'white';
+  }
+
+  getProviderStyle(provider: any) {
+    return {
+      'background-color': this.getProviderBackGroundColor(provider),
+      'color': this.getProviderColor(provider)
+    };
+  }
 }
 
 export default LoginController;
