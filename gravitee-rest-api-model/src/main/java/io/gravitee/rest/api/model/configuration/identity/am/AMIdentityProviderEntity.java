@@ -119,11 +119,6 @@ public class AMIdentityProviderEntity extends SocialIdentityProviderEntity {
         return this.color;
     }
 
-    @Override
-    public String getIcon() {
-        return "perm_identity";
-    }
-
     public Map<String, String> getUserProfileMapping() {
         return userProfileMapping;
     }

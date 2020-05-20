@@ -82,11 +82,6 @@ public class GitHubIdentityProviderEntity extends SocialIdentityProviderEntity {
     }
 
     @Override
-    public String getIcon() {
-        return "github-circle";
-    }
-
-    @Override
     public Map<String, String> getUserProfileMapping() {
         return new HashMap<String, String>() {
             {

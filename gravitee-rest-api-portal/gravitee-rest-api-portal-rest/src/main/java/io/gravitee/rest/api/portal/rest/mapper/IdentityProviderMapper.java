@@ -35,7 +35,6 @@ public class IdentityProviderMapper {
         idpItem.setDescription(socialIdentityProviderEntity.getDescription());
         idpItem.setDisplay(socialIdentityProviderEntity.getDisplay());
         idpItem.setEmailRequired(socialIdentityProviderEntity.isEmailRequired());
-        idpItem.setIcon(socialIdentityProviderEntity.getIcon());
         idpItem.setId(socialIdentityProviderEntity.getId());
         idpItem.setName(socialIdentityProviderEntity.getName());
         idpItem.setOptionalUrlParams(socialIdentityProviderEntity.getOptionalUrlParams());

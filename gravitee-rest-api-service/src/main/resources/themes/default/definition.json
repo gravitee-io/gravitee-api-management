@@ -1608,6 +1608,20 @@
           "value": ""
         },
         {
+          "name": "--gv-button-oidc--bgc",
+          "description": "OIDC Social Provider button background color",
+          "type": "color",
+          "default": "#000000",
+          "value": "#000000"
+        },
+        {
+          "name": "--gv-button-graviteeio_am--bgc",
+          "description": "Gravitee.io AM Social Provider button background color",
+          "type": "color",
+          "default": "#86c3d0",
+          "value": "#86c3d0"
+        },
+        {
           "name": "--gv-button--p",
           "description": "Padding",
           "type": "length",
