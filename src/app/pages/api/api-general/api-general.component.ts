@@ -243,6 +243,14 @@ export class ApiGeneralComponent implements OnInit {
     this.router.navigate(['catalog/search'], { queryParams: { q: tag } });
   }
 
+  goToExtern(url: string) {
+    this.onNavChange({
+      path: url,
+      title: null,
+      target: '_blank',
+    });
+  }
+
   onNavChange(route: INavRoute) {
     if (route.target && route.target === '_blank') {
       window.open(route.path, route.target);

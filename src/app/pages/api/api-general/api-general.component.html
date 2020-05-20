@@ -116,8 +116,9 @@
     <div class="page__box-content">
       <div *ngIf="currentApi.entrypoints && currentApi.entrypoints.length > 0" class="info">
         <h4 class="title">{{ 'api.information.entrypoints' | translate }}</h4>
-        <div *ngFor="let e of currentApi.entrypoints" class="info__resources"><a class="link" href="{{e}}"
-                                                                                 target="_blank">{{e}}</a></div>
+        <div *ngFor="let e of currentApi.entrypoints" class="info__resources">
+          <gv-button link [href]="e" (:gv-button:click)="goToExtern(e)">{{e}}</gv-button>
+        </div>
       </div>
 
       <div *ngIf="currentApi.views && currentApi.views.length > 0" class="info">
@@ -157,8 +158,7 @@
         <h4 class="title">{{ 'api.information.resources' | translate }}</h4>
         <span>
               <div *ngFor="let item of resources" class="info__resources">
-                <a (click)="onNavChange(item)" class="link" href="{{item.path}}"
-                   target="{{item.target}}">{{item.title}}</a>
+                <gv-button link [href]="item.path" (:gv-button:click)="onNavChange(item)">{{item.title}}</gv-button>
               </div>
           </span>
       </div>

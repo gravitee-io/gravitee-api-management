@@ -326,7 +326,9 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     if (route.target && route.target === '_blank') {
       window.open(route.path, route.target);
     } else {
-      this.router.navigate([route.path]);
+      const urlTree = this.router.parseUrl(route.path);
+      const path = urlTree.root.children[PRIMARY_OUTLET].segments.join('/');
+      this.router.navigate([path], { queryParams: urlTree.queryParams });
     }
   }
 
