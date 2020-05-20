@@ -13,35 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, PRIMARY_OUTLET, Router } from '@angular/router';
+import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import {
+  Api,
+  ApiService,
+  GetApiRatingsByApiIdRequestParams,
+  Link,
+  Page,
+  PermissionsResponse,
+  PermissionsService,
+  Rating,
+  Subscription,
+  User
+} from '@gravitee/ng-portal-webclient';
+import { ApiMetrics } from '@gravitee/ng-portal-webclient/model/apiMetrics';
+import '@gravitee/ui-components/wc/gv-confirm';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-rating';
 import '@gravitee/ui-components/wc/gv-rating-list';
-import '@gravitee/ui-components/wc/gv-confirm';
-import {
-  ApiService,
-  Api,
-  Link,
-  Page,
-  Rating,
-  User,
-  PermissionsService,
-  PermissionsResponse,
-  GetApiRatingsByApiIdRequestParams,
-  Subscription
-} from '@gravitee/ng-portal-webclient';
-import { ActivatedRoute, PRIMARY_OUTLET, Router } from '@angular/router';
-import { ApiMetrics } from '@gravitee/ng-portal-webclient/model/apiMetrics';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
+import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
 import { INavRoute } from 'src/app/services/nav-route.service';
+import { FeatureEnum } from '../../../model/feature.enum';
+import { ConfigurationService } from '../../../services/configuration.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { NotificationService } from '../../../services/notification.service';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ConfigurationService } from '../../../services/configuration.service';
-import StatusEnum = Subscription.StatusEnum;
-import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
 import { ScrollService } from '../../../services/scroll.service';
+import StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-api-general',
@@ -70,6 +71,7 @@ export class ApiGeneralComponent implements OnInit {
   resources: any[];
   userRating: Rating;
   apiHomepageLoaded: boolean;
+  hasRatingFeature: boolean;
 
   constructor(
     private apiService: ApiService,
@@ -95,9 +97,12 @@ export class ApiGeneralComponent implements OnInit {
     if (this.apiHomepage == null) {
       this.apiHomepageLoaded = true;
     }
+
+    this.hasRatingFeature = this.configService.hasFeature(FeatureEnum.rating);
+
     this.route.params.subscribe(() => {
       if (apiId) {
-        if (this.hasRatingFeature()) {
+        if (this.hasRatingFeature) {
           this.translateService.get([
               i18n('apiGeneral.ratingsSortOptions.newest'),
               i18n('apiGeneral.ratingsSortOptions.oldest'),
@@ -152,12 +157,17 @@ export class ApiGeneralComponent implements OnInit {
   }
 
   _updateRatings() {
-    if (this.hasRatingFeature()) {
+    if (this.hasRatingFeature) {
       this.ratingForm = this.formBuilder.group({
-        comment: new FormControl(''),
         title: new FormControl(''),
+        comment: new FormControl(''),
         value: new FormControl(null, [Validators.required]),
       });
+
+      if (this.configService.hasFeature(FeatureEnum.ratingCommentMandatory)) {
+        this.ratingForm.get('title').setValidators([Validators.required]);
+        this.ratingForm.get('comment').setValidators([Validators.required]);
+      }
 
       const apiId = this.apiId;
 
@@ -312,10 +322,6 @@ export class ApiGeneralComponent implements OnInit {
 
   hasValidRatingForm() {
     return this.hasRatingForm() && this.ratingForm.valid;
-  }
-
-  hasRatingFeature() {
-    return this.configService.get('portal.rating').enabled === true;
   }
 
   rate() {

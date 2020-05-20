@@ -20,6 +20,7 @@ export enum FeatureEnum {
   googleAnalytics = 'portal.analytics.enabled',
   localLogin = 'authentication.localLogin.enabled',
   rating = 'portal.rating.enabled',
+  ratingCommentMandatory = 'portal.rating.comment.mandatory',
   userRegistration = 'portal.userCreation.enabled',
   viewMode = 'portal.apis.viewMode.enabled',
 }
