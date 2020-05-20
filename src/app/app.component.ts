@@ -456,7 +456,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   @HostListener(':gv-list:click', ['$event.detail'])
-  onGvListclick(detail: any) {
+  onGvListClick(detail: any) {
     if (detail.type === ItemResourceTypeEnum.API) {
       this.goTo(`/catalog/api/${detail.item.id}`);
     } else if (detail.type === ItemResourceTypeEnum.APPLICATION) {

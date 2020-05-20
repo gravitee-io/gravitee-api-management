@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, Input, HostListener, AfterViewChecked, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, Input, HostListener, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import * as marked from 'marked';
-import { cleanUrl } from 'marked/src/helpers'
 import * as hljs from 'highlight.js';
 import { PageService } from 'src/app/services/page.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { ScrollService } from 'src/app/services/scroll.service';
-import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-gv-page-markdown',
@@ -40,8 +38,6 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   constructor(
     private pageService: PageService,
     private router: Router,
-    private route: ActivatedRoute,
-    private scrollService: ScrollService,
   ) { }
 
   ngOnInit() {
@@ -53,26 +49,6 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
           return hljs.highlight(validLanguage, code).value;
         },
       });
-
-      // Override function
-      const renderer = {
-        image(href: string, title: string, text: string) {
-           href = cleanUrl(this.options.sanitize, this.options.baseUrl, href);
-          if (href === null) {
-            return text;
-          }
-
-          let out = '<img src="' + href + '" alt="' + text + '" style="max-width:100%"';
-          if (title) {
-            out += ' title="' + title + '"';
-          }
-
-          out += this.options.xhtml ? '/>' : '>';
-            return out;
-          }
-      };
-
-      marked.use({ renderer });
 
       this.pageContent = marked(page.content);
     }
