@@ -15,7 +15,7 @@
  */
 
 import NotificationService from '../../services/notification.service';
-import DocumentationService, { FolderSituation } from '../../services/documentation.service';
+import DocumentationService, { FolderSituation, SystemFolderName } from '../../services/documentation.service';
 import {StateService} from '@uirouter/core';
 import {IScope} from 'angular';
 import _ = require('lodash');
@@ -174,7 +174,11 @@ const EditPageComponent: ng.IComponentOptions = {
         return FolderSituation.ROOT;
       }
       if (this.systemFoldersById[folderId]) {
-        return FolderSituation.SYSTEM_FOLDER;
+        if (SystemFolderName.TOPFOOTER === this.systemFoldersById[folderId].name) {
+          return FolderSituation.SYSTEM_FOLDER_WITH_FOLDERS;
+        } else {
+          return FolderSituation.SYSTEM_FOLDER;
+        }
       }
       if (this.foldersById[folderId]) {
         const parentFolderId = this.foldersById[folderId].parentId;
