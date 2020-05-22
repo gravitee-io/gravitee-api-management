@@ -33,6 +33,11 @@
                 "glob": "*",
                 "input": "node_modules/@gravitee/ui-components/assets/images",
                 "output": "images/"
+              },
+              {
+                "glob": "oauth2-redirect.html",
+                "input": "node_modules/swagger-ui-dist",
+                "output": "/"
               }
             ],
             "styles": [
