@@ -124,6 +124,28 @@ paths:
           $ref: '#/components/responses/APINotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /apis/{apiId}/informations:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+    get:
+      tags:
+        - Portal
+      summary: Get the api dynamic informations to display.
+      operationId: getApiInformations
+      description: |
+        Get api informations.
+      security: []
+      responses:
+        200:
+          description: List of api informations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiInformation'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}/links:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
@@ -2947,6 +2969,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Plan'
+    ApiInformation:
+      properties:
+        name:
+          type: string
+          description: Name of api information
+        value:
+          type: string
+          description: Value of api information
     ApiMetrics:
       properties:
         subscribers:

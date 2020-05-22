@@ -15,26 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.repository.management.model.ApiHeader.AuditEvent.API_HEADER_CREATED;
-import static io.gravitee.repository.management.model.ApiHeader.AuditEvent.API_HEADER_DELETED;
-import static io.gravitee.repository.management.model.ApiHeader.AuditEvent.API_HEADER_UPDATED;
-import static io.gravitee.repository.management.model.Audit.AuditProperties.API_HEADER;
-import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toList;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiHeaderRepository;
 import io.gravitee.repository.management.model.ApiHeader;
@@ -47,6 +27,17 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.ApiHeaderNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+
+import static io.gravitee.repository.management.model.ApiHeader.AuditEvent.*;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.API_HEADER;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -209,10 +200,6 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
         h.setName("api.version");
         h.setValue("${api.version}");
-        this.create(h, environmentId);
-
-        h.setName("api.endpoint");
-        h.setValue("${api.proxy.contextPath}");
         this.create(h, environmentId);
 
         h.setName("api.owner");

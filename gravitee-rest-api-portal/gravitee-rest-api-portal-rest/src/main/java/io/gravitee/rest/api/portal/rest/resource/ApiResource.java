@@ -199,6 +199,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiMetricsResource.class);
     }
 
+    @Path("informations")
+    public ApiInformationsResource getApiInformationsResource() {
+        return resourceContext.getResource(ApiInformationsResource.class);
+    }
+
     @Path("pages")
     public ApiPagesResource getApiPagesResource() {
         return resourceContext.getResource(ApiPagesResource.class);

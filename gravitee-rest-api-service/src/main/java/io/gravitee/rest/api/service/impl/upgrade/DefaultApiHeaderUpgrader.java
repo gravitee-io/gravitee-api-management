@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
+import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
+import io.gravitee.rest.api.model.api.header.UpdateApiHeaderEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,10 @@ import org.springframework.stereotype.Component;
 import io.gravitee.rest.api.service.ApiHeaderService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
