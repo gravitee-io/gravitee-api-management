@@ -1,9 +1,9 @@
-# API Portal Headers
+# API Portal Informations
 
-Add a list of name/value to display in the api header.
+Add a list of name/value to display in the api aside.
 The name could be used as is, or could be a translated key.
 
-To add a translation, you need to update the json file (see on [Github](https://github.com/gravitee-io/gravitee-management-webui/tree/master/src/portal/i18n)).
+To add a translation, you need to update the json file (see on [Github](https://github.com/gravitee-io/gravitee-portal-webui/tree/master/src/assets/i18n)).
 
 The value can also be an "hard coded" value or you can use templating like in documentation pages.
 
