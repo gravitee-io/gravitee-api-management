@@ -10,23 +10,27 @@
     }
   },
   "api": {
+    "createdAt": "Vytvořeno dne",
+    "deployedAt": "Nasazeno",
+    "description": "Popis",
+    "endpoint": "Přístupová cesta",
     "information": {
       "about": "Asi",
       "beFirstToRate": "Buďte první hodnotící",
       "categories": "Kategorie",
       "entrypoints": "Přístupová URL",
       "labels": "Tagy",
-      "lastUpdate": "Poslední aktualizace: ",
       "metrics": "Statistika",
-      "moreInfo": "Další informace",
-      "publisher": "Vydavatel: ",
       "ratings": "Poznámky",
-      "resources": "zdroje",
-      "version": "Verze: "
+      "resources": "zdroje"
     },
     "list": {
       "connectedApps": "Připojené aplikace"
-    }
+    },
+    "name": "Název",
+    "owner": "Majitel",
+    "publishedAt": "Publikováno dne",
+    "version": "Verze"
   },
   "apiGeneral": {
     "description": "Popis",

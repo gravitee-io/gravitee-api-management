@@ -16,6 +16,14 @@
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 i18n([
+  'api.createdAt',
+  'api.deployedAt',
+  'api.description',
+  'api.endpoint',
+  'api.name',
+  'api.owner',
+  'api.publishedAt',
+  'api.version',
   'application.notifications.NEW_SUPPORT_TICKET.description',
   'application.notifications.NEW_SUPPORT_TICKET.label',
   'application.notifications.SUBSCRIPTION.title',

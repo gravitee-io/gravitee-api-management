@@ -17,6 +17,7 @@ import { ApiContactComponent } from './pages/api/api-contact/api-contact.compone
 import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
 import { ApiHomepageResolver } from './resolvers/api-homepage.resolver';
+import { ApiInformationsResolver } from './resolvers/api-informations.resolver';
 import { ApiResolver } from './resolvers/api.resolver';
 import { ApiSubscribeComponent } from './pages/api/api-subscribe/api-subscribe.component';
 import { AuthGuardService } from './services/auth-guard.service';
@@ -76,6 +77,7 @@ export const routes: Routes = [
         },
         resolve: {
           api: ApiResolver,
+          apiInformations: ApiInformationsResolver,
           permissions: PermissionsResolver,
         },
         children: [

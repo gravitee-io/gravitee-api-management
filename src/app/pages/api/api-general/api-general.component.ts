@@ -19,6 +19,7 @@ import { ActivatedRoute, PRIMARY_OUTLET, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import {
   Api,
+  ApiInformation,
   ApiService,
   GetApiRatingsByApiIdRequestParams,
   Link,
@@ -72,6 +73,7 @@ export class ApiGeneralComponent implements OnInit {
   userRating: Rating;
   apiHomepageLoaded: boolean;
   hasRatingFeature: boolean;
+  apiInformations: Array<ApiInformation>;
 
   constructor(
     private apiService: ApiService,
@@ -94,6 +96,7 @@ export class ApiGeneralComponent implements OnInit {
     const apiId = this.route.snapshot.params.apiId;
     this.permissions = this.route.snapshot.data.permissions;
     this.apiHomepage = this.route.snapshot.data.apiHomepage;
+    this.apiInformations = this.route.snapshot.data.apiInformations;
     if (this.apiHomepage == null) {
       this.apiHomepageLoaded = true;
     }

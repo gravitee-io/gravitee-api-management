@@ -28,7 +28,7 @@
     "@angular/platform-browser-dynamic": "^9.1.1",
     "@angular/router": "^9.1.1",
     "@formatjs/intl-relativetimeformat": "^4.5.11",
-    "@gravitee/ng-portal-webclient": "1.0.0-SNAPSHOT.202005151509",
+    "@gravitee/ng-portal-webclient": "1.0.0-SNAPSHOT.202005221432",
     "@gravitee/ui-components": "github:gravitee-io/gravitee-ui-components",
     "@ibm/plex": "^4.0.2",
     "@ngx-translate/core": "^12.1.2",

@@ -10,23 +10,27 @@
     }
   },
   "api": {
+    "createdAt": "Créée le",
+    "deployedAt": "Déployée le",
+    "description": "Description",
+    "endpoint": "Chemin d'accès",
     "information": {
       "about": "À propos",
       "beFirstToRate": "Soyez le premier à noter",
       "categories": "Catégories",
       "entrypoints": "URL d'accès",
       "labels": "Tags",
-      "lastUpdate": "Mise à jour :",
       "metrics": "Statistiques",
-      "moreInfo": "Informations",
-      "publisher": "Propriétaire :",
       "ratings": "Notes",
-      "resources": "Ressources",
-      "version": "Version :"
+      "resources": "Ressources"
     },
     "list": {
       "connectedApps": "Applications liées"
-    }
+    },
+    "name": "Nom",
+    "owner": "Propriétaire",
+    "publishedAt": "Publiée le",
+    "version": "Version"
   },
   "apiGeneral": {
     "description": "Description",
