@@ -207,11 +207,10 @@ public class GroupService_IsUserAuthorizedToAccessTest {
     public void shouldNotBeAuthorizedForPublicApiIfMemberOfUnauthorizedGroups() throws TechnicalException {
         when(api.getVisibility()).thenReturn(Visibility.PUBLIC);
         when(api.getId()).thenReturn("apiId");
-        Group grp1 = new Group();
-        Group grp2 = new Group();
-        grp1.setId("grp1");
-        grp2.setId("grp2");
-        when(groupRepository.findAllByEnvironment("DEFAULT")).thenReturn(new HashSet<>(Arrays.asList(grp1, grp2)));
+        Group excludedGroup = new Group();
+        excludedGroup.setId("excludedGroup");
+        RoleEntity apiRole = new RoleEntity();
+        apiRole.setScope(RoleScope.API);
         when(membershipService.getRoles(
                 MembershipReferenceType.API,
                 api.getId(),
@@ -220,12 +219,12 @@ public class GroupService_IsUserAuthorizedToAccessTest {
                 thenReturn(Collections.emptySet());
         when(membershipService.getRoles(
                 MembershipReferenceType.GROUP,
-                "grp2",
+                "excludedGroup",
                 MembershipMemberType.USER,
                 "user")).
-                thenReturn(Collections.emptySet());
+                thenReturn(Collections.singleton(apiRole));
 
-        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
+        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("excludedGroup"), "user");
 
         assertFalse(userAuthorizedToAccess);
         verify(membershipService, times(2)).getRoles(any(), any(), any(), any());
@@ -236,10 +235,9 @@ public class GroupService_IsUserAuthorizedToAccessTest {
                         "user");
         verify(membershipService, times(1)).
                 getRoles(MembershipReferenceType.GROUP,
-                        "grp2",
+                        "excludedGroup",
                         MembershipMemberType.USER,
                         "user");
         verify(api, never()).getGroups();
-        verify(groupRepository, times(1)).findAllByEnvironment("DEFAULT");
     }
 }

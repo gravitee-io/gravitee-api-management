@@ -113,7 +113,6 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetApiPage() {
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
 
@@ -129,7 +128,6 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetApiPageWithInclude() {
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
 
@@ -147,21 +145,12 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         final Builder request = target(API).path("pages").path(PAGE).request();
         // case 1
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
 
         Response response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
 
         // case 2
-        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
-
-        response = request.get();
-        assertEquals(UNAUTHORIZED_401, response.getStatus());
-
-        // case 3
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
 
         response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
@@ -179,7 +168,6 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
 
         Response response = target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, response.getStatus());
@@ -233,7 +221,6 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetApiPageContent() {
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
 
         final Response response = target(API).path("pages").path(PAGE).path("content").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -247,21 +234,12 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         final Builder request = target(API).path("pages").path(PAGE).path("content").request();
         // case 1
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
 
         Response response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
 
         // case 2
-        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
-
-        response = request.get();
-        assertEquals(UNAUTHORIZED_401, response.getStatus());
-
-        // case 3
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());
 
         response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());

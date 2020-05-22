@@ -127,6 +127,8 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3))).when(planService).findByApi(API);
 
+        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        
         // test
         final Response response = target(API).queryParam("include", "pages", "plans").request().get();
 

@@ -70,25 +70,27 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getApiByApiId(@PathParam("apiId") String apiId, @QueryParam("include") List<String> include) {
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        String username = getAuthenticatedUserOrNull();
+
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(username);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             ApiEntity apiEntity = apiService.findById(apiId);
             Api api = apiMapper.convert(apiEntity);
 
             if (include.contains(INCLUDE_PAGES)) {
-                List<Page> pages = pageService.search(new PageQuery.Builder().api(apiId).build()).stream()
-                        .filter(page -> isDisplayable(apiEntity, page.isPublished(), page.getExcludedGroups()))
-                        .map(pageMapper::convert).collect(Collectors.toList());
+                List<Page> pages = pageService.search(new PageQuery.Builder().api(apiId).published(true).build()).stream()
+                        .filter(page -> !"SYSTEM_FOLDER".equals(page.getType()))
+                        .filter(page -> groupService.isUserAuthorizedToAccessApiData(apiEntity, page.getExcludedGroups(), username))
+                        .map(pageMapper::convert)
+                        .collect(Collectors.toList());
                 api.setPages(pages);
             }
             if (include.contains(INCLUDE_PLANS)) {
-                String user = getAuthenticatedUserOrNull();
                 List<Plan> plans = planService.findByApi(apiId).stream()
                         .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
-                        .filter(plan -> (isAuthenticated() || groupService.isUserAuthorizedToAccessApiData(apiEntity,
-                                plan.getExcludedGroups(), getAuthenticatedUserOrNull())))
-                        .sorted(Comparator.comparingInt(PlanEntity::getOrder)).map(p -> planMapper.convert(p, user))
+                        .filter(plan -> groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), username))
+                        .sorted(Comparator.comparingInt(PlanEntity::getOrder)).map(p -> planMapper.convert(p, username))
                         .collect(Collectors.toList());
                 api.setPlans(plans);
             }
@@ -98,12 +100,6 @@ public class ApiResource extends AbstractResource {
             return Response.ok(api).build();
         }
         throw new ApiNotFoundException(apiId);
-    }
-
-    private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {
-        return (isAuthenticated()) || (pageService.isDisplayable(api, isPagePublished, getAuthenticatedUserOrNull())
-                && groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull()));
-
     }
 
     @GET

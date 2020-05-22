@@ -66,10 +66,12 @@ public class ApiPageResource extends AbstractResource {
             PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
             pageService.transformSwagger(pageEntity, apiId);
 
-            if (!isAuthenticated() && pageEntity.getMetadata() != null) {
-                pageEntity.getMetadata().clear();
-            }
-            if (isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
+            if (isDisplayable(apiEntity, pageEntity.getExcludedGroups(), pageEntity.getType())) {
+                
+                if (!isAuthenticated() && pageEntity.getMetadata() != null) {
+                    pageEntity.getMetadata().clear();
+                }
+                
                 Page page = pageMapper.convert(pageEntity);
                 
                 if (include.contains(INCLUDE_CONTENT)) {
@@ -101,7 +103,7 @@ public class ApiPageResource extends AbstractResource {
             PageEntity pageEntity = pageService.findById(pageId, null);
             pageService.transformSwagger(pageEntity, apiId);
 
-            if (isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
+            if (isDisplayable(apiEntity, pageEntity.getExcludedGroups(), pageEntity.getType())) {
                 return Response.ok(pageEntity.getContent()).build();
             } else {
                 throw new UnauthorizedAccessException();
@@ -110,9 +112,9 @@ public class ApiPageResource extends AbstractResource {
         throw new ApiNotFoundException(apiId);
     }
 
-    private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {
-        return pageService.isDisplayable(api, isPagePublished, getAuthenticatedUserOrNull())
-                && groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull());
+    private boolean isDisplayable(ApiEntity api, List<String> excludedGroups, String pageType) {
+        return groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull())
+                && !"SYSTEM_FOLDER".equals(pageType);
 
     }
 }

@@ -71,9 +71,9 @@ public class ApiPagesResource extends AbstractResource {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
             final ApiEntity apiEntity = apiService.findById(apiId);
             
-            Stream<Page> pageStream = pageService.search(new PageQuery.Builder().api(apiId).homepage(homepage).build(), acceptedLocale)
+            Stream<Page> pageStream = pageService.search(new PageQuery.Builder().api(apiId).homepage(homepage).published(true).build(), acceptedLocale)
                     .stream()
-                    .filter(pageEntity -> isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups(), pageEntity.getType()))
+                    .filter(pageEntity -> isDisplayable(apiEntity, pageEntity.getExcludedGroups(), pageEntity.getType()))
                     .map(pageMapper::convert)
                     .map(page -> this.addPageLink(apiId, page));
 
@@ -117,12 +117,9 @@ public class ApiPagesResource extends AbstractResource {
         return resourceContext.getResource(ApiPageResource.class);
     }
 
-    private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups, String pageType) {
-        return pageService.isDisplayable(api, isPagePublished, getAuthenticatedUserOrNull())
-                && groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull())
+    private boolean isDisplayable(ApiEntity api, List<String> excludedGroups, String pageType) {
+        return groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull())
                 && !"SYSTEM_FOLDER".equals(pageType);
-
-
     }
     
     private Page addPageLink(String apiId, Page page) {
