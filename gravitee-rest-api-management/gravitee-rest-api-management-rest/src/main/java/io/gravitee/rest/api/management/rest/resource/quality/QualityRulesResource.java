@@ -52,10 +52,8 @@ public class QualityRulesResource extends AbstractResource {
     @GET
     @Produces(APPLICATION_JSON)
     public List<QualityRuleEntity> get() {
-        // check if the user can access to at least one API to be authorized to get quality rules
-        if (apiService.search(null).stream()
-            .noneMatch(api -> isAuthenticated() &&
-                (isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), RolePermissionAction.READ)))) {
+        if (!hasPermission(RolePermission.ENVIRONMENT_QUALITY_RULE, RolePermissionAction.READ) &&
+                !hasApiPermission(RolePermission.API_GATEWAY_DEFINITION, RolePermissionAction.READ)) {
             throw new ForbiddenAccessException();
         }
         return qualityRuleService.findAll();
