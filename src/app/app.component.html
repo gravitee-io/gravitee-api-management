@@ -37,10 +37,10 @@
                 <a [routerLink]="'/'" title="{{ 'site.title' | translate }}"></a>
             </div>
 
-            <gv-nav *ngIf="!forceLogin() || (forceLogin() && !isInLogin())"
+            <gv-nav *ngIf="!forceLogin() || (forceLogin() && !isInLoginOrRegistration())"
                     [routes]="mainRoutes" [ngClass]="{'layout__nav': isHomepage}"></gv-nav>
 
-            <div class="layout__nav__container" [ngClass]="{'layout__nav': displayShadowNav()}" *ngIf="!isInLogin()">
+            <div class="layout__nav__container" [ngClass]="{'layout__nav': displayShadowNav()}" *ngIf="!isInLoginOrRegistration()">
                 <gv-user-menu [routes]="userRoutes" [ngClass]="{'layout__user-menu': isHomepage}"
                               [username]="userName">
                     <gv-identity-picture *ngIf="currentUser"

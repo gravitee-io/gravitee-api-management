@@ -121,7 +121,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       if (event instanceof NavigationStart) {
         this.notificationService.reset();
       } else if (event instanceof NavigationEnd) {
-        if (!this.currentUserService.exist() && !this.isInLogin() && this.forceLogin()) {
+        if (!this.currentUserService.exist() && !this.isInLoginOrRegistration() && this.forceLogin()) {
           const redirectUrl = this.router.routerState.snapshot.url;
           this.router.navigate(['/user/login'], { replaceUrl: true, queryParams: { redirectUrl } });
         }
@@ -449,8 +449,11 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     this.router.navigate([path]);
   }
 
-  isInLogin(): boolean {
-    return this.router.routerState.snapshot.url.startsWith('/user/login');
+  isInLoginOrRegistration(): boolean {
+    const url = this.router.routerState.snapshot.url;
+    return url.startsWith('/user/login')
+      || url.startsWith('/user/registration')
+      || url.startsWith('/user/resetPassword');
   }
 
   forceLogin(): boolean {
