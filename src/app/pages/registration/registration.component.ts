@@ -56,7 +56,8 @@ export class RegistrationComponent implements OnInit {
       this.reCaptchaService.execute('registration').then(() => {
         this.usersService.registerNewUser({ RegisterUserInput: input })
           .toPromise()
-          .then(() => this.isSubmitted = true);
+          .then(() => this.isSubmitted = true)
+          .catch(() => {});
       });
     }
   }

@@ -74,7 +74,10 @@ export class ResetPasswordConfirmationComponent implements OnInit {
       this.reCaptchaService.execute('reset_password_confirmation').then(() => {
         this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input })
           .toPromise()
-          .then(() => this.isSubmitted = true);
+          .then(() => this.isSubmitted = true)
+          .catch(() => {
+            this.resetPasswordConfirmationForm.patchValue({ password : '', confirmedPassword: '' });
+          });
       });
     }
   }

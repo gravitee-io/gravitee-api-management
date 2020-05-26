@@ -73,7 +73,10 @@ export class RegistrationConfirmationComponent implements OnInit {
       this.reCaptchaService.execute('registration_confirmation').then(() => {
         this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input })
           .toPromise()
-          .then(() => this.isSubmitted = true);
+          .then(() => this.isSubmitted = true)
+          .catch(() => {
+            this.registrationConfirmationForm.patchValue({ password : '', confirmedPassword: '' });
+          });
       });
     }
   }
