@@ -121,7 +121,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       if (event instanceof NavigationStart) {
         this.notificationService.reset();
       } else if (event instanceof NavigationEnd) {
-        if (!this.currentUserService.exist() && !this.isInLogin() && this.forceLogin()) {
+        if (!this.currentUserService.exist() && !this.isInLoginOrRegistration() && this.forceLogin()) {
           const redirectUrl = this.router.routerState.snapshot.url;
           this.router.navigate(['/user/login'], { replaceUrl: true, queryParams: { redirectUrl } });
         }
@@ -326,7 +326,9 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     if (route.target && route.target === '_blank') {
       window.open(route.path, route.target);
     } else {
-      this.router.navigate([route.path]);
+      const urlTree = this.router.parseUrl(route.path);
+      const path = urlTree.root.children[PRIMARY_OUTLET].segments.join('/');
+      this.router.navigate([path], { queryParams: urlTree.queryParams });
     }
   }
 
@@ -447,8 +449,11 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     this.router.navigate([path]);
   }
 
-  isInLogin(): boolean {
-    return this.router.routerState.snapshot.url.startsWith('/user/login');
+  isInLoginOrRegistration(): boolean {
+    const url = this.router.routerState.snapshot.url;
+    return url.startsWith('/user/login')
+      || url.startsWith('/user/registration')
+      || url.startsWith('/user/resetPassword');
   }
 
   forceLogin(): boolean {
@@ -456,7 +461,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   @HostListener(':gv-list:click', ['$event.detail'])
-  onGvListclick(detail: any) {
+  onGvListClick(detail: any) {
     if (detail.type === ItemResourceTypeEnum.API) {
       this.goTo(`/catalog/api/${detail.item.id}`);
     } else if (detail.type === ItemResourceTypeEnum.APPLICATION) {

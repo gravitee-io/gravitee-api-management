@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum FeatureEnum {
-  applicationCreation = 'portal.applicationCreation.enabled',
-  contact = 'portal.support.enabled',
-  forceLogin = 'authentication.forceLogin.enabled',
-  googleAnalytics = 'portal.analytics.enabled',
-  localLogin = 'authentication.localLogin.enabled',
-  rating = 'portal.rating.enabled',
-  ratingCommentMandatory = 'portal.rating.comment.mandatory',
-  userRegistration = 'portal.userCreation.enabled',
-  viewMode = 'portal.apis.viewMode.enabled',
+import { Injectable } from '@angular/core';
+import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { ApiInformation, PortalService } from '@gravitee/ng-portal-webclient';
+
+@Injectable({ providedIn: 'root' })
+export class ApiInformationsResolver implements Resolve<Array<ApiInformation>> {
+
+  constructor(
+    private portalService: PortalService,
+  ) {}
+
+  resolve(route: ActivatedRouteSnapshot) {
+    const apiId = route.params.apiId;
+    return this.portalService.getApiInformations({ apiId })
+  }
+
 }

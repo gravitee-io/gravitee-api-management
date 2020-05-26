@@ -41,8 +41,6 @@
 app-gv-markdown-toc {
   position: fixed;
   right: 42px;
-  z-index: 100;
-  height: calc(100vh - 125px - 42px);
 }
 
 /* (1440x900) WXGA+ Display */
@@ -55,4 +53,8 @@ app-gv-markdown-toc {
     padding: var(--gv-page-markdown--p, 2rem);
   }
 
+}
+
+:host ::ng-deep img {
+  max-width: 100%;
 }

@@ -21,7 +21,7 @@ import { ConfigurationService } from '../services/configuration.service';
 import { FeatureEnum } from '../model/feature.enum';
 
 @Injectable({ providedIn: 'root' })
-export class PermissionsResolver implements Resolve<PermissionsResponse> {
+export class PermissionsResolver implements Resolve<PermissionsResponse | void> {
 
   constructor(
     private permissionsService: PermissionsService,
@@ -34,10 +34,12 @@ export class PermissionsResolver implements Resolve<PermissionsResponse> {
       const params = route.params;
       if (params.applicationId) {
         const applicationId = params.applicationId;
-        return this.permissionsService.getCurrentUserPermissions({ applicationId });
+        return this.permissionsService.getCurrentUserPermissions({ applicationId })
+          .toPromise().catch(() => {});
       } else if (params.apiId && this.configurationService.hasFeature(FeatureEnum.rating)) {
         const apiId = params.apiId;
-        return this.permissionsService.getCurrentUserPermissions({ apiId });
+        return this.permissionsService.getCurrentUserPermissions({ apiId })
+          .toPromise().catch(() => {});
       }
     }
     return Promise.resolve({});

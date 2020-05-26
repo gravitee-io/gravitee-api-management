@@ -136,7 +136,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
     this.isLoaded = true;
     setTimeout(() => {
 
-      const top = ScrollService.getHeaderHeight() + GvDocumentationComponent.MENU_BOTTOM;
+      const top = ScrollService.getHeaderHeight() + GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM;
 
       const wrap = document.querySelector('.redoc-wrap');
       // @ts-ignore
@@ -153,11 +153,11 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
       // @ts-ignore
       this.redocMenu.style.position = 'fixed';
       // @ts-ignore
-      this.redocMenu.style.height = ` ${(window.innerHeight - top - GvDocumentationComponent.MENU_BOTTOM)}px`;
+      this.redocMenu.style.height = ` ${(window.innerHeight - top - GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM)}px`;
       // @ts-ignore
       this.redocMenu.style.top = `${top}px`;
       // @ts-ignore
-      this.redocMenu.style.bottom = `${GvDocumentationComponent.MENU_BOTTOM}px`;
+      this.redocMenu.style.bottom = `${GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM}px`;
       const width = window.getComputedStyle(document.querySelector('.menu-content')).width;
       // @ts-ignore
       document.querySelector('.api-content').style.marginLeft = width;
@@ -183,6 +183,8 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
       if (element) {
         // @ts-ignore
         element.style.height = 'auto';
+        // @ts-ignore
+        element.style.minHeight = 'auto';
       }
     });
   }

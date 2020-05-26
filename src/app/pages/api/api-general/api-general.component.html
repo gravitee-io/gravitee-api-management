@@ -114,10 +114,20 @@
 
   <div *ngIf="currentApi" class="page__box">
     <div class="page__box-content">
+
+      <div class="info" *ngIf="apiInformations.length > 0">
+        <ul class="info__miscellaneous">
+          <li class="info__miscellaneous_item" *ngFor="let apiInformation of apiInformations">
+            <span>{{ apiInformation.name | translate}}</span> {{ apiInformation.value }}
+          </li>
+        </ul>
+      </div>
+
       <div *ngIf="currentApi.entrypoints && currentApi.entrypoints.length > 0" class="info">
         <h4 class="title">{{ 'api.information.entrypoints' | translate }}</h4>
-        <div *ngFor="let e of currentApi.entrypoints" class="info__resources"><a class="link" href="{{e}}"
-                                                                                 target="_blank">{{e}}</a></div>
+        <div *ngFor="let e of currentApi.entrypoints" class="info__resources">
+          <gv-button link [href]="e" (:gv-button:click)="goToExtern(e)">{{e}}</gv-button>
+        </div>
       </div>
 
       <div *ngIf="currentApi.views && currentApi.views.length > 0" class="info">
@@ -136,7 +146,7 @@
           </span>
       </div>
 
-      <div *ngIf="currentApi.rating_summary" class="info">
+      <div *ngIf="hasRatingFeature && currentApi.rating_summary" class="info">
         <h4 class="title">{{ 'api.information.ratings' | translate }}</h4>
         <span class="info__figures">
             <span *ngIf="!currentApi.rating_summary.count">{{ 'api.information.beFirstToRate' | translate }}</span>
@@ -157,27 +167,11 @@
         <h4 class="title">{{ 'api.information.resources' | translate }}</h4>
         <span>
               <div *ngFor="let item of resources" class="info__resources">
-                <a (click)="onNavChange(item)" class="link" href="{{item.path}}"
-                   target="{{item.target}}">{{item.title}}</a>
+                <gv-button link [href]="item.path" (:gv-button:click)="onNavChange(item)">{{item.title}}</gv-button>
               </div>
           </span>
       </div>
 
-      <div class="info">
-        <h4 class="title">{{ 'api.information.moreInfo' | translate }}</h4>
-        <ul class="info__miscellaneous">
-          <li class="info__miscellaneous_item">
-            <span>{{'api.information.version' | translate}}</span> {{ currentApi.version }}
-          </li>
-          <li class="info__miscellaneous_item">
-            <span>{{'api.information.lastUpdate' | translate}}</span>
-            <gv-relative-time [datetime]="currentApi.updated_at" noFuture></gv-relative-time>
-          </li>
-          <li class="info__miscellaneous_item">
-            <span>{{'api.information.publisher' | translate}}</span> {{ currentApi.owner.display_name }}
-          </li>
-        </ul>
-      </div>
     </div>
   </div>
 

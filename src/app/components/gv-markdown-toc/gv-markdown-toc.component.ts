@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ElementRef, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as marked from 'marked';
 import { PageService } from 'src/app/services/page.service';
 import { Subscription } from 'rxjs';
 import { ScrollService } from 'src/app/services/scroll.service';
+import { GvDocumentationComponent } from '../gv-documentation/gv-documentation.component';
 
 @Component({
   selector: 'app-gv-markdown-toc',
   templateUrl: './gv-markdown-toc.component.html',
   styleUrls: ['./gv-markdown-toc.component.css']
 })
-export class GvMarkdownTocComponent implements OnInit, OnDestroy {
+export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit {
 
   tocList: TocModel[];
   currentAnchor: string;
@@ -37,12 +38,14 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy {
   textRenderer = new marked.TextRenderer();
   /* ****************** */
   private scrollInProgress: boolean;
+  private lastTop: number;
 
   constructor(
     private route: ActivatedRoute,
     private pageService: PageService,
     private router: Router,
     private scrollService: ScrollService,
+    private element: ElementRef,
   ) {
   }
 
@@ -59,6 +62,26 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngAfterViewInit() {
+    GvDocumentationComponent.reset(this.element.nativeElement);
+  }
+
+
+  @HostListener('window:resize')
+  onResize() {
+    window.requestAnimationFrame(() => {
+      GvDocumentationComponent.updateMenuHeight(this.element.nativeElement);
+    });
+  }
+
+
+  @HostListener('window:scroll')
+  onScroll() {
+    window.requestAnimationFrame(() => {
+      this.lastTop = GvDocumentationComponent.updateMenuPosition(this.element.nativeElement, this.lastTop);
+    });
+  }
+
   ngOnDestroy(): void {
     this.pageServiceSubscription.unsubscribe();
   }
@@ -72,17 +95,16 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy {
   }
 
   _buildTocModel(content: string): TocModel[] {
-    const currentNodeByLevel = {};
     const nodeMap = [];
 
     const tokens = marked.lexer(content)
       .filter((item) => item.type === 'heading' && item.depth > 1)
       .map((item) => ({
-          anchor: this._computeAnchor(item),
-          text: this._computeText(item),
-          children: [],
-          level: item.depth
-        }));
+        anchor: this._computeAnchor(item),
+        text: this._computeText(item),
+        children: [],
+        level: item.depth
+      }));
 
     for (let index = 0; index < tokens.length; index++) {
       const node: TocModel = tokens[index];
@@ -105,7 +127,7 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy {
   }
 
   _findParentNode(tokens: TocModel[], child: TocModel, childIndex: number): any {
-    for (let index = childIndex - 1; index > 1 ; index--) {
+    for (let index = childIndex - 1; index > 1; index--) {
       if (tokens[index] && tokens[index].level < child.level) {
         return tokens[index];
       }
@@ -133,7 +155,6 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy {
 }
 
 class TocModel {
-  public anchor: string;
   public text: string;
   public children?: TocModel[];
   public level: number;

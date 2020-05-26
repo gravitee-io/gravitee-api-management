@@ -116,4 +116,10 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.loginForm.valid.valueOf();
   }
 
+  getProviderStyle(provider) {
+    if (provider.color) {
+    return `--gv-button-${provider.type}--bgc:${provider.color};`
+    }
+    return '';
+  }
 }

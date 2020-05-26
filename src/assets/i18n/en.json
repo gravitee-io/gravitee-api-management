@@ -10,23 +10,27 @@
     }
   },
   "api": {
+    "createdAt": "Created at",
+    "deployedAt": "Deployed at",
+    "description": "Description",
+    "endpoint": "Context path",
     "information": {
       "about": "About",
       "beFirstToRate": "Be the first to rate",
       "categories": "Categories",
       "entrypoints": "Access URL",
       "labels": "Labels",
-      "lastUpdate": "Last update: ",
       "metrics": "Metrics",
-      "moreInfo": "More information",
-      "publisher": "Publisher: ",
       "ratings": "Ratings",
-      "resources": "Resources",
-      "version": "Version: "
+      "resources": "Resources"
     },
     "list": {
       "connectedApps": "Connected applications"
-    }
+    },
+    "name": "Name",
+    "owner": "Owner",
+    "publishedAt": "Published at",
+    "version": "Version"
   },
   "apiGeneral": {
     "description": "Description",

@@ -75,7 +75,7 @@ export class GvDocumentationComponent implements AfterViewInit {
   ) {
   }
 
-  static MENU_BOTTOM = 42;
+  static PAGE_PADDING_TOP_BOTTOM = 44;
   static PAGE_COMPONENT = 'app-gv-page';
 
   currentPage: Page;
@@ -96,7 +96,7 @@ export class GvDocumentationComponent implements AfterViewInit {
   static updateMenuHeight(menuElement) {
     if(menuElement){
       const viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-      menuElement.style.height = `${viewportHeight - (ScrollService.getHeaderHeight() + 2 * GvDocumentationComponent.MENU_BOTTOM)}px`;
+      menuElement.style.height = `${viewportHeight - (ScrollService.getHeaderHeight() + 2 * GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM)}px`;
     }
   }
 
@@ -124,11 +124,13 @@ export class GvDocumentationComponent implements AfterViewInit {
   }
 
   static reset(menuElement) {
-    const top = ScrollService.getHeaderHeight() + GvDocumentationComponent.MENU_BOTTOM;
-    menuElement.style.bottom = `${GvDocumentationComponent.MENU_BOTTOM}px`;
-    menuElement.style.top = `${top}px`;
-    menuElement.style.position = `fixed`;
-    this.updateMenuHeight(menuElement);
+    if(menuElement) {
+      const top = ScrollService.getHeaderHeight() + GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM;
+      menuElement.style.bottom = `${GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM}px`;
+      menuElement.style.top = `${top}px`;
+      menuElement.style.position = `fixed`;
+      this.updateMenuHeight(menuElement);
+    }
   }
 
   private initTree(pages: Page[], selectedPage?: string) {
@@ -189,7 +191,7 @@ export class GvDocumentationComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     setTimeout(() => {
-      GvDocumentationComponent.updateMenuHeight(this.treeMenu.nativeElement);
+      GvDocumentationComponent.reset(this.treeMenu.nativeElement);
     }, 0);
   }
 
@@ -201,7 +203,6 @@ export class GvDocumentationComponent implements AfterViewInit {
       });
     }
   }
-
 
   @HostListener('window:scroll')
   onScroll() {
@@ -234,10 +235,6 @@ export class GvDocumentationComponent implements AfterViewInit {
     return page && page.type.toUpperCase() === Page.TypeEnum.SWAGGER;
   }
 
-  isFolder(page: Page) {
-    return page && page.type.toUpperCase() === Page.TypeEnum.FOLDER;
-  }
-
   private getFirstPage(pages: any[], pageId?: string) {
     for (const page of pages) {
       if (this.isSwagger(page) || this.isMarkdown(page)) {
@@ -255,4 +252,5 @@ export class GvDocumentationComponent implements AfterViewInit {
   isEmpty() {
     return this.isLoaded && (!this.menu || this.menu.length === 0);
   }
+
 }

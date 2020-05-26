@@ -77,11 +77,14 @@ export class GvPageSwaggerUIComponent implements OnInit {
     }
   }
 
+  _tryItEnabled(page: Page) {
+    return page.configuration && page.configuration.try_it &&
+      (this.currentUser || page.configuration.try_it_anonymous);
+  };
+
   _prepareConfig(page: Page) {
     const customPlugins = [];
-    if (page.configuration
-      && !page.configuration.try_it
-      && (this.currentUser || !page.configuration.try_it_anonymous)) {
+    if (!this._tryItEnabled(page)) {
       customPlugins.push(this.DisableTryItOutPlugin);
     }
 
@@ -107,7 +110,6 @@ export class GvPageSwaggerUIComponent implements OnInit {
         return req;
       },
       spec: contentAsJson,
-      oauth2RedirectUrl: window.location.origin + window.location.pathname + (window.location.pathname.substr(-1) !== '/' ? '/' : '') + 'swagger-oauth2-redirect.html',
     };
 
     if (page.configuration) {
