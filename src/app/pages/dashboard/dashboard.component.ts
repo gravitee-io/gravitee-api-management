@@ -78,17 +78,17 @@ export class DashboardComponent implements OnInit {
       data: [
         {
           field: 'application._links.picture',
-          type: 'image', alt: (item) => item.application.name + '  ' + item.application.applicationType,
-          width: '10%',
+          type: 'image',
+          alt: (item) => item.application.name + '  ' + item.application.applicationType,
         },
         {
           field: 'application.name',
           label: i18n('dashboard.subscriptions.application'),
-          icon: (item) => getApplicationTypeIcon(item.applicationType),
-          width: '30%',
+          icon: (item) => getApplicationTypeIcon(item.application.applicationType),
+          iconTitle: (item) => item.application.applicationType,
         },
-        { field: 'api.name', tag: 'api.version', label: i18n('dashboard.subscriptions.api'), width: '40%' },
-        { field: 'plan.name', label: i18n('dashboard.subscriptions.plan'), width: '20%' },
+        { field: 'api.name', tag: 'api.version', label: i18n('dashboard.subscriptions.api') },
+        { field: 'plan.name', label: i18n('dashboard.subscriptions.plan') },
       ]
     };
     this.analyticsService.getDefaultStatsOptions().then((result) => {

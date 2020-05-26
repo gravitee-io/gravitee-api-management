@@ -133,7 +133,7 @@
       <div *ngIf="currentApi.views && currentApi.views.length > 0" class="info">
         <h4 class="title">{{ 'api.information.categories' | translate }}</h4>
         <span>
-            <gv-tag (click)="goToCategory(view)" *ngFor="let view of currentApi.views"
+            <gv-tag (:gv-tag:click)="goToCategory(view)" *ngFor="let view of currentApi.views"
                     [clickable]="true">{{view}}</gv-tag>
           </span>
       </div>
@@ -141,7 +141,7 @@
       <div *ngIf="currentApi.labels && currentApi.labels.length > 0" class="info">
         <h4 class="title">{{ 'api.information.labels' | translate }}</h4>
         <span>
-            <gv-tag (click)="goToSearch(tag)" *ngFor="let tag of currentApi.labels" [clickable]="true"
+            <gv-tag (:gv-tag:click)="goToSearch(tag)" *ngFor="let tag of currentApi.labels" [clickable]="true"
                     major>{{tag}}</gv-tag>
           </span>
       </div>

@@ -95,7 +95,7 @@
 
     <div class="page__box-footer form__actions">
       <gv-tag class="gv-analytics-filter__tags" *ngFor="let tag of tags" [clickable]="true" icon-right="general:close"
-              (click)="onTagRemove(tag)" major>{{tag}}</gv-tag>
+              (:gv-tag:click)="onTagRemove(tag)" major>{{tag}}</gv-tag>
 
       <div class="gv-analytics-filter__inputs">
         <gv-button *ngIf="export.observers.length" (:gv-button:click)="export.emit()"

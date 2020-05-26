@@ -22,6 +22,7 @@ import { Router } from '@angular/router';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import StatusEnum = Subscription.StatusEnum;
 import { ConfigurationService } from 'src/app/services/configuration.service';
+import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item'
 
 @Component({
   selector: 'app-subscriptions',
@@ -65,12 +66,12 @@ export class SubscriptionsComponent implements OnInit {
     this.options = {
       selectable: true,
       data: [
-        { field: '_links.picture', type: 'image', alt: (item) => item.name + '  ' + item.applicationType, width: '15%' },
+        { field: '_links.picture', type: 'image', alt: (item) => getPictureDisplayName(item) },
         {
           field: 'name',
           label: i18n('subscriptions.applications.name'),
           icon: (item) => getApplicationTypeIcon(item.applicationType),
-          width: '60%',
+          iconTitle: (item) => item.applicationType,
         },
         { field: 'owner.display_name', label: i18n('subscriptions.applications.owner') },
         {
