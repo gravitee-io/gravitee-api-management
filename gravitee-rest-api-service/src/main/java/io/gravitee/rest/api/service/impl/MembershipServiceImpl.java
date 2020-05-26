@@ -45,6 +45,7 @@ import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMB
 import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMBERSHIP_DELETED;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.rest.api.service.notification.PortalHook.GROUP_INVITATION;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 
 /**
@@ -813,7 +814,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         if (member != null) {
          return member.getPermissions();
         }
-        return null;
+        return emptyMap();
     }
     
     @Override
