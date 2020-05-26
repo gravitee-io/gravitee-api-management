@@ -28,6 +28,7 @@ import '@gravitee/ui-components/wc/gv-table';
 import '@gravitee/ui-components/wc/gv-stats';
 import '@gravitee/ui-components/wc/gv-card-list';
 import { AnalyticsService } from '../../services/analytics.service';
+import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 
 @Component({
   selector: 'app-dashboard',
@@ -79,7 +80,7 @@ export class DashboardComponent implements OnInit {
         {
           field: 'application._links.picture',
           type: 'image',
-          alt: (item) => item.application.name + '  ' + item.application.applicationType,
+          alt: (item) => getPictureDisplayName(item.application),
         },
         {
           field: 'application.name',

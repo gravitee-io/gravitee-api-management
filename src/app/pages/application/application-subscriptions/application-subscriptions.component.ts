@@ -28,6 +28,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import StatusEnum = Subscription.StatusEnum;
 import { NotificationService } from '../../../services/notification.service';
+import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 
 @Component({
   selector: 'app-application-subscriptions',
@@ -82,7 +83,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
         data: [
           {
             field: 'api', type: 'image',
-            alt: (item) => this.metadata[item.api] && (this.metadata[item.api].name + '  ' + this.metadata[item.api].version),
+            alt: (item) => this.metadata[item.api] && getPictureDisplayName(this.metadata[item.api]),
             format: (item) => this.metadata[item] && this.metadata[item].pictureUrl
           },
           {
