@@ -15,7 +15,7 @@
  */
 
 import NotificationService from '../../services/notification.service';
-import DocumentationService, {DocumentationQuery, FolderSituation} from '../../services/documentation.service';
+import DocumentationService, {DocumentationQuery, FolderSituation, SystemFolderName} from '../../services/documentation.service';
 import {StateService} from '@uirouter/core';
 import _ = require('lodash');
 import {IScope} from 'angular';
@@ -65,7 +65,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       }
 
       if (this.systemFoldersById[folderId]) {
-        if ('TOPFOOTER' === this.systemFoldersById[folderId].name.toUpperCase()) {
+        if (SystemFolderName.TOPFOOTER === this.systemFoldersById[folderId].name) {
           return FolderSituation.SYSTEM_FOLDER_WITH_FOLDERS;
         } else {
           return FolderSituation.SYSTEM_FOLDER;

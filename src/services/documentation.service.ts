@@ -37,6 +37,13 @@ export class ImportPageEntity {
   excluded_groups: string[];
 }
 
+export enum SystemFolderName {
+  HEADER = 'Header',
+  TOPFOOTER = 'TopFooter',
+  FOOTER = 'Footer',
+  ASIDE = 'Aside'
+}
+
 export enum FolderSituation {
   SYSTEM_FOLDER,
   SYSTEM_FOLDER_WITH_FOLDERS,

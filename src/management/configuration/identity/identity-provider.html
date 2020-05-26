@@ -17,7 +17,13 @@
 -->
 <div class="gv-forms" layout="column">
   <div layout="row" layout-align="start end" class="gv-forms-header">
-    <h1 ng-if="$ctrl.updateMode">{{$ctrl.identityProvider.name}}</h1>
+    <h1 ng-if="$ctrl.updateMode">
+      <md-icon 
+        md-svg-icon="assets/logo_{{$ctrl.identityProvider.type | lowercase}}-idp.svg"
+        style="fill: black;"
+      ></md-icon>
+      {{$ctrl.identityProvider.name}}
+    </h1>
     <h1 ng-if="!$ctrl.updateMode">Create a new {{$ctrl.identityProvider.type}} identity provider</h1>
     <a ui-sref="management.settings.identityproviders.list">Back to identity providers</a>
   </div>
