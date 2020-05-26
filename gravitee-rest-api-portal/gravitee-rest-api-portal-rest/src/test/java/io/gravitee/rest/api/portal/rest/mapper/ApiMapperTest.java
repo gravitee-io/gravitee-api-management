@@ -122,6 +122,8 @@ public class ApiMapperTest {
         doReturn(ratingSummaryEntity).when(ratingService).findSummaryByApi(API_ID);
 
         doReturn(true).when(parameterService).findAsBoolean(Key.PORTAL_APIS_VIEW_ENABLED);
+        doReturn(true).when(parameterService).findAsBoolean(Key.PORTAL_APIS_SHOW_VIEWS_IN_APIHEADER);
+        doReturn(true).when(parameterService).findAsBoolean(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER);
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/foo")));
         apiEntity.setProxy(proxy);

@@ -128,27 +128,12 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
     @Test
     public void shouldGetApiWithPagesAndPlansIncluded() {
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
         callResourceAndCheckResult(1, 2);
     }
     
     @Test
-    public void shouldGetApiWithPlansIncluded() {
-        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
-        callResourceAndCheckResult(0, 2);
-    }
-    
-    @Test
     public void shouldGetApiWithNoElementsIncluded() {
-        // case 1
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
-        callResourceAndCheckResult(0, 0);
-        
-        // case 2
-        doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
         callResourceAndCheckResult(0, 0);
     }
     

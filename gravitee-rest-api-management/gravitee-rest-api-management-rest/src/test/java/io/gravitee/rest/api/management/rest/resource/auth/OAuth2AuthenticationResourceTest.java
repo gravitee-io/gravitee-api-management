@@ -132,11 +132,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             }
 
             @Override
-            public String getIcon() {
-                return null;
-            }
-
-            @Override
             public String getClientSecret() {
                 return "the_client_secret";
             }

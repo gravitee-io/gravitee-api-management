@@ -137,8 +137,6 @@ public abstract class SocialIdentityProviderEntity {
 
     public abstract String getColor();
 
-    public abstract String getIcon();
-
     @JsonIgnore
     public abstract Map<String, String> getUserProfileMapping();
 

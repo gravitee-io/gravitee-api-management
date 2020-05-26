@@ -145,7 +145,6 @@ public class IdentityProviderMapperTest {
                 assertEquals(serverUrl + "/oauth/authorize", idp.getAuthorizationEndpoint());
                 assertEquals(IDP_COLOR, idp.getColor());
                 assertNull(idp.getDisplay());
-                assertEquals("perm_identity", idp.getIcon());
                 assertNull(idp.getOptionalUrlParams());
                 assertNull(idp.getRequiredUrlParams());
                 assertEquals(Arrays.asList(IDP_SCOPE), idp.getScopes());
@@ -158,7 +157,6 @@ public class IdentityProviderMapperTest {
                 assertEquals("https://github.com/login/oauth/authorize", idp.getAuthorizationEndpoint());
                 assertNull(idp.getColor());
                 assertNull(idp.getDisplay());
-                assertEquals("github-circle", idp.getIcon());
                 assertEquals(Arrays.asList("scope"), idp.getOptionalUrlParams());
                 assertNull(idp.getRequiredUrlParams());
                 assertEquals(Arrays.asList("user:email"), idp.getScopes());
@@ -171,7 +169,6 @@ public class IdentityProviderMapperTest {
                 assertEquals("https://accounts.google.com/o/oauth2/v2/auth", idp.getAuthorizationEndpoint());
                 assertNull(idp.getColor());
                 assertEquals("popup", idp.getDisplay());
-                assertEquals("google-plus", idp.getIcon());
                 assertEquals(Arrays.asList("display", "state"), idp.getOptionalUrlParams());
                 assertEquals(Arrays.asList("scope"), idp.getRequiredUrlParams());
                 assertEquals(Arrays.asList("profile", "email"), idp.getScopes());
@@ -184,7 +181,6 @@ public class IdentityProviderMapperTest {
                 assertEquals(IDP_AUTHORIZATION_ENDPOINT, idp.getAuthorizationEndpoint());
                 assertEquals(IDP_COLOR, idp.getColor());
                 assertNull(idp.getDisplay());
-                assertEquals("perm_identity", idp.getIcon());
                 assertNull(idp.getOptionalUrlParams());
                 assertNull(idp.getRequiredUrlParams());
                 assertEquals(Arrays.asList(IDP_SCOPE), idp.getScopes());

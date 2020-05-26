@@ -15,15 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanSecurityType;
-import io.gravitee.rest.api.model.PlanStatus;
-import io.gravitee.rest.api.model.PlanValidationType;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Plan;
-import io.gravitee.rest.api.portal.rest.model.PlansResponse;
+import io.gravitee.rest.api.portal.rest.model.PlansResponse;import org.apache.xpath.axes.HasPositionalPredChecker;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,6 +33,7 @@ import java.util.Set;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -59,6 +57,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
+        mockApi.setVisibility(Visibility.PUBLIC);
         doReturn(mockApi).when(apiService).findById(API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
@@ -109,15 +108,62 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     }
     
     @Test
-    public void shouldGetApiPlans() {
+    public void shouldGetApiPlansWithPublicAPI() {
+        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        
         final Response response = target(API).path("plans").request().get();
-
         assertEquals(OK_200, response.getStatus());
 
-        final PlansResponse plansResponse = response.readEntity(PlansResponse.class);
+        PlansResponse plansResponse = response.readEntity(PlansResponse.class);
+
         List<Plan> plans = plansResponse.getData();
         assertNotNull(plans);
         assertEquals(2, plans.size());
+    }
+
+    @Test
+    public void shouldGetApiPlansWithPrivateAPIAndReadPermission() {
+        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        doReturn(true).when(permissionService).hasPermission(any(), any(), any());
+
+        final Response response = target(API).path("plans").request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        PlansResponse plansResponse = response.readEntity(PlansResponse.class);
+
+        List<Plan> plans = plansResponse.getData();
+        assertNotNull(plans);
+        assertEquals(2, plans.size());
+    }
+    
+    @Test
+    public void shouldGetNoApiPlan() {
+        doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
         
+        final Response response = target(API).path("plans").request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        PlansResponse plansResponse = response.readEntity(PlansResponse.class);
+
+        List<Plan> plans = plansResponse.getData();
+        assertNotNull(plans);
+        assertEquals(0, plans.size());
+    }
+    
+    @Test
+    public void shouldGetForibddenAccessExceptionPrivateAPIAndNoReadPermission() {
+        doReturn(false).when(permissionService).hasPermission(any(), any(), any());
+        
+        ApiEntity mockApi = new ApiEntity();
+        mockApi.setId(API);
+        mockApi.setVisibility(Visibility.PRIVATE);
+        doReturn(mockApi).when(apiService).findById(API);
+        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
+        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+
+        
+        final Response response = target(API).path("plans").request().get();
+        assertEquals(FORBIDDEN_403, response.getStatus());
+
     }
 }

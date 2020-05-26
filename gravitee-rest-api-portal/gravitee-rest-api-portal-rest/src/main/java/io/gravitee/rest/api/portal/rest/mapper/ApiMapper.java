@@ -71,11 +71,11 @@ public class ApiMapper {
                 || api.getLifecycleState() == ApiLifecycleState.CREATED);
         apiItem.setRunning(api.getState() == Lifecycle.State.STARTED);
         apiItem.setPublic(api.getVisibility() == Visibility.PUBLIC);
-
         apiItem.setId(api.getId());
 
         List<String> apiLabels = api.getLabels();
-        if (apiLabels != null) {
+        boolean isShowTagsEnabled = this.parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER);
+        if (isShowTagsEnabled && apiLabels != null) {
             apiItem.setLabels(new ArrayList<>(apiLabels));
         } else {
             apiItem.setLabels(new ArrayList<>());
@@ -107,7 +107,8 @@ public class ApiMapper {
 
         apiItem.setVersion(api.getVersion());
 
-        boolean isViewModeEnabled = this.parameterService.findAsBoolean(Key.PORTAL_APIS_VIEW_ENABLED);
+        boolean isViewModeEnabled = this.parameterService.findAsBoolean(Key.PORTAL_APIS_VIEW_ENABLED)
+            && this.parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_VIEWS_IN_APIHEADER);
         if (isViewModeEnabled && api.getViews() != null) {
             apiItem.setViews(api.getViews().stream().filter(viewId -> {
                 try {

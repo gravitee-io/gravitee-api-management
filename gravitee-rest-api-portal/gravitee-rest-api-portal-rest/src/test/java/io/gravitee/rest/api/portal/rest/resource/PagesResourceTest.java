@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
@@ -48,19 +49,16 @@ public class PagesResourceTest extends AbstractResourceTest {
     public void init() throws IOException {
         resetAllMocks();
         
-        PageEntity publishedPage = new PageEntity();
-        publishedPage.setPublished(true);
-        
-        doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull());
-        
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
-
     }
-
     
     @Test
-    public void shouldGetPages() {
+    public void shouldGetPagesIfAuthorizeAndPublishedPageAndNotSystemFolder() {
+        PageEntity publishedPage = new PageEntity();
+        publishedPage.setPublished(true);
+        doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull());
+
         doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
 
         final Response response = target().request().get();
@@ -72,11 +70,14 @@ public class PagesResourceTest extends AbstractResourceTest {
         assertNotNull(pages);
         assertEquals(1, pages.size());
         assertNotNull(pages.get(0).getLinks());
-        
     }
     
     @Test
-    public void shouldGetNoPage() {
+    public void shouldGetNoPageIfNotAuthorizeAndPublishedPageAndNotSystemFolder() {
+        PageEntity publishedPage = new PageEntity();
+        publishedPage.setPublished(true);
+        doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull());
+
         doReturn(false).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
         
         Response response = target().request().get();
@@ -87,6 +88,38 @@ public class PagesResourceTest extends AbstractResourceTest {
         List<Page> pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(0, pages.size());
+    }
+    
+    @Test
+    public void shouldGetNoPageIfAuthorizeAndPublishedPageAndSystemFolder() {
+        PageEntity publishedPage = new PageEntity();
+        publishedPage.setPublished(true);
+        publishedPage.setType("SYSTEM_FOLDER");
+        doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull());
+
+        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
         
+        Response response = target().request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        PagesResponse pagesResponse = response.readEntity(PagesResponse.class);
+
+        List<Page> pages = pagesResponse.getData();
+        assertNotNull(pages);
+        assertEquals(0, pages.size()); 
+    }
+    
+    @Test
+    public void shouldGetNoPageIfAuthorizeAndNotPublished() {
+        doReturn(Collections.emptyList()).when(pageService).search(any(), isNull());
+        
+        Response response = target().request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        PagesResponse pagesResponse = response.readEntity(PagesResponse.class);
+
+        List<Page> pages = pagesResponse.getData();
+        assertNotNull(pages);
+        assertEquals(0, pages.size()); 
     }
 }

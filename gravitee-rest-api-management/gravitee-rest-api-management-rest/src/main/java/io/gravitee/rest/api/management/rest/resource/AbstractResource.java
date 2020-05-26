@@ -69,7 +69,7 @@ public abstract class AbstractResource {
     }
 
     protected boolean isAdmin() {
-        return  isUserInRole(ENVIRONMENT_ADMIN);
+        return isUserInRole(ENVIRONMENT_ADMIN);
     }
 
     private boolean isUserInRole(String role) {
@@ -82,5 +82,10 @@ public abstract class AbstractResource {
 
     protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
         return isAuthenticated() && (isAdmin() || permissionService.hasPermission(permission, referenceId, acls));
+    }
+
+    protected boolean hasApiPermission(RolePermission permission, RolePermissionAction... acls) {
+        return apiService.search(null).stream()
+                .noneMatch(api -> isAuthenticated() && hasPermission(permission, api.getId(), acls));
     }
 }

@@ -410,74 +410,72 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
     @Override
     public boolean isUserAuthorizedToAccessApiData(ApiEntity api, List<String> excludedGroups, String username) {
-        // in anonymous mode, only public API without restrictions are authorized
+        // in anonymous mode
         if (username == null) {
+            // only public API without restrictions are authorized
             return (excludedGroups == null || excludedGroups.isEmpty())
                     && (Visibility.PUBLIC.equals(api.getVisibility()));
         }
 
-        if ( // plan contains excluded groups
-             excludedGroups != null && !excludedGroups.isEmpty()
-             // user is not directly member of the API
-             && membershipService.getRoles(MembershipReferenceType.API, api.getId(), MembershipMemberType.USER, username).isEmpty()
-           ) {
-
-            // for public apis, default authorized groups are all groups,
-            // for private apis, default authorized groups are all apis groups
-            Set<String> authorizedGroups = Collections.emptySet();
-            if (Visibility.PRIVATE.equals(api.getVisibility()) && api.getGroups() != null && !api.getGroups().isEmpty()) {
-                authorizedGroups = new HashSet<>(api.getGroups());
-            }
-            if (Visibility.PUBLIC.equals(api.getVisibility())) {
-                try {
-                    authorizedGroups = groupRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment()).stream().map(Group::getId).collect(Collectors.toSet());
-                } catch (TechnicalException ex) {
-                    logger.error("An error occurs while trying to find all groups", ex);
-                    throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
-                }
-            }
-
-            authorizedGroups.removeAll(excludedGroups);
-            for (String authorizedGroupId : authorizedGroups) {
-                boolean hasUserAPIRoleForGroup = membershipService.getRoles(MembershipReferenceType.GROUP, authorizedGroupId, MembershipMemberType.USER, username).stream()
-                        .anyMatch(roleEntity -> roleEntity.getScope() == RoleScope.API);
-                if (hasUserAPIRoleForGroup) {
-                    return true;
-                }
-            }
-            return false;
+        // in connected mode,
+        
+        // if no restriction defined
+        if (excludedGroups == null || excludedGroups.isEmpty()) {
+            return true;
         }
-        return true;
+        
+        // if user is a direct member of the API
+        if (!membershipService.getRoles(MembershipReferenceType.API, api.getId(), MembershipMemberType.USER, username).isEmpty()) {
+            return true;
+        }
+        
+        // for public apis
+        // user must not be a member of any exclusion group.
+        // That is user must not have no API role on each of the exclusion groups
+        if (Visibility.PUBLIC.equals(api.getVisibility())) {
+            return excludedGroups.stream()
+                    .allMatch(group -> this.membershipService.getRoles(MembershipReferenceType.GROUP, group, MembershipMemberType.USER, username)
+                            .stream()
+                            .noneMatch(role -> role.getScope() == RoleScope.API)
+                    );
+        }
+        
+        // for private apis
+        // user must be in at least one attached group which is not also an exclusion group.
+        if (Visibility.PRIVATE.equals(api.getVisibility()) && api.getGroups() != null && !api.getGroups().isEmpty()) {
+            Set<String> authorizedGroups = new HashSet<>(api.getGroups());
+            authorizedGroups.removeAll(excludedGroups);
+
+            return authorizedGroups.stream()
+                .anyMatch(group -> this.membershipService.getRoles(MembershipReferenceType.GROUP, group, MembershipMemberType.USER, username)
+                        .stream()
+                        .anyMatch(role -> role.getScope() == RoleScope.API)
+                );
+        }
+
+        return false;
+
     }
 
     @Override
     public boolean isUserAuthorizedToAccessPortalData(List<String> excludedGroups, String username) {
-        // in anonymous mode, only pages without restrictions are authorized
+        // in anonymous mode
         if (username == null) {
+            // only pages without restrictions are authorized
             return (excludedGroups == null || excludedGroups.isEmpty());
         }
 
-        if (excludedGroups != null && !excludedGroups.isEmpty()) {
-            // for public apis, default authorized groups are all groups,
-            Set<String> authorizedGroups;
-            try {
-                authorizedGroups = groupRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment()).stream().map(Group::getId).collect(Collectors.toSet());
-            } catch (TechnicalException ex) {
-                logger.error("An error occurs while trying to find all groups", ex);
-                throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
-            }
-
-            authorizedGroups.removeAll(excludedGroups);
-            for (String authorizedGroupId : authorizedGroups) {
-                boolean hasUserAPIRoleForGroup = membershipService.getRoles(MembershipReferenceType.GROUP, authorizedGroupId, MembershipMemberType.USER, username).stream()
-                        .anyMatch(roleEntity -> roleEntity.getScope() == RoleScope.API);
-                if (hasUserAPIRoleForGroup) {
-                    return true;
-                }
-            }
-            return false;
+        // in connected mode
+        
+        // if no restriction defined
+        if (excludedGroups == null || excludedGroups.isEmpty()) {
+            return true;
         }
-        return true;
+
+        // User must not be a member of any exclusion group.
+        // That is user must not have no role on each of the exclusion groups
+        return excludedGroups.stream()
+                .allMatch(group -> this.membershipService.getRoles(MembershipReferenceType.GROUP, group, MembershipMemberType.USER, username).isEmpty());
     }
 
     @Override

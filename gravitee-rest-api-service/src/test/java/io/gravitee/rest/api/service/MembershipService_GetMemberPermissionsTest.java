@@ -19,18 +19,13 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.RoleService;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -82,7 +77,8 @@ public class MembershipService_GetMemberPermissionsTest {
 
         Map<String, char[]> permissions = membershipService.getUserMemberPermissions(api, USERNAME);
 
-        assertNull(permissions);
+        assertNotNull(permissions);
+        assertTrue(permissions.isEmpty());
         verify(membershipRepository, times(1)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(USERNAME, MembershipMemberType.USER, MembershipReferenceType.API, API_ID);
         verify(apiService, times(1)).findById(API_ID);
     }

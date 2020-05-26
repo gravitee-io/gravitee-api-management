@@ -79,7 +79,7 @@ public class JettyServerFactory implements FactoryBean<Server> {
             httpConfig.setSecurePort(jettyConfiguration.getHttpPort());
 
             // SSL Context Factory
-            SslContextFactory sslContextFactory = new SslContextFactory();
+            SslContextFactory sslContextFactory = new SslContextFactory.Server();
 
             if (jettyConfiguration.getKeyStorePath() != null) {
                 sslContextFactory.setKeyStorePath(jettyConfiguration.getKeyStorePath());

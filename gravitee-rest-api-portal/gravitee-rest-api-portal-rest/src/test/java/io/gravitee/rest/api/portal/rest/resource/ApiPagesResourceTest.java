@@ -97,7 +97,6 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetApiPages() {
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
         
         final Response response = target(API).path("pages").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -116,7 +115,6 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         
         // case 1
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
         
         Response response = request.get();
         assertEquals(OK_200, response.getStatus());
@@ -127,20 +125,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         assertEquals(0, pages.size());
         
         // case 2
-        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
-        
-        response = request.get();
-        assertEquals(OK_200, response.getStatus());
-
-        pagesResponse = response.readEntity(PagesResponse.class);
-        pages = pagesResponse.getData();
-        assertNotNull(pages);
-        assertEquals(0, pages.size());
-        
-        // case 3
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(false).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
         
         response = request.get();
         assertEquals(OK_200, response.getStatus());

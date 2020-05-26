@@ -121,7 +121,6 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
     public void shouldHaveMetadataCleared() {
         
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(true).when(pageService).isDisplayable(any(), any(Boolean.class).booleanValue(), any());        
         
         Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());

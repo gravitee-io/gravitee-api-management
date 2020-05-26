@@ -20,6 +20,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_PLAN;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
@@ -30,6 +33,7 @@ import javax.ws.rs.core.Response;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.Plan;
@@ -37,6 +41,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -56,26 +61,28 @@ public class ApiPlansResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiPlansByApiId(@PathParam("apiId") String apiId, @BeanParam PaginationParam paginationParam) {
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        String username = getAuthenticatedUserOrNull();
+        
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(username);
         if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
             
             ApiEntity apiEntity = apiService.findById(apiId);
             
-            String user = getAuthenticatedUserOrNull();
-            List<Plan> plans = planService.findByApi(apiId).stream()
-                    .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
-                    .filter(plan -> (
-                            isAuthenticated() || 
-                            groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())
-                    ))
-                    .sorted(Comparator.comparingInt(PlanEntity::getOrder))
-                    .map(p-> planMapper.convert(p,  user))
-                    .collect(Collectors.toList());
-            
-            return createListResponse(plans, paginationParam);
+            if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
+                    || hasPermission(API_PLAN, apiId, READ)) {
+
+                List<Plan> plans = planService.findByApi(apiId).stream()
+                        .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
+                        .filter(plan -> groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), username))
+                        .sorted(Comparator.comparingInt(PlanEntity::getOrder))
+                        .map(p-> planMapper.convert(p, username))
+                        .collect(Collectors.toList());
+                
+                return createListResponse(plans, paginationParam);
+            }
+            throw new ForbiddenAccessException();
 
         }
-
         throw new ApiNotFoundException(apiId);
     }
 }

@@ -74,11 +74,6 @@ public class GoogleIdentityProviderEntity extends SocialIdentityProviderEntity {
     }
 
     @Override
-    public String getIcon() {
-        return "google-plus";
-    }
-
-    @Override
     public Map<String, String> getUserProfileMapping() {
         return new HashMap<String, String>() {
             {

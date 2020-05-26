@@ -132,11 +132,6 @@ public class OIDCIdentityProviderEntity extends SocialIdentityProviderEntity {
         return this.color;
     }
 
-    @Override
-    public String getIcon() {
-        return "perm_identity";
-    }
-
     public void setUserInfoEndpoint(String userInfoEndpoint) {
         this.userInfoEndpoint = userInfoEndpoint;
     }
