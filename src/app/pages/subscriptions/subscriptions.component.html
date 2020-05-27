@@ -21,7 +21,7 @@
     <div class="table-container">
       <gv-table title="{{'subscriptions.applications.title' | translate}}" [format]="format" [emptymessage]="emptyKeyApplications | translate"
                 (:gv-table:select)="onApplicationClick($event)" (:gv-table:mouseenter)="onApplicationMouseEnter($event)" (:gv-table:mouseleave)="onFocusOut()"
-                order="name" [items]="applications" [options]="options" nosort [rowsheight]="rowsHeight"></gv-table>
+                order="name" [items]="applications" [options]="options" nosort [rowsheight]="rowsHeight" [skeleton]="skeleton"></gv-table>
     </div>
     <div class="table-between"></div>
     <div class="table-container">
@@ -29,7 +29,7 @@
                 [format]="format" [emptymessage]="emptyKeySubscriptions | translate" order="api.name"
                 [selected]="selectedSubscriptions"
                 (:gv-table:select)="onSubscriptionClick($event)"
-                [items]="subs" [options]="optionsSubscriptions" nosort [rowsheight]="rowsHeight"></gv-table>
+                [items]="subs" [options]="optionsSubscriptions" nosort [rowsheight]="rowsHeight" [skeleton]="skeleton"></gv-table>
     </div>
   </section>
 

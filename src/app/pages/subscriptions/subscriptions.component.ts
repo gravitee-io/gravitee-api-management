@@ -42,6 +42,7 @@ export class SubscriptionsComponent implements OnInit {
   selectedApplicationId: string;
   selectedSubscriptions: Array<any>;
   apikeyHeader: string;
+  skeleton = true;
   public curlExample: string;
 
   constructor(
@@ -114,6 +115,7 @@ export class SubscriptionsComponent implements OnInit {
         this.subscriptions = responseSubscriptions.data;
         this.apiService.getApis({ size: -1 }).toPromise().then((responseApis) => {
           this.apis = responseApis.data;
+          this.skeleton = false;
         });
       });
     });
