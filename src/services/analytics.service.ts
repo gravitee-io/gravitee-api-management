@@ -96,7 +96,7 @@ class AnalyticsService {
     let q = this.$stateParams.q;
     if (q) {
       const queryFilters = {};
-      q.split(' ').forEach(q => {
+      q.split(/\s(OR|AND)\s/).forEach(q => {
         if (q.includes(':')) {
           let param = q.split(':');
           let keyParam = this.cleanParam(param[0]);
@@ -120,7 +120,7 @@ class AnalyticsService {
   buildQueryParam(queryParam, q: string) {
     queryParam = (q === 'body') ? ('*' + queryParam + '*') : queryParam;
     queryParam = (q === 'uri') ? (queryParam + '*') : queryParam;
-    queryParam = (q.includes('path')) ? ('\\"' + queryParam + '\\"') : queryParam;
+    queryParam = '\\"' + queryParam + '\\"';
     queryParam = queryParam.replace(/\//g, '\\\\/');
     return queryParam;
   }
