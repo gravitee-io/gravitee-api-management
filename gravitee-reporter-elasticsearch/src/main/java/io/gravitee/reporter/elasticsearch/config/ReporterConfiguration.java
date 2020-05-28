@@ -104,7 +104,7 @@ public class ReporterConfiguration {
 	/**
 	 * Settings: number of shards
 	 */
-	@Value("${reporters.elasticsearch.settings.number_of_shards:5}")
+	@Value("${reporters.elasticsearch.settings.number_of_shards:1}")
 	private int numberOfShards;
 	/**
 	 * Settings: number of replicas
