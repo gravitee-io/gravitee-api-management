@@ -26,8 +26,8 @@ import org.springframework.stereotype.Repository;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.ViewRepository;
-import io.gravitee.repository.management.model.View;
+import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.model.Category;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
@@ -36,14 +36,14 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
  * @author njt
  */
 @Repository
-public class JdbcViewRepository implements ViewRepository {
+public class JdbcCategoryRepository implements CategoryRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcViewRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcCategoryRepository.class);
 
     @Autowired
     protected JdbcTemplate jdbcTemplate;
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(View.class, "views", "id")
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Category.class, "categories", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("key", Types.NVARCHAR, String.class)
@@ -58,55 +58,55 @@ public class JdbcViewRepository implements ViewRepository {
             .build();
 
     @Override
-    public Set<View> findAllByEnvironment(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcViewRepository.findAllByEnvironment({})", environmentId);
+    public Set<Category> findAllByEnvironment(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcCategoryRepository.findAllByEnvironment({})", environmentId);
         try {
-            List<View> views = jdbcTemplate.query("select * from views where environment_id = ?"
+            List<Category> categories = jdbcTemplate.query("select * from categories where environment_id = ?"
                     , ORM.getRowMapper()
                     , environmentId
             );
-            return new HashSet<>(views);
+            return new HashSet<>(categories);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find views by environment:", ex);
-            throw new TechnicalException("Failed to find views by environment", ex);
+            LOGGER.error("Failed to find categories by environment:", ex);
+            throw new TechnicalException("Failed to find categories by environment", ex);
         }
     }
 
     @Override
-    public Optional<View> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcViewRepository.findById({})", id);
+    public Optional<Category> findById(String id) throws TechnicalException {
+        LOGGER.debug("JdbcCategoryRepository.findById({})", id);
         try {
-            List<View> items = jdbcTemplate.query("select * from views where id = ?"
+            List<Category> items = jdbcTemplate.query("select * from categories where id = ?"
                     , ORM.getRowMapper()
                     , id
             );
             return items.stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find views items by id : {} ", id, ex);
-            throw new TechnicalException("Failed to find views items by id : " + id, ex);
+            LOGGER.error("Failed to find categories items by id : {} ", id, ex);
+            throw new TechnicalException("Failed to find categories items by id : " + id, ex);
         }
     }
 
     @Override
-    public View create(View item) throws TechnicalException {
-        LOGGER.debug("JdbcViewRepository.create({})", item);
+    public Category create(Category item) throws TechnicalException {
+        LOGGER.debug("JdbcCategoryRepository.create({})", item);
         try {
             jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create views item:", ex);
-            throw new TechnicalException("Failed to create views item.", ex);
+            LOGGER.error("Failed to create categories item:", ex);
+            throw new TechnicalException("Failed to create categories item.", ex);
         }
     }
 
     @Override
-    public View update(View item) throws TechnicalException {
-        LOGGER.debug("JdbcViewRepository.update({})", item);
+    public Category update(Category item) throws TechnicalException {
+        LOGGER.debug("JdbcCategoryRepository.update({})", item);
         if (item == null) {
             throw new IllegalStateException("Unable to update null item");
         }
         try {
-            int rows = jdbcTemplate.update("update views set "
+            int rows = jdbcTemplate.update("update categories set "
                                         + " id = ?"
                                         + " , environment_id = ?"
                                         + " , " + escapeReservedWord("key") + " = ?"
@@ -137,52 +137,52 @@ public class JdbcViewRepository implements ViewRepository {
                                 , item.getEnvironmentId()
                         );
             if (rows == 0) {
-                throw new IllegalStateException("Unable to update views " + item.getId() + " for the environment " + item.getEnvironmentId());
+                throw new IllegalStateException("Unable to update categories " + item.getId() + " for the environment " + item.getEnvironmentId());
             } else {
                 return findById(item.getId()).orElse(null);
             }
         } catch (IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update views item:", ex);
-            throw new TechnicalException("Failed to update views item", ex);
+            LOGGER.error("Failed to update categories item:", ex);
+            throw new TechnicalException("Failed to update categories item", ex);
         }
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        LOGGER.debug("JdbcViewRepository.delete({})", id);
+        LOGGER.debug("JdbcCategoryRepository.delete({})", id);
         try {
-            jdbcTemplate.update("delete from views where id = ?", id);
+            jdbcTemplate.update("delete from categories where id = ?", id);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete views item:", ex);
-            throw new TechnicalException("Failed to delete views item", ex);
+            LOGGER.error("Failed to delete categories item:", ex);
+            throw new TechnicalException("Failed to delete categories item", ex);
         }
         
     }
 
     @Override
-    public Set<View> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcViewRepository.findAll()");
+    public Set<Category> findAll() throws TechnicalException {
+        LOGGER.debug("JdbcCategoryRepository.findAll()");
         try {
-            List<View> items = jdbcTemplate.query(ORM.getSelectAllSql(), ORM.getRowMapper());
+            List<Category> items = jdbcTemplate.query(ORM.getSelectAllSql(), ORM.getRowMapper());
             return new HashSet<>(items);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find all views items:", ex);
-            throw new TechnicalException("Failed to find all views items", ex);
+            LOGGER.error("Failed to find all categories items:", ex);
+            throw new TechnicalException("Failed to find all categories items", ex);
         }
     }
     
     @Override
-    public Optional<View> findByKey(String key, String environment) throws TechnicalException {
-        LOGGER.debug("JdbcViewRepository.findByKey({},{})", key, environment);
+    public Optional<Category> findByKey(String key, String environment) throws TechnicalException {
+        LOGGER.debug("JdbcCategoryRepository.findByKey({},{})", key, environment);
         try {
-            final Optional<View> view = jdbcTemplate.query(
-                    "select * from views where " + escapeReservedWord("key") + " = ? and environment_id = ?", ORM.getRowMapper(), key, environment)
+            final Optional<Category> category = jdbcTemplate.query(
+                    "select * from categories where " + escapeReservedWord("key") + " = ? and environment_id = ?", ORM.getRowMapper(), key, environment)
                     .stream().findFirst();
-            return view;
+            return category;
         } catch (final Exception ex) {
-            final String error = "Failed to find view by key " + key;
+            final String error = "Failed to find category by key " + key;
             LOGGER.error(error, ex);
             throw new TechnicalException(error, ex);
         }

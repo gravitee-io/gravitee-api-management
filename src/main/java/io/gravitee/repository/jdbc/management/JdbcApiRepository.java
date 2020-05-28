@@ -35,7 +35,6 @@ import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.*;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
@@ -70,13 +69,13 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .build();
 
     private static final JdbcHelper.ChildAdder<Api> CHILD_ADDER = (Api parent, ResultSet rs) -> {
-        Set<String> views = parent.getViews();
-        if (views == null) {
-            views = new HashSet<>();
-            parent.setViews(views);
+        Set<String> categories = parent.getCategories();
+        if (categories == null) {
+            categories = new HashSet<>();
+            parent.setCategories(categories);
         }
-        if (rs.getString("view") != null) {
-            views.add(rs.getString("view"));
+        if (rs.getString("category") != null) {
+            categories.add(rs.getString("category"));
         }
     };
 
@@ -95,7 +94,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         LOGGER.debug("JdbcApiRepository.findById({})", id);
         try {
             JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from apis a left join api_views av on a.id = av.api_id where a.id = ?"
+            jdbcTemplate.query("select * from apis a left join api_categories ac on a.id = ac.api_id where a.id = ?"
                     , rowMapper
                     , id
             );
@@ -120,7 +119,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
             storeLabels(item, false);
             storeGroups(item, false);
-            storeViews(item, false);
+            storeCategories(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create api:", ex);
@@ -138,7 +137,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(api, api.getId()));
             storeLabels(api, true);
             storeGroups(api, true);
-            storeViews(api, true);
+            storeCategories(api, true);
             return findById(api.getId()).orElseThrow(() -> new IllegalStateException(format("No api found with id [%s]", api.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
@@ -152,7 +151,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     public void delete(String id) throws TechnicalException {
         jdbcTemplate.update("delete from api_labels where api_id = ?", id);
         jdbcTemplate.update("delete from api_groups where api_id = ?", id);
-        jdbcTemplate.update("delete from api_views where api_id = ?", id);
+        jdbcTemplate.update("delete from api_categories where api_id = ?", id);
         jdbcTemplate.update(ORM.getDeleteSql(), id);
     }
 
@@ -186,14 +185,14 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
     }
 
-    private void storeViews(Api api, boolean deleteFirst) {
+    private void storeCategories(Api api, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from api_views where api_id = ?", api.getId());
+            jdbcTemplate.update("delete from api_categories where api_id = ?", api.getId());
         }
-        List<String> filteredViews = ORM.filterStrings(api.getViews());
-        if (!filteredViews.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into api_views ( api_id, "+ escapeReservedWord("view") +" ) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(api.getId(), filteredViews));
+        List<String> filteredCategories = ORM.filterStrings(api.getCategories());
+        if (!filteredCategories.isEmpty()) {
+            jdbcTemplate.batchUpdate("insert into api_categories ( api_id, category ) values ( ?, ? )"
+                    , ORM.getBatchStringSetter(api.getId(), filteredCategories));
         }
     }
 
@@ -218,7 +217,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         final JdbcHelper.CollatingRowMapper<Api> rowMapper =
                 new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
 
-        String projection ="av.*, a.id, a.environment_id, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
+        String projection ="ac.*, a.id, a.environment_id, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
                 "a.visibility, a.lifecycle_state, a.picture, a.api_lifecycle_state";
 
         if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isDefinition()) {
@@ -229,7 +228,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
 
         final StringBuilder sbQuery = new StringBuilder("select ").append(projection).append(" from apis a ");
-        sbQuery.append("left join api_views av on a.id = av.api_id ");
+        sbQuery.append("left join api_categories ac on a.id = ac.api_id ");
 
         if (apiCriteria != null) {
             if (!isEmpty(apiCriteria.getGroups())) {
@@ -258,8 +257,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (!isEmpty(apiCriteria.getVersion())) {
                 sbQuery.append("and a.version = ? ");
             }
-            if (!isEmpty(apiCriteria.getView())) {
-                sbQuery.append("and av.").append(escapeReservedWord("view")).append(" = ? ");
+            if (!isEmpty(apiCriteria.getCategory())) {
+                sbQuery.append("and ac.category = ? ");
             }
             if (!isEmpty(apiCriteria.getVisibility())) {
                 sbQuery.append("and a.visibility = ? ");
@@ -294,8 +293,8 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                         if (!isEmpty(apiCriteria.getVersion())) {
                             ps.setString(lastIndex++, apiCriteria.getVersion());
                         }
-                        if (!isEmpty(apiCriteria.getView())) {
-                            ps.setString(lastIndex++, apiCriteria.getView());
+                        if (!isEmpty(apiCriteria.getCategory())) {
+                            ps.setString(lastIndex++, apiCriteria.getCategory());
                         }
                         if (!isEmpty(apiCriteria.getVisibility())) {
                             ps.setString(lastIndex++, apiCriteria.getVisibility().name());
