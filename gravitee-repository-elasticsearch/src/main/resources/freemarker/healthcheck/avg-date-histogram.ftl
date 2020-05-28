@@ -20,7 +20,6 @@
           }
         }
       ],
-      "disable_coord" : false,
       "adjust_pure_negative" : true
     }
   },
