@@ -16,13 +16,7 @@
 package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.RatingAnswerRepository;
-import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.model.RatingAnswer;
-import io.gravitee.repository.management.model.View;
-import org.mockito.ArgumentMatcher;
-
-import java.util.Date;
-import java.util.Set;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.singletonList;

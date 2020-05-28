@@ -70,7 +70,7 @@ public abstract class AbstractRepositoryTest {
     @Inject
     protected EventRepository eventRepository;
     @Inject
-    protected ViewRepository viewRepository;
+    protected CategoryRepository categoryRepository;
     @Inject
     protected GroupRepository groupRepository;
 	@Inject
@@ -181,8 +181,8 @@ public abstract class AbstractRepositoryTest {
             final ApiKey apiKey = (ApiKey) object;
             apiKeyRepository.create(apiKey);
         }
-        else if (object instanceof View) {
-            viewRepository.create((View) object);
+        else if (object instanceof Category) {
+            categoryRepository.create((Category) object);
         }
         else if (object instanceof Group) {
             groupRepository.create((Group)object);

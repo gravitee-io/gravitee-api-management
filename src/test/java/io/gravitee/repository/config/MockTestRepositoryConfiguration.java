@@ -58,8 +58,8 @@ public class MockTestRepositoryConfiguration {
     }
 
     @Bean
-    public ViewRepositoryMock viewRepository() {
-        return new ViewRepositoryMock();
+    public CategoryRepositoryMock categoryRepository() {
+        return new CategoryRepositoryMock();
     }
 
     @Bean

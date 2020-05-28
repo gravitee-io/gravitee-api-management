@@ -34,7 +34,7 @@
     "updatedAt": 1439022010883,
     "labels": [ "label 1", "label 2"],
     "lifecycleState": "STOPPED",
-    "views": ["my-view"],
+    "categories": ["my-category"],
     "apiLifecycleState": "DEPRECATED"
   },
   {

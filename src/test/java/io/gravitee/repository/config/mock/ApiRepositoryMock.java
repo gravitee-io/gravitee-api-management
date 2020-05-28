@@ -61,7 +61,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiUpdated.getName()).thenReturn("New API name");
         when(apiUpdated.getEnvironmentId()).thenReturn("new_DEFAULT");
         when(apiUpdated.getDescription()).thenReturn("New description");
-        when(apiUpdated.getViews()).thenReturn(Sets.newSet("view1", "view2"));
+        when(apiUpdated.getCategories()).thenReturn(Sets.newSet("category1", "category2"));
         when(apiUpdated.getDefinition()).thenReturn("New definition");
         when(apiUpdated.getDeployedAt()).thenReturn(parse("11/02/2016"));
         when(apiUpdated.getGroups()).thenReturn(singleton("New group"));
@@ -122,7 +122,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().view("my-view").build())).thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().category("my-category").build())).thenReturn(singletonList(apiToFindById));
         when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build())).thenReturn(singletonList(apiToFindById));
         when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
                 new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(apiToFindById));

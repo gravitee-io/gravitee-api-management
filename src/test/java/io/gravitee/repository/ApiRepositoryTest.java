@@ -97,7 +97,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         api.setName("New API name");
         api.setEnvironmentId("new_DEFAULT");
         api.setDescription("New description");
-        api.setViews(new HashSet<>(asList("view1", "view2")));
+        api.setCategories(new HashSet<>(asList("category1", "category2")));
         api.setDefinition("New definition");
         api.setDeployedAt(parse("11/02/2016"));
         api.setGroups(Collections.singleton("New group"));
@@ -122,7 +122,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid saved API name.", "New API name", apiUpdated.getName());
         assertEquals("Invalid saved environment id.", "new_DEFAULT", apiUpdated.getEnvironmentId());
         assertEquals("Invalid API description.", "New description", apiUpdated.getDescription());
-        assertEquals("Invalid API views.", new HashSet<>(asList("view1", "view2")), apiUpdated.getViews());
+        assertEquals("Invalid API categories.", new HashSet<>(asList("category1", "category2")), apiUpdated.getCategories());
         assertEquals("Invalid API definition.", "New definition", apiUpdated.getDefinition());
         assertEquals("Invalid API deployment date.", parse("11/02/2016"), apiUpdated.getDeployedAt());
         assertEquals("Invalid API group.", Collections.singleton("New group"), apiUpdated.getGroups());
@@ -283,7 +283,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByView() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().view("my-view").build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().category("my-category").build());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
