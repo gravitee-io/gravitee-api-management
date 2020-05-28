@@ -16,8 +16,8 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ViewRepository;
-import io.gravitee.repository.management.model.View;
+import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.model.Category;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -28,20 +28,20 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @Component
-public class HttpViewRepository extends AbstractRepository implements ViewRepository {
+public class HttpCategoryRepository extends AbstractRepository implements CategoryRepository {
 
     @Override
-    public Optional<View> findById(String s) throws TechnicalException {
+    public Optional<Category> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public View create(View item) throws TechnicalException {
+    public Category create(Category item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public View update(View item) throws TechnicalException {
+    public Category update(Category item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
@@ -51,17 +51,17 @@ public class HttpViewRepository extends AbstractRepository implements ViewReposi
     }
 
     @Override
-    public Set<View> findAll() throws TechnicalException {
+    public Set<Category> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<View> findAllByEnvironment(String environmentId) throws TechnicalException {
+    public Set<Category> findAllByEnvironment(String environmentId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Optional<View> findByKey(String key, String environment) throws TechnicalException {
+    public Optional<Category> findByKey(String key, String environment) throws TechnicalException {
         throw new IllegalStateException();
     }
 }
