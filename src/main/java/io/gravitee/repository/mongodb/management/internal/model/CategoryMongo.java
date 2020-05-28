@@ -24,8 +24,8 @@ import java.util.Objects;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "views")
-public class ViewMongo extends Auditable{
+@Document(collection = "categories")
+public class CategoryMongo extends Auditable{
 
 	@Id
 	private String id;
@@ -107,9 +107,9 @@ public class ViewMongo extends Auditable{
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (!(o instanceof ViewMongo)) return false;
-		ViewMongo viewMongo = (ViewMongo) o;
-		return Objects.equals(id, viewMongo.id);
+		if (!(o instanceof CategoryMongo)) return false;
+		CategoryMongo categoryMongo = (CategoryMongo) o;
+		return Objects.equals(id, categoryMongo.id);
 	}
 
 	@Override
@@ -119,7 +119,7 @@ public class ViewMongo extends Auditable{
 
 	@Override
 	public String toString() {
-		return "ViewMongo{" +
+		return "CategoryMongo{" +
 				"id='" + id + '\'' +
 				", key='" + key + '\'' +
 				", name='" + name + '\'' +

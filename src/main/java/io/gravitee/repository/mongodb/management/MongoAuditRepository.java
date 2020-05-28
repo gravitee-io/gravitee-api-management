@@ -57,11 +57,11 @@ public class MongoAuditRepository implements AuditRepository {
 
     @Override
     public Optional<Audit> findById(String id) throws TechnicalException {
-        LOGGER.debug("Find view by ID [{}]", id);
+        LOGGER.debug("Find audit by ID [{}]", id);
 
         final AuditMongo audit = internalAuditRepo.findById(id).orElse(null);
 
-        LOGGER.debug("Find view by ID [{}] - Done", id);
+        LOGGER.debug("Find audit by ID [{}] - Done", id);
         return Optional.ofNullable(mapper.map(audit, Audit.class));
     }
 
@@ -74,10 +74,9 @@ public class MongoAuditRepository implements AuditRepository {
 
         Audit res = mapper.map(createdAuditMongo, Audit.class);
 
-        LOGGER.debug("Create view [{}] - Done", audit.toString());
+        LOGGER.debug("Create audit [{}] - Done", audit.toString());
 
         return res;
     }
-
 
 }

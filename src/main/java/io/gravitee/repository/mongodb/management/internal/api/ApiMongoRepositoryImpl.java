@@ -76,8 +76,8 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             if (criteria.getVersion() != null && !criteria.getVersion().isEmpty()) {
                 query.addCriteria(where("version").is(criteria.getVersion()));
             }
-            if (criteria.getView() != null && !criteria.getView().isEmpty()) {
-                query.addCriteria(where("views").in(criteria.getView()));
+            if (criteria.getCategory() != null && !criteria.getCategory().isEmpty()) {
+                query.addCriteria(where("categories").in(criteria.getCategory()));
             }
             if (criteria.getVisibility() != null) {
                 query.addCriteria(where("visibility").is(criteria.getVisibility()));
