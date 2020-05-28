@@ -16,7 +16,7 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.View;
+import io.gravitee.repository.management.model.Category;
 
 import java.util.Optional;
 import java.util.Set;
@@ -27,19 +27,19 @@ import java.util.Set;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ViewRepository{
+public interface CategoryRepository {
 
-    Optional<View> findById(String id) throws TechnicalException;
+    Optional<Category> findById(String id) throws TechnicalException;
 
-    View create(View item) throws TechnicalException;
+    Category create(Category item) throws TechnicalException;
 
-    View update(View item) throws TechnicalException;
+    Category update(Category item) throws TechnicalException;
 
     void delete(String id) throws TechnicalException;
     
-    Set<View> findAll() throws TechnicalException;
+    Set<Category> findAll() throws TechnicalException;
 
-    Optional<View> findByKey(String key, String environment) throws TechnicalException;
+    Optional<Category> findByKey(String key, String environment) throws TechnicalException;
     
-    Set<View> findAllByEnvironment(String environmentId) throws TechnicalException;
+    Set<Category> findAllByEnvironment(String environmentId) throws TechnicalException;
 }

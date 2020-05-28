@@ -22,15 +22,14 @@ import java.util.Objects;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class View {
+public class Category {
     public enum AuditEvent implements Audit.AuditEvent {
-        VIEW_CREATED, VIEW_UPDATED, VIEW_DELETED
+        CATEGORY_CREATED, CATEGORY_UPDATED, CATEGORY_DELETED
     }
 
     private String id;
     private String environmentId;
     private String key;
-    private String environment;
     private String name;
     private String description;
     private boolean hidden;
@@ -131,12 +130,12 @@ public class View {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof View)) return false;
-        View view = (View) o;
-        return Objects.equals(id, view.id) &&
-                Objects.equals(key, view.key) &&
-                Objects.equals(name, view.name) &&
-                Objects.equals(description, view.description);
+        if (!(o instanceof Category)) return false;
+        Category category = (Category) o;
+        return Objects.equals(id, category.id) &&
+                Objects.equals(key, category.key) &&
+                Objects.equals(name, category.name) &&
+                Objects.equals(description, category.description);
     }
 
     @Override
@@ -146,11 +145,10 @@ public class View {
 
     @Override
     public String toString() {
-        return "View{" +
+        return "Category{" +
                 "id='" + id + '\'' +
                 ", environmentId='" + environmentId + '\'' +
                 ", key='" + key + '\'' +
-                ", environment='" + environment + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", hidden='" + hidden + '\'' +

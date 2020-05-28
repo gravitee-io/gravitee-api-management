@@ -32,7 +32,7 @@ public class ApiCriteria {
 
     private List<String> ids;
     private List<String> groups;
-    private String view;
+    private String category;
     private String label;
     private LifecycleState state;
     private Visibility visibility;
@@ -44,7 +44,7 @@ public class ApiCriteria {
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
         this.groups = builder.groups;
-        this.view = builder.view;
+        this.category = builder.category;
         this.label = builder.label;
         this.state = builder.state;
         this.visibility = builder.visibility;
@@ -62,8 +62,8 @@ public class ApiCriteria {
         return groups;
     }
 
-    public String getView() {
-        return view;
+    public String getCategory() {
+        return category;
     }
 
     public String getLabel() {
@@ -101,7 +101,7 @@ public class ApiCriteria {
         ApiCriteria that = (ApiCriteria) o;
         return Objects.equals(ids, that.ids) &&
                 Objects.equals(groups, that.groups) &&
-                Objects.equals(view, that.view) &&
+                Objects.equals(category, that.category) &&
                 Objects.equals(label, that.label) &&
                 Objects.equals(state, that.state) &&
                 Objects.equals(visibility, that.visibility) &&
@@ -113,13 +113,13 @@ public class ApiCriteria {
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, groups, view, label, state, visibility, version, name, lifecycleStates, environmentId);
+        return Objects.hash(ids, groups, category, label, state, visibility, version, name, lifecycleStates, environmentId);
     }
 
     public static class Builder {
         private List<String> ids;
         private List<String> groups;
-        private String view;
+        private String category;
         private String label;
         private LifecycleState state;
         private Visibility visibility;
@@ -138,8 +138,8 @@ public class ApiCriteria {
             return this;
         }
 
-        public ApiCriteria.Builder view(final String view) {
-            this.view = view;
+        public ApiCriteria.Builder category(final String category) {
+            this.category = category;
             return this;
         }
 
