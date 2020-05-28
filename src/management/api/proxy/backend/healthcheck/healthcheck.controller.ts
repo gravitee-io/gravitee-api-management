@@ -56,7 +56,7 @@ class ApiHealthCheckController {
   timeframeChange(timeframe) {
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
-    this.refresh();
+    this.updateChart();
   }
 
   updateChart() {
