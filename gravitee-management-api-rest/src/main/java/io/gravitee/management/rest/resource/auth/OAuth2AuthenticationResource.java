@@ -445,7 +445,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 membership.getReference(),
                 membership.getUser(),
                 membership.getRole(),
-                membership.getSource()));
+                membership.getSource(),
+                false));
     }
 
     /**

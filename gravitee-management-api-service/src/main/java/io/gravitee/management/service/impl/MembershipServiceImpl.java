@@ -221,19 +221,19 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role) {
-        return addOrUpdateMember(reference, user, role, false);
+        return _addOrUpdateMember(reference, user, role, false);
     }
 
-    @Override
-    public MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role, String source) {
-        return addOrUpdateMember(reference, user, role, source, false);
+    public MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role, String source, boolean notify) {
+        return _addOrUpdateMember(reference, user, role, source, false, notify);
     }
 
-    private MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role, boolean transferOwnership) {
-        return addOrUpdateMember(reference, user, role, DEFAULT_SOURCE, transferOwnership);
+    private MemberEntity _addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role, boolean transferOwnership) {
+        return _addOrUpdateMember(reference, user, role, DEFAULT_SOURCE, transferOwnership, true);
     }
 
-    private MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role, String source, boolean transferOwnership) {
+    private MemberEntity _addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role,
+                                            String source, boolean transferOwnership, boolean notify) {
         try {
             LOGGER.debug("Add a new member for {} {}", reference.getType(), reference.getId());
 
@@ -295,7 +295,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 membership.setUpdatedAt(updateDate);
                 returnedMembership = membershipRepository.create(membership);
                 createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
-                if (userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
+                if (notify && userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
                     EmailNotification emailNotification = buildEmailNotification(userEntity, reference.getType(), reference.getId());
                     if (emailNotification != null) {
                         emailService.sendAsyncEmailNotification(emailNotification);
@@ -375,7 +375,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         this.getMembers(membershipReferenceType, itemId, roleScope, PRIMARY_OWNER.name())
                 .stream()
                 .filter(memberEntity -> ! memberEntity.getId().equals(newPrimaryOwner.getId()))
-                .forEach(m -> this.addOrUpdateMember(
+                .forEach(m -> this._addOrUpdateMember(
                         new MembershipReference(membershipReferenceType, itemId),
                         new MembershipUser(m.getId(), null),
                         new MembershipRole(roleScope, newRole.getName()),

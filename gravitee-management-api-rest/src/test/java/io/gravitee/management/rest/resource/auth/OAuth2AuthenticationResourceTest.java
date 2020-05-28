@@ -588,61 +588,61 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.API, "USER"),
-                USER_SOURCE_OAUTH2);
+                USER_SOURCE_OAUTH2, false);
 
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"),
-                USER_SOURCE_OAUTH2);
+                USER_SOURCE_OAUTH2, false);
 
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.API, "USER"),
-                USER_SOURCE_OAUTH2);
+                USER_SOURCE_OAUTH2, false);
 
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"),
-                USER_SOURCE_OAUTH2);
+                USER_SOURCE_OAUTH2, false);
 
         verify(membershipService, times(0)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.API, "USER"),
-                USER_SOURCE_OAUTH2);
+                USER_SOURCE_OAUTH2, false);
 
         verify(membershipService, times(0)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"),
-                USER_SOURCE_OAUTH2);
+                USER_SOURCE_OAUTH2, false);
 
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.API, "USER"),
-                USER_SOURCE_OAUTH2);
+                USER_SOURCE_OAUTH2, false);
 
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"),
-                USER_SOURCE_OAUTH2);
+                USER_SOURCE_OAUTH2, false);
 
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "ADMIN"),
-                USER_SOURCE_OAUTH2);
+                USER_SOURCE_OAUTH2, false);
 
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.PORTAL, "USER"),
-                USER_SOURCE_OAUTH2);
+                USER_SOURCE_OAUTH2, false);
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
