@@ -23,7 +23,7 @@ import { ApiSubscribeComponent } from './pages/api/api-subscribe/api-subscribe.c
 import { AuthGuardService } from './services/auth-guard.service';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
-import { CategoryApiQuery } from '@gravitee/ng-portal-webclient';
+import { FilterApiQuery } from '@gravitee/ng-portal-webclient';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DocumentationComponent } from './pages/documentation/documentation.component';
 import { FeatureEnum } from './model/feature.enum';
@@ -132,7 +132,7 @@ export const routes: Routes = [
         component: CategoriesComponent,
         canActivate: [FeatureGuardService],
         data: {
-          expectedFeature: FeatureEnum.viewMode,
+          expectedFeature: FeatureEnum.categoryMode,
           title: i18n('route.catalogCategories'),
           icon: 'layout:layout-arrange',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
@@ -155,7 +155,7 @@ export const routes: Routes = [
           title: i18n('route.catalogAll'),
           icon: 'code:git#2',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
-          categoryApiQuery: null,
+          filterApiQuery: null,
           animation: { type: 'slide', group: 'catalog', index: 2 }
         }
       },
@@ -166,7 +166,7 @@ export const routes: Routes = [
           title: i18n('route.catalogFeatured'),
           icon: 'home:flower#2',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
-          categoryApiQuery: CategoryApiQuery.FEATURED,
+          filterApiQuery: FilterApiQuery.FEATURED,
           animation: { type: 'slide', group: 'catalog', index: 3 }
         }
       },
@@ -178,7 +178,7 @@ export const routes: Routes = [
           title: i18n('route.catalogStarred'),
           icon: 'general:star',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
-          categoryApiQuery: CategoryApiQuery.STARRED,
+          filterApiQuery: FilterApiQuery.STARRED,
           expectedFeature: FeatureEnum.rating,
           animation: { type: 'slide', group: 'catalog', index: 4 }
         }
@@ -190,7 +190,7 @@ export const routes: Routes = [
           title: i18n('route.catalogTrending'),
           icon: 'home:fireplace',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
-          categoryApiQuery: CategoryApiQuery.TRENDINGS,
+          filterApiQuery: FilterApiQuery.TRENDINGS,
           animation: { type: 'slide', group: 'catalog', index: 5 }
         }
       }

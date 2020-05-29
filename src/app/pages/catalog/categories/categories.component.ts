@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { PortalService, View } from '@gravitee/ng-portal-webclient';
+import { PortalService, Category } from '@gravitee/ng-portal-webclient';
 
 import '@gravitee/ui-components/wc/gv-category-list';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -25,7 +25,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 })
 export class CategoriesComponent implements OnInit {
   nbCategories: object;
-  categories: Array<View>;
+  categories: Array<Category>;
   empty: boolean;
   emptyIcon: any;
 
@@ -39,7 +39,7 @@ export class CategoriesComponent implements OnInit {
   ngOnInit() {
     this.empty = false;
     this.categories = new Array(6).fill(null);
-    this.portalService.getViews({ size: -1 }).toPromise().then((response) => {
+    this.portalService.getCategories({ size: -1 }).toPromise().then((response) => {
       this.nbCategories = response.metadata.data.total;
       this.categories = response.data;
       if(response.data.length === 0){
@@ -50,7 +50,7 @@ export class CategoriesComponent implements OnInit {
   }
 
   @HostListener(':gv-category:click', ['$event.detail'])
-  onCardClick(category: View) {
+  onCardClick(category: Category) {
     this.router.navigate([`/catalog/categories/${category.id}`]);
   }
 

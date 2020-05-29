@@ -15,17 +15,17 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
-import { PortalService, View } from '@gravitee/ng-portal-webclient';
+import { PortalService, Category } from '@gravitee/ng-portal-webclient';
 
 @Injectable({ providedIn: 'root' })
-export class CategoryResolver implements Resolve<View> {
+export class CategoryResolver implements Resolve<Category> {
 
   constructor(
     private portalService: PortalService,
   ) {}
 
   resolve(route: ActivatedRouteSnapshot) {
-    const viewId = route.params.categoryId;
-    return this.portalService.getViewByViewId({ viewId });
+    const categoryId = route.params.categoryId;
+    return this.portalService.getCategoryByCategoryId({ categoryId });
   }
 }

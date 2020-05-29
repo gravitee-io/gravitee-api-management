@@ -171,10 +171,10 @@
           <div *ngFor="let e of api.entrypoints" class="info__resources"><a class="link" href="{{e}}" target="_blank">{{e}}</a></div>
         </div>
 
-        <div class="info" *ngIf="api.views && api.views.length > 0">
+        <div class="info" *ngIf="api.categories && api.categories.length > 0">
           <h4 class="title">{{ 'api.information.categories' | translate }}</h4>
           <span>
-            <gv-tag *ngFor="let view of api.views" (:gv-tag:click)="goToCategory(view)" [clickable]="true">{{view}}</gv-tag>
+            <gv-tag *ngFor="let category of api.categories" (:gv-tag:click)="goToCategory(category)" [clickable]="true">{{category}}</gv-tag>
           </span>
         </div>
 

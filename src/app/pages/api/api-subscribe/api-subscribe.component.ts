@@ -437,8 +437,8 @@ export class ApiSubscribeComponent implements OnInit {
     return getPicture(this.api);
   }
 
-  goToCategory(view: string) {
-    this.router.navigate(['/catalog/categories', view])
+  goToCategory(category: string) {
+    this.router.navigate(['/catalog/categories', category])
   }
 
   goToSearch(tag: string) {

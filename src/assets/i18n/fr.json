@@ -508,7 +508,7 @@
     "categories": {
       "emptyMessage": "La catégorie ne contient aucune API"
     },
-    "defaultView": "Toutes les APIs",
+    "defaultCategory": "Toutes les APIs",
     "display": {
       "cards": "Affichage carte",
       "list": "Affichage liste"

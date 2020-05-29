@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Api, ApiService, CategoryApiQuery, View, ApiMetrics } from '@gravitee/ng-portal-webclient';
+import { Api, ApiService, FilterApiQuery, Category, ApiMetrics } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-promote';
 import '@gravitee/ui-components/wc/gv-card-list';
 import '@gravitee/ui-components/wc/gv-card-full';
@@ -49,19 +49,19 @@ export class FilteredCatalogComponent implements OnInit {
   promotedApi: Promise<any>;
   promotedApiPath: string;
   promotedMetrics: ApiMetrics;
-  categoryApiQuery: CategoryApiQuery;
-  views: Array<string>;
-  currentView: string;
+  filterApiQuery: FilterApiQuery;
+  categories: Array<string>;
+  currentCategory: string;
   paginationData: any;
   options: any[];
   currentDisplay: string;
   empty: boolean;
-  category: View;
+  category: Category;
   fragments: any = {
     pagination: 'pagination',
     filter: 'filter'
   };
-  private defaultView: { value, label };
+  private defaultCategory: { value, label };
   emptyIcon: string;
   emptyMessage: any;
 
@@ -78,8 +78,8 @@ export class FilteredCatalogComponent implements OnInit {
 
   ngOnInit() {
     this.emptyIcon = this.activatedRoute.snapshot.data.icon || 'general:sad';
-    this.translateService.get(i18n('catalog.defaultView')).toPromise()
-      .then((label) => this.defaultView = {
+    this.translateService.get(i18n('catalog.defaultCategory')).toPromise()
+      .then((label) => this.defaultCategory = {
         value: '',
         label
       });
@@ -87,7 +87,7 @@ export class FilteredCatalogComponent implements OnInit {
       localStorage.getItem('user-display-mode') || FilteredCatalogComponent.DEFAULT_DISPLAY;
     this._initDisplayOptions();
 
-    this.categoryApiQuery = this.activatedRoute.snapshot.data.categoryApiQuery;
+    this.filterApiQuery = this.activatedRoute.snapshot.data.filterApiQuery;
 
     this.activatedRoute.queryParamMap.subscribe(params => {
       const page = parseInt(params.get(SearchQueryParam.PAGE), 10) || 1;
@@ -95,16 +95,16 @@ export class FilteredCatalogComponent implements OnInit {
       const categoryPath = this._getCategoryPath();
 
       if (categoryPath) {
-        this.currentView = categoryPath;
+        this.currentCategory = categoryPath;
         if (this.page !== page || this.size !== size) {
           this.page = page;
           this.size = size;
           this._loadCategory();
         }
       } else {
-        const view = params.get('view');
-        if (this.currentView !== view || this.page !== page || this.size !== size) {
-          this.currentView = view;
+        const category = params.get('category');
+        if (this.currentCategory !== category || this.page !== page || this.size !== size) {
+          this.currentCategory = category;
           this.page = page;
           this.size = size;
           this._load();
@@ -131,7 +131,7 @@ export class FilteredCatalogComponent implements OnInit {
 
   _load() {
     if (this.page === 1) {
-      this.promotedApi = this._loadPromotedApi({ size: 1, cat: this.categoryApiQuery });
+      this.promotedApi = this._loadPromotedApi({ size: 1, filter: this.filterApiQuery });
     }
     return Promise.all([this._loadRandomList(), this._loadCards()]);
   }
@@ -140,7 +140,7 @@ export class FilteredCatalogComponent implements OnInit {
     const { list, deferredList } = createPromiseList(FilteredCatalogComponent.RANDOM_MAX_SIZE);
     this.randomList = list;
 
-    return this.apiService.getApis({ size: FilteredCatalogComponent.RANDOM_MAX_SIZE, _cat: this.categoryApiQuery })
+    return this.apiService.getApis({ size: FilteredCatalogComponent.RANDOM_MAX_SIZE, _filter: this.filterApiQuery })
       .toPromise()
       .then((apiResponse) => {
         apiResponse.data.forEach((a, index) => {
@@ -166,7 +166,7 @@ export class FilteredCatalogComponent implements OnInit {
           this.promotedApiPath = `/catalog/api/${promoted.id}`;
         } else {
           const key = this.inCategory() ?
-            i18n('catalog.categories.emptyMessage') : `catalog.${this.categoryApiQuery || 'ALL'}.emptyMessage`;
+            i18n('catalog.categories.emptyMessage') : `catalog.${this.filterApiQuery || 'ALL'}.emptyMessage`;
           this.translateService.get(key).toPromise().then((translation) => {
             this.emptyMessage = translation;
             this.empty = true;
@@ -178,13 +178,13 @@ export class FilteredCatalogComponent implements OnInit {
 
   _loadCategory() {
     this.category = this.activatedRoute.snapshot.data.category;
-    this.promotedApi = this._loadPromotedApi({ size: 1, view: this.currentView });
+    this.promotedApi = this._loadPromotedApi({ size: 1, category: this.currentCategory });
     return this._loadCards();
   }
 
   async _loadCards() {
     const size = this.size + (this.promotedApi ? 1 : 0);
-    return this.apiService.getApis({ page: this.page, size, cat: this.categoryApiQuery, view: this.currentView })
+    return this.apiService.getApis({ page: this.page, size, filter: this.filterApiQuery, category: this.currentCategory })
       .toPromise()
       .then(async ({ data, metadata }) => {
         this.paginationData = metadata.pagination;
@@ -206,16 +206,16 @@ export class FilteredCatalogComponent implements OnInit {
           return { item, metrics };
         });
 
-        if (this.hasViewMode() && this.views == null) {
-          this.apiService.getApis({ size: -1, cat: this.categoryApiQuery })
+        if (this.hasCategoryMode() && this.categories == null) {
+          this.apiService.getApis({ size: -1, filter: this.filterApiQuery })
             .subscribe((apisResponse) => {
               // @ts-ignore
-              const views = this._getViews(apisResponse.data.slice(1));
-              if (views.length > 0) {
+              const categories = this._getCategories(apisResponse.data.slice(1));
+              if (categories.length > 0) {
                 // @ts-ignore
-                this.views = [this.defaultView].concat(views);
+                this.categories = [this.defaultCategory].concat(categories);
               } else {
-                this.views = [];
+                this.categories = [];
               }
             });
         }
@@ -226,9 +226,9 @@ export class FilteredCatalogComponent implements OnInit {
       });
   }
 
-  private _getViews(allPage) {
+  private _getCategories(allPage) {
     return [].concat(...new Set([].concat(...allPage.map((api) => {
-      return api.views;
+      return api.categories;
     }))).values());
   }
 
@@ -259,8 +259,8 @@ export class FilteredCatalogComponent implements OnInit {
     });
   }
 
-  onSelectView({ target }) {
-    const queryParams = { view: target.value };
+  onSelectCategory({ target }) {
+    const queryParams = { category: target.value };
     queryParams[SearchQueryParam.PAGE] = 1;
     this.router.navigate([],
       { relativeTo: this.activatedRoute, queryParams, queryParamsHandling: 'merge', fragment: this.fragments.filter });
@@ -270,8 +270,8 @@ export class FilteredCatalogComponent implements OnInit {
     return this.currentDisplay === FilteredCatalogComponent.DEFAULT_DISPLAY;
   }
 
-  hasViewMode() {
-    return this.config.hasFeature(FeatureEnum.viewMode);
+  hasCategoryMode() {
+    return this.config.hasFeature(FeatureEnum.categoryMode);
   }
 
   _getCategoryPath() {
@@ -283,11 +283,11 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   inCategoryAll() {
-    return this.categoryApiQuery === null;
+    return this.filterApiQuery === null;
   }
 
   get canFilter() {
-    return !this.inCategory() && this.hasViewMode() && this.views && this.views.length > 0;
+    return !this.inCategory() && this.hasCategoryMode() && this.categories && this.categories.length > 0;
   }
 
   @HostListener(':gv-card-full:click', ['$event.detail'])

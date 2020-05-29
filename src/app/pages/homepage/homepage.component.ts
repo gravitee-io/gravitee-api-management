@@ -43,7 +43,7 @@ export class HomepageComponent implements OnInit {
     this.portalService.getPages({ homepage: true }).subscribe(response => {
       this.homepage = response.data[0];
     });
-    this.apiService.getApis({ cat: 'FEATURED', size: -1 }).subscribe(response => {
+    this.apiService.getApis({ filter: 'FEATURED', size: -1 }).subscribe(response => {
       this.topApis = response.data.map((a) => {
         const metric = this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise();
         // @ts-ignore

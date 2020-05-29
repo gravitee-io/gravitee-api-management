@@ -229,7 +229,7 @@ export class ApiGeneralComponent implements OnInit {
           }
           target = '_self';
           break;
-        case Link.ResourceTypeEnum.View:
+        case Link.ResourceTypeEnum.Category:
           path = '/catalog/categories/' + element.resourceRef;
           target = '_self';
           break;
@@ -238,8 +238,8 @@ export class ApiGeneralComponent implements OnInit {
     });
   }
 
-  goToCategory(view: string) {
-    this.router.navigate(['/catalog/categories', view]);
+  goToCategory(category: string) {
+    this.router.navigate(['/catalog/categories', category]);
   }
 
   goToSearch(tag: string) {

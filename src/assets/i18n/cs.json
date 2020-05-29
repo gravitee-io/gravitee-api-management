@@ -508,7 +508,7 @@
     "categories": {
       "emptyMessage": "Kategorie neobsahuje žádné API"
     },
-    "defaultView": "Všechna API",
+    "defaultCategory": "Všechna API",
     "display": {
       "cards": "Zobrazovací karty",
       "list": "Zobrazit seznam"

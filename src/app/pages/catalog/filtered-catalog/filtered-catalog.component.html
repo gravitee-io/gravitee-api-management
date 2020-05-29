@@ -48,10 +48,10 @@
       <h2 class="title"></h2>
       <gv-select
           *ngIf="canFilter"
-          [value]="this.currentView"
-          (input)="this.onSelectView($event)"
+          [value]="this.currentCategory"
+          (input)="this.onSelectCategory($event)"
           [attr.placeholder]="'catalog.filter' | translate"
-          [options]="this.views">
+          [options]="this.categories">
       </gv-select>
       <gv-option [options]="options" *ngIf="allApis.length > 0" [value]="this.currentDisplay"></gv-option>
     </div>

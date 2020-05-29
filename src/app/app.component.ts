@@ -292,7 +292,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
           }
           target = '_self';
           break;
-        case Link.ResourceTypeEnum.View:
+        case Link.ResourceTypeEnum.Category:
           path = '/catalog/categories/' + element.resourceRef;
           target = '_self';
           break;

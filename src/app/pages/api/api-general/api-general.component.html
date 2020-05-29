@@ -130,11 +130,11 @@
         </div>
       </div>
 
-      <div *ngIf="currentApi.views && currentApi.views.length > 0" class="info">
+      <div *ngIf="currentApi.categories && currentApi.categories.length > 0" class="info">
         <h4 class="title">{{ 'api.information.categories' | translate }}</h4>
         <span>
-            <gv-tag (:gv-tag:click)="goToCategory(view)" *ngFor="let view of currentApi.views"
-                    [clickable]="true">{{view}}</gv-tag>
+            <gv-tag (:gv-tag:click)="goToCategory(category)" *ngFor="let category of currentApi.categories"
+                    [clickable]="true">{{category}}</gv-tag>
           </span>
       </div>
 
