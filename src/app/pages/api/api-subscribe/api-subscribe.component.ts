@@ -110,7 +110,7 @@ export class ApiSubscribeComponent implements OnInit {
 
     this.apiId = this.route.snapshot.params.apiId;
     this.api = this.route.snapshot.data.api;
-    this.apiSample = `$ curl "${this.api.entrypoints[0]}"`;
+    this.apiSample = `curl "${this.api.entrypoints[0]}"`;
     this.apiName = this.api.name;
 
     Promise.all([

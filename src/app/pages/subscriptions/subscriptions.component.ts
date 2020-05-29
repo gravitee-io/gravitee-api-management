@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, NgZone } from '@angular/core';
+import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { Api, ApiService, Application, ApplicationService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
@@ -54,6 +54,7 @@ export class SubscriptionsComponent implements OnInit {
     private router: Router,
     private configurationService: ConfigurationService,
     private ngZone: NgZone,
+    private ref: ChangeDetectorRef,
   ) {
   }
 
@@ -123,6 +124,8 @@ export class SubscriptionsComponent implements OnInit {
   }
 
   async displayCurlExample(sub: any) {
+    delete this.curlExample;
+    this.ref.detectChanges();
     let entrypoints = [];
     if (!sub.api.entrypoints || !sub.api.entrypoints[0]) {
       const subscribedApi = await this.apiService.getApiByApiId({ apiId: sub.api.id }).toPromise();
@@ -145,7 +148,7 @@ export class SubscriptionsComponent implements OnInit {
     }
 
     if (entrypoints[0] && keys[0]) {
-      this.curlExample = `$ curl ${entrypoints[0]} -H "${this.apikeyHeader}:${keys[0].id}"`;
+      this.curlExample = `curl ${entrypoints[0]} -H "${this.apikeyHeader}:${keys[0].id}"`;
     }
   }
 

@@ -96,9 +96,14 @@
         <h3 *ngIf="selectedLog.response"  class="title">{{'application.log.responseBody' | translate}}</h3>
 
         <div *ngIf="selectedLog.request && !selectedLog.request.body"></div>
-        <gv-code *ngIf="selectedLog.request && selectedLog.request.body" [lang]="getLang(selectedLog.request.headers)" [content]="selectedLog.request.body"></gv-code>
+        <gv-code *ngIf="selectedLog.request && selectedLog.request.body"
+                 [options]="{mode:getLang(selectedLog.request.headers), lineNumbers: true, lineWrapping: true}"
+                 [value]="selectedLog.request.body" readonly clipboard></gv-code>
         <div *ngIf="selectedLog.response && !selectedLog.response.body"></div>
-        <gv-code *ngIf="selectedLog.response && selectedLog.response.body" [lang]="getLang(selectedLog.response.headers)" [content]="selectedLog.response.body"></gv-code>
+        <gv-code *ngIf="selectedLog.response && selectedLog.response.body"
+                 [options]="{mode:getLang(selectedLog.response.headers), lineNumbers: true, lineWrapping: true}"
+                 [value]="selectedLog.response.body" readonly clipboard></gv-code>
+
       </section>
 
     </div>

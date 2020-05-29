@@ -35,6 +35,7 @@
     "@ngx-translate/http-loader": "^4.0.0",
     "angular-oauth2-oidc": "^9.2.0",
     "clipboard-copy": "^3.1.0",
+    "codemirror": "^5.54.0",
     "highlight.js": "^9.18.1",
     "jdenticon": "^2.2.0",
     "js-yaml": "^3.13.1",
@@ -50,7 +51,7 @@
     "zone.js": "~0.10.2"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.901.0",
+    "@angular-devkit/build-angular": "^0.901.7",
     "@angular/cli": "^9.1.0",
     "@angular/compiler-cli": "^9.1.1",
     "@angular/language-service": "^9.1.1",

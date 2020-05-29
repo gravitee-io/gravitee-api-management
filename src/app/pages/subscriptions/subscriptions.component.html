@@ -35,7 +35,7 @@
 
   <section class="page__box" *ngIf="curlExample">
     <div class="page__box-content">
-      <gv-code lang="shell" [content]="curlExample"></gv-code>
+      <gv-code [options]="{mode:'shell', lineNumbers: true, lineWrapping: true}" [value]="curlExample" readonly clipboard></gv-code>
     </div>
 
   </section>
