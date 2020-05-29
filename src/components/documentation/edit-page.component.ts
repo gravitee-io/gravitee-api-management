@@ -36,7 +36,7 @@ const EditPageComponent: ng.IComponentOptions = {
     folders: '<',
     systemFolders: '<',
     pageResources: '<',
-    viewResources: '<'
+    categoryResources: '<'
   },
   template: require('./edit-page.html'),
   controller: function (
@@ -123,7 +123,7 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.saveTranslation = () => {
-      if (this.page.configuration && ('page' === this.page.configuration.resourceType || 'view' === this.page.configuration.resourceType)) {
+      if (this.page.configuration && ('page' === this.page.configuration.resourceType || 'category' === this.page.configuration.resourceType)) {
         this.currentTranslation.content = this.page.content;
       }
       // save translation
@@ -388,10 +388,10 @@ const EditPageComponent: ng.IComponentOptions = {
       }
     };
 
-    this.updateLinkNameWithViewId = (resourceId: string) => {
-      const relatedView = _.find(this.viewResources, p => p.id === resourceId);
-      if (relatedView) {
-        this.updateLinkName(relatedView.name);
+    this.updateLinkNameWithCategoryId = (resourceId: string) => {
+      const relatedCategory = _.find(this.categoryResources, p => p.id === resourceId);
+      if (relatedCategory) {
+        this.updateLinkName(relatedCategory.name);
       }
     };
 

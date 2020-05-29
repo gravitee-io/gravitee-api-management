@@ -279,7 +279,7 @@ class ApiHistoryController {
     delete api.permission;
     delete api.owner;
     delete api.picture_url;
-    delete api.views;
+    delete api.categories;
     delete api.groups;
     delete api.etag;
     delete api.context_path;

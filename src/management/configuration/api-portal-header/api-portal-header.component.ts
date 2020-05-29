@@ -114,18 +114,18 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
       });
     };
 
-    this.saveShowViews = () => {
+    this.saveShowCategories = () => {
       PortalConfigService.save({
         portal: {
           apis: {
-            apiHeaderShowViews: {
-              enabled: this.settings.portal.apis.apiHeaderShowViews.enabled
+            apiHeaderShowCategories: {
+              enabled: this.settings.portal.apis.apiHeaderShowCategories.enabled
             }
           }
         }
       }).then( response => {
-        NotificationService.show('Views are now ' + (this.settings.portal.apis.apiHeaderShowViews.enabled ? 'visible' : 'hidden'));
-        Constants.portal.apis.apiHeaderShowViews = response.data.portal.apis.apiHeaderShowViews;
+        NotificationService.show('Categories are now ' + (this.settings.portal.apis.apiHeaderShowCategories.enabled ? 'visible' : 'hidden'));
+        Constants.portal.apis.apiHeaderShowCategories = response.data.portal.apis.apiHeaderShowCategories;
       });
     };
 

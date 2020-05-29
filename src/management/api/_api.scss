@@ -200,19 +200,6 @@
   box-shadow:0 1px 6px 1px rgba(0,0,0,.37);
 }
 
-.apis-view-mode {
-  position:absolute;
-  top: 24px;
-  right: 30px;
-  text-align: right;
-  width: 100%;
-
-  button {
-    padding: 2px 6px;
-    border-radius: 0px;
-  }
-}
-
 .apis-header-filter {
   width: 100%;
 
@@ -274,12 +261,6 @@ span.proxy-deactivated {
   color: darkslategrey;
 }
 
-.gravitee-view-description {
-  color: #757575;
-  margin: 5px;
-  padding: 10px;
-}
-
 .gravitee-general-description {
   font-size: 12px;
 }
@@ -317,10 +298,6 @@ api-creation {
 
 .md-chips {
   font-size: 12px;
-}
-
-.no-view {
-  height: 19px;
 }
 
 md-switch {

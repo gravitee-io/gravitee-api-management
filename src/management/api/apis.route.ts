@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ViewService from '../../services/view.service';
+import CategoryService from '../../services/category.service';
 import ApisController from './apis.controller';
 import TagService from '../../services/tag.service';
 import GroupService from '../../services/group.service';
@@ -46,8 +46,8 @@ function apisRouterConfig($stateProvider: StateProvider) {
         resolvedApi: function ($stateParams, ApiService) {
           return ApiService.get($stateParams.apiId);
         },
-        resolvedViews: (ViewService: ViewService) => {
-          return ViewService.list().then(response => {
+        resolvedCategories: (CategoryService: CategoryService) => {
+          return CategoryService.list().then(response => {
             return response.data;
           });
         },

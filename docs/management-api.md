@@ -3,7 +3,7 @@
 Set general information about your API such as its name, version, picture and description.
 You can switch API visibility to restrict access to the API.
 
-Portal section let you add some labels and views to categorize your API and make it easier to find for the consumers.
+Portal section let you add some labels and categories to categorize your API and make it easier to find for the consumers.
 
 *IMPORT* button will load and replace API data from the imported API definition.
 

@@ -15,39 +15,39 @@
  */
 import * as _ from 'lodash';
 
-class ViewService {
-  private viewsURL: string;
+class CategoryService {
+  private categoriesURL: string;
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.viewsURL = `${Constants.baseURL}configuration/views/`;
+    this.categoriesURL = `${Constants.baseURL}configuration/categories/`;
   }
 
   list() {
-    return this.$http.get(this.viewsURL);
+    return this.$http.get(this.categoriesURL);
   }
 
-  get(viewId) {
-    return this.$http.get(this.viewsURL + viewId);
+  get(categoryId) {
+    return this.$http.get(this.categoriesURL + categoryId);
   }
 
-  create(view) {
-    return this.$http.post(this.viewsURL, view);
+  create(category) {
+    return this.$http.post(this.categoriesURL, category);
   }
 
-  update(view) {
-    return this.$http.put(this.viewsURL + view.id, view);
+  update(category) {
+    return this.$http.put(this.categoriesURL + category.id, category);
   }
 
-  updateViews(views) {
-    if (views && views.length) {
-      return this.$http.put(this.viewsURL, views);
+  updateCategories(categories) {
+    if (categories && categories.length) {
+      return this.$http.put(this.categoriesURL, categories);
     }
   }
 
-  delete(view) {
-    return this.$http.delete(this.viewsURL + view.id);
+  delete(category) {
+    return this.$http.delete(this.categoriesURL + category.id);
   }
 }
 
-export default ViewService;
+export default CategoryService;

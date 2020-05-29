@@ -17,22 +17,22 @@
 -->
 <div class="gv-forms" layout="column">
   <div class="gv-forms-header">
-  <h1>{{$ctrl.createMode ? 'New' : 'Edit'}} view</h1>
-    <a ui-sref="management.settings.views">Back to views</a>
+  <h1>{{$ctrl.createMode ? 'New' : 'Edit'}} category</h1>
+    <a ui-sref="management.settings.categories">Back to categories</a>
   </div>
   <div class="gv-form">
     <h2>General</h2>
     <div class="gv-form-content" layout="column">
-      <form name="$ctrl.viewForm">
+      <form name="$ctrl.categoryForm">
         <div layout="row">
           <div layout="column" flex>
             <div layout-gt-sm="row">
               <md-input-container class="md-block" flex-gt-sm>
                 <label>Name</label>
-                <input ng-model="$ctrl.view.name" type="text" required name="name" maxlength="50">
-                <div class="hint" ng-if="$ctrl.viewForm.name.$valid || $ctrl.viewForm.name.$pristine">View Name</div>
-                <div ng-messages="$ctrl.viewForm.name.$error">
-                  <div ng-message="required">View name is required.</div>
+                <input ng-model="$ctrl.category.name" type="text" required name="name" maxlength="50">
+                <div class="hint" ng-if="$ctrl.categoryForm.name.$valid || $ctrl.categoryForm.name.$pristine">Category Name</div>
+                <div ng-messages="$ctrl.categoryForm.name.$error">
+                  <div ng-message="required">Category name is required.</div>
                   <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
                 </div>
               </md-input-container>
@@ -41,23 +41,23 @@
             <div layout-gt-sm="row">
               <md-input-container class="md-block" flex-gt-sm>
                 <label>Description</label>
-                <input ng-model="$ctrl.view.description" type="text" name="description">
-                <div class="hint" ng-if="$ctrl.viewForm.description.$valid || $ctrl.viewForm.description.$pristine">
-                  Provide a description of your view
+                <input ng-model="$ctrl.category.description" type="text" name="description">
+                <div class="hint" ng-if="$ctrl.categoryForm.description.$valid || $ctrl.categoryForm.description.$pristine">
+                  Provide a description of your category
                 </div>
               </md-input-container>
             </div>
 
-            <div layout-gt-sm="row" class="new-view-form-input-action">
+            <div layout-gt-sm="row" class="new-category-form-input-action">
               <md-input-container class="md-block" flex-gt-sm>
                 <label>Visibility</label>
-                <ng-md-icon icon="visibility{{$ctrl.view.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility()"></ng-md-icon>
-                <div class="hint" ng-if="$ctrl.viewForm.name.$valid || $ctrl.viewForm.name.$pristine">Choose to display or hide the view</div>
+                <ng-md-icon icon="visibility{{$ctrl.category.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility()"></ng-md-icon>
+                <div class="hint" ng-if="$ctrl.categoryForm.name.$valid || $ctrl.categoryForm.name.$pristine">Choose to display or hide the category</div>
               </md-input-container>
             </div>
           </div>
           <div>
-            <gravitee-image image-id="'view'" image="$ctrl.view.picture" image-url="$ctrl.view.picture_url" image-name="$ctrl.view.name"></gravitee-image>
+            <gravitee-image image-id="'category'" image="$ctrl.category.picture" image-url="$ctrl.category.picture_url" image-name="$ctrl.category.name"></gravitee-image>
           </div>
         </div>
       </form>
@@ -72,12 +72,12 @@
 <blockquote style="border-left: none;">
   <p style="font-size: 12px">
     <ng-md-icon icon="info" style="fill:grey;"></ng-md-icon>
-    Choose among APIs which one will be attached to the view.
+    Choose among APIs which one will be attached to the category.
   </p>
 </blockquote>
 
     <div layout="row" layout-align="space-around center">
-      <md-autocomplete md-input-id="new-view-apis-autocomplete-id"
+      <md-autocomplete md-input-id="new-category-apis-autocomplete-id"
         flex="70"
         md-search-text="$ctrl.searchText"
         md-selected-item-change="$ctrl.selectedApiChange(api)"
@@ -123,7 +123,7 @@
               <md-checkbox ng-click="$ctrl.toggleHighlightAPI(api)" aria-label="highlight API" ng-checked="$ctrl.isHighlightApi(api)"></md-checkbox>
             </td>
             <td md-cell>
-              <ng-md-icon permission permission-only="'environment-view-u'" icon="delete" ng-click="$ctrl.removeApi(api)"></ng-md-icon>
+              <ng-md-icon permission permission-only="'environment-category-u'" icon="delete" ng-click="$ctrl.removeApi(api)"></ng-md-icon>
             </td>
           </tr>
         </tbody>
@@ -131,9 +131,9 @@
     </md-table-container>
 
       <div layout="row">
-        <md-button ng-disabled="$ctrl.viewForm.$invalid || $ctrl.viewForm.$pristine && !$ctrl.formChanged"
+        <md-button ng-disabled="$ctrl.categoryForm.$invalid || $ctrl.categoryForm.$pristine && !$ctrl.formChanged"
                    ng-click="$ctrl.save()"
-                   permission permission-only="['environment-view-c', 'environment-view-u']"
+                   permission permission-only="['environment-category-c', 'environment-category-u']"
                    class="md-raised md-primary">
           Save
         </md-button>

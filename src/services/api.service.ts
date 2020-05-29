@@ -63,10 +63,10 @@ class ApiService {
     return this.$http.get(this.apisURL + name);
   }
 
-  list(view?: string, portal?: boolean, opts?: any): ng.IPromise<any> {
+  list(category?: string, portal?: boolean, opts?: any): ng.IPromise<any> {
     let params = '';
-    if (view !== undefined && view !== null) {
-      params += '?view=' + view;
+    if (category !== undefined && category !== null) {
+      params += '?category=' + category;
     }
     if (portal !== undefined) {
       if (params === '') {
@@ -115,7 +115,7 @@ class ApiService {
     return this.$http.put(this.apisURL + api.id,
       {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private,
         'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
-        'picture': api.picture, 'resources': api.resources, 'views': api.views, 'groups': api.groups,
+        'picture': api.picture, 'resources': api.resources, 'categories': api.categories, 'groups': api.groups,
         'labels': api.labels, 'path_mappings': api.path_mappings, 'response_templates': api.response_templates, 'lifecycle_state': api.lifecycle_state
       }, {headers: {'If-Match': api.etag}}
     );

@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ViewComponent: ng.IComponentOptions = {
+const CategoriesComponent: ng.IComponentOptions = {
   bindings: {
-    view: '<',
-    viewApis: '<'
+    categories: '<'
   },
-  controller: 'ViewController',
-  template: require('./view.html')
+  controller: 'CategoriesController',
+  template: require('./categories.html')
 };
 
-export default ViewComponent;
+export default CategoriesComponent;

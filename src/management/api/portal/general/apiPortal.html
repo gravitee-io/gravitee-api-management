@@ -76,16 +76,16 @@
         </div>
 
         <md-input-container permission permission-only="'api-definition-u'" class="flex">
-          <label>Portal views</label>
-          <md-select ng-model="portalCtrl.api.views" multiple>
-            <md-option ng-repeat="view in portalCtrl.views" ng-value="view.key">
-              {{view.name}}<span ng-if="view.description" class="gravitee-general-description"> - {{view.description}}</span>
+          <label>Portal categories</label>
+          <md-select ng-model="portalCtrl.api.categories" multiple>
+            <md-option ng-repeat="category in portalCtrl.categories" ng-value="category.key">
+              {{category.name}}<span ng-if="category.description" class="gravitee-general-description"> - {{category.description}}</span>
             </md-option>
           </md-select>
         </md-input-container>
-        <div layout="column" ng-if="portalCtrl.api.views && portalCtrl.api.views.length">
-          <label>Portal views</label>
-          <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="portalCtrl.api.views"></md-chips>
+        <div layout="column" ng-if="portalCtrl.api.categories && portalCtrl.api.categories.length">
+          <label>Portal categories</label>
+          <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="portalCtrl.api.categories"></md-chips>
         </div>
 
         <div class="md-actions gravitee-api-save-button" layout="row">

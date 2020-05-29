@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import ViewService from '../../../services/view.service';
+import CategoryService from '../../../services/category.service';
 import NotificationService from '../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 import PortalConfigService from '../../../services/portalConfig.service';
 import {IScope} from 'angular';
 
-class ViewsController {
-  private viewsToUpdate: any[];
-  private views: any[];
+class CategoriesController {
+  private categoriesToUpdate: any[];
+  private categories: any[];
   private Constants: any;
   private settings: any;
 
   constructor(
-    private ViewService: ViewService,
+    private CategoryService: CategoryService,
     private NotificationService: NotificationService,
     private $q: ng.IQService,
     private $mdDialog: angular.material.IDialogService,
@@ -39,21 +39,21 @@ class ViewsController {
     this.$rootScope = $rootScope;
     this.settings = _.cloneDeep(Constants);
     this.Constants = Constants;
-    this.viewsToUpdate = [];
+    this.categoriesToUpdate = [];
   }
 
   $onInit() {
-    this.views = _.sortBy(this.views, 'order');
-    _.forEach(this.views, (view, idx) => {
-      view.order = idx;
+    this.categories = _.sortBy(this.categories, 'order');
+    _.forEach(this.categories, (category, idx) => {
+      category.order = idx;
     });
   }
 
-  toggleVisibility(view) {
+  toggleVisibility(category) {
     let that = this;
-    view.hidden = !view.hidden;
-    this.ViewService.update(view).then(() => {
-      that.NotificationService.show('View ' + view.name + ' has been saved.');
+    category.hidden = !category.hidden;
+    this.CategoryService.update(category).then(() => {
+      that.NotificationService.show('Category ' + category.name + ' has been saved.');
     });
   }
 
@@ -64,7 +64,7 @@ class ViewsController {
   }
 
   downward(index) {
-    if (index < _.size(this.views) - 1 ) {
+    if (index < _.size(this.categories) - 1 ) {
       this.reorder(index, index + 1);
     }
   }
@@ -76,41 +76,41 @@ class ViewsController {
     });
   }
 
-  deleteView(view) {
+  deleteCategory(category) {
     let that = this;
     this.$mdDialog.show({
-      controller: 'DeleteViewDialogController',
-      template: require('./delete.view.dialog.html'),
+      controller: 'DeleteCategoryDialogController',
+      template: require('./delete.category.dialog.html'),
       locals: {
-        view: view
+        category: category
       }
-    }).then(function (deleteView) {
-      if (deleteView) {
-        that.ViewService.delete(view).then(function () {
-          that.NotificationService.show('View \'' + view.name + '\' deleted with success');
-          _.remove(that.views, view);
+    }).then(function (deleteCategory) {
+      if (deleteCategory) {
+        that.CategoryService.delete(category).then(function () {
+          that.NotificationService.show('Category \'' + category.name + '\' deleted with success');
+          _.remove(that.categories, category);
         });
       }
     });
   }
 
   private reorder(from, to) {
-    this.views[from].order = to;
-    this.views[to].order = from;
-    this.views = _.sortBy(this.views, 'order');
+    this.categories[from].order = to;
+    this.categories[to].order = from;
+    this.categories = _.sortBy(this.categories, 'order');
 
-    this.viewsToUpdate.push(this.views[from]);
-    this.viewsToUpdate.push(this.views[to]);
+    this.categoriesToUpdate.push(this.categories[from]);
+    this.categoriesToUpdate.push(this.categories[to]);
     this.save();
   }
 
   private save() {
     let that = this;
-    this.ViewService.updateViews(that.viewsToUpdate).then(() => {
-      that.NotificationService.show('Views saved with success');
-      that.viewsToUpdate = [];
+    this.CategoryService.updateCategories(that.categoriesToUpdate).then(() => {
+      that.NotificationService.show('Categories saved with success');
+      that.categoriesToUpdate = [];
     });
   }
 }
 
-export default ViewsController;
+export default CategoriesController;

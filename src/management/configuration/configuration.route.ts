@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ViewService from '../../services/view.service';
+import CategoryService from '../../services/category.service';
 import TenantService from '../../services/tenant.service';
 import TagService from '../../services/tag.service';
 import MetadataService from '../../services/metadata.service';
@@ -52,7 +52,7 @@ function configurationRouterConfig($stateProvider) {
         perms: {
           only: [
             // hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
-            'environment-view-r', 'environment-metadata-r', 'environment-top_apis-r', 'environment-group-r',
+            'environment-category-r', 'environment-metadata-r', 'environment-top_apis-r', 'environment-group-r',
             'environment-tag-c', 'environment-tenant-c', 'environment-group-c', 'organization-role-c', 'environment-documentation-c',
             'environment-tag-u', 'environment-tenant-u', 'environment-group-u', 'organization-role-u', 'environment-documentation-u',
             'environment-tag-d', 'environment-tenant-d', 'environment-group-d', 'organization-role-d', 'environment-documentation-d',
@@ -61,49 +61,49 @@ function configurationRouterConfig($stateProvider) {
         }
       }
     })
-    .state('management.settings.views', {
-      url: '/views',
-      component: 'views',
+    .state('management.settings.categories', {
+      url: '/categories',
+      component: 'categories',
       resolve: {
-        views: (ViewService: ViewService) => ViewService.list().then(response => response.data)
+        categories: (CategoryService: CategoryService) => CategoryService.list().then(response => response.data)
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-views'
+          page: 'management-configuration-categories'
         },
         perms: {
-          only: ['environment-view-r']
+          only: ['environment-category-r']
         }
       }
     })
-    .state('management.settings.viewnew', {
-      url: '/views/new',
-      component: 'view',
+    .state('management.settings.categorynew', {
+      url: '/categories/new',
+      component: 'category',
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-views'
+          page: 'management-configuration-categories'
         },
         perms: {
-          only: ['environment-view-c']
+          only: ['environment-category-c']
         }
       }
     })
-    .state('management.settings.view', {
-      url: '/views/:viewId',
-      component: 'view',
+    .state('management.settings.category', {
+      url: '/categories/:categoryId',
+      component: 'category',
       resolve: {
-        view: (ViewService: ViewService, $stateParams) => ViewService.get($stateParams.viewId).then(response => response.data),
-        viewApis: (ApiService: ApiService, $stateParams) => ApiService.list($stateParams.viewId).then(response => response.data)
+        category: (CategoryService: CategoryService, $stateParams) => CategoryService.get($stateParams.categoryId).then(response => response.data),
+        categoryApis: (ApiService: ApiService, $stateParams) => ApiService.list($stateParams.categoryId).then(response => response.data)
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-views'
+          page: 'management-configuration-categories'
         },
         perms: {
-          only: ['environment-view-u', 'environment-view-d']
+          only: ['environment-category-u', 'environment-category-d']
         }
       }
     })
@@ -328,9 +328,9 @@ function configurationRouterConfig($stateProvider) {
             return DocumentationService.search(q).then(response => response. data);
           }
         },
-        viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
+        categoryResources: (CategoryService: CategoryService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
-            return ViewService.list().then(response => response.data);
+            return CategoryService.list().then(response => response.data);
           }
         }
       },
@@ -416,9 +416,9 @@ function configurationRouterConfig($stateProvider) {
             return DocumentationService.search(q).then(response => response. data);
           }
         },
-        viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
+        categoryResources: (CategoryService: CategoryService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
-            return ViewService.list().then(response => response.data);
+            return CategoryService.list().then(response => response.data);
           }
         }
       },

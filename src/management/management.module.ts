@@ -188,11 +188,11 @@ import PlatformLogsController from '../management/platform/logs/platform-logs.co
 import PlatformLogsComponent from '../management/platform/logs/platform-logs.component';
 import PlatformLogComponent from '../management/platform/logs/platform-log.component';
 
-import ViewsController from '../management/configuration/views/views.controller';
-import ViewController from './configuration/views/view/view.controller';
-import ViewService from '../services/view.service';
-import DeleteViewDialogController from '../management/configuration/views/delete.view.dialog.controller';
-import DeleteAPIViewDialogController from './configuration/views/view/delete-api-view.dialog.controller';
+import CategoriesController from '../management/configuration/categories/categories.controller';
+import CategoryController from './configuration/categories/category/category.controller';
+import CategoryService from '../services/category.service';
+import DeleteCategoryDialogController from '../management/configuration/categories/delete.category.dialog.controller';
+import DeleteAPICategoryDialogController from './configuration/categories/category/delete-api-category.dialog.controller';
 import DialogAddGroupMemberController from './configuration/groups/group/addMemberDialog.controller';
 import RegistrationController from '../user/registration/registration.controller';
 import ConfirmController from '../user/registration/confirm/confirm.controller';
@@ -230,8 +230,8 @@ import TenantsController from '../management/configuration/tenants/tenants.contr
 import TenantService from '../services/tenant.service';
 import DeleteTenantDialogController from '../management/configuration/tenants/delete.tenant.dialog.controller';
 
-import ViewsComponent from '../management/configuration/views/views.component';
-import ViewComponent from './configuration/views/view/view.component';
+import CategoriesComponent from '../management/configuration/categories/categories.component';
+import CategoryComponent from './configuration/categories/category/category.component';
 import TenantsComponent from '../management/configuration/tenants/tenants.component';
 import TagsComponent from '../management/configuration/tags/tags.component';
 import MetadataComponent from '../management/configuration/metadata/metadata.component';
@@ -667,11 +667,11 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('InstanceEnvironmentController', InstanceEnvironmentController)
   .controller('InstanceMonitoringController', InstanceMonitoringController)
   .controller('DashboardController', DashboardController)
-  .controller('ViewsController', ViewsController)
-  .controller('ViewController', ViewController)
+  .controller('CategoriesController', CategoriesController)
+  .controller('CategoryController', CategoryController)
   .controller('TenantsController', TenantsController)
-  .controller('DeleteViewDialogController', DeleteViewDialogController)
-  .controller('DeleteAPIViewDialogController', DeleteAPIViewDialogController)
+  .controller('DeleteCategoryDialogController', DeleteCategoryDialogController)
+  .controller('DeleteAPICategoryDialogController', DeleteAPICategoryDialogController)
   .controller('DeleteTenantDialogController', DeleteTenantDialogController)
   .component('groups', GroupsComponent)
   .component('group', GroupComponent)
@@ -725,7 +725,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('ServiceDiscoveryService', ServiceDiscoveryService)
   .service('EventsService', EventsService)
   .service('AnalyticsService', AnalyticsService)
-  .service('ViewService', ViewService)
+  .service('CategoryService', CategoryService)
   .service('GroupService', GroupService)
   .service('SubscriptionService', SubscriptionService)
   .service('TagService', TagService)
@@ -766,8 +766,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvWidgetDataPieConfiguration', WidgetChartPieConfigurationComponent)
   .component('gvWidgetDataStatsConfiguration', WidgetDataStatsConfigurationComponent)
 
-  .component('views', ViewsComponent)
-  .component('view', ViewComponent)
+  .component('categories', CategoriesComponent)
+  .component('category', CategoryComponent)
   .component('tenants', TenantsComponent)
   .component('tags', TagsComponent)
   .component('metadata', MetadataComponent)

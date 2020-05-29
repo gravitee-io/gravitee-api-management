@@ -25,7 +25,7 @@ class ApiPortalController {
   private initialApi: any;
   private api: any;
   private groups: any;
-  private views: any;
+  private categories: any;
   private tags: any;
   private tenants: any;
   private failoverEnabled: boolean;
@@ -49,7 +49,7 @@ class ApiPortalController {
     private $state,
     private GroupService,
     private SidenavService: SidenavService,
-    private resolvedViews,
+    private resolvedCategories,
     private resolvedGroups,
     private resolvedTags,
     private resolvedTenants,
@@ -109,7 +109,7 @@ class ApiPortalController {
 
     this.initState();
 
-    this.views = resolvedViews;
+    this.categories = resolvedCategories;
 
     this.tags = resolvedTags;
     this.groups = resolvedGroups;
@@ -139,7 +139,7 @@ class ApiPortalController {
     this.qualityMetricsDescription.set('api.quality.metrics.healthcheck.weight', 'An healthcheck must be configured');
     this.qualityMetricsDescription.set('api.quality.metrics.description.weight', 'The API description must be filled');
     this.qualityMetricsDescription.set('api.quality.metrics.logo.weight', 'Put your own logo');
-    this.qualityMetricsDescription.set('api.quality.metrics.views.weight', 'Link your API to views');
+    this.qualityMetricsDescription.set('api.quality.metrics.categories.weight', 'Link your API to categories');
     this.qualityMetricsDescription.set('api.quality.metrics.labels.weight', 'Add labels to your API');
     _.forEach(this.qualityRules, (qualityRule) => {
       this.qualityMetricsDescription.set(qualityRule.id, qualityRule.description);

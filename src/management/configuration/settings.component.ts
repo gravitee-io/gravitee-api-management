@@ -82,10 +82,10 @@ const SettingsComponent: ng.IComponentOptions = {
           ['environment-top_apis-r']),
         goTo: 'management.settings.top-apis'
       },
-      views: {
+      categories: {
         perm: UserService.isUserHasPermissions(
-          ['environment-view-r']),
-        goTo: 'management.settings.views'
+          ['environment-category-r']),
+        goTo: 'management.settings.categories'
       },
 
       // MANAGEMENT

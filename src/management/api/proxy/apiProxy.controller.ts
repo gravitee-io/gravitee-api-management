@@ -27,7 +27,7 @@ class ApiProxyController {
 
   private api: any;
   private groups: any;
-  private views: any;
+  private categories: any;
   private tags: any;
   private tenants: any;
   private failoverEnabled: boolean;
@@ -49,7 +49,7 @@ class ApiProxyController {
     private $state,
     private GroupService: GroupService,
     private SidenavService: SidenavService,
-    private resolvedViews,
+    private resolvedCategories,
     private resolvedGroups,
     private resolvedTags,
     private resolvedTenants,
@@ -98,7 +98,7 @@ class ApiProxyController {
 
     this.initState();
 
-    this.views = resolvedViews;
+    this.categories = resolvedCategories;
 
     this.tags = resolvedTags;
     this.groups = resolvedGroups;

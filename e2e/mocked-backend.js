@@ -24,7 +24,7 @@ exports.httpBackendMock = function () {
         }]
       });
       $httpBackend.whenGET('/management/user/MockedUser/picture').respond('pic');
-      $httpBackend.whenGET('/management/configuration/views/').respond([]);
+      $httpBackend.whenGET('/management/configuration/categories/').respond([]);
 
       $httpBackend.whenGET('/management/policies/').respond([{
         id: 'rate-limit',

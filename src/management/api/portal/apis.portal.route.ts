@@ -391,9 +391,9 @@ function apisPortalRouterConfig($stateProvider) {
             return DocumentationService.search(q, $stateParams.apiId).then(response => response. data);
           }
         },
-        viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
+        categoryResources: (CategoryService: CategoryService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
-            return ViewService.list().then(response => response.data);
+            return CategoryService.list().then(response => response.data);
           }
         }
       },
@@ -479,9 +479,9 @@ function apisPortalRouterConfig($stateProvider) {
             return DocumentationService.search(q, $stateParams.apiId).then(response => response. data);
           }
         },
-        viewResources: (ViewService: ViewService, $stateParams: StateParams) => {
+        categoryResources: (CategoryService: CategoryService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
-            return ViewService.list().then(response => response.data);
+            return CategoryService.list().then(response => response.data);
           }
         }
       },

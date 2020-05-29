@@ -19,7 +19,7 @@ import DocumentationService, { DocumentationQuery, FolderSituation, SystemFolder
 import {StateService} from '@uirouter/core';
 import _ = require('lodash');
 import {IScope} from 'angular';
-import ViewService from '../../services/view.service';
+import CategoryService from '../../services/category.service';
 
 interface IPageScope extends IScope {
   getContentMode: string;
@@ -31,7 +31,7 @@ const NewPageComponent: ng.IComponentOptions = {
     folders: '<',
     systemFolders: '<',
     pageResources: '<',
-    viewResources: '<'
+    categoryResources: '<'
   },
   template: require('./new-page.html'),
   controller: function (

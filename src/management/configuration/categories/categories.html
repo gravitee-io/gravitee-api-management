@@ -17,19 +17,19 @@
 -->
 
 <div class="gv-forms gv-forms-fluid" layout="column">
-  <h1>Views</h1>
+  <h1>Categories</h1>
   <div class="gv-form">
     <div class="gv-form-content" layout="column">
       <md-input-container class="gv-input-container-dense">
-        <md-switch ng-model="$ctrl.settings.portal.apis.viewMode.enabled" aria-label="View Mode" ng-change="$ctrl.toggleDisplayMode();">
-          Enable View Mode
+        <md-switch ng-model="$ctrl.settings.portal.apis.categoryMode.enabled" aria-label="Category Mode" ng-change="$ctrl.toggleDisplayMode();">
+          Enable Category Mode
         </md-switch>
         <div class="hint">
-          Switch on to enable View mode and automatically replace API gallery by View gallery. Switch off to disable this option.
+          Switch on to enable Category mode and automatically replace API gallery by Category gallery. Switch off to disable this option.
         </div>
       </md-input-container>
 
-      <md-table-container ng-if="$ctrl.views && $ctrl.views.length > 0">
+      <md-table-container ng-if="$ctrl.categories && $ctrl.categories.length > 0">
         <table md-table>
           <thead md-head>
           <tr md-row>
@@ -43,28 +43,28 @@
           </tr>
           </thead>
           <tbody md-body>
-          <tr md-row ng-repeat="view in $ctrl.views | orderBy:view.order">
+          <tr md-row ng-repeat="category in $ctrl.categories | orderBy:category.order">
             <td md-cell nowrap>
               <gravitee-identity-picture
-                image-id="view.id"
-                image-url="::view.picture_url"
-                image-name="view.name"
+                image-id="category.id"
+                image-url="::category.picture_url"
+                image-name="category.name"
                 image-width="40"
               ></gravitee-identity-picture>
             </td>
-            <td md-cell width="1%" nowrap><a ui-sref="management.settings.view({viewId: view.key})">{{view.name}}</a></td>
-            <td md-cell>{{view.description}}</td>
-            <td permission permission-only="'environment-view-u'" md-cell width="1%" nowrap>
-              <ng-md-icon icon="visibility{{view.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility(view)"></ng-md-icon>
+            <td md-cell width="1%" nowrap><a ui-sref="management.settings.category({categoryId: category.key})">{{category.name}}</a></td>
+            <td md-cell>{{category.description}}</td>
+            <td permission permission-only="'environment-category-u'" md-cell width="1%" nowrap>
+              <ng-md-icon icon="visibility{{category.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility(category)"></ng-md-icon>
             </td>
-            <td md-cell width="1%" nowrap>{{view.totalApis}}</td>
+            <td md-cell width="1%" nowrap>{{category.totalApis}}</td>
             <td md-cell width="96px" nowrap style="text-align: center">
-              <ng-md-icon permission permission-only="'environment-view-u'" ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward($index)"></ng-md-icon>
-              <ng-md-icon permission permission-only="'environment-view-u'" ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward($index)"></ng-md-icon>
+              <ng-md-icon permission permission-only="'environment-category-u'" ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward($index)"></ng-md-icon>
+              <ng-md-icon permission permission-only="'environment-category-u'" ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward($index)"></ng-md-icon>
             </td>
             <td md-cell width="48px" style="padding: 0 12px !important;">
-              <ng-md-icon permission permission-only="'environment-view-d'"
-                          icon="delete" ng-click="$ctrl.deleteView(view)">
+              <ng-md-icon permission permission-only="'environment-category-d'"
+                          icon="delete" ng-click="$ctrl.deleteCategory(category)">
                 <md-tooltip md-direction="top" md-visible="false">Delete</md-tooltip>
               </ng-md-icon>
             </td>
@@ -74,14 +74,14 @@
       </md-table-container>
     </div>
   </div>
-  <gravitee-empty-state ng-if="!$ctrl.views || $ctrl.views.length == 0" icon="view_module" message="There is no view to manage"></gravitee-empty-state>
+  <gravitee-empty-state ng-if="!$ctrl.categories || $ctrl.categories.length == 0" icon="category_module" message="There is no category to manage"></gravitee-empty-state>
 </div>
 
-<md-button permission permission-only="'environment-view-c'"
-           aria-label="Add view"
+<md-button permission permission-only="'environment-category-c'"
+           aria-label="Add category"
            class="md-fab md-fab-bottom-right md-fab-scrollable"
            ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
-           ui-sref="management.settings.viewnew">
-  <md-tooltip md-direction="top" md-visible="false">Add a new view</md-tooltip>
+           ui-sref="management.settings.categorynew">
+  <md-tooltip md-direction="top" md-visible="false">Add a new category</md-tooltip>
   <ng-md-icon icon="add"></ng-md-icon>
 </md-button>
