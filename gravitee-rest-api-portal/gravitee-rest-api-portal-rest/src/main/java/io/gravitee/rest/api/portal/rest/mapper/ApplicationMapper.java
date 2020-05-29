@@ -77,7 +77,7 @@ public class ApplicationMapper {
         
         application.setUpdatedAt(applicationListItem.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         ApplicationListItemSettings settings = applicationListItem.getSettings();
-        application.setHasClientId(settings != null && settings.getClientId() != null);
+        application.setHasClientId(settings != null && settings.getClientId() != null && !settings.getClientId().isEmpty());
         return application;
     }
 
