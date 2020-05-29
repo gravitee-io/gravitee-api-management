@@ -676,14 +676,14 @@ public class PortalConfigEntity {
         @ParameterKey(Key.PORTAL_APIS_TILESMODE_ENABLED)
         private Enabled tilesMode;
 
-        @ParameterKey(Key.PORTAL_APIS_VIEW_ENABLED)
-        private Enabled viewMode;
+        @ParameterKey(Key.PORTAL_APIS_CATEGORY_ENABLED)
+        private Enabled categoryMode;
 
         @ParameterKey(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER)
         private Enabled apiHeaderShowTags;
 
-        @ParameterKey(Key.PORTAL_APIS_SHOW_VIEWS_IN_APIHEADER)
-        private Enabled apiHeaderShowViews;
+        @ParameterKey(Key.PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER)
+        private Enabled apiHeaderShowCategories;
 
         public Enabled getTilesMode() {
             return tilesMode;
@@ -693,12 +693,12 @@ public class PortalConfigEntity {
             this.tilesMode = tilesMode;
         }
 
-        public Enabled getViewMode() {
-            return viewMode;
+        public Enabled getCategoryMode() {
+            return categoryMode;
         }
 
-        public void setViewMode(Enabled viewMode) {
-            this.viewMode = viewMode;
+        public void setCategoryMode(Enabled categoryMode) {
+            this.categoryMode = categoryMode;
         }
 
         public Enabled getApiHeaderShowTags() {
@@ -709,12 +709,12 @@ public class PortalConfigEntity {
             this.apiHeaderShowTags = apiHeaderShowTags;
         }
 
-        public Enabled getApiHeaderShowViews() {
-            return apiHeaderShowViews;
+        public Enabled getApiHeaderShowCategories() {
+            return apiHeaderShowCategories;
         }
 
-        public void setApiHeaderShowViews(Enabled apiHeaderShowViews) {
-            this.apiHeaderShowViews = apiHeaderShowViews;
+        public void setApiHeaderShowCategories(Enabled apiHeaderShowCategories) {
+            this.apiHeaderShowCategories = apiHeaderShowCategories;
         }
     }
 
@@ -814,8 +814,8 @@ public class PortalConfigEntity {
         @ParameterKey(Key.API_QUALITY_METRICS_LOGO_WEIGHT)
         private Integer logoWeight;
 
-        @ParameterKey(Key.API_QUALITY_METRICS_VIEWS_WEIGHT)
-        private Integer viewsWeight;
+        @ParameterKey(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT)
+        private Integer categoriesWeight;
 
         @ParameterKey(Key.API_QUALITY_METRICS_LABELS_WEIGHT)
         private Integer labelsWeight;
@@ -876,12 +876,12 @@ public class PortalConfigEntity {
             this.logoWeight = logoWeight;
         }
 
-        public Integer getViewsWeight() {
-            return viewsWeight;
+        public Integer getCategoriesWeight() {
+            return categoriesWeight;
         }
 
-        public void setViewsWeight(Integer viewsWeight) {
-            this.viewsWeight = viewsWeight;
+        public void setCategoriesWeight(Integer categoriesWeight) {
+            this.categoriesWeight = categoriesWeight;
         }
 
         public Integer getLabelsWeight() {

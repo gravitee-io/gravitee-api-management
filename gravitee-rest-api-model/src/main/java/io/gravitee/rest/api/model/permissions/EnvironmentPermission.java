@@ -38,7 +38,7 @@ public enum EnvironmentPermission implements Permission {
     QUALITY_RULE                    (   "QUALITY_RULE",                 2800    ),
     METADATA                        (   "METADATA",                     2900    ),
     DOCUMENTATION                   (   "DOCUMENTATION",                3000    ),
-    VIEW                            (   "VIEW",                         3100    ),
+    CATEGORY                        (   "CATEGORY",                     3100    ),
     TOP_APIS                        (   "TOP_APIS",                     3200    ),
     API_HEADER                      (   "API_HEADER",                   3300    ),
     IDENTITY_PROVIDER               (   "IDENTITY_PROVIDER",            3400    ),

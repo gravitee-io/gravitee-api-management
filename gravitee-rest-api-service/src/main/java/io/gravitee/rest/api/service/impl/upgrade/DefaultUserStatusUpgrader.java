@@ -17,21 +17,16 @@ package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.UserStatus;
-import io.gravitee.repository.management.model.View;
 import io.gravitee.rest.api.model.UpdateUserEntity;
-import io.gravitee.rest.api.model.ViewEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.ViewService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

@@ -80,9 +80,9 @@ public class ConfigurationResource {
         return notifierService.list(NotificationReferenceType.PORTAL, PortalNotificationDefaultReferenceId.DEFAULT.name());
     }
 
-    @Path("views")
-    public ViewsResource getViewResource() {
-        return resourceContext.getResource(ViewsResource.class);
+    @Path("categories")
+    public CategoriesResource getCategoryResource() {
+        return resourceContext.getResource(CategoriesResource.class);
     }
 
     @Path("groups")

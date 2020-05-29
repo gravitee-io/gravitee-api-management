@@ -174,7 +174,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Autowired
     private RoleService roleService;
     @Autowired
-    private ViewService viewService;
+    private CategoryService categoryService;
     @Autowired
     private ApplicationService applicationService;
     @Autowired
@@ -881,8 +881,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (updateApiEntity.getLabels() == null) {
                     api.setLabels(apiToUpdate.getLabels());
                 }
-                if (updateApiEntity.getViews() == null) {
-                    api.setViews(apiToUpdate.getViews());
+                if (updateApiEntity.getCategories() == null) {
+                    api.setCategories(apiToUpdate.getCategories());
                 }
 
                 if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
@@ -1324,6 +1324,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
             }
 
+            // Read the whole definition
+            final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
+
+            // Views & Categories
+            // Before 3.0.2, API 'categories' were called 'views'. This is for compatibility.
+            final JsonNode viewsDefinition = jsonNode.path("views");
+            if (viewsDefinition != null && viewsDefinition.isArray()) {
+                Set<String> categories = new HashSet<>();
+                for (JsonNode viewNode : viewsDefinition) {
+                    categories.add(viewNode.asText());
+                }
+                importedApi.setCategories(categories);
+            }
+
             ApiEntity createdOrUpdatedApiEntity;
             if (apiEntity == null || apiEntity.getId() == null) {
                 createdOrUpdatedApiEntity = create0(importedApi, userId);
@@ -1331,8 +1345,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 createdOrUpdatedApiEntity = update(apiEntity.getId(), importedApi);
             }
 
-            // Read the whole definition
-            final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
 
             // Members
             final JsonNode membersToImport = jsonNode.path("members");
@@ -1627,21 +1639,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public void deleteViewFromAPIs(final String viewId) {
+    public void deleteCategoryFromAPIs(final String categoryId) {
         findAll().forEach(api -> {
-            if (api.getViews() != null && api.getViews().contains(viewId)) {
-                removeView(api.getId(), viewId);
+            if (api.getCategories() != null && api.getCategories().contains(categoryId)) {
+                removeCategory(api.getId(), categoryId);
             }
         });
     }
 
-    private void removeView(String apiId, String viewId) throws TechnicalManagementException {
+    private void removeCategory(String apiId, String categoryId) throws TechnicalManagementException {
         try {
             Optional<Api> optApi = apiRepository.findById(apiId);
             if (optApi.isPresent()) {
                 Api api = optApi.get();
                 Api previousApi = new Api(api);
-                api.getViews().remove(viewId);
+                api.getCategories().remove(categoryId);
                 api.setUpdatedAt(new Date());
                 apiRepository.update(api);
                 // Audit
@@ -1656,8 +1668,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 throw new ApiNotFoundException(apiId);
             }
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while removing view from API: {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while removing view from API: " + apiId, ex);
+            LOGGER.error("An error occurs while removing category from API: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while removing category from API: " + apiId, ex);
         }
     }
 
@@ -1684,7 +1696,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiModelEntity.setUpdatedAt(apiEntity.getUpdatedAt());
         apiModelEntity.setGroups(apiEntity.getGroups());
         apiModelEntity.setVisibility(apiEntity.getVisibility());
-        apiModelEntity.setViews(apiEntity.getViews());
+        apiModelEntity.setCategories(apiEntity.getCategories());
         apiModelEntity.setVersion(apiEntity.getVersion());
         apiModelEntity.setState(apiEntity.getState());
         apiModelEntity.setTags(apiEntity.getTags());
@@ -1868,7 +1880,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
         updateApiEntity.setServices(apiEntity.getServices());
         updateApiEntity.setTags(apiEntity.getTags());
-        updateApiEntity.setViews(apiEntity.getViews());
+        updateApiEntity.setCategories(apiEntity.getCategories());
         updateApiEntity.setVisibility(apiEntity.getVisibility());
         updateApiEntity.setPaths(apiEntity.getPaths());
         updateApiEntity.setPathMappings(apiEntity.getPathMappings());
@@ -1898,8 +1910,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .name(query.getName())
             .version(query.getVersion());
 
-        if (!isBlank(query.getView())) {
-            builder.view(viewService.findById(query.getView()).getId());
+        if (!isBlank(query.getCategory())) {
+            builder.category(categoryService.findById(query.getCategory()).getId());
         }
         if (query.getGroups() != null && !query.getGroups().isEmpty()) {
             builder.groups(query.getGroups().toArray(new String[0]));
@@ -2044,9 +2056,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         userService.findByIds(memberships.stream().map(MemberEntity::getId).collect(toList()))
             .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
-        final List<ViewEntity> views = viewService.findAll();
+        final List<CategoryEntity> categories = categoryService.findAll();
         return streamApis
-            .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId())), views))
+            .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId())), categories))
             .collect(toSet());
     }
 
@@ -2054,7 +2066,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return convert(api, null, null);
     }
 
-    private ApiEntity convert(Api api, UserEntity primaryOwner, List<ViewEntity> views) {
+    private ApiEntity convert(Api api, UserEntity primaryOwner, List<CategoryEntity> categories) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
@@ -2095,17 +2107,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setPicture(api.getPicture());
         apiEntity.setLabels(api.getLabels());
 
-        final Set<String> apiViews = api.getViews();
-        if (apiViews != null) {
-            if (views == null) {
-                views = viewService.findAll();
+        final Set<String> apiCategories = api.getCategories();
+        if (apiCategories != null) {
+            if (categories == null) {
+                categories = categoryService.findAll();
             }
-            final Set<String> newApiViews = new HashSet<>(apiViews.size());
-            for (final String apiView : apiViews) {
-                final Optional<ViewEntity> optionalView = views.stream().filter(v -> apiView.equals(v.getId())).findAny();
-                optionalView.ifPresent(view -> newApiViews.add(view.getKey()));
+            final Set<String> newApiCategories = new HashSet<>(apiCategories.size());
+            for (final String apiView : apiCategories) {
+                final Optional<CategoryEntity> optionalView = categories.stream().filter(c -> apiView.equals(c.getId())).findAny();
+                optionalView.ifPresent(category -> newApiCategories.add(category.getKey()));
             }
-            apiEntity.setViews(newApiViews);
+            apiEntity.setCategories(newApiCategories);
         }
         final LifecycleState state = api.getLifecycleState();
         if (state != null) {
@@ -2145,16 +2157,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setDescription(updateApiEntity.getDescription().trim());
         api.setPicture(updateApiEntity.getPicture());
 
-        final Set<String> apiViews = updateApiEntity.getViews();
-        if (apiViews != null) {
-            final List<ViewEntity> views = viewService.findAll();
-            final Set<String> newApiViews = new HashSet<>(apiViews.size());
-            for (final String apiView : apiViews) {
-                final Optional<ViewEntity> optionalView =
-                    views.stream().filter(v -> apiView.equals(v.getKey()) || apiView.equals(v.getId())).findAny();
-                optionalView.ifPresent(view -> newApiViews.add(view.getId()));
+        final Set<String> apiCategories = updateApiEntity.getCategories();
+        if (apiCategories != null) {
+            final List<CategoryEntity> categories = categoryService.findAll();
+            final Set<String> newApiCategories = new HashSet<>(apiCategories.size());
+            for (final String apiCategory : apiCategories) {
+                final Optional<CategoryEntity> optionalCategory =
+                    categories.stream().filter(c -> apiCategory.equals(c.getKey()) || apiCategory.equals(c.getId())).findAny();
+                optionalCategory.ifPresent(category -> newApiCategories.add(category.getId()));
             }
-            api.setViews(newApiViews);
+            api.setCategories(newApiCategories);
         }
 
         if (updateApiEntity.getLabels() != null) {

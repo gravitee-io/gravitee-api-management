@@ -31,8 +31,8 @@ import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.ViewService;
-import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -65,8 +65,8 @@ public class ApiMapperTest {
     private static final String API_OWNER_EMAIL = "my-api-ownber-email";
     private static final String API_OWNER_FIRSTNAME = "my-api-owner-firstname";
     private static final String API_OWNER_LASTNAME = "my-api-owner-lastname";
-    private static final String API_VIEW = "my-api-view";
-    private static final String API_VIEW_HIDDEN = "my-api-view-hidden";
+    private static final String API_CATEGORY = "my-api-category";
+    private static final String API_CATEGORY_HIDDEN = "my-api-category-hidden";
 
     private ApiEntity apiEntity;
 
@@ -80,7 +80,7 @@ public class ApiMapperTest {
     private ParameterService parameterService;
 
     @Mock
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @InjectMocks
     private ApiMapper apiMapper;
@@ -96,9 +96,9 @@ public class ApiMapperTest {
         apiEntity.setDescription(API_DESCRIPTION);
         apiEntity.setName(API_NAME);
         apiEntity.setLabels(new ArrayList<>(Arrays.asList(API_LABEL)));
-        doThrow(ViewNotFoundException.class).when(viewService).findNotHiddenById(API_VIEW_HIDDEN);
+        doThrow(CategoryNotFoundException.class).when(categoryService).findNotHiddenById(API_CATEGORY_HIDDEN);
 
-        apiEntity.setViews(new HashSet<>(Arrays.asList(API_VIEW, API_VIEW_HIDDEN)));
+        apiEntity.setCategories(new HashSet<>(Arrays.asList(API_CATEGORY, API_CATEGORY_HIDDEN)));
 
         apiEntity.setEntrypoints(
                 Arrays.asList(new ApiEntrypointEntity(API_ENTRYPOINT_1), new ApiEntrypointEntity(API + "/foo")));
@@ -121,7 +121,7 @@ public class ApiMapperTest {
         doReturn(true).when(ratingService).isEnabled();
         doReturn(ratingSummaryEntity).when(ratingService).findSummaryByApi(API_ID);
 
-        doReturn(true).when(parameterService).findAsBoolean(Key.PORTAL_APIS_VIEW_ENABLED);
+        doReturn(true).when(parameterService).findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED);
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/foo")));
         apiEntity.setProxy(proxy);
@@ -159,9 +159,9 @@ public class ApiMapperTest {
 
         assertEquals(now.toEpochMilli(), responseApi.getUpdatedAt().toInstant().toEpochMilli());
 
-        List<String> views = responseApi.getViews();
-        assertNotNull(views);
-        assertTrue(views.contains(API_VIEW));
+        List<String> categories = responseApi.getCategories();
+        assertNotNull(categories);
+        assertTrue(categories.contains(API_CATEGORY));
 
         RatingSummary ratingSummary = responseApi.getRatingSummary();
         assertNotNull(ratingSummary);
@@ -182,8 +182,8 @@ public class ApiMapperTest {
 
         doReturn(false).when(ratingService).isEnabled();
 
-        apiEntity.setViews(new HashSet<>(Arrays.asList(API_VIEW, API_VIEW_HIDDEN)));
-        doReturn(false).when(parameterService).findAsBoolean(Key.PORTAL_APIS_VIEW_ENABLED);
+        apiEntity.setCategories(new HashSet<>(Arrays.asList(API_CATEGORY, API_CATEGORY_HIDDEN)));
+        doReturn(false).when(parameterService).findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED);
 
         apiEntity.setLifecycleState(ApiLifecycleState.CREATED);
 
@@ -209,9 +209,9 @@ public class ApiMapperTest {
 
         assertNull(responseApi.getOwner());
 
-        List<String> views = responseApi.getViews();
-        assertNotNull(views);
-        assertEquals(0, views.size());
+        List<String> categories = responseApi.getCategories();
+        assertNotNull(categories);
+        assertEquals(0, categories.size());
 
         RatingSummary ratingSummary = responseApi.getRatingSummary();
         assertNull(ratingSummary);

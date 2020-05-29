@@ -53,9 +53,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     private ApiHeaderService apiHeaderService;
 
     @Autowired
-    private ViewService viewService;
-    
-    @Autowired
     private PageService pageService;
 
     @Override

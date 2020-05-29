@@ -18,8 +18,8 @@ package io.gravitee.rest.api.service.impl.upgrade;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.ViewRepository;
-import io.gravitee.repository.management.model.View;
+import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.service.Upgrader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,36 +36,36 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultViewUpgrader implements Upgrader, Ordered {
+public class DefaultCategoryUpgrader implements Upgrader, Ordered {
     /**
      * Logger.
      */
-    private final Logger logger = LoggerFactory.getLogger(DefaultViewUpgrader.class);
+    private final Logger logger = LoggerFactory.getLogger(DefaultCategoryUpgrader.class);
 
     @Autowired
-    private ViewRepository viewRepository;
+    private CategoryRepository categoryRepository;
     @Autowired
     private ApiRepository apiRepository;
 
     @Override
     public boolean upgrade() {
-        // Initialize default view
-        final Set<View> views;
+        // Initialize default category
+        final Set<Category> categories;
         try {
-            views = viewRepository.findAll();
-            Optional<View> optionalKeyLessView = views.
+            categories = categoryRepository.findAll();
+            Optional<Category> optionalKeyLessCategory = categories.
                     stream().
                     filter(v -> v.getKey() == null || v.getKey().isEmpty()).
                     findFirst();
-            if (optionalKeyLessView.isPresent()) {
-                logger.info("Update views to add field key");
-                for (final View view : views) {
-                    view.setKey(IdGenerator.generate(view.getName()));
-                    viewRepository.update(view);
+            if (optionalKeyLessCategory.isPresent()) {
+                logger.info("Update categories to add field key");
+                for (final Category category : categories) {
+                    category.setKey(IdGenerator.generate(category.getName()));
+                    categoryRepository.update(category);
                 }
             }
         } catch (TechnicalException e) {
-            logger.error("Error while upgrading views : {}", e);
+            logger.error("Error while upgrading categories : {}", e);
         }
         return true;
     }

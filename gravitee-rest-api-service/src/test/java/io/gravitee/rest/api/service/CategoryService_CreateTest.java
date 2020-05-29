@@ -16,15 +16,15 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ViewRepository;
-import io.gravitee.repository.management.model.View;
+import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.NewViewEntity;
-import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.NewCategoryEntity;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.exceptions.DuplicateViewNameException;
+import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
-import io.gravitee.rest.api.service.impl.ViewServiceImpl;
+import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,7 +35,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 
-import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_CREATED;
+import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_CREATED;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -46,13 +46,13 @@ import static org.mockito.Mockito.*;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ViewService_CreateTest {
+public class CategoryService_CreateTest {
 
     @InjectMocks
-    private ViewServiceImpl viewService = new ViewServiceImpl();
+    private CategoryServiceImpl categoryService = new CategoryServiceImpl();
 
     @Mock
-    private ViewRepository mockViewRepository;
+    private CategoryRepository mockCategoryRepository;
 
     @Mock
     private AuditService mockAuditService;
@@ -61,41 +61,41 @@ public class ViewService_CreateTest {
     private EnvironmentService mockEnvironmentService;
 
     @Test
-    public void shouldCreateView() throws TechnicalException {
-        NewViewEntity v1 = new NewViewEntity();
+    public void shouldCreateCategory() throws TechnicalException {
+        NewCategoryEntity v1 = new NewCategoryEntity();
         v1.setName("v1");
-        when(mockViewRepository.create(any())).thenReturn(new View());
+        when(mockCategoryRepository.create(any())).thenReturn(new Category());
         when(mockEnvironmentService.findById("DEFAULT")).thenReturn(new EnvironmentEntity());
-        ViewEntity view = viewService.create(v1);
+        CategoryEntity category = categoryService.create(v1);
 
-        assertNotNull("result is null", view);
-        verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(VIEW_CREATED), any(), isNull(), any());
-        verify(mockViewRepository, times(1)).create(argThat(arg -> arg != null && arg.getName().equals("v1")));
+        assertNotNull("result is null", category);
+        verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(CATEGORY_CREATED), any(), isNull(), any());
+        verify(mockCategoryRepository, times(1)).create(argThat(arg -> arg != null && arg.getName().equals("v1")));
     }
     
     @Test(expected = EnvironmentNotFoundException.class)
-    public void shouldNotCreateViewBecauseEnvironmentDoesNotExist() throws TechnicalException {
+    public void shouldNotCreateCategoryBecauseEnvironmentDoesNotExist() throws TechnicalException {
         when(mockEnvironmentService.findById(any())).thenThrow(EnvironmentNotFoundException.class);
 
-        NewViewEntity nv1 = new NewViewEntity();
+        NewCategoryEntity nv1 = new NewCategoryEntity();
         nv1.setName("v1");
-        viewService.create(nv1);
+        categoryService.create(nv1);
     }
 
-    @Test(expected = DuplicateViewNameException.class)
-    public void shouldNotCreateExistingView() throws TechnicalException {
-        View v1 = new View();
-        NewViewEntity nv1 = new NewViewEntity();
+    @Test(expected = DuplicateCategoryNameException.class)
+    public void shouldNotCreateExistingCategory() throws TechnicalException {
+        Category v1 = new Category();
+        NewCategoryEntity nv1 = new NewCategoryEntity();
         v1.setName("v1");
         nv1.setName("v1");
-        when(mockViewRepository.findAllByEnvironment(any())).thenReturn(Collections.singleton(v1));
+        when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(Collections.singleton(v1));
 
         try {
-            viewService.create(nv1);
-        } catch(DuplicateViewNameException e) {
-            verify(mockViewRepository, never()).create(any());
+            categoryService.create(nv1);
+        } catch(DuplicateCategoryNameException e) {
+            verify(mockCategoryRepository, never()).create(any());
             throw e;
         }
-        Assert.fail("should throw DuplicateViewNameException");
+        Assert.fail("should throw DuplicateCategoryNameException");
     }
 }

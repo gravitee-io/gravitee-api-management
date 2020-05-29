@@ -103,8 +103,8 @@ public class ApiResource extends AbstractResource {
             if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER)) {
                 api.setLabels(new ArrayList<>());
             }
-            if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_VIEWS_IN_APIHEADER)) {
-                api.setViews(new ArrayList<>());
+            if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER)) {
+                api.setCategories(new ArrayList<>());
             }
             return Response.ok(api).build();
         }

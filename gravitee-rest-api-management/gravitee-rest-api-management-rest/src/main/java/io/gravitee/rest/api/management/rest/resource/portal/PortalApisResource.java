@@ -119,11 +119,11 @@ public class PortalApisResource extends AbstractResource {
             uriBuilder.queryParam("hash", api.getPicture().hashCode());
         }
         apiItem.setPictureUrl(uriBuilder.build().toString());
-        apiItem.setViews(api.getViews());
+        apiItem.setCategories(api.getCategories());
         apiItem.setCreatedAt(api.getCreatedAt());
         apiItem.setUpdatedAt(api.getUpdatedAt());
         apiItem.setLabels(api.getLabels());
-        apiItem.setViews(api.getViews());
+        apiItem.setCategories(api.getCategories());
         apiItem.setPrimaryOwner(api.getPrimaryOwner());
 
         if (api.getVisibility() != null) {

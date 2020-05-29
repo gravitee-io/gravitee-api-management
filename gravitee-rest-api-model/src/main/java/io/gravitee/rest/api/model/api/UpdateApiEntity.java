@@ -96,10 +96,10 @@ public class UpdateApiEntity {
     private String picture;
 
     @ApiModelProperty(
-            value = "the list of views associated with this API",
+            value = "the list of categories associated with this API",
             dataType = "java.util.List",
             example = "Product, Customer, Misc")
-    private Set<String> views;
+    private Set<String> categories;
 
     @ApiModelProperty(
             value = "the free list of labels associated with this API",
@@ -218,12 +218,12 @@ public class UpdateApiEntity {
         this.resources = resources;
     }
 
-    public Set<String> getViews() {
-        return views;
+    public Set<String> getCategories() {
+        return categories;
     }
 
-    public void setViews(Set<String> views) {
-        this.views = views;
+    public void setCategories(Set<String> categories) {
+        this.categories = categories;
     }
 
     public List<String> getLabels() {

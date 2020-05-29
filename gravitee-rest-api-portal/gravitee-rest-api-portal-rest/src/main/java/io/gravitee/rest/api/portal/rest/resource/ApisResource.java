@@ -27,7 +27,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.model.Api;
-import io.gravitee.rest.api.portal.rest.model.CategoryApiQuery;
+import io.gravitee.rest.api.portal.rest.model.FilterApiQuery;
 import io.gravitee.rest.api.portal.rest.resource.param.ApisParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
@@ -76,7 +76,7 @@ public class ApisResource extends AbstractResource {
         Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(),
                 createQueryFromParam(apisParam));
 
-        FilteredApi filteredApis = filterByCategory(apis, apisParam.getCategory(), apisParam.getExcludedCategory());
+        FilteredApi filteredApis = this.filterApis(apis, apisParam.getFilter(), apisParam.getExcludedFilter());
         
         List<Api> apisList= filteredApis.getFilteredApis().stream()
                 .map(apiMapper::convert)
@@ -114,19 +114,19 @@ public class ApisResource extends AbstractResource {
             apiQuery.setName(apisParam.getName());
             apiQuery.setTag(apisParam.getTag());
             apiQuery.setVersion(apisParam.getVersion());
-            if (apisParam.getView() != null) {
-                apiQuery.setView(apisParam.getView());
+            if (apisParam.getCategory() != null) {
+                apiQuery.setCategory(apisParam.getCategory());
             }
         }
         return apiQuery;
     }
     
-    private FilteredApi filterByCategory(final Collection<ApiEntity> apis, final CategoryApiQuery category,
-                                         final CategoryApiQuery excludedCategory) {
-        final CategoryApiQuery cat = excludedCategory == null ? category : excludedCategory;
-        final boolean excluded = excludedCategory != null;
-        if (cat != null) {
-            switch (cat) {
+    private FilteredApi filterApis(final Collection<ApiEntity> apis, final FilterApiQuery filterApiQuery,
+                                         final FilterApiQuery excludedFilterApiQuery) {
+        final FilterApiQuery filter = excludedFilterApiQuery == null ? filterApiQuery : excludedFilterApiQuery;
+        final boolean excluded = excludedFilterApiQuery != null;
+        if (filter != null) {
+            switch (filter) {
                 case MINE:
                     if (isAuthenticated()) {
                         return getCurrentUserSubscribedApis(apis, excluded);

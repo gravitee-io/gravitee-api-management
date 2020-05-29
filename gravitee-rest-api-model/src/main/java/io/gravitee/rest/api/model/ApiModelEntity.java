@@ -50,7 +50,7 @@ public class ApiModelEntity {
     private Set<String> tags;
     private String picture;
     private List<Resource> resources = new ArrayList<>();
-    private Set<String> views;
+    private Set<String> categories;
     private Map<String, String> metadata;
     private ApiLifecycleState lifecycleState;
 
@@ -190,12 +190,12 @@ public class ApiModelEntity {
         this.resources = resources;
     }
 
-    public Set<String> getViews() {
-        return views;
+    public Set<String> getCategories() {
+        return categories;
     }
 
-    public void setViews(Set<String> views) {
-        this.views = views;
+    public void setCategories(Set<String> categories) {
+        this.categories = categories;
     }
 
     public Set<String> getGroups() {
@@ -250,7 +250,7 @@ public class ApiModelEntity {
             ", state=" + state +
             ", primaryOwner=" + primaryOwner +
             ", tags=" + tags +
-            ", view=" + views +
+            ", category=" + categories +
             ", groups=" + groups +
             ", metadata=" + metadata +
             ", lifecycleState=" + lifecycleState +

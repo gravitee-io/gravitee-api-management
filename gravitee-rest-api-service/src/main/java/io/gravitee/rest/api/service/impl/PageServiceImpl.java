@@ -455,9 +455,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				String resourceType = newPageEntity.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE);
 				String content = newPageEntity.getContent();
 				if (content == null || content.isEmpty()) {
-					throw new PageActionException(PageType.LINK, "be created. It must have a URL, a page Id or a view Id");
+					throw new PageActionException(PageType.LINK, "be created. It must have a URL, a page Id or a category Id");
 				}
-				if ("root".equals(content) || PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) || PageConfigurationKeys.LINK_RESOURCE_TYPE_VIEW.equals(resourceType)) {
+				if ("root".equals(content) || PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) || PageConfigurationKeys.LINK_RESOURCE_TYPE_CATEGORY.equals(resourceType)) {
 					newPageEntity.setPublished(true);
 				} else {
 					Optional<Page> optionalRelatedPage = pageRepository.findById(content);
@@ -641,7 +641,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                         throw new PageActionException(PageType.LINK, "be created. An external Link must have a URL");
                     }
 
-                    if ("root".equals(newResourceRef) || PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) || PageConfigurationKeys.LINK_RESOURCE_TYPE_VIEW.equals(resourceType)) {
+                    if ("root".equals(newResourceRef) || PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) || PageConfigurationKeys.LINK_RESOURCE_TYPE_CATEGORY.equals(resourceType)) {
                         updatePageEntity.setPublished(true);
                     } else {
                         Optional<Page> optionalRelatedPage = pageRepository.findById(newResourceRef);

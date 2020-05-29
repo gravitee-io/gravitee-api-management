@@ -81,7 +81,7 @@ public class ApiService_StartTest {
     @Mock
     private ParameterService parameterService;
     @Mock
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @Before
     public void setUp() {

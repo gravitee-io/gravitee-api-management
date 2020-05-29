@@ -42,7 +42,7 @@ public class ApiQualityMetricLabelsTest {
     @Test
     public void shouldBeValidWithLabel() {
         ApiEntity api = mock(ApiEntity.class);
-        when(api.getLabels()).thenReturn(Collections.singletonList("view"));
+        when(api.getLabels()).thenReturn(Collections.singletonList("category"));
 
         boolean valid = srv.isValid(api);
 

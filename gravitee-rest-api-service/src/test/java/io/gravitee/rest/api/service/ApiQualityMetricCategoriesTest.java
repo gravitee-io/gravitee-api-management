@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.quality.ApiQualityMetricViews;
+import io.gravitee.rest.api.service.quality.ApiQualityMetricCategories;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,14 +35,14 @@ import static org.mockito.Mockito.when;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApiQualityMetricViewsTest {
+public class ApiQualityMetricCategoriesTest {
     @InjectMocks
-    private ApiQualityMetricViews srv = new ApiQualityMetricViews();
+    private ApiQualityMetricCategories srv = new ApiQualityMetricCategories();
 
     @Test
-    public void shouldBeValidWithView() {
+    public void shouldBeValidWithCategory() {
         ApiEntity api = mock(ApiEntity.class);
-        when(api.getViews()).thenReturn(Collections.singleton("view"));
+        when(api.getCategories()).thenReturn(Collections.singleton("category"));
 
         boolean valid = srv.isValid(api);
 
@@ -50,9 +50,9 @@ public class ApiQualityMetricViewsTest {
     }
 
     @Test
-    public void shouldNotBeValidWithEmptyViews() {
+    public void shouldNotBeValidWithEmptyCategories() {
         ApiEntity api = mock(ApiEntity.class);
-        when(api.getViews()).thenReturn(Collections.emptySet());
+        when(api.getCategories()).thenReturn(Collections.emptySet());
 
         boolean valid = srv.isValid(api);
 
@@ -62,7 +62,7 @@ public class ApiQualityMetricViewsTest {
     @Test
     public void shouldNotBeValidWithNull() {
         ApiEntity api = mock(ApiEntity.class);
-        when(api.getViews()).thenReturn(null);
+        when(api.getCategories()).thenReturn(null);
 
         boolean valid = srv.isValid(api);
 

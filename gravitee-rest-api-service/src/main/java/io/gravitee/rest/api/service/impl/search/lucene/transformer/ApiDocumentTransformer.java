@@ -41,7 +41,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
     private final static String FIELD_OWNER = "ownerName";
     private final static String FIELD_OWNER_MAIL = "ownerMail";
     private final static String FIELD_LABELS = "labels";
-    private final static String FIELD_VIEWS = "views";
+    private final static String FIELD_CATEGORIES = "categories";
     private final static String FIELD_CREATED_AT = "createdAt";
     private final static String FIELD_UPDATED_AT = "updatedAt";
     private final static String FIELD_PATHS = "paths";
@@ -91,10 +91,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
             }
         }
 
-        // views
-        if (api.getViews() != null) {
-            for (String view : api.getViews()) {
-                doc.add(new TextField(FIELD_VIEWS, view, Field.Store.NO));
+        // categories
+        if (api.getCategories() != null) {
+            for (String category : api.getCategories()) {
+                doc.add(new TextField(FIELD_CATEGORIES, category, Field.Store.NO));
             }
         }
 

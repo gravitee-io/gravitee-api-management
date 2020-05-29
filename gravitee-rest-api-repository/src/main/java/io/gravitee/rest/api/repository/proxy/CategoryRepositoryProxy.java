@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.repository.proxy;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ViewRepository;
-import io.gravitee.repository.management.model.View;
+import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.model.Category;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -28,30 +28,30 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @Component
-public class ViewRepositoryProxy extends AbstractProxy<ViewRepository> implements ViewRepository {
+public class CategoryRepositoryProxy extends AbstractProxy<CategoryRepository> implements CategoryRepository {
 
     @Override
-    public Optional<View> findById(String s) throws TechnicalException {
+    public Optional<Category> findById(String s) throws TechnicalException {
         return target.findById(s);
     }
 
     @Override
-    public Optional<View> findByKey(String s, String environment) throws TechnicalException {
+    public Optional<Category> findByKey(String s, String environment) throws TechnicalException {
         return target.findByKey(s, environment);
     }
 
     @Override
-    public View create(View item) throws TechnicalException {
+    public Category create(Category item) throws TechnicalException {
         return target.create(item);
     }
 
     @Override
-    public View update(View item) throws TechnicalException {
+    public Category update(Category item) throws TechnicalException {
         return target.update(item);
     }
 
     @Override
-    public Set<View> findAll() throws TechnicalException {
+    public Set<Category> findAll() throws TechnicalException {
         return target.findAll();
     }
 
@@ -61,7 +61,7 @@ public class ViewRepositoryProxy extends AbstractProxy<ViewRepository> implement
     }
 
     @Override
-    public Set<View> findAllByEnvironment(String environment) throws TechnicalException {
+    public Set<Category> findAllByEnvironment(String environment) throws TechnicalException {
         return target.findAllByEnvironment(environment);
     }
 }

@@ -96,7 +96,7 @@ public class ApiService_CreateTest {
     private VirtualHostService virtualHostService;
 
     @Mock
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @Before
     public void init() {

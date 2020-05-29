@@ -5,7 +5,7 @@ io.gravitee.rest.api.service.quality.ApiQualityMetric=\
     io.gravitee.rest.api.service.quality.ApiQualityMetricLabels,\
     io.gravitee.rest.api.service.quality.ApiQualityMetricLogo,\
     io.gravitee.rest.api.service.quality.ApiQualityMetricTechnicalDocumentation,\
-    io.gravitee.rest.api.service.quality.ApiQualityMetricViews
+    io.gravitee.rest.api.service.quality.ApiQualityMetricCategories
 
 io.gravitee.rest.api.service.alert.AlertTrigger=\
     io.gravitee.rest.api.service.alert.triggers.HealthCheckEndpointStatusChangedTrigger,\

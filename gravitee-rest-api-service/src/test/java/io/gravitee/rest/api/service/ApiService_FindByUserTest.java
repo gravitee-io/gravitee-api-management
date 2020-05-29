@@ -81,7 +81,7 @@ public class ApiService_FindByUserTest {
     @Mock
     private ApplicationService applicationService;
     @Mock
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @Before
     public void setUp() {

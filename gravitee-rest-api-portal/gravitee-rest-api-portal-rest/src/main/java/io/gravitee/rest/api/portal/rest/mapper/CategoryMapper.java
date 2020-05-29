@@ -20,9 +20,9 @@ import javax.ws.rs.core.UriBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.rest.api.model.ViewEntity;
-import io.gravitee.rest.api.portal.rest.model.View;
-import io.gravitee.rest.api.portal.rest.model.ViewLinks;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.portal.rest.model.Category;
+import io.gravitee.rest.api.portal.rest.model.CategoryLinks;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 
 /**
@@ -30,29 +30,29 @@ import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
  * @author GraviteeSource Team
  */
 @Component
-public class ViewMapper {
+public class CategoryMapper {
     @Autowired
     UserMapper userMapper;
     
-    public View convert(ViewEntity viewEntity, UriBuilder baseUriBuilder) {
-        final View view = new View();
+    public Category convert(CategoryEntity categoryEntity, UriBuilder baseUriBuilder) {
+        final Category category = new Category();
 
-        view.setDescription(viewEntity.getDescription());
-        view.setId(viewEntity.getKey());
-        view.setName(viewEntity.getName());
-        view.setOrder(viewEntity.getOrder());
-        view.setTotalApis(viewEntity.getTotalApis());
+        category.setDescription(categoryEntity.getDescription());
+        category.setId(categoryEntity.getKey());
+        category.setName(categoryEntity.getName());
+        category.setOrder(categoryEntity.getOrder());
+        category.setTotalApis(categoryEntity.getTotalApis());
         
-        ViewLinks viewLinks = new ViewLinks();
-        String basePath = PortalApiLinkHelper.viewsURL(baseUriBuilder.clone(), viewEntity.getId());
-        String highlightApi = viewEntity.getHighlightApi();
+        CategoryLinks categoryLinks = new CategoryLinks();
+        String basePath = PortalApiLinkHelper.categoriesURL(baseUriBuilder.clone(), categoryEntity.getId());
+        String highlightApi = categoryEntity.getHighlightApi();
         if(highlightApi != null) {
-            viewLinks.setHighlightedApi(PortalApiLinkHelper.apisURL(baseUriBuilder.clone(), highlightApi));
+            categoryLinks.setHighlightedApi(PortalApiLinkHelper.apisURL(baseUriBuilder.clone(), highlightApi));
         }
-        viewLinks.setPicture(basePath+"/picture");
-        viewLinks.setSelf(basePath);
-        view.setLinks(viewLinks);
-        return view;
+        categoryLinks.setPicture(basePath+"/picture");
+        categoryLinks.setSelf(basePath);
+        category.setLinks(categoryLinks);
+        return category;
     }
 
 }

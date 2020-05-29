@@ -38,20 +38,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.View;
+import io.gravitee.rest.api.portal.rest.model.Category;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
-public class ViewResourceNotAuthenticatedTest extends AbstractResourceTest {
+public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
 
-    private static final String VIEW_ID = "my-view-id";
+    private static final String CATEGORY_ID = "my-category-id";
 
     @Override
     protected String contextPath() {
-        return "views/";
+        return "categories/";
     }
     
     @Override
@@ -85,30 +85,30 @@ public class ViewResourceNotAuthenticatedTest extends AbstractResourceTest {
     public void init() throws IOException, URISyntaxException {
         resetAllMocks();
         
-        ViewEntity viewEntity = new ViewEntity();
-        viewEntity.setId(VIEW_ID);
-        viewEntity.setHidden(false);
-        doReturn(viewEntity).when(viewService).findNotHiddenById(VIEW_ID);
+        CategoryEntity categoryEntity = new CategoryEntity();
+        categoryEntity.setId(CATEGORY_ID);
+        categoryEntity.setHidden(false);
+        doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID);
         
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
         
-        Mockito.when(viewMapper.convert(any(), any())).thenCallRealMethod();
+        Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
 
     }
 
     @Test
-    public void shouldGetView() {
-        final Response response = target(VIEW_ID).request().get();
+    public void shouldGetCategory() {
+        final Response response = target(CATEGORY_ID).request().get();
         assertEquals(OK_200, response.getStatus());
 
-        Mockito.verify(viewService).findNotHiddenById(VIEW_ID);
+        Mockito.verify(categoryService).findNotHiddenById(CATEGORY_ID);
         Mockito.verify(apiService).findPublishedByUser(null);
-        Mockito.verify(viewService).getTotalApisByView(any(), any());
-        Mockito.verify(viewMapper).convert(any(), any());
+        Mockito.verify(categoryService).getTotalApisByCategory(any(), any());
+        Mockito.verify(categoryMapper).convert(any(), any());
 
-        final View responseView = response.readEntity(View.class);
-        assertNotNull(responseView);
+        final Category responseCategory = response.readEntity(Category.class);
+        assertNotNull(responseCategory);
         
     }
 }

@@ -247,8 +247,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**").permitAll()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/users/_reset_password/**").permitAll()
                 
-                // Views
-                .antMatchers(HttpMethod.GET, uriPrefix + "/views/**").permitAll()
+                // Categories
+                .antMatchers(HttpMethod.GET, uriPrefix + "/categories/**").permitAll()
 
                 /* Others requests
                  * i.e. : 

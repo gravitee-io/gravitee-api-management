@@ -71,7 +71,7 @@ public class ApiService_FindByIdTest {
     @Mock
     private EntrypointService entrypointService;
     @Mock
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @Before
     public void setUp() {

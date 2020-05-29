@@ -19,13 +19,13 @@
       "tilesMode" : {
         "enabled" : true
       },
-      "viewMode" : {
+      "categoryMode" : {
         "enabled" : true
       },
       "apiHeaderShowTags" : {
         "enabled" : false
       },
-      "apiHeaderShowViews" : {
+      "apiHeaderShowCategories" : {
         "enabled" : false
       }
     },
@@ -92,7 +92,7 @@
     "descriptionWeight" : 0,
     "descriptionMinLength" : 100,
     "logoWeight" : 0,
-    "viewsWeight" : 0,
+    "categoriesWeight" : 0,
     "labelsWeight" : 0,
     "healthcheckWeight" : 0
   },

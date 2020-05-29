@@ -18,16 +18,16 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.UpdateViewEntity;
-import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.UpdateCategoryEntity;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
-import io.gravitee.rest.api.service.ViewService;
+import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
-import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
+import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -47,47 +47,47 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"View"})
-public class ViewResource extends AbstractViewResource {
+@Api(tags = {"Category"})
+public class CategoryResource extends AbstractCategoryResource {
 
     @Autowired
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @GET
     @Produces(APPLICATION_JSON)
-    @ApiOperation(value = "Get the View",
+    @ApiOperation(value = "Get the Category",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "View's definition", response = ViewEntity.class),
+            @ApiResponse(code = 200, message = "Category's definition", response = CategoryEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public ViewEntity get(@PathParam("id") String viewId) {
-        boolean canShowView = hasPermission(RolePermission.ENVIRONMENT_VIEW, RolePermissionAction.READ);
-        ViewEntity view = viewService.findById(viewId);
+    public CategoryEntity get(@PathParam("id") String categoryId) {
+        boolean canShowCategory = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
+        CategoryEntity category = categoryService.findById(categoryId);
 
-        if (!canShowView && view.isHidden()) {
+        if (!canShowCategory && category.isHidden()) {
             throw new UnauthorizedAccessException();
         }
 
         // set picture
-        setPicture(view, false);
-        return view;
+        setPicture(category, false);
+        return category;
     }
 
 
     @GET
     @Path("picture")
-    @ApiOperation(value = "Get the View's picture",
+    @ApiOperation(value = "Get the Category's picture",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "View's picture"),
+            @ApiResponse(code = 200, message = "Category's picture"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response picture(
             @Context Request request,
-            @PathParam("id") String viewId) throws ViewNotFoundException {
-        boolean canShowView = hasPermission(RolePermission.ENVIRONMENT_VIEW, RolePermissionAction.READ);
-        ViewEntity view = viewService.findById(viewId);
+            @PathParam("id") String categoryId) throws CategoryNotFoundException {
+        boolean canShowCategory = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
+        CategoryEntity category = categoryService.findById(categoryId);
 
-        if (!canShowView && view.isHidden()) {
+        if (!canShowCategory && category.isHidden()) {
             throw new UnauthorizedAccessException();
         }
 
@@ -97,7 +97,7 @@ public class ViewResource extends AbstractViewResource {
         cc.setNoCache(false);
         cc.setMaxAge(86400);
 
-        InlinePictureEntity image = viewService.getPicture(viewId);
+        InlinePictureEntity image = categoryService.getPicture(categoryId);
         if (image == null || image.getContent() == null) {
             return Response.ok().build();
         }
@@ -127,39 +127,39 @@ public class ViewResource extends AbstractViewResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-            value = "Update the View",
+            value = "Update the Category",
             notes = "User must have the UPDATE permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "View successfully updated", response = ViewEntity.class),
+            @ApiResponse(code = 200, message = "Category successfully updated", response = CategoryEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_VIEW, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE)
     })
-    public Response update(@PathParam("id") String viewId, @Valid @NotNull final UpdateViewEntity view) {
+    public Response update(@PathParam("id") String categoryId, @Valid @NotNull final UpdateCategoryEntity category) {
         try {
-            ImageUtils.verify(view.getPicture());
+            ImageUtils.verify(category.getPicture());
         } catch (InvalidImageException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
         }
 
-        ViewEntity viewEntity = viewService.update(viewId, view);
-        setPicture(viewEntity, false);
+        CategoryEntity categoryEntity = categoryService.update(categoryId, category);
+        setPicture(categoryEntity, false);
 
-        return Response.ok(viewEntity).build();
+        return Response.ok(categoryEntity).build();
     }
 
     @DELETE
     @ApiOperation(
-            value = "Delete the View",
+            value = "Delete the Category",
             notes = "User must have the DELETE permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "View successfully deleted"),
+            @ApiResponse(code = 204, message = "Category successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_VIEW, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("id") String id) {
-        viewService.delete(id);
+        categoryService.delete(id);
     }
 
 }

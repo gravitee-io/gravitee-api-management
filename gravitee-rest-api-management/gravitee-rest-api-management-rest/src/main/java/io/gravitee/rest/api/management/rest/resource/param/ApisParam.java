@@ -25,9 +25,9 @@ import javax.ws.rs.QueryParam;
  */
 public class ApisParam {
 
-    @ApiParam(value = "filter by view id")
-    @QueryParam("view")
-    private String view;
+    @ApiParam(value = "filter by category id")
+    @QueryParam("category")
+    private String category;
 
     @ApiParam(value = "filter by group id")
     @QueryParam("group")
@@ -67,12 +67,12 @@ public class ApisParam {
     @QueryParam("portal")
     private boolean portal;
 
-    public String getView() {
-        return view;
+    public String getCategory() {
+        return category;
     }
 
-    public void setView(String view) {
-        this.view = view;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getGroup() {

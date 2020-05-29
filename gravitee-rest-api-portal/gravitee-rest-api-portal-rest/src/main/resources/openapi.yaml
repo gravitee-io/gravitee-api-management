@@ -52,13 +52,13 @@ paths:
         - $ref: '#/components/parameters/apiLabelQueryParam'
         - $ref: '#/components/parameters/apiVersionQueryParam'
         - $ref: '#/components/parameters/apiNameQueryParam'
-        - $ref: '#/components/parameters/apiViewQueryParam'
         - $ref: '#/components/parameters/apiCategoryQueryParam'
-        - $ref: '#/components/parameters/apiCategoryExcludedQueryParam'
+        - $ref: '#/components/parameters/apiFilterQueryParam'
+        - $ref: '#/components/parameters/apiFilterExcludedQueryParam'
       summary: List APIs
       description: |
         List public APIs for anonymous requests.
-        List all the APIs the current user is allowed to view for authenticated requests.
+        List all the APIs the current user is allowed to category for authenticated requests.
 
         The list can be filtered according to query parameters.
 
@@ -1796,69 +1796,69 @@ paths:
             description: Created
           500:
             $ref: '#/components/responses/InternalServerError'
-  /views:
+  /categories:
     get:
       tags:
         - Portal
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
-      summary: Get a View list
+      summary: Get a Category list
       description: |
-        Get all views of the platform.
-      operationId: getViews
+        Get all categories of the platform.
+      operationId: getCategories
       security: []
       responses:
         200:
-          description: List of Views
+          description: List of Categories
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ViewsResponse'
+                $ref: '#/components/schemas/CategoriesResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
-  /views/{viewId}:
+  /categories/{categoryId}:
     parameters:
-      - $ref: '#/components/parameters/viewIdParam'
+      - $ref: '#/components/parameters/categoryIdParam'
     get:
       tags:
         - Portal
-      summary: Get a View
+      summary: Get a Category
       description: |
-        Get a specific view.
-      operationId: getViewByViewId
+        Get a specific category.
+      operationId: getCategoryByCategoryId
       security: []
       responses:
         200:
-          description: One View
+          description: One Category
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/View'
+                $ref: '#/components/schemas/Category'
         404:
-          description: View not found
+          description: Category not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
-  /views/{viewId}/picture:
+  /categories/{categoryId}/picture:
     parameters:
-      - $ref: '#/components/parameters/viewIdParam'
+      - $ref: '#/components/parameters/categoryIdParam'
     get:
       tags:
         - Portal
-      summary: Get picture of a View
+      summary: Get picture of a Category
       description: |
-        Get the picture of a view.
-      operationId: getPictureByViewId
+        Get the picture of a category.
+      operationId: getPictureByCategoryId
       security: []
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
         404:
-          description: View not found
+          description: Category not found
           content:
             application/json:
               schema:
@@ -2204,11 +2204,11 @@ components:
       description: Id of a subscription.
       schema:
         type: string
-    viewIdParam:
-      name: viewId
+    categoryIdParam:
+      name: categoryId
       in: path
       required: true
-      description: Id of a View.
+      description: Id of a Category.
       schema:
         type: string
     authIdentityParam:
@@ -2322,37 +2322,37 @@ components:
       description: The name of an API.
       schema:
         type: string
-    apiViewQueryParam:
-      name: view
+    apiCategoryQueryParam:
+      name: category
       in: query
       required: false
-      description: One of the view linked with an API.
+      description: One of the category linked with an API.
       schema:
         type: string
-    apiCategoryQueryParam:
-      name: cat
+    apiFilterQueryParam:
+      name: filter
       in: query
       required: false
       description: |
-        Name of a CATEGORY. A category is a static filter used to pre-select some APIs. It can be combined with others query params.
-          - FEATURED : top APIs. Sorted by alphabetical order.
+        Name of a FILTER. A filter is used to pre-select some APIs. It can be combined with others query params.
+          - FEATURED : top APIs. Sorted by specific order.
           - MINE : APIs subscribed by the current user. Sorted by alphabetical order.
           - STARRED: Rated APIs. Sorted by Ratings DESC, nb of ratings DESC, alphabetic order.
           - TRENDINGS: Subscribed APIs. Sorted by number of subscriptions DESC, alphabetic order.
       schema:
-        $ref: '#/components/schemas/CategoryApiQuery'
-    apiCategoryExcludedQueryParam:
-      name: -cat
+        $ref: '#/components/schemas/FilterApiQuery'
+    apiFilterExcludedQueryParam:
+      name: -filter
       in: query
       required: false
       description: |
-        Name of a CATEGORY to exclude. Excluded category has priority over category. A category is a static filter used to pre-select some APIs. It can be combined with others query params.
-          - FEATURED : not in top APIs. Sorted by alphabetical order.
+        Name of a FILTER to exclude. Excluded filter has priority over filter. A filter is used to pre-select some APIs. It can be combined with others query params.
+          - FEATURED : not in top APIs. Sorted by specific order.
           - MINE : APIs not subscribed by the current user. Sorted by alphabetical order.
           - STARRED: not rated APIs. Sorted by Ratings DESC, nb of ratings DESC, alphabetic order.
           - TRENDINGS: not subscribed APIs. Sorted by number of subscriptions DESC, alphabetic order.
       schema:
-        $ref: '#/components/schemas/CategoryApiQuery'
+        $ref: '#/components/schemas/FilterApiQuery'
     apiQueryParam:
       name: q
       in: query
@@ -2706,13 +2706,13 @@ components:
             $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
-    ViewsResponse:
+    CategoriesResponse:
       properties:
         data:
-          description: List of views.
+          description: List of categories.
           type: array
           items:
-            $ref: '#/components/schemas/View'
+            $ref: '#/components/schemas/Category'
         metadata:
             $ref: '#/components/schemas/MetadataMap'
         links:
@@ -2938,8 +2938,8 @@ components:
           description: Last update date and time.
           type: string
           format: date-time
-        views:
-          description: List of views this API belongs to.
+        categories:
+          description: List of categories this API belongs to.
           type: array
           items:
             type: string
@@ -3401,10 +3401,10 @@ components:
           type: string
         state:
           type: string
-    View:
+    Category:
       properties:
         id:
-          description: Unique identifier of a view.
+          description: Unique identifier of a category.
           type: string
         name:
           type: string
@@ -3416,7 +3416,7 @@ components:
           type: integer
           format: int64
         _links:
-          $ref: '#/components/schemas/ViewLinks'
+          $ref: '#/components/schemas/CategoryLinks'
     Dashboard:
       properties:
         id:
@@ -3611,11 +3611,11 @@ components:
       properties:
         tilesMode:
           $ref: '#/components/schemas/Enabled'
-        viewMode:
+        categoryMode:
           $ref: '#/components/schemas/Enabled'
         apiHeaderShowTags:
           $ref: '#/components/schemas/Enabled'
-        apiHeaderShowViews:
+        apiHeaderShowCategories:
           $ref: '#/components/schemas/Enabled'
     ConfigurationPortalAnalytics:
       properties:
@@ -3765,14 +3765,14 @@ components:
           description: Name of the link.
         resourceRef:
           type: string
-          description: target of the link. Can be either a URL id resourceType is 'external' or a UUID if resourceType is 'page' or 'view'.
+          description: target of the link. Can be either a URL id resourceType is 'external' or a UUID if resourceType is 'page' or 'category'.
         resourceType:
           type: string
           description: the type of the link.
           enum:
             - external
             - page
-            - view
+            - category
         folder:
           type: boolean
           description: true if resourceType is 'page' and resourceRef is the id of a folder.
@@ -4184,7 +4184,7 @@ components:
         interval:
           type: integer
           format: int64
-    CategoryApiQuery:
+    FilterApiQuery:
       type: string
       enum:
         - FEATURED
@@ -4271,7 +4271,7 @@ components:
           type: string
         notifications:
           type: string
-    ViewLinks:
+    CategoryLinks:
       properties:
         self:
           type: string

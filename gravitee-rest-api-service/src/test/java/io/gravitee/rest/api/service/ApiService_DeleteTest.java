@@ -97,7 +97,7 @@ public class ApiService_DeleteTest {
     @Mock
     private SearchEngineService searchEngineService;
     @Mock
-    private ViewService viewService;
+    private CategoryService categoryService;
     @Mock
     private ParameterService parameterService;
 

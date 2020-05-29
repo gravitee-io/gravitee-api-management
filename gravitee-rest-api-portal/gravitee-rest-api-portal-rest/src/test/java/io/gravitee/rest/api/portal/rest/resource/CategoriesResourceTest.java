@@ -16,12 +16,12 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Links;
-import io.gravitee.rest.api.portal.rest.model.ViewsResponse;
+import io.gravitee.rest.api.portal.rest.model.CategoriesResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -37,11 +37,11 @@ import static org.mockito.Mockito.doReturn;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ViewsResourceTest extends AbstractResourceTest {
+public class CategoriesResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "views";
+        return "categories";
     }
     
     @Before
@@ -51,41 +51,41 @@ public class ViewsResourceTest extends AbstractResourceTest {
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
         
-        ViewEntity view1 = new ViewEntity();
-        view1.setId("1");
-        view1.setHidden(false);
-        view1.setOrder(2);
+        CategoryEntity category1 = new CategoryEntity();
+        category1.setId("1");
+        category1.setHidden(false);
+        category1.setOrder(2);
         
-        ViewEntity view2 = new ViewEntity();
-        view2.setId("2");
-        view2.setHidden(false);
-        view2.setOrder(3);
+        CategoryEntity category2 = new CategoryEntity();
+        category2.setId("2");
+        category2.setHidden(false);
+        category2.setOrder(3);
         
-        ViewEntity view3 = new ViewEntity();
-        view3.setId("3");
-        view3.setHidden(true);
-        view3.setOrder(1);
+        CategoryEntity category3 = new CategoryEntity();
+        category3.setId("3");
+        category3.setHidden(true);
+        category3.setOrder(1);
         
-        List<ViewEntity> mockViews = Arrays.asList(view1, view2, view3);
-        doReturn(mockViews).when(viewService).findAll();
+        List<CategoryEntity> mockCategories = Arrays.asList(category1, category2, category3);
+        doReturn(mockCategories).when(categoryService).findAll();
 
-        Mockito.when(viewMapper.convert(any(), any())).thenCallRealMethod();
+        Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
         
     }
     
     @Test
-    public void shouldGetNotHiddenViews() {
+    public void shouldGetNotHiddenCategories() {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
         Mockito.verify(apiService).findPublishedByUser(any());
-        ViewsResponse viewsResponse = response.readEntity(ViewsResponse.class);
-        assertEquals(2, viewsResponse.getData().size());
+        CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
+        assertEquals(2, categoriesResponse.getData().size());
         
     }
     
     @Test
-    public void shouldGetNoView() {
+    public void shouldGetNoCategory() {
         final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         
@@ -102,26 +102,26 @@ public class ViewsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
 
-        doReturn(new ArrayList<>()).when(viewService).findAll();
+        doReturn(new ArrayList<>()).when(categoryService).findAll();
         
         //Test with default limit
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         
-        ViewsResponse viewsResponse = response.readEntity(ViewsResponse.class);
-        assertEquals(0, viewsResponse.getData().size());
+        CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
+        assertEquals(0, categoriesResponse.getData().size());
         
-        Links links = viewsResponse.getLinks();
+        Links links = categoriesResponse.getLinks();
         assertNull(links);
         
         //Test with small limit
         final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
         
-        viewsResponse = anotherResponse.readEntity(ViewsResponse.class);
-        assertEquals(0, viewsResponse.getData().size());
+        categoriesResponse = anotherResponse.readEntity(CategoriesResponse.class);
+        assertEquals(0, categoriesResponse.getData().size());
         
-        links = viewsResponse.getLinks();
+        links = categoriesResponse.getLinks();
         assertNull(links);
 
     }

@@ -271,8 +271,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 // Configuration Groups
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/groups/**").permitAll()
 
-                // Configuration Views
-                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/views/**").permitAll()
+                // Configuration Categories
+                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/categories/**").permitAll()
 
                 // Configuration Tags
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/tags/**").permitAll()

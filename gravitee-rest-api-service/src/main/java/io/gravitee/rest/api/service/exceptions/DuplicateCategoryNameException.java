@@ -25,12 +25,12 @@ import static java.util.Collections.singletonMap;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DuplicateViewNameException extends AbstractManagementException {
+public class DuplicateCategoryNameException extends AbstractManagementException {
 
-    private final String viewName;
+    private final String categoryName;
 
-    public DuplicateViewNameException(String viewName) {
-        this.viewName = viewName;
+    public DuplicateCategoryNameException(String categoryName) {
+        this.categoryName = categoryName;
     }
 
     @Override
@@ -40,16 +40,16 @@ public class DuplicateViewNameException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "The view '" + viewName + "' already exists.";
+        return "The category '" + categoryName + "' already exists.";
     }
 
     @Override
     public String getTechnicalCode() {
-        return "view.exists";
+        return "category.exists";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("view", viewName);
+        return singletonMap("category", categoryName);
     }
 }

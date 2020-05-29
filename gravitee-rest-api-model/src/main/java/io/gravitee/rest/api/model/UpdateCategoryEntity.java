@@ -15,34 +15,30 @@
  */
 package io.gravitee.rest.api.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Date;
 import java.util.Objects;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ViewEntity {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class UpdateCategoryEntity {
 
     private String id;
     @NotNull
     @Size(min = 1)
     private String name;
-    private String key;
     private String description;
+    private boolean defaultCategory;
     private boolean hidden;
     private int order;
-    private Date createdAt;
-    private Date updatedAt;
-    private long totalApis;
     private String highlightApi;
     private String picture;
-    @JsonProperty(value = "picture_url")
-    private String pictureUrl;
 
     public String getId() {
         return id;
@@ -50,14 +46,6 @@ public class ViewEntity {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
     }
 
     public String getName() {
@@ -76,20 +64,12 @@ public class ViewEntity {
         this.description = description;
     }
 
-    public long getTotalApis() {
-        return totalApis;
+    public boolean isDefaultCategory() {
+        return defaultCategory;
     }
 
-    public void setTotalApis(long totalApis) {
-        this.totalApis = totalApis;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
+    public void setDefaultCategory(boolean defaultCategory) {
+        this.defaultCategory = defaultCategory;
     }
 
     public boolean isHidden() {
@@ -98,6 +78,14 @@ public class ViewEntity {
 
     public void setHidden(boolean hidden) {
         this.hidden = hidden;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
     }
 
     public String getHighlightApi() {
@@ -116,57 +104,28 @@ public class ViewEntity {
         this.picture = picture;
     }
 
-    public String getPictureUrl() {
-        return pictureUrl;
-    }
-
-    public void setPictureUrl(String pictureUrl) {
-        this.pictureUrl = pictureUrl;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ViewEntity)) return false;
-        ViewEntity that = (ViewEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(key, that.key) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description);
+        if (!(o instanceof UpdateCategoryEntity)) return false;
+        UpdateCategoryEntity that = (UpdateCategoryEntity) o;
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, key, name, description);
+        return Objects.hash(id, name, description);
     }
 
     @Override
     public String toString() {
-        return "ViewEntity{" +
+        return "UpdateCategoryEntity{" +
                 "id='" + id + '\'' +
-                ", key='" + key + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", order='" + order + '\'' +
+                ", defaultCategory='" + defaultCategory + '\'' +
                 ", hidden='" + hidden + '\'' +
-                ", updatedAt='" + updatedAt + '\'' +
-                ", createdAt='" + createdAt + '\'' +
+                ", order='" + order + '\'' +
                 '}';
     }
 }

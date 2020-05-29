@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Set;
 
 import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.NewViewEntity;
-import io.gravitee.rest.api.model.UpdateViewEntity;
-import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.NewCategoryEntity;
+import io.gravitee.rest.api.model.UpdateCategoryEntity;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 
 /**
@@ -29,14 +29,14 @@ import io.gravitee.rest.api.model.api.ApiEntity;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ViewService {
-    List<ViewEntity> findAll();
-    ViewEntity findById(String id);
-    ViewEntity findNotHiddenById(String id);
-    ViewEntity create(NewViewEntity view);
-    ViewEntity update(String viewId, UpdateViewEntity view);
-    List<ViewEntity> update(List<UpdateViewEntity> views);
-    void delete(String viewId);
-    long getTotalApisByView(Set<ApiEntity> apis, ViewEntity view);
-    InlinePictureEntity getPicture(String viewId);
+public interface CategoryService {
+    List<CategoryEntity> findAll();
+    CategoryEntity findById(String id);
+    CategoryEntity findNotHiddenById(String id);
+    CategoryEntity create(NewCategoryEntity category);
+    CategoryEntity update(String categoryId, UpdateCategoryEntity category);
+    List<CategoryEntity> update(List<UpdateCategoryEntity> categories);
+    void delete(String categoryId);
+    long getTotalApisByCategory(Set<ApiEntity> apis, CategoryEntity category);
+    InlinePictureEntity getPicture(String categoryId);
 }

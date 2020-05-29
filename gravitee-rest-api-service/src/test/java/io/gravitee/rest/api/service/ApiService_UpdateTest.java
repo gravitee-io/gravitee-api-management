@@ -107,7 +107,7 @@ public class ApiService_UpdateTest {
     @Mock
     private VirtualHostService virtualHostService;
     @Mock
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @Before
     public void setUp() {

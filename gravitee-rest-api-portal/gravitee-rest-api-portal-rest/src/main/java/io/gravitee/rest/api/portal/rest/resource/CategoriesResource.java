@@ -16,12 +16,12 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.mapper.ViewMapper;
-import io.gravitee.rest.api.portal.rest.model.View;
+import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
+import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.service.ViewService;
+import io.gravitee.rest.api.service.CategoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,38 +42,38 @@ import java.util.stream.Collectors;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ViewsResource extends AbstractResource {
+public class CategoriesResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
     
     @Autowired
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @Autowired
-    private ViewMapper viewMapper;
+    private CategoryMapper categoryMapper;
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getViews(@BeanParam PaginationParam paginationParam) {
+    public Response getCategories(@BeanParam PaginationParam paginationParam) {
         Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         
-        List<View> viewsList = viewService.findAll()
+        List<Category> categoriesList = categoryService.findAll()
                 .stream()
-                .filter(v -> !v.isHidden())
-                .sorted(Comparator.comparingInt(ViewEntity::getOrder))
-                .map(v -> {
-                    v.setTotalApis(viewService.getTotalApisByView(apis, v));
-                    return v;
+                .filter(c -> !c.isHidden())
+                .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
+                .map(c -> {
+                    c.setTotalApis(categoryService.getTotalApisByCategory(apis, c));
+                    return c;
                 })
-                .map(v-> viewMapper.convert(v, uriInfo.getBaseUriBuilder()))
+                .map(c-> categoryMapper.convert(c, uriInfo.getBaseUriBuilder()))
                 .collect(Collectors.toList());
         
-        return createListResponse(viewsList, paginationParam);
+        return createListResponse(categoriesList, paginationParam);
     }
     
-    @Path("{viewId}")
-    public ViewResource getViewResource() {
-        return resourceContext.getResource(ViewResource.class);
+    @Path("{categoryId}")
+    public CategoryResource getCategoryResource() {
+        return resourceContext.getResource(CategoryResource.class);
     }
 }

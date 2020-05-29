@@ -72,12 +72,12 @@ public final class PortalApiLinkHelper {
         return resourcesURL(baseUriBuilder, userId, "users");
     }
 
-    public static String viewsURL(UriBuilder baseUriBuilder) {
-        return resourcesURL(baseUriBuilder, null, "views");
+    public static String categoriesURL(UriBuilder baseUriBuilder) {
+        return resourcesURL(baseUriBuilder, null, "categories");
     }
 
-    public static String viewsURL(UriBuilder baseUriBuilder, String viewId) {
-        return resourcesURL(baseUriBuilder, viewId, "views");
+    public static String categoriesURL(UriBuilder baseUriBuilder, String categoryId) {
+        return resourcesURL(baseUriBuilder, categoryId, "categories");
     }
 
     private static String resourcesURL(UriBuilder baseUriBuilder, String resourceId, String resourceName) {

@@ -93,7 +93,7 @@ public class ApiService_UpdateWithDefinitionTest {
     @Mock
     private VirtualHostService virtualHostService;
     @Mock
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @Before
     public void init() {

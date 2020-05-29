@@ -320,7 +320,7 @@ public class SyncManager {
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
         apiEntity.setPicture(api.getPicture());
-        apiEntity.setViews(api.getViews());
+        apiEntity.setCategories(api.getCategories());
 
         final LifecycleState lifecycleState = api.getLifecycleState();
         if (lifecycleState != null) {

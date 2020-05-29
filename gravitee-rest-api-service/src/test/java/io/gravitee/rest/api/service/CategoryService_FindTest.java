@@ -16,10 +16,10 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ViewRepository;
-import io.gravitee.repository.management.model.View;
-import io.gravitee.rest.api.model.ViewEntity;
-import io.gravitee.rest.api.service.impl.ViewServiceImpl;
+import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.model.Category;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,48 +40,48 @@ import static org.mockito.Mockito.*;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ViewService_FindTest {
+public class CategoryService_FindTest {
 
     @InjectMocks
-    private ViewServiceImpl viewService = new ViewServiceImpl();
+    private CategoryServiceImpl categoryService = new CategoryServiceImpl();
 
     @Mock
-    private ViewRepository mockViewRepository;
+    private CategoryRepository mockCategoryRepository;
 
     @Test
     public void shouldDoNothingWithEmptyResult() throws TechnicalException {
-        when(mockViewRepository.findAllByEnvironment(any())).thenReturn(emptySet());
+        when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(emptySet());
 
-        List<ViewEntity> list = viewService.findAll();
+        List<CategoryEntity> list = categoryService.findAll();
 
         assertTrue(list.isEmpty());
-        verify(mockViewRepository, times(1)).findAllByEnvironment(any());
+        verify(mockCategoryRepository, times(1)).findAllByEnvironment(any());
     }
 
     @Test
-    public void shouldFindView() throws TechnicalException {
-        View view = mock(View.class);
-        when(view.getId()).thenReturn("view-id");
-        when(view.getName()).thenReturn("view-name");
-        when(view.getDescription()).thenReturn("view-description");
-        when(view.getOrder()).thenReturn(1);
-        when(view.isHidden()).thenReturn(true);
-        when(view.getUpdatedAt()).thenReturn(new Date(1234567890L));
-        when(view.getCreatedAt()).thenReturn(new Date(9876543210L));
-        when(mockViewRepository.findAllByEnvironment(any())).thenReturn(singleton(view));
+    public void shouldFindCategory() throws TechnicalException {
+        Category category = mock(Category.class);
+        when(category.getId()).thenReturn("category-id");
+        when(category.getName()).thenReturn("category-name");
+        when(category.getDescription()).thenReturn("category-description");
+        when(category.getOrder()).thenReturn(1);
+        when(category.isHidden()).thenReturn(true);
+        when(category.getUpdatedAt()).thenReturn(new Date(1234567890L));
+        when(category.getCreatedAt()).thenReturn(new Date(9876543210L));
+        when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(singleton(category));
 
-        List<ViewEntity> list = viewService.findAll();
+        List<CategoryEntity> list = categoryService.findAll();
 
         assertFalse(list.isEmpty());
         assertEquals("one element", 1, list.size());
-        assertEquals("Id", "view-id", list.get(0).getId());
-        assertEquals("Name", "view-name", list.get(0).getName());
-        assertEquals("Description", "view-description", list.get(0).getDescription());
+        assertEquals("Id", "category-id", list.get(0).getId());
+        assertEquals("Name", "category-name", list.get(0).getName());
+        assertEquals("Description", "category-description", list.get(0).getDescription());
         assertEquals("Total APIs", 0, list.get(0).getTotalApis());
         assertEquals("Order", 1, list.get(0).getOrder());
         assertEquals("Hidden", true, list.get(0).isHidden());
         assertEquals("UpdatedAt", new Date(1234567890L), list.get(0).getUpdatedAt());
         assertEquals("CreatedAt", new Date(9876543210L), list.get(0).getCreatedAt());
-        verify(mockViewRepository, times(1)).findAllByEnvironment(any());
+        verify(mockCategoryRepository, times(1)).findAllByEnvironment(any());
     }
 }

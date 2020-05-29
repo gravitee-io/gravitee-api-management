@@ -101,7 +101,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     @Mock
     private ParameterService parameterService;
     @Mock
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     private UpdateApiEntity existingApi;
 

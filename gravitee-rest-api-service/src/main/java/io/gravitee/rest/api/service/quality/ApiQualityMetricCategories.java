@@ -22,15 +22,15 @@ import io.gravitee.rest.api.model.parameters.Key;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-public class ApiQualityMetricViews implements ApiQualityMetric {
+public class ApiQualityMetricCategories implements ApiQualityMetric {
 
     @Override
     public Key getWeightKey() {
-        return Key.API_QUALITY_METRICS_VIEWS_WEIGHT;
+        return Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT;
     }
 
     @Override
     public boolean isValid(ApiEntity api) {
-        return api.getViews() != null && !api.getViews().isEmpty();
+        return api.getCategories() != null && !api.getCategories().isEmpty();
     }
 }

@@ -132,7 +132,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected VirtualHostService virtualHostService;
 
     @Autowired
-    protected ViewService viewService;
+    protected CategoryService categoryService;
 
     @Autowired
     protected PolicyOperationVisitorManager policyOperationVisitorManager;
@@ -281,8 +281,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
-        public ViewService viewService() {
-            return mock(ViewService.class);
+        public CategoryService categoryService() {
+            return mock(CategoryService.class);
         }
 
         @Bean

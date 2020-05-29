@@ -22,7 +22,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.service.ViewService;
+import io.gravitee.rest.api.service.CategoryService;
 import io.swagger.annotations.Api;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,18 +43,18 @@ import java.util.stream.Collectors;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Views"})
-public class ViewsResource extends AbstractViewResource  {
+@Api(tags = {"Categories"})
+public class CategoriesResource extends AbstractCategoryResource  {
 
     @Context
     private ResourceContext resourceContext;
 
     @Autowired
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ViewEntity> list()  {
+    public List<CategoryEntity> list()  {
         Set<ApiEntity> apis;
         if (isAdmin()) {
             apis = apiService.findAll();
@@ -64,17 +64,17 @@ public class ViewsResource extends AbstractViewResource  {
             apis = apiService.findByVisibility(Visibility.PUBLIC);
         }
 
-        boolean viewAll = hasPermission(RolePermission.ENVIRONMENT_VIEW, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE);
+        boolean All = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE);
 
-        return viewService.findAll()
+        return categoryService.findAll()
                 .stream()
-                .filter(v -> viewAll || !v.isHidden())
-                .sorted(Comparator.comparingInt(ViewEntity::getOrder))
+                .filter(c -> All || !c.isHidden())
+                .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
                 // set picture
-                .map(v -> setPicture(v, true))
-                .map(v -> {
-                    v.setTotalApis(viewService.getTotalApisByView(apis, v));
-                    return v;
+                .map(c -> setPicture(c, true))
+                .map(c -> {
+                    c.setTotalApis(categoryService.getTotalApisByCategory(apis, c));
+                    return c;
                 })
                 .collect(Collectors.toList());
     }
@@ -83,24 +83,24 @@ public class ViewsResource extends AbstractViewResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_VIEW, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE)
     })
-    public ViewEntity create(@Valid @NotNull final NewViewEntity view) {
-        return viewService.create(view);
+    public CategoryEntity create(@Valid @NotNull final NewCategoryEntity category) {
+        return categoryService.create(category);
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_VIEW, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE)
     })
-    public List<ViewEntity> update(@Valid @NotNull final List<UpdateViewEntity> views) {
-        return viewService.update(views);
+    public List<CategoryEntity> update(@Valid @NotNull final List<UpdateCategoryEntity> categories) {
+        return categoryService.update(categories);
     }
 
     @Path("{id}")
-    public ViewResource getViewResource() {
-        return resourceContext.getResource(ViewResource.class);
+    public CategoryResource getCategoryResource() {
+        return resourceContext.getResource(CategoryResource.class);
     }
 }

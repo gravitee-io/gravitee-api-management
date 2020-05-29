@@ -31,7 +31,7 @@ public class PortalApiLinkHelperTest {
     private static final String APPLICATION = "applicationId";
     private static final String PAGE = "pageId";
     private static final String USER = "userId";
-    private static final String VIEW = "viewId";
+    private static final String CATEGORY = "categoryId";
 
     private static final String BASE_URL = "http://foo.bar";
 
@@ -51,8 +51,8 @@ public class PortalApiLinkHelperTest {
     private static final String BASE_URL_USERS = BASE_URL + "/environments/DEFAULT" + "/users";
     private static final String BASE_URL_USERS_USERID = BASE_URL_USERS + "/" + USER;
 
-    private static final String BASE_URL_VIEWS = BASE_URL + "/environments/DEFAULT" + "/views";
-    private static final String BASE_URL_VIEWS_VIEWID = BASE_URL_VIEWS + "/" + VIEW;
+    private static final String BASE_URL_CATEGORIES = BASE_URL + "/environments/DEFAULT" + "/categories";
+    private static final String BASE_URL_CATEGORIES_CATEGORYID = BASE_URL_CATEGORIES + "/" + CATEGORY;
 
     @Test
     public void testApisLink() {
@@ -97,10 +97,10 @@ public class PortalApiLinkHelperTest {
     }
 
     @Test
-    public void testViewsLink() {
-        String views = PortalApiLinkHelper.viewsURL(UriBuilder.fromPath(BASE_URL));
-        String view = PortalApiLinkHelper.viewsURL(UriBuilder.fromPath(BASE_URL), VIEW);
-        assertEquals(BASE_URL_VIEWS, views);
-        assertEquals(BASE_URL_VIEWS_VIEWID, view);
+    public void testCategoriesLink() {
+        String categories = PortalApiLinkHelper.categoriesURL(UriBuilder.fromPath(BASE_URL));
+        String category = PortalApiLinkHelper.categoriesURL(UriBuilder.fromPath(BASE_URL), CATEGORY);
+        assertEquals(BASE_URL_CATEGORIES, categories);
+        assertEquals(BASE_URL_CATEGORIES_CATEGORYID, category);
     }
 }

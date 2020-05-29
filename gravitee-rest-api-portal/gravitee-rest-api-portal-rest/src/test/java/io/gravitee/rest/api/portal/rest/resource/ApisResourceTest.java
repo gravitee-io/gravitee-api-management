@@ -166,7 +166,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         subC8.setApi("8");
         doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1)).when(subscriptionService).search(any());
 
-        final Response response = target().queryParam("cat", "MINE").request().get();
+        final Response response = target().queryParam("filter", "MINE").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -178,7 +178,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetStarredApi() {
-        final Response response = target().queryParam("cat", "STARRED").request().get();
+        final Response response = target().queryParam("filter", "STARRED").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -213,7 +213,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         ratingSummary5.setNumberOfRatings(3);
         doReturn(ratingSummary5).when(ratingService).findSummaryByApi("5");
 
-        final Response response = target().queryParam("cat", "STARRED").request().get();
+        final Response response = target().queryParam("filter", "STARRED").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -245,7 +245,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         subC8.setApi("8");
         doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1)).when(subscriptionService).search(any());
 
-        final Response response = target().queryParam("cat", "TRENDINGS").request().get();
+        final Response response = target().queryParam("filter", "TRENDINGS").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -276,7 +276,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         topApi6.setOrder(2);
         doReturn(Arrays.asList(topApi5, topApi6)).when(topApiService).findAll();
 
-        final Response response = target().queryParam("cat", "FEATURED").request().get();
+        final Response response = target().queryParam("filter", "FEATURED").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);

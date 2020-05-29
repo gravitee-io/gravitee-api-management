@@ -23,26 +23,26 @@ import static java.util.Collections.singletonMap;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ViewNotFoundException extends AbstractNotFoundException {
+public class CategoryNotFoundException extends AbstractNotFoundException {
 
-    private final String viewId;
+    private final String categoryId;
 
-    public ViewNotFoundException(String viewId) {
-        this.viewId = viewId;
+    public CategoryNotFoundException(String categoryId) {
+        this.categoryId = categoryId;
     }
 
     @Override
     public String getMessage() {
-        return "View [" + viewId + "] can not be found.";
+        return "Category [" + categoryId + "] can not be found.";
     }
 
     @Override
     public String getTechnicalCode() {
-        return "view.notFound";
+        return "category.notFound";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("view", viewId);
+        return singletonMap("category", categoryId);
     }
 }

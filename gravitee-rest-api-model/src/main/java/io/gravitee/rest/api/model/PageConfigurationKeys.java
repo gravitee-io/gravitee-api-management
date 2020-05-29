@@ -43,6 +43,6 @@ public final class PageConfigurationKeys {
     // Possibles Values
     public static final String LINK_RESOURCE_TYPE_EXTERNAL = "external";
     public static final String LINK_RESOURCE_TYPE_PAGE = "page";
-    public static final String LINK_RESOURCE_TYPE_VIEW = "view";
+    public static final String LINK_RESOURCE_TYPE_CATEGORY = "category";
 
 }

@@ -78,7 +78,7 @@ public class ApisResource extends AbstractResource {
     @Inject
     private VirtualHostService virtualHostService;
     @Inject
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -100,8 +100,8 @@ public class ApisResource extends AbstractResource {
         apiQuery.setName(apisParam.getName());
         apiQuery.setTag(apisParam.getTag());
         apiQuery.setState(apisParam.getState());
-        if (apisParam.getView() != null) {
-            apiQuery.setView(viewService.findById(apisParam.getView()).getId());
+        if (apisParam.getCategory() != null) {
+            apiQuery.setCategory(categoryService.findById(apisParam.getCategory()).getId());
         }
 
         final Collection<ApiEntity> apis;
@@ -292,7 +292,7 @@ public class ApisResource extends AbstractResource {
             uriBuilder.queryParam("hash", api.getPicture().hashCode());
         }
         apiItem.setPictureUrl(uriBuilder.build().toString());
-        apiItem.setViews(api.getViews());
+        apiItem.setCategories(api.getCategories());
         apiItem.setCreatedAt(api.getCreatedAt());
         apiItem.setUpdatedAt(api.getUpdatedAt());
         apiItem.setLabels(api.getLabels());

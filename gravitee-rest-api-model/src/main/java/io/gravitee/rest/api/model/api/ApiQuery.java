@@ -26,7 +26,7 @@ import io.gravitee.rest.api.model.Visibility;
 public class ApiQuery {
 
     private List<String> ids;
-    private String view;
+    private String category;
     private List<String> groups;
     private String contextPath;
     private String label;
@@ -45,12 +45,12 @@ public class ApiQuery {
         this.ids = ids;
     }
 
-    public String getView() {
-        return view;
+    public String getCategory() {
+        return category;
     }
 
-    public void setView(String view) {
-        this.view = view;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public List<String> getGroups() {
@@ -129,7 +129,7 @@ public class ApiQuery {
     public String toString() {
         return "ApiQuery{" +
                 "ids=" + ids +
-                ", view='" + view + '\'' +
+                ", category='" + category + '\'' +
                 ", groups=" + groups +
                 ", contextPath='" + contextPath + '\'' +
                 ", label='" + label + '\'' +

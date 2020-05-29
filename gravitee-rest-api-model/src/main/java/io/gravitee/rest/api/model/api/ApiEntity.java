@@ -166,10 +166,10 @@ public class ApiEntity implements Indexable {
     private List<Resource> resources = new ArrayList<>();
 
     @ApiModelProperty(
-            value = "the list of views associated with this API",
+            value = "the list of categories associated with this API",
             dataType = "java.util.List",
             example = "Product, Customer, Misc")
-    private Set<String> views;
+    private Set<String> categories;
 
     @ApiModelProperty(
             value = "the free list of labels associated with this API",
@@ -346,12 +346,12 @@ public class ApiEntity implements Indexable {
         this.resources = resources;
     }
 
-    public Set<String> getViews() {
-        return views;
+    public Set<String> getCategories() {
+        return categories;
     }
 
-    public void setViews(Set<String> views) {
-        this.views = views;
+    public void setCategories(Set<String> categories) {
+        this.categories = categories;
     }
 
     public Set<String> getGroups() {
@@ -454,7 +454,7 @@ public class ApiEntity implements Indexable {
                 ", state=" + state +
                 ", primaryOwner=" + primaryOwner +
                 ", tags=" + tags +
-                ", view=" + views +
+                ", category=" + categories +
                 ", groups=" + groups +
                 ", pathMappings=" + pathMappings +
                 ", lifecycleState=" + lifecycleState +

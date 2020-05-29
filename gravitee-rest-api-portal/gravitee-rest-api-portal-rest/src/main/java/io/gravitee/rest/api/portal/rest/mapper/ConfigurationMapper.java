@@ -107,9 +107,9 @@ public class ConfigurationMapper {
     private ConfigurationPortalApis convert(PortalApis apis) {
         ConfigurationPortalApis configuration = new ConfigurationPortalApis();
         configuration.setApiHeaderShowTags(convert(apis.getApiHeaderShowTags()));
-        configuration.setApiHeaderShowViews(convert(apis.getApiHeaderShowViews()));
+        configuration.setApiHeaderShowCategories(convert(apis.getApiHeaderShowCategories()));
         configuration.setTilesMode(convert(apis.getTilesMode()));
-        configuration.setViewMode(convert(apis.getViewMode()));
+        configuration.setCategoryMode(convert(apis.getCategoryMode()));
         return configuration;
     }
 

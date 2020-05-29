@@ -58,9 +58,6 @@ public class EnvironmentService_CreateTest {
     private ApiHeaderService mockAPIHeaderService;
     
     @Mock
-    private ViewService mockViewService;
-    
-    @Mock
     private PageService mockPageService;
  
     @Test

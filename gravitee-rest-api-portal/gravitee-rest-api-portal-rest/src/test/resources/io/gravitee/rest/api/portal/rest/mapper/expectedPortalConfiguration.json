@@ -19,13 +19,13 @@
       "tilesMode" : {
         "enabled" : true
       },
-      "viewMode" : {
+      "categoryMode" : {
         "enabled" : true
       },
       "apiHeaderShowTags" : {
         "enabled" : false
       },
-      "apiHeaderShowViews" : {
+      "apiHeaderShowCategories" : {
         "enabled" : false
       }
     },

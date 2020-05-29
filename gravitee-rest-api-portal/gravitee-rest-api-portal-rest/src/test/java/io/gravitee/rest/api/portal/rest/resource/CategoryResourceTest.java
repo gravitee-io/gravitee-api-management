@@ -16,12 +16,12 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.View;
-import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
+import io.gravitee.rest.api.portal.rest.model.Category;
+import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import org.eclipse.jetty.http.HttpHeader;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,14 +49,14 @@ import static org.mockito.Mockito.doThrow;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ViewResourceTest extends AbstractResourceTest {
+public class CategoryResourceTest extends AbstractResourceTest {
 
-    private static final String VIEW_ID = "my-view-id";
-    private static final String UNKNOWN_VIEW = "unknown";
+    private static final String CATEGORY_ID = "my-category-id";
+    private static final String UNKNOWN_CATEGORY = "unknown";
 
     @Override
     protected String contextPath() {
-        return "views/";
+        return "categories/";
     }
 
     private InlinePictureEntity mockImage;
@@ -66,44 +66,44 @@ public class ViewResourceTest extends AbstractResourceTest {
     public void init() throws IOException, URISyntaxException {
         resetAllMocks();
         
-        ViewEntity viewEntity = new ViewEntity();
-        viewEntity.setId(VIEW_ID);
-        viewEntity.setHidden(false);
-        doReturn(viewEntity).when(viewService).findNotHiddenById(VIEW_ID);
+        CategoryEntity categoryEntity = new CategoryEntity();
+        categoryEntity.setId(CATEGORY_ID);
+        categoryEntity.setHidden(false);
+        doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID);
         
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
         
-        Mockito.when(viewMapper.convert(any(), any())).thenCallRealMethod();
+        Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
 
         mockImage = new InlinePictureEntity();
         apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
-        doReturn(mockImage).when(viewService).getPicture(VIEW_ID);
+        doReturn(mockImage).when(categoryService).getPicture(CATEGORY_ID);
 
     }
 
     @Test
-    public void shouldGetView() {
-        final Response response = target(VIEW_ID).request().get();
+    public void shouldGetCategory() {
+        final Response response = target(CATEGORY_ID).request().get();
         assertEquals(OK_200, response.getStatus());
 
-        Mockito.verify(viewService).findNotHiddenById(VIEW_ID);
+        Mockito.verify(categoryService).findNotHiddenById(CATEGORY_ID);
         Mockito.verify(apiService).findPublishedByUser(USER_NAME);
-        Mockito.verify(viewService).getTotalApisByView(any(), any());
-        Mockito.verify(viewMapper).convert(any(), any());
+        Mockito.verify(categoryService).getTotalApisByCategory(any(), any());
+        Mockito.verify(categoryMapper).convert(any(), any());
 
-        final View responseView = response.readEntity(View.class);
-        assertNotNull(responseView);
+        final Category responseCategory = response.readEntity(Category.class);
+        assertNotNull(responseCategory);
         
     }
 
     @Test
-    public void shouldNotGetView() {
-        doThrow(new ViewNotFoundException(UNKNOWN_VIEW)).when(viewService).findNotHiddenById(UNKNOWN_VIEW);
+    public void shouldNotGetCategory() {
+        doThrow(new CategoryNotFoundException(UNKNOWN_CATEGORY)).when(categoryService).findNotHiddenById(UNKNOWN_CATEGORY);
 
-        final Response response = target(UNKNOWN_VIEW).request().get();
+        final Response response = target(UNKNOWN_CATEGORY).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
         
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -112,14 +112,14 @@ public class ViewResourceTest extends AbstractResourceTest {
         assertEquals(1, errors.size());
         Error error = errors.get(0);
         assertNotNull(error);
-        assertEquals("errors.view.notFound", error.getCode());
+        assertEquals("errors.category.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("View ["+UNKNOWN_VIEW+"] can not be found.", error.getMessage());
+        assertEquals("Category ["+UNKNOWN_CATEGORY+"] can not be found.", error.getMessage());
     }
     
     @Test
-    public void shouldGetViewPicture() throws IOException {
-        final Response response = target(VIEW_ID).path("picture").request().get();
+    public void shouldGetCategoryPicture() throws IOException {
+        final Response response = target(CATEGORY_ID).path("picture").request().get();
         assertEquals(OK_200, response.getStatus());
 
         MultivaluedMap<String, Object> headers = response.getHeaders();
@@ -137,7 +137,7 @@ public class ViewResourceTest extends AbstractResourceTest {
         
         
         // test Cache
-        final Response cachedResponse = target(VIEW_ID).path("picture").request().header(HttpHeader.IF_NONE_MATCH.asString(), etag).get();
+        final Response cachedResponse = target(CATEGORY_ID).path("picture").request().header(HttpHeader.IF_NONE_MATCH.asString(), etag).get();
         assertEquals(NOT_MODIFIED_304, cachedResponse.getStatus());
     }
     

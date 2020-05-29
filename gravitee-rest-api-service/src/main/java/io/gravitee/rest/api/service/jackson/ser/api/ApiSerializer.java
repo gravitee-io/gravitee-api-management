@@ -103,10 +103,10 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             jsonGenerator.writeObjectField("properties", apiEntity.getProperties());
         }
 
-        if (apiEntity.getViews() != null && !apiEntity.getViews().isEmpty()) {
-            jsonGenerator.writeArrayFieldStart("views");
-            for(String view : apiEntity.getViews()) {
-                jsonGenerator.writeObject(view);
+        if (apiEntity.getCategories() != null && !apiEntity.getCategories().isEmpty()) {
+            jsonGenerator.writeArrayFieldStart("categories");
+            for(String category : apiEntity.getCategories()) {
+                jsonGenerator.writeObject(category);
             }
             jsonGenerator.writeEndArray();
         }

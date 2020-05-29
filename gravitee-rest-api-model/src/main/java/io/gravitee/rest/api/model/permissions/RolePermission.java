@@ -70,7 +70,7 @@ public enum RolePermission {
     ENVIRONMENT_DASHBOARD                   (RoleScope.ENVIRONMENT, EnvironmentPermission.DASHBOARD),
     ENVIRONMENT_METADATA                    (RoleScope.ENVIRONMENT, EnvironmentPermission.METADATA),
     ENVIRONMENT_DOCUMENTATION               (RoleScope.ENVIRONMENT, EnvironmentPermission.DOCUMENTATION),
-    ENVIRONMENT_VIEW                        (RoleScope.ENVIRONMENT, EnvironmentPermission.VIEW),
+    ENVIRONMENT_CATEGORY                    (RoleScope.ENVIRONMENT, EnvironmentPermission.CATEGORY),
     ENVIRONMENT_TOP_APIS                    (RoleScope.ENVIRONMENT, EnvironmentPermission.TOP_APIS),
     ENVIRONMENT_API_HEADER                  (RoleScope.ENVIRONMENT, EnvironmentPermission.API_HEADER),
     ENVIRONMENT_IDENTITY_PROVIDER           (RoleScope.ENVIRONMENT, EnvironmentPermission.IDENTITY_PROVIDER),

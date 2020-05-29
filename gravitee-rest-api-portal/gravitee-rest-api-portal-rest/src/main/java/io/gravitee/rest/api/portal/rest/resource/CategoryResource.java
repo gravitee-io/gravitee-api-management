@@ -16,10 +16,10 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.mapper.ViewMapper;
-import io.gravitee.rest.api.service.ViewService;
+import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
+import io.gravitee.rest.api.service.CategoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -39,34 +39,34 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ViewResource extends AbstractResource {
+public class CategoryResource extends AbstractResource {
 
     @Autowired
-    private ViewService viewService;
+    private CategoryService categoryService;
 
     @Autowired
-    private ViewMapper viewMapper;
+    private CategoryMapper categoryMapper;
 
     @GET
     @Produces(APPLICATION_JSON)
-    public Response get(@PathParam("viewId") String viewId) {
-        ViewEntity view = viewService.findNotHiddenById(viewId);
+    public Response get(@PathParam("categoryId") String categoryId) {
+        CategoryEntity category = categoryService.findNotHiddenById(categoryId);
 
         Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-        view.setTotalApis(viewService.getTotalApisByView(apis, view));
+        category.setTotalApis(categoryService.getTotalApisByCategory(apis, category));
 
         return Response
-                .ok(viewMapper.convert(view, uriInfo.getBaseUriBuilder()))
+                .ok(categoryMapper.convert(category, uriInfo.getBaseUriBuilder()))
                 .build();
     }
 
 
     @GET
     @Path("picture")
-    public Response picture(@Context Request request, @PathParam("viewId") String viewId) {
-        viewService.findNotHiddenById(viewId);
+    public Response picture(@Context Request request, @PathParam("categoryId") String categoryId) {
+        categoryService.findNotHiddenById(categoryId);
 
-        InlinePictureEntity image = viewService.getPicture(viewId);
+        InlinePictureEntity image = categoryService.getPicture(categoryId);
 
         return createPictureResponse(request, image);
     }

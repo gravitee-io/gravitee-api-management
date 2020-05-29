@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.param;
 
-import io.gravitee.rest.api.portal.rest.model.CategoryApiQuery;
+import io.gravitee.rest.api.portal.rest.model.FilterApiQuery;
 import io.swagger.annotations.ApiParam;
 
 import javax.ws.rs.QueryParam;
@@ -41,13 +41,13 @@ public class ApisParam {
     @ApiParam(value = "filter by tag")
     @QueryParam("tag")
     private String tag;
-    @ApiParam(value = "filter by view id")
-    @QueryParam("view")
-    private String view;
-    @QueryParam("cat")
-    private CategoryApiQuery category;
-    @QueryParam("-cat")
-    private CategoryApiQuery excludedCategory;
+    @ApiParam(value = "filter by category id")
+    @QueryParam("category")
+    private String category;
+    @QueryParam("filter")
+    private FilterApiQuery filter;
+    @QueryParam("-filter")
+    private FilterApiQuery excludedFilter;
     
     public String getContextPath() {
         return contextPath;
@@ -89,27 +89,27 @@ public class ApisParam {
         this.tag = tag;
     }
 
-    public String getView() {
-        return view;
-    }
-
-    public void setView(String view) {
-        this.view = view;
-    }
-
-    public CategoryApiQuery getCategory() {
+    public String getCategory() {
         return category;
     }
 
-    public void setCategory(CategoryApiQuery category) {
+    public void setCategory(String category) {
         this.category = category;
     }
 
-    public CategoryApiQuery getExcludedCategory() {
-        return excludedCategory;
+    public FilterApiQuery getFilter() {
+        return filter;
     }
 
-    public void setExcludedCategory(CategoryApiQuery excludedCategory) {
-        this.excludedCategory = excludedCategory;
+    public void setFilter(FilterApiQuery filter) {
+        this.filter = filter;
+    }
+
+    public FilterApiQuery getExcludedFilter() {
+        return excludedFilter;
+    }
+
+    public void setExcludedFilter(FilterApiQuery excludedFilter) {
+        this.excludedFilter = excludedFilter;
     }
 }

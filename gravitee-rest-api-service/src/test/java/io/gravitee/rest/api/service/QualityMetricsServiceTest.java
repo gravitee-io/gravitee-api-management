@@ -24,7 +24,7 @@ import io.gravitee.rest.api.service.exceptions.ApiQualityMetricsDisableException
 import io.gravitee.rest.api.service.impl.QualityMetricsServiceImpl;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLogo;
-import io.gravitee.rest.api.service.quality.ApiQualityMetricViews;
+import io.gravitee.rest.api.service.quality.ApiQualityMetricCategories;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +58,7 @@ public class QualityMetricsServiceTest {
     @Mock
     private ApiQualityMetricLogo apiQualityMetricLogo;
     @Mock
-    private ApiQualityMetricViews apiQualityMetricViews;
+    private ApiQualityMetricCategories apiQualityMetricCategories;
     @Mock
     private QualityRuleService qualityRuleService;
     @Mock
@@ -66,9 +66,9 @@ public class QualityMetricsServiceTest {
 
     @Before
     public void setup() {
-        when(apiQualityMetricLoader.getApiQualityMetrics()).thenReturn(Arrays.asList(apiQualityMetricLogo, apiQualityMetricViews));
+        when(apiQualityMetricLoader.getApiQualityMetrics()).thenReturn(Arrays.asList(apiQualityMetricLogo, apiQualityMetricCategories));
         when(apiQualityMetricLogo.getWeightKey()).thenReturn(Key.API_QUALITY_METRICS_LOGO_WEIGHT);
-        when(apiQualityMetricViews.getWeightKey()).thenReturn(Key.API_QUALITY_METRICS_VIEWS_WEIGHT);
+        when(apiQualityMetricCategories.getWeightKey()).thenReturn(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT);
     }
 
     @Test(expected = ApiQualityMetricsDisableException.class)
@@ -98,18 +98,18 @@ public class QualityMetricsServiceTest {
         when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED)).thenReturn(Boolean.TRUE);
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
-        map.put(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key(), singletonList(1));
+        map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
         when(parameterService.findAll(anyList(), any())).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
         when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricViews.isValid(any())).thenReturn(Boolean.FALSE);
+        when(apiQualityMetricCategories.isValid(any())).thenReturn(Boolean.FALSE);
 
         ApiQualityMetricsEntity metrics = srv.getMetrics(api);
 
         assertEquals(0.5, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
         assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key()));
-        assertFalse(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key()));
+        assertFalse(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key()));
     }
 
     @Test
@@ -117,18 +117,18 @@ public class QualityMetricsServiceTest {
         when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED)).thenReturn(Boolean.TRUE);
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
-        map.put(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key(), singletonList(1));
+        map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
         when(parameterService.findAll(anyList(), any())).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
         when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricViews.isValid(any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(any())).thenReturn(Boolean.TRUE);
 
         ApiQualityMetricsEntity metrics = srv.getMetrics(api);
 
         assertEquals(1, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
         assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key()));
-        assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key()));
+        assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key()));
     }
 
     @Test
@@ -136,18 +136,18 @@ public class QualityMetricsServiceTest {
         when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED)).thenReturn(Boolean.TRUE);
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
-        map.put(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key(), singletonList(2));
+        map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(2));
         when(parameterService.findAll(anyList(), any())).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
         when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricViews.isValid(any())).thenReturn(Boolean.FALSE);
+        when(apiQualityMetricCategories.isValid(any())).thenReturn(Boolean.FALSE);
 
         ApiQualityMetricsEntity metrics = srv.getMetrics(api);
 
         assertEquals(0.33, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
         assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key()));
-        assertFalse(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key()));
+        assertFalse(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key()));
     }
 
     @Test
@@ -155,12 +155,12 @@ public class QualityMetricsServiceTest {
         when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED)).thenReturn(Boolean.TRUE);
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
-        map.put(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key(), singletonList(1));
+        map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
         when(parameterService.findAll(anyList(), any())).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn("apiID");
         when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricViews.isValid(any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(any())).thenReturn(Boolean.TRUE);
 
         final QualityRuleEntity qualityRule = mock(QualityRuleEntity.class);
         when(qualityRule.getId()).thenReturn("1");
@@ -178,7 +178,7 @@ public class QualityMetricsServiceTest {
         assertEquals(1, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
         assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key()));
-        assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key()));
+        assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key()));
         assertTrue(metrics.getMetricsPassed().get("1"));
     }
 
@@ -187,12 +187,12 @@ public class QualityMetricsServiceTest {
         when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED)).thenReturn(Boolean.TRUE);
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
-        map.put(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key(), singletonList(1));
+        map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
         when(parameterService.findAll(anyList(), any())).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn("apiID");
         when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
-        when(apiQualityMetricViews.isValid(any())).thenReturn(Boolean.TRUE);
+        when(apiQualityMetricCategories.isValid(any())).thenReturn(Boolean.TRUE);
 
         final QualityRuleEntity qualityRule = mock(QualityRuleEntity.class);
         when(qualityRule.getId()).thenReturn("1");
@@ -210,7 +210,7 @@ public class QualityMetricsServiceTest {
         assertEquals(0.5, metrics.getScore(), 0);
         assertFalse(metrics.getMetricsPassed().isEmpty());
         assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key()));
-        assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key()));
+        assertTrue(metrics.getMetricsPassed().get(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key()));
         assertFalse(metrics.getMetricsPassed().get("1"));
     }
 }

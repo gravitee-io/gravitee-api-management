@@ -79,7 +79,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(portalNotificationService);
         reset(genericNotificationConfigService);
         reset(topApiService);
-        reset(viewService);
+        reset(categoryService);
         reset(ticketService);
         reset(configService);
         reset(authenticationProvider);
@@ -97,7 +97,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(logMapper);
         reset(analyticsMapper);
         reset(portalNotificationMapper);
-        reset(viewMapper);
+        reset(categoryMapper);
         reset(ticketMapper);
         reset(configMapper);
         reset(identityProviderMapper);
@@ -222,7 +222,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected TopApiService topApiService;
 
     @Autowired
-    protected ViewService viewService;
+    protected CategoryService categoryService;
 
     @Autowired
     protected TicketService ticketService;
@@ -267,7 +267,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected AnalyticsMapper analyticsMapper;
 
     @Autowired
-    protected ViewMapper viewMapper;
+    protected CategoryMapper categoryMapper;
 
     @Autowired
     protected TicketMapper ticketMapper;
@@ -462,8 +462,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
-        public ViewService viewService() {
-            return mock(ViewService.class);
+        public CategoryService categoryService() {
+            return mock(CategoryService.class);
         }
 
         @Bean
@@ -537,8 +537,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
-        public ViewMapper viewMapper() {
-            return mock(ViewMapper.class);
+        public CategoryMapper categoryMapper() {
+            return mock(CategoryMapper.class);
         }
 
         @Bean

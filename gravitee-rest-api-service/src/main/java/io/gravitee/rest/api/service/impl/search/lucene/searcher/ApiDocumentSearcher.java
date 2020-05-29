@@ -75,7 +75,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 "ownerMail",
                 "labels",
                 "tags",
-                "views",
+                "categories",
                 "paths",
                 "paths_split",
                 "hosts",

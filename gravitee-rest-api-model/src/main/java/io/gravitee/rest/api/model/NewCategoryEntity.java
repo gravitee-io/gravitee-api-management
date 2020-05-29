@@ -15,38 +15,24 @@
  */
 package io.gravitee.rest.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Objects;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class UpdateViewEntity {
+public class NewCategoryEntity {
 
-    private String id;
     @NotNull
     @Size(min = 1)
     private String name;
     private String description;
-    private boolean defaultView;
     private boolean hidden;
     private int order;
     private String highlightApi;
     private String picture;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -62,14 +48,6 @@ public class UpdateViewEntity {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public boolean isDefaultView() {
-        return defaultView;
-    }
-
-    public void setDefaultView(boolean defaultView) {
-        this.defaultView = defaultView;
     }
 
     public boolean isHidden() {
@@ -107,25 +85,24 @@ public class UpdateViewEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof UpdateViewEntity)) return false;
-        UpdateViewEntity that = (UpdateViewEntity) o;
-        return Objects.equals(id, that.id);
+        if (!(o instanceof NewCategoryEntity)) return false;
+        NewCategoryEntity that = (NewCategoryEntity) o;
+        return Objects.equals(name, that.name) &&
+                Objects.equals(description, that.description);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description);
+        return Objects.hash(name, description);
     }
 
     @Override
     public String toString() {
-        return "UpdateViewEntity{" +
-                "id='" + id + '\'' +
+        return "NewCategoryEntity{" +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", defaultView='" + defaultView + '\'' +
-                ", hidden='" + hidden + '\'' +
                 ", order='" + order + '\'' +
+                ", hidden='" + hidden + '\'' +
                 '}';
     }
 }

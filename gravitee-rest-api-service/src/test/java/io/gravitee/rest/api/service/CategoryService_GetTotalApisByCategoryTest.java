@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.rest.api.model.ViewEntity;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.impl.ViewServiceImpl;
+import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -36,10 +36,10 @@ import static org.junit.Assert.assertEquals;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ViewService_GetTotalApisByViewTest {
+public class CategoryService_GetTotalApisByCategoryTest {
 
     @InjectMocks
-    private ViewServiceImpl viewService = new ViewServiceImpl();
+    private CategoryServiceImpl categoryService = new CategoryServiceImpl();
 
     private static Set<ApiEntity> apis;
     
@@ -47,16 +47,16 @@ public class ViewService_GetTotalApisByViewTest {
     public static void init() {
         ApiEntity apiA = new ApiEntity();
         apiA.setId("A");
-        apiA.setViews(new HashSet<>(Arrays.asList("1", "")));
+        apiA.setCategories(new HashSet<>(Arrays.asList("1", "")));
         ApiEntity apiB = new ApiEntity();
         apiB.setId("B");
-        apiB.setViews(new HashSet<>(Arrays.asList("1", "2")));
+        apiB.setCategories(new HashSet<>(Arrays.asList("1", "2")));
         ApiEntity apiC = new ApiEntity();
         apiC.setId("C");
-        apiC.setViews(new HashSet<>(Arrays.asList("2", "3")));
+        apiC.setCategories(new HashSet<>(Arrays.asList("2", "3")));
         ApiEntity apiD = new ApiEntity();
         apiD.setId("D");
-        apiD.setViews(null);
+        apiD.setCategories(null);
         
         apis = new HashSet<>();
         apis.add(apiA);
@@ -66,12 +66,12 @@ public class ViewService_GetTotalApisByViewTest {
     }
     
     @Test
-    public void testEnhanceForOneView() {
-        ViewEntity v = new ViewEntity();
+    public void testEnhanceForOneCategory() {
+        CategoryEntity v = new CategoryEntity();
         v.setKey("1");
         
-        long totalApisByView = viewService.getTotalApisByView(apis, v);
+        long totalApisByCategory = categoryService.getTotalApisByCategory(apis, v);
        
-        assertEquals(2, totalApisByView);
+        assertEquals(2, totalApisByCategory);
     }
 }
