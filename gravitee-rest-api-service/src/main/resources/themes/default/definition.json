@@ -798,67 +798,6 @@
       ]
     },
     {
-      "name": "gv-code",
-      "css": [
-        {
-          "name": "--gv-code--ff",
-          "description": "Font family",
-          "type": "string",
-          "default": "Operator Mono, Inconsolata, Roboto Mono, monaco, consolas, monospace",
-          "value": "Operator Mono, Inconsolata, Roboto Mono, monaco, consolas, monospace"
-        },
-        {
-          "name": "--gv-code--fz",
-          "description": "Font size",
-          "type": "length",
-          "default": "var(--gv-theme-font-size-m, 14px)",
-          "value": ""
-        },
-        {
-          "name": "--gv-code--bgc",
-          "description": "Background color",
-          "type": "color",
-          "default": "var(--gv-theme-neutral-color-lighter, #FAFAFA)",
-          "value": ""
-        },
-        {
-          "name": "--gv-code--c",
-          "description": "Color",
-          "type": "color",
-          "default": "var(--gv-theme-font-color-dark, #262626)",
-          "value": ""
-        },
-        {
-          "name": "--gv-code--bdw",
-          "description": "Border width",
-          "type": "length",
-          "default": "1px",
-          "value": "1px"
-        },
-        {
-          "name": "--gv-code--bds",
-          "description": "Border style",
-          "type": "string",
-          "default": "solid",
-          "value": "solid"
-        },
-        {
-          "name": "--gv-code--bdc",
-          "description": "Border color",
-          "type": "color",
-          "default": "var(--gv-theme-color, #5A7684)",
-          "value": ""
-        },
-        {
-          "name": "--gv-code-icon--s",
-          "description": "Height and icon width",
-          "type": "length",
-          "default": "24px",
-          "value": "24px"
-        }
-      ]
-    },
-    {
       "name": "gv-category",
       "css": [
         {
