@@ -224,6 +224,7 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   onPrevious() {
+    this.hasSubscriptionError = false;
     this.currentStep -= 1;
   }
 

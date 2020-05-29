@@ -284,6 +284,8 @@ export class ApplicationCreationComponent implements OnInit {
   }
 
   createApp() {
+    this.creationSuccess = false;
+    this.creationError = false;
     this.creationInProgress = true;
     const applicationInput = this.applicationForm.getRawValue() as ApplicationInput;
 

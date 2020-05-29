@@ -81,6 +81,7 @@
     <gv-icon shape="general:smile"></gv-icon>
     <h2>{{'apiSubscribe.success.congratulations' | translate}} </h2>
     <gv-button link
+               outlined
                [routerLink]="['/applications/', createdApplication.id]"
                [innerHTML]="'applicationCreation.validation.confirm' | translate: {name:createdApplication.name}"></gv-button>
   </div>
