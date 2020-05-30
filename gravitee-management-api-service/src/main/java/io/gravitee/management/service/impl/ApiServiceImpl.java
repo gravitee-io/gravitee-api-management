@@ -423,7 +423,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiMetadataService.create(newApiMetadataEntity);
 
                 //TODO add membership log
-                ApiEntity apiEntity = convert(createdApi, primaryOwner);
+                ApiEntity apiEntity = convert(createdApi, primaryOwner, null);
                 searchEngineService.index(apiEntity, false);
                 return apiEntity;
             } else {
@@ -564,7 +564,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Optional<Api> api = apiRepository.findById(apiId);
 
             if (api.isPresent()) {
-                ApiEntity apiEntity = convert(api.get(), getPrimaryOwner(api.get()));
+                ApiEntity apiEntity = convert(api.get(), getPrimaryOwner(api.get()), null);
 
                 // Compute entrypoints
                 calculateEntrypoints(apiEntity);
@@ -1883,7 +1883,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
-            ApiEntity apiEntity = convert(apiRepository.update(api), getPrimaryOwner(api));
+            ApiEntity apiEntity = convert(apiRepository.update(api), getPrimaryOwner(api), null);
             // Audit
             auditService.createApiAuditLog(
                     apiId,
@@ -1991,16 +1991,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         userService.findByIds(memberships.stream().map(Membership::getUserId).collect(toList()))
                 .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
+        final List<ViewEntity> views = viewService.findAll();
         return streamApis
-                .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId()))))
+                .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId())), views))
                 .collect(toSet());
     }
 
     private ApiEntity convert(Api api) {
-        return convert(api, null);
+        return convert(api, null, null);
     }
 
-    private ApiEntity convert(Api api, UserEntity primaryOwner) {
+    private ApiEntity convert(Api api, UserEntity primaryOwner, List<ViewEntity> views) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
@@ -2043,9 +2044,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         final Set<String> apiViews = api.getViews();
         if (apiViews != null) {
-            final List<ViewEntity> views = viewService.findAll();
             final Set<String> newApiViews = new HashSet<>(apiViews.size());
             for (final String apiView : apiViews) {
+                if (views == null) {
+                    views = viewService.findAll();
+                }
                 final Optional<ViewEntity> optionalView = views.stream().filter(v -> apiView.equals(v.getId())).findAny();
                 optionalView.ifPresent(view -> newApiViews.add(view.getKey()));
             }

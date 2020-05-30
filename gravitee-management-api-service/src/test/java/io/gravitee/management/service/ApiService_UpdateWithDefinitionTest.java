@@ -92,6 +92,8 @@ public class ApiService_UpdateWithDefinitionTest {
     private ApiMetadataService apiMetadataService;
     @Mock
     private VirtualHostService virtualHostService;
+    @Mock
+    private ViewService viewService;
 
     @Before
     public void init() {
