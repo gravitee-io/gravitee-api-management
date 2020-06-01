@@ -72,6 +72,22 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         applicationContext.getAutowireCapableBeanFactory().autowireBean(planPolicyChainProvider);
         applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPolicyResolver);
 
+        ProcessorSupplier<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>> loggingDecorator = null;
+
+        if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
+            loggingDecorator = new ProcessorSupplier<>(() -> {
+                ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
+                // log max size limit is in MB format
+                // -1 means no limit
+                processor.setMaxSizeLogMessage((maxSizeLogMessage <= -1) ? -1 : maxSizeLogMessage * (1024 * 1024));
+                processor.setExcludedResponseTypes(excludedResponseTypes);
+
+                return new StreamableProcessorDecorator<>(processor);
+            });
+
+            providers.add(loggingDecorator);
+        }
+
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
             providers.add(new ProcessorSupplier<>(() ->
                     new StreamableProcessorDecorator<>(new CorsPreflightRequestProcessor(api.getProxy().getCors()))));
@@ -79,16 +95,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
 
         providers.add(securityPolicyChainProvider);
 
-        if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
-            providers.add(new ProcessorSupplier<>(() -> {
-                ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
-                // log max size limit is in MB format
-                // -1 means no limit
-                processor.setMaxSizeLogMessage((maxSizeLogMessage <= - 1) ? -1 : maxSizeLogMessage * (1024 * 1024));
-                processor.setExcludedResponseTypes(excludedResponseTypes);
-
-                return new StreamableProcessorDecorator<>(processor);
-            }));
+        if (loggingDecorator != null) {
+            providers.add(loggingDecorator);
         }
 
         providers.add(planPolicyChainProvider);
