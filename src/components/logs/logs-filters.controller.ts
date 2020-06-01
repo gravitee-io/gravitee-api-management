@@ -252,6 +252,9 @@ class LogsFiltersController {
         case 'endpoint':
           this.filters.endpoint = v[0].replace(/\*|\\\\/g, '');
           break;
+        case 'remote-address':
+          this.filters['remote-address'] = v;
+          break;
         default:
           console.error('unknown filter: ', k);
           break;
