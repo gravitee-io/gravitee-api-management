@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactor.processor.notfound;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
@@ -43,7 +44,7 @@ public class NotFoundProcessor extends AbstractProcessor<ExecutionContext> {
 
         String message = environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
         context.response().headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(message.length()));
-        context.response().headers().set(HttpHeaders.CONTENT_TYPE, "text/plain");
+        context.response().headers().set(HttpHeaders.CONTENT_TYPE, environment.getProperty("http.errors[404].contentType", MediaType.TEXT_PLAIN));
         context.response().headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
         context.response().write(Buffer.buffer(message));
 
