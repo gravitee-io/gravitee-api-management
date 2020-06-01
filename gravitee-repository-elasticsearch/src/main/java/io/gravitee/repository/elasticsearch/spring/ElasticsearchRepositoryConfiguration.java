@@ -81,6 +81,18 @@ public class ElasticsearchRepositoryConfiguration {
         clientConfiguration.setUsername(repositoryConfiguration.getUsername());
         clientConfiguration.setPassword(repositoryConfiguration.getPassword());
         clientConfiguration.setRequestTimeout(repositoryConfiguration.getRequestTimeout());
+
+        clientConfiguration.setProxyType(repositoryConfiguration.getProxyType());
+        clientConfiguration.setProxyHttpHost(repositoryConfiguration.getProxyHttpHost());
+        clientConfiguration.setProxyHttpPort(repositoryConfiguration.getProxyHttpPort());
+        clientConfiguration.setProxyHttpUsername(repositoryConfiguration.getProxyHttpUsername());
+        clientConfiguration.setProxyHttpPassword(repositoryConfiguration.getProxyHttpPassword());
+        clientConfiguration.setProxyHttpsHost(repositoryConfiguration.getProxyHttpsHost());
+        clientConfiguration.setProxyHttpsPort(repositoryConfiguration.getProxyHttpsPort());
+        clientConfiguration.setProxyHttpsUsername(repositoryConfiguration.getProxyHttpsUsername());
+        clientConfiguration.setProxyHttpsPassword(repositoryConfiguration.getProxyHttpsPassword());
+        clientConfiguration.setProxyConfigured(repositoryConfiguration.isProxyConfigured());
+
         if (repositoryConfiguration.getSslKeystoreType() != null) {
             if (repositoryConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.JKS_KEYSTORE_TYPE)) {
                 clientConfiguration.setSslConfig(new HttpClientJksSslConfiguration(
