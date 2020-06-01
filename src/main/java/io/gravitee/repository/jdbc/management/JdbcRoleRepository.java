@@ -211,8 +211,11 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
                     , referenceType.name()
             );
             List<Role> rows = rowMapper.getRows();
-            if (rows.size() >1) {
+            if (rows.size() > 1) {
                 throw new TechnicalException("More than 1 role exist with same name and same scope for this reference");
+            }
+            if (rows.size() == 0) {
+                return Optional.empty();
             }
             return Optional.of(rows.get(0));
         } catch (final Exception ex) {
