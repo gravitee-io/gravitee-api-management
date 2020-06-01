@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.processor.cors;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -116,6 +117,8 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         // Add one or more Access-Control-Allow-Headers headers consisting of (a subset of) the list of headers.
         response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
                 String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlAllowHeaders()));
+
+        response.status(HttpStatusCode.OK_200);
     }
 
     private boolean isRequestHeadersValid(String accessControlRequestHeaders) {
