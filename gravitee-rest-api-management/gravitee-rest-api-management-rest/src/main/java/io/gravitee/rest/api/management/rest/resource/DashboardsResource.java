@@ -48,7 +48,7 @@ public class DashboardsResource extends AbstractResource  {
     @Produces(MediaType.APPLICATION_JSON)
     public List<DashboardEntity> list(final @QueryParam("reference_type") DashboardReferenceType referenceType)  {
         if (!hasPermission(RolePermission.ENVIRONMENT_DASHBOARD, RolePermissionAction.READ) &&
-            !hasApiPermission(RolePermission.API_GATEWAY_DEFINITION, RolePermissionAction.READ)) {
+            !canReadAPIConfiguration()) {
             throw new ForbiddenAccessException();
         }
         if (referenceType == null) {

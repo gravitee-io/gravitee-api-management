@@ -38,8 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
-import static java.util.Collections.*;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -91,10 +90,7 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldFindByUser() throws TechnicalException {
-        when(privateApi.getId()).thenReturn("private-api");
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").visibility(PUBLIC).build())).thenReturn(singletonList(api));
         when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api.getId()).build())).thenReturn(singletonList(api));
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(privateApi.getId()).build())).thenReturn(singletonList(privateApi));
 
         MembershipEntity membership = new MembershipEntity();
         membership.setId("id");
@@ -114,27 +110,22 @@ public class ApiService_FindByUserTest {
         poMember.setId("admin");
         poMember.setRoles(Collections.singletonList(poRole));
         when(membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, Collections.singletonList(api.getId()), "API_PRIMARY_OWNER")).thenReturn(new HashSet(Arrays.asList(poMember)));
-        when(membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, Collections.singletonList(privateApi.getId()), "API_PRIMARY_OWNER")).thenReturn(new HashSet(Arrays.asList(poMember)));
 
-        when(subscription.getApi()).thenReturn("private-api");
-        when(subscriptionService.search(any())).thenReturn(singletonList(subscription));
         final ApplicationListItem application = new ApplicationListItem();
         application.setId("appId");
-        when(applicationService.findByUser(any())).thenReturn(singleton(application));
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null, false);
 
         assertNotNull(apiEntities);
-        assertEquals(2, apiEntities.size());
+        assertEquals(1, apiEntities.size());
     }
 
     @Test
     public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").visibility(PUBLIC).build())).thenReturn(emptyList());
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
                 .thenReturn(Collections.emptySet());
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null, false);
 
         assertNotNull(apiEntities);
         assertTrue(apiEntities.isEmpty());

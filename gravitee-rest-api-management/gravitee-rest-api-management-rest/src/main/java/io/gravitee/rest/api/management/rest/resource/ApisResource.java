@@ -112,7 +112,7 @@ public class ApisResource extends AbstractResource {
                 apiQuery.setLifecycleStates(singletonList(PUBLISHED));
             }
             if (isAuthenticated()) {
-                apis = apiService.findByUser(getAuthenticatedUser(), apiQuery);
+                apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, false);
             } else {
                 apiQuery.setVisibility(PUBLIC);
                 apis = apiService.search(apiQuery);
@@ -130,8 +130,6 @@ public class ApisResource extends AbstractResource {
 
         return apis.stream()
                 .map(this::convert)
-                .filter(api -> isAuthenticated() &&
-                        (isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), RolePermissionAction.READ)))
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .collect(toList());
     }
@@ -238,18 +236,8 @@ public class ApisResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response searchApis(@ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
-            final Collection<ApiEntity> apis;
-            if (isAdmin()) {
-                apis = apiService.search(new ApiQuery());
-            } else {
-                final ApiQuery apiQuery = new ApiQuery();
-                if (isAuthenticated()) {
-                    apis = apiService.findByUser(getAuthenticatedUser(), apiQuery);
-                } else {
-                    apiQuery.setVisibility(PUBLIC);
-                    apis = apiService.search(apiQuery);
-                }
-            }
+            final ApiQuery apiQuery = new ApiQuery();
+            final Collection<ApiEntity> apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, false);
 
             Map<String, Object> filters = new HashMap<>();
             filters.put("api", apis.stream().map(ApiEntity::getId).collect(toSet()));
@@ -257,8 +245,6 @@ public class ApisResource extends AbstractResource {
             return Response.ok().entity(apiService.search(query, filters)
                     .stream()
                     .map(this::convert)
-                    .filter(api -> isAuthenticated() &&
-                            (isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), RolePermissionAction.READ)))
                     .collect(toList())).build();
         } catch (TechnicalException te) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();

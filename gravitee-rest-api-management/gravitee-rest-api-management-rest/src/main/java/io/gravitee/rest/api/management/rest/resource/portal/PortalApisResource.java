@@ -85,7 +85,7 @@ public class PortalApisResource extends AbstractResource {
             } else {
                 apiQuery.setLifecycleStates(singletonList(PUBLISHED));
                 if (isAuthenticated()) {
-                    apis = apiService.findByUser(getAuthenticatedUser(), apiQuery);
+                    apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, true);
                 } else {
                     apiQuery.setVisibility(PUBLIC);
                     apis = apiService.search(apiQuery);

@@ -470,7 +470,7 @@ public class UserServiceTest {
         PrimaryOwnerEntity primaryOwnerEntity = mock(PrimaryOwnerEntity.class);
         when(apiEntity.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
         when(primaryOwnerEntity.getId()).thenReturn(USER_NAME);
-        when(apiService.findByUser(USER_NAME, null)).thenReturn(Collections.singleton(apiEntity));
+        when(apiService.findByUser(USER_NAME, null, false)).thenReturn(Collections.singleton(apiEntity));
 
         try {
             userService.delete(USER_NAME);
@@ -510,7 +510,7 @@ public class UserServiceTest {
         String firstName = "first";
         String lastName = "last";
         String email = "email";
-        when(apiService.findByUser(userId, null)).thenReturn(Collections.emptySet());
+        when(apiService.findByUser(userId, null, false)).thenReturn(Collections.emptySet());
         when(applicationService.findByUser(userId)).thenReturn(Collections.emptySet());
         User user = new User();
         user.setId(userId);
@@ -524,7 +524,7 @@ public class UserServiceTest {
 
         userService.delete(userId);
 
-        verify(apiService, times(1)).findByUser(userId, null);
+        verify(apiService, times(1)).findByUser(userId, null, false);
         verify(applicationService, times(1)).findByUser(userId);
         verify(membershipService, times(1)).removeMemberMemberships(MembershipMemberType.USER, userId);
         verify(userRepository, times(1)).update(argThat(new ArgumentMatcher<User>() {
@@ -553,7 +553,7 @@ public class UserServiceTest {
         String firstName = "first";
         String lastName = "last";
         String email = "email";
-        when(apiService.findByUser(userId, null)).thenReturn(Collections.emptySet());
+        when(apiService.findByUser(userId, null, false)).thenReturn(Collections.emptySet());
         when(applicationService.findByUser(userId)).thenReturn(Collections.emptySet());
         User user = new User();
         user.setId(userId);
@@ -568,7 +568,7 @@ public class UserServiceTest {
 
         userService.delete(userId);
 
-        verify(apiService, times(1)).findByUser(userId, null);
+        verify(apiService, times(1)).findByUser(userId, null, false);
         verify(applicationService, times(1)).findByUser(userId);
         verify(membershipService, times(1)).removeMemberMemberships(MembershipMemberType.USER, userId);
         verify(userRepository, times(1)).update(argThat(new ArgumentMatcher<User>() {

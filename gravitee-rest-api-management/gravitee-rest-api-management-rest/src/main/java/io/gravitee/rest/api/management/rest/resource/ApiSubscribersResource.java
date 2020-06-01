@@ -21,10 +21,9 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -37,7 +36,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import java.util.Collection;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -63,11 +61,13 @@ public class ApiSubscribersResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Paged result of API subscribers", response = ApplicationEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
-    })
     public Collection<ApplicationEntity> listApiSubscribers(
             @PathParam("api") String api) {
+        if (!hasPermission(RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ) &&
+                !hasPermission(RolePermission.API_LOG, api, RolePermissionAction.READ)) {
+            throw new ForbiddenAccessException();
+        }
+
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApi(api);
 

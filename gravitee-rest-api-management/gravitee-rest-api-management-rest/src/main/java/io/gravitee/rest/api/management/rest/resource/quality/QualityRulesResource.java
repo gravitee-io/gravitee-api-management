@@ -53,7 +53,7 @@ public class QualityRulesResource extends AbstractResource {
     @Produces(APPLICATION_JSON)
     public List<QualityRuleEntity> get() {
         if (!hasPermission(RolePermission.ENVIRONMENT_QUALITY_RULE, RolePermissionAction.READ) &&
-                !hasApiPermission(RolePermission.API_GATEWAY_DEFINITION, RolePermissionAction.READ)) {
+                !canReadAPIConfiguration()) {
             throw new ForbiddenAccessException();
         }
         return qualityRuleService.findAll();

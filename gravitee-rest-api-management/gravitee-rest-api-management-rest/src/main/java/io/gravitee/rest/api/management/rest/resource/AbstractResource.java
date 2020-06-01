@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -24,11 +25,16 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
+import java.util.Set;
+
+import static io.gravitee.rest.api.model.MembershipMemberType.USER;
+import static io.gravitee.rest.api.model.MembershipReferenceType.API;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -84,8 +90,24 @@ public abstract class AbstractResource {
         return isAuthenticated() && (isAdmin() || permissionService.hasPermission(permission, referenceId, acls));
     }
 
-    protected boolean hasApiPermission(RolePermission permission, RolePermissionAction... acls) {
-        return apiService.search(null).stream()
-                .noneMatch(api -> isAuthenticated() && hasPermission(permission, api.getId(), acls));
+    protected boolean canReadAPIConfiguration() {
+        if (!isAdmin()) {
+            final Set<MembershipEntity> memberships = membershipService
+                    .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API);
+            return memberships != null && !memberships.isEmpty();
+        }
+        return true;
+    }
+
+    protected void canReadAPI(final String api) {
+        if (!isAdmin()) {
+            final boolean canReadAPI =
+                    membershipService.getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API).stream()
+                            .map(MembershipEntity::getReferenceId)
+                            .anyMatch(ref -> ref.equals(api));
+            if (!canReadAPI) {
+                throw new ForbiddenAccessException();
+            }
+        }
     }
 }

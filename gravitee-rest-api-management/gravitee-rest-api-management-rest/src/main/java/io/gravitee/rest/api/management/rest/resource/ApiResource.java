@@ -16,6 +16,9 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam.LifecycleAction;
@@ -33,8 +36,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.swagger.annotations.*;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.glassfish.jersey.message.internal.MatchingEntityTag;
@@ -53,6 +54,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 
 /**
  * Defines the REST resources to manage API.
@@ -81,33 +83,26 @@ public class ApiResource extends AbstractResource {
     private ParameterService parameterService;
     @Inject
     private SwaggerService swaggerService;
-    @Autowired
-    private ApiMetadataService apiMetadataService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get the API's definition",
+    @ApiOperation(value = "Get the API",
             notes = "User must have the READ permission on the API_DEFINITION to use this service on a private API.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response get(
-            @PathParam("api") String api) {
+    public Response get(@PathParam("api") String api) {
         ApiEntity apiEntity = apiService.findById(api);
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-                || hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
+        if (hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
             setPicture(apiEntity);
-            //TODO DBY: what is the purpose of this ?
-            //apiEntity.setContextPath(apiEntity.getProxy().getContextPath());
+        } else {
             filterSensitiveData(apiEntity);
-
-            return Response
-                    .ok(apiEntity)
-                    .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
-                    .lastModified(apiEntity.getUpdatedAt())
-                    .build();
         }
-        throw new ForbiddenAccessException();
+        return Response
+                .ok(apiEntity)
+                .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
+                .lastModified(apiEntity.getUpdatedAt())
+                .build();
     }
 
     private void setPicture(final ApiEntity apiEntity) {
@@ -131,41 +126,36 @@ public class ApiResource extends AbstractResource {
     public Response picture(
             @Context Request request,
             @PathParam("api") String api) throws ApiNotFoundException {
-        ApiEntity apiEntity = apiService.findById(api);
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-                || hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
+        canReadAPI(api);
+        CacheControl cc = new CacheControl();
+        cc.setNoTransform(true);
+        cc.setMustRevalidate(false);
+        cc.setNoCache(false);
+        cc.setMaxAge(86400);
 
-            CacheControl cc = new CacheControl();
-            cc.setNoTransform(true);
-            cc.setMustRevalidate(false);
-            cc.setNoCache(false);
-            cc.setMaxAge(86400);
+        InlinePictureEntity image = apiService.getPicture(api);
+        if (image == null || image.getContent() == null) {
+            return Response.ok().build();
+        }
+        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
+        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
 
-            InlinePictureEntity image = apiService.getPicture(api);
-            if (image == null || image.getContent() == null) {
-                return Response.ok().build();
-            }
-            EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
-            Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
-
-            if (builder != null) {
-                // Preconditions are not met, returning HTTP 304 'not-modified'
-                return builder
-                        .cacheControl(cc)
-                        .build();
-            }
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            baos.write(image.getContent(), 0, image.getContent().length);
-
-            return Response
-                    .ok(baos)
+        if (builder != null) {
+            // Preconditions are not met, returning HTTP 304 'not-modified'
+            return builder
                     .cacheControl(cc)
-                    .tag(etag)
-                    .type(image.getType())
                     .build();
         }
-        throw new ForbiddenAccessException();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(image.getContent(), 0, image.getContent().length);
+
+        return Response
+                .ok(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 
     @POST
@@ -332,16 +322,11 @@ public class ApiResource extends AbstractResource {
             @ApiResponse(code = 200, message = "API's state", response = ApiStateEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     public ApiStateEntity isAPISynchronized(@PathParam("api") String api) {
-        ApiEntity foundApi = apiService.findById(api);
-        if (Visibility.PUBLIC.equals(foundApi.getVisibility())
-                || hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
-            ApiStateEntity apiStateEntity = new ApiStateEntity();
-            apiStateEntity.setApiId(api);
-            setSynchronizationState(apiStateEntity);
-
-            return apiStateEntity;
-        }
-        throw new ForbiddenAccessException();
+        canReadAPI(api);
+        ApiStateEntity apiStateEntity = new ApiStateEntity();
+        apiStateEntity.setApiId(api);
+        setSynchronizationState(apiStateEntity);
+        return apiStateEntity;
     }
 
     @POST
@@ -481,11 +466,9 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("quality")
     @ApiOperation(value = "Get the quality metrics of the API")
-    @Permissions({
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)
-    })
     public ApiQualityMetricsEntity getQualityMetrics(@PathParam("api") String api) {
-        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
+        canReadAPI(api);
+        final ApiEntity apiEntity = apiService.findById(api);
         return qualityMetricsService.getMetrics(apiEntity);
     }
 
@@ -726,16 +709,17 @@ public class ApiResource extends AbstractResource {
     }
 
     private void filterSensitiveData(ApiEntity entity) {
-        if (//try to display a public api as un unauthenticated user
-                (!isAuthenticated() && Visibility.PUBLIC.equals(entity.getVisibility()))
-                        || (!isAdmin() && !hasPermission(RolePermission.API_GATEWAY_DEFINITION, entity.getId(), RolePermissionAction.READ))) {
-            entity.setProxy(null);
-            entity.setPaths(null);
-            entity.setProperties(null);
-            entity.setServices(null);
-            entity.setResources(null);
-            entity.setPathMappings(null);
-            entity.setResponseTemplates(null);
-        }
+        final Proxy filteredProxy = new Proxy();
+        final VirtualHost virtualHost = entity.getProxy().getVirtualHosts().get(0);
+        virtualHost.setHost(null);
+        filteredProxy.setVirtualHosts(singletonList(virtualHost));
+
+        entity.setProxy(filteredProxy);
+        entity.setPaths(null);
+        entity.setProperties(null);
+        entity.setServices(null);
+        entity.setResources(null);
+        entity.setPathMappings(null);
+        entity.setResponseTemplates(null);
     }
 }

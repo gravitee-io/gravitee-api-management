@@ -16,12 +16,13 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.management.rest.resource.param.PlanSecurityParam;
 import io.gravitee.rest.api.management.rest.resource.param.PlanStatusParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
@@ -37,18 +38,14 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_GATEWAY_DEFINITION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_PLAN;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import static java.util.Comparator.comparingInt;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -82,39 +79,21 @@ public class ApiPlansResource extends AbstractResource {
             @PathParam("api") final String api,
             @QueryParam("status") @DefaultValue("published") final PlanStatusParam wishedStatus,
             @QueryParam("security") final PlanSecurityParam security) {
+        if (!hasPermission(RolePermission.API_PLAN, api, RolePermissionAction.READ) &&
+                !hasPermission(RolePermission.API_LOG, api, RolePermissionAction.READ)) {
+            throw new ForbiddenAccessException();
+        }
 
         ApiEntity apiEntity = apiService.findById(api);
-        PlanStatusParam status;
 
-        List<PlanStatus> readOnlyStatus = Arrays.asList(PlanStatus.PUBLISHED, PlanStatus.CLOSED);
-        boolean lookingForUnpublishedPlan = wishedStatus.getStatuses().stream().
-                map(st -> !readOnlyStatus.contains(st)).
-                reduce(Boolean::logicalOr).
-                orElse(true);
-        if (lookingForUnpublishedPlan && !hasPermission(API_PLAN, api, CREATE, UPDATE, DELETE)) {
-            status = new PlanStatusParam(
-                    wishedStatus.getStatuses()
-                            .stream()
-                            .filter(readOnlyStatus::contains)
-                            .collect(Collectors.toList()));
-        } else {
-            status = wishedStatus;
-        }
-
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-                || hasPermission(API_PLAN, api, READ)) {
-
-            return planService.findByApi(api).stream()
-                    .filter(plan -> status.getStatuses().contains(plan.getStatus())
-                            && ((isAuthenticated() && isAdmin()) || groupService.
-                            isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())))
-                    .filter(plan -> security == null || security.getSecurities().contains(plan.getSecurity()))
-                    .sorted(Comparator.comparingInt(PlanEntity::getOrder))
-                    .map(this::filterSensitiveData)
-                    .collect(Collectors.toList());
-        }
-
-        throw new ForbiddenAccessException();
+        return planService.findByApi(api).stream()
+                .filter(plan -> wishedStatus.getStatuses().contains(plan.getStatus())
+                        && ((isAuthenticated() && isAdmin()) || groupService.
+                        isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())))
+                .filter(plan -> security == null || security.getSecurities().contains(plan.getSecurity()))
+                .sorted(comparingInt(PlanEntity::getOrder))
+                .map(this::filterSensitiveData)
+                .collect(Collectors.toList());
     }
 
     @POST

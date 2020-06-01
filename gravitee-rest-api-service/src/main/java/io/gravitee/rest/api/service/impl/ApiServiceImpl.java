@@ -702,12 +702,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findByUser(String userId, ApiQuery apiQuery) {
+    public Set<ApiEntity> findByUser(String userId, ApiQuery apiQuery, boolean portal) {
         try {
             LOGGER.debug("Find APIs by user {}", userId);
 
             //get all public apis
-            List<Api> publicApis = apiRepository.search(queryToCriteria(apiQuery).visibility(PUBLIC).build());
+            List<Api> publicApis;
+            if (portal) {
+                publicApis = apiRepository.search(queryToCriteria(apiQuery).visibility(PUBLIC).build());
+            } else {
+                publicApis = emptyList();
+            }
 
             // get user apis
             List<Api> userApis = emptyList();
@@ -731,17 +736,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members
-            final Set<String> applications =
-                applicationService.findByUser(userId).stream().map(ApplicationListItem::getId).collect(toSet());
             List<Api> subscribedApis = emptyList();
-            if (!applications.isEmpty()) {
-                final SubscriptionQuery query = new SubscriptionQuery();
-                query.setApplications(applications);
-                final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
-                if (subscriptions != null && !subscriptions.isEmpty()) {
-                    subscribedApis = apiRepository
-                        .search(queryToCriteria(apiQuery).ids(subscriptions.stream()
-                            .map(SubscriptionEntity::getApi).distinct().toArray(String[]::new)).build());
+            if (portal) {
+                final Set<String> applications =
+                    applicationService.findByUser(userId).stream().map(ApplicationListItem::getId).collect(toSet());
+                if (!applications.isEmpty()) {
+                    final SubscriptionQuery query = new SubscriptionQuery();
+                    query.setApplications(applications);
+                    final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
+                    if (subscriptions != null && !subscriptions.isEmpty()) {
+                        subscribedApis = apiRepository
+                            .search(queryToCriteria(apiQuery).ids(subscriptions.stream()
+                                .map(SubscriptionEntity::getApi).distinct().toArray(String[]::new)).build());
+                    }
                 }
             }
 
@@ -764,7 +771,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiQuery = new ApiQuery();
         }
         apiQuery.setLifecycleStates(Arrays.asList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
-        return findByUser(userId, apiQuery);
+        return findByUser(userId, apiQuery, true);
     }
 
     @Override

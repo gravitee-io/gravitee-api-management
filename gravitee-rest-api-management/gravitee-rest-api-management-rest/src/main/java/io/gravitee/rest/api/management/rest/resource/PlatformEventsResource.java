@@ -18,13 +18,13 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.rest.api.management.rest.resource.param.EventSearchParam;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.resource.param.EventSearchParam;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EventService;
 import io.swagger.annotations.Api;
@@ -33,13 +33,12 @@ import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
-
-import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -71,7 +70,7 @@ public class PlatformEventsResource  extends AbstractResource {
         } else if (!isAdmin()) {
             properties.put(
                     Event.EventProperties.API_ID.getValue(),
-                    apiService.findByUser(getAuthenticatedUser(), null)
+                    apiService.findByUser(getAuthenticatedUser(), null, false)
                             .stream()
                             .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
                             .map(ApiEntity::getId).collect(Collectors.joining(",")));

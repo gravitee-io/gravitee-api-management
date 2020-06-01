@@ -16,15 +16,15 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.analytics.Analytics;
-import io.gravitee.rest.api.model.analytics.query.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.management.rest.resource.param.Aggregation;
 import io.gravitee.rest.api.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.rest.api.management.rest.resource.param.Range;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.analytics.Analytics;
+import io.gravitee.rest.api.model.analytics.query.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -36,16 +36,13 @@ import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
-
-import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
-import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ANALYTICS;
-import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_PLATFORM;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static io.gravitee.rest.api.model.permissions.RolePermission.*;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -91,7 +88,7 @@ public class PlatformAnalyticsResource extends AbstractResource  {
                         .collect(Collectors.toList());
             } else {
                 fieldName = "api";
-                ids = apiService.findByUser(getAuthenticatedUser(), null)
+                ids = apiService.findByUser(getAuthenticatedUser(), null, false)
                         .stream()
                         .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
                         .map(ApiEntity::getId)

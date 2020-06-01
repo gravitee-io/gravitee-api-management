@@ -59,7 +59,7 @@ public class CategoriesResource extends AbstractCategoryResource  {
         if (isAdmin()) {
             apis = apiService.findAll();
         } else if (isAuthenticated()) {
-            apis = apiService.findByUser(getAuthenticatedUser(), null);
+            apis = apiService.findByUser(getAuthenticatedUser(), null, true);
         } else {
             apis = apiService.findByVisibility(Visibility.PUBLIC);
         }
