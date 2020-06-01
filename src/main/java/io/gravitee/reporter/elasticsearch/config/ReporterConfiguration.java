@@ -15,6 +15,7 @@
  */
 package io.gravitee.reporter.elasticsearch.config;
 
+import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.elasticsearch.config.Endpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,108 +41,156 @@ public class ReporterConfiguration {
 
 	@Autowired
 	private ConfigurableEnvironment environment;
-	
+
 	/**
-	 * Prefix index name. 
+	 * Prefix index name.
 	 */
 	@Value("${reporters.elasticsearch.index:gravitee}")
 	private String indexName;
+
 	/**
 	 * Single index or index per type?
 	 */
 	@Value("${reporters.elasticsearch.index_per_type:false}")
 	private boolean perTypeIndex;
+
 	/**
-	 * Request actions max by bulk 
+	 * Request actions max by bulk
 	 */
 	@Value("${reporters.elasticsearch.bulk.actions:1000}")
 	private Integer bulkActions;
+
 	/**
 	 * Bulk flush interval in seconds
 	 */
 	@Value("${reporters.elasticsearch.bulk.flush_interval:5}")
 	private Long flushInterval;
+
 	/**
 	 * Elasticsearch basic oauth login.
 	 */
 	@Value("${reporters.elasticsearch.security.username:#{null}}")
 	private String username;
+
 	/**
 	 * Elasticsearch basic oauth password.
 	 */
 	@Value("${reporters.elasticsearch.security.password:#{null}}")
 	private String password;
+
 	/**
 	 * Elasticsearch ssl keystore path.
 	 */
 	@Value("${reporters.elasticsearch.ssl.keystore.type:#{null}}")
 	private String sslKeystoreType;
+
 	/**
 	 * Elasticsearch ssl keystore path.
 	 */
 	@Value("${reporters.elasticsearch.ssl.keystore.path:#{null}}")
 	private String sslKeystore;
+
 	/**
 	 * Elasticsearch ssl keystore password.
 	 */
 	@Value("${reporters.elasticsearch.ssl.keystore.password:#{null}}")
 	private String sslKeystorePassword;
+
 	/**
 	 * Elasticsearch ssl pem certs paths
 	 */
 	@Value("${reporters.elasticsearch.ssl.keystore.certs}")
 	private List<String> sslPemCerts;
+
 	/**
 	 * Elasticsearch ssl pem keys paths
 	 */
 	@Value("${reporters.elasticsearch.ssl.keystore.keys}")
 	private List<String> sslPemKeys;
+
 	/**
 	 * Elasticsearch HTTP request timeout.
 	 */
 	@Value("${reporters.elasticsearch.http.timeout:30000}")
 	private long requestTimeout;
+
+	@Value("${reporters.elasticsearch.http.proxy.type:HTTP}")
+	private String proxyType;
+
+	@Value("${reporters.elasticsearch.http.proxy.http.host:#{systemProperties['http.proxyHost'] ?: 'localhost'}}")
+	private String proxyHttpHost;
+
+	@Value("${reporters.elasticsearch.http.proxy.http.port:#{systemProperties['http.proxyPort'] ?: 3128}}")
+	private int proxyHttpPort;
+
+	@Value("${reporters.elasticsearch.http.proxy.http.username:#{null}}")
+	private String proxyHttpUsername;
+
+	@Value("${reporters.elasticsearch.http.proxy.http.password:#{null}}")
+	private String proxyHttpPassword;
+
+	@Value("${reporters.elasticsearch.http.proxy.https.host:#{systemProperties['https.proxyHost'] ?: 'localhost'}}")
+	private String proxyHttpsHost;
+
+	@Value("${reporters.elasticsearch.http.proxy.https.port:#{systemProperties['https.proxyPort'] ?: 3128}}")
+	private int proxyHttpsPort;
+
+	@Value("${reporters.elasticsearch.http.proxy.https.username:#{null}}")
+	private String proxyHttpsUsername;
+
+	@Value("${reporters.elasticsearch.http.proxy.https.password:#{null}}")
+	private String proxyHttpsPassword;
+
 	/**
 	 * Settings: number of shards
 	 */
 	@Value("${reporters.elasticsearch.settings.number_of_shards:1}")
 	private int numberOfShards;
+
 	/**
 	 * Settings: number of replicas
 	 */
 	@Value("${reporters.elasticsearch.settings.number_of_replicas:1}")
 	private int numberOfReplicas;
+
 	/**
 	 * Settings: refresh interval
 	 */
 	@Value("${reporters.elasticsearch.settings.refresh_interval:5s}")
 	private String refreshInterval;
+
 	@Value("${reporters.elasticsearch.enabled:true}")
 	private boolean enabled;
+
 	/**
 	 * Elasticsearch endpoints
 	 */
 	private List<Endpoint> endpoints;
+
 	/**
 	 * Extended request mapping template
 	 */
 	@Value("${reporters.elasticsearch.template_mapping.extended_request_mapping:#{null}}")
 	private String extendedRequestMappingTemplate;
+
 	/**
 	 * Index indexLifecyclePolicy Policy: monitor
 	 */
 	@Value("${reporters.elasticsearch.lifecycle.policies.monitor:#{null}}")
 	private String indexLifecyclePolicyMonitor;
+
 	/**
 	 * Index indexLifecyclePolicy Policy: health
 	 */
 	@Value("${reporters.elasticsearch.lifecycle.policies.health:#{null}}")
 	private String indexLifecyclePolicyHealth;
+
 	/**
 	 * Index indexLifecyclePolicy Policy: request
 	 */
 	@Value("${reporters.elasticsearch.lifecycle.policies.request:#{null}}")
 	private String indexLifecyclePolicyRequest;
+
 	/**
 	 * Index indexLifecyclePolicy Policy: log
 	 */
@@ -187,14 +236,14 @@ public class ReporterConfiguration {
 	private List<Endpoint> initializeEndpoints() {
 		String key = format("reporters.elasticsearch.endpoints[%s]", 0);
 		List<Endpoint> endpoints = new ArrayList<>();
-		
+
 		while (environment.containsProperty(key)) {
 			String url = environment.getProperty(key);
 			endpoints.add(new Endpoint(url));
-			
+
 			key = format("reporters.elasticsearch.endpoints[%s]", endpoints.size());
 		}
-		
+
 		// Use default host if required
 		if(endpoints.isEmpty()) {
 			endpoints.add(new Endpoint(DEFAULT_ELASTICSEARCH_ENDPOINT));
@@ -347,4 +396,80 @@ public class ReporterConfiguration {
 		this.indexLifecyclePolicyLog = indexLifecyclePolicyLog;
 	}
 
+	public String getProxyType() {
+		return proxyType;
+	}
+
+	public void setProxyType(String proxyType) {
+		this.proxyType = proxyType;
+	}
+
+	public String getProxyHttpHost() {
+		return proxyHttpHost;
+	}
+
+	public void setProxyHttpHost(String proxyHttpHost) {
+		this.proxyHttpHost = proxyHttpHost;
+	}
+
+	public int getProxyHttpPort() {
+		return proxyHttpPort;
+	}
+
+	public void setProxyHttpPort(int proxyHttpPort) {
+		this.proxyHttpPort = proxyHttpPort;
+	}
+
+	public String getProxyHttpUsername() {
+		return proxyHttpUsername;
+	}
+
+	public void setProxyHttpUsername(String proxyHttpUsername) {
+		this.proxyHttpUsername = proxyHttpUsername;
+	}
+
+	public String getProxyHttpPassword() {
+		return proxyHttpPassword;
+	}
+
+	public void setProxyHttpPassword(String proxyHttpPassword) {
+		this.proxyHttpPassword = proxyHttpPassword;
+	}
+
+	public String getProxyHttpsHost() {
+		return proxyHttpsHost;
+	}
+
+	public void setProxyHttpsHost(String proxyHttpsHost) {
+		this.proxyHttpsHost = proxyHttpsHost;
+	}
+
+	public int getProxyHttpsPort() {
+		return proxyHttpsPort;
+	}
+
+	public void setProxyHttpsPort(int proxyHttpsPort) {
+		this.proxyHttpsPort = proxyHttpsPort;
+	}
+
+	public String getProxyHttpsUsername() {
+		return proxyHttpsUsername;
+	}
+
+	public void setProxyHttpsUsername(String proxyHttpsUsername) {
+		this.proxyHttpsUsername = proxyHttpsUsername;
+	}
+
+	public String getProxyHttpsPassword() {
+		return proxyHttpsPassword;
+	}
+
+	public void setProxyHttpsPassword(String proxyHttpsPassword) {
+		this.proxyHttpsPassword = proxyHttpsPassword;
+	}
+
+	public boolean isProxyConfigured() {
+		return !EnvironmentUtils.getPropertiesStartingWith((ConfigurableEnvironment) environment,
+				"reporters.elasticsearch.http.proxy").isEmpty();
+	}
 }
