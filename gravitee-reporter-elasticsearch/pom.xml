@@ -66,6 +66,11 @@
 			<artifactId>jackson-annotations</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>commons-validator</groupId>
+			<artifactId>commons-validator</artifactId>
+		</dependency>
+
 		<!-- Unit Tests -->
 		<dependency>
 			<groupId>junit</groupId>

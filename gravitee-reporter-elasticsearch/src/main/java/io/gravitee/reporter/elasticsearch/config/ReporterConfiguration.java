@@ -127,6 +127,26 @@ public class ReporterConfiguration {
 	 */
 	@Value("${reporters.elasticsearch.template_mapping.extended_request_mapping:#{null}}")
 	private String extendedRequestMappingTemplate;
+	/**
+	 * Index indexLifecyclePolicy Policy: monitor
+	 */
+	@Value("${reporters.elasticsearch.lifecycle.policies.monitor:#{null}}")
+	private String indexLifecyclePolicyMonitor;
+	/**
+	 * Index indexLifecyclePolicy Policy: health
+	 */
+	@Value("${reporters.elasticsearch.lifecycle.policies.health:#{null}}")
+	private String indexLifecyclePolicyHealth;
+	/**
+	 * Index indexLifecyclePolicy Policy: request
+	 */
+	@Value("${reporters.elasticsearch.lifecycle.policies.request:#{null}}")
+	private String indexLifecyclePolicyRequest;
+	/**
+	 * Index indexLifecyclePolicy Policy: log
+	 */
+	@Value("${reporters.elasticsearch.lifecycle.policies.log:#{null}}")
+	private String indexLifecyclePolicyLog;
 
 	public List<Endpoint> getEndpoints() {
 		if(endpoints == null){
@@ -294,4 +314,37 @@ public class ReporterConfiguration {
 	public void setExtendedRequestMappingTemplate(String extendedRequestMappingTemplate) {
 		this.extendedRequestMappingTemplate = extendedRequestMappingTemplate;
 	}
+
+	public String getIndexLifecyclePolicyMonitor() {
+		return indexLifecyclePolicyMonitor;
+	}
+
+	public void setIndexLifecyclePolicyMonitor(String indexLifecyclePolicyMonitor) {
+		this.indexLifecyclePolicyMonitor = indexLifecyclePolicyMonitor;
+	}
+
+	public String getIndexLifecyclePolicyHealth() {
+		return indexLifecyclePolicyHealth;
+	}
+
+	public void setIndexLifecyclePolicyHealth(String indexLifecyclePolicyHealth) {
+		this.indexLifecyclePolicyHealth = indexLifecyclePolicyHealth;
+	}
+
+	public String getIndexLifecyclePolicyRequest() {
+		return indexLifecyclePolicyRequest;
+	}
+
+	public void setIndexLifecyclePolicyRequest(String indexLifecyclePolicyRequest) {
+		this.indexLifecyclePolicyRequest = indexLifecyclePolicyRequest;
+	}
+
+	public String getIndexLifecyclePolicyLog() {
+		return indexLifecyclePolicyLog;
+	}
+
+	public void setIndexLifecyclePolicyLog(String indexLifecyclePolicyLog) {
+		this.indexLifecyclePolicyLog = indexLifecyclePolicyLog;
+	}
+
 }

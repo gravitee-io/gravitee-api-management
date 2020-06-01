@@ -42,6 +42,7 @@
 		<gravitee-repository.version>1.30.4</gravitee-repository.version>
 		<gravitee-node.version>1.6.5</gravitee-node.version>
 		<freemarker.version>2.3.26-incubating</freemarker.version>
+		<commons-validator.version>1.6</commons-validator.version>
 	</properties>
 
 	<modules>
@@ -81,6 +82,11 @@
 				<artifactId>gravitee-node-api</artifactId>
 				<version>${gravitee-node.version}</version>
 				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>commons-validator</groupId>
+				<artifactId>commons-validator</artifactId>
+				<version>${commons-validator.version}</version>
 			</dependency>
         </dependencies>
 	</dependencyManagement>
