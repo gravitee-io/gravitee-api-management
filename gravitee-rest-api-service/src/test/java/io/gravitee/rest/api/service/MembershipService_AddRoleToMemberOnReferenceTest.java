@@ -15,21 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.EmailService;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.IdentityService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.NotifierService;
-import io.gravitee.rest.api.service.RoleService;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.exceptions.AlreadyPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.NotAuthorizedMembershipException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
@@ -42,8 +31,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
 import static org.mockito.Mockito.*;
 
 /**

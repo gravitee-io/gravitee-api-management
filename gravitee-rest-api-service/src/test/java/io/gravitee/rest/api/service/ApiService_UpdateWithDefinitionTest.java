@@ -92,6 +92,8 @@ public class ApiService_UpdateWithDefinitionTest {
     private ParameterService parameterService;
     @Mock
     private VirtualHostService virtualHostService;
+    @Mock
+    private ViewService viewService;
 
     @Before
     public void init() {

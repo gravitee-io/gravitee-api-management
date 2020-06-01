@@ -93,19 +93,19 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     @Override
     public MemberEntity addRoleToMemberOnReference(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId, String role, String source) {
         RoleEntity roleToAdd = roleService.findById(role);
-        return addRoleToMemberOnReference(
+        return _addRoleToMemberOnReference(
                 new MembershipReference(referenceType, referenceId), 
                 new MembershipMember(memberId,  null, memberType), 
-                new MembershipRole(roleToAdd.getScope(), roleToAdd.getName()), source);
+                new MembershipRole(roleToAdd.getScope(), roleToAdd.getName()), source, true);
     }
 
     @Override
     public MemberEntity addRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role) {
-        return addRoleToMemberOnReference(reference, member, role, DEFAULT_SOURCE);
+        return _addRoleToMemberOnReference(reference, member, role, DEFAULT_SOURCE, true);
     }
 
-    @Override
-    public MemberEntity addRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role, String source) {
+    private MemberEntity _addRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role,
+                                                    String source, boolean notify) {
         try {
             LOGGER.debug("Add a new member for {} {}", reference.getType(), reference.getId());
 
@@ -138,7 +138,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
 
                     Set<io.gravitee.repository.management.model.Membership> userRolesOnReference = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(userEntity.getId(), convert(member.getMemberType()), convert(reference.getType()), reference.getId());
-                    if (userRolesOnReference != null && userRolesOnReference.size() == 1 && userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
+                    if (notify && userRolesOnReference != null && userRolesOnReference.size() == 1 && userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
                         EmailNotification emailNotification = buildEmailNotification(userEntity, reference.getType(), reference.getId());
                         if (emailNotification != null) {
                             emailService.sendAsyncEmailNotification(emailNotification);
@@ -930,18 +930,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     @Override
     public MemberEntity updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member,
                                                       MembershipRole role) {
-        return updateRoleToMemberOnReference(reference, member, role, null);
+        return updateRoleToMemberOnReference(reference, member, role, null, true);
     }
 
     @Override
     public MemberEntity updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member,
-            MembershipRole role, String source) {
+            MembershipRole role, String source, boolean notify) {
         try {
             Set<io.gravitee.repository.management.model.Membership> existingMemberships = this.membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(member.getMemberId(), convert(member.getMemberType()), convert(reference.getType()), reference.getId());
             if (existingMemberships != null && !existingMemberships.isEmpty()) {
                 existingMemberships.forEach(membership -> this.deleteMembership(membership.getId()));
             }
-            return this.addRoleToMemberOnReference(reference, member, role, source);
+            return _addRoleToMemberOnReference(reference, member, role, source, false);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update member for {} {}", reference.getType(), reference.getId(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update member for " + reference.getType() + " " + reference.getId(), ex);

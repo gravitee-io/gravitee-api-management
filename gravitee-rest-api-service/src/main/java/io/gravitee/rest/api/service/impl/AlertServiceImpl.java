@@ -23,6 +23,8 @@ import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.alert.api.trigger.TriggerProvider;
 import io.gravitee.alert.api.trigger.command.AlertNotificationCommand;
 import io.gravitee.alert.api.trigger.command.Command;
+import io.gravitee.alert.api.trigger.command.Handler;
+import io.gravitee.alert.api.trigger.command.ResolvePropertyCommand;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.notifier.api.Notification;
@@ -35,16 +37,16 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AlertEvent;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.AlertEventQuery;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.alert.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.common.RandomString;
-import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
-import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.alert.EmailNotifierConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +60,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
@@ -70,6 +73,23 @@ import static java.util.stream.Collectors.toList;
 public class AlertServiceImpl extends TransactionalService implements AlertService, InitializingBean {
 
     private final Logger LOGGER = LoggerFactory.getLogger(AlertServiceImpl.class);
+
+    private static final String UNKNOWN_SERVICE = "1";
+    private static final String FIELD_API = "api";
+    private static final String FIELD_APPLICATION = "application";
+    private static final String FIELD_TENANT = "tenant";
+    private static final String FIELD_PLAN = "plan";
+
+    private static final String METADATA_NAME = "name";
+    private static final String METADATA_DELETED = "deleted";
+    private static final String METADATA_UNKNOWN = "unknown";
+    private static final String METADATA_VERSION = "version";
+    private static final String METADATA_UNKNOWN_API_NAME = "Unknown API (not found)";
+    private static final String METADATA_UNKNOWN_APPLICATION_NAME = "Unknown application (keyless)";
+    private static final String METADATA_DELETED_API_NAME = "Deleted API";
+    private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
+    private static final String METADATA_DELETED_TENANT_NAME = "Deleted tenant";
+    private static final String METADATA_DELETED_PLAN_NAME = "Deleted plan";
 
     @Value("${notifiers.email.subject:[Gravitee.io] %s}")
     private String subject;
@@ -103,6 +123,9 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Autowired
     private ApplicationService applicationService;
+
+    @Autowired
+    private PlanServiceImpl planService;
 
     @Autowired
     private AlertEventRepository alertEventRepository;
@@ -440,32 +463,146 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         triggerProvider.addListener(new TriggerProvider.OnCommandListener() {
             @Override
             public void doOnCommand(Command command) {
-                processCommand(command);
+                if (command instanceof AlertNotificationCommand) {
+                    handleAlertNotificationCommand((AlertNotificationCommand) command);
+                } else {
+                    LOGGER.warn("Unknown alert command: {}", command);
+                }
+            }
+        });
+
+        triggerProvider.addListener(new TriggerProvider.OnCommandResultListener() {
+            @Override
+            public <T> void doOnCommand(Command command, Handler<T> resultHandler) {
+                Supplier<T> supplier = null;
+
+                if (command instanceof ResolvePropertyCommand) {
+                    supplier = (Supplier<T>) new ResolvePropertyCommandHandler((ResolvePropertyCommand) command);
+                } else {
+                    LOGGER.warn("Unknown alert command: {}", command);
+                }
+
+                if (supplier != null) {
+                    resultHandler.handle(supplier.get());
+                }  else {
+                    resultHandler.handle(null);
+                }
             }
         });
     }
 
-    private void processCommand(Command command) {
-        if (command instanceof AlertNotificationCommand) {
-            try {
-                AlertNotificationCommand alertCommand = (AlertNotificationCommand) command;
+    private void handleAlertNotificationCommand(AlertNotificationCommand command) {
+        try {
+            AlertEvent alertEvent = new AlertEvent();
 
-                AlertEvent alertEvent = new AlertEvent();
+            alertEvent.setId(UUID.toString(UUID.random()));
+            alertEvent.setAlert(command.getTrigger());
+            alertEvent.setCreatedAt(new Date(command.getTimestamp()));
+            alertEvent.setUpdatedAt(alertEvent.getCreatedAt());
+            alertEvent.setMessage(command.getMessage());
 
-                alertEvent.setId(UUID.toString(UUID.random()));
-                alertEvent.setAlert(alertCommand.getTrigger());
-                alertEvent.setCreatedAt(new Date(alertCommand.getAlert().getTimestamp()));
-                alertEvent.setUpdatedAt(alertEvent.getCreatedAt());
-                alertEvent.setMessage(alertCommand.getAlert().getMessage());
-
-                alertEventRepository.create(alertEvent);
-            } catch (TechnicalException ex) {
+            alertEventRepository.create(alertEvent);
+        } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to create an alert event from command {}" + command;
             LOGGER.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
-        } else {
-            LOGGER.warn("Unknown alert command: {}", command);
+    }
+
+    private final class ResolvePropertyCommandHandler implements Supplier<Map<String, Map<String, Object>>> {
+
+        private final ResolvePropertyCommand command;
+
+        ResolvePropertyCommandHandler(ResolvePropertyCommand command) {
+            this.command = command;
+        }
+
+        @Override
+        public Map<String, Map<String, Object>> get() {
+            Map<String, String> properties = command.getProperties();
+            Map<String, Map<String, Object>> values = new HashMap<>();
+
+            if (properties != null) {
+                properties.entrySet().stream().forEach(new Consumer<Map.Entry<String, String>>() {
+                    @Override
+                    public void accept(Map.Entry<String, String> entry) {
+                        switch (entry.getKey()) {
+                            case "api":
+                                values.put(entry.getKey(), getAPIMetadata(entry.getValue()));
+                                break;
+                            case "application":
+                                values.put(entry.getKey(), getApplicationMetadata(entry.getValue()));
+                                break;
+                            case "plan":
+                                values.put(entry.getKey(), getPlanMetadata(entry.getValue()));
+                                    break;
+                        }
+                    }
+                });
+            }
+
+            return values;
+        }
+
+        private Map<String, Object> getAPIMetadata(String api) {
+            Map<String, Object> metadata = new HashMap<>();
+
+            try {
+                if (api.equals(UNKNOWN_SERVICE)) {
+                    metadata.put(METADATA_NAME, METADATA_UNKNOWN_API_NAME);
+                    metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
+                } else {
+                    ApiEntity apiEntity = apiService.findById(api);
+                    metadata = mapper.convertValue(apiEntity, Map.class);
+                    metadata.remove("picture");
+                    metadata.remove("proxy");
+                    metadata.remove("paths");
+                    metadata.remove("properties");
+                    metadata.remove("services");
+                    metadata.remove("resources");
+                    metadata.remove("response_templates");
+                    metadata.remove("path_mappings");
+                }
+            } catch (ApiNotFoundException anfe) {
+                metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                metadata.put(METADATA_NAME, METADATA_DELETED_API_NAME);
+            }
+
+            return metadata;
+        }
+
+        private Map<String, Object> getApplicationMetadata(String application) {
+            Map<String, Object> metadata = new HashMap<>();
+
+            try {
+                if (application.equals(UNKNOWN_SERVICE)) {
+                    metadata.put(METADATA_NAME, METADATA_UNKNOWN_APPLICATION_NAME);
+                    metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
+                } else {
+                    ApplicationEntity applicationEntity = applicationService.findById(application);
+                    metadata = mapper.convertValue(applicationEntity, Map.class);
+                    metadata.remove("picture");
+                }
+            } catch (ApplicationNotFoundException anfe) {
+                metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                metadata.put(METADATA_NAME, METADATA_DELETED_APPLICATION_NAME);
+            }
+
+            return metadata;
+        }
+
+        private Map<String, Object> getPlanMetadata(String plan) {
+            Map<String, Object> metadata = new HashMap<>();
+
+            try {
+                PlanEntity planEntity = planService.findById(plan);
+                metadata = mapper.convertValue(planEntity, Map.class);
+            } catch (PlanNotFoundException anfe) {
+                metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
+                metadata.put(METADATA_NAME, METADATA_DELETED_PLAN_NAME);
+            }
+
+            return metadata;
         }
     }
 
@@ -485,7 +622,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     private AlertTrigger convert(final NewAlertTriggerEntity alertEntity) {
         final AlertTrigger alert = new AlertTrigger();
-        alert.setId(RandomString.generate());
+        alert.setId(UUID.toString(UUID.random()));
         alertEntity.setId(alert.getId());
         alert.setName(alertEntity.getName());
         alert.setDescription(alertEntity.getDescription());
@@ -507,7 +644,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     private AlertTrigger convert(final UpdateAlertTriggerEntity alertEntity) {
         final AlertTrigger alert = new AlertTrigger();
-        alert.setId(RandomString.generate());
+        alert.setId(UUID.toString(UUID.random()));
         alert.setName(alertEntity.getName());
         alert.setDescription(alertEntity.getDescription());
         alert.setEnabled(alertEntity.isEnabled());
