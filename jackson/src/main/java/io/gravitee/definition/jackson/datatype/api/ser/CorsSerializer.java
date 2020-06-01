@@ -16,11 +16,14 @@
 package io.gravitee.definition.jackson.datatype.api.ser;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Cors;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -43,9 +46,21 @@ public class CorsSerializer extends StdScalarSerializer<Cors> {
         if (cors.getAccessControlAllowOrigin() != null && ! cors.getAccessControlAllowOrigin().isEmpty()) {
             cors.getAccessControlAllowOrigin().forEach(origin -> {
                 try {
+                    // check pattern regex before to save
+                    if (!"*".equals(origin) && (origin.contains("(") || origin.contains("[") || origin.contains("*"))) {
+                        try {
+                            Pattern.compile(origin);
+                        } catch (PatternSyntaxException pse) {
+                            throw provider.mappingException("Allow origin regex invalid: " + pse.getMessage());
+                        }
+                    }
                     jgen.writeString(origin);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    if (e instanceof JsonMappingException) {
+                        throw new IllegalStateException(e.getMessage());
+                    } else {
+                        e.printStackTrace();
+                    }
                 }
             });
         }

@@ -18,6 +18,7 @@ package io.gravitee.definition.model;
 import io.gravitee.common.http.HttpStatusCode;
 
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,6 +31,8 @@ public class Cors {
     private boolean enabled;
 
     private Set<String> accessControlAllowOrigin;
+
+    private Set<Pattern> accessControlAllowOriginRegex;
 
     private Set<String> accessControlExposeHeaders;
 
@@ -113,5 +116,13 @@ public class Cors {
 
     public void setErrorStatusCode(int errorStatusCode) {
         this.errorStatusCode = errorStatusCode;
+    }
+
+    public Set<Pattern> getAccessControlAllowOriginRegex() {
+        return accessControlAllowOriginRegex;
+    }
+
+    public void setAccessControlAllowOriginRegex(Set<Pattern> accessControlAllowOriginRegex) {
+        this.accessControlAllowOriginRegex = accessControlAllowOriginRegex;
     }
 }

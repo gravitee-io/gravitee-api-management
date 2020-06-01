@@ -21,16 +21,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.common.util.LinkedCaseInsensitiveSet;
 import io.gravitee.definition.model.Cors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class CorsDeserializer extends StdScalarDeserializer<Cors> {
+
+    private final Logger logger = LoggerFactory.getLogger(CorsDeserializer.class);
 
     public CorsDeserializer(Class<Cors> vc) {
         super(vc);
@@ -60,10 +66,22 @@ public class CorsDeserializer extends StdScalarDeserializer<Cors> {
 
             JsonNode allowOriginNode = node.get("allowOrigin");
             Set<String> allowOrigin = new LinkedCaseInsensitiveSet();
+            Set<Pattern> allowOriginRegex = new HashSet<>();
             cors.setAccessControlAllowOrigin(allowOrigin);
+            cors.setAccessControlAllowOriginRegex(allowOriginRegex);
             if (allowOriginNode != null) {
                 allowOriginNode.elements().forEachRemaining(jsonNode -> {
                     allowOrigin.add(jsonNode.asText());
+                    if (!"*".equals(jsonNode.asText()) && (
+                            jsonNode.asText().contains("(") ||
+                            jsonNode.asText().contains("[") ||
+                            jsonNode.asText().contains("*"))) {
+                        try {
+                            allowOriginRegex.add(Pattern.compile(jsonNode.asText()));
+                        } catch (PatternSyntaxException pse) {
+                            logger.error("Allow origin regex invalid: " + jsonNode.asText(), pse.getMessage());
+                        }
+                    }
                 });
             }
 
