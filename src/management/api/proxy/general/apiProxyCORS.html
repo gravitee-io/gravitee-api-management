@@ -42,7 +42,7 @@
         <label>Access-Control-Allow-Origin *</label>
         <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowOrigin"
                   ng-required="apiProxyCtrl.api.proxy.cors.enabled"
-                  md-removable="apiProxyCtrl.api.proxy.cors.enabled" placeholder="*, https://mydomain.com, ..."
+                  md-removable="apiProxyCtrl.api.proxy.cors.enabled" placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
                   md-on-add="apiProxyCtrl.controlAllowOrigin($chip, $index)"
                   md-add-on-blur="true"
                   readonly="!apiProxyCtrl.api.proxy.cors.enabled">
@@ -52,8 +52,9 @@
         </md-chips>
         <div class="hint">
           The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the <i>same-origin</i> definition.<br>
-          If you choose to enable '*' it means that is allows all requests, regardless of origin.
+          If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
         </div>
+        <div ng-if="!apiProxyCtrl.isRegexValid()" style="color: red">Regex is invalid</div>
       </md-input-container>
     </div>
 
@@ -158,7 +159,8 @@
   </div>
 
   <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit" ng-disabled="apiProxyCtrl.formApi.$invalid || apiProxyCtrl.formApi.$pristine">
+    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit"
+               ng-disabled="!apiProxyCtrl.isRegexValid() || apiProxyCtrl.formApi.$invalid || apiProxyCtrl.formApi.$pristine">
       Save
     </md-button>
     <md-button permission permission-only="'api-definition-u'" class="md-raised" type="button" ng-click="apiProxyCtrl.reset()" ng-disabled="apiProxyCtrl.formApi.$pristine">

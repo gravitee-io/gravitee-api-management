@@ -299,9 +299,8 @@ class ApiProxyController {
     return !_.includes(this.userTags, tag.id);
   }
 
-  controlAllowOrigin(chip, index, ev) {
+  controlAllowOrigin(chip, index) {
     if ('*' === chip) {
-      let that = this;
       this.$mdDialog.show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
@@ -311,12 +310,28 @@ class ApiProxyController {
           title: 'Are you sure you want to remove all cross-origin restrictions?',
           confirmButton: 'Yes, I want to allow all origins.'
         }
-      }).then(function (response) {
+      }).then((response) => {
         if (!response) {
-          that.api.proxy.cors.allowOrigin.splice(index, 1);
+          this.api.proxy.cors.allowOrigin.splice(index, 1);
         }
       });
     }
+  }
+
+  isRegexValid() {
+    let isValid = true;
+    this.api.proxy.cors.allowOrigin.forEach(allowOrigin => {
+      if ('*' !== allowOrigin &&
+        (allowOrigin.includes('(') || allowOrigin.includes('[') || allowOrigin.includes('*'))) {
+        try {
+          // tslint:disable-next-line:no-unused-expression
+          new RegExp(allowOrigin);
+        } catch (e) {
+          isValid = false;
+        }
+      }
+    });
+    return isValid;
   }
 
   switchVirtualHostMode() {

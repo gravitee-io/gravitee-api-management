@@ -60,7 +60,9 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
             if (queryFilters) {
               let queryFilter = queryFilters[widget.chart.request.field];
               if (queryFilter && queryFilter.includes(key)) {
-                this.selected.push(result);
+                setTimeout(() => {
+                  this.selected.push(result);
+                });
               }
             }
           }
