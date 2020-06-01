@@ -46,9 +46,6 @@ function apisPortalRouterConfig($stateProvider) {
           label: 'Portal',
           icon: 'important_devices'
         },
-        perms: {
-          only: ['api-definition-r']
-        },
         docs: {
           page: 'management-api'
         }

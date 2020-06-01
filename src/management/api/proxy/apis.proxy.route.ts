@@ -39,7 +39,7 @@ function apisProxyRouterConfig($stateProvider) {
           icon: 'device_hub'
         },
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r', 'api-health-r']
         },
         docs: {
           page: 'management-api-proxy'
