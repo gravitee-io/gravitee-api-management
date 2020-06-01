@@ -499,7 +499,7 @@ public class LogsServiceImpl implements LogsService {
         req.setTransactionId(log.getTransactionId());
         req.setApplication(log.getApplication());
         req.setMethod(log.getMethod());
-        req.setPath(new QueryStringDecoder(log.getUri()).path());
+        req.setPath(new QueryStringDecoder(log.getUri()).toString());
         req.setPlan(log.getPlan());
         req.setResponseTime(log.getResponseTime());
         req.setStatus(log.getStatus());
@@ -515,7 +515,7 @@ public class LogsServiceImpl implements LogsService {
         req.setTransactionId(log.getTransactionId());
         req.setApi(log.getApi());
         req.setMethod(log.getMethod());
-        req.setPath(new QueryStringDecoder(log.getUri()).path());
+        req.setPath(new QueryStringDecoder(log.getUri()).toString());
         req.setPlan(log.getPlan());
         req.setResponseTime(log.getResponseTime());
         req.setStatus(log.getStatus());
@@ -535,7 +535,7 @@ public class LogsServiceImpl implements LogsService {
         req.setLocalAddress(log.getLocalAddress());
         req.setRemoteAddress(log.getRemoteAddress());
         req.setMethod(log.getMethod());
-        req.setPath(new QueryStringDecoder(log.getUri()).path());
+        req.setPath(new QueryStringDecoder(log.getUri()).toString());
         req.setPlan(log.getPlan());
         req.setRequestContentLength(log.getRequestContentLength());
         req.setResponseContentLength(log.getResponseContentLength());
@@ -613,7 +613,7 @@ public class LogsServiceImpl implements LogsService {
         req.setApi(log.getApi());
         req.setMethod(log.getMethod());
         req.setUri(log.getUri());
-        req.setPath(new QueryStringDecoder(log.getUri()).path());
+        req.setPath(new QueryStringDecoder(log.getUri()).toString());
         req.setPlan(log.getPlan());
         req.setRequestContentLength(log.getRequestContentLength());
         req.setResponseContentLength(log.getResponseContentLength());
