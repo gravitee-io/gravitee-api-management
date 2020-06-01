@@ -88,6 +88,10 @@
       <label>Endpoint</label>
       <input ng-model="$ctrl.filters.endpoint">
     </md-input-container>
+    <md-input-container class="md-block" flex-gt-sm ng-if="$ctrl.context === 'api'">
+      <label>Remote Address</label>
+      <input ng-model="$ctrl.filters['remote-address']">
+    </md-input-container>
     <div>
       <md-button type="submit" class="md-raised md-primary">
         Search
