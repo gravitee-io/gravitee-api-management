@@ -28,6 +28,7 @@ import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
 import io.vertx.core.buffer.Buffer;
+import org.apache.commons.validator.routines.InetAddressValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,6 +135,10 @@ public abstract class AbstractIndexer implements Indexer {
     protected Buffer getSource(final Metrics metrics, String pipeline) {
         final Map<String, Object> data = new HashMap<>(10);
 
+        // check remote address format
+        if (!InetAddressValidator.getInstance().isValid(metrics.getRemoteAddress())) {
+            metrics.setRemoteAddress("0.0.0.0");
+        }
         data.put("index", indexNameGenerator.generate(metrics));
         data.put("type", Type.REQUEST.getType());
         data.put(Fields.SPECIAL_TIMESTAMP, dtf.format(metrics.timestamp()));
