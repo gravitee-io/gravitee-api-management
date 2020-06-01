@@ -39,6 +39,18 @@ public class ElasticsearchReporterConfiguration {
         clientConfiguration.setUsername(reporterConfiguration.getUsername());
         clientConfiguration.setPassword(reporterConfiguration.getPassword());
         clientConfiguration.setRequestTimeout(reporterConfiguration.getRequestTimeout());
+
+        clientConfiguration.setProxyType(reporterConfiguration.getProxyType());
+        clientConfiguration.setProxyHttpHost(reporterConfiguration.getProxyHttpHost());
+        clientConfiguration.setProxyHttpPort(reporterConfiguration.getProxyHttpPort());
+        clientConfiguration.setProxyHttpUsername(reporterConfiguration.getProxyHttpUsername());
+        clientConfiguration.setProxyHttpPassword(reporterConfiguration.getProxyHttpPassword());
+        clientConfiguration.setProxyHttpsHost(reporterConfiguration.getProxyHttpsHost());
+        clientConfiguration.setProxyHttpsPort(reporterConfiguration.getProxyHttpsPort());
+        clientConfiguration.setProxyHttpsUsername(reporterConfiguration.getProxyHttpsUsername());
+        clientConfiguration.setProxyHttpsPassword(reporterConfiguration.getProxyHttpsPassword());
+        clientConfiguration.setProxyConfigured(reporterConfiguration.isProxyConfigured());
+
         if (reporterConfiguration.getSslKeystoreType() != null) {
             if (reporterConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.JKS_KEYSTORE_TYPE)) {
                 clientConfiguration.setSslConfig(new HttpClientJksSslConfiguration(

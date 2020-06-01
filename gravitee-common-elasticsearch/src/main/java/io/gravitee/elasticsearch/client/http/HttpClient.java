@@ -22,17 +22,17 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.config.Endpoint;
 import io.gravitee.elasticsearch.exception.ElasticsearchException;
-import io.gravitee.elasticsearch.model.Health;
 import io.gravitee.elasticsearch.model.CountResponse;
+import io.gravitee.elasticsearch.model.Health;
 import io.gravitee.elasticsearch.model.Response;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.reactivex.Completable;
 import io.reactivex.Single;
-import io.vertx.core.Handler;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.buffer.Buffer;
@@ -110,9 +110,9 @@ public class HttpClient implements Client {
             WebClientOptions options = new WebClientOptions()
                     .setDefaultHost(elasticEdpt.getHost())
                     .setDefaultPort(elasticEdpt.getPort() != -1 ? elasticEdpt.getPort() :
-                            (HTTPS_SCHEME.equals(elasticEdpt.getScheme()) ? 443 : 80));
+                            (HTTPS_SCHEME.equalsIgnoreCase(elasticEdpt.getScheme()) ? 443 : 80));
 
-            if (HTTPS_SCHEME.equals(elasticEdpt.getScheme())) {
+            if (HTTPS_SCHEME.equalsIgnoreCase(elasticEdpt.getScheme())) {
                 options
                     .setSsl(true)
                     .setTrustAll(true);
@@ -120,6 +120,23 @@ public class HttpClient implements Client {
                 if (this.configuration.getSslConfig() != null) {
                     options.setKeyCertOptions(this.configuration.getSslConfig().getVertxWebClientSslKeystoreOptions());
                 }
+            }
+
+            if (configuration.isProxyConfigured()) {
+                ProxyOptions proxyOptions = new ProxyOptions();
+                proxyOptions.setType(ProxyType.valueOf(configuration.getProxyType()));
+                if (HTTPS_SCHEME.equalsIgnoreCase(elasticEdpt.getScheme())) {
+                    proxyOptions.setHost(configuration.getProxyHttpsHost());
+                    proxyOptions.setPort(configuration.getProxyHttpsPort());
+                    proxyOptions.setUsername(configuration.getProxyHttpsUsername());
+                    proxyOptions.setPassword(configuration.getProxyHttpsPassword());
+                } else {
+                    proxyOptions.setHost(configuration.getProxyHttpHost());
+                    proxyOptions.setPort(configuration.getProxyHttpPort());
+                    proxyOptions.setUsername(configuration.getProxyHttpUsername());
+                    proxyOptions.setPassword(configuration.getProxyHttpPassword());
+                }
+                options.setProxyOptions(proxyOptions);
             }
 
             this.httpClient = WebClient.create(vertx, options);

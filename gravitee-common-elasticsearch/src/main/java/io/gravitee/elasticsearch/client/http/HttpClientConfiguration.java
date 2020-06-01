@@ -16,6 +16,7 @@
 package io.gravitee.elasticsearch.client.http;
 
 import io.gravitee.elasticsearch.config.Endpoint;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
@@ -36,6 +37,20 @@ public class HttpClientConfiguration {
     private ClientSslConfiguration sslConfig;
 
     private long requestTimeout = 10000;
+
+    private String proxyType;
+
+    private String proxyHttpHost;
+    private int proxyHttpPort;
+    private String proxyHttpUsername;
+    private String proxyHttpPassword;
+
+    private String proxyHttpsHost;
+    private int proxyHttpsPort;
+    private String proxyHttpsUsername;
+    private String proxyHttpsPassword;
+
+    private boolean isProxyConfigured;
 
     public List<Endpoint> getEndpoints() {
         return endpoints;
@@ -75,5 +90,85 @@ public class HttpClientConfiguration {
 
     public void setSslConfig(ClientSslConfiguration sslConfig) {
         this.sslConfig = sslConfig;
+    }
+
+    public String getProxyType() {
+        return proxyType;
+    }
+
+    public void setProxyType(String proxyType) {
+        this.proxyType = proxyType;
+    }
+
+    public String getProxyHttpHost() {
+        return proxyHttpHost;
+    }
+
+    public void setProxyHttpHost(String proxyHttpHost) {
+        this.proxyHttpHost = proxyHttpHost;
+    }
+
+    public int getProxyHttpPort() {
+        return proxyHttpPort;
+    }
+
+    public void setProxyHttpPort(int proxyHttpPort) {
+        this.proxyHttpPort = proxyHttpPort;
+    }
+
+    public String getProxyHttpUsername() {
+        return proxyHttpUsername;
+    }
+
+    public void setProxyHttpUsername(String proxyHttpUsername) {
+        this.proxyHttpUsername = proxyHttpUsername;
+    }
+
+    public String getProxyHttpPassword() {
+        return proxyHttpPassword;
+    }
+
+    public void setProxyHttpPassword(String proxyHttpPassword) {
+        this.proxyHttpPassword = proxyHttpPassword;
+    }
+
+    public String getProxyHttpsHost() {
+        return proxyHttpsHost;
+    }
+
+    public void setProxyHttpsHost(String proxyHttpsHost) {
+        this.proxyHttpsHost = proxyHttpsHost;
+    }
+
+    public int getProxyHttpsPort() {
+        return proxyHttpsPort;
+    }
+
+    public void setProxyHttpsPort(int proxyHttpsPort) {
+        this.proxyHttpsPort = proxyHttpsPort;
+    }
+
+    public String getProxyHttpsUsername() {
+        return proxyHttpsUsername;
+    }
+
+    public void setProxyHttpsUsername(String proxyHttpsUsername) {
+        this.proxyHttpsUsername = proxyHttpsUsername;
+    }
+
+    public String getProxyHttpsPassword() {
+        return proxyHttpsPassword;
+    }
+
+    public void setProxyHttpsPassword(String proxyHttpsPassword) {
+        this.proxyHttpsPassword = proxyHttpsPassword;
+    }
+
+    public boolean isProxyConfigured() {
+        return isProxyConfigured;
+    }
+
+    public void setProxyConfigured(boolean proxyConfigured) {
+        isProxyConfigured = proxyConfigured;
     }
 }
