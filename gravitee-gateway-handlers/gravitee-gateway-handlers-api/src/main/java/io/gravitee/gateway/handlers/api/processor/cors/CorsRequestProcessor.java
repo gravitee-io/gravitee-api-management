@@ -19,6 +19,8 @@ import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 
+import java.util.regex.Pattern;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -36,7 +38,23 @@ public abstract class CorsRequestProcessor extends AbstractProcessor<ExecutionCo
     }
 
     boolean isOriginAllowed(String origin) {
-        return origin != null && (cors.getAccessControlAllowOrigin().contains(ALLOW_ORIGIN_PUBLIC_WILDCARD) ||
-                cors.getAccessControlAllowOrigin().contains(origin));
+        if (origin == null) {
+            return false;
+        }
+
+        boolean allowed = cors.getAccessControlAllowOrigin().contains(ALLOW_ORIGIN_PUBLIC_WILDCARD) ||
+                cors.getAccessControlAllowOrigin().contains(origin);
+
+        if (allowed) {
+            return allowed;
+
+        } else if (!cors.getAccessControlAllowOriginRegex().isEmpty()) {
+            for (Pattern pattern : cors.getAccessControlAllowOriginRegex()) {
+                if (pattern.matcher(origin).matches()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

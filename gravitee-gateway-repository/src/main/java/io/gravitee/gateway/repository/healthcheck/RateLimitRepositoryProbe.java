@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.repository.healthcheck;
 
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
@@ -32,7 +33,8 @@ import java.util.function.Supplier;
  */
 public class RateLimitRepositoryProbe implements Probe {
 
-    private static final String RATE_LIMIT_UNKNOWN_IDENTIFIER = "unknown-healthcheck";
+    @Autowired
+    private Node node;
 
     @Autowired
     private RateLimitRepository<RateLimit> rateLimitRepository;
@@ -50,12 +52,14 @@ public class RateLimitRepositoryProbe implements Probe {
                 CompletableFuture<Result> future = new CompletableFuture<>();
 
                 try {
+                    final String rlIdentifier = "hc-" + node.id();
+
                     // Search for a rate-limit value to check repository connection
-                    rateLimitRepository.incrementAndGet(RATE_LIMIT_UNKNOWN_IDENTIFIER, 1L, new Supplier<RateLimit>() {
+                    rateLimitRepository.incrementAndGet(rlIdentifier, 1L, new Supplier<RateLimit>() {
                         @Override
                         public RateLimit get() {
-                            RateLimit rateLimit = new RateLimit(RATE_LIMIT_UNKNOWN_IDENTIFIER);
-                            rateLimit.setSubscription(RATE_LIMIT_UNKNOWN_IDENTIFIER);
+                            RateLimit rateLimit = new RateLimit(rlIdentifier);
+                            rateLimit.setSubscription(rlIdentifier);
                             return rateLimit;
                         }
                     }).subscribe(new SingleObserver<RateLimit>() {
