@@ -165,7 +165,18 @@ analytics:
 #      password: secret
 #    http:
 #      timeout: 10000 # in milliseconds
-#
+#      proxy:
+#        type: HTTP #HTTP, SOCK4, SOCK5
+#        http:
+#          host: localhost
+#          port: 3128
+#          username: user
+#          password: secret
+#        https:
+#          host: localhost
+#          port: 3128
+#          username: user
+#          password: secret
 
 # Authentication and identity sources
 # Users can have following roles (authorities):
