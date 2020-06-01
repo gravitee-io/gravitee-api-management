@@ -58,7 +58,6 @@ public class MongoRateLimitRepository implements RateLimitRepository<RateLimit> 
 
     private final FindAndModifyOptions INC_AND_GET_OPTIONS = new FindAndModifyOptions().returnNew(true).upsert(true);
 
-
     @PostConstruct
     public void ensureTTLIndex() {
         mongoOperations.indexOps(RATE_LIMIT_COLLECTION).ensureIndex(
@@ -69,10 +68,11 @@ public class MongoRateLimitRepository implements RateLimitRepository<RateLimit> 
     @Override
     public Single<RateLimit> incrementAndGet(String key, long weight, Supplier<RateLimit> supplier) {
         final Date now = new Date();
+        RateLimit rateLimit = supplier.get();
         return RxJava2Adapter
                 .monoToSingle(
                         Mono
-                                .just(supplier.get())
+                                .just(rateLimit)
                                 .flatMap(new Function<RateLimit, Mono<Document>>() {
                                     @Override
                                     public Mono<Document> apply(RateLimit rateLimit) {
@@ -83,7 +83,7 @@ public class MongoRateLimitRepository implements RateLimitRepository<RateLimit> 
                                                                 .inc(FIELD_COUNTER, weight)
                                                                 .setOnInsert(FIELD_RESET_TIME, new Date(rateLimit.getResetTime()))
                                                                 .setOnInsert(FIELD_LIMIT, rateLimit.getLimit())
-                                                                .setOnInsert(FIELD_SUBSCRIPTION,rateLimit.getSubscription()),
+                                                                .setOnInsert(FIELD_SUBSCRIPTION, rateLimit.getSubscription()),
                                                         INC_AND_GET_OPTIONS,
                                                         Document.class,
                                                         RATE_LIMIT_COLLECTION);
@@ -92,17 +92,22 @@ public class MongoRateLimitRepository implements RateLimitRepository<RateLimit> 
                                     @Override
                                     public Mono<Document> apply(Document document) {
                                         if (document.getDate(FIELD_RESET_TIME).before(now)) {
-                                            return mongoOperations.findAndRemove(
-                                                    new Query(Criteria.where(FIELD_KEY).is(key)),
-                                                    Document.class,
-                                                    RATE_LIMIT_COLLECTION);
+                                            return mongoOperations
+                                                    .findAndModify(
+                                                            new Query(Criteria.where(FIELD_KEY).is(key)),
+                                                            new Update()
+                                                                    .set(FIELD_COUNTER, weight)
+                                                                    .set(FIELD_RESET_TIME, new Date(rateLimit.getResetTime()))
+                                                                    .set(FIELD_LIMIT, rateLimit.getLimit())
+                                                                    .set(FIELD_SUBSCRIPTION, rateLimit.getSubscription()),
+                                                            INC_AND_GET_OPTIONS,
+                                                            Document.class,
+                                                            RATE_LIMIT_COLLECTION);
                                         } else {
                                             return Mono.just(document);
                                         }
                                     }
-                                })
-                                .map(this::convert));
-
+                                }).map(this::convert));
     }
 
     private RateLimit convert(Document document) {
