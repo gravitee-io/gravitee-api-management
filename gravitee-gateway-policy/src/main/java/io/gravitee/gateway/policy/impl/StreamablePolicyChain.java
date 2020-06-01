@@ -69,8 +69,16 @@ public abstract class StreamablePolicyChain extends PolicyChain {
 
                         // Chain policy stream using the previous one
                         if (previousPolicyStreamer != null) {
-                            previousPolicyStreamer.bodyHandler(streamer::write);
-                            previousPolicyStreamer.endHandler(result1 -> streamer.end());
+                            previousPolicyStreamer.bodyHandler(result -> {
+                                if (! streamErrorHandle) {
+                                    streamer.write(result);
+                                }
+                            });
+                            previousPolicyStreamer.endHandler(result -> {
+                                if (! streamErrorHandle) {
+                                    streamer.end();
+                                }
+                            });
                         }
 
                         // Previous stream is now the current policy stream
