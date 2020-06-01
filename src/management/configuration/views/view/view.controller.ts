@@ -46,9 +46,6 @@ class ViewController {
   }
 
   $onInit() {
-    if (this.createMode) {
-      this.view = { id: '' };
-    }
     this.addedAPIs = [];
     this.selectedAPIs = (this.viewApis) ? this.viewApis.slice(0) : [];
     let self = this;
