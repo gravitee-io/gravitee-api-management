@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
@@ -28,6 +29,7 @@ import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 
@@ -63,6 +65,8 @@ public class ApiResource extends AbstractResource {
     private PlanService planService;
     @Inject
     private GroupService groupService;
+    @Inject
+    private ParameterService parameterService;
 
     private static final String INCLUDE_PAGES = "pages";
     private static final String INCLUDE_PLANS = "plans";
@@ -96,7 +100,12 @@ public class ApiResource extends AbstractResource {
             }
 
             api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())));
-
+            if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER)) {
+                api.setLabels(new ArrayList<>());
+            }
+            if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_VIEWS_IN_APIHEADER)) {
+                api.setViews(new ArrayList<>());
+            }
             return Response.ok(api).build();
         }
         throw new ApiNotFoundException(apiId);
