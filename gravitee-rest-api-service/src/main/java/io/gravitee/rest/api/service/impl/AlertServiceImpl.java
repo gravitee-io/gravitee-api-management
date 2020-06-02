@@ -42,10 +42,7 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.service.AlertService;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.alert.EmailNotifierConfiguration;
 import org.slf4j.Logger;
@@ -125,7 +122,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private ApplicationService applicationService;
 
     @Autowired
-    private PlanServiceImpl planService;
+    private PlanService planService;
 
     @Autowired
     private AlertEventRepository alertEventRepository;
