@@ -39,8 +39,9 @@
   padding: 16px;
 }
 
-.info__resources {
-  word-break: break-all;
+.info__resources span{
+  white-space: normal;
+  text-align: left;
 }
 
 .info h4 {

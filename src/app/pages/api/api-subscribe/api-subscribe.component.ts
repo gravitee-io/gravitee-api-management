@@ -444,4 +444,8 @@ export class ApiSubscribeComponent implements OnInit {
   goToSearch(tag: string) {
     this.router.navigate(['catalog/search'], { queryParams: { q: tag } });
   }
+
+  goToExtern(url: string) {
+    window.open(url, '_blank');
+  }
 }

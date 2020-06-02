@@ -168,7 +168,9 @@
 
         <div class="info" *ngIf="api.entrypoints && api.entrypoints.length > 0">
           <h4 class="title">{{ 'api.information.entrypoints' | translate }}</h4>
-          <div *ngFor="let e of api.entrypoints" class="info__resources"><a class="link" href="{{e}}" target="_blank">{{e}}</a></div>
+          <div *ngFor="let e of api.entrypoints" class="info__resources">
+            <gv-button link [href]="e" (:gv-button:click)="goToExtern(e)"><span>{{e}}</span></gv-button>
+          </div>
         </div>
 
         <div class="info" *ngIf="api.categories && api.categories.length > 0">

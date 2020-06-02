@@ -126,24 +126,24 @@
       <div *ngIf="currentApi.entrypoints && currentApi.entrypoints.length > 0" class="info">
         <h4 class="title">{{ 'api.information.entrypoints' | translate }}</h4>
         <div *ngFor="let e of currentApi.entrypoints" class="info__resources">
-          <gv-button link [href]="e" (:gv-button:click)="goToExtern(e)">{{e}}</gv-button>
+          <gv-button link [href]="e" (:gv-button:click)="goToExtern(e)"><span>{{e}}</span></gv-button>
         </div>
       </div>
 
       <div *ngIf="currentApi.categories && currentApi.categories.length > 0" class="info">
         <h4 class="title">{{ 'api.information.categories' | translate }}</h4>
         <span>
-            <gv-tag (:gv-tag:click)="goToCategory(category)" *ngFor="let category of currentApi.categories"
+          <gv-tag (:gv-tag:click)="goToCategory(category)" *ngFor="let category of currentApi.categories"
                     [clickable]="true">{{category}}</gv-tag>
-          </span>
+        </span>
       </div>
 
       <div *ngIf="currentApi.labels && currentApi.labels.length > 0" class="info">
         <h4 class="title">{{ 'api.information.labels' | translate }}</h4>
         <span>
-            <gv-tag (:gv-tag:click)="goToSearch(tag)" *ngFor="let tag of currentApi.labels" [clickable]="true"
+          <gv-tag (:gv-tag:click)="goToSearch(tag)" *ngFor="let tag of currentApi.labels" [clickable]="true"
                     major>{{tag}}</gv-tag>
-          </span>
+        </span>
       </div>
 
       <div *ngIf="hasRatingFeature && currentApi.rating_summary" class="info">
@@ -167,7 +167,7 @@
         <h4 class="title">{{ 'api.information.resources' | translate }}</h4>
         <span>
               <div *ngFor="let item of resources" class="info__resources">
-                <gv-button link [href]="item.path" (:gv-button:click)="onNavChange(item)">{{item.title}}</gv-button>
+                <gv-button link [href]="item.path" (:gv-button:click)="onNavChange(item)"><span>{{item.title}}</span></gv-button>
               </div>
           </span>
       </div>
