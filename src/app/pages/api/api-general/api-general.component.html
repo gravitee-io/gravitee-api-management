@@ -146,7 +146,7 @@
         </span>
       </div>
 
-      <div *ngIf="hasRatingFeature && currentApi.rating_summary" class="info">
+      <div *ngIf="hasRatingFeature && canRate && currentApi.rating_summary" class="info">
         <h4 class="title">{{ 'api.information.ratings' | translate }}</h4>
         <span class="info__figures">
             <span *ngIf="!currentApi.rating_summary.count">{{ 'api.information.beFirstToRate' | translate }}</span>
