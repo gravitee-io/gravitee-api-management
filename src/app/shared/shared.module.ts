@@ -43,7 +43,7 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
     TranslateModule.forChild({
       loader: {
         provide: TranslateLoader,
-        useFactory: (http: HttpClient) => new TranslateHttpLoader(http),
+        useFactory: (http: HttpClient) => new TranslateHttpLoader(http, './assets/i18n/'),
         deps: [HttpClient]
       },
       compiler: {
