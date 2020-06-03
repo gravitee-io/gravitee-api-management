@@ -22,6 +22,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 public class DashboardRepositoryTest extends AbstractRepositoryTest {
@@ -84,8 +85,8 @@ public class DashboardRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid saved dashboard order.", dashboard.getOrder(), dashboardSaved.getOrder());
         Assert.assertEquals("Invalid saved dashboard enabled.", dashboard.isEnabled(), dashboardSaved.isEnabled());
         Assert.assertEquals("Invalid saved dashboard definition.", dashboard.getDefinition(), dashboardSaved.getDefinition());
-        Assert.assertEquals("Invalid saved dashboard created at.", dashboard.getCreatedAt(), dashboardSaved.getCreatedAt());
-        Assert.assertEquals("Invalid saved dashboard updated at.", dashboard.getUpdatedAt(), dashboardSaved.getUpdatedAt());
+        Assert.assertTrue("Invalid saved dashboard created at.", compareDate(dashboard.getCreatedAt(), dashboardSaved.getCreatedAt()));
+        Assert.assertTrue("Invalid saved dashboard updated at.", compareDate(dashboard.getUpdatedAt(), dashboardSaved.getUpdatedAt()));
     }
 
     @Test
@@ -121,8 +122,8 @@ public class DashboardRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid saved dashboard order.", 3, dashboardSaved.getOrder());
         assertTrue("Invalid saved dashboard enabled.", dashboardSaved.isEnabled());
         Assert.assertEquals("Invalid saved dashboard definition.", "{\"def\": \"new value\"}", dashboardSaved.getDefinition());
-        Assert.assertEquals("Invalid saved dashboard created at.", new Date(1111111111111L), dashboardSaved.getCreatedAt());
-        Assert.assertEquals("Invalid saved dashboard updated at.", new Date(1000000000000L), dashboardSaved.getUpdatedAt());
+        Assert.assertTrue("Invalid saved dashboard created at.", compareDate(new Date(1111111111111L), dashboardSaved.getCreatedAt()));
+        Assert.assertTrue("Invalid saved dashboard updated at.", compareDate(new Date(1000000000000L), dashboardSaved.getUpdatedAt()));
     }
 
     @Test

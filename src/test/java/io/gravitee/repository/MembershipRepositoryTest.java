@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.MembershipReferenceType.API;
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 /**
@@ -45,8 +46,8 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
         assertEquals("user1", membership.get().getMemberId());
         assertEquals(API, membership.get().getReferenceType());
         assertEquals("myIdp", membership.get().getSource());
-        assertEquals(new Date(1439022010883L), membership.get().getUpdatedAt());
-        assertEquals(new Date(1439022010883L), membership.get().getCreatedAt());
+        assertTrue(compareDate(new Date(1439022010883L), membership.get().getUpdatedAt()));
+        assertTrue(compareDate(new Date(1439022010883L), membership.get().getCreatedAt()));
         assertEquals("API_OWNER", membership.get().getRoleId());
     }
 
@@ -175,7 +176,7 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
         Membership update = membershipRepository.update(membership);
 
         assertNotNull(update);
-        assertEquals(new Date(1000000000000L), update.getCreatedAt());
+        assertTrue(compareDate(new Date(1000000000000L), update.getCreatedAt()));
     }
 
     @Test

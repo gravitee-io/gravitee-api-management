@@ -69,7 +69,7 @@ public class ApiHeaderRepositoryMock extends AbstractRepositoryMock<ApiHeaderRep
         up.setValue("newValue");
         up.setOrder(123);
         up.setCreatedAt(new Date(1439027010882L));
-        up.setCreatedAt(new Date(1439027010883L));
+        up.setUpdatedAt(new Date(1439027010883L));
         when(apiHeaderRepository.findById("toUpdate")).thenReturn(of(up));
     }
 }

@@ -22,6 +22,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 /**
@@ -87,8 +88,8 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid saved environment id.",  category.getEnvironmentId(), categorySaved.getEnvironmentId());
         Assert.assertEquals("Invalid saved category name.", category.getName(), categorySaved.getName());
         Assert.assertEquals("Invalid category description.", category.getDescription(), categorySaved.getDescription());
-        Assert.assertEquals("Invalid category createdAt.", category.getCreatedAt(), categorySaved.getCreatedAt());
-        Assert.assertEquals("Invalid category updatedAt.", category.getUpdatedAt(), categorySaved.getUpdatedAt());
+        Assert.assertTrue("Invalid category createdAt.", compareDate(category.getCreatedAt(), categorySaved.getCreatedAt()));
+        Assert.assertTrue("Invalid category updatedAt.", compareDate(category.getUpdatedAt(), categorySaved.getUpdatedAt()));
         Assert.assertEquals("Invalid category hidden.", category.isHidden(), categorySaved.isHidden());
         Assert.assertEquals("Invalid category order.", category.getOrder(), categorySaved.getOrder());
         Assert.assertEquals("Invalid category picture.", "New picture", categorySaved.getPicture());
@@ -123,8 +124,8 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid saved environment id.", category.getEnvironmentId(), categoryUpdated.getEnvironmentId());
         Assert.assertEquals("Invalid saved category name.", category.getName(), categoryUpdated.getName());
         Assert.assertEquals("Invalid category description.", category.getDescription(), categoryUpdated.getDescription());
-        Assert.assertEquals("Invalid category createdAt.", category.getCreatedAt(), categoryUpdated.getCreatedAt());
-        Assert.assertEquals("Invalid category updatedAt.", category.getUpdatedAt(), categoryUpdated.getUpdatedAt());
+        Assert.assertTrue("Invalid category createdAt.", compareDate(category.getCreatedAt(), categoryUpdated.getCreatedAt()));
+        Assert.assertTrue("Invalid category updatedAt.", compareDate(category.getUpdatedAt(), categoryUpdated.getUpdatedAt()));
         Assert.assertEquals("Invalid category hidden.", category.isHidden(), categoryUpdated.isHidden());
         Assert.assertEquals("Invalid category order.", category.getOrder(), categoryUpdated.getOrder());
         Assert.assertEquals("Invalid category highlight API.", category.getHighlightApi(), categoryUpdated.getHighlightApi());

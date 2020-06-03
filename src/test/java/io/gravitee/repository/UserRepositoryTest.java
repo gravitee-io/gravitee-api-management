@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
@@ -116,9 +117,9 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid saved firstname", "firstnameUpdated", userUpdated.getFirstname());
         assertEquals("Invalid saved lastname", "lastnameUpdated", userUpdated.getLastname());
         assertEquals("Invalid saved picture", "pictureUpdated", userUpdated.getPicture());
-        assertEquals("Invalid saved createDate", new Date(1439032010883L), userUpdated.getCreatedAt());
-        assertEquals("Invalid saved updateDate", new Date(1439042010883L), userUpdated.getUpdatedAt());
-        assertEquals("Invalid saved lastConnection", new Date(1439052010883L), userUpdated.getLastConnectionAt());
+        assertTrue("Invalid saved createDate", compareDate(new Date(1439032010883L), userUpdated.getCreatedAt()));
+        assertTrue("Invalid saved updateDate", compareDate(new Date(1439042010883L), userUpdated.getUpdatedAt()));
+        assertTrue("Invalid saved lastConnection", compareDate(new Date(1439052010883L), userUpdated.getLastConnectionAt()));
         assertEquals("Invalid status", UserStatus.ARCHIVED, userUpdated.getStatus());
         assertEquals("Invalid saved user login count.", 123, userUpdated.getLoginCount());
     }

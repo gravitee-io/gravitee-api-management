@@ -32,6 +32,7 @@ import java.util.*;
 import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -75,8 +76,8 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid deployment lifecycle.", api.getLifecycleState(), apiSaved.getLifecycleState());
         assertEquals("Invalid api private api status.", api.getVisibility(), apiSaved.getVisibility());
         assertEquals("Invalid api definition.", api.getDefinition(), apiSaved.getDefinition());
-        assertEquals("Invalid api createdAt.", api.getCreatedAt(), apiSaved.getCreatedAt());
-        assertEquals("Invalid api updateAt.", api.getUpdatedAt(), apiSaved.getUpdatedAt());
+        assertTrue("Invalid api createdAt.", compareDate(api.getCreatedAt(), apiSaved.getCreatedAt()));
+        assertTrue("Invalid api updateAt.", compareDate(api.getUpdatedAt(), apiSaved.getUpdatedAt()));
         assertEquals("Invalid api lifecycle.", api.getApiLifecycleState(), apiSaved.getApiLifecycleState());
 
         // test delete
@@ -124,12 +125,12 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid API description.", "New description", apiUpdated.getDescription());
         assertEquals("Invalid API categories.", new HashSet<>(asList("category1", "category2")), apiUpdated.getCategories());
         assertEquals("Invalid API definition.", "New definition", apiUpdated.getDefinition());
-        assertEquals("Invalid API deployment date.", parse("11/02/2016"), apiUpdated.getDeployedAt());
+        assertTrue("Invalid API deployment date.", compareDate("11/02/2016", apiUpdated.getDeployedAt()));
         assertEquals("Invalid API group.", Collections.singleton("New group"), apiUpdated.getGroups());
         assertEquals("Invalid deployment lifecycle state.", LifecycleState.STARTED, apiUpdated.getLifecycleState());
         assertEquals("Invalid API picture.", "New picture", apiUpdated.getPicture());
-        assertEquals("Invalid API create date.", parse("11/02/2016"), apiUpdated.getCreatedAt());
-        assertEquals("Invalid API update date.", parse("13/11/2016"), apiUpdated.getUpdatedAt());
+        assertTrue("Invalid API create date.", compareDate("11/02/2016", apiUpdated.getCreatedAt()));
+        assertTrue("Invalid API update date.", compareDate("13/11/2016", apiUpdated.getUpdatedAt()));
         assertEquals("Invalid API version.", "New version", apiUpdated.getVersion());
         assertEquals("Invalid API visibility.", Visibility.PRIVATE, apiUpdated.getVisibility());
         assertEquals("Invalid API lifecycle state.", ApiLifecycleState.UNPUBLISHED, apiUpdated.getApiLifecycleState());

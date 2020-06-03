@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 /**
@@ -93,8 +94,8 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         final ClientRegistrationProvider clientRegistrationProviderSaved = optional.get();
         Assert.assertEquals("Invalid saved client registration provider name.", clientRegistrationProvider.getName(), clientRegistrationProviderSaved.getName());
         Assert.assertEquals("Invalid client registration provider description.", clientRegistrationProvider.getDescription(), clientRegistrationProviderSaved.getDescription());
-        Assert.assertEquals("Invalid client registration provider createdAt.", clientRegistrationProvider.getCreatedAt(), clientRegistrationProviderSaved.getCreatedAt());
-        Assert.assertEquals("Invalid client registration provider updatedAt.", clientRegistrationProvider.getUpdatedAt(), clientRegistrationProviderSaved.getUpdatedAt());
+        Assert.assertTrue("Invalid client registration provider createdAt.", compareDate(clientRegistrationProvider.getCreatedAt(), clientRegistrationProviderSaved.getCreatedAt()));
+        Assert.assertTrue("Invalid client registration provider updatedAt.", compareDate(clientRegistrationProvider.getUpdatedAt(), clientRegistrationProviderSaved.getUpdatedAt()));
         Assert.assertEquals("Invalid client registration provider discovery endpoint.", clientRegistrationProvider.getDiscoveryEndpoint(), clientRegistrationProviderSaved.getDiscoveryEndpoint());
         Assert.assertEquals("Invalid client registration provider initial access token type.", clientRegistrationProvider.getInitialAccessTokenType(), clientRegistrationProviderSaved.getInitialAccessTokenType());
         Assert.assertEquals("Invalid client registration provider client id.", clientRegistrationProvider.getClientId(), clientRegistrationProviderSaved.getClientId());
@@ -127,8 +128,8 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         final ClientRegistrationProvider identityProviderUpdated = optionalUpdated.get();
         Assert.assertEquals("Invalid saved client registration provider name.", identityProvider.getName(), identityProviderUpdated.getName());
         Assert.assertEquals("Invalid client registration provider description.", identityProvider.getDescription(), identityProviderUpdated.getDescription());
-        Assert.assertEquals("Invalid client registration provider createdAt.", identityProvider.getCreatedAt(), identityProviderUpdated.getCreatedAt());
-        Assert.assertEquals("Invalid client registration provider updatedAt.", identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt());
+        Assert.assertTrue("Invalid client registration provider createdAt.", compareDate(identityProvider.getCreatedAt(), identityProviderUpdated.getCreatedAt()));
+        Assert.assertTrue("Invalid client registration provider updatedAt.", compareDate(identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt()));
     }
 
     @Test

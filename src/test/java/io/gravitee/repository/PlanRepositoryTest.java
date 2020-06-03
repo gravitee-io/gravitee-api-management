@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
@@ -53,11 +54,11 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertEquals(Plan.PlanType.API, plan.get().getType());
         assertEquals(Plan.Status.PUBLISHED, plan.get().getStatus());
         assertEquals(2, plan.get().getOrder());
-        assertEquals(new Date(1506964899000L), plan.get().getCreatedAt());
-        assertEquals(new Date(1507032062000L), plan.get().getUpdatedAt());
-        assertEquals(new Date(1506878460000L), plan.get().getPublishedAt());
-        assertEquals(new Date(1507611600000L), plan.get().getClosedAt());
-        assertEquals(new Date(1507611670000L), plan.get().getNeedRedeployAt());
+        assertTrue(compareDate(new Date(1506964899000L), plan.get().getCreatedAt()));
+        assertTrue(compareDate(new Date(1507032062000L), plan.get().getUpdatedAt()));
+        assertTrue(compareDate(new Date(1506878460000L), plan.get().getPublishedAt()));
+        assertTrue(compareDate(new Date(1507611600000L), plan.get().getClosedAt()));
+        assertTrue(compareDate(new Date(1507611670000L), plan.get().getNeedRedeployAt()));
         assertEquals(Arrays.asList("charac 1", "charac 2"), plan.get().getCharacteristics());
         assertEquals("grp1", plan.get().getExcludedGroups().get(0));
         assertEquals("tag1", plan.get().getTags().iterator().next());
@@ -81,8 +82,8 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertEquals(Plan.PlanType.API, planOAuth2.get().getType());
         assertEquals(Plan.Status.STAGING, planOAuth2.get().getStatus());
         assertEquals(0, planOAuth2.get().getOrder());
-        assertEquals(parse("11/02/2016"), planOAuth2.get().getCreatedAt());
-        assertEquals(parse("12/02/2016"), planOAuth2.get().getUpdatedAt());
+        assertTrue(compareDate("11/02/2016", planOAuth2.get().getCreatedAt()));
+        assertTrue(compareDate("12/02/2016", planOAuth2.get().getUpdatedAt()));
         assertNull(planOAuth2.get().getPublishedAt());
         assertNull(planOAuth2.get().getClosedAt());
         assertEquals(emptyList(), planOAuth2.get().getCharacteristics());
@@ -138,11 +139,11 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid plan validation.", plan.getValidation(), createdPlan.getValidation());
         Assert.assertEquals("Invalid plan type.", plan.getType(), createdPlan.getType());
         Assert.assertEquals("Invalid plan API.", plan.getApi(), createdPlan.getApi());
-        Assert.assertEquals("Invalid plan created date.", plan.getCreatedAt(), createdPlan.getCreatedAt());
-        Assert.assertEquals("Invalid plan updated date.", plan.getUpdatedAt(), createdPlan.getUpdatedAt());
+        Assert.assertTrue("Invalid plan created date.", compareDate(plan.getCreatedAt(), createdPlan.getCreatedAt()));
+        Assert.assertTrue("Invalid plan updated date.", compareDate(plan.getUpdatedAt(), createdPlan.getUpdatedAt()));
         Assert.assertEquals("Invalid plan status.", plan.getStatus(), createdPlan.getStatus());
-        Assert.assertEquals("Invalid plan published date.", plan.getPublishedAt(), createdPlan.getPublishedAt());
-        Assert.assertEquals("Invalid plan closed date.", plan.getClosedAt(), createdPlan.getClosedAt());
+        Assert.assertTrue("Invalid plan published date.", compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()));
+        Assert.assertTrue("Invalid plan closed date.", compareDate(plan.getClosedAt(), createdPlan.getClosedAt()));
         Assert.assertEquals("Invalid plan security.", plan.getSecurity(), createdPlan.getSecurity());
     }
 
@@ -177,11 +178,11 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid oauth2 plan validation.", plan.getValidation(), createdPlan.getValidation());
         Assert.assertEquals("Invalid oauth2 plan type.", plan.getType(), createdPlan.getType());
         Assert.assertEquals("Invalid oauth2 plan API.", plan.getApi(), createdPlan.getApi());
-        Assert.assertEquals("Invalid oauth2 plan created date.", plan.getCreatedAt(), createdPlan.getCreatedAt());
-        Assert.assertEquals("Invalid oauth2 plan updated date.", plan.getUpdatedAt(), createdPlan.getUpdatedAt());
+        Assert.assertTrue("Invalid oauth2 plan created date.", compareDate(plan.getCreatedAt(), createdPlan.getCreatedAt()));
+        Assert.assertTrue("Invalid oauth2 plan updated date.", compareDate(plan.getUpdatedAt(), createdPlan.getUpdatedAt()));
         Assert.assertEquals("Invalid oauth2 plan status.", plan.getStatus(), createdPlan.getStatus());
-        Assert.assertEquals("Invalid oauth2 plan published date.", plan.getPublishedAt(), createdPlan.getPublishedAt());
-        Assert.assertEquals("Invalid oauth2 plan closed date.", plan.getClosedAt(), createdPlan.getClosedAt());
+        Assert.assertTrue("Invalid oauth2 plan published date.", compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()));
+        Assert.assertTrue("Invalid oauth2 plan closed date.", compareDate(plan.getClosedAt(), createdPlan.getClosedAt()));
         Assert.assertEquals("Invalid oauth2 plan security.", plan.getSecurity(), createdPlan.getSecurity());
         Assert.assertEquals("Invalid oauth2 plan security definition.", plan.getSecurityDefinition(), createdPlan.getSecurityDefinition());
         Assert.assertEquals("Invalid oauth2 plan comment required.", plan.isCommentRequired(), createdPlan.isCommentRequired());

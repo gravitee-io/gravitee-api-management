@@ -24,6 +24,7 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 /**
@@ -71,8 +72,8 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
 
         assertTrue("homepage", page.isHomepage());
         assertEquals("excludedGroups", Arrays.asList("grp1", "grp2"), page.getExcludedGroups());
-        assertEquals("created at", new Date(1486771200000L), page.getCreatedAt());
-        assertEquals("updated at", new Date(1486771200000L), page.getUpdatedAt());
+        assertTrue("created at", compareDate(new Date(1486771200000L), page.getCreatedAt()));
+        assertTrue("updated at", compareDate(new Date(1486771200000L), page.getUpdatedAt()));
     }
 
     @Test

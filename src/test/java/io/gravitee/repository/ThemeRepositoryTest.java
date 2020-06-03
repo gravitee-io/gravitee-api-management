@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 public class ThemeRepositoryTest extends AbstractRepositoryTest {
@@ -44,8 +45,8 @@ public class ThemeRepositoryTest extends AbstractRepositoryTest {
         assertEquals("optionalLogo", themeSimple.getOptionalLogo());
         assertEquals("TEST", themeSimple.getReferenceId());
         assertEquals("ENVIRONMENT", themeSimple.getReferenceType());
-        assertEquals(1111111111111L, themeSimple.getUpdatedAt().getTime());
-        assertEquals(1000002222222L, themeSimple.getCreatedAt().getTime());
+        assertTrue(compareDate(1111111111111L, themeSimple.getUpdatedAt().getTime()));
+        assertTrue(compareDate(1000002222222L, themeSimple.getCreatedAt().getTime()));
         assertEquals(false, themeSimple.isEnabled());
     }
 
@@ -92,8 +93,8 @@ public class ThemeRepositoryTest extends AbstractRepositoryTest {
         assertEquals("optionalLogo", themeSaved.getOptionalLogo());
         assertEquals("DEFAULT", themeSaved.getReferenceId());
         assertEquals("ENVIRONMENT", themeSaved.getReferenceType());
-        assertEquals(1111111111111L, themeSaved.getUpdatedAt().getTime());
-        assertEquals(1000000000000L, themeSaved.getCreatedAt().getTime());
+        assertTrue(compareDate(1111111111111L, themeSaved.getUpdatedAt().getTime()));
+        assertTrue(compareDate(1000000000000L, themeSaved.getCreatedAt().getTime()));
         assertEquals(true, themeSaved.isEnabled());
     }
 
@@ -133,8 +134,8 @@ public class ThemeRepositoryTest extends AbstractRepositoryTest {
         assertEquals(null, themeUpdated.getOptionalLogo());
         assertEquals("TEST", themeUpdated.getReferenceId());
         assertEquals("PLATFORM", themeUpdated.getReferenceType());
-        assertEquals(1030141710801L, themeUpdated.getUpdatedAt().getTime());
-        assertEquals(1010101010101L, themeUpdated.getCreatedAt().getTime());
+        assertTrue(compareDate(1030141710801L, themeUpdated.getUpdatedAt().getTime()));
+        assertTrue(compareDate(1010101010101L, themeUpdated.getCreatedAt().getTime()));
         assertEquals(true, themeUpdated.isEnabled());
     }
 

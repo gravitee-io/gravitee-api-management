@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 public class QualityRuleRepositoryTest extends AbstractRepositoryTest {
@@ -46,8 +47,8 @@ public class QualityRuleRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Api-key plan", qualityRuleProduct.getName());
         assertEquals("A plan api-key is published", qualityRuleProduct.getDescription());
         assertEquals(3, qualityRuleProduct.getWeight());
-        assertEquals(DATE, qualityRuleProduct.getCreatedAt());
-        assertEquals(DATE, qualityRuleProduct.getUpdatedAt());
+        assertTrue(compareDate(DATE, qualityRuleProduct.getCreatedAt()));
+        assertTrue(compareDate(DATE, qualityRuleProduct.getUpdatedAt()));
     }
 
     @Test
@@ -73,8 +74,8 @@ public class QualityRuleRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid saved qualityRule name.", qualityRule.getName(), qualityRuleSaved.getName());
         Assert.assertEquals("Invalid saved qualityRule description.", qualityRule.getDescription(), qualityRuleSaved.getDescription());
         Assert.assertEquals("Invalid weight.", qualityRule.getWeight(), qualityRuleSaved.getWeight());
-        Assert.assertEquals("Invalid createdAt.", qualityRule.getCreatedAt(), qualityRuleSaved.getCreatedAt());
-        Assert.assertEquals("Invalid updatedAt.", qualityRule.getUpdatedAt(), qualityRuleSaved.getUpdatedAt());
+        Assert.assertTrue("Invalid createdAt.", compareDate(qualityRule.getCreatedAt(), qualityRuleSaved.getCreatedAt()));
+        Assert.assertTrue("Invalid updatedAt.", compareDate(qualityRule.getUpdatedAt(), qualityRuleSaved.getUpdatedAt()));
     }
 
     @Test
@@ -104,8 +105,8 @@ public class QualityRuleRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid saved qualityRule name.", "New name", qualityRuleUpdated.getName());
         Assert.assertEquals("Invalid saved qualityRule description.", "New description", qualityRuleUpdated.getDescription());
         Assert.assertEquals("Invalid weight.", 5, qualityRuleUpdated.getWeight());
-        Assert.assertEquals("Invalid createdAt.", DATE, qualityRuleUpdated.getCreatedAt());
-        Assert.assertEquals("Invalid updatedAt.", DATE, qualityRuleUpdated.getUpdatedAt());
+        Assert.assertTrue("Invalid createdAt.", compareDate(DATE, qualityRuleUpdated.getCreatedAt()));
+        Assert.assertTrue("Invalid updatedAt.", compareDate(DATE, qualityRuleUpdated.getUpdatedAt()));
     }
 
     @Test

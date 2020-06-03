@@ -31,4 +31,27 @@ public class DateUtils {
             throw new RuntimeException(pe);
         }
     }
+
+    /*
+     * Due to SQL Server accuracy on DATETIME, dates must be considered as "equals" even if there is a small difference
+     * https://stackoverflow.com/questions/41774428/timestampequals-fails-if-timestamp-is-mapped-to-from-database
+     *
+     */
+    public static boolean compareDate(String expectedDateToParse, Date actualDate) {
+        return compareDate(parse(expectedDateToParse), actualDate);
+    }
+
+    public static boolean compareDate(Date expectedDate, Date actualDate) {
+        if (actualDate == null) {
+            return expectedDate == null;
+        }
+        if (expectedDate == null) {
+            return false;
+        }
+        return compareDate(expectedDate.getTime(), actualDate.getTime());
+    }
+
+    public static boolean compareDate(long expectedTimestamp, long actualTimestamp) {
+        return Math.abs(expectedTimestamp - actualTimestamp) < 3;
+    }
 }

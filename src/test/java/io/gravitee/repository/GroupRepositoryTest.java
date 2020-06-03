@@ -23,6 +23,7 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
@@ -107,7 +108,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertEquals(group.getId(), update.getId());
         assertEquals(group.getEnvironmentId(), update.getEnvironmentId());
         assertEquals(group.getName(), update.getName());
-        assertEquals(new Date(1000000000000L), update.getUpdatedAt());
+        assertTrue(compareDate(new Date(1000000000000L), update.getUpdatedAt()));
         assertTrue(group.isLockApiRole());
         assertTrue(group.isLockApplicationRole());
         assertTrue(group.isSystemInvitation());

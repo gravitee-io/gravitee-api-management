@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 public class ApiQualityRuleRepositoryTest extends AbstractRepositoryTest {
@@ -44,8 +45,8 @@ public class ApiQualityRuleRepositoryTest extends AbstractRepositoryTest {
         assertEquals(1, apiQualityRules.size());
         final ApiQualityRule apiQualityRuleProduct = apiQualityRules.stream().filter(apiQualityRule -> "quality-rule1".equals(apiQualityRule.getQualityRule())).findAny().get();
         assertTrue(apiQualityRuleProduct.isChecked());
-        assertEquals(DATE, apiQualityRuleProduct.getCreatedAt());
-        assertEquals(DATE, apiQualityRuleProduct.getUpdatedAt());
+        assertTrue(compareDate(DATE, apiQualityRuleProduct.getCreatedAt()));
+        assertTrue(compareDate(DATE, apiQualityRuleProduct.getUpdatedAt()));
     }
 
     @Test
@@ -68,8 +69,8 @@ public class ApiQualityRuleRepositoryTest extends AbstractRepositoryTest {
 
         final ApiQualityRule apiQualityRuleSaved = optional.get();
         Assert.assertEquals("Invalid saved apiQualityRule checked.", apiQualityRule.isChecked(), apiQualityRuleSaved.isChecked());
-        Assert.assertEquals("Invalid createdAt.", apiQualityRule.getCreatedAt(), apiQualityRuleSaved.getCreatedAt());
-        Assert.assertEquals("Invalid updatedAt.", apiQualityRule.getUpdatedAt(), apiQualityRuleSaved.getUpdatedAt());
+        Assert.assertTrue("Invalid createdAt.", compareDate(apiQualityRule.getCreatedAt(), apiQualityRuleSaved.getCreatedAt()));
+        Assert.assertTrue("Invalid updatedAt.", compareDate(apiQualityRule.getUpdatedAt(), apiQualityRuleSaved.getUpdatedAt()));
     }
 
     @Test
@@ -94,8 +95,8 @@ public class ApiQualityRuleRepositoryTest extends AbstractRepositoryTest {
 
         final ApiQualityRule apiQualityRuleUpdated = optionalUpdated.get();
         assertFalse("Invalid apiQualityRule checked.", apiQualityRuleUpdated.isChecked());
-        Assert.assertEquals("Invalid createdAt.", NEW_DATE, apiQualityRuleUpdated.getCreatedAt());
-        Assert.assertEquals("Invalid updatedAt.", NEW_DATE, apiQualityRuleUpdated.getUpdatedAt());
+        Assert.assertTrue("Invalid createdAt.", compareDate(NEW_DATE, apiQualityRuleUpdated.getCreatedAt()));
+        Assert.assertTrue("Invalid updatedAt.", compareDate(NEW_DATE, apiQualityRuleUpdated.getUpdatedAt()));
     }
 
     @Test

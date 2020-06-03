@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
@@ -52,7 +53,7 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
         assertEquals("event", Plan.AuditEvent.PLAN_CREATED.name(), audit.getEvent());
         assertEquals("properties", Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123"), audit.getProperties());
         assertEquals("user", "JohnDoe", audit.getUser());
-        assertEquals("createdAt", new Date(1486771200000L), audit.getCreatedAt());
+        assertTrue("createdAt", compareDate(new Date(1486771200000L), audit.getCreatedAt()));
         assertEquals("patch", "diff", audit.getPatch());
     }
 

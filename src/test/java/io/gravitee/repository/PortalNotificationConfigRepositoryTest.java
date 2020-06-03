@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -53,8 +54,8 @@ public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTe
         assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId());
         assertEquals(cfg.getUser(), notificationCreated.getUser());
         assertEquals(cfg.getHooks(), notificationCreated.getHooks());
-        assertEquals(cfg.getCreatedAt(), notificationCreated.getCreatedAt());
-        assertEquals(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt());
+        assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt()));
+        assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt()));
     }
 
     @Test
@@ -84,8 +85,8 @@ public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTe
         assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId());
         assertEquals(cfg.getUser(), notificationUpdated.getUser());
         assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks()));
-        assertEquals(cfg.getCreatedAt(), notificationUpdated.getCreatedAt());
-        assertEquals(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt());
+        assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt()));
+        assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt()));
     }
 
     @Test
@@ -107,8 +108,8 @@ public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTe
         assertEquals(cfg.getReferenceId(), notificationFound.getReferenceId());
         assertEquals(cfg.getUser(), notificationFound.getUser());
         assertEquals(cfg.getHooks(), notificationFound.getHooks());
-        assertEquals(cfg.getCreatedAt(), notificationFound.getCreatedAt());
-        assertEquals(cfg.getUpdatedAt(), notificationFound.getUpdatedAt());
+        assertTrue(compareDate(cfg.getCreatedAt(), notificationFound.getCreatedAt()));
+        assertTrue(compareDate(cfg.getUpdatedAt(), notificationFound.getUpdatedAt()));
     }
 
     @Test

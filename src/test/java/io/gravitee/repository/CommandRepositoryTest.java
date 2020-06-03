@@ -23,6 +23,7 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 public class CommandRepositoryTest extends AbstractRepositoryTest {
@@ -48,9 +49,9 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
         assertEquals("content", "Hello, is it me you're looking for?", command.getContent());
         assertTrue("acknowledgments: 1", command.getAcknowledgments().contains("1"));
         assertTrue("acknowledgments: a", command.getAcknowledgments().contains("a"));
-        assertEquals("createdAt", new Date(1546305346000L), command.getCreatedAt());
-        assertEquals("updatedAt", new Date(1548983746000L), command.getUpdatedAt());
-        assertEquals("deleteAt", new Date(1551402946000L), command.getExpiredAt());
+        assertTrue("createdAt", compareDate(new Date(1546305346000L), command.getCreatedAt()));
+        assertTrue("updatedAt", compareDate(new Date(1548983746000L), command.getUpdatedAt()));
+        assertTrue("deleteAt", compareDate(new Date(1551402946000L), command.getExpiredAt()));
     }
 
     @Test
@@ -76,9 +77,9 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
         assertTrue("tags: DATA_TO_INDEX", command.getTags().containsAll(updatedCommand.getTags()));
         assertEquals("content", command.getContent(), updatedCommand.getContent());
         assertTrue("acknowledgments: " + updatedCommand.getAcknowledgments().size() + "/" + command.getAcknowledgments().size(), command.getAcknowledgments().containsAll(updatedCommand.getAcknowledgments()));
-        assertEquals("createdAt", command.getCreatedAt(), updatedCommand.getCreatedAt());
-        assertEquals("updatedAt", command.getUpdatedAt(), updatedCommand.getUpdatedAt());
-        assertEquals("deleteAt", command.getExpiredAt(), updatedCommand.getExpiredAt());
+        assertTrue("createdAt", compareDate(command.getCreatedAt(), updatedCommand.getCreatedAt()));
+        assertTrue("updatedAt", compareDate(command.getUpdatedAt(), updatedCommand.getUpdatedAt()));
+        assertTrue("deleteAt", compareDate(command.getExpiredAt(), updatedCommand.getExpiredAt()));
     }
 
     @Test(expected = IllegalStateException.class)

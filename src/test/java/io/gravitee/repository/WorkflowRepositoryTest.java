@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 public class WorkflowRepositoryTest extends AbstractRepositoryTest {
@@ -50,7 +51,7 @@ public class WorkflowRepositoryTest extends AbstractRepositoryTest {
         assertEquals("DRAFT", optionalWorkflow.get().getState());
         assertEquals("User", optionalWorkflow.get().getUser());
         assertEquals("Comment", optionalWorkflow.get().getComment());
-        assertEquals(1518357357000L, optionalWorkflow.get().getCreatedAt().getTime());
+        assertTrue(compareDate(1518357357000L, optionalWorkflow.get().getCreatedAt().getTime()));
     }
 
     @Test
@@ -78,7 +79,7 @@ public class WorkflowRepositoryTest extends AbstractRepositoryTest {
         assertEquals(workflow.getType(), fetchedWorkflow.getType());
         assertEquals(workflow.getState(), fetchedWorkflow.getState());
         assertEquals(workflow.getComment(), fetchedWorkflow.getComment());
-        assertEquals(workflow.getCreatedAt(), fetchedWorkflow.getCreatedAt());
+        assertTrue(compareDate(workflow.getCreatedAt(), fetchedWorkflow.getCreatedAt()));
     }
 
     @Test
@@ -109,7 +110,7 @@ public class WorkflowRepositoryTest extends AbstractRepositoryTest {
         assertEquals(workflow.getType(), fetchedWorkflow.getType());
         assertEquals(workflow.getState(), fetchedWorkflow.getState());
         assertEquals(workflow.getComment(), fetchedWorkflow.getComment());
-        assertEquals(workflow.getCreatedAt(), fetchedWorkflow.getCreatedAt());
+        assertTrue(compareDate(workflow.getCreatedAt(), fetchedWorkflow.getCreatedAt()));
     }
 
     @Test

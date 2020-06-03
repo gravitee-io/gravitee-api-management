@@ -24,6 +24,7 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static org.junit.Assert.*;
 
@@ -95,8 +96,8 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid application name.", application.getName(), appSaved.getName());
         assertEquals("Invalid application description.", application.getDescription(), appSaved.getDescription());
         assertEquals("Invalid application status.", application.getStatus(), appSaved.getStatus());
-        assertEquals("Invalid application createdAt.", application.getCreatedAt(), appSaved.getCreatedAt());
-        assertEquals("Invalid application updateAt.", application.getUpdatedAt(), appSaved.getUpdatedAt());
+        assertTrue("Invalid application createdAt.", compareDate(application.getCreatedAt(), appSaved.getCreatedAt()));
+        assertTrue("Invalid application updateAt.", compareDate(application.getUpdatedAt(), appSaved.getUpdatedAt()));
         assertEquals("Invalid application metadata.", application.getMetadata().get("type"), application.getMetadata().get("type"));
     }
 
@@ -129,8 +130,8 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid updated application name.", application.getName(), appUpdated.getName());
         assertEquals("Invalid updated application description.", application.getDescription(), appUpdated.getDescription());
         assertEquals("Invalid updated application status.", application.getStatus(), appUpdated.getStatus());
-        assertEquals("Invalid updated application createdAt.", application.getCreatedAt(), appUpdated.getCreatedAt());
-        assertEquals("Invalid updated application updateAt.", application.getUpdatedAt(), appUpdated.getUpdatedAt());
+        assertTrue("Invalid updated application createdAt.", compareDate(application.getCreatedAt(), appUpdated.getCreatedAt()));
+        assertTrue("Invalid updated application updateAt.", compareDate(application.getUpdatedAt(), appUpdated.getUpdatedAt()));
         assertEquals("Invalid application metadata.", application.getMetadata().get("type"), appUpdated.getMetadata().get("type"));
         assertEquals("Invalid updated application picture.", application.getPicture(), appUpdated.getPicture());
     }

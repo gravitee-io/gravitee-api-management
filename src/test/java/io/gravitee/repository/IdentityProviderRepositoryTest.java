@@ -34,6 +34,8 @@ import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.management.model.IdentityProviderReferenceType;
 import io.gravitee.repository.management.model.IdentityProviderType;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -132,8 +134,8 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid saved identity provider reference id.", identityProvider.getReferenceId(), identityProviderSaved.getReferenceId());
         Assert.assertEquals("Invalid saved identity provider reference type.", identityProvider.getReferenceType(), identityProviderSaved.getReferenceType());
         Assert.assertEquals("Invalid identity provider description.", identityProvider.getDescription(), identityProviderSaved.getDescription());
-        Assert.assertEquals("Invalid identity provider createdAt.", identityProvider.getCreatedAt(), identityProviderSaved.getCreatedAt());
-        Assert.assertEquals("Invalid identity provider updatedAt.", identityProvider.getUpdatedAt(), identityProviderSaved.getUpdatedAt());
+        Assert.assertTrue("Invalid identity provider createdAt.", compareDate(identityProvider.getCreatedAt(), identityProviderSaved.getCreatedAt()));
+        Assert.assertTrue("Invalid identity provider updatedAt.", compareDate(identityProvider.getUpdatedAt(), identityProviderSaved.getUpdatedAt()));
         Assert.assertEquals("Invalid identity provider type.", identityProvider.getType(), identityProviderSaved.getType());
         Assert.assertEquals("Invalid identity provider enabled.", identityProvider.isEnabled(), identityProviderSaved.isEnabled());
         Assert.assertEquals("Invalid identity provider emailRequired.", identityProvider.getEmailRequired(), identityProviderSaved.getEmailRequired());
@@ -172,8 +174,8 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid saved identity provider reference id.", identityProvider.getReferenceId(), identityProviderUpdated.getReferenceId());
         Assert.assertEquals("Invalid saved identity provider reference type.", identityProvider.getReferenceType(), identityProviderUpdated.getReferenceType());
         Assert.assertEquals("Invalid identity provider description.", identityProvider.getDescription(), identityProviderUpdated.getDescription());
-        Assert.assertEquals("Invalid identity provider createdAt.", identityProvider.getCreatedAt(), identityProviderUpdated.getCreatedAt());
-        Assert.assertEquals("Invalid identity provider updatedAt.", identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt());
+        Assert.assertTrue("Invalid identity provider createdAt.", compareDate(identityProvider.getCreatedAt(), identityProviderUpdated.getCreatedAt()));
+        Assert.assertTrue("Invalid identity provider updatedAt.", compareDate(identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt()));
         Assert.assertEquals("Invalid identity provider type.", identityProvider.getType(), identityProviderUpdated.getType());
         Assert.assertEquals("Invalid identity provider enabled.", identityProvider.isEnabled(), identityProviderUpdated.isEnabled());
         Assert.assertEquals("Invalid identity provider emailRequired.", identityProvider.getEmailRequired(), identityProviderUpdated.getEmailRequired());

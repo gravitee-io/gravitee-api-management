@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 public class AlertRepositoryTest extends AbstractRepositoryTest {
@@ -51,8 +52,8 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
         assertEquals("QUOTA", optionalAlert.get().getType());
         assertEquals("{}", optionalAlert.get().getDefinition());
         assertTrue(optionalAlert.get().isEnabled());
-        assertEquals(1439022010883L, optionalAlert.get().getCreatedAt().getTime());
-        assertEquals(1439022010883L, optionalAlert.get().getUpdatedAt().getTime());
+        assertTrue(compareDate(1439022010883L, optionalAlert.get().getCreatedAt().getTime()));
+        assertTrue(compareDate(1439022010883L, optionalAlert.get().getUpdatedAt().getTime()));
     }
 
     @Test
@@ -85,8 +86,8 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
         assertEquals(alert.getType(), fetchedAlert.getType());
         assertEquals(alert.getDefinition(), fetchedAlert.getDefinition());
         assertEquals(alert.isEnabled(), fetchedAlert.isEnabled());
-        assertEquals(alert.getCreatedAt(), fetchedAlert.getCreatedAt());
-        assertEquals(alert.getUpdatedAt(), fetchedAlert.getUpdatedAt());
+        assertTrue(compareDate(alert.getCreatedAt(), fetchedAlert.getCreatedAt()));
+        assertTrue(compareDate(alert.getUpdatedAt(), fetchedAlert.getUpdatedAt()));
     }
 
     @Test
@@ -123,8 +124,8 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
         assertEquals(alert.getType(), fetchedAlert.getType());
         assertEquals(alert.getDefinition(), fetchedAlert.getDefinition());
         assertEquals(alert.isEnabled(), fetchedAlert.isEnabled());
-        assertEquals(alert.getCreatedAt(), fetchedAlert.getCreatedAt());
-        assertEquals(alert.getUpdatedAt(), fetchedAlert.getUpdatedAt());
+        assertTrue(compareDate(alert.getCreatedAt(), fetchedAlert.getCreatedAt()));
+        assertTrue(compareDate(alert.getUpdatedAt(), fetchedAlert.getUpdatedAt()));
     }
 
     @Test

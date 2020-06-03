@@ -24,6 +24,7 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
@@ -56,7 +57,7 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull("ApiKey not found", keyFound);
 
         Assert.assertEquals("Key value saved doesn't match", apiKey.getKey(), keyFound.getKey());
-        Assert.assertEquals("Key expiration doesn't match", apiKey.getExpireAt(), keyFound.getExpireAt());
+        Assert.assertTrue("Key expiration doesn't match", compareDate(apiKey.getExpireAt(), keyFound.getExpireAt()));
         Assert.assertEquals("Key paused status doesn't match", apiKey.isPaused(), keyFound.isPaused());
         Assert.assertEquals("Key revoked status doesn't match", apiKey.isRevoked(), keyFound.isRevoked());
     }

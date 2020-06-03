@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 public class PortalNotificationRepositoryTest extends AbstractRepositoryTest {
@@ -47,7 +48,7 @@ public class PortalNotificationRepositoryTest extends AbstractRepositoryTest {
         assertEquals(notification.getTitle(), notificationCreated.getTitle());
         assertEquals(notification.getMessage(), notificationCreated.getMessage());
         assertEquals(notification.getUser(), notificationCreated.getUser());
-        assertEquals(notification.getCreatedAt(), notificationCreated.getCreatedAt());
+        assertTrue(compareDate(notification.getCreatedAt(), notificationCreated.getCreatedAt()));
     }
 
     @Test
@@ -74,7 +75,7 @@ public class PortalNotificationRepositoryTest extends AbstractRepositoryTest {
         assertEquals("notif-title-findByUserId", notification.getTitle());
         assertEquals("notif-message-findByUserId", notification.getMessage());
         assertEquals("notif-userId-findByUserId", notification.getUser());
-        assertEquals(new Date(1439022010883L), notification.getCreatedAt());
+        assertTrue(compareDate(new Date(1439022010883L), notification.getCreatedAt()));
     }
 
     @Test
@@ -94,6 +95,6 @@ public class PortalNotificationRepositoryTest extends AbstractRepositoryTest {
         assertEquals("notif-title-findById", portalNotification.getTitle());
         assertEquals("notif-message-findById", portalNotification.getMessage());
         assertEquals("notif-userId-findById", portalNotification.getUser());
-        assertEquals(new Date(1439022010883L), portalNotification.getCreatedAt());
+        assertTrue(compareDate(new Date(1439022010883L), portalNotification.getCreatedAt()));
     }
 }

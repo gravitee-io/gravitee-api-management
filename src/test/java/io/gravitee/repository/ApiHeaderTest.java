@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 /**
@@ -68,7 +69,7 @@ public class ApiHeaderTest extends AbstractRepositoryTest {
         up.setValue("newValue");
         up.setOrder(123);
         up.setCreatedAt(new Date(1439027010882L));
-        up.setCreatedAt(new Date(1439027010883L));
+        up.setUpdatedAt(new Date(1439027010883L));
 
         apiHeaderRepository.update(up);
 
@@ -80,7 +81,7 @@ public class ApiHeaderTest extends AbstractRepositoryTest {
         assertEquals(up.getName(), updated.get().getName());
         assertEquals(up.getValue(), updated.get().getValue());
         assertEquals(up.getOrder(), updated.get().getOrder());
-        assertEquals(up.getCreatedAt(), updated.get().getCreatedAt());
-        assertEquals(up.getUpdatedAt(), updated.get().getUpdatedAt());
+        assertTrue(compareDate(up.getCreatedAt(), updated.get().getCreatedAt()));
+        assertTrue(compareDate(up.getUpdatedAt(), updated.get().getUpdatedAt()));
     }
 }

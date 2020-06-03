@@ -26,6 +26,7 @@ import org.junit.Test;
 import java.util.Date;
 import java.util.Optional;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 public class AlertEventRepositoryTest extends AbstractRepositoryTest {
@@ -53,8 +54,8 @@ public class AlertEventRepositoryTest extends AbstractRepositoryTest {
         assertEquals(event.getId(), fetchedAlert.getId());
         assertEquals(event.getAlert(), fetchedAlert.getAlert());
         assertEquals(event.getMessage(), fetchedAlert.getMessage());
-        assertEquals(event.getCreatedAt(), fetchedAlert.getCreatedAt());
-        assertEquals(event.getUpdatedAt(), fetchedAlert.getUpdatedAt());
+        assertTrue(compareDate(event.getCreatedAt(), fetchedAlert.getCreatedAt()));
+        assertTrue(compareDate(event.getUpdatedAt(), fetchedAlert.getUpdatedAt()));
     }
 
     @Test
@@ -77,8 +78,8 @@ public class AlertEventRepositoryTest extends AbstractRepositoryTest {
         assertEquals(event.getId(), fetchedAlert.getId());
         assertEquals(event.getAlert(), fetchedAlert.getAlert());
         assertEquals(event.getMessage(), fetchedAlert.getMessage());
-        assertEquals(event.getCreatedAt(), fetchedAlert.getCreatedAt());
-        assertEquals(event.getUpdatedAt(), fetchedAlert.getUpdatedAt());
+        assertTrue(compareDate(event.getCreatedAt(), fetchedAlert.getCreatedAt()));
+        assertTrue(compareDate(event.getUpdatedAt(), fetchedAlert.getUpdatedAt()));
     }
 
     @Test

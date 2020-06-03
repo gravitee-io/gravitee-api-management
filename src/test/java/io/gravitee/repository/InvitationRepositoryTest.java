@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 public class InvitationRepositoryTest extends AbstractRepositoryTest {
@@ -47,8 +48,8 @@ public class InvitationRepositoryTest extends AbstractRepositoryTest {
         assertEquals("APPLICATION", optionalInvitation.get().getReferenceType());
         assertEquals("application-id", optionalInvitation.get().getReferenceId());
         assertEquals("invitation@application.com", optionalInvitation.get().getEmail());
-        assertEquals(1439022010883L, optionalInvitation.get().getCreatedAt().getTime());
-        assertEquals(1439022010883L, optionalInvitation.get().getUpdatedAt().getTime());
+        assertTrue(compareDate(1439022010883L, optionalInvitation.get().getCreatedAt().getTime()));
+        assertTrue(compareDate(1439022010883L, optionalInvitation.get().getUpdatedAt().getTime()));
     }
 
     @Test
@@ -78,8 +79,8 @@ public class InvitationRepositoryTest extends AbstractRepositoryTest {
         assertEquals(invitation.getApiRole(), fetchedInvitation.getApiRole());
         assertEquals(invitation.getApplicationRole(), fetchedInvitation.getApplicationRole());
         assertEquals(invitation.getEmail(), fetchedInvitation.getEmail());
-        assertEquals(invitation.getCreatedAt(), fetchedInvitation.getCreatedAt());
-        assertEquals(invitation.getUpdatedAt(), fetchedInvitation.getUpdatedAt());
+        assertTrue(compareDate(invitation.getCreatedAt(), fetchedInvitation.getCreatedAt()));
+        assertTrue(compareDate(invitation.getUpdatedAt(), fetchedInvitation.getUpdatedAt()));
     }
 
     @Test
@@ -112,8 +113,8 @@ public class InvitationRepositoryTest extends AbstractRepositoryTest {
         assertEquals(invitation.getEmail(), fetchedInvitation.getEmail());
         assertEquals(invitation.getApiRole(), fetchedInvitation.getApiRole());
         assertEquals(invitation.getApplicationRole(), fetchedInvitation.getApplicationRole());
-        assertEquals(invitation.getCreatedAt(), fetchedInvitation.getCreatedAt());
-        assertEquals(invitation.getUpdatedAt(), fetchedInvitation.getUpdatedAt());
+        assertTrue(compareDate(invitation.getCreatedAt(), fetchedInvitation.getCreatedAt()));
+        assertTrue(compareDate(invitation.getUpdatedAt(), fetchedInvitation.getUpdatedAt()));
     }
 
     @Test

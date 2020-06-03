@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
@@ -61,14 +62,14 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertEquals("user", rating.getUser());
         assertEquals("title", rating.getTitle());
         assertEquals("My comment", rating.getComment());
-        assertEquals(cal.getTime(), rating.getCreatedAt());
+        assertTrue(compareDate(cal.getTime(), rating.getCreatedAt()));
         assertEquals(1, rating.getRate());
 
         final List<RatingAnswer> ratingAnswers = ratingAnswerRepository.findByRating(rating.getId());
         final RatingAnswer ratingAnswer = ratingAnswers.get(0);
         assertEquals("user", ratingAnswer.getUser());
         assertEquals("Answer", ratingAnswer.getComment());
-        assertEquals(cal.getTime(), ratingAnswer.getCreatedAt());
+        assertTrue(compareDate(cal.getTime(), ratingAnswer.getCreatedAt()));
     }
 
     @Test
@@ -82,14 +83,14 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertEquals("user", rating.getUser());
         assertEquals("title", rating.getTitle());
         assertEquals("My comment", rating.getComment());
-        assertEquals(cal.getTime(), rating.getCreatedAt());
+        assertTrue(compareDate(cal.getTime(), rating.getCreatedAt()));
         assertEquals(1, rating.getRate());
 
         final List<RatingAnswer> ratingAnswers = ratingAnswerRepository.findByRating(rating.getId());
         final RatingAnswer ratingAnswer = ratingAnswers.get(0);
         assertEquals("user", ratingAnswer.getUser());
         assertEquals("Answer", ratingAnswer.getComment());
-        assertEquals(cal.getTime(), ratingAnswer.getCreatedAt());
+        assertTrue(compareDate(cal.getTime(), ratingAnswer.getCreatedAt()));
     }
 
     @Test
@@ -159,8 +160,8 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid rating title.", rating.getTitle(), ratingSaved.getTitle());
         assertEquals("Invalid rating comment.", rating.getComment(), ratingSaved.getComment());
         assertEquals("Invalid rating rate.", rating.getRate(), ratingSaved.getRate());
-        assertEquals("Invalid rating created date.", rating.getCreatedAt(), ratingSaved.getCreatedAt());
-        assertEquals("Invalid rating updated date.", rating.getUpdatedAt(), ratingSaved.getUpdatedAt());
+        assertTrue("Invalid rating created date.", compareDate(rating.getCreatedAt(), ratingSaved.getCreatedAt()));
+        assertTrue("Invalid rating updated date.", compareDate(rating.getUpdatedAt(), ratingSaved.getUpdatedAt()));
         assertEquals("Invalid rating answers.", singletonList(ratingAnswer), ratingAnswerRepository.findByRating(rating.getId()));
     }
 
@@ -184,8 +185,8 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid rating title.", rating.getTitle(), ratingSaved.getTitle());
         assertEquals("Invalid rating comment.", rating.getComment(), ratingSaved.getComment());
         assertEquals("Invalid rating rate.", rating.getRate(), ratingSaved.getRate());
-        assertEquals("Invalid rating created date.", rating.getCreatedAt(), ratingSaved.getCreatedAt());
-        assertEquals("Invalid rating updated date.", rating.getUpdatedAt(), ratingSaved.getUpdatedAt());
+        assertTrue("Invalid rating created date.", compareDate(rating.getCreatedAt(), ratingSaved.getCreatedAt()));
+        assertTrue("Invalid rating updated date.", compareDate(rating.getUpdatedAt(), ratingSaved.getUpdatedAt()));
     }
 
     @Test

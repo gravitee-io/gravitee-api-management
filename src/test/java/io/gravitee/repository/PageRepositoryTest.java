@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 /**
@@ -73,8 +74,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
 
         assertTrue("homepage", page.isHomepage());
         assertEquals("excludedGroups", Arrays.asList("grp1", "grp2"), page.getExcludedGroups());
-        assertEquals("created at", new Date(1486771200000L), page.getCreatedAt());
-        assertEquals("updated at", new Date(1486771200000L), page.getUpdatedAt());
+        assertTrue("created at", compareDate(new Date(1486771200000L), page.getCreatedAt()));
+        assertTrue("updated at", compareDate(new Date(1486771200000L), page.getUpdatedAt()));
     }
 
     @Test
@@ -282,8 +283,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid reference type.", PageReferenceType.API, updatedPage.getReferenceType());
         assertEquals("Invalid type.", "SWAGGER", updatedPage.getType());
         assertEquals("Invalid order.", 1, updatedPage.getOrder());
-        assertEquals("Invalid updatedAt.", new Date(1486771200000L), updatedPage.getUpdatedAt());
-        assertEquals("Invalid createdAt.", new Date(1486772200000L), updatedPage.getCreatedAt());
+        assertTrue("Invalid updatedAt.", compareDate(new Date(1486771200000L), updatedPage.getUpdatedAt()));
+        assertTrue("Invalid createdAt.", compareDate(new Date(1486772200000L), updatedPage.getCreatedAt()));
         assertEquals("Invalid parent id.", "parent-123", updatedPage.getParentId());
         assertTrue("Invalid homepage.", updatedPage.isHomepage());
         assertTrue("Invalid excluded groups.", updatedPage.isHomepage());

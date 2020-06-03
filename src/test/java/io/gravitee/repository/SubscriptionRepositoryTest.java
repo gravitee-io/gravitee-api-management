@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
 
@@ -62,12 +63,12 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Subscription status", Subscription.Status.PENDING, subscription.getStatus());
         assertEquals("Subscription processed by", "user1", subscription.getProcessedBy());
         assertEquals("Subscription subscribed by", "user2", subscription.getSubscribedBy());
-        assertEquals("Subscription starting at", 1439022010883L, subscription.getStartingAt().getTime());
-        assertEquals("Subscription ending at", 1449022010883L, subscription.getEndingAt().getTime());
-        assertEquals("Subscription created at", 1459022010883L, subscription.getCreatedAt().getTime());
-        assertEquals("Subscription updated at", 1469022010883L, subscription.getUpdatedAt().getTime());
-        assertEquals("Subscription processed at", 1479022010883L, subscription.getProcessedAt().getTime());
-        assertEquals("Subscription paused at", 1479022010883L, subscription.getPausedAt().getTime());
+        assertTrue("Subscription starting at", compareDate(1439022010883L, subscription.getStartingAt().getTime()));
+        assertTrue("Subscription ending at", compareDate(1449022010883L, subscription.getEndingAt().getTime()));
+        assertTrue("Subscription created at", compareDate(1459022010883L, subscription.getCreatedAt().getTime()));
+        assertTrue("Subscription updated at", compareDate(1469022010883L, subscription.getUpdatedAt().getTime()));
+        assertTrue("Subscription processed at", compareDate(1479022010883L, subscription.getProcessedAt().getTime()));
+        assertTrue("Subscription paused at", compareDate(1479022010883L, subscription.getPausedAt().getTime()));
         assertEquals("Subscription client id", "my-client-id", subscription.getClientId());
     }
 
@@ -124,11 +125,11 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Subscription status", Subscription.Status.PENDING, subscription.getStatus());
         assertEquals("Subscription processed by", "user1", subscription.getProcessedBy());
         assertEquals("Subscription subscribed by", "user2", subscription.getSubscribedBy());
-        assertEquals("Subscription starting at", 1439022010883L, subscription.getStartingAt().getTime());
-        assertEquals("Subscription ending at", 1449022010883L, subscription.getEndingAt().getTime());
-        assertEquals("Subscription created at", 1459022010883L, subscription.getCreatedAt().getTime());
-        assertEquals("Subscription updated at", 1469022010883L, subscription.getUpdatedAt().getTime());
-        assertEquals("Subscription processed at", 1479022010883L, subscription.getProcessedAt().getTime());
+        assertTrue("Subscription starting at", compareDate(1439022010883L, subscription.getStartingAt().getTime()));
+        assertTrue("Subscription ending at", compareDate(1449022010883L, subscription.getEndingAt().getTime()));
+        assertTrue("Subscription created at", compareDate(1459022010883L, subscription.getCreatedAt().getTime()));
+        assertTrue("Subscription updated at", compareDate(1469022010883L, subscription.getUpdatedAt().getTime()));
+        assertTrue("Subscription processed at", compareDate(1479022010883L, subscription.getProcessedAt().getTime()));
         assertEquals("Subscription client id", "my-client-id", subscription.getClientId());
     }
 
@@ -148,7 +149,7 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
         Subscription update = this.subscriptionRepository.update(subscription.get());
 
         assertNotNull(update);
-        assertEquals(update.getUpdatedAt(), new Date(1000000000000L));
+        assertTrue(compareDate(update.getUpdatedAt(), new Date(1000000000000L)));
     }
 
     @Test
