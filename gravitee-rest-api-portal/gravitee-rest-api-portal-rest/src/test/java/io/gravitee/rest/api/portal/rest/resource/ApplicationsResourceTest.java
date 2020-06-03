@@ -18,9 +18,9 @@ package io.gravitee.rest.api.portal.rest.resource;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.filtering.FilteredEntities;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.*;
 import org.junit.Before;
@@ -30,13 +30,12 @@ import org.mockito.Mockito;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-
 import java.util.*;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -71,7 +70,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
 
         ApplicationEntity createdEntity = new ApplicationEntity();
-        doReturn(createdEntity).when(applicationService).create(any(),  any());
+        doReturn(createdEntity).when(applicationService).create(any(), any());
         doReturn(new Application().id("NEW")).when(applicationMapper).convert(eq(createdEntity), any());
 
     }
@@ -88,8 +87,8 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         String expectedBasePath = target().getUri().toString();
         List<String> bastPathList = ac.getAllValues();
-        assertTrue(bastPathList.contains(expectedBasePath+"/A"));
-        assertTrue(bastPathList.contains(expectedBasePath+"/B"));
+        assertTrue(bastPathList.contains(expectedBasePath + "/A"));
+        assertTrue(bastPathList.contains(expectedBasePath + "/B"));
 
         ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
         assertEquals(2, applicationsResponse.getData().size());
@@ -136,91 +135,20 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals("B", applicationsResponse.getData().get(1).getId());
         assertEquals("C", applicationsResponse.getData().get(2).getId());
         assertEquals("D", applicationsResponse.getData().get(3).getId());
+
+        Mockito.verify(filteringService, times(0)).getEntitiesOrderByNumberOfSubscriptions(anyCollection(), eq(false), eq(false));
+
     }
 
     @Test
     public void shouldGetApplicationsOrderByNbSubscriptionsDesc() {
-        SubscriptionEntity subA1 = new SubscriptionEntity();
-        subA1.setApplication("A");
-        SubscriptionEntity subA2 = new SubscriptionEntity();
-        subA2.setApplication("A");
-        SubscriptionEntity subB1 = new SubscriptionEntity();
-        subB1.setApplication("B");
-        SubscriptionEntity subB2 = new SubscriptionEntity();
-        subB2.setApplication("B");
-        SubscriptionEntity subB3 = new SubscriptionEntity();
-        subB3.setApplication("B");
-        doReturn(Arrays.asList(subA1, subA2, subB1, subB2, subB3)).when(subscriptionService).search(any());
+        FilteredEntities<ApplicationListItem> mockFilteredApp = new FilteredEntities<ApplicationListItem>(Collections.emptyList(), null);
+        doReturn(mockFilteredApp).when(filteringService).getEntitiesOrderByNumberOfSubscriptions(anyCollection(), isNull(), eq(false));
 
         final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
-        assertEquals("B", applicationsResponse.getData().get(0).getId());
-        assertEquals("A", applicationsResponse.getData().get(1).getId());
-
-        Map<String, Object> subscriptionsMetadata = applicationsResponse.getMetadata().get("subscriptions");
-        assertEquals(3, subscriptionsMetadata.get("B"));
-        assertEquals(2, subscriptionsMetadata.get("A"));
-    }
-
-    @Test
-    public void shouldGetApplicationsOrderByNbSubscriptionsDescAndName() {
-        ApplicationListItem applicationListItem1 = new ApplicationListItem();
-        applicationListItem1.setId("A");
-        applicationListItem1.setName("A");
-
-        ApplicationListItem applicationListItem2 = new ApplicationListItem();
-        applicationListItem2.setId("B");
-        applicationListItem2.setName("b");
-
-        ApplicationListItem applicationListItem3 = new ApplicationListItem();
-        applicationListItem3.setId("C");
-        applicationListItem3.setName("C");
-
-        ApplicationListItem applicationListItem4 = new ApplicationListItem();
-        applicationListItem4.setId("D");
-        applicationListItem4.setName("d");
-
-        Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4));
-        doReturn(mockApplications).when(applicationService).findByUser(any());
-
-        doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
-        doReturn(new Application().id("B").name("b")).when(applicationMapper).convert(eq(applicationListItem2), any());
-        doReturn(new Application().id("C").name("C")).when(applicationMapper).convert(eq(applicationListItem3), any());
-        doReturn(new Application().id("D").name("d")).when(applicationMapper).convert(eq(applicationListItem4), any());
-
-        SubscriptionEntity subA1 = new SubscriptionEntity();
-        subA1.setApplication("A");
-        SubscriptionEntity subA2 = new SubscriptionEntity();
-        subA2.setApplication("A");
-        SubscriptionEntity subB1 = new SubscriptionEntity();
-        subB1.setApplication("B");
-        SubscriptionEntity subB2 = new SubscriptionEntity();
-        subB2.setApplication("B");
-        SubscriptionEntity subB3 = new SubscriptionEntity();
-        subB3.setApplication("B");
-        SubscriptionEntity subC1 = new SubscriptionEntity();
-        subC1.setApplication("C");
-        SubscriptionEntity subC2 = new SubscriptionEntity();
-        subC2.setApplication("C");
-        SubscriptionEntity subC3 = new SubscriptionEntity();
-        subC3.setApplication("C");
-        SubscriptionEntity subD1 = new SubscriptionEntity();
-        subD1.setApplication("D");
-        SubscriptionEntity subD2 = new SubscriptionEntity();
-        subD2.setApplication("D");
-        doReturn(Arrays.asList(subA1, subA2, subB1, subB2, subB3, subC1, subC2, subC3, subD1, subD2)).when(subscriptionService).search(any());
-
-        final Response response = target().queryParam("order", "-nbSubscriptions").request().get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
-        assertEquals("B", applicationsResponse.getData().get(0).getId());
-        assertEquals("C", applicationsResponse.getData().get(1).getId());
-        assertEquals("A", applicationsResponse.getData().get(2).getId());
-        assertEquals("D", applicationsResponse.getData().get(3).getId());
-
+        Mockito.verify(filteringService).getEntitiesOrderByNumberOfSubscriptions(anyCollection(), isNull(), eq(false));
     }
 
     @Test
@@ -285,8 +213,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         ApplicationInput input = new ApplicationInput()
                 .description(APPLICATION)
                 .groups(Arrays.asList(APPLICATION))
-                .name(APPLICATION)
-                ;
+                .name(APPLICATION);
 
         final Response response = target().request().post(Entity.json(input));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
@@ -324,8 +251,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                 .description(APPLICATION)
                 .groups(Arrays.asList(APPLICATION))
                 .name(APPLICATION)
-                .settings(new io.gravitee.rest.api.portal.rest.model.ApplicationSettings())
-                ;
+                .settings(new io.gravitee.rest.api.portal.rest.model.ApplicationSettings());
 
         final Response response = target().request().post(Entity.json(input));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
@@ -362,8 +288,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         ApplicationInput input = new ApplicationInput()
                 .description(APPLICATION)
                 .groups(Arrays.asList(APPLICATION))
-                .name(APPLICATION)
-                ;
+                .name(APPLICATION);
 
         SimpleApplicationSettings sas = new SimpleApplicationSettings()
                 .clientId(APPLICATION)
@@ -407,8 +332,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         ApplicationInput input = new ApplicationInput()
                 .description(APPLICATION)
                 .groups(Arrays.asList(APPLICATION))
-                .name(APPLICATION)
-                ;
+                .name(APPLICATION);
 
         OAuthClientSettings oacs = new OAuthClientSettings()
                 .applicationType(APPLICATION)
@@ -419,8 +343,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                 .grantTypes(Arrays.asList(APPLICATION))
                 .redirectUris(Arrays.asList(APPLICATION))
                 .responseTypes(Arrays.asList(APPLICATION))
-                .renewClientSecretSupported(Boolean.TRUE)
-                ;
+                .renewClientSecretSupported(Boolean.TRUE);
         input.setSettings(new io.gravitee.rest.api.portal.rest.model.ApplicationSettings().oauth(oacs));
 
         final Response response = target().request().post(Entity.json(input));

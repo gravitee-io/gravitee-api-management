@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.model.application;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.filtering.FilterableItem;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Date;
@@ -29,7 +29,7 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApplicationListItem {
+public class ApplicationListItem implements FilterableItem {
 
     @ApiModelProperty(
             value = "Application's uuid.",

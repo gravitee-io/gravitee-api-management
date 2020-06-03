@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -34,7 +33,7 @@ public abstract class AbstractService extends TransactionalService {
         return authenticatedUser == null ? null : authenticatedUser.getUsername();
     }
 
-    UserDetails getAuthenticatedUser() {
+    protected UserDetails getAuthenticatedUser() {
         if (isAuthenticated()) {
             return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         }

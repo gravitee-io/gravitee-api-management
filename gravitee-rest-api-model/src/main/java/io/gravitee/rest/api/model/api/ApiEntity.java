@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.filtering.FilterableItem;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -49,7 +50,7 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 @JsonFilter("apiMembershipTypeFilter")
-public class ApiEntity implements Indexable {
+public class ApiEntity implements Indexable, FilterableItem {
     @ApiModelProperty(
             value = "API's uuid.",
             example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
@@ -92,7 +93,7 @@ public class ApiEntity implements Indexable {
     @DeploymentRequired
     @JsonProperty(value = "paths", required = true)
     @ApiModelProperty(
-        value = "a map where you can associate a path to a configuration (the policies configuration)")
+            value = "a map where you can associate a path to a configuration (the policies configuration)")
     private Map<String, Path> paths = new HashMap<>();
 
     @JsonProperty("deployed_at")
@@ -139,7 +140,7 @@ public class ApiEntity implements Indexable {
     @DeploymentRequired
     @JsonProperty(value = "services")
     @ApiModelProperty(
-        value = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
+            value = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
     private Services services;
 
     @DeploymentRequired
@@ -191,7 +192,7 @@ public class ApiEntity implements Indexable {
     @DeploymentRequired
     @JsonProperty(value = "response_templates")
     @ApiModelProperty(
-        value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ...")
+            value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ...")
     private Map<String, ResponseTemplates> responseTemplates;
 
     @JsonProperty(value = "lifecycle_state")

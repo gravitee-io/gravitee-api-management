@@ -15,34 +15,34 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doReturn;
-
-import java.io.IOException;
-import java.security.Principal;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.filtering.FilteredEntities;
+import io.gravitee.rest.api.portal.rest.model.Api;
+import io.gravitee.rest.api.portal.rest.model.ApisResponse;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.portal.rest.model.Api;
-import io.gravitee.rest.api.portal.rest.model.ApisResponse;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -53,12 +53,12 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
     protected String contextPath() {
         return "apis";
     }
-    
+
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
     }
-    
+
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
         @Override
@@ -68,15 +68,21 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
                 public Principal getUserPrincipal() {
                     return null;
                 }
+
                 @Override
                 public boolean isUserInRole(String string) {
                     return false;
                 }
+
                 @Override
-                public boolean isSecure() { return false; }
-                
+                public boolean isSecure() {
+                    return false;
+                }
+
                 @Override
-                public String getAuthenticationScheme() { return "BASIC"; }
+                public String getAuthenticationScheme() {
+                    return "BASIC";
+                }
             });
         }
     }
@@ -84,44 +90,47 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
     @Before
     public void init() {
         resetAllMocks();
-        
+
         ApiEntity publishedApi = new ApiEntity();
         publishedApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
         publishedApi.setName("A");
         publishedApi.setId("A");
-        
+
         ApiEntity unpublishedApi = new ApiEntity();
         unpublishedApi.setLifecycleState(ApiLifecycleState.UNPUBLISHED);
         unpublishedApi.setName("B");
         unpublishedApi.setId("B");
-        
+
         ApiEntity anotherPublishedApi = new ApiEntity();
         anotherPublishedApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
         anotherPublishedApi.setName("C");
         anotherPublishedApi.setId("C");
-        
-        
+
+
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi, anotherPublishedApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(isNull(), any(ApiQuery.class));
+
+        doReturn(new FilteredEntities<ApiEntity>(new ArrayList<>(mockApis), null)).when(filteringService).filterApis(any(), any(), any());
+
         
         doReturn(false).when(ratingService).isEnabled();
-        
+
         doReturn(new Api().name("A").id("A")).when(apiMapper).convert(publishedApi);
         doReturn(new Api().name("B").id("B")).when(apiMapper).convert(unpublishedApi);
         doReturn(new Api().name("C").id("C")).when(apiMapper).convert(anotherPublishedApi);
 
     }
-    
+
     @Test
     public void shouldGetpublishedApi() {
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         Mockito.verify(apiService).findPublishedByUser(isNull(), any(ApiQuery.class));
-        
+
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(2, apiResponse.getData().size());
-        assertEquals("A", ((Api)apiResponse.getData().get(0)).getName());
-        assertEquals("C", ((Api)apiResponse.getData().get(1)).getName());
+        assertEquals("A", ((Api) apiResponse.getData().get(0)).getName());
+        assertEquals("C", ((Api) apiResponse.getData().get(1)).getName());
     }
 }

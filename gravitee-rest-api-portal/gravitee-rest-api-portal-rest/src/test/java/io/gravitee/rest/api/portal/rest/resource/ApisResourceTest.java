@@ -17,13 +17,10 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.rest.api.model.RatingSummaryEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.filtering.FilteredEntities;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.*;
 import org.junit.Before;
@@ -92,6 +89,8 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         doReturn(false).when(ratingService).isEnabled();
 
+        doReturn(new FilteredEntities<ApiEntity>(new ArrayList<>(mockApis), null)).when(filteringService).filterApis(any(), any(), any());
+
         doReturn(new Api().name("1").id("1")).when(apiMapper).convert(publishedApi1);
         doReturn(new Api().name("2").id("2")).when(apiMapper).convert(unpublishedApi);
         doReturn(new Api().name("3").id("3")).when(apiMapper).convert(publishedApi2);
@@ -138,159 +137,6 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     }
 
-    @Test
-    public void shouldGetMineApi() {
-        ApplicationListItem appA = new ApplicationListItem();
-        appA.setId("A");
-        ApplicationListItem appB = new ApplicationListItem();
-        appB.setId("B");
-        ApplicationListItem appC = new ApplicationListItem();
-        appC.setId("C");
-        doReturn(new HashSet<ApplicationListItem>(Arrays.asList(appC, appB, appA))).when(applicationService)
-                .findByUser(USER_NAME);
-
-        SubscriptionEntity subA1 = new SubscriptionEntity();
-        subA1.setApplication("A");
-        subA1.setApi("1");
-        SubscriptionEntity subA2 = new SubscriptionEntity();
-        subA2.setApplication("A");
-        subA2.setApi("2");
-        SubscriptionEntity subB1 = new SubscriptionEntity();
-        subB1.setApplication("B");
-        subB1.setApi("1");
-        SubscriptionEntity subC4 = new SubscriptionEntity();
-        subC4.setApplication("C");
-        subC4.setApi("4");
-        SubscriptionEntity subC8 = new SubscriptionEntity();
-        subC8.setApplication("C");
-        subC8.setApi("8");
-        doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1)).when(subscriptionService).search(any());
-
-        final Response response = target().queryParam("filter", "MINE").request().get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
-        assertEquals(2, apiResponse.getData().size());
-        assertEquals("1", ((Api) apiResponse.getData().get(0)).getId());
-        assertEquals("4", ((Api) apiResponse.getData().get(1)).getId());
-
-    }
-
-    @Test
-    public void shouldNotGetStarredApi() {
-        final Response response = target().queryParam("filter", "STARRED").request().get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
-        assertEquals(0, apiResponse.getData().size());
-    }
-
-    @Test
-    public void shouldGetStarredApi() {
-        doReturn(true).when(ratingService).isEnabled();
-
-        RatingSummaryEntity ratingSummary1 = new RatingSummaryEntity();
-        ratingSummary1.setApi("1");
-        ratingSummary1.setAverageRate(4.5);
-        ratingSummary1.setNumberOfRatings(3);
-        doReturn(ratingSummary1).when(ratingService).findSummaryByApi("1");
-
-        RatingSummaryEntity ratingSummary3 = new RatingSummaryEntity();
-        ratingSummary3.setApi("3");
-        ratingSummary3.setAverageRate(5.0);
-        ratingSummary3.setNumberOfRatings(10);
-        doReturn(ratingSummary3).when(ratingService).findSummaryByApi("3");
-
-        RatingSummaryEntity ratingSummary4 = new RatingSummaryEntity();
-        ratingSummary4.setApi("4");
-        ratingSummary4.setAverageRate(5.0);
-        ratingSummary4.setNumberOfRatings(1);
-        doReturn(ratingSummary4).when(ratingService).findSummaryByApi("4");
-
-        RatingSummaryEntity ratingSummary5 = new RatingSummaryEntity();
-        ratingSummary5.setApi("5");
-        ratingSummary5.setAverageRate(4.5);
-        ratingSummary5.setNumberOfRatings(3);
-        doReturn(ratingSummary5).when(ratingService).findSummaryByApi("5");
-
-        final Response response = target().queryParam("filter", "STARRED").request().get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
-        assertEquals(4, apiResponse.getData().size());
-        assertEquals("3", ((Api) apiResponse.getData().get(0)).getId());
-        assertEquals("4", ((Api) apiResponse.getData().get(1)).getId());
-        assertEquals("1", ((Api) apiResponse.getData().get(2)).getId());
-        assertEquals("5", ((Api) apiResponse.getData().get(3)).getId());
-
-    }
-
-    @Test
-    public void shouldGetTrendingsApi() {
-
-        SubscriptionEntity subA1 = new SubscriptionEntity();
-        subA1.setApplication("A");
-        subA1.setApi("1");
-        SubscriptionEntity subA2 = new SubscriptionEntity();
-        subA2.setApplication("A");
-        subA2.setApi("2");
-        SubscriptionEntity subB1 = new SubscriptionEntity();
-        subB1.setApplication("B");
-        subB1.setApi("1");
-        SubscriptionEntity subC4 = new SubscriptionEntity();
-        subC4.setApplication("C");
-        subC4.setApi("4");
-        SubscriptionEntity subC8 = new SubscriptionEntity();
-        subC8.setApplication("C");
-        subC8.setApi("8");
-        doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1)).when(subscriptionService).search(any());
-
-        final Response response = target().queryParam("filter", "TRENDINGS").request().get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
-        assertEquals(2, apiResponse.getData().size());
-        assertEquals("1", ((Api) apiResponse.getData().get(0)).getId());
-        assertEquals("4", ((Api) apiResponse.getData().get(1)).getId());
-        Map<String, Map<String, Object>> metadata = apiResponse.getMetadata();
-        assertNotNull(metadata);
-        assertEquals(3, metadata.size());
-
-        Map<String, Object> dataMetadata = metadata.get(AbstractResource.METADATA_DATA_KEY);
-        assertNotNull(dataMetadata);
-        assertEquals(1, dataMetadata.size());
-        Map<String, Object> subscriptionsMetadata = metadata.get("subscriptions");
-        assertNotNull(subscriptionsMetadata);
-        assertEquals(2, subscriptionsMetadata.size());
-        assertEquals(2, subscriptionsMetadata.get("1")); // 2 subscriptions for API 1
-        assertEquals(1, subscriptionsMetadata.get("4")); // 1 subscription for API 4
-    }
-
-    @Test
-    public void shouldGetFeaturedApis() {
-        TopApiEntity topApi5 = new TopApiEntity();
-        topApi5.setApi("5");
-        topApi5.setOrder(1);
-        TopApiEntity topApi6 = new TopApiEntity();
-        topApi6.setApi("6");
-        topApi6.setOrder(2);
-        doReturn(Arrays.asList(topApi5, topApi6)).when(topApiService).findAll();
-
-        final Response response = target().queryParam("filter", "FEATURED").request().get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
-        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
-        assertEquals(2, apiResponse.getData().size());
-        assertEquals("5", ((Api) apiResponse.getData().get(0)).getId());
-        assertEquals("6", ((Api) apiResponse.getData().get(1)).getId());
-        Map<String, Map<String, Object>> metadata = apiResponse.getMetadata();
-        assertNotNull(metadata);
-        assertEquals(2, metadata.size());
-
-        Map<String, Object> dataMetadata = metadata.get(AbstractResource.METADATA_DATA_KEY);
-        assertNotNull(dataMetadata);
-        assertEquals(1, dataMetadata.size());
-    }
 
     @Test
     public void shouldGetPublishedApiWithPaginatedLink() {
@@ -342,7 +188,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(0, apiResponse.getData().size());
         Map<String, Object> metadata = apiResponse.getMetadata().get(AbstractResource.METADATA_DATA_KEY);
-        assertEquals(5,  metadata.get(AbstractResource.METADATA_DATA_TOTAL_KEY));
+        assertEquals(5, metadata.get(AbstractResource.METADATA_DATA_TOTAL_KEY));
     }
 
     @Test
@@ -364,7 +210,8 @@ public class ApisResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
 
-        doReturn(new HashSet<>()).when(apiService).findPublishedByUser(any(), any());
+        doReturn(Collections.emptySet()).when(apiService).findPublishedByUser(any(), any());
+        doReturn(new FilteredEntities<ApiEntity>(Collections.emptyList(), null)).when(filteringService).filterApis(any(), any(), any());
 
         // Test with default limit
         final Response response = target().request().get();

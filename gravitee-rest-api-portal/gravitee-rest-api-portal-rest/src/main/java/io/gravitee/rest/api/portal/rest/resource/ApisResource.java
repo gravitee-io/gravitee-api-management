@@ -17,24 +17,15 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.rest.api.model.RatingSummaryEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
-import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.filtering.FilteredEntities;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.model.Api;
-import io.gravitee.rest.api.portal.rest.model.FilterApiQuery;
 import io.gravitee.rest.api.portal.rest.resource.param.ApisParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.RatingService;
-import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.filtering.FilteringService;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -42,9 +33,11 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -59,26 +52,19 @@ public class ApisResource extends AbstractResource {
     private ApiMapper apiMapper;
 
     @Inject
-    private ApplicationService applicationService;
-
-    @Inject
-    private SubscriptionService subscriptionService;
-
-    @Inject
-    private RatingService ratingService;
-
-    @Inject
-    private TopApiService topApiService;
+    private FilteringService filteringService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
-        Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(),
-                createQueryFromParam(apisParam));
+        Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), createQueryFromParam(apisParam));
 
-        FilteredApi filteredApis = this.filterApis(apis, apisParam.getFilter(), apisParam.getExcludedFilter());
-        
-        List<Api> apisList= filteredApis.getFilteredApis().stream()
+        FilteringService.FilterType filter = apisParam.getFilter() != null ? FilteringService.FilterType.valueOf(apisParam.getFilter().name()) : null;
+        FilteringService.FilterType excludeFilter = apisParam.getExcludedFilter() != null ? FilteringService.FilterType.valueOf(apisParam.getExcludedFilter().name()) : null;
+
+        FilteredEntities<ApiEntity> filteredApis = filteringService.filterApis(apis, filter, excludeFilter);
+
+        List<Api> apisList = filteredApis.getFilteredItems().stream()
                 .map(apiMapper::convert)
                 .map(this::addApiLinks)
                 .collect(Collectors.toList());
@@ -90,7 +76,7 @@ public class ApisResource extends AbstractResource {
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
     public Response searchApis(@NotNull(message = "Input must not be null.") @QueryParam("q") String query,
-            @BeanParam PaginationParam paginationParam) {
+                               @BeanParam PaginationParam paginationParam) {
         Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(),
                 createQueryFromParam(null));
 
@@ -120,162 +106,7 @@ public class ApisResource extends AbstractResource {
         }
         return apiQuery;
     }
-    
-    private FilteredApi filterApis(final Collection<ApiEntity> apis, final FilterApiQuery filterApiQuery,
-                                         final FilterApiQuery excludedFilterApiQuery) {
-        final FilterApiQuery filter = excludedFilterApiQuery == null ? filterApiQuery : excludedFilterApiQuery;
-        final boolean excluded = excludedFilterApiQuery != null;
-        if (filter != null) {
-            switch (filter) {
-                case MINE:
-                    if (isAuthenticated()) {
-                        return getCurrentUserSubscribedApis(apis, excluded);
-                    } else {
-                        return new FilteredApi(Collections.emptyList(), null);
-                    }
 
-                case STARRED:
-                    if (ratingService.isEnabled()) {
-                        return getRatedApis(apis, excluded);
-                    } else {
-                        return new FilteredApi(Collections.emptyList(), null);
-                    }
-
-                case TRENDINGS:
-                    return getApisOrderByNumberOfSubscriptions(apis, excluded);
-                
-                case FEATURED:
-                    return getTopApis(apis, excluded);
-                    
-                default:
-                    break;
-            }
-        }
-
-        // No category was applied but at least, the list is ordered
-        return new FilteredApi(
-            apis.stream().sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-                .collect(Collectors.toList()),
-            null);
-    }
-
-    private FilteredApi convert(Stream<ApiEntity> apiEntities) {
-        return new FilteredApi(apiEntities.collect(Collectors.toList()), null);
-    }
-
-    private FilteredApi getTopApis(Collection<ApiEntity> apis, boolean excluded) {
-        Map<String, Integer> topApiIdAndOrderMap = topApiService.findAll().stream().collect(Collectors.toMap(TopApiEntity::getApi, TopApiEntity::getOrder));
-
-        if (topApiIdAndOrderMap.isEmpty()) {
-            if (excluded) {
-                return convert(apis.stream().sorted(Comparator.comparing(ApiEntity::getName)));
-            } else {
-                return new FilteredApi(Collections.emptyList(), null);
-            }
-        } else if (excluded) {
-            return convert(apis.stream()
-                .filter(api -> (!topApiIdAndOrderMap.containsKey(api.getId())))
-                .sorted(Comparator.comparing(ApiEntity::getName)));
-        } else {
-            return convert(apis.stream()
-                .filter(api -> topApiIdAndOrderMap.containsKey(api.getId()))
-                .sorted(Comparator.comparing(o -> topApiIdAndOrderMap.get(o.getId()))));
-
-        }
-    }
-
-    protected FilteredApi getApisOrderByNumberOfSubscriptions(Collection<ApiEntity> apis, boolean excluded) {
-        //find all subscribed apis
-        SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
-        subscriptionQuery.setApis(apis.stream().map(ApiEntity::getId).collect(Collectors.toList()));
-        subscriptionQuery.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
-
-        // group by apis
-        Map<String, Long> subscribedApiWithCount = subscriptionService.search(subscriptionQuery).stream()
-                .collect(Collectors.groupingBy(SubscriptionEntity::getApi, Collectors.counting()));
-
-        // link an api with its nb of subscritions
-        Map<ApiEntity, Long> apisWithCount = new HashMap<>();
-        Map<String, Map<String, Object>> apisMetadata = new HashMap<>();
-        Map<String, Object> subscriptionsMetadata = new HashMap<>();
-        apisMetadata.put("subscriptions", subscriptionsMetadata);
-        apis.forEach(api -> {
-            Long apiSubscriptionsCount = subscribedApiWithCount.get(api.getId());
-            if ((!excluded && apiSubscriptionsCount != null) || (excluded && apiSubscriptionsCount == null)) {
-                //creation of a map which will be sorted to retrieve apis in the right order
-                apisWithCount.put(api, apiSubscriptionsCount == null ? 0L : apiSubscriptionsCount);
-
-                //creation of a metadata map
-                subscriptionsMetadata.put(api.getId(), apiSubscriptionsCount == null ? 0L : apiSubscriptionsCount);
-            }
-        });
-
-        // order the list
-        return new FilteredApi(apisWithCount.entrySet().stream()
-                .sorted(Map.Entry.<ApiEntity, Long>comparingByValue().reversed().thenComparing(
-                        Map.Entry.<ApiEntity, Long>comparingByKey(Comparator.comparing(ApiEntity::getName))))
-                .map(Map.Entry::getKey).collect(Collectors.toList()), apisMetadata);
-
-    }
-
-    protected FilteredApi getRatedApis(Collection<ApiEntity> apis, boolean excluded) {
-        //keep apis with ratings
-        Map<ApiEntity, RatingSummaryEntity> ratings = new HashMap<>();
-        // APIPortal: should create a specific service to retrieve all the information
-        // in one call to the repository
-        apis.forEach(api -> {
-            RatingSummaryEntity apiRatingSummary = ratingService.findSummaryByApi(api.getId());
-            if (apiRatingSummary != null && apiRatingSummary.getNumberOfRatings() > 0) {
-                ratings.put(api, apiRatingSummary);
-            }
-        });
-
-        if (excluded) {
-            return new FilteredApi(apis.stream()
-                    .filter(api -> !ratings.keySet().contains(api))
-                    .collect(Collectors.toList()),
-                    null);
-        } else {
-            //sort apis by ratings, nb of ratings, and name
-            return new FilteredApi(
-                    ratings.entrySet().stream()
-                      .sorted( (e1, e2) -> {
-                        RatingSummaryEntity o1 = e1.getValue();
-                        RatingSummaryEntity o2 = e2.getValue();
-                        int averageRateComparaison = Double.compare(o2.getAverageRate(), o1.getAverageRate());
-                        if(averageRateComparaison != 0) {
-                            return averageRateComparaison;
-                        }
-                        int nbRatingsComparaison = Integer.compare(o2.getNumberOfRatings(), o1.getNumberOfRatings());
-                        if(nbRatingsComparaison != 0) {
-                            return nbRatingsComparaison;
-                        }
-                        return String.CASE_INSENSITIVE_ORDER.compare(e1.getKey().getName(), e2.getKey().getName());
-                      })
-                      .map(Map.Entry::getKey)
-                      .collect(Collectors.toList())
-                    , null);
-        }
-    }
-
-    protected FilteredApi getCurrentUserSubscribedApis(Collection<ApiEntity> apis, boolean excluded) {
-        //get Current user applications
-        List<String> currentUserApplicationsId = applicationService.findByUser(getAuthenticatedUser()).stream().map(ApplicationListItem::getId).collect(Collectors.toList());
-        
-        //find all subscribed apis for these applications
-        SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
-        subscriptionQuery.setApplications(currentUserApplicationsId);
-        List<String> subscribedApis = subscriptionService.search(subscriptionQuery).stream().map(SubscriptionEntity::getApi).distinct().collect(Collectors.toList());
-        
-        //filter apis list with subscribed apis list
-        return new FilteredApi(
-                apis.stream()
-                .filter(api-> (!excluded && subscribedApis.contains(api.getId())) ||
-                        (excluded && !subscribedApis.contains(api.getId())))
-                .sorted((a1,a2) -> String.CASE_INSENSITIVE_ORDER.compare(a1.getName(), a2.getName()))
-                .collect(Collectors.toList())
-                , null);
-    }
 
     private Api addApiLinks(Api api) {
         return api.links(
@@ -285,24 +116,5 @@ public class ApisResource extends AbstractResource {
     @Path("{apiId}")
     public ApiResource getApiResource() {
         return resourceContext.getResource(ApiResource.class);
-    }
-
-    private class FilteredApi {
-        Collection<ApiEntity> filteredApis;
-        Map<String, Map<String, Object>> metadata;
-
-        public FilteredApi(Collection<ApiEntity> filteredApis, Map<String, Map<String, Object>> metadata) {
-            super();
-            this.filteredApis = filteredApis;
-            this.metadata = metadata;
-        }
-
-        public Collection<ApiEntity> getFilteredApis() {
-            return filteredApis;
-        }
-
-        public Map<String, Map<String, Object>> getMetadata() {
-            return metadata;
-        }
     }
 }
