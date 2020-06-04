@@ -10,7 +10,7 @@ databaseChangeLog:
       dbms: mariadb, mysql
   - property:
       name: uuid_function
-      value: uuid_generate_v4()
+      value: md5(random()::text || clock_timestamp()::text)::uuid
       dbms: postgresql
   ## LENGTH function
   - property:
@@ -180,11 +180,6 @@ databaseChangeLog:
                   constraints:
                     nullable: true
 
-        ## init uuid generator for Postgresql
-        - sql:
-            dbms: postgresql
-            sql: create extension "uuid-ossp"
-        
         - dropNotNullConstraint:
             columnDataType: nvarchar(64)
             columnName: user_id
