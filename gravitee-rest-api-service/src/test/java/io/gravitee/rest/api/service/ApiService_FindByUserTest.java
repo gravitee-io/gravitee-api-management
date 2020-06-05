@@ -41,7 +41,7 @@ import java.util.*;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -101,7 +101,7 @@ public class ApiService_FindByUserTest {
         membership.setRoleId("API_USER");
 
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)).thenReturn(Collections.singleton(membership));
-        
+
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
         when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(poRole));
@@ -129,5 +129,18 @@ public class ApiService_FindByUserTest {
 
         assertNotNull(apiEntities);
         assertTrue(apiEntities.isEmpty());
+    }
+
+    @Test
+    public void shouldFindPublicApisOnlyWithAnonymousUser() throws TechnicalException {
+        final Set<ApiEntity> apiEntities = apiService.findByUser(null, null, false);
+
+        assertNotNull(apiEntities);
+        assertEquals(0, apiEntities.size());
+
+        verify(membershipService, times(0)).getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.API);
+        verify(membershipService, times(0)).getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.GROUP);
+        verify(applicationService, times(0)).findByUser(null);
+
     }
 }
