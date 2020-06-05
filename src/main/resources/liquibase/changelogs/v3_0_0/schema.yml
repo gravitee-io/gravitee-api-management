@@ -543,7 +543,7 @@ databaseChangeLog:
                   constraints:
                     nullable: true
         - sql:
-            sql: update users set reference_type='ENVIRONMENT', reference_id='DEFAULT'
+            sql: update users set reference_type='ORGANIZATION', reference_id='DEFAULT'
         - addNotNullConstraint:
             tableName: users
             columnDataType: nvarchar(64)
