@@ -88,7 +88,7 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
         template: require('../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Are you sure you want to revoke API Key \'' + apiKey + '\' ?',
+          title: 'Are you sure you want to revoke API Key \'' + apiKey + '\'?',
           confirmButton: 'Revoke'
         }
       }).then( (response) => {

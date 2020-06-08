@@ -442,6 +442,10 @@ import ClientRegistrationProviderController from '../management/configuration/ap
 import DashboardService from '../services/dashboard.service';
 import AnalyticsDashboardComponent from './configuration/analytics/dashboard/dashboard.components';
 
+// Tokens
+import TokenService from '../services/token.service';
+import DialogGenerateTokenController from '../user/token/generateTokenDialog.controller';
+
 (<any>window).jQuery = jQuery;
 
 import angular = require('angular');
@@ -742,6 +746,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('PortalService', PortalService)
   .service('ThemeService', ThemeService)
   .service('ReCaptchaService', ReCaptchaService)
+  .service('TokenService', TokenService)
+  .controller('DialogGenerateTokenController', DialogGenerateTokenController)
 
   .directive('filecontent', () => FileContentDirective)
   .directive('noDirtyCheck', () => new FormDirective())
@@ -1005,25 +1011,31 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   .filter('humanDateFilter', function () {
     return function (input) {
-      if (!moment().subtract(1, 'weeks').isAfter(input)) {
-        return moment(input).fromNow();
-      } else {
-        return moment(input).format('ll');
+      if (input) {
+        if (!moment().subtract(1, 'weeks').isAfter(input)) {
+          return moment(input).fromNow();
+        } else {
+          return moment(input).format('ll');
+        }
       }
     };
   })
   .filter('humanDatetimeFilter', function () {
     return function (input) {
-      if (!moment().subtract(1, 'weeks').isAfter(input)) {
-        return moment(input).fromNow();
-      } else {
-        return moment(input).format('D MMM YYYY HH:mm:ss');
+      if (input) {
+        if (!moment().subtract(1, 'weeks').isAfter(input)) {
+          return moment(input).fromNow();
+        } else {
+          return moment(input).format('D MMM YYYY HH:mm:ss');
+        }
       }
     };
   })
   .filter('datetimeFilter', function () {
     return function (input) {
-      return moment(input).format('D MMM YYYY HH:mm:ss');
+      if (input) {
+        return moment(input).format('D MMM YYYY HH:mm:ss');
+      }
     };
   })
   .filter('apiKeyFilter', function () {

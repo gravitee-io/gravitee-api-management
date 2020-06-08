@@ -48,7 +48,7 @@ const GroupsComponent: ng.IComponentOptions = {
         template: require('../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Would you like to remove the group "' + groupName + '" ?',
+          title: 'Would you like to remove the group "' + groupName + '"?',
           confirmButton: 'Remove'
         }
       }).then( (response) => {

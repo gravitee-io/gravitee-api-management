@@ -55,7 +55,7 @@ const RolesComponent: ng.IComponentOptions = {
         template: require('../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Are you sure you want to delete the role "' + role.name + '" ?',
+          title: 'Are you sure you want to delete the role "' + role.name + '"?',
           confirmButton: 'Remove'
         }
       }).then( (response) => {
