@@ -16,13 +16,17 @@
 package io.gravitee.repository.mongodb;
 
 import com.mongodb.MongoClient;
-import de.flapdoodle.embed.mongo.distribution.Version;
+import com.mongodb.MongoClientURI;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.utility.DockerImageName;
+
+import javax.inject.Inject;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,27 +36,33 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @EnableMongoRepositories
 public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
-    @Bean
-    public MongoTestFactory factory() throws Exception {
-        return MongoTestFactory.with(Version.Main.V3_5);
+    @Inject
+    private MongoDBContainer mongoDBContainer;
+
+    @Bean(destroyMethod = "stop")
+    public MongoDBContainer mongoDBContainer() {
+        MongoDBContainer mongoDb = new MongoDBContainer(DockerImageName.parse("mongo:4.0.10"));
+        mongoDb.start();
+        return mongoDb;
     }
 
     @Override
     protected String getDatabaseName() {
-        return "gravitee";
+        return "test";
     }
 
     @Override
+    @Bean
     public MongoClient mongoClient() {
-        try {
-            return factory().newMongo();
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+        return new MongoClient(new MongoClientURI(mongoDBContainer.getReplicaSetUrl()));
     }
 
     @Bean(name = "managementMongoTemplate")
-    public MongoOperations mongoOperations() {
-        return new MongoTemplate(mongoClient(), "gravitee");
+    public MongoOperations mongoOperations(MongoClient mongoClient) {
+        try {
+            return new MongoTemplate(mongoClient, getDatabaseName());
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

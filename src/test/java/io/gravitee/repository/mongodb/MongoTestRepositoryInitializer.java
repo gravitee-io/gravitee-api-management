@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb;
 
+import com.mongodb.MongoClient;
 import io.gravitee.repository.config.TestRepositoryInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,20 +25,33 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class MongoTestRepositoryInitializer implements TestRepositoryInitializer {
 
     private static final Logger LOG = LoggerFactory.getLogger(MongoTestRepositoryInitializer.class);
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
+    private final MongoClient mongoClient;
 
-    public void setUp() {
+    @Autowired
+    public MongoTestRepositoryInitializer(MongoClient mongoClient) {
+        LOG.debug("Constructed");
+        this.mongoClient = mongoClient;
+        final MongoTemplate mt = new MongoTemplate(mongoClient, "test");
+        LOG.debug("Dropping database...");
+        mt.getDb().drop();
     }
 
+    @Override
+    public void setUp() {
+
+    }
+
+    @Override
     public void tearDown() {
-        LOG.info("Dropping database...");
-        mongoTemplate.getDb().drop();
+        LOG.debug("Dropping database...");
+        final MongoTemplate mt = new MongoTemplate(mongoClient, "test");
+        mt.getDb().drop();
     }
 }
