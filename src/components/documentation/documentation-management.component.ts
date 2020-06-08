@@ -327,7 +327,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
         template: require('../dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Would you like to remove "' + page.name + '" ?',
+          title: 'Would you like to remove "' + page.name + '"?',
           msg: page.type !== 'LINK' ? 'All related links will also be removed.' : '',
           confirmButton: 'Remove'
         }

@@ -360,7 +360,7 @@ class ThemeController {
 
   restoreDefaultTheme = () => {
     let confirm = this.$mdDialog.confirm({
-      title: 'Restore default theme ?',
+      title: 'Restore default theme?',
       content: 'Are you sure you want to restore the default theme? All your changes will be deleted.',
       ok: 'RESTORE',
       cancel: 'CANCEL'

@@ -18,7 +18,7 @@ import { User } from '../entities/user';
 import {IScope} from 'angular';
 import UserService from '../services/user.service';
 import { StateService } from '@uirouter/core';
-import TokenService from "../services/token.service";
+import TokenService from '../services/token.service';
 
 interface IUserScope extends ng.IScope {
   formUser: any;
