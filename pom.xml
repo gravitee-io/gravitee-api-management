@@ -32,8 +32,13 @@
     <name>Gravitee.io APIM - Repository - JDBC</name>
 
     <properties>
+<<<<<<< HEAD
         <gravitee-repository.version>3.1.0</gravitee-repository.version>
         <gravitee-repository-test.version>3.1.0</gravitee-repository-test.version>
+=======
+        <gravitee-repository.version>1.30.5-SNAPSHOT</gravitee-repository.version>
+        <gravitee-repository-test.version>1.30.4-SNAPSHOT</gravitee-repository-test.version>
+>>>>>>> b0ee3bf... feat: Allows to generate personal access tokens to access the management API
         <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
         <HikariCP.version>3.4.1</HikariCP.version>
         <liquibase.version>3.8.0</liquibase.version>
@@ -275,7 +280,10 @@
                             <goal>test</goal>
                         </goals>
                         <configuration>
+<<<<<<< HEAD
                             <skip>false</skip>
+=======
+>>>>>>> b0ee3bf... feat: Allows to generate personal access tokens to access the management API
                             <systemPropertyVariables>
                                 <jdbcType>${default-database.jdbcType}</jdbcType>
                             </systemPropertyVariables>

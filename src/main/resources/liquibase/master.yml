@@ -68,6 +68,10 @@ databaseChangeLog:
   - include:
     - file: liquibase/changelogs/v1_30_4/schema.yml
   - include:
+<<<<<<< HEAD
     - file: liquibase/changelogs/v3_0_0/schema.yml
   - include:
     - file: liquibase/changelogs/v3_0_2/schema.yml
+=======
+    - file: liquibase/changelogs/v1_30_13/schema.yml
+>>>>>>> b0ee3bf... feat: Allows to generate personal access tokens to access the management API
