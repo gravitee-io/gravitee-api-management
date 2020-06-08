@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.security.config;
+package io.gravitee.management.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.rest.api.service.TokenService;
-import io.gravitee.rest.api.idp.api.IdentityProvider;
-import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
-import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
-import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
-import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
-import io.gravitee.rest.api.security.cookies.CookieGenerator;
-import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
-import io.gravitee.rest.api.security.csrf.CsrfRequestMatcher;
-import io.gravitee.rest.api.security.filter.CsrfIncludeFilter;
-import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
-import io.gravitee.rest.api.security.filter.RecaptchaFilter;
-import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
-import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
-import io.gravitee.rest.api.service.ReCaptchaService;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.management.idp.api.IdentityProvider;
+import io.gravitee.management.idp.api.authentication.AuthenticationProvider;
+import io.gravitee.management.idp.core.plugin.IdentityProviderManager;
+import io.gravitee.management.security.authentication.AuthenticationProviderManager;
+import io.gravitee.management.security.authentication.GraviteeAuthenticationDetails;
+import io.gravitee.management.security.cookies.CookieGenerator;
+import io.gravitee.management.security.csrf.CookieCsrfSignedTokenRepository;
+import io.gravitee.management.security.csrf.CsrfRequestMatcher;
+import io.gravitee.management.security.filter.CsrfIncludeFilter;
+import io.gravitee.management.security.filter.TokenAuthenticationFilter;
+import io.gravitee.management.security.filter.RecaptchaFilter;
+import io.gravitee.management.security.listener.AuthenticationFailureListener;
+import io.gravitee.management.security.listener.AuthenticationSuccessListener;
+import io.gravitee.management.service.ReCaptchaService;
+import io.gravitee.management.service.TokenService;
+import io.gravitee.management.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,8 +59,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository.DEFAULT_CSRF_HEADER_NAME;
-import static io.gravitee.rest.api.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
+import static io.gravitee.management.security.csrf.CookieCsrfSignedTokenRepository.DEFAULT_CSRF_HEADER_NAME;
+import static io.gravitee.management.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
 import static java.util.Arrays.asList;
 
 
@@ -95,17 +95,15 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        LOGGER.info("--------------------------------------------------------------");
-        LOGGER.info("Management API BasicSecurity Config");
         LOGGER.info("Loading authentication identity providers for Basic authentication");
 
-        List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers =
+        List<io.gravitee.management.security.authentication.AuthenticationProvider> providers =
                 authenticationProviderManager.getIdentityProviders()
                         .stream()
                         .filter(authenticationProvider -> !authenticationProvider.external())
                         .collect(Collectors.toList());
 
-        for (io.gravitee.rest.api.security.authentication.AuthenticationProvider provider : providers) {
+        for (io.gravitee.management.security.authentication.AuthenticationProvider provider : providers) {
             LOGGER.info("Loading authentication provider of type {} at position {}", provider.type(), provider.index());
 
             boolean found = false;
@@ -133,7 +131,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 LOGGER.error("No authentication provider found for type: {}", provider.type());
             }
         }
-        LOGGER.info("--------------------------------------------------------------");
     }
 
     @Bean
@@ -218,90 +215,72 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
-        String uriOrgPrefix = "/organizations/**";
-        String uriPrefix = uriOrgPrefix + "/environments/**";
-
         return security.authorizeRequests()
+                .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
+                .antMatchers(HttpMethod.POST, "/user/login").permitAll()
+                .antMatchers(HttpMethod.GET, "/user/**").authenticated()
+                .antMatchers(HttpMethod.POST, "/auth/**").permitAll()
+
+                // API requests
+                .antMatchers(HttpMethod.GET, "/apis/hooks").authenticated()
+                .antMatchers(HttpMethod.GET, "/apis/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/apis").authenticated()
+                .antMatchers(HttpMethod.POST, "/apis/**").authenticated()
+                .antMatchers(HttpMethod.PUT, "/apis/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/apis/**").authenticated()
+
+                // Application requests
+                .antMatchers(HttpMethod.POST, "/applications").authenticated()
+                .antMatchers(HttpMethod.POST, "/applications/**").authenticated()
+                .antMatchers(HttpMethod.PUT, "/applications/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/applications/**").authenticated()
+
+                // Subscriptions
+                .antMatchers(HttpMethod.GET, "/subscriptions/**").authenticated()
+
+                // Instance requests
+                .antMatchers(HttpMethod.GET, "/instances/**").authenticated()
+
+                // Platform requests
+                .antMatchers(HttpMethod.GET, "/platform/**").authenticated()
+
+                // User management
+                .antMatchers(HttpMethod.POST, "/users/registration/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/users").authenticated()
+                .antMatchers(HttpMethod.GET, "/users/**").authenticated()
+                .antMatchers(HttpMethod.PUT, "/users/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/users/**").authenticated()
+
                 // Swagger
                 .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
 
-                .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
-
-                // organizations resources
-                .antMatchers(HttpMethod.POST, uriOrgPrefix + "/users/registration/**").permitAll()
-                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users").authenticated()
-                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users/**").authenticated()
-                .antMatchers(HttpMethod.PUT, uriOrgPrefix + "/users/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, uriOrgPrefix + "/users/**").authenticated()
-
-                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/rolescopes/**").permitAll()
-                .antMatchers(uriOrgPrefix + "/configuration/**").authenticated()
-
-                // environments resources
-                .antMatchers(HttpMethod.POST, uriPrefix + "/user/login").permitAll()
-                .antMatchers(HttpMethod.GET, uriPrefix + "/user/**").authenticated()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/auth/**").permitAll()
-
-                // API requests
-                .antMatchers(HttpMethod.GET, uriPrefix + "/apis/hooks").authenticated()
-                .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").permitAll()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/apis").authenticated()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/apis/**").authenticated()
-                .antMatchers(HttpMethod.PUT, uriPrefix + "/apis/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, uriPrefix + "/apis/**").authenticated()
-
-                // Application requests
-                .antMatchers(HttpMethod.POST, uriPrefix + "/applications").authenticated()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/applications/**").authenticated()
-                .antMatchers(HttpMethod.PUT, uriPrefix + "/applications/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, uriPrefix + "/applications/**").authenticated()
-
-                // Subscriptions
-                .antMatchers(HttpMethod.GET, uriPrefix + "/subscriptions/**").authenticated()
-
-                // Instance requests
-                .antMatchers(HttpMethod.GET, uriPrefix + "/instances/**").authenticated()
-
-                // Platform requests
-                .antMatchers(HttpMethod.GET, uriPrefix + "/platform/**").authenticated()
-
-                // User management
-                .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**").permitAll()
-                .antMatchers(HttpMethod.GET, uriPrefix + "/users").authenticated()
-                .antMatchers(HttpMethod.GET, uriPrefix + "/users/**").authenticated()
-                .antMatchers(HttpMethod.PUT, uriPrefix + "/users/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, uriPrefix + "/users/**").authenticated()
-
                 // Configuration Groups
-                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/groups/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/configuration/groups/**").permitAll()
 
-                // Configuration Categories
-                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/categories/**").permitAll()
+                // Configuration Views
+                .antMatchers(HttpMethod.GET, "/configuration/views/**").permitAll()
 
                 // Configuration Tags
-                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/tags/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/configuration/tags/**").permitAll()
 
                 // Configuration Tenants
-                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/tenants/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/configuration/tenants/**").permitAll()
 
                 // Configuration role scopes
-                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/rolescopes/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/configuration/rolescopes/**").permitAll()
 
                 // Configuration
-                .antMatchers(uriPrefix + "/configuration/**").authenticated()
+                .antMatchers("/configuration/**").authenticated()
 
                 // Portal
-                .antMatchers(HttpMethod.GET, uriPrefix + "/portal/**").permitAll()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/portal/apis/_search").permitAll()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/portal/**").authenticated()
-                .antMatchers(HttpMethod.PUT, uriPrefix + "/portal/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, uriPrefix + "/portal/**").authenticated()
+                .antMatchers(HttpMethod.GET, "/portal/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/portal/apis/_search").permitAll()
+                .antMatchers(HttpMethod.POST, "/portal/**").authenticated()
+                .antMatchers(HttpMethod.PUT, "/portal/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/portal/**").authenticated()
 
                 // Search
-                .antMatchers(HttpMethod.GET, uriPrefix + "/search/users").authenticated()
-
-                // Entrypoints
-                .antMatchers(HttpMethod.GET, uriPrefix + "/entrypoints/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/search/users").authenticated()
                 .anyRequest().authenticated().and();
     }
 

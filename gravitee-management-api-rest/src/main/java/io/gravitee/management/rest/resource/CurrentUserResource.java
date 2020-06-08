@@ -13,31 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource;
+package io.gravitee.management.rest.resource;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.util.Maps;
-import io.gravitee.rest.api.exception.InvalidImageException;
-import io.gravitee.rest.api.idp.api.authentication.UserDetailRole;
-import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.management.rest.model.PagedResult;
-import io.gravitee.rest.api.management.rest.model.TokenEntity;
-import io.gravitee.rest.api.security.cookies.CookieGenerator;
-import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
-import io.gravitee.rest.api.security.utils.ImageUtils;
-import io.gravitee.rest.api.service.TagService;
-import io.gravitee.rest.api.service.TaskService;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.JWTHelper;
-import io.gravitee.rest.api.service.common.JWTHelper.Claims;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import io.gravitee.management.idp.api.authentication.UserDetailRole;
+import io.gravitee.management.idp.api.authentication.UserDetails;
+import io.gravitee.management.model.*;
+import io.gravitee.management.rest.exception.InvalidImageException;
+import io.gravitee.management.rest.model.PagedResult;
+import io.gravitee.management.rest.model.TokenEntity;
+import io.gravitee.management.rest.utils.ImageUtils;
+import io.gravitee.management.security.cookies.CookieGenerator;
+import io.gravitee.management.security.filter.TokenAuthenticationFilter;
+import io.gravitee.management.service.TagService;
+import io.gravitee.management.service.TaskService;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.common.JWTHelper;
+import io.gravitee.management.service.common.JWTHelper.Claims;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
+import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,9 +64,9 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.gravitee.rest.api.management.rest.model.TokenType.BEARER;
-import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
-import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+import static io.gravitee.management.rest.model.TokenType.BEARER;
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 import static javax.ws.rs.core.Response.ok;
 import static javax.ws.rs.core.Response.status;
 
@@ -74,6 +75,7 @@ import static javax.ws.rs.core.Response.status;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Path("/user")
 @Api(tags = {"User"})
 public class CurrentUserResource extends AbstractResource {
 
@@ -120,16 +122,11 @@ public class CurrentUserResource extends AbstractResource {
 
             UserDetails userDetails = new UserDetails(userEntity.getId(), password, authorities);
             userDetails.setId(userEntity.getId());
+            userDetails.setEmail(details.getEmail());
             userDetails.setFirstname(details.getFirstname());
             userDetails.setLastname(details.getLastname());
             userDetails.setSource(userEntity.getSource());
             userDetails.setSourceId(userEntity.getSourceId());
-
-            if (details.getEmail() == null && "memory".equals(userEntity.getSource()) && userEntity.getEmail() != null) {
-                userDetails.setEmail(userEntity.getEmail());
-            } else {
-                userDetails.setEmail(details.getEmail());
-            }
 
             //convert UserEntityRoles to UserDetailsRoles
             userDetails.setRoles(userEntity.getRoles().
@@ -142,8 +139,6 @@ public class CurrentUserResource extends AbstractResource {
                         return userDetailRole;
                     }).collect(Collectors.toList()));
 
-            userDetails.setFirstLogin(1 == userEntity.getLoginCount());
-
             return ok(userDetails, MediaType.APPLICATION_JSON).build();
         } else {
             return ok().build();
@@ -154,10 +149,15 @@ public class CurrentUserResource extends AbstractResource {
     @ApiOperation(value = "Update user")
     public Response updateCurrentUser(@Valid @NotNull final UpdateUserEntity user) {
         UserEntity userEntity = userService.findById(getAuthenticatedUser());
+
+        // TODO: how to ensure that we can update the user profile?
+/*
+        if (!userEntity.get.equals(userService.findById(getAuthenticatedUser()).getUsername())) {
+            throw new ForbiddenAccessException();
+        }
+*/
         try {
-            if (user.getPicture() != null) {
-                user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
-            }
+            user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
         } catch (InvalidImageException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
         }
@@ -172,14 +172,15 @@ public class CurrentUserResource extends AbstractResource {
         String userId = userService.findById(getAuthenticatedUser()).getId();
         PictureEntity picture = userService.getPicture(userId);
 
+        if (picture == null) {
+            throw new NotFoundException();
+        }
+
         if (picture instanceof UrlPictureEntity) {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
         }
 
         InlinePictureEntity image = (InlinePictureEntity) picture;
-        if (image == null || image.getContent() == null) {
-            return Response.ok().build();
-        }
 
         EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
         Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
@@ -215,22 +216,22 @@ public class CurrentUserResource extends AbstractResource {
             List<Map<String, String>> authorities = userDetails.getAuthorities().stream().map(authority -> Maps.<String, String>builder().put("authority", authority.getAuthority()).build()).collect(Collectors.toList());
 
             // We must also load permissions from repository for configured management or portal role
-            Set<RoleEntity> roles = membershipService.getRoles(
-                    MembershipReferenceType.ENVIRONMENT,
-                    GraviteeContext.getCurrentEnvironment(),
-                    MembershipMemberType.USER,
-                    userDetails.getUsername());
-            if (!roles.isEmpty()) {
-                roles.forEach(role-> authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()));
+            RoleEntity role = membershipService.getRole(
+                    MembershipReferenceType.MANAGEMENT,
+                    MembershipDefaultReferenceId.DEFAULT.toString(),
+                    userDetails.getUsername(),
+                    RoleScope.MANAGEMENT);
+            if (role != null) {
+                authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build());
             }
 
-            roles = membershipService.getRoles(
-                    MembershipReferenceType.ORGANIZATION,
-                    GraviteeContext.getCurrentOrganization(),
-                    MembershipMemberType.USER,
-                    userDetails.getUsername());
-            if (!roles.isEmpty()) {
-                roles.forEach(role-> authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()));
+            role = membershipService.getRole(
+                    MembershipReferenceType.PORTAL,
+                    MembershipDefaultReferenceId.DEFAULT.toString(),
+                    userDetails.getUsername(),
+                    RoleScope.PORTAL);
+            if (role != null) {
+                authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build());
             }
 
             // JWT signer
@@ -249,7 +250,6 @@ public class CurrentUserResource extends AbstractResource {
                     .withClaim(JWTHelper.Claims.EMAIL, userDetails.getEmail())
                     .withClaim(JWTHelper.Claims.FIRSTNAME, userDetails.getFirstname())
                     .withClaim(JWTHelper.Claims.LASTNAME, userDetails.getLastname())
-                    .withJWTId(UUID.randomUUID().toString())
                     .sign(algorithm);
 
 
@@ -295,5 +295,11 @@ public class CurrentUserResource extends AbstractResource {
     @Path("/notifications")
     public UserNotificationsResource getUserNotificationsResource() {
         return resourceContext.getResource(UserNotificationsResource.class);
+    }
+
+
+    @Path("/tokens")
+    public TokensResource getTokensResource() {
+        return resourceContext.getResource(TokensResource.class);
     }
 }

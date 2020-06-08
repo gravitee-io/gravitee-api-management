@@ -133,6 +133,8 @@ public class UserServiceTest {
     private SocialIdentityProviderEntity identityProvider;
     @Mock
     private OrganizationService organizationService;
+    @Mock
+    private TokenService tokenService;
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
@@ -543,6 +545,7 @@ public class UserServiceTest {
         verify(portalNotificationService, times(1)).deleteAll(user.getId());
         verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
         verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
+        verify(tokenService, times(1)).revokeByUser(userId);
     }
 
     @Test
@@ -588,6 +591,7 @@ public class UserServiceTest {
         verify(portalNotificationService, times(1)).deleteAll(user.getId());
         verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
         verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
+        verify(tokenService, times(1)).revokeByUser(userId);
     }
     
     @Test(expected = EmailRequiredException.class)

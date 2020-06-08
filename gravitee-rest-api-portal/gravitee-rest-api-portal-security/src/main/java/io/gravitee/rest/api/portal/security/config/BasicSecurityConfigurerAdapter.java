@@ -15,24 +15,20 @@
  */
 package io.gravitee.rest.api.portal.security.config;
 
-import static io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository.DEFAULT_CSRF_HEADER_NAME;
-import static io.gravitee.rest.api.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
-import static java.util.Arrays.asList;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.rest.api.idp.api.IdentityProvider;
+import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
+import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
+import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
+import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
 import io.gravitee.rest.api.security.csrf.CsrfRequestMatcher;
 import io.gravitee.rest.api.security.filter.CsrfIncludeFilter;
 import io.gravitee.rest.api.security.filter.RecaptchaFilter;
+import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
+import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
+import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,14 +52,16 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import io.gravitee.rest.api.idp.api.IdentityProvider;
-import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
-import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
-import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
-import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
-import io.gravitee.rest.api.security.filter.JWTAuthenticationFilter;
-import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
-import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository.DEFAULT_CSRF_HEADER_NAME;
+import static io.gravitee.rest.api.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
+import static java.util.Arrays.asList;
 
 
 /**
@@ -201,10 +199,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         csrf(http);
         cors(http);
 
-        http
-                .addFilterBefore(new JWTAuthenticationFilter(jwtSecret, cookieGenerator), BasicAuthenticationFilter.class);
-
-        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), JWTAuthenticationFilter.class);
+        http.addFilterBefore(new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null), BasicAuthenticationFilter.class);
+        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {

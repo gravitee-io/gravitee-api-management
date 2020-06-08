@@ -13,47 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl;
+package io.gravitee.management.service.impl;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.ReadContext;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.el.TemplateEngine;
-import io.gravitee.el.spel.function.JsonPathFunction;
+import io.gravitee.common.utils.UUID;
+import io.gravitee.management.model.*;
+import io.gravitee.management.model.application.ApplicationSettings;
+import io.gravitee.management.model.application.SimpleApplicationSettings;
+import io.gravitee.management.model.common.Pageable;
+import io.gravitee.management.model.parameters.Key;
+import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.management.service.*;
+import io.gravitee.management.service.builder.EmailNotificationBuilder;
+import io.gravitee.management.service.common.JWTHelper.ACTION;
+import io.gravitee.management.service.common.JWTHelper.Claims;
+import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.impl.search.SearchResult;
+import io.gravitee.management.service.notification.NotificationParamsBuilder;
+import io.gravitee.management.service.notification.PortalHook;
+import io.gravitee.management.service.search.SearchEngineService;
+import io.gravitee.management.service.search.query.Query;
+import io.gravitee.management.service.search.query.QueryBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.User;
-import io.gravitee.repository.management.model.UserReferenceType;
-import io.gravitee.repository.management.model.UserStatus;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.application.ApplicationSettings;
-import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
-import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
-import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
-import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.JWTHelper.ACTION;
-import io.gravitee.rest.api.service.common.JWTHelper.Claims;
-import io.gravitee.rest.api.service.common.RandomString;
-import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.impl.search.SearchResult;
-import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
-import io.gravitee.rest.api.service.notification.PortalHook;
-import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.search.query.Query;
-import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import io.gravitee.repository.management.model.*;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,17 +55,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.DatatypeConverter;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.management.service.common.JWTHelper.ACTION.*;
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+import static io.gravitee.management.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
+import static io.gravitee.management.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
-import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.*;
-import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
-import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
@@ -88,12 +80,10 @@ import static java.util.stream.Collectors.toList;
 @Component
 public class UserServiceImpl extends AbstractService implements UserService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     /** A default source used for user registration.*/
-    private static final String IDP_SOURCE_GRAVITEE = "gravitee";
-    private static final String TEMPLATE_ENGINE_PROFILE_ATTRIBUTE = "profile";
-
+    private final static String IDP_SOURCE_GRAVITEE = "gravitee";
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -125,16 +115,12 @@ public class UserServiceImpl extends AbstractService implements UserService {
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
     @Autowired
-    private GroupService groupService;
-    @Autowired
-    private OrganizationService organizationService;
-    @Autowired
-    private NewsletterService newsletterService;
-    @Autowired
     private PasswordValidator passwordValidator;
     @Autowired
     private TokenService tokenService;
 
+    @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
+    private String defaultAvatar;
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
 
@@ -142,16 +128,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
     private boolean anonymizeOnDelete;
 
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    // Dirty hack: only used to force class loading
-    static {
-        try {
-            LOGGER.trace("Loading class to initialize properly JsonPath Cache provider: {}",
-                    Class.forName(JsonPathFunction.class.getName()));
-        } catch (ClassNotFoundException ignored) {
-            LOGGER.trace("Loading class to initialize properly JsonPath Cache provider : fail");
-        }
-    }
 
     @Override
     public UserEntity connect(String userId) {
@@ -192,8 +168,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
             // Set date fields
             user.setLastConnectionAt(new Date());
             user.setUpdatedAt(user.getLastConnectionAt());
-
-            user.setLoginCount(user.getLoginCount() + 1);
 
             User updatedUser = userRepository.update(user);
             auditService.createPortalAuditLog(
@@ -253,12 +227,13 @@ public class UserServiceImpl extends AbstractService implements UserService {
         try {
             LOGGER.debug("Find user by source[{}] user[{}]", source, sourceId);
 
-            Optional<User> optionalUser = userRepository.findBySource(source, sourceId, GraviteeContext.getCurrentOrganization(), UserReferenceType.ORGANIZATION);
+            Optional<User> optionalUser = userRepository.findBySource(source, sourceId);
 
             if (optionalUser.isPresent()) {
                 return convert(optionalUser.get(), loadRoles);
             }
 
+            // Should never happen
             throw new UserNotFoundException(sourceId);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find user using source[{}], user[{}]", source, sourceId, ex);
@@ -292,7 +267,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     private void checkUserRegistrationEnabled() {
         if (!parameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)) {
-            throw new UserRegistrationUnavailableException();
+            throw new IllegalStateException("The user registration is disabled");
         }
     }
 
@@ -347,7 +322,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 Optional<User> checkUser = userRepository.findById(username);
                 user = checkUser.orElseThrow(() -> new UserNotFoundException(username));
                 if (StringUtils.isNotBlank(user.getPassword())) {
-                    throw new UserAlreadyFinalizedException(GraviteeContext.getCurrentEnvironment());
+                    throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, username);
                 }
             }
 
@@ -391,8 +366,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
             final UserEntity userEntity = convert(user, true);
             searchEngineService.index(userEntity, false);
             return userEntity;
-        } catch (AbstractManagementException ex) {
-            throw ex;
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to create an internal user with the token {}", registerUserEntity.getToken(), ex);
             throw new TechnicalManagementException(ex.getMessage(), ex);
@@ -422,9 +395,14 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
         }
 
-        // Return empty image
+        // Return default inline user avatar
         InlinePictureEntity imageEntity = new InlinePictureEntity();
         imageEntity.setType("image/png");
+        try {
+            imageEntity.setContent(IOUtils.toByteArray(new FileInputStream(defaultAvatar)));
+        } catch (IOException ioe) {
+            LOGGER.error("Default icon for API does not exist", ioe);
+        }
         return imageEntity;
     }
 
@@ -436,24 +414,16 @@ public class UserServiceImpl extends AbstractService implements UserService {
     @Override
     public UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole) {
         try {
-            String referenceId = GraviteeContext.getCurrentOrganization();
-            UserReferenceType referenceType = UserReferenceType.ORGANIZATION;
-
-            // First we check that organization exist
-            this.organizationService.findById(referenceId);
-
             LOGGER.debug("Create an external user {}", newExternalUserEntity);
             Optional<User> checkUser = userRepository.findBySource(
-                    newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), referenceId, referenceType);
+                    newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId());
 
             if (checkUser.isPresent()) {
-                throw new UserAlreadyExistsException(newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), referenceId, referenceType);
+                throw new UserAlreadyExistsException(newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId());
             }
 
             User user = convert(newExternalUserEntity);
-            user.setId(RandomString.generate());
-            user.setReferenceId(referenceId);
-            user.setReferenceType(referenceType);
+            user.setId(UUID.toString(UUID.random()));
             user.setStatus(UserStatus.ACTIVE);
 
             // Set date fields
@@ -482,7 +452,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     private void addDefaultMembership(User user) {
-        RoleScope[] scopes = {RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT};
+        RoleScope[] scopes = {RoleScope.MANAGEMENT, RoleScope.PORTAL};
         List<RoleEntity> defaultRoleByScopes = roleService.findDefaultRoleByScopes(scopes);
         if (defaultRoleByScopes == null || defaultRoleByScopes.isEmpty()) {
             throw new DefaultRoleNotFoundException(scopes);
@@ -490,17 +460,17 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         for (RoleEntity defaultRoleByScope : defaultRoleByScopes) {
             switch (defaultRoleByScope.getScope()) {
-                case ORGANIZATION:
-                    membershipService.addRoleToMemberOnReference(
-                            new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization()),
-                            new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
-                            new MembershipService.MembershipRole(RoleScope.ORGANIZATION, defaultRoleByScope.getName()));
+                case MANAGEMENT:
+                    membershipService.addOrUpdateMember(
+                            new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
+                            new MembershipService.MembershipUser(user.getId(), null),
+                            new MembershipService.MembershipRole(RoleScope.MANAGEMENT, defaultRoleByScope.getName()));
                     break;
-                case ENVIRONMENT:
-                    membershipService.addRoleToMemberOnReference(
-                            new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment()),
-                            new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
-                            new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, defaultRoleByScope.getName()));
+                case PORTAL:
+                    membershipService.addOrUpdateMember(
+                            new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
+                            new MembershipService.MembershipUser(user.getId(), null),
+                            new MembershipService.MembershipRole(RoleScope.PORTAL, defaultRoleByScope.getName()));
                     break;
                 default:
                     break;
@@ -510,36 +480,28 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public UserEntity register(final NewExternalUserEntity newExternalUserEntity) {
-        return register(newExternalUserEntity, null);
-    }
-
-    @Override
-    public UserEntity register(final NewExternalUserEntity newExternalUserEntity, final String confirmationPageUrl) {
         checkUserRegistrationEnabled();
-        return createAndSendEmail(newExternalUserEntity, USER_REGISTRATION, confirmationPageUrl);
+        return createAndSendEmail(newExternalUserEntity, USER_REGISTRATION);
     }
 
     @Override
     public UserEntity create(final NewExternalUserEntity newExternalUserEntity) {
-        return createAndSendEmail(newExternalUserEntity, USER_CREATION, null);
+        return createAndSendEmail(newExternalUserEntity, USER_CREATION);
     }
 
     /**
      * Allows to create an user and send an email notification to finalize its creation.
      */
-    private UserEntity createAndSendEmail(final NewExternalUserEntity newExternalUserEntity, final ACTION action, final String confirmationPageUrl) {
+    private UserEntity createAndSendEmail(final NewExternalUserEntity newExternalUserEntity, final ACTION action) {
         if (!EmailValidator.isValid(newExternalUserEntity.getEmail())){
             throw new EmailFormatInvalidException(newExternalUserEntity.getEmail());
         }
 
-        String referenceId = GraviteeContext.getCurrentOrganization();
-        UserReferenceType referenceType = UserReferenceType.ORGANIZATION;
-
         final Optional<User> optionalUser;
         try {
-            optionalUser = userRepository.findBySource(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail(), referenceId, referenceType);
+            optionalUser = userRepository.findBySource(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail());
             if (optionalUser.isPresent()) {
-                throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail(), referenceId, referenceType);
+                throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail());
             }
         } catch (final TechnicalException e) {
             LOGGER.error("An error occurs while trying to create user {}", newExternalUserEntity.getEmail(), e);
@@ -551,7 +513,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         final UserEntity userEntity = create(newExternalUserEntity, true);
 
-        final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action, confirmationPageUrl);
+        final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action);
         notifierService.trigger(ACTION.USER_REGISTRATION.equals(action) ? PortalHook.USER_REGISTERED : PortalHook.USER_CREATED, params);
         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                 .to(userEntity.getEmail())
@@ -561,22 +523,12 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 .build()
         );
 
-        if (newExternalUserEntity.isNewsletter()) {
-            newsletterService.subscribe(newExternalUserEntity);
-        }
-
         return userEntity;
     }
 
     @Override
     public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri,
                                                           final ACTION action) {
-        return getTokenRegistrationParams(userEntity, portalUri, action, null);
-    }
-
-    @Override
-    public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri,
-                                                          final ACTION action, final String targetPageUrl) {
         // generate a JWT to store user's information and for security purpose
         final String jwtSecret = environment.getProperty("jwt.secret");
         if (jwtSecret == null || jwtSecret.isEmpty()) {
@@ -600,20 +552,13 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 .withClaim(Claims.ACTION, action.name())
                 .sign(algorithm);
 
-        String registrationUrl= "";
-        if (targetPageUrl != null && !targetPageUrl.isEmpty()) {
-            registrationUrl += targetPageUrl;
-            if(!targetPageUrl.endsWith("/")) {
-                registrationUrl += "/";
-            }
-            registrationUrl += token;
-        } else {
-            String portalUrl = environment.getProperty("portalURL");
-            if (portalUrl!= null && portalUrl.endsWith("/")) {
-                portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
-            }
-            registrationUrl = portalUrl + portalUri + token;
+        String portalUrl = environment.getProperty("portalURL");
+
+        if (portalUrl!= null && portalUrl.endsWith("/")) {
+            portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
         }
+
+        String registrationUrl = portalUrl + portalUri + token;
 
         // send a confirm email with the token
         return new NotificationParamsBuilder()
@@ -639,8 +584,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
             user.setUpdatedAt(new Date());
 
             // Set variant fields
-            user.setPicture(updateUserEntity.getPicture());
-
+            if (updateUserEntity.getPicture() != null) {
+                user.setPicture(updateUserEntity.getPicture());
+            }
             if (updateUserEntity.getFirstname() != null) {
                 user.setFirstname(updateUserEntity.getFirstname());
             }
@@ -652,10 +598,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
             if (updateUserEntity.getStatus() != null) {
                 user.setStatus(UserStatus.valueOf(updateUserEntity.getStatus()));
-            }
-
-            if (updateUserEntity.isNewsletter() && user.getEmail() != null) {
-                newsletterService.subscribe(user);
             }
 
             User updatedUser = userRepository.update(user);
@@ -701,39 +643,25 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     private void populateUserFlags(final List<UserEntity> users) {
-        RoleEntity apiPORole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
-                .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
-        RoleEntity applicationPORole = roleService.findByScopeAndName(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name())
-                .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
-
         users.forEach(user -> {
-            final boolean apiPO = !membershipService.getMembershipsByMemberAndReferenceAndRole(
-                    MembershipMemberType.USER, user.getId(), MembershipReferenceType.API, apiPORole.getId())
-                    .isEmpty();
-            final boolean appPO = !membershipService.getMembershipsByMemberAndReferenceAndRole(
-                    MembershipMemberType.USER, user.getId(), MembershipReferenceType.APPLICATION, applicationPORole.getId())
-                    .isEmpty();
+            final boolean apiPO = membershipService.findUserMembership(user.getId(), MembershipReferenceType.API)
+                    .stream().anyMatch(membership -> membership.getRoles() != null &&
+                            SystemRole.PRIMARY_OWNER.name().equals(membership.getRoles().get(RoleScope.API.getId())));
 
+            final boolean appPO = membershipService.findUserMembership(user.getId(), MembershipReferenceType.APPLICATION)
+                    .stream().anyMatch(membership -> membership.getRoles() != null &&
+                            SystemRole.PRIMARY_OWNER.name().equals(membership.getRoles().get(RoleScope.APPLICATION.getId())));
             user.setPrimaryOwner(apiPO || appPO);
             user.setNbActiveTokens(tokenService.findByUser(user.getId()).size());
         });
     }
 
-
     @Override
     public Page<UserEntity> search(UserCriteria criteria, Pageable pageable) {
         try {
             LOGGER.debug("search users");
-            UserCriteria.Builder builder = new UserCriteria.Builder()
-                    .referenceId(GraviteeContext.getCurrentOrganization())
-                    .referenceType(UserReferenceType.ORGANIZATION)
-                    .statuses(criteria.getStatuses());
-            if(criteria.hasNoStatus()) {
-                builder.noStatus();
-            }
-            UserCriteria newCriteria = builder.build();
 
-            Page<User> users = userRepository.search(newCriteria, new PageableBuilder()
+            Page<User> users = userRepository.search(criteria, new PageableBuilder()
                     .pageNumber(pageable.getPageNumber() - 1)
                     .pageSize(pageable.getPageSize())
                     .build());
@@ -759,7 +687,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     public void delete(String id) {
         try {
             // If the users is PO of apps or apis, throw an exception
-            long apiCount = apiService.findByUser(id, null, false)
+            long apiCount = apiService.findByUser(id, null)
                     .stream()
                     .filter(entity -> entity.getPrimaryOwner().getId().equals(id))
                     .count();
@@ -777,7 +705,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 throw new UserNotFoundException(id);
             }
 
-            membershipService.removeMemberMemberships(MembershipMemberType.USER, id);
+            membershipService.removeUser(id);
             User user = optionalUser.get();
 
             //remove notifications
@@ -804,12 +732,10 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 anonym.setSourceId("deleted-" + user.getId());
                 anonym.setFirstname("Unknown");
                 anonym.setLastname("");
-                anonym.setLoginCount(user.getLoginCount());
                 user = anonym;
             }
 
             userRepository.update(user);
-
 
             final UserEntity userEntity = convert(optionalUser.get(), false);
             searchEngineService.delete(userEntity, false);
@@ -821,24 +747,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public void resetPassword(final String id) {
-        this.resetPassword(id, null);
-    }
-
-    @Override
-    public UserEntity resetPasswordFromSourceId(String sourceId, String resetPageUrl) {
-        if (sourceId.startsWith("deleted")) {
-            throw new UserNotActiveException(sourceId);
-        }
-        UserEntity foundUser = this.findBySource(IDP_SOURCE_GRAVITEE, sourceId, false);
-        if ("ACTIVE".equals(foundUser.getStatus())) {
-            this.resetPassword(foundUser.getId(), resetPageUrl);
-            return foundUser;
-        } else {
-            throw new UserNotActiveException(foundUser.getSourceId());
-        }
-    }
-
-    private void resetPassword(final String id, final String resetPageUrl) {
         try {
             LOGGER.debug("Resetting password of user id {}", id);
 
@@ -856,7 +764,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             userRepository.update(user);
 
             final Map<String, Object> params = getTokenRegistrationParams(convert(user, false),
-                    RESET_PASSWORD_PATH, RESET_PASSWORD, resetPageUrl);
+                    RESET_PASSWORD_PATH, RESET_PASSWORD);
 
             notifierService.trigger(PortalHook.PASSWORD_RESET, params);
 
@@ -935,28 +843,26 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         if (loadRoles) {
             Set<UserRoleEntity> roles = new HashSet<>();
-            Set<RoleEntity> roleEntities = membershipService.getRoles(
-                    MembershipReferenceType.ORGANIZATION,
-                    GraviteeContext.getCurrentOrganization(),
-                    MembershipMemberType.USER,
-                    user.getId());
-            if (!roleEntities.isEmpty()) {
-                roleEntities.forEach(roleEntity -> roles.add(convert(roleEntity)));
+            RoleEntity roleEntity = membershipService.getRole(
+                    MembershipReferenceType.PORTAL,
+                    MembershipDefaultReferenceId.DEFAULT.name(),
+                    user.getId(),
+                    RoleScope.PORTAL);
+            if (roleEntity != null) {
+                roles.add(convert(roleEntity));
             }
 
-            roleEntities = membershipService.getRoles(
-                    MembershipReferenceType.ENVIRONMENT,
-                    GraviteeContext.getCurrentEnvironment(),
-                    MembershipMemberType.USER,
-                    user.getId());
-            if (!roleEntities.isEmpty()) {
-                roleEntities.forEach(roleEntity -> roles.add(convert(roleEntity)));
+            roleEntity = membershipService.getRole(
+                    MembershipReferenceType.MANAGEMENT,
+                    MembershipDefaultReferenceId.DEFAULT.name(),
+                    user.getId(),
+                    RoleScope.MANAGEMENT);
+            if (roleEntity != null) {
+                roles.add(convert(roleEntity));
             }
 
             userEntity.setRoles(roles);
         }
-
-        userEntity.setLoginCount(user.getLoginCount());
 
         return userEntity;
     }
@@ -967,253 +873,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
 
         UserRoleEntity userRoleEntity = new UserRoleEntity();
-        userRoleEntity.setId(roleEntity.getId());
         userRoleEntity.setScope(roleEntity.getScope());
         userRoleEntity.setName(roleEntity.getName());
         userRoleEntity.setPermissions(roleEntity.getPermissions());
         return userRoleEntity;
-    }
-
-    @Override
-    public UserEntity createOrUpdateUserFromSocialIdentityProvider(SocialIdentityProviderEntity socialProvider,
-            String userInfo) {
-        HashMap<String, String> attrs = getUserProfileAttrs(socialProvider.getUserProfileMapping(), userInfo);
-
-        String email = attrs.get(SocialIdentityProviderEntity.UserProfile.EMAIL);
-        if (email == null && socialProvider.isEmailRequired()) {
-            throw new EmailRequiredException(attrs.get(SocialIdentityProviderEntity.UserProfile.ID));
-        }
-
-        try {
-            return refreshExistingUser(socialProvider, attrs, email);
-        } catch (UserNotFoundException unfe) {
-            return createNewExternalUser(socialProvider, userInfo, attrs, email);
-        }
-    }
-
-    private HashMap<String, String> getUserProfileAttrs(Map<String, String> userProfileMapping, String userInfo) {
-        TemplateEngine templateEngine = TemplateEngine.templateEngine();
-        templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
-
-        ReadContext userInfoPath = JsonPath.parse(userInfo);
-        HashMap<String, String> map = new HashMap<>(userProfileMapping.size());
-
-        for (Map.Entry<String, String> entry : userProfileMapping.entrySet()) {
-            String field = entry.getKey();
-            String mapping = entry.getValue();
-
-            if (mapping != null) {
-                try {
-                    if (mapping.contains("{#")) {
-                        map.put(field, templateEngine.getValue(mapping, String.class));
-                    } else {
-                        map.put(field, userInfoPath.read(mapping, String.class));
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("Using mapping: \"{}\", no fields are located in {}", mapping, userInfo);
-                }
-            }
-        }
-
-        return map;
-    }
-
-    private UserEntity createNewExternalUser(final SocialIdentityProviderEntity socialProvider, final String userInfo, HashMap<String, String> attrs, String email) {
-        final NewExternalUserEntity newUser = new NewExternalUserEntity();
-        newUser.setEmail(email);
-        newUser.setSource(socialProvider.getId());
-
-        if (attrs.get(SocialIdentityProviderEntity.UserProfile.ID) != null) {
-            newUser.setSourceId(attrs.get(SocialIdentityProviderEntity.UserProfile.ID));
-        }
-        if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
-            newUser.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
-        }
-        if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
-            newUser.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
-        }
-        if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
-            newUser.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
-        }
-
-        UserEntity createdUser = null;
-        String userId = null;
-        if (socialProvider.getGroupMappings() != null && !socialProvider.getGroupMappings().isEmpty()) {
-            // Can fail if a mappingCondition is not well-formed
-            Set<GroupEntity> groupsToAdd = getGroupsToAddUser(userId, socialProvider.getGroupMappings(), userInfo);
-            createdUser = this.create(newUser, true);
-            userId = createdUser.getId();
-            addUserToApiAndAppGroupsWithDefaultRole(userId, groupsToAdd);
-        } else {
-            createdUser = this.create(newUser, true);
-            userId = createdUser.getId();
-        }
-
-        if (socialProvider.getRoleMappings() != null && !socialProvider.getRoleMappings().isEmpty()) {
-            Set<RoleEntity> rolesToAdd = getRolesToAddUser(userId, socialProvider.getRoleMappings(), userInfo);
-            addRolesToUser(userId, rolesToAdd);
-        }
-        return createdUser;
-    }
-
-    private UserEntity refreshExistingUser(final SocialIdentityProviderEntity socialProvider, HashMap<String, String> attrs, String email) {
-        String userId;
-        UserEntity registeredUser = this.findBySource(socialProvider.getId(), attrs.get(SocialIdentityProviderEntity.UserProfile.ID), false);
-        userId = registeredUser.getId();
-
-        // User refresh
-        UpdateUserEntity user = new UpdateUserEntity();
-
-        if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
-            user.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
-        }
-        if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
-            user.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
-        }
-        if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
-            user.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
-        }
-        user.setEmail(email);
-
-        return this.update(userId, user);
-    }
-
-    private Set<GroupEntity> getGroupsToAddUser(String userId, List<GroupMappingEntity> mappings, String userInfo) {
-        Set<GroupEntity> groupsToAdd = new HashSet<>();
-
-        for (GroupMappingEntity mapping : mappings) {
-            TemplateEngine templateEngine = TemplateEngine.templateEngine();
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
-
-            Boolean match = templateEngine.getValue(mapping.getCondition(), Boolean.class);
-
-            trace(userId, match, mapping.getCondition());
-
-            // Get groups
-            if (match.booleanValue()) {
-                for (String groupName : mapping.getGroups()) {
-                    try {
-                        groupsToAdd.add(groupService.findById(groupName));
-                    } catch (GroupNotFoundException gnfe) {
-                        LOGGER.error("Unable to create user, missing group in repository : {}", groupName);
-                    }
-                }
-            }
-        }
-        return groupsToAdd;
-    }
-
-    private Set<RoleEntity> getRolesToAddUser(String username, List<RoleMappingEntity> mappings, String userInfo) {
-        Set<RoleEntity> rolesToAdd = new HashSet<>();
-
-        for (RoleMappingEntity mapping : mappings) {
-            TemplateEngine templateEngine = TemplateEngine.templateEngine();
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
-
-            boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
-
-            trace(username, match, mapping.getCondition());
-
-            // Get roles
-            if (match) {
-                if(mapping.getOrganizations() != null && !mapping.getOrganizations().isEmpty()) {
-                    mapping.getOrganizations().forEach(organizationRoleName -> addRoleScope(rolesToAdd, organizationRoleName, RoleScope.ORGANIZATION));
-                }
-                if(mapping.getEnvironments() != null && !mapping.getEnvironments().isEmpty()) {
-                    mapping.getEnvironments().forEach(environmentRoleName -> addRoleScope(rolesToAdd, environmentRoleName, RoleScope.ENVIRONMENT));
-                }
-            }
-        }
-        return rolesToAdd;
-    }
-
-    private void addRoleScope(Set<RoleEntity> rolesToAdd, String mappingRole, RoleScope roleScope) {
-        if (mappingRole != null) {
-            Optional<RoleEntity> optRoleEntity = roleService.findByScopeAndName(roleScope, mappingRole);
-            if (optRoleEntity.isPresent()) {
-                rolesToAdd.add(optRoleEntity.get());
-            } else {
-                LOGGER.error("Unable to create user, missing role in repository : {}", mappingRole);
-            }
-        }
-    }
-
-    private void addUserToApiAndAppGroupsWithDefaultRole(String userId, Collection<GroupEntity> groupsToAdd) {
-        // Get the default role from system
-        List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION);
-
-        // Add groups to user
-        for (GroupEntity groupEntity : groupsToAdd) {
-            for (RoleEntity roleEntity : roleEntities) {
-                String defaultRole = roleEntity.getName();
-
-                // If defined, get the override default role at the group level
-                if (groupEntity.getRoles() != null) {
-                    String groupDefaultRole = groupEntity.getRoles().get(io.gravitee.rest.api.model.permissions.RoleScope.valueOf(roleEntity.getScope().name()));
-                    if (groupDefaultRole != null) {
-                        defaultRole = groupDefaultRole;
-                    }
-                }
-
-                membershipService.addRoleToMemberOnReference(
-                        new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupEntity.getId()),
-                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                        new MembershipService.MembershipRole(roleEntity.getScope(), defaultRole));
-            }
-        }
-
-    }
-
-    private void addRolesToUser(String userId, Collection<RoleEntity> rolesToAdd) {
-        // add roles to user
-        for (RoleEntity roleEntity : rolesToAdd) {
-            MembershipService.MembershipReference ref = null;
-            if (roleEntity.getScope() == RoleScope.ORGANIZATION) {
-                ref = new MembershipService.MembershipReference(
-                        MembershipReferenceType.ORGANIZATION,
-                        GraviteeContext.getCurrentOrganization());
-            } else {
-                ref = new MembershipService.MembershipReference(
-                        MembershipReferenceType.ENVIRONMENT,
-                        GraviteeContext.getCurrentEnvironment());
-            }
-            membershipService.addRoleToMemberOnReference(
-                    ref,
-                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(
-                            RoleScope.valueOf(roleEntity.getScope().name()),
-                            roleEntity.getName()));
-        }
-    }
-
-    private void trace(String userId, boolean match, String condition) {
-        if (LOGGER.isDebugEnabled()) {
-            if (match) {
-                LOGGER.debug("the expression {} match {} on user's info ", condition, userId);
-            } else {
-                LOGGER.debug("the expression {} didn't match {} on user's info ", condition, userId);
-            }
-        }
-    }
-
-    @Override
-    public void updateUserRoles(String userId, List<String> roleIds) {
-        // check if user exist
-        this.findById(userId);
-
-        Set<MembershipEntity> userMemberships = membershipService.getMembershipsByMember(MembershipMemberType.USER, userId).stream()
-                .filter(membership -> membership.getReferenceType().equals(MembershipReferenceType.ENVIRONMENT) || membership.getReferenceType().equals(MembershipReferenceType.ORGANIZATION))
-                .collect(Collectors.toSet());
-        userMemberships.forEach(membership -> {
-            if(!roleIds.contains(membership.getRoleId())) {
-                membershipService.deleteMembership(membership.getId());
-            } else {
-                roleIds.remove(membership.getRoleId());
-            }
-        });
-        if (!roleIds.isEmpty()) {
-            this.addRolesToUser(userId, roleIds.stream().map(roleService::findById).collect(Collectors.toSet()));
-        }
-
     }
 }

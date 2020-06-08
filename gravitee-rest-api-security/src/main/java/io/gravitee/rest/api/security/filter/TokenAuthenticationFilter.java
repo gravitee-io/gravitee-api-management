@@ -23,8 +23,12 @@ import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.repository.management.model.Token;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.service.TokenService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,20 +56,25 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  * @author Azize Elamrani (azize at gravitee.io)
  * @author GraviteeSource Team
  */
-public class JWTAuthenticationFilter extends GenericFilterBean {
+public class TokenAuthenticationFilter extends GenericFilterBean {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TokenAuthenticationFilter.class);
 
     public static final String AUTH_COOKIE_NAME = "Auth-Graviteeio-APIM";
+    public static final String TOKEN_AUTH_SCHEMA = "bearer";
 
     private final JWTVerifier jwtVerifier;
     private CookieGenerator cookieGenerator;
+    private UserService userService;
+    private TokenService tokenService;
 
-    public JWTAuthenticationFilter(final String jwtSecret, final CookieGenerator cookieGenerator) {
+    public TokenAuthenticationFilter(final String jwtSecret, final CookieGenerator cookieGenerator,
+                                     final UserService userService, final TokenService tokenService) {
         Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
         jwtVerifier = JWT.require(algorithm).build();
-
         this.cookieGenerator = cookieGenerator;
+        this.userService = userService;
+        this.tokenService = tokenService;
     }
 
     @Override
@@ -89,46 +98,58 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
         if (isEmpty(stringToken)) {
             LOGGER.debug("Authorization header/cookie not found");
         } else {
-            final String authorizationSchema = "Bearer";
-            if (stringToken.contains(authorizationSchema)) {
-                final String jwtToken = stringToken.substring(authorizationSchema.length()).trim();
-                try {
-                    final DecodedJWT jwt = jwtVerifier.verify(jwtToken);
+            try {
+                if (stringToken.toLowerCase().contains(TOKEN_AUTH_SCHEMA)) {
+                    final String tokenValue = stringToken.substring(TOKEN_AUTH_SCHEMA.length()).trim();
+                    if (tokenValue.contains(".")) {
+                        final DecodedJWT jwt = jwtVerifier.verify(tokenValue);
 
-                    Claim permissionsClaim = jwt.getClaim(Claims.PERMISSIONS);
+                        Claim permissionsClaim = jwt.getClaim(Claims.PERMISSIONS);
 
-                    List<SimpleGrantedAuthority> authorities;
+                        List<SimpleGrantedAuthority> authorities;
 
-                    if (permissionsClaim != null) {
-                        authorities = permissionsClaim.asList(Map.class).stream().map(o -> new SimpleGrantedAuthority((String) o.get("authority"))).collect(Collectors.toList());
-                    } else {
-                        authorities = Collections.emptyList();
-                    }
-
-                    final UserDetails userDetails = new UserDetails(getStringValue(jwt.getSubject()), "",
-                            authorities);
-                    userDetails.setEmail(jwt.getClaim(Claims.EMAIL).asString());
-                    userDetails.setFirstname(jwt.getClaim(Claims.FIRSTNAME).asString());
-                    userDetails.setLastname(jwt.getClaim(Claims.LASTNAME).asString());
-
-                    SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
-                } catch (final Exception e) {
-                    final String errorMessage = "Invalid token";
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.error(errorMessage, e);
-                    } else {
-                        if (e instanceof JWTVerificationException) {
-                            LOGGER.warn(errorMessage);
+                        if (permissionsClaim != null) {
+                            authorities = permissionsClaim.asList(Map.class).stream().map(o -> new SimpleGrantedAuthority((String) o.get("authority"))).collect(Collectors.toList());
                         } else {
-                            LOGGER.error(errorMessage);
+                            authorities = Collections.emptyList();
                         }
+
+                        final UserDetails userDetails = new UserDetails(getStringValue(jwt.getSubject()), "",
+                                authorities);
+                        userDetails.setEmail(jwt.getClaim(Claims.EMAIL).asString());
+                        userDetails.setFirstname(jwt.getClaim(Claims.FIRSTNAME).asString());
+                        userDetails.setLastname(jwt.getClaim(Claims.LASTNAME).asString());
+
+                        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+                    } else if (tokenService != null && userService != null) {
+                        final Token token = tokenService.findByToken(tokenValue);
+                        final UserEntity user = userService.findById(token.getReferenceId());
+
+                        final UserDetails userDetails = new UserDetails(user.getId(), "", Collections.emptyList());
+                        userDetails.setFirstname(user.getFirstname());
+                        userDetails.setLastname(user.getLastname());
+                        userDetails.setEmail(user.getEmail());
+                        userDetails.setSource("token");
+                        userDetails.setSourceId(token.getName());
+                        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
                     }
-                    res.addCookie(cookieGenerator.generate(JWTAuthenticationFilter.AUTH_COOKIE_NAME, null));
-                    res.sendError(HttpStatusCode.UNAUTHORIZED_401);
-                    return;
+                } else {
+                    LOGGER.debug("Authorization schema not found");
                 }
-            } else {
-                LOGGER.debug("Authorization schema not found");
+            } catch (final Exception e) {
+                final String errorMessage = "Invalid token";
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.error(errorMessage, e);
+                } else {
+                    if (e instanceof JWTVerificationException) {
+                        LOGGER.warn(errorMessage);
+                    } else {
+                        LOGGER.error(errorMessage);
+                    }
+                }
+                res.addCookie(cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null));
+                res.sendError(HttpStatusCode.UNAUTHORIZED_401);
+                return;
             }
         }
         chain.doFilter(request, response);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl;
+package io.gravitee.management.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -21,19 +21,19 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.management.idp.api.authentication.UserDetails;
+import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.audit.AuditEntity;
+import io.gravitee.management.model.audit.AuditQuery;
+import io.gravitee.management.service.AuditService;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.AuditCriteria.Builder;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.audit.AuditEntity;
-import io.gravitee.rest.api.model.audit.AuditQuery;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.gravitee.rest.api.service.impl.MetadataServiceImpl.getDefautReferenceId;
+import static io.gravitee.management.service.impl.MetadataServiceImpl.getDefautReferenceId;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.gravitee.rest.api.model.search.Indexable;
+import io.gravitee.management.model.search.Indexable;
 
 import java.util.Date;
 import java.util.Objects;
@@ -29,7 +28,7 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties(value = {"displayName"}, allowGetters = true)
+@JsonIgnoreProperties(value = "displayName", allowGetters = true)
 public class UserEntity implements Indexable {
 
     /**
@@ -41,12 +40,12 @@ public class UserEntity implements Indexable {
 	 * The user first name
 	 */
 	private String firstname;
-	
+
 	/**
 	 * The user last name
 	 */
 	private String lastname;
-    
+
     /**
      * The user password
      */
@@ -56,7 +55,7 @@ public class UserEntity implements Indexable {
      * The user email
      */
     private String email;
-    
+
     /**
      * The user roles
      */
@@ -98,8 +97,6 @@ public class UserEntity implements Indexable {
     private boolean primaryOwner;
 
     private String status;
-
-    private long loginCount;
 
     @JsonProperty("number_of_active_tokens")
     private int nbActiveTokens;
@@ -151,7 +148,7 @@ public class UserEntity implements Indexable {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
-    
+
     public String getPassword() {
 		return password;
 	}
@@ -208,14 +205,6 @@ public class UserEntity implements Indexable {
         this.status = status;
     }
 
-    public long getLoginCount() {
-        return loginCount;
-    }
-
-    public void setLoginCount(long loginCount) {
-        this.loginCount = loginCount;
-    }
-
     public String getDisplayName() {
         String displayName;
 
@@ -225,7 +214,7 @@ public class UserEntity implements Indexable {
             } else {
                 displayName = lastname;
             }
-        } else if (email != null && !email.isEmpty() && !"memory".equals(source)){
+        } else if (email != null && !email.isEmpty()){
             displayName = email;
         } else {
             displayName = sourceId;
@@ -280,7 +269,6 @@ public class UserEntity implements Indexable {
                 ", lastConnectionAt=" + lastConnectionAt +
                 ", primaryOwner=" + primaryOwner +
                 ", status='" + status + '\'' +
-                ", loginCount=" + loginCount +
                 ", nbActiveTokens=" + nbActiveTokens +
                 '}';
     }

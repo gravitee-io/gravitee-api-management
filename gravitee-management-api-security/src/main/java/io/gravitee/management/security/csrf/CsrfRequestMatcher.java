@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.security.csrf;
+package io.gravitee.management.security.csrf;
 
-import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
+import io.gravitee.management.security.filter.TokenAuthenticationFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
