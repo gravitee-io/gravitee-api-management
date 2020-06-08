@@ -27,7 +27,7 @@ import io.gravitee.management.rest.model.PagedResult;
 import io.gravitee.management.rest.model.TokenEntity;
 import io.gravitee.management.rest.utils.ImageUtils;
 import io.gravitee.management.security.cookies.CookieGenerator;
-import io.gravitee.management.security.filter.JWTAuthenticationFilter;
+import io.gravitee.management.security.filter.TokenAuthenticationFilter;
 import io.gravitee.management.service.TagService;
 import io.gravitee.management.service.TaskService;
 import io.gravitee.management.service.UserService;
@@ -114,7 +114,7 @@ public class CurrentUserResource extends AbstractResource {
                 } else {
                     LOG.info(unfeMessage, userId);
                 }
-                response.addCookie(cookieGenerator.generate(JWTAuthenticationFilter.AUTH_COOKIE_NAME, null));
+                response.addCookie(cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null));
                 return status(Response.Status.UNAUTHORIZED).build();
             }
 
@@ -257,7 +257,7 @@ public class CurrentUserResource extends AbstractResource {
             tokenEntity.setType(BEARER);
             tokenEntity.setToken(token);
 
-            final Cookie bearerCookie = cookieGenerator.generate(JWTAuthenticationFilter.AUTH_COOKIE_NAME, "Bearer%20" + token);
+            final Cookie bearerCookie = cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, "Bearer%20" + token);
             servletResponse.addCookie(bearerCookie);
 
             return ok(tokenEntity).build();
@@ -269,7 +269,7 @@ public class CurrentUserResource extends AbstractResource {
     @Path("/logout")
     @ApiOperation(value = "Logout")
     public Response logout() {
-        response.addCookie(cookieGenerator.generate(JWTAuthenticationFilter.AUTH_COOKIE_NAME, null));
+        response.addCookie(cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null));
         return Response.ok().build();
     }
 
@@ -295,5 +295,11 @@ public class CurrentUserResource extends AbstractResource {
     @Path("/notifications")
     public UserNotificationsResource getUserNotificationsResource() {
         return resourceContext.getResource(UserNotificationsResource.class);
+    }
+
+
+    @Path("/tokens")
+    public TokensResource getTokensResource() {
+        return resourceContext.getResource(TokensResource.class);
     }
 }

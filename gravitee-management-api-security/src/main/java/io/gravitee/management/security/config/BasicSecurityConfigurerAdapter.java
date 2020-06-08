@@ -25,11 +25,13 @@ import io.gravitee.management.security.cookies.CookieGenerator;
 import io.gravitee.management.security.csrf.CookieCsrfSignedTokenRepository;
 import io.gravitee.management.security.csrf.CsrfRequestMatcher;
 import io.gravitee.management.security.filter.CsrfIncludeFilter;
-import io.gravitee.management.security.filter.JWTAuthenticationFilter;
+import io.gravitee.management.security.filter.TokenAuthenticationFilter;
 import io.gravitee.management.security.filter.RecaptchaFilter;
 import io.gravitee.management.security.listener.AuthenticationFailureListener;
 import io.gravitee.management.security.listener.AuthenticationSuccessListener;
 import io.gravitee.management.service.ReCaptchaService;
+import io.gravitee.management.service.TokenService;
+import io.gravitee.management.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +56,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -87,6 +88,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     private ReCaptchaService reCaptchaService;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private TokenService tokenService;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -195,10 +200,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         csrf(http);
         cors(http);
 
-        http
-                .addFilterBefore(new JWTAuthenticationFilter(jwtSecret, cookieGenerator), BasicAuthenticationFilter.class);
-
-        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), JWTAuthenticationFilter.class);
+        http.addFilterBefore(new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService), BasicAuthenticationFilter.class);
+        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {

@@ -21,6 +21,7 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.audit.AuditEntity;
 import io.gravitee.management.model.audit.AuditQuery;
@@ -247,7 +248,6 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 apiId,
                 properties,
                 event,
-                getAuthenticatedUsernameOrSystem(),
                 createdAt==null ? new Date() : createdAt,
                 oldValue,
                 newValue);
@@ -260,7 +260,6 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 applicationId,
                 properties,
                 event,
-                getAuthenticatedUsernameOrSystem(),
                 createdAt,
                 oldValue,
                 newValue);
@@ -273,7 +272,6 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 applicationId,
                 properties,
                 event,
-                userId,
                 createdAt==null ? new Date() : createdAt,
                 oldValue,
                 newValue);
@@ -295,7 +293,6 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 "DEFAULT",
                 properties,
                 event,
-                userId,
                 createdAt==null ? new Date() : createdAt,
                 oldValue,
                 newValue);
@@ -303,18 +300,29 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     @Async
     protected void create(Audit.AuditReferenceType referenceType, String referenceId, Map<Audit.AuditProperties,String> properties,
-                          Audit.AuditEvent event, String userId, Date createdAt,
+                          Audit.AuditEvent event, Date createdAt,
                           Object oldValue, Object newValue) {
 
         Audit audit = new Audit();
         audit.setId(UUID.toString(UUID.random()));
-        audit.setUser(userId);
         audit.setCreatedAt(createdAt);
+
+        final UserDetails authenticatedUser = getAuthenticatedUser();
+        final String user;
+        if (authenticatedUser != null && "token".equals(authenticatedUser.getSource())) {
+            user = userService.findById(authenticatedUser.getUsername()).getDisplayName() +
+                    " - (using token \"" + authenticatedUser.getSourceId() + "\")";
+        } else {
+            user = getAuthenticatedUsernameOrSystem();
+        }
+        audit.setUser(user);
+
         if (properties != null) {
             Map<String, String> stringStringMap = new HashMap<>(properties.size());
             properties.forEach((auditProperties, s) -> stringStringMap.put(auditProperties.name(), s));
             audit.setProperties(stringStringMap);
         }
+
         audit.setReferenceType(referenceType);
         audit.setReferenceId(referenceId);
         audit.setEvent(event.name());

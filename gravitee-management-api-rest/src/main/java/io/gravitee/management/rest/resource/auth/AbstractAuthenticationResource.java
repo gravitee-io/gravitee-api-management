@@ -25,7 +25,7 @@ import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.rest.model.TokenEntity;
 import io.gravitee.management.security.cookies.CookieGenerator;
-import io.gravitee.management.security.filter.JWTAuthenticationFilter;
+import io.gravitee.management.security.filter.TokenAuthenticationFilter;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.common.JWTHelper;
@@ -142,7 +142,7 @@ abstract class AbstractAuthenticationResource {
             tokenEntity.setState(state);
         }
 
-        final Cookie bearerCookie = cookieGenerator.generate(JWTAuthenticationFilter.AUTH_COOKIE_NAME, "Bearer%20" + token);
+        final Cookie bearerCookie = cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, "Bearer%20" + token);
         servletResponse.addCookie(bearerCookie);
 
         return Response

@@ -98,6 +98,9 @@ public class UserEntity implements Indexable {
 
     private String status;
 
+    @JsonProperty("number_of_active_tokens")
+    private int nbActiveTokens;
+
     public String getId() {
         return id;
     }
@@ -228,6 +231,14 @@ public class UserEntity implements Indexable {
         this.primaryOwner = primaryOwner;
     }
 
+    public int getNbActiveTokens() {
+        return nbActiveTokens;
+    }
+
+    public void setNbActiveTokens(int nbActiveTokens) {
+        this.nbActiveTokens = nbActiveTokens;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -243,16 +254,22 @@ public class UserEntity implements Indexable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("UserEntity{");
-        sb.append(", id='").append(id).append('\'');
-        sb.append(", source='").append(source).append('\'');
-        sb.append(", source_id='").append(sourceId).append('\'');
-        sb.append(", firstname='").append(firstname).append('\'');
-        sb.append(", lastname='").append(lastname).append('\'');
-        sb.append(", mail='").append(email).append('\'');
-        sb.append(", roles='").append(roles).append('\'');
-        sb.append(", status='").append(status).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return "UserEntity{" +
+                "id='" + id + '\'' +
+                ", firstname='" + firstname + '\'' +
+                ", lastname='" + lastname + '\'' +
+                ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
+                ", roles=" + roles +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", picture='" + picture + '\'' +
+                ", source='" + source + '\'' +
+                ", sourceId='" + sourceId + '\'' +
+                ", lastConnectionAt=" + lastConnectionAt +
+                ", primaryOwner=" + primaryOwner +
+                ", status='" + status + '\'' +
+                ", nbActiveTokens=" + nbActiveTokens +
+                '}';
     }
 }

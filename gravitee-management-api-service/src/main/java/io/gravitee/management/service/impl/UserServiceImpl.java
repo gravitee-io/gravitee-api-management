@@ -116,6 +116,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
     private GenericNotificationConfigService genericNotificationConfigService;
     @Autowired
     private PasswordValidator passwordValidator;
+    @Autowired
+    private TokenService tokenService;
 
     @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
     private String defaultAvatar;
@@ -630,7 +632,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         if (results.hasResults()) {
             List<UserEntity> users = new ArrayList<>((findByIds(results.getDocuments())));
 
-            populatePrimaryOwnerFlag(users);
+            populateUserFlags(users);
 
             return new Page<>(users,
                     pageable.getPageNumber(),
@@ -640,7 +642,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         return new Page<>(Collections.emptyList(), 1, 0, 0);
     }
 
-    private void populatePrimaryOwnerFlag(final List<UserEntity> users) {
+    private void populateUserFlags(final List<UserEntity> users) {
         users.forEach(user -> {
             final boolean apiPO = membershipService.findUserMembership(user.getId(), MembershipReferenceType.API)
                     .stream().anyMatch(membership -> membership.getRoles() != null &&
@@ -650,9 +652,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     .stream().anyMatch(membership -> membership.getRoles() != null &&
                             SystemRole.PRIMARY_OWNER.name().equals(membership.getRoles().get(RoleScope.APPLICATION.getId())));
             user.setPrimaryOwner(apiPO || appPO);
+            user.setNbActiveTokens(tokenService.findByUser(user.getId()).size());
         });
     }
-
 
     @Override
     public Page<UserEntity> search(UserCriteria criteria, Pageable pageable) {
@@ -669,7 +671,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     .map(u -> convert(u, false))
                     .collect(toList());
 
-            populatePrimaryOwnerFlag(entities);
+            populateUserFlags(entities);
 
             return new Page<>(entities,
                     users.getPageNumber() + 1,
@@ -711,6 +713,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
             portalNotificationConfigService.deleteByUser(user.getId());
             genericNotificationConfigService.deleteByUser(user);
 
+            //remove tokens
+            tokenService.revokeByUser(user.getId());
+
             // change user datas
             user.setSourceId("deleted-" + user.getSourceId());
             user.setStatus(UserStatus.ARCHIVED);
@@ -731,7 +736,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             userRepository.update(user);
-
 
             final UserEntity userEntity = convert(optionalUser.get(), false);
             searchEngineService.delete(userEntity, false);

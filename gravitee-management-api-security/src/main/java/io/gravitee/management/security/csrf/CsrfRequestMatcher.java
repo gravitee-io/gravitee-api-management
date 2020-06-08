@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.security.csrf;
 
-import io.gravitee.management.security.filter.JWTAuthenticationFilter;
+import io.gravitee.management.security.filter.TokenAuthenticationFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -43,6 +43,6 @@ public class CsrfRequestMatcher implements RequestMatcher {
                         (
                                 request.getCookies() != null &&
                                         Arrays.stream(request.getCookies())
-                        .anyMatch(cookie -> JWTAuthenticationFilter.AUTH_COOKIE_NAME.equals(cookie.getName()))));
+                        .anyMatch(cookie -> TokenAuthenticationFilter.AUTH_COOKIE_NAME.equals(cookie.getName()))));
     }
 }
