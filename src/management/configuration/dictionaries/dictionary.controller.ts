@@ -146,7 +146,7 @@ class DictionaryController {
       template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Are you sure you want to delete this dictionary ?',
+        title: 'Are you sure you want to delete this dictionary?',
         confirmButton: 'Yes, delete it.'
       }
     }).then( (response) => {

@@ -58,7 +58,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
         template: require('../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Are you sure you want to delete this identity provider ?',
+          title: 'Are you sure you want to delete this identity provider?',
           msg: '',
           confirmButton: 'Delete'
         }

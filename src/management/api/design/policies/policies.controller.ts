@@ -266,7 +266,7 @@ class ApiPoliciesController {
       template: require('../../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Are you sure you want to remove this policy ?',
+        title: 'Are you sure you want to remove this policy?',
         confirmButton: 'Remove'
       }
     }).then(function (response) {
@@ -376,7 +376,7 @@ class ApiPoliciesController {
       template: require('../../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Are you sure you want to remove this path ?',
+        title: 'Are you sure you want to remove this path?',
         confirmButton: 'Remove'
       }
     }).then(function (response) {

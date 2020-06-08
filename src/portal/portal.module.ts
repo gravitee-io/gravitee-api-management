@@ -93,10 +93,12 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
   .service('PortalService', PortalService)
   .filter('humanDateFilter', function () {
     return function(input) {
-      if (!moment().subtract(1, 'weeks').isAfter(input)) {
-        return moment(input).fromNow();
-      } else {
-        return moment(input).format('D MMM. YYYY');
+      if (input) {
+        if (!moment().subtract(1, 'weeks').isAfter(input)) {
+          return moment(input).fromNow();
+        } else {
+          return moment(input).format('D MMM. YYYY');
+        }
       }
     };
   })

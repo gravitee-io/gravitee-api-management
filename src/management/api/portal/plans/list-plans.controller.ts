@@ -161,7 +161,7 @@ class ApiListPlansController {
         template: require('../../../../components/dialog/confirmAndValidate.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Would you like to close plan "' + plan.name + '" ?',
+          title: 'Would you like to close plan "' + plan.name + '"?',
           warning: 'This operation is irreversible.',
           msg: msg,
           validationMessage: 'Please, type in the name of the plan <code>'+ plan.name +'</code> to confirm.',
@@ -192,7 +192,7 @@ class ApiListPlansController {
       template: require('../../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Would you like to deprecate plan "' + plan.name + '" ?',
+        title: 'Would you like to deprecate plan "' + plan.name + '"?',
         msg: 'By deprecating this plan, users will no more be able to subscribe to it.',
         confirmButton: 'Deprecate'
       }

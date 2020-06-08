@@ -130,7 +130,7 @@ class ApiMembersController {
       template: require('../../../../../components/dialog/confirm.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Would you like to remove the member ?',
+        title: 'Would you like to remove the member?',
         confirmButton: 'Remove'
       }
     }).then(function (response) {

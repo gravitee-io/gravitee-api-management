@@ -47,8 +47,9 @@ const UsersComponent: ng.IComponentOptions = {
         template: require('../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          msg: '',
-          title: 'Would you like to remove the user "' + user.displayName + '" ?',
+          msg: user.number_of_active_tokens > 0 ?
+            `The user has ${user.number_of_active_tokens} active token(s) that will be definitively removed.` : '',
+          title: 'Are you sure you want to remove the user "' + user.displayName + '"?',
           confirmButton: 'Remove'
         }
       }).then( (response) => {

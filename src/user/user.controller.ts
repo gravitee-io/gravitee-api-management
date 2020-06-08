@@ -18,7 +18,7 @@ import { User } from "../entities/user";
 import {IScope} from 'angular';
 import UserService from "../services/user.service";
 import { StateService } from '@uirouter/core';
-import StringService from "../services/string.service";
+import TokenService from "../services/token.service";
 
 interface IUserScope extends ng.IScope {
   formUser: any;
@@ -27,13 +27,16 @@ interface IUserScope extends ng.IScope {
 class UserController {
   private originalPicture: any;
   private user: User;
+  private tokens: Array<any>;
 
   constructor(
     private UserService: UserService,
     private NotificationService: NotificationService,
     private $state: StateService,
     private $scope: IUserScope,
-    private $rootScope: IScope) {
+    private $rootScope: IScope,
+    private TokenService: TokenService,
+    private $mdDialog: angular.material.IDialogService) {
     'ngInject';
   }
 
@@ -42,6 +45,9 @@ class UserController {
       this.$state.go('login', {}, {reload: true, inherit: false});
     } else {
       this.originalPicture = this.getUserPicture();
+      this.TokenService.list().then(response => {
+        this.tokens = response.data;
+      });
     }
   }
 
@@ -61,6 +67,45 @@ class UserController {
 
   getUserPicture() {
     return this.UserService.currentUserPicture();
+  }
+
+  generateToken() {
+    this.$mdDialog.show({
+      controller: 'DialogGenerateTokenController',
+      controllerAs: 'ctrl',
+      template: require('./token/generateToken.dialog.html'),
+      clickOutsideToClose: false,
+      escapeToClose: false,
+      locals: {
+        msg: 'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',
+        title: 'Generate Personal Access Token'
+      }
+    }).then((tokenGenerated) => {
+      if (tokenGenerated) {
+        this.$state.reload();
+      }
+    });
+  }
+
+  revoke(token) {
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      template: require('../components/dialog/confirmWarning.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        msg: 'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',
+        title: 'Are you sure you want to revoke the token "' + token.name + '"?',
+        confirmButton: 'Revoke'
+      }
+    }).then((response) => {
+      if (response) {
+        this.TokenService.revoke(token).then(() => {
+          this.NotificationService.show('Token "' + token.name + '" has been revoked.');
+          this.$state.reload();
+        });
+      }
+    });
   }
 }
 

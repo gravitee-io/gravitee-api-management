@@ -193,7 +193,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
         template: require('../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Would you like to remove "' +page.name + '" ?',
+          title: 'Would you like to remove "' +page.name + '"?',
           confirmButton: 'Remove'
         }
       }).then(function (response) {

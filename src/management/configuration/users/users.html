@@ -48,6 +48,9 @@
                 <img ng-src="{{$ctrl.getUserPicture(user)}}" class="md-avatar" alt="User picture" />
                 {{user.displayName}}
                 <span ng-if="user.primary_owner" flex class="badge" style="background-color: #039be5">Primary Owner</span>
+                <span ng-if="user.number_of_active_tokens > 0" flex class="badge" style="background-color: #e53935">
+                  Active Token{{user.number_of_active_tokens > 1 ? 's' : ''}}
+                </span>
               </a>
             </td>
             <td md-cell width="15%" nowrap>{{user.email}}</td>

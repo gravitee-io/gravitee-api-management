@@ -114,7 +114,7 @@ class ApiPathMappingsController {
       template: require('../../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Are you sure you want to remove mapping path [' + this.api.path_mappings[index] + '] ?',
+        title: 'Are you sure you want to remove mapping path [' + this.api.path_mappings[index] + ']?',
         msg: '',
         confirmButton: 'Remove'
       }

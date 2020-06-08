@@ -144,7 +144,7 @@ class ApiProxyController {
       template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Are you sure you want to delete endpoint(s) ?',
+        title: 'Are you sure you want to delete endpoint(s)?',
         msg: '',
         confirmButton: 'Delete'
       }
@@ -185,7 +185,7 @@ class ApiProxyController {
       template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Are you sure you want to delete \'' + this.api.name + '\' API ?',
+        title: 'Are you sure you want to delete \'' + this.api.name + '\' API?',
         msg: '',
         confirmButton: 'Delete'
       }

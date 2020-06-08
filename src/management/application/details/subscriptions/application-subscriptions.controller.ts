@@ -161,7 +161,7 @@ class ApplicationSubscriptionsController {
       template: require('../../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Are you sure you want to renew your API Key ?',
+        title: 'Are you sure you want to renew your API Key?',
         msg: 'Your previous API Key will be no longer valid in 1 hour !',
         confirmButton: 'Renew'
       }

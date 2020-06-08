@@ -72,7 +72,7 @@ const UserDetailComponent: ng.IComponentOptions = {
         clickOutsideToClose: true,
         locals: {
           msg: '',
-          title: 'Would you like to remove the user from the group "' + group.name + '" ?',
+          title: 'Are you sure you want to remove the user from the group "' + group.name + '"?',
           confirmButton: 'Remove'
         }
       }).then( (response) => {

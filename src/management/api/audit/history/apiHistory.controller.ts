@@ -226,7 +226,7 @@ class ApiHistoryController {
       template: require('../../../../components/dialog/confirm.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Would you like to rollback your API ?',
+        title: 'Would you like to rollback your API?',
         confirmButton: 'Rollback'
       }
     }).then(function (response) {

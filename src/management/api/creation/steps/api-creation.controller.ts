@@ -193,7 +193,7 @@ class ApiCreationController {
    */
   createAPI(deployAndStart, readyForReview?: boolean) {
     var alert = this.$mdDialog.confirm({
-      title: 'Create API ?',
+      title: 'Create API?',
       content: 'The API ' + this.api.name + ' in version ' + this.api.version + ' will be created' + ((deployAndStart) ? ' and deployed.' : '.'),
       ok: 'CREATE' + (readyForReview? ' AND ASK FOR REVIEW':''),
       cancel: 'CANCEL'
@@ -433,7 +433,7 @@ class ApiCreationController {
   removePage(page) {
     var alert = this.$mdDialog.confirm({
       title: 'Warning',
-      content: 'Are you sure you want to remove this page ?',
+      content: 'Are you sure you want to remove this page?',
       ok: 'OK',
       cancel: 'Cancel'
     });

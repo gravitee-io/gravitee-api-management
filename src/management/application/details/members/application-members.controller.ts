@@ -108,7 +108,7 @@ class ApplicationMembersController {
       template: require('../../../../components/dialog/confirm.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Would you like to remove the member ?',
+        title: 'Would you like to remove the member?',
         msg: '',
         confirmButton: 'Remove'
       }

@@ -128,7 +128,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
         template: require('../../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Are you sure you want to remove this policy ?',
+          title: 'Are you sure you want to remove this policy?',
           confirmButton: 'Remove'
         }
       }).then(function (response) {

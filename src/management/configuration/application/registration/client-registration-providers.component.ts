@@ -51,7 +51,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
         template: require('../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Are you sure you want to delete this client registration provider ?',
+          title: 'Are you sure you want to delete this client registration provider?',
           msg: '',
           confirmButton: 'Delete'
         }
