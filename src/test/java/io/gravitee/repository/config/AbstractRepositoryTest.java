@@ -132,11 +132,15 @@ public abstract class AbstractRepositoryTest {
     @Inject
     protected AlertEventRepository alertEventRepository;
     @Inject
+<<<<<<< HEAD
     protected EnvironmentRepository environmentRepository;
     @Inject
     protected OrganizationRepository organizationRepository;
     @Inject
     protected ThemeRepository themeRepository;
+=======
+    protected TokenRepository tokenRepository;
+>>>>>>> 8401586... feat: Allows to generate personal access tokens to access the management API
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -271,6 +275,7 @@ public abstract class AbstractRepositoryTest {
         else if( object instanceof AlertEvent) {
             alertEventRepository.create((AlertEvent) object);
         }
+<<<<<<< HEAD
         else if (object instanceof Environment) {
             environmentRepository.create((Environment) object);
         }
@@ -279,6 +284,10 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Theme) {
             themeRepository.create((Theme) object);
+=======
+        else if( object instanceof Token) {
+            tokenRepository.create((Token) object);
+>>>>>>> 8401586... feat: Allows to generate personal access tokens to access the management API
         }
     }
 
