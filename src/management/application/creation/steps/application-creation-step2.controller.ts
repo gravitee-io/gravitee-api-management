@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApplicationType } from '../../../../entities/application';
+import {ApplicationType} from '../../../../entities/application';
+import ApplicationCreationController from './application-creation.controller';
 
 class ApplicationCreationStep2Controller {
   private selectedType: ApplicationType;
+  private parent: ApplicationCreationController;
 
   constructor(private Constants) {
     'ngInject';

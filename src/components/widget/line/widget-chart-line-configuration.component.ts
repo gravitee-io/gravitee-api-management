@@ -15,6 +15,7 @@
  */
 import DashboardService from '../../../services/dashboard.service';
 import * as _ from 'lodash';
+
 const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-chart-line-configuration.html'),
   bindings: {
@@ -47,7 +48,7 @@ const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
       let last = _.last(this.data);
       _.forEach(this.data, (data) => {
         this.chart.request.aggs += data + (last === data ? '' : '%3B');
-        this.chart.labels.push(_.find(this.fields, {aggValue: data}).label);
+        this.chart.labels.push(_.find(this.fields, f => f.aggValue === data).label);
       });
     };
   }

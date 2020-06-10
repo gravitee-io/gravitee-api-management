@@ -16,7 +16,6 @@
 
 
 import {CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple} from '../alert';
-import ApiService from '../../services/api.service';
 
 export class NodeType {
 
@@ -117,7 +116,7 @@ export class NodeHealthcheckMetrics extends Metrics {
     [StringCondition.TYPE]);
 
   static NODE_APPLICATION: NodeHealthcheckMetrics = new NodeHealthcheckMetrics('node.application', 'Type',
-    [StringCondition.TYPE], undefined, (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], undefined, undefined, (type: number, id: string, $injector: any) => {
       let applications: Tuple[] = [];
 
       NodeType.TYPES.forEach(app => {
@@ -128,7 +127,7 @@ export class NodeHealthcheckMetrics extends Metrics {
     });
 
   static NODE_STATUS: NodeHealthcheckMetrics = new NodeHealthcheckMetrics('node.healthy', 'Status',
-    [StringCondition.TYPE], undefined, (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], undefined, undefined, (type: number, id: string, $injector: any) => {
       let events: Tuple[] = [];
       events.push(new Tuple('true', 'Healthy'));
       events.push(new Tuple('false', 'Unhealthy'));

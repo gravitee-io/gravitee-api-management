@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/core';
-import angular = require('angular');
+import {StateService} from '@uirouter/core';
 
 import DictionaryService from '../../../services/dictionary.service';
 import NotificationService from '../../../services/notification.service';
+import angular = require('angular');
 import _ = require('lodash');
 
 interface IDictionaryScope extends ng.IScope {
@@ -31,15 +31,17 @@ class DictionaryController {
   private initialDictionary: any;
 
   private joltSpecificationOptions: any;
-  private providers: {id: string; name: string}[];
-  private types: {id: string; name: string}[];
-  private timeUnits: {id: string; name: string}[];
+  private providers: { id: string; name: string }[];
+  private types: { id: string; name: string }[];
+  private timeUnits: { id: string; name: string }[];
 
   private updateMode: boolean;
 
   private selectedProperties: any = {};
 
   private query: any;
+  private selectAll: boolean;
+  private formDictionary: any;
 
   constructor(
     private $scope: IDictionaryScope,
@@ -107,12 +109,12 @@ class DictionaryController {
   }
 
   getPropertiesPage() {
-    let properties = Object
+    let properties = (<any>Object)
       .entries(this.dictionary.properties)
       .slice(
         (this.query.page - 1) * this.query.limit,
         (this.query.page * this.query.limit))
-      .reduce(function(map, obj) {
+      .reduce(function (map, obj) {
         map[obj[0]] = obj[1];
         return map;
       }, {});
@@ -149,7 +151,7 @@ class DictionaryController {
         title: 'Are you sure you want to delete this dictionary ?',
         confirmButton: 'Yes, delete it.'
       }
-    }).then( (response) => {
+    }).then((response) => {
       if (response) {
         this.DictionaryService.delete(this.dictionary).then((response) => {
           this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deleted');
@@ -190,7 +192,7 @@ class DictionaryController {
       controllerAs: 'dialogDictionaryAddPropertyCtrl',
       template: require('./add-property.dialog.html'),
       clickOutsideToClose: true
-    }).then( (property) => {
+    }).then((property) => {
       if (this.dictionary.properties === undefined) {
         this.dictionary.properties = {};
       }
@@ -208,7 +210,9 @@ class DictionaryController {
     this.$mdEditDialog.small({
       modelValue: value,
       placeholder: 'Set property value',
-      save: (input) => { this.dictionary.properties[key] = input.$modelValue; },
+      save: (input) => {
+        this.dictionary.properties[key] = input.$modelValue;
+      },
       targetEvent: event,
       validators: {
         'md-maxlength': 160

@@ -16,8 +16,8 @@
 import _ = require('lodash');
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
-import { PagedResult } from '../../../../entities/pagedResult';
-import { StateService } from '@uirouter/core';
+import {PagedResult} from '../../../../entities/pagedResult';
+import {StateService} from '@uirouter/core';
 import {IScope} from 'angular';
 import * as moment from 'moment';
 
@@ -117,7 +117,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     buildQuery() {
       let query = '?page=' + this.query.page + '&size=' + this.query.size + '&';
-      let parameters = {};
+      let parameters: any = {};
 
       if (this.query.status !== undefined) {
         parameters.status = this.query.status.join(',');
@@ -135,7 +135,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
         parameters.api_key = this.query.api_key;
       }
 
-      _.mapKeys(parameters, (value, key ) => {
+      _.mapKeys(parameters, (value, key) => {
         return query += key + '=' + value + '&';
       });
 
@@ -195,9 +195,11 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     }
 
     showAddSubscriptionModal() {
-      this.ApiService.getPublishedApiPlans(this.api.id).then( (response) => {
+      this.ApiService.getPublishedApiPlans(this.api.id).then((response) => {
         // Allow only subscribable plan
-        let plans = _.filter(response.data, (plan: any) => { return plan.security !== 'key_less'; });
+        let plans = _.filter(response.data, (plan: any) => {
+          return plan.security !== 'key_less';
+        });
 
         this.$mdDialog.show({
           controller: 'DialogSubscriptionCreateController',
@@ -208,9 +210,9 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
             api: this.api,
             plans: plans
           }
-        }).then( (data) => {
+        }).then((data) => {
           if (data && data.applicationId && data.planId) {
-            this.ApiService.subscribe(this.api.id, data.applicationId, data.planId).then( (response) => {
+            this.ApiService.subscribe(this.api.id, data.applicationId, data.planId).then((response) => {
               let subscription = response.data;
               this.NotificationService.show('A new subscription has been created.');
               this.$state.go('management.apis.detail.portal.subscriptions.subscription', {subscriptionId: subscription.id}, {reload: true});

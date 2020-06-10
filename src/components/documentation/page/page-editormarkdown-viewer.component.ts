@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
 import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import hljs from 'highlight.js';
-
 import * as _ from 'lodash';
 import * as remark from 'remark';
 
@@ -35,7 +33,7 @@ class ComponentCtrl implements ng.IComponentController {
     let content = '';
     let sectionOpen = false;
 
-    var sectionValue = '';
+    let sectionValue = '';
     for (let c = 0; c < ast.children.length; c++) {
       const child = ast.children[c];
 
@@ -73,18 +71,19 @@ class ComponentCtrl implements ng.IComponentController {
 
     content = remark.stringify(ast);
 
+    const Viewer = require('@toast-ui/editor/dist/toastui-editor-viewer');
     // tslint:disable-next-line:no-unused-expression
     new Viewer(Object.assign({
       el: document.querySelector('#viewerSection'),
       viewer: true,
       height: 'auto',
       initialValue: _.replace(
-                      _.replace(content,
-                        '(#', '(' + this.$location.absUrl() + '#'),
-                      'href="#', 'href="' + this.$location.absUrl() + '#'
+        _.replace(content,
+          '(#', '(' + this.$location.absUrl() + '#'),
+        'href="#', 'href="' + this.$location.absUrl() + '#'
       ),
       useDefaultHTMLSanitizer: false,
-      plugins: [[codeSyntaxHighlight, { hljs }]]
+      plugins: [[codeSyntaxHighlight, {hljs}]]
     }, this.options));
   }
 

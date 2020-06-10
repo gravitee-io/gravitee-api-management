@@ -120,6 +120,7 @@
     "gulp-size": "^3.0.0",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-tslint": "^8.1.4",
+    "gulp-typescript": "^5.0.1",
     "gulp-uglify": "^3.0.2",
     "gulp-useref": "^3.1.6",
     "gulp-util": "^3.0.8",
@@ -185,6 +186,7 @@
     "test:auto": "gulp test:auto",
     "buildNoReg": "gulp buildNoReg",
     "lint": "gulp lint",
-    "lint:fix": "gulp lint:fix"
+    "lint:fix": "gulp lint:fix",
+    "compile": "gulp compile"
   }
 }

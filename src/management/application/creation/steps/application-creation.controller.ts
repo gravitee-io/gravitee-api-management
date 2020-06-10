@@ -15,15 +15,18 @@
  */
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
+import {ApplicationType} from '../../../../entities/application';
 import _ = require('lodash');
 
 class ApplicationCreationController {
-  private application: any;
+  application: any;
+  enabledApplicationTypes: ApplicationType[];
   private steps: any[];
   private selectedStep: number = 0;
   private selectedAPIs: any[] = [];
   private selectedPlans: any[] = [];
   private messageByPlan: any = {};
+  private applicationType: string;
 
   constructor(private Constants, private $state, private $mdDialog, private ApplicationService: ApplicationService,
               private NotificationService: NotificationService, private $q) {
@@ -117,7 +120,8 @@ class ApplicationCreationController {
       this.$mdDialog.show(confirm).then((message) => {
         this.messageByPlan[plan.id] = message;
         this.confirmSubscription(api, plan);
-      }, () => {});
+      }, () => {
+      });
     } else {
       this.confirmSubscription(api, plan);
     }
@@ -132,8 +136,8 @@ class ApplicationCreationController {
 
   onUnsubscribe(api, plan) {
     plan.alreadySubscribed = false;
-    _.remove( this.selectedPlans, { id: plan.id });
-    let index = _.findIndex(this.selectedAPIs, { id: api.id });
+    _.remove(this.selectedPlans, {id: plan.id});
+    let index = _.findIndex(this.selectedAPIs, {id: api.id});
     this.selectedAPIs.splice(index, 1);
     this.steps[2].title = this.getReadableApiSubscriptions();
   }
@@ -142,7 +146,7 @@ class ApplicationCreationController {
     let plansByApi = _.groupBy(this.selectedPlans, 'apis');
     let multipleApis = _.keys(plansByApi).length > 1;
     return `Subscribed to API${multipleApis ? 's:' : ''} ` + _.map(plansByApi, (plans, api) => {
-      return `${multipleApis ? '</br>- <code>' : '<code>'} ` + _.find(this.selectedAPIs, {id: api}).name + '</code> with plan <code>' + _.join(_.map(plans, 'name'), '</code>, ') + '</code>';
+      return `${multipleApis ? '</br>- <code>' : '<code>'} ` + _.find(this.selectedAPIs, a => a.id === api).name + '</code> with plan <code>' + _.join(_.map(plans, 'name'), '</code>, ') + '</code>';
     }) + '.';
   }
 }

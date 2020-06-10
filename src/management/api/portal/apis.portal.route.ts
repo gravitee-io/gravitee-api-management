@@ -23,6 +23,7 @@ import PolicyService from '../../../services/policy.service';
 import TagService from '../../../services/tag.service';
 import UserService from '../../../services/user.service';
 import QualityRuleService from '../../../services/qualityRule.service';
+import CategoryService from '../../../services/category.service';
 
 export default apisPortalRouterConfig;
 
@@ -385,7 +386,7 @@ function apisPortalRouterConfig($stateProvider) {
         pageResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
             const q = new DocumentationQuery();
-            return DocumentationService.search(q, $stateParams.apiId).then(response => response. data);
+            return DocumentationService.search(q, $stateParams.apiId).then(response => response.data);
           }
         },
         categoryResources: (CategoryService: CategoryService, $stateParams: StateParams) => {
@@ -473,7 +474,7 @@ function apisPortalRouterConfig($stateProvider) {
         pageResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
             const q = new DocumentationQuery();
-            return DocumentationService.search(q, $stateParams.apiId).then(response => response. data);
+            return DocumentationService.search(q, $stateParams.apiId).then(response => response.data);
           }
         },
         categoryResources: (CategoryService: CategoryService, $stateParams: StateParams) => {

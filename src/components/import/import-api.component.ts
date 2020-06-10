@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
-
-import NotificationService from '../../../services/notification.service';
+import {StateService} from '@uirouter/core';
+import {IScope} from 'angular';
+import NotificationService from '../../services/notification.service';
+import ApiService from '../../services/api.service';
 import _ = require('lodash');
-import ApiService from '../../../services/api.service';
 
 
 const ImportComponent: ng.IComponentOptions = {
@@ -28,7 +27,7 @@ const ImportComponent: ng.IComponentOptions = {
     cancelAction: '&',
     policies: '<'
   },
-  controller: function(
+  controller: function (
     $state: StateService,
     $scope: IScope,
     $mdDialog: angular.material.IDialogService,
@@ -46,8 +45,8 @@ const ImportComponent: ng.IComponentOptions = {
       this.importFileMode = true;
       this.importURLMode = false;
       this.importURLTypes = [
-        { id: 'SWAGGER', name: 'Swagger / OpenAPI' },
-        { id: 'GRAVITEE', name: 'API Definition' }
+        {id: 'SWAGGER', name: 'Swagger / OpenAPI'},
+        {id: 'GRAVITEE', name: 'API Definition'}
       ];
       this.importURLType = 'SWAGGER';
       this.apiDescriptorURL = null;
@@ -56,7 +55,7 @@ const ImportComponent: ng.IComponentOptions = {
       this.importCreatePolicyPaths = false;
       this.importCreatePathMapping = true;
       this.importCreateMocks = false;
-      $scope.$watch('$ctrl.importAPIFile.content', function(data) {
+      $scope.$watch('$ctrl.importAPIFile.content', function (data) {
         if (data) {
           that.enableFileImport = true;
         }
@@ -160,18 +159,18 @@ const ImportComponent: ng.IComponentOptions = {
       var id = (this.isForUpdate() ? this.apiId : null);
       var apiDefinition = (this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL);
       var isUpdate = this.isForUpdate();
-      ApiService.import(id, apiDefinition).then(function(api) {
+      ApiService.import(id, apiDefinition).then(function (api) {
         NotificationService.show('API updated');
         if (isUpdate) {
           $state.reload();
         } else {
-          $state.go('management.apis.detail.portal.general', { apiId: api.data.id });
+          $state.go('management.apis.detail.portal.general', {apiId: api.data.id});
         }
       });
     };
 
     this.importSwagger = () => {
-      let swagger = {
+      let swagger: any = {
         with_documentation: this.importCreateDocumentation,
         with_path_mapping: this.importCreatePathMapping,
         with_policy_paths: this.importCreatePolicyPaths,
@@ -196,7 +195,7 @@ const ImportComponent: ng.IComponentOptions = {
         // @ts-ignore
         ApiService.importSwagger(null, swagger).then((api) => {
           NotificationService.show('API successfully updated');
-          $state.go('management.apis.detail.portal.general', { apiId: api.data.id });
+          $state.go('management.apis.detail.portal.general', {apiId: api.data.id});
         });
       }
     };

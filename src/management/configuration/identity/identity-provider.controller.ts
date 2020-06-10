@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/core';
+import {StateService} from '@uirouter/core';
 
 import NotificationService from '../../../services/notification.service';
 import IdentityProviderService from '../../../services/identityProvider.service';
-import { GroupMapping, IdentityProvider, RoleMapping } from '../../../entities/identityProvider';
+import {GroupMapping, IdentityProvider, RoleMapping} from '../../../entities/identityProvider';
 import angular = require('angular');
 import _ = require('lodash');
 
@@ -47,13 +47,13 @@ class IdentityProviderController {
 
   $onInit() {
     this.updateMode = this.identityProvider !== undefined && this.identityProvider.id !== undefined;
-    if (! this.updateMode) {
+    if (!this.updateMode) {
       // Initialize the identity provider
       this.identityProvider = new IdentityProvider();
       this.identityProvider.enabled = true;
       this.identityProvider.type = (this.$state.params.type as string);
-      this.identityProvider.configuration = new Map<string , any>();
-      this.identityProvider.configuration.scopes = [];
+      this.identityProvider.configuration = new Map<string, any>();
+      this.identityProvider.configuration.set('scopes', []);
       this.identityProvider.emailRequired = true;
 
       // Default user mapping configuration for OIDC or Gravitee.io AM providers

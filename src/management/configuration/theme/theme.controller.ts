@@ -16,7 +16,8 @@
 
 import ThemeService from '../../../services/theme.service';
 import NotificationService from '../../../services/notification.service';
-import { Theme } from '../../../entities/theme';
+import {Theme} from '../../../entities/theme';
+import angular = require('angular');
 
 class ThemeController {
 
@@ -39,7 +40,7 @@ class ThemeController {
     $scope.themeForm = {};
     $scope.targetURL = Constants.portal.url;
 
-    $scope.trustSrc = function(src) {
+    $scope.trustSrc = function (src) {
       return $sce.trustAsResourceUrl(src);
     };
 
@@ -85,7 +86,7 @@ class ThemeController {
       return [];
     };
 
-    $scope.$on('accordion:onReady', function() {
+    $scope.$on('accordion:onReady', function () {
       setTimeout(() => {
         if ($scope.hasPreview()) {
           $scope.accordion.toggle('image');
@@ -426,7 +427,7 @@ class ThemeController {
     };
 
     const link = document.createElement('a');
-    link.style = 'display:none;';
+    link.style.display = 'none';
     document.body.appendChild(link);
 
     const blob = new Blob([angular.toJson(data, 2)], {type: 'application/octet-stream'});

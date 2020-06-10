@@ -29,7 +29,7 @@ class ClientRegistrationProviderService {
     return this.$http.get(this.URL).then(response => response.data);
   }
 
-  get(id: string): ClientRegistrationProvider {
+  get(id: string): IPromise<ClientRegistrationProvider> {
     return this.$http.get(this.URL + id).then(response => {
       let clientRegistrationProvider = response.data;
       clientRegistrationProvider.scopes = clientRegistrationProvider.scopes || [];
@@ -41,7 +41,7 @@ class ClientRegistrationProviderService {
     return this.$http.post(this.URL, clientRegistrationProvider);
   }
 
-  update(clientRegistrationProvider: ClientRegistrationProvider):  ClientRegistrationProvider {
+  update(clientRegistrationProvider: ClientRegistrationProvider): IPromise<ClientRegistrationProvider> {
 
     return this.$http.put(this.URL + clientRegistrationProvider.id,
       {

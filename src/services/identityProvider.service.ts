@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { IdentityProvider } from '../entities/identityProvider';
-import { IHttpPromise, IPromise } from 'angular';
+import {IdentityProvider} from '../entities/identityProvider';
+import {IHttpPromise, IPromise} from 'angular';
 
 class IdentityProviderService {
   private URL: string;
@@ -29,7 +29,7 @@ class IdentityProviderService {
     return this.$http.get(this.URL).then(response => response.data);
   }
 
-  get(id: string): ng.Promise<IdentityProvider> {
+  get(id: string): IPromise<IdentityProvider> {
     return this.$http.get(this.URL + id).then(response => {
       let identityProvider = response.data;
       identityProvider.configuration = identityProvider.configuration || {};
@@ -52,7 +52,7 @@ class IdentityProviderService {
     return this.$http.post(this.URL, identityProvider);
   }
 
-  update(identityProvider: IdentityProvider):  ng.Promise<IdentityProvider> {
+  update(identityProvider: IdentityProvider): IPromise<IdentityProvider> {
 
     return this.$http.put(this.URL + identityProvider.id,
       {
@@ -66,21 +66,21 @@ class IdentityProviderService {
         emailRequired: identityProvider.emailRequired,
         syncMappings: identityProvider.syncMappings
       }).then(response => {
-        let identityProvider = response.data;
+      let identityProvider = response.data;
 
-        identityProvider.configuration = identityProvider.configuration || {};
-        identityProvider.configuration.scopes = identityProvider.configuration.scopes || [];
+      identityProvider.configuration = identityProvider.configuration || {};
+      identityProvider.configuration.scopes = identityProvider.configuration.scopes || [];
 
-        // Init group mapping
-        identityProvider.groupMappings = identityProvider.groupMappings || [];
+      // Init group mapping
+      identityProvider.groupMappings = identityProvider.groupMappings || [];
 
-        // Init role mapping
-        identityProvider.roleMappings = identityProvider.roleMappings || [];
+      // Init role mapping
+      identityProvider.roleMappings = identityProvider.roleMappings || [];
 
-        // Init user mapping
-        identityProvider.userProfileMapping = identityProvider.userProfileMapping || {};
+      // Init user mapping
+      identityProvider.userProfileMapping = identityProvider.userProfileMapping || {};
 
-        return identityProvider;
+      return identityProvider;
     });
   }
 

@@ -24,8 +24,8 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget'
   },
-  controller: function() {
-    this.$onChanges = function(changes) {
+  controller: function () {
+    this.$onChanges = function (changes) {
       if (changes.data) {
         let data = _.map(changes.data.currentValue.values, (v, k) => {
           return {key: k, value: v};
@@ -66,11 +66,6 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
             mapData: Highcharts.maps['custom/world'],
             joinBy: ['hc-a2', 'key'],
             name: 'Number of API requests',
-            states: {
-              hover: {
-                color: Highcharts.getOptions().colors[2]
-              }
-            },
             states: {
               hover: {
                 color: '#a4edba',

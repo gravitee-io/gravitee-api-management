@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import DashboardService from '../../../services/dashboard.service';
+
 const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-data-table-configuration.html'),
   bindings: {
@@ -61,11 +62,11 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
 
     this.onFieldChanged = () => {
       this.chart.request.field = this.field;
-      this.chart.columns[0] = _.find(this.fields, {value: this.field}).label;
+      this.chart.columns[0] = _.find(this.fields, f => f.value === this.field).label;
     };
 
     this.onProjectionChanged = () => {
-      this.chart.columns[1] = _.find(this.projections, {value: this.projection}).label;
+      this.chart.columns[1] = _.find(this.projections, p => p.value === this.projection).label;
       if (this.projection) {
         this.chart.request.order = this.order + this.aggregate + ':' + this.projection;
         this.chart.percent = false;

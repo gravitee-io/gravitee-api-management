@@ -15,15 +15,12 @@
  */
 import angular = require('angular');
 import _ = require('lodash');
-
-// fix angular-schema-form angular<1.7
-angular.uppercase = _.toUpper;
-angular.lowercase = _.toLower;
-
 import './index.scss';
-
 import './management/management.module';
 import './i18n/i18n.module';
+
+// fix angular-schema-form angular<1.7
+Object.assign(angular, {lowercase: _.toLower, uppercase: _.toUpper});
 
 let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
 let $http: ng.IHttpService = initInjector.get('$http');
@@ -47,7 +44,7 @@ function fetchData() {
       angular.module('gravitee-management').constant('Build', build);
       return $http.get(`${ConstantsJSON.baseURL}portal`);
     })
-    .then( (response: any) => {
+    .then((response: any) => {
       let constants = _.merge(response.data, ConstantsJSON);
       angular.module('gravitee-management').constant('Constants', constants);
 

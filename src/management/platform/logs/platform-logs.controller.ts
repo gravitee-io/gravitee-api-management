@@ -17,10 +17,11 @@ import {StateService} from '@uirouter/core';
 
 import {IScope} from 'angular';
 import AnalyticsService, {LogsQuery} from '../../../services/analytics.service';
+import _ = require('lodash');
 
 class PlatformLogsController {
 
-  private logs: {total: string; logs: any[], metadata: any};
+  private logs: { total: string; logs: any[], metadata: any };
   private query: LogsQuery;
   private metadata: {
     apis?: any[],

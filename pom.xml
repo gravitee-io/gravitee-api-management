@@ -108,6 +108,16 @@
             <phase>generate-resources</phase>
           </execution>
           <execution>
+            <id>npm compile</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <arguments>run compile</arguments>
+            </configuration>
+          </execution>
+          <execution>
             <id>npm lint</id>
             <goals>
               <goal>npm</goal>

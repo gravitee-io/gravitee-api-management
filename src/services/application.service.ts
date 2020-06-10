@@ -15,8 +15,7 @@
  */
 
 import * as _ from 'lodash';
-import { ApplicationType } from '../entities/application';
-import { PagedResult } from '../entities/pagedResult';
+import {PagedResult} from '../entities/pagedResult';
 
 export class LogsQuery {
   from: number;
@@ -25,6 +24,7 @@ export class LogsQuery {
   page: number;
   size: number;
   field: string;
+  order: boolean;
 }
 
 interface IMember {
@@ -159,7 +159,7 @@ class ApplicationService {
     var url = this.applicationsURL + application + '/analytics?';
 
     var keys = Object.keys(request);
-    _.forEach(keys, function(key) {
+    _.forEach(keys, function (key) {
       var val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -223,7 +223,7 @@ class ApplicationService {
    */
   private buildURLWithQuery(query: LogsQuery, url) {
     var keys = Object.keys(query);
-    _.forEach(keys, function(key) {
+    _.forEach(keys, function (key) {
       var val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';

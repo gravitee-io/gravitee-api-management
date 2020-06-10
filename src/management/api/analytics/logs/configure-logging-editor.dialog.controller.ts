@@ -47,7 +47,8 @@ export class Condition {
     if (this.type.id === 'logging-duration') {
       let end = moment().add(moment.duration(this.param1, this.param2));
       return `${this.type.statement} <= ${end}l`;
-    } if (this.type.id === 'logging-end-date') {
+    }
+    if (this.type.id === 'logging-end-date') {
       let end = this.param1;
       return `${this.type.statement} <= ${end}l`;
     } else if (this.type.id !== 'request-header' && this.type.id !== 'request-param') {
@@ -68,7 +69,7 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
   $scope.methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
   $scope.timeUnits = ['SECONDS', 'MINUTES', 'HOURS', 'DAYS'];
   $scope.types = [ConditionType];
-  $scope.conditions = [];
+  $scope.conditions = [Condition];
 
   $scope.types.push(new ConditionType('Plan', 'plan', '#context.plan'));
   $scope.types.push(new ConditionType('Application', 'application', '#context.application'));
@@ -80,7 +81,7 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
   $scope.types.push(new ConditionType('End date', 'logging-end-date', '#request.timestamp'));
 
   this.addCondition = () => {
-    let type: ConditionType = _.find($scope.types, { 'id': $scope.selectedType});
+    let type: ConditionType = _.find($scope.types, (conditionType: ConditionType) => conditionType.id === $scope.selectedType);
     if (type !== undefined) {
       $scope.conditions.push(new Condition(type, '==', ''));
     }

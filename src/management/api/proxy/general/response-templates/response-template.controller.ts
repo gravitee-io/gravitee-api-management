@@ -26,9 +26,10 @@ class ApiResponseTemplateController {
   private formResponseTemplate: any;
   private creation: boolean = false;
   private keys: any;
-  private templates:  any;
+  private templates: any;
+  private selectedTemplateKey: any;
 
-  constructor (
+  constructor(
     private ApiService: ApiService,
     private NotificationService: NotificationService,
     private $rootScope: ng.IRootScopeService,
@@ -104,11 +105,11 @@ class ApiResponseTemplateController {
     }
   }
 
-  onSelectedTemplateKey (key) {
+  onSelectedTemplateKey(key) {
     this.templateKey = key;
   }
 
-  querySearchTemplateKey (query) {
+  querySearchTemplateKey(query) {
     let keys = query ? this.keys.filter(this.createFilterForTemplateKey(query)) : this.keys;
     if (query && !_.includes(keys, query)) {
       this.selectedTemplateKey = query;
@@ -116,7 +117,7 @@ class ApiResponseTemplateController {
     return keys;
   }
 
-  createFilterForTemplateKey (query) {
+  createFilterForTemplateKey(query) {
     return function filterFn(state) {
       return _.includes(state.toLowerCase(), query.toLowerCase());
     };
@@ -136,7 +137,7 @@ class ApiResponseTemplateController {
   }
 
   update() {
-    let apiResponseTemplates = this.api.response_templates ||  {};
+    let apiResponseTemplates = this.api.response_templates || {};
 
     if (this.templates.length > 0) {
       apiResponseTemplates[this.templateKey] =

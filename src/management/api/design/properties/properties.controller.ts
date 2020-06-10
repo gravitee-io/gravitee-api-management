@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import angular = require('angular');
 
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
+import angular = require('angular');
 
 interface IApiPropertiesScope extends ng.IScope {
   dynamicPropertyEnabled: boolean;
@@ -32,11 +32,12 @@ class ApiPropertiesController {
   private controller: any;
   private editor: any;
   private joltSpecificationOptions: any;
-  private dynamicPropertyProviders: {id: string; name: string}[];
+  private dynamicPropertyProviders: { id: string; name: string }[];
   private timeUnits: string[];
   private selectedProperties: any = {};
+  private selectAll: boolean;
 
-  constructor (
+  constructor(
     private ApiService: ApiService,
     private resolvedApi,
     private $mdSidenav: angular.material.ISidenavService,
@@ -53,7 +54,7 @@ class ApiPropertiesController {
         name: 'Custom (HTTP)'
       }
     ];
-    this.timeUnits = [ 'SECONDS', 'MINUTES', 'HOURS' ];
+    this.timeUnits = ['SECONDS', 'MINUTES', 'HOURS'];
     this.api = this.$scope.$parent.apiCtrl.api;
     this.$mdSidenav = $mdSidenav;
     this.$mdEditDialog = $mdEditDialog;
@@ -170,7 +171,7 @@ class ApiPropertiesController {
     let that = this;
     this.$mdSidenav('dynamic-properties-config')
       .open()
-      .then(function() {
+      .then(function () {
         if (that.editor) {
           that.editor.setSize('100%', '100%');
         }

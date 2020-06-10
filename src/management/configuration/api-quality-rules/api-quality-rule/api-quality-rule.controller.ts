@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
+import {StateService} from '@uirouter/core';
 import NotificationService from '../../../../services/notification.service';
 import QualityRuleService from '../../../../services/qualityRule.service';
 import {QualityRule} from '../../../../entities/qualityRule';
@@ -34,6 +34,11 @@ class ApiQualityRuleController {
   $onInit() {
     if (!this.qualityRule) {
       this.qualityRule = {
+        createdAt: '',
+        description: '',
+        id: '',
+        name: '',
+        updatedAt: '',
         weight: 0
       };
     }

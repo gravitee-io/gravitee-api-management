@@ -16,11 +16,12 @@
 import * as _ from 'lodash';
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
-import { StateService } from '@uirouter/core';
+import {StateService} from '@uirouter/core';
 
 class ApiCreationController {
 
-  private api: any;
+  api: any;
+  selectedTenants: any[];
   private vm: {
     selectedStep: number;
     stepProgress: number;
@@ -52,7 +53,6 @@ class ApiCreationController {
   private quota: any;
   private tags: any[];
   private tenants: any[];
-  private selectedTenants: any[];
 
   constructor(private $scope,
               private $timeout,
@@ -210,7 +210,7 @@ class ApiCreationController {
   _createAPI(deployAndStart, readyForReview?: boolean) {
     var _this = this;
     // clear API pages json format
-    _.forEach(this.api.pages, function(page) {
+    _.forEach(this.api.pages, function (page) {
       if (!page.name) {
         page.name = page.fileName;
       }
@@ -220,7 +220,7 @@ class ApiCreationController {
     });
 
     // handle plan publish state
-    _.forEach(this.api.plans, function(plan) {
+    _.forEach(this.api.plans, function (plan) {
       plan.status = (deployAndStart) ? 'PUBLISHED' : 'STAGING';
     });
 
@@ -239,8 +239,8 @@ class ApiCreationController {
         });
       }
       if (deployAndStart) {
-        _this.ApiService.deploy(api.data.id).then(function() {
-          _this.ApiService.start(api.data).then(function() {
+        _this.ApiService.deploy(api.data.id).then(function () {
+          _this.ApiService.start(api.data).then(function () {
             _this.NotificationService.show('API created, deployed and started');
             _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
           });
@@ -262,7 +262,7 @@ class ApiCreationController {
     var stepMessage = this.api.name + ' (' + this.api.version + ') <code>' + this.api.proxy.context_path + '</code>';
     if (this.contextPathInvalid) {
       var _this = this;
-      var criteria = { 'context_path' : this.api.proxy.context_path};
+      var criteria = {'context_path': this.api.proxy.context_path};
       this.ApiService.verify(criteria).then(function () {
         _this.contextPathInvalid = false;
         _this.submitCurrentStep(stepData);
@@ -315,7 +315,7 @@ class ApiCreationController {
       '/': []
     };
     // set resource filtering whitelist
-    _.remove(this.resourceFiltering.whitelist, (whitelistItem: any)  => {
+    _.remove(this.resourceFiltering.whitelist, (whitelistItem: any) => {
       return !whitelistItem.pattern;
     });
     if (this.resourceFiltering.whitelist.length) {
@@ -400,7 +400,7 @@ class ApiCreationController {
 
   selectDocumentation() {
     var stepMessage = '';
-    _.forEach(this.api.pages, function(page) {
+    _.forEach(this.api.pages, function (page) {
       stepMessage += page.name + ' ';
     });
     this.apiSteps[this.vm.selectedStep].title = stepMessage;

@@ -36,7 +36,6 @@ class DashboardController {
     private $scope,
     private Constants,
     private $state,
-    private dashboards
   ) {
     'ngInject';
     this.eventLabels = {};
@@ -112,7 +111,9 @@ class DashboardController {
 
   searchEvents() {
     // set apis
-    let apis = this.selectedAPIs.map(function(api) { return api.id; }).join(',');
+    let apis = this.selectedAPIs.map(function (api) {
+      return api.id;
+    }).join(',');
     // set event types
     // TODO: types is type any[], and then string !!! beurk beurk beurk
     let types: any = this.eventTypes;

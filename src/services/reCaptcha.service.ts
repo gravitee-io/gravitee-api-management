@@ -90,7 +90,7 @@ class ReCaptchaService {
     this.display = true;
 
     if (this.enabled && this.loaded) {
-      document.getElementsByClassName('grecaptcha-badge')[0].style.setProperty('visibility', 'initial');
+      (document.getElementsByClassName('grecaptcha-badge')[0] as HTMLElement).style.setProperty('visibility', 'initial');
     }
   }
 
@@ -98,7 +98,7 @@ class ReCaptchaService {
     this.display = false;
 
     if (this.enabled && this.loaded) {
-      document.getElementsByClassName('grecaptcha-badge')[0].style.setProperty('visibility', 'collapse', 'important');
+      (document.getElementsByClassName('grecaptcha-badge')[0] as HTMLElement).style.setProperty('visibility', 'collapse', 'important');
     }
   }
 

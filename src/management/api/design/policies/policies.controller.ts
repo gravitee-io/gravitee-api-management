@@ -29,7 +29,7 @@ class ApiPoliciesController {
   private httpMethodsUpdated: boolean;
   private schemaByPolicyId: any;
 
-  constructor (
+  constructor(
     private ApiService,
     private PolicyService,
     private $mdDialog: angular.material.IDialogService,
@@ -68,7 +68,7 @@ class ApiPoliciesController {
     });
 
     const that = this;
-    this.$scope.$on('dragulardrop', function(event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
+    this.$scope.$on('dragulardrop', function (event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
       if (dropzoneObjList !== null) {
         // Automatically display the configuration associated to the dragged policy
         that.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value).then((schema) => {
@@ -159,17 +159,17 @@ class ApiPoliciesController {
 
   listAllPolicies() {
     return this.PolicyService.list({expandSchema: true}).then((policies) => {
-       return _.map(policies.data, (originalPolicy: { id: number }) => {
-         const policy = {
-           policyId: originalPolicy.id,
-           methods: this.httpMethods,
-           version: originalPolicy.version,
-           name: originalPolicy.name,
-           type: originalPolicy.type,
-           description: originalPolicy.description,
-           enabled: originalPolicy.enabled || true
-         };
-         return {policy};
+      return _.map(policies.data, (originalPolicy: any) => {
+        const policy = {
+          policyId: originalPolicy.id,
+          methods: this.httpMethods,
+          version: originalPolicy.version,
+          name: originalPolicy.name,
+          type: originalPolicy.type,
+          description: originalPolicy.description,
+          enabled: originalPolicy.enabled || true
+        };
+        return {policy};
       });
     });
   }
@@ -211,7 +211,7 @@ class ApiPoliciesController {
       classes.push('gravitee-policy-card-selected');
     }
 
-    if (!selected && ! policy.enabled) {
+    if (!selected && !policy.enabled) {
       classes.push('gravitee-policy-card-disabled');
     }
 
@@ -230,7 +230,7 @@ class ApiPoliciesController {
   toggleHttpMethod(method, methods) {
     this.httpMethodsUpdated = true;
     const index = methods.indexOf(method);
-    if ( index > -1 ) {
+    if (index > -1) {
       methods.splice(index, 1);
     } else {
       methods.push(method);
@@ -241,7 +241,9 @@ class ApiPoliciesController {
     return _.reduce(
       _.map(policy.methods, (method: string) => {
         return this.httpMethodsFilter.indexOf(method) < 0;
-  }), (result, n) => { return result && n; });
+      }), (result, n) => {
+        return result && n;
+      });
   }
 
   removePolicy(index, path, ev) {
@@ -289,7 +291,7 @@ class ApiPoliciesController {
     }).then(function (description) {
       policy.description = description;
       that.savePaths();
-    }, function() {
+    }, function () {
       // You cancelled the dialog
     });
   }
@@ -318,7 +320,7 @@ class ApiPoliciesController {
           _.forOwn(policyAttributeValueObject, (policyAttributeAttribute) => {
             if (_.isArray(policyAttributeAttribute)) {
               _.remove(policyAttributeAttribute, (policyAttributeAttributeItem) => {
-                return policyAttributeAttributeItem === undefined ||  '' === policyAttributeAttributeItem;
+                return policyAttributeAttributeItem === undefined || '' === policyAttributeAttributeItem;
               });
             }
           });
@@ -329,7 +331,7 @@ class ApiPoliciesController {
     const that = this;
 
     let api = this.$scope.$parent.apiCtrl.api;
-    return this.ApiService.update(api).then( (updatedApi) => {
+    return this.ApiService.update(api).then((updatedApi) => {
       that.NotificationService.show('API \'' + updatedApi.data.name + '\' saved');
       that.pathsToCompare = that.generatePathsToCompare();
 
@@ -350,10 +352,10 @@ class ApiPoliciesController {
         paths: this.apiPoliciesByPath,
         rootCtrl: this
       }
-    }).then( (paths) => {
+    }).then((paths) => {
       this.apiPoliciesByPath = paths;
-    this.savePaths();
-  });
+      this.savePaths();
+    });
   }
 
   removePath(path) {
@@ -397,7 +399,7 @@ class ApiPoliciesController {
   }
 
   clearPathParam(path) {
-    if ( path === '/' ) {
+    if (path === '/') {
       return '/';
     } else {
       return path.trim().replace(/(:.*?\/)|(:.*$)/g, ':x\/').replace(/\/+$/, '');
@@ -407,8 +409,8 @@ class ApiPoliciesController {
   sortedPaths() {
     let paths = _.keys(this.apiPoliciesByPath);
     return _.sortBy(paths, (path) => {
-        return this.clearPathParam(path);
-  });
+      return this.clearPathParam(path);
+    });
   }
 
   pathKeyPress(ev, el, newPath, index) {

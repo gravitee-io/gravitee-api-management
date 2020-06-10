@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import angular = require('angular');
 import SidenavService from '../../../components/sidenav/sidenav.service';
 import UserService from '../../../services/user.service';
 import ApiService from '../../../services/api.service';
@@ -129,7 +128,14 @@ class ApiProxyController {
     // Context-path editable
     this.contextPathEditable = this.UserService.currentUser.id === this.api.owner.id;
 
-    this.api.proxy.cors = this.api.proxy.cors || {allowOrigin: [], allowHeaders: [], allowMethods: [], exposeHeaders: [], maxAge: -1, allowCredentials: false};
+    this.api.proxy.cors = this.api.proxy.cors || {
+      allowOrigin: [],
+      allowHeaders: [],
+      allowMethods: [],
+      exposeHeaders: [],
+      maxAge: -1,
+      allowCredentials: false
+    };
   }
 
   removeEndpoints() {
@@ -232,7 +238,7 @@ class ApiProxyController {
   }
 
   getGroup(groupId) {
-    return _.find(this.groups, { 'id': groupId });
+    return _.find(this.groups, {'id': groupId});
   }
 
   /**
@@ -245,11 +251,11 @@ class ApiProxyController {
   /**
    * Create filter function for a query string
    */
-  createFilterFor(query) {
-    let lowercaseQuery = angular.lowercase(query);
+  createFilterFor(query: string) {
+    let lowercaseQuery = query.toLowerCase();
 
     return function filterFn(header) {
-      return angular.lowercase(header).indexOf(lowercaseQuery) === 0;
+      return header.toLowerCase().indexOf(lowercaseQuery) === 0;
     };
   }
 
@@ -271,12 +277,12 @@ class ApiProxyController {
       }
     }).then(function (response) {
       if (response) {
-          _(that.api.proxy.groups).forEach(function (group, index, object) {
-            if (group.name !== undefined && group.name === groupname) {
-              object.splice(index, 1);
-              that.update(that.api);
-            }
-          });
+        _(that.api.proxy.groups).forEach(function (group, index, object) {
+          if (group.name !== undefined && group.name === groupname) {
+            object.splice(index, 1);
+            that.update(that.api);
+          }
+        });
       }
     });
   }

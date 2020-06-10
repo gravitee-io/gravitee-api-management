@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import angular = require('angular');
 import SidenavService from '../../../../components/sidenav/sidenav.service';
 import UserService from '../../../../services/user.service';
 import {QualityMetrics} from '../../../../entities/qualityMetrics';
@@ -178,7 +177,14 @@ class ApiPortalController {
     // Context-path editable
     this.contextPathEditable = this.UserService.currentUser.id === this.api.owner.id;
 
-    this.api.proxy.cors = this.api.proxy.cors || {allowOrigin: ['*'], allowHeaders: [], allowMethods: [], exposeHeaders: [], maxAge: -1, allowCredentials: false};
+    this.api.proxy.cors = this.api.proxy.cors || {
+      allowOrigin: ['*'],
+      allowHeaders: [],
+      allowMethods: [],
+      exposeHeaders: [],
+      maxAge: -1,
+      allowCredentials: false
+    };
   }
 
   editWeight(event, endpoint) {
@@ -339,7 +345,7 @@ class ApiPortalController {
   }
 
   getGroup(groupId) {
-    return _.find(this.groups, { 'id': groupId });
+    return _.find(this.groups, {'id': groupId});
   }
 
   /**
@@ -353,10 +359,10 @@ class ApiPortalController {
    * Create filter function for a query string
    */
   createFilterFor(query) {
-    let lowercaseQuery = angular.lowercase(query);
+    let lowercaseQuery = query.toLowerCase();
 
     return function filterFn(header) {
-      return angular.lowercase(header).indexOf(lowercaseQuery) === 0;
+      return header.toLowerCase().indexOf(lowercaseQuery) === 0;
     };
   }
 

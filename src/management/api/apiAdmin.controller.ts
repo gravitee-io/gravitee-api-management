@@ -19,7 +19,7 @@ import NotificationService from '../../services/notification.service';
 import ApiService from '../../services/api.service';
 import {IScope} from 'angular';
 
-import { StateService } from '@uirouter/core';
+import {StateService} from '@uirouter/core';
 import QualityRuleService from '../../services/qualityRule.service';
 
 class ApiAdminController {
@@ -28,7 +28,7 @@ class ApiAdminController {
   private apiIsSynchronized: boolean;
   private menu: any;
 
-  constructor (
+  constructor(
     private resolvedApi: any,
     private $state: StateService,
     private $scope: IScope,
@@ -63,11 +63,11 @@ class ApiAdminController {
 
   init() {
     var self = this;
-    this.$scope.$on('apiPictureChangeSuccess', function(event, args) {
+    this.$scope.$on('apiPictureChangeSuccess', function (event, args) {
       self.api.picture = args.image;
       self.updatePicture(self.api);
     });
-    this.$scope.$on('apiChangeSuccess', function(event, args) {
+    this.$scope.$on('apiChangeSuccess', function (event, args) {
       self.api = args.api;
       self.checkAPISynchronization(self.api);
     });
@@ -228,7 +228,7 @@ class ApiAdminController {
       controllerAs: '$ctrl',
       template: require('./portal/general/dialog/requestForChanges.dialog.html'),
       clickOutsideToClose: true,
-    }).then((response: boolean) => {
+    }).then((response) => {
       if (response) {
         this.ApiService.rejectReview(this.api, response.message).then((response) => {
           this.api.workflow_state = 'request_for_changes';

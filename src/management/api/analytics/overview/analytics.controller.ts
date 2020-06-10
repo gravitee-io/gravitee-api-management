@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import { StateService } from '@uirouter/core';
+import {StateService} from '@uirouter/core';
 
 class ApiAnalyticsController {
 
@@ -26,9 +26,9 @@ class ApiAnalyticsController {
     private ApiService,
     private resolvedApi,
     private $scope,
-    private $state: StateService,
-    private dashboards) {
-  'ngInject';
+    private $state: StateService
+  ) {
+    'ngInject';
     this.ApiService = ApiService;
     this.$scope = $scope;
     this.api = resolvedApi.data;

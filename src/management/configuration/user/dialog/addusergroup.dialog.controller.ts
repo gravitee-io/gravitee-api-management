@@ -33,7 +33,7 @@ function DialogAddUserGroupController(
   };
 
   this.save = () => {
-    let roles = {};
+    let roles: any = {};
     if ($scope.selectedApplicationRole) {
       roles.APPLICATION = $scope.selectedApplicationRole;
     }

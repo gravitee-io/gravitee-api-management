@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import angular = require('angular');
-import { StateService, any } from '@uirouter/core';
-
-import * as Editor from '@toast-ui/editor';
+import {StateService} from '@uirouter/core';
 import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import hljs from 'highlight.js';
-
 
 class ComponentCtrl implements ng.IComponentController {
 
@@ -27,10 +23,11 @@ class ComponentCtrl implements ng.IComponentController {
   public options: any;
 
   private maxSize: number;
-  private tuiEditor: TuiEditor;
+  private tuiEditor: any;
+
   constructor(private $http, private Constants, private $state: StateService) {
-      'ngInject';
-      var lastElement = Constants.portal.uploadMedia.maxSizeInOctet;
+    'ngInject';
+    var lastElement = Constants.portal.uploadMedia.maxSizeInOctet;
   }
 
   $onChanges() {
@@ -74,6 +71,7 @@ class ComponentCtrl implements ng.IComponentController {
       toolbarItems.splice(15, 0, 'image');
     }
 
+    const Editor = require('@toast-ui/editor');
     if (this.tuiEditor) {
       this.tuiEditor.remove();
     }
@@ -104,14 +102,14 @@ class ComponentCtrl implements ng.IComponentController {
           }
 
           $http.post(mediaURL + 'upload', fd, {headers: {'Content-Type': undefined}})
-          .then((response) => {
-            callback(mediaURL + response.data, blob.name);
-          });
+            .then((response) => {
+              callback(mediaURL + response.data, blob.name);
+            });
 
           return false;
         }
       },
-      plugins: [[codeSyntaxHighlight, { hljs }]]
+      plugins: [[codeSyntaxHighlight, {hljs}]]
     }, this.options));
   }
 }

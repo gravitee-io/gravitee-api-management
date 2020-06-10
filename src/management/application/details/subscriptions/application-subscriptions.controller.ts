@@ -19,14 +19,17 @@ import * as angular from 'angular';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
-import { PagedResult } from '../../../../entities/pagedResult';
-import { StateService } from '@uirouter/core';
+import {PagedResult} from '../../../../entities/pagedResult';
+import {StateService} from '@uirouter/core';
 
 let defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
 
 export class SubscriptionQuery {
   status?: string[] = defaultStatus;
   apis?: string[];
+  applications?: string[];
+  plans?: string[];
+  api_key: string;
   page?: number = 1;
   size?: number = 10;
 }
@@ -97,7 +100,7 @@ class ApplicationSubscriptionsController {
 
   buildQuery() {
     let query = '?page=' + this.query.page + '&size=' + this.query.size + '&';
-    let parameters = {};
+    let parameters: any = {};
 
     if (this.query.status !== undefined) {
       parameters.status = this.query.status.join(',');
@@ -111,7 +114,7 @@ class ApplicationSubscriptionsController {
       parameters.api_key = this.query.api_key;
     }
 
-    _.mapKeys(parameters, (value, key ) => {
+    _.mapKeys(parameters, (value, key) => {
       return query += key + '=' + value + '&';
     });
 

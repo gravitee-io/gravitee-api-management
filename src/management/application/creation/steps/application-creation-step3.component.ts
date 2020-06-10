@@ -21,7 +21,7 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
     parent: '^createApplication'
   },
   template: require('./application-creation-step3.html'),
-  controller: function(ApiService: ApiService, $scope) {
+  controller: function (ApiService: ApiService, $scope) {
     'ngInject';
 
     this.onSelectAPI = (api) => {
@@ -59,7 +59,7 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
 
     this.getSelectedAPIs = (): any[] => {
       let selectedAPIs = _.uniqBy(this.parent.selectedAPIs, 'id');
-      _.map(selectedAPIs, (api) => {
+      _.map(selectedAPIs, (api: any) => {
         let selectedPlans = _.filter(this.parent.selectedPlans, (plan) => {
           return plan.apis.indexOf(api.id) !== -1;
         });
