@@ -18,6 +18,7 @@ package io.gravitee.gateway.policy.impl;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyConfiguration;
+import io.gravitee.policy.api.PolicyContext;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponse;
@@ -37,6 +38,8 @@ public class PolicyMetadataBuilder {
 
     private Class<? extends PolicyConfiguration> configuration;
 
+    private PolicyContext context;
+
     private Class<?> policy;
 
     private Map<Class<? extends Annotation>, Method> methods;
@@ -50,6 +53,11 @@ public class PolicyMetadataBuilder {
 
     public PolicyMetadataBuilder setConfiguration(Class<? extends PolicyConfiguration> configuration) {
         this.configuration = configuration;
+        return this;
+    }
+
+    public PolicyMetadataBuilder setContext(PolicyContext context) {
+        this.context = context;
         return this;
     }
 
@@ -83,6 +91,11 @@ public class PolicyMetadataBuilder {
             @Override
             public Class<? extends PolicyConfiguration> configuration() {
                 return configuration;
+            }
+
+            @Override
+            public PolicyContext context() {
+                return context;
             }
 
             @Override

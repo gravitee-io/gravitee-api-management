@@ -241,14 +241,14 @@
         <gravitee-definition.version>1.23.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>1.18.0-SNAPSHOT</gravitee-common.version>
         <gravitee-expression-language.version>1.4.1</gravitee-expression-language.version>
-        <gravitee-repository.version>3.0.4</gravitee-repository.version>
-        <gravitee-plugin-resource.version>1.10.0</gravitee-plugin-resource.version>
-        <gravitee-plugin-core.version>1.10.0</gravitee-plugin-core.version>
-        <gravitee-plugin-policy.version>1.10.0</gravitee-plugin-policy.version>
-        <gravitee-plugin-alert.version>1.10.0</gravitee-plugin-alert.version>
-        <gravitee-plugin-service-discovery.version>1.10.0</gravitee-plugin-service-discovery.version>
+        <gravitee-repository.version>3.1.0-SNAPSHOT</gravitee-repository.version>
+        <gravitee-plugin-resource.version>1.13.0-SNAPSHOT</gravitee-plugin-resource.version>
+        <gravitee-plugin-core.version>1.13.0-SNAPSHOT</gravitee-plugin-core.version>
+        <gravitee-plugin-policy.version>1.13.0-SNAPSHOT</gravitee-plugin-policy.version>
+        <gravitee-plugin-alert.version>1.13.0-SNAPSHOT</gravitee-plugin-alert.version>
+        <gravitee-plugin-service-discovery.version>1.13.0-SNAPSHOT</gravitee-plugin-service-discovery.version>
         <gravitee-gateway-api.version>1.21.0-SNAPSHOT</gravitee-gateway-api.version>
-        <gravitee-policy-api.version>1.7.0</gravitee-policy-api.version>
+        <gravitee-policy-api.version>1.9.0-SNAPSHOT</gravitee-policy-api.version>
         <gravitee-alert-api.version>1.5.0</gravitee-alert-api.version>
         <gravitee-reporter-api.version>1.18.0-SNAPSHOT</gravitee-reporter-api.version>
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
