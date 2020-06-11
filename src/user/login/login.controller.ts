@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 import UserService from '../../services/user.service';
-import {StateParams, StateService} from '@uirouter/core';
+import { StateParams, StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { User } from '../../entities/user';
 import RouterService from '../../services/router.service';
 import * as _ from 'lodash';
 import { IdentityProvider } from '../../entities/identityProvider';
 import AuthenticationService from '../../services/authentication.service';
-import {log} from 'util';
 import ReCaptchaService from '../../services/reCaptcha.service';
 
 class LoginController {
@@ -64,9 +63,11 @@ class LoginController {
   authenticate(identityProvider: string) {
     let nonce = this.AuthenticationService.nonce(32);
 
-    this.$window.localStorage[nonce] = JSON.stringify({ redirectUri: this.$stateParams.redirectUri });
+    const redirectUri = this.getRedirectUri();
 
-    let provider = _.find(this.identityProviders, {'id': identityProvider}) as IdentityProvider;
+    this.$window.localStorage[nonce] = JSON.stringify({ redirectUri });
+
+    let provider = _.find(this.identityProviders, { 'id': identityProvider }) as IdentityProvider;
     this.AuthenticationService.authenticate(provider, nonce);
   }
 
@@ -89,10 +90,10 @@ class LoginController {
   }
 
   loginSuccess(user: User) {
-    this.$rootScope.$broadcast('graviteeUserRefresh', {'user': user});
-
-    if (this.$state.params.redirectUri) {
-      this.$window.location.href = '#!' + this.$state.params.redirectUri;
+    this.$rootScope.$broadcast('graviteeUserRefresh', { 'user': user });
+    const redirectUri = this.getRedirectUri();
+    if (redirectUri) {
+      this.$window.location.href = redirectUri;
     } else {
       let route = this.RouterService.getLastRoute();
       if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm' && route.from.name !== 'resetPassword') {
@@ -129,6 +130,22 @@ class LoginController {
       'color': this.getProviderColor(provider)
     };
   }
+
+  getRedirectUri() {
+    let redirectUri = ''
+    if (this.$state.params.redirectUri) {
+      if (this.$state.params.redirectUri.toLowerCase().startsWith('http')) {
+        redirectUri = this.$state.params.redirectUri;
+        if (this.$state.params['#']) {
+          redirectUri += '#' + this.$state.params['#'];
+        }
+      } else {
+        redirectUri = '#!' + this.$state.params.redirectUri;
+      }
+    }
+    return redirectUri;
+  }
+
 }
 
 export default LoginController;

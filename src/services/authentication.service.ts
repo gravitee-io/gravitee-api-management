@@ -59,19 +59,19 @@ class AuthenticationService {
     });
 
     this.$auth.authenticate(provider.id)
-      .then( (response) => {
-        this.UserService.current().then( (user) => {
+      .then((response) => {
+        this.UserService.current().then((user) => {
           if (provider.userLogoutEndpoint) {
             this.$window.localStorage.setItem('user-logout-url', provider.userLogoutEndpoint);
           }
-          this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : user});
+          this.$rootScope.$broadcast('graviteeUserRefresh', { 'user': user });
 
           let state = response.data.state;
 
           if (state !== undefined) {
             let nonce = JSON.parse(this.$window.localStorage[state]);
             if (nonce.redirectUri) {
-              this.$window.location.href = '#!' + nonce.redirectUri;
+              this.$window.location.href = nonce.redirectUri;
               return;
             }
           }
@@ -84,7 +84,8 @@ class AuthenticationService {
           }
         });
       })
-      .catch( () => {});
+      .catch(() => {
+      });
   }
 
   nonce(length: number) {
