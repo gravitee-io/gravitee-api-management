@@ -18,23 +18,38 @@ import MetadataService from '../../../services/metadata.service';
 import NotificationService from '../../../services/notification.service';
 import UserService from "../../../services/user.service";
 import {IScope} from 'angular';
+import { StateService } from '@uirouter/core';
 
 class MetadataController {
   private metadata: any;
   private metadataFormats: [any];
+  private referenceType: string;
+  private canCreate: boolean;
+  private canUpdate: boolean;
+  private canDelete: boolean;
 
   constructor(
     private MetadataService: MetadataService,
     private NotificationService: NotificationService,
     private $mdDialog: angular.material.IDialogService,
     private UserService: UserService,
-    private $rootScope: IScope) {
+    private $rootScope: IScope,
+    private $state: StateService) {
     'ngInject';
     this.$rootScope = $rootScope;
+
+    if ($state.params.apiId) {
+      this.referenceType = 'API';
+    } else if ($state.params.applicationId) {
+      this.referenceType = 'Application';
+    }
+    let permissionPrefix = this.referenceType ? this.referenceType.toLowerCase() : 'portal';
+    this.canCreate = this.UserService.isUserHasPermissions([permissionPrefix + '-metadata-c']);
+    this.canUpdate = this.UserService.isUserHasPermissions([permissionPrefix + '-metadata-u']);
+    this.canDelete = this.UserService.isUserHasPermissions([permissionPrefix + '-metadata-d']);
   }
 
   newMetadata() {
-    const that = this;
     this.$mdDialog.show({
       controller: 'NewMetadataDialogController',
       controllerAs: '$ctrl',
@@ -42,34 +57,32 @@ class MetadataController {
       locals: {
         metadataFormats: this.metadataFormats
       }
-    }).then(function (savedMetadata) {
-      that.metadata.push(savedMetadata);
-      that.NotificationService.show(`Metadata '${savedMetadata.name}' created with success`);
-    }).catch(function () {});
+    }).then(savedMetadata => {
+      this.NotificationService.show(`Metadata '${savedMetadata.name}' created with success`);
+      this.$state.reload();
+    }).catch(() => {
+      // don't display error in console
+    });
   }
 
   updateMetadata(metadata) {
-    if (this.UserService.isUserHasPermissions(["portal-metadata-u"])) {
-      const that = this;
-      this.$mdDialog.show({
-        controller: 'UpdateMetadataDialogController',
-        controllerAs: '$ctrl',
-        template: require('./dialog/save.metadata.dialog.html'),
-        locals: {
-          metadata: _.clone(metadata),
-          metadataFormats: this.metadataFormats
-        }
-      }).then(function (savedMetadata) {
-        _.remove(that.metadata, metadata);
-        that.metadata.push(savedMetadata);
-        that.NotificationService.show(`Metadata '${savedMetadata.name}' updated with success`);
-      }).catch(function () {
-      });
-    }
+    this.$mdDialog.show({
+      controller: 'UpdateMetadataDialogController',
+      controllerAs: '$ctrl',
+      template: require('./dialog/save.metadata.dialog.html'),
+      locals: {
+        metadata: _.clone(metadata),
+        metadataFormats: this.metadataFormats
+      }
+    }).then(savedMetadata => {
+      this.NotificationService.show(`Metadata '${savedMetadata.name}' updated with success`);
+      this.$state.reload();
+    }).catch(() => {
+      // don't display error in console
+    });
   }
 
   deleteMetadata(metadata) {
-    const that = this;
     this.$mdDialog.show({
       controller: 'DeleteMetadataDialogController',
       controllerAs: '$ctrl',
@@ -77,14 +90,18 @@ class MetadataController {
       locals: {
         metadata: metadata
       }
-    }).then(function (deleteMetadata) {
+    }).then(deleteMetadata => {
       if (deleteMetadata) {
-        that.MetadataService.delete(metadata).then(function () {
-          that.NotificationService.show("Metadata '" + metadata.name + "' deleted with success");
-          _.remove(that.metadata, metadata);
-        });
+        this.NotificationService.show("Metadata '" + metadata.name + "' deleted with success");
+        this.$state.reload();
       }
+    }).catch(() => {
+      // don't display error in console
     });
+  }
+
+  metadataDeletable(metadata) {
+    return !this.referenceType || (this.referenceType && metadata.value !== undefined);
   }
 }
 

@@ -236,6 +236,22 @@ class ApplicationService {
     }
     return applicationType;
   }
+
+  listMetadata(applicationId): ng.IPromise<any> {
+    return this.$http.get(this.applicationsURL + applicationId + '/metadata');
+  }
+
+  createMetadata(applicationId, metadata): ng.IPromise<any> {
+    return this.$http.post(this.applicationsURL + applicationId + '/metadata', metadata);
+  }
+
+  updateMetadata(applicationId, metadata): ng.IPromise<any> {
+    return this.$http.put(this.applicationsURL + applicationId + '/metadata/' + metadata.key, metadata);
+  }
+
+  deleteMetadata(applicationId, metadataId): ng.IPromise<any> {
+    return this.$http.delete(this.applicationsURL + applicationId + '/metadata/' + metadataId);
+  }
 }
 
 export default ApplicationService;

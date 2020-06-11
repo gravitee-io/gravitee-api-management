@@ -300,9 +300,7 @@ function apisPortalRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.portal.metadata', {
       url: '/metadata',
-      template: require('./documentation/metadata/apiMetadata.html'),
-      controller: 'ApiMetadataController',
-      controllerAs: 'apiMetadataCtrl',
+      component: 'metadata',
       resolve: {
         metadataFormats: (MetadataService: MetadataService) => MetadataService.listFormats(),
         metadata: function ($stateParams, ApiService) {

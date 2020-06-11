@@ -202,14 +202,14 @@ import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import DialogPublishPlanController from '../management/api/portal/plans/publishPlanDialog.controller';
 import TagsController from '../management/configuration/tags/tags.controller';
 import TagService from '../services/tag.service';
-import MetadataController from '../management/configuration/metadata/metadata.controller';
+import MetadataController from '../components/metadata/metadata.controller';
 import MetadataService from '../services/metadata.service';
 import DeleteTagDialogController from '../management/configuration/tags/delete.tag.dialog.controller';
 import DeleteMetadataDialogController
-  from '../management/configuration/metadata/dialog/delete.metadata.dialog.controller';
-import NewMetadataDialogController from '../management/configuration/metadata/dialog/new.metadata.dialog.controller';
+  from '../components/metadata/dialog/delete.metadata.dialog.controller';
+import NewMetadataDialogController from '../components/metadata/dialog/new.metadata.dialog.controller';
 import UpdateMetadataDialogController
-  from '../management/configuration/metadata/dialog/update.metadata.dialog.controller';
+  from '../components/metadata/dialog/update.metadata.dialog.controller';
 import ChartDirective from '../components/chart/chart.directive';
 import UserAvatarDirective from '../components/avatar/user-avatar.directive';
 import DialogConfirmController from '../components/dialog/confirmDialog.controller';
@@ -226,15 +226,6 @@ import TenantsComponent from '../management/configuration/tenants/tenants.compon
 import TagsComponent from '../management/configuration/tags/tags.component';
 import MetadataComponent from '../management/configuration/metadata/metadata.component';
 import MetadataValidatorDirective from '../components/metadata/metadata.validator.directive';
-
-import ApiMetadataController from '../management/api/portal/documentation/metadata/apiMetadata.controller';
-import ApiMetadataComponent from '../management/api/portal/documentation/metadata/apiMetadata.component';
-import UpdateApiMetadataDialogController
-  from './api/portal/documentation/metadata/dialog/update.api.metadata.dialog.controller';
-import DeleteApiMetadataDialogController
-  from './api/portal/documentation/metadata/dialog/delete.api.metadata.dialog.controller';
-import NewApiMetadataDialogController
-  from './api/portal/documentation/metadata/dialog/new.api.metadata.dialog.controller';
 
 import RoleComponent from './configuration/roles/role/role.components';
 import RoleMembersComponent from './configuration/roles/role/role.members.component';
@@ -651,14 +642,10 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DialogPublishPlanController', DialogPublishPlanController)
   .controller('TagsController', TagsController)
   .controller('MetadataController', MetadataController)
-  .controller('ApiMetadataController', ApiMetadataController)
   .controller('DeleteTagDialogController', DeleteTagDialogController)
   .controller('DeleteMetadataDialogController', DeleteMetadataDialogController)
   .controller('NewMetadataDialogController', NewMetadataDialogController)
   .controller('UpdateMetadataDialogController', UpdateMetadataDialogController)
-  .controller('NewApiMetadataDialogController', NewApiMetadataDialogController)
-  .controller('UpdateApiMetadataDialogController', UpdateApiMetadataDialogController)
-  .controller('DeleteApiMetadataDialogController', DeleteApiMetadataDialogController)
   .controller('DialogConfirmController', DialogConfirmController)
   .controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController)
   .controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController)
@@ -754,7 +741,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('apiCreationStep4', ApiCreationStep4Component)
   .component('apiCreationStep5', ApiCreationStep5Component)
   .component('gvApiImport', ApiImportComponent)
-  .component('apiMetadata', ApiMetadataComponent)
   .component('gvDashboard', DashboardComponent)
   .component('gvDashboardFilter', DashboardFilterComponent)
   .controller('DashboardFilterController', DashboardFilterController)

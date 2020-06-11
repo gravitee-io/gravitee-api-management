@@ -62,6 +62,7 @@
             <exclude>**/*.woff2</exclude>
             <exclude>**/*.eot</exclude>
             <exclude>package-json.lock</exclude>
+            <exclude>dist/**</exclude>
           </excludes>
         </configuration>
       </plugin>
