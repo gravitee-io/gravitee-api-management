@@ -15,9 +15,9 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.*;
-import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.repository.management.model.MetadataReferenceType;
+import io.gravitee.management.model.ApplicationMetadataEntity;
+import io.gravitee.management.model.NewApplicationMetadataEntity;
+import io.gravitee.management.model.UpdateApplicationMetadataEntity;
 
 import java.util.List;
 
@@ -25,19 +25,15 @@ import java.util.List;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MetadataService {
+public interface ApplicationMetadataService {
 
-    List<MetadataEntity> findAllDefault();
+    List<ApplicationMetadataEntity> findAllByApplication(String applicationId);
 
-    MetadataEntity create(NewMetadataEntity metadata);
+    ApplicationMetadataEntity findByIdAndApplication(String metadataId, String applicationId);
 
-    MetadataEntity update(UpdateMetadataEntity metadata);
+    ApplicationMetadataEntity create(NewApplicationMetadataEntity metadata);
 
-    void delete(String metadataId);
+    ApplicationMetadataEntity update(UpdateApplicationMetadataEntity metadata);
 
-    void checkMetadataFormat(MetadataFormat format, String value);
-
-    void checkMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, Object entity);
-
-    MetadataEntity findDefaultByKey(String key);
+    void delete(String metadataId, String application);
 }

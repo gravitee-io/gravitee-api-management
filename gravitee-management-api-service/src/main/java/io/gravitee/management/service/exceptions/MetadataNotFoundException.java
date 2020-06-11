@@ -13,31 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.*;
-import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.repository.management.model.MetadataReferenceType;
-
-import java.util.List;
+package io.gravitee.management.service.exceptions;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MetadataService {
+public class MetadataNotFoundException extends AbstractNotFoundException {
 
-    List<MetadataEntity> findAllDefault();
+    private final String metadataId;
 
-    MetadataEntity create(NewMetadataEntity metadata);
+    public MetadataNotFoundException(final String metadataId) {
+        this.metadataId = metadataId;
+    }
 
-    MetadataEntity update(UpdateMetadataEntity metadata);
-
-    void delete(String metadataId);
-
-    void checkMetadataFormat(MetadataFormat format, String value);
-
-    void checkMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, Object entity);
-
-    MetadataEntity findDefaultByKey(String key);
+    @Override
+    public String getMessage() {
+        return "The metadata [" + metadataId + "] can not be found.";
+    }
 }

@@ -23,61 +23,9 @@ import java.util.Objects;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NewApiMetadataEntity {
-
-    @NotNull
-    @Size(min = 1)
-    private String name;
-
-    private MetadataFormat format;
-
-    private String defaultValue;
-
-    private String value;
-
-    private boolean hidden;
+public class NewApiMetadataEntity extends NewReferenceMetadataEntity {
 
     private String apiId;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public MetadataFormat getFormat() {
-        return format;
-    }
-
-    public void setFormat(MetadataFormat format) {
-        this.format = format;
-    }
-
-    public String getDefaultValue() {
-        return defaultValue;
-    }
-
-    public void setDefaultValue(String defaultValue) {
-        this.defaultValue = defaultValue;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public boolean isHidden() {
-        return hidden;
-    }
-
-    public void setHidden(boolean hidden) {
-        this.hidden = hidden;
-    }
 
     public String getApiId() {
         return apiId;
@@ -90,26 +38,21 @@ public class NewApiMetadataEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof NewApiMetadataEntity)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
         NewApiMetadataEntity that = (NewApiMetadataEntity) o;
-        return Objects.equals(name, that.name) &&
-                Objects.equals(apiId, that.apiId);
+        return Objects.equals(apiId, that.apiId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, apiId);
+        return Objects.hash(super.hashCode(), apiId);
     }
 
     @Override
     public String toString() {
         return "NewApiMetadataEntity{" +
-                "name='" + name + '\'' +
-                ", format=" + format +
-                ", defaultValue='" + defaultValue + '\'' +
-                ", value='" + value + '\'' +
-                ", hidden=" + hidden +
-                ", apiId='" + apiId + '\'' +
-                '}';
+                "apiId='" + apiId + '\'' +
+                "} " + super.toString();
     }
 }

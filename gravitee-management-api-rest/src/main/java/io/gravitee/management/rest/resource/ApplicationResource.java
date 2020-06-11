@@ -174,4 +174,9 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationAlertsResource getApplicationAlertsResource() {
         return resourceContext.getResource(ApplicationAlertsResource.class);
     }
+
+    @Path("metadata")
+    public ApplicationMetadataResource getApplicationMetadataResource() {
+        return resourceContext.getResource(ApplicationMetadataResource.class);
+    }
 }

@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.gravitee.management.service.impl.MetadataServiceImpl.getDefautReferenceId;
+import static io.gravitee.management.service.impl.MetadataServiceImpl.getDefaultReferenceId;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -206,7 +206,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                                             (Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType())) ?
                                                     MetadataReferenceType.APPLICATION :
                                                     MetadataReferenceType.DEFAULT;
-                                    String refId = refType.equals(MetadataReferenceType.DEFAULT) ? getDefautReferenceId() : auditEntity.getReferenceId();
+                                    String refId = refType.equals(MetadataReferenceType.DEFAULT) ? getDefaultReferenceId() : auditEntity.getReferenceId();
 
                                     Optional<Metadata> optMetadata = metadataRepository.findById(property.getValue(), refId, refType);
                                     if (optMetadata.isPresent()) {

@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
 import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
+import static java.util.Collections.singletonMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
@@ -60,7 +61,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
 
     private final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceImpl.class);
 
-    private final static String DEFAUT_REFERENCE_ID = "_";
+    private final static String DEFAULT_REFERENCE_ID = "_";
 
     @Autowired
     private MetadataRepository metadataRepository;
@@ -110,7 +111,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             metadataRepository.create(metadata);
             // Audit
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(METADATA, metadata.getKey()),
+                    singletonMap(METADATA, metadata.getKey()),
                     METADATA_CREATED,
                     metadata.getCreatedAt(),
                     null,
@@ -142,7 +143,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             metadataRepository.update(metadata);
             // Audit
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(METADATA, metadata.getKey()),
+                    singletonMap(METADATA, metadata.getKey()),
                     METADATA_UPDATED,
                     metadata.getCreatedAt(),
                     null,
@@ -157,12 +158,12 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     @Override
     public void delete(final String key) {
         try {
-            final Optional<Metadata> optMetadata = metadataRepository.findById(key, DEFAUT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
+            final Optional<Metadata> optMetadata = metadataRepository.findById(key, DEFAULT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
             if (optMetadata.isPresent()) {
-                metadataRepository.delete(key, DEFAUT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
+                metadataRepository.delete(key, DEFAULT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
                 // Audit
                 auditService.createPortalAuditLog(
-                        Collections.singletonMap(METADATA, key),
+                        singletonMap(METADATA, key),
                         METADATA_DELETED,
                         new Date(),
                         optMetadata.get(),
@@ -175,7 +176,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                     // Audit
                     auditService.createApiAuditLog(
                             metadata.getReferenceId(),
-                            Collections.singletonMap(METADATA, key),
+                            singletonMap(METADATA, key),
                             METADATA_DELETED,
                             new Date(),
                             metadata,
@@ -192,7 +193,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     public MetadataEntity findDefaultByKey(final String key) {
         try {
             LOGGER.debug("Find default metadata by key");
-            final Optional<Metadata> optMetadata = metadataRepository.findById(key, DEFAUT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
+            final Optional<Metadata> optMetadata = metadataRepository.findById(key, DEFAULT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
             if (optMetadata.isPresent()) {
                 return convert(optMetadata.get());
             } else {
@@ -206,16 +207,18 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
 
     @Override
     public void checkMetadataFormat(MetadataFormat format, String value) {
-        checkMetadataFormat(format, value, null);
+        checkMetadataFormat(format, value, null, null);
     }
 
     @Override
-    public void checkMetadataFormat(final MetadataFormat format, final String value, final ApiEntity api) {
+    public void checkMetadataFormat(final MetadataFormat format, final String value,
+                                    final MetadataReferenceType referenceType, final Object entity) {
         try {
             String decodedValue = value;
-            if (api != null && !isBlank(value) && value.startsWith("${")) {
+            if (entity != null && !isBlank(value) && value.startsWith("${")) {
                 Template template = new Template(value, new StringReader(value), freemarkerConfiguration);
-                decodedValue = FreeMarkerTemplateUtils.processTemplateIntoString(template, Collections.singletonMap("api", api));
+                decodedValue = FreeMarkerTemplateUtils.processTemplateIntoString(template,
+                        singletonMap(referenceType.name().toLowerCase(), entity));
             }
 
             if (isBlank(decodedValue)) {
@@ -275,7 +278,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             }
         }
 
-        metadata.setReferenceId(DEFAUT_REFERENCE_ID);
+        metadata.setReferenceId(DEFAULT_REFERENCE_ID);
         metadata.setReferenceType(MetadataReferenceType.DEFAULT);
 
         return metadata;
@@ -295,13 +298,13 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             }
         }
 
-        metadata.setReferenceId(DEFAUT_REFERENCE_ID);
+        metadata.setReferenceId(DEFAULT_REFERENCE_ID);
         metadata.setReferenceType(MetadataReferenceType.DEFAULT);
 
         return metadata;
     }
 
-    static String getDefautReferenceId() {
-        return DEFAUT_REFERENCE_ID;
+    public static String getDefaultReferenceId() {
+        return DEFAULT_REFERENCE_ID;
     }
 }

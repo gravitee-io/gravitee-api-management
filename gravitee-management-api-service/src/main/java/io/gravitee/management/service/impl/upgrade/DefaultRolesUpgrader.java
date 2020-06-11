@@ -156,6 +156,7 @@ public class DefaultRolesUpgrader implements Upgrader, Ordered {
             perms.put(ApplicationPermission.ANALYTICS.getName(), new char[]{READ.getId()});
             perms.put(ApplicationPermission.LOG.getName(), new char[]{READ.getId()});
             perms.put(ApplicationPermission.SUBSCRIPTION.getName(), new char[]{CREATE.getId(), READ.getId()});
+            perms.put(ApplicationPermission.METADATA.getName(), new char[]{READ.getId()});
             roleService.create(new NewRoleEntity(
                     "USER",
                     "Default Application Role. Created by Gravitee.io.",
@@ -173,6 +174,7 @@ public class DefaultRolesUpgrader implements Upgrader, Ordered {
             perms.put(ApplicationPermission.SUBSCRIPTION.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             perms.put(ApplicationPermission.NOTIFICATION.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             perms.put(ApplicationPermission.ALERT.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
+            perms.put(ApplicationPermission.METADATA.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             roleService.create(new NewRoleEntity(
                     "OWNER",
                     "Default Application Role. Created by Gravitee.io.",

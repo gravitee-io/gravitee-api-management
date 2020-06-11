@@ -77,6 +77,7 @@ public enum RolePermission {
     APPLICATION_SUBSCRIPTION(RoleScope.APPLICATION, ApplicationPermission.SUBSCRIPTION),
     APPLICATION_NOTIFICATION(RoleScope.APPLICATION, ApplicationPermission.NOTIFICATION),
     APPLICATION_ALERT       (RoleScope.APPLICATION, ApiPermission.ALERT),
+    APPLICATION_METADATA    (RoleScope.APPLICATION, ApiPermission.METADATA),
 
     GROUP_MEMBER            (RoleScope.GROUP, GroupPermission.MEMBER),
     GROUP_INVITATION        (RoleScope.GROUP, GroupPermission.INVITATION);
