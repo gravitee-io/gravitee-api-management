@@ -374,7 +374,7 @@
     box-sizing: border-box;
 }
 
-.tui-editor-contents table th, 
+.tui-editor-contents table th,
 .tui-editor-contents table td {
     height: 32px;
     padding: 5px 14px 5px 12px;
@@ -541,4 +541,8 @@
   font-family: 'Source Sans Pro',Helvetica,Segoe,Arial,sans-serif;
   font-weight: 400;
   text-rendering: optimizeLegibility;
+}
+
+.tui-editor .te-md-splitter {
+  width: 100%;
 }
