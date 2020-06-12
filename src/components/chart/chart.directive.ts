@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import * as Highcharts from 'highcharts';
+import * as Highmaps from 'highcharts/highmaps';
 import angular = require('angular');
 
 class ChartDirective {
@@ -35,8 +36,8 @@ class ChartDirective {
       link: function (scope, element, attributes, controller) {
 
         Highcharts.setOptions({
-          global: {
-            useUTC: false
+          time: {
+            useUTC: false,
           }
         });
 
@@ -344,7 +345,7 @@ class ChartDirective {
             }
 
             if (scope.type === 'map') {
-              Highcharts.mapChart(chartElement, _.cloneDeep(newOptions));
+              Highmaps.mapChart(chartElement, _.cloneDeep(newOptions));
             } else {
               Highcharts.chart(chartElement, _.cloneDeep(newOptions));
             }

@@ -132,7 +132,7 @@ class LoginController {
   }
 
   getRedirectUri() {
-    let redirectUri = ''
+    let redirectUri = '';
     if (this.$state.params.redirectUri) {
       if (this.$state.params.redirectUri.toLowerCase().startsWith('http')) {
         redirectUri = this.$state.params.redirectUri;

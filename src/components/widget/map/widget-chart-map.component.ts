@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import * as Highcharts from 'highcharts';
+import * as Highmaps from 'highcharts/highmaps';
 
 const WidgetChartMapComponent: ng.IComponentOptions = {
   template: require('./widget-chart-map.html'),
@@ -52,7 +53,7 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
             stops: [
               [0, '#dfe7fb'],
               [0.5, Highcharts.getOptions().colors[0]],
-              [1, Highcharts.Color(Highcharts.getOptions().colors[0]).brighten(-0.5).get()]
+              [1, new Highcharts.Color(Highcharts.getOptions().colors[0]).brighten(-0.5).get()]
             ]
           },
 
@@ -63,7 +64,7 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
 
           series: [{
             data: data,
-            mapData: Highcharts.maps['custom/world'],
+            mapData: Highmaps.maps['custom/world'],
             joinBy: ['hc-a2', 'key'],
             name: 'Number of API requests',
             states: {
