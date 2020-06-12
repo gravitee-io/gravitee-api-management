@@ -35,7 +35,7 @@
     "codemirror": "^5.54.0",
     "diff": "^3.5.0",
     "dragular": "^4.6.0",
-    "highcharts": "^6.2.0",
+    "highcharts": "^8.1.1",
     "jdenticon": "^2.2.0",
     "jquery": "^3.5.1",
     "js-yaml": "^3.13.1",
