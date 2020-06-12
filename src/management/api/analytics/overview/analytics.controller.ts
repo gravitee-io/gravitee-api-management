@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 
 class ApiAnalyticsController {
 
   private api: any;
-  private dashboards: any;
   private dashboard: any;
 
   constructor(
     private ApiService,
     private resolvedApi,
+    private dashboards,
     private $scope,
     private $state: StateService
   ) {
@@ -36,7 +36,7 @@ class ApiAnalyticsController {
 
     let dashboardId = this.$state.params.dashboard;
     if (dashboardId) {
-      this.dashboard = _.find(this.dashboards, {id: dashboardId});
+      this.dashboard = _.find(this.dashboards, { id: dashboardId });
       if (!this.dashboard) {
         delete this.$state.params.dashboard;
         this.$state.go(this.$state.current);
@@ -78,7 +78,7 @@ class ApiAnalyticsController {
   private setDashboard(dashboardId: string) {
     this.$state.transitionTo(
       this.$state.current,
-      _.merge(this.$state.params, {dashboard: dashboardId}), {reload: true});
+      _.merge(this.$state.params, { dashboard: dashboardId }), { reload: true });
   }
 }
 

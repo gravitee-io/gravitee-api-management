@@ -25,7 +25,6 @@ class DashboardController {
   private lastTo: any;
   private events: any;
   private query: any;
-  private dashboards: any;
   private dashboard: any;
 
   constructor(
@@ -36,6 +35,7 @@ class DashboardController {
     private $scope,
     private Constants,
     private $state,
+    private dashboards
   ) {
     'ngInject';
     this.eventLabels = {};
@@ -47,7 +47,7 @@ class DashboardController {
 
     let dashboardId = this.$state.params.dashboard;
     if (dashboardId) {
-      this.dashboard = _.find(this.dashboards, {id: dashboardId});
+      this.dashboard = _.find(this.dashboards, { id: dashboardId });
       if (!this.dashboard) {
         delete this.$state.params.dashboard;
         this.$state.go(this.$state.current);
@@ -86,7 +86,7 @@ class DashboardController {
   onDashboardChanged(dashboardId: string) {
     this.$state.transitionTo(
       this.$state.current,
-      _.merge(this.$state.params, {dashboard: dashboardId}), {reload: true});
+      _.merge(this.$state.params, { dashboard: dashboardId }), { reload: true });
   }
 
   onTimeframeChange(timeframe) {
