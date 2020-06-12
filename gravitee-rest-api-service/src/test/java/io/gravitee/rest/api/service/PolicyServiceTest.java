@@ -15,20 +15,29 @@
  */
 package io.gravitee.rest.api.service;
 
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import io.gravitee.definition.model.Policy;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.impl.PolicyServiceImpl;
 
+import io.gravitee.rest.api.service.spring.ServiceConfiguration;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.reflections.ReflectionUtils;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 
@@ -53,6 +62,35 @@ public class PolicyServiceTest {
     @Mock
     private PolicyPlugin policyDefinition;
 
+    private static final String JSON_SCHEMA = "{\n" +
+            "  \"type\": \"object\",\n" +
+            "  \"id\": \"urn:jsonschema:io:gravitee:policy:test\",\n" +
+            "  \"properties\": {\n" +
+            "    \"name\": {\n" +
+            "      \"title\": \"Name\",\n" +
+            "      \"type\": \"string\"\n" +
+            "    },\n" +
+            "    \"valid\": {\n" +
+            "      \"title\": \"Valid\",\n" +
+            "      \"type\": \"boolean\",\n" +
+            "      \"default\": false\n" +
+            "    }\n" +
+            "  },\n" +
+            "  \"required\": [\n" +
+            "    \"name\"\n" +
+            "  ]\n" +
+            "}";
+
+    private JsonSchemaFactory jsonSchemaFactory = new ServiceConfiguration().jsonSchemaFactory();
+
+
+    @Before
+    public void before() {
+
+        // Manually set the jsonSchemaFactory.
+        ReflectionTestUtils.setField(policyService, "jsonSchemaFactory", jsonSchemaFactory);
+    }
+
 //    @Mock
 //    private Plugin plugin;
 
@@ -70,5 +108,124 @@ public class PolicyServiceTest {
 
         assertNotNull(policies);
         assertEquals(POLICY_ID, policies.iterator().next().getId());
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldRejectInvalidJson() throws Exception {
+
+        Policy policy = new Policy();
+        policy.setName("my-policy");
+        policy.setConfiguration("{ Invalid: \"test\", \"valid\": false }");
+
+        policyService.validatePolicyConfiguration(policy);
+    }
+
+    @Test
+    public void shouldAcceptValidJsonConfigurationWithNoSchema() throws Exception {
+
+        Policy policy = new Policy();
+        policy.setName("my-policy");
+        policy.setConfiguration("{ \"name\": \"test\", \"valid\": true }");
+
+        when(policyManager.getSchema("my-policy")).thenReturn("");
+
+        policyService.validatePolicyConfiguration(policy);
+    }
+
+    @Test
+    public void shouldAcceptValidJsonConfigurationWithEmptySchema() throws Exception {
+
+        Policy policy = new Policy();
+        policy.setName("my-policy");
+        policy.setConfiguration("{ \"name\": \"test\", \"valid\": true }");
+        when(policyManager.getSchema("my-policy")).thenReturn("");
+
+
+        policyService.validatePolicyConfiguration(policy);
+    }
+
+    @Test
+    public void shouldAcceptNoConfiguration() {
+
+        Policy policy = new Policy();
+        policy.setName("my-policy");
+        policy.setConfiguration(null);
+
+        policyService.validatePolicyConfiguration(policy);
+    }
+
+    @Test
+    public void shouldAcceptNullPolicy() {
+
+        policyService.validatePolicyConfiguration(null);
+    }
+
+    @Test
+    public void shouldAcceptValidJsonConfigurationWithSchema() throws Exception {
+
+        Policy policy = new Policy();
+        policy.setName("my-policy");
+        policy.setConfiguration("{ \"name\": \"test\", \"valid\": true }");
+        when(policyManager.getSchema("my-policy")).thenReturn(JSON_SCHEMA);
+
+
+        policyService.validatePolicyConfiguration(policy);
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldRejectInvalidJsonConfigurationWithSchema() throws Exception {
+
+        Policy policy = new Policy();
+        policy.setName("my-policy");
+        policy.setConfiguration("{ \"name\": true, \"valid\": true }"); // Name should be a String
+        when(policyManager.getSchema("my-policy")).thenReturn(JSON_SCHEMA);
+
+
+        policyService.validatePolicyConfiguration(policy);
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldRejectValidJsonConfigurationWithInvalidSchema() throws Exception {
+
+        Policy policy = new Policy();
+        policy.setName("my-policy");
+        policy.setConfiguration("{ \"name\": \"test\", \"valid\": true }");
+        when(policyManager.getSchema("my-policy")).thenReturn("InvalidSchema");
+
+
+        policyService.validatePolicyConfiguration(policy);
+    }
+
+    @Test
+    public void shouldAcceptValidJsonConfigurationWithCustomJavaRegexFormat() throws Exception {
+
+        String schemaWithJavaRegexFormat = JSON_SCHEMA.replace("\"type\": \"string\"\n", "\"type\": \"string\"\n,\"format\": \"java-regex\"");
+
+        Policy policy = new Policy();
+        policy.setName("my-policy");
+        policy.setConfiguration("{ \"name\": \"^.*[A-Za-z]\\\\d*$\", \"valid\": true }");
+        when(policyManager.getSchema("my-policy")).thenReturn(schemaWithJavaRegexFormat);
+
+
+        policyService.validatePolicyConfiguration(policy);
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldRejectInvalidJsonConfigurationWithCustomJavaRegexFormat() throws Exception {
+
+        try {
+            String schemaWithJavaRegexFormat = JSON_SCHEMA.replace("\"type\": \"string\"\n", "\"type\": \"string\"\n,\"format\": \"java-regex\"");
+
+            Policy policy = new Policy();
+            policy.setName("my-policy");
+            policy.setConfiguration("{ \"name\": \"( INVALID regex\", \"valid\": true }");
+            when(policyManager.getSchema("my-policy")).thenReturn(schemaWithJavaRegexFormat);
+
+
+            policyService.validatePolicyConfiguration(policy);
+        }catch (InvalidDataException e) {
+            assertEquals("Invalid policy configuration : Invalid java regular expression [( INVALID regex]", e.getMessage());
+            throw e;
+        }
     }
 }

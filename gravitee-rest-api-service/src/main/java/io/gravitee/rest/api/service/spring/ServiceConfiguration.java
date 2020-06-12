@@ -23,6 +23,13 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.github.fge.jsonschema.cfg.ValidationConfiguration;
+import com.github.fge.jsonschema.cfg.ValidationConfigurationBuilder;
+import com.github.fge.jsonschema.core.report.ListReportProvider;
+import com.github.fge.jsonschema.core.report.LogLevel;
+import com.github.fge.jsonschema.library.DraftV4Library;
+import com.github.fge.jsonschema.library.LibraryBuilder;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -42,8 +49,8 @@ import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
-
 import io.gravitee.rest.api.service.validator.RegexPasswordValidator;
+import io.gravitee.rest.api.service.validator.jsonschema.JavaRegexFormatAttribute;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -112,5 +119,26 @@ public class ServiceConfiguration {
 	@Bean
 	public PasswordValidator passwordValidator() {
 		return new RegexPasswordValidator();
+	}
+
+	/**
+	 * Creates a {@link JsonSchemaFactory} enhanced with custom format validation support such as 'java-regex'.
+	 *
+	 * @return the created {@link JsonSchemaFactory}
+	 */
+	@Bean
+	public JsonSchemaFactory jsonSchemaFactory() {
+
+		final LibraryBuilder lib = DraftV4Library.get().thaw();
+		lib.addFormatAttribute(JavaRegexFormatAttribute.NAME, JavaRegexFormatAttribute.getInstance());
+		// Explicitly exclude built-in "regex" format attribute as it uses Rhino javascript engine and we don't want it to be used.
+		lib.removeFormatAttribute("regex");
+
+		final ValidationConfigurationBuilder cfg = ValidationConfiguration.newBuilder();
+		cfg.setDefaultLibrary("https://gravitee.io/custom/schema#", lib.freeze());
+
+		return JsonSchemaFactory.newBuilder()
+				.setReportProvider(new ListReportProvider(LogLevel.ERROR, LogLevel.FATAL)) // Log errors only, throw fatal exceptions only
+				.setValidationConfiguration(cfg.freeze()).freeze();
 	}
 }

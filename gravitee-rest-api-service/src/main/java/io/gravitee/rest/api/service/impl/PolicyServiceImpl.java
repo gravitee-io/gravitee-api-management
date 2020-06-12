@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jackson.JsonLoader;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.ListProcessingReport;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import io.gravitee.definition.model.Policy;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -22,9 +28,9 @@ import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.model.PolicyDevelopmentEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.PolicyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +55,9 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
 
     @Autowired
     private ConfigurablePluginManager<PolicyPlugin> policyManager;
+
+    @Autowired
+    private JsonSchemaFactory jsonSchemaFactory;
 
     @Override
     public Set<PolicyEntity> findAll() {
@@ -85,6 +94,34 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
         } catch (IOException ioex) {
             LOGGER.error("An error occurs while trying to get policy schema for policy {}", policyId, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get policy schema for policy " + policyId, ioex);
+        }
+    }
+
+    @Override
+    public void validatePolicyConfiguration(Policy policy) {
+
+        if (policy != null && policy.getConfiguration() != null) {
+            String schema = getSchema(policy.getName());
+
+            try {
+                // At least, validate json.
+                JsonNode jsonConfiguration = JsonLoader.fromString(policy.getConfiguration());
+
+                if (schema != null && !schema.equals("")) {
+                    // Validate json against schema when defined.
+                    JsonNode jsonSchema = JsonLoader.fromString(schema);
+                    ListProcessingReport report = (ListProcessingReport) jsonSchemaFactory.getValidator().validate(jsonSchema, jsonConfiguration, true);
+                    if (!report.isSuccess()) {
+                        String msg = "";
+                        if (report.iterator().hasNext()) {
+                            msg = " : " + report.iterator().next().getMessage();
+                        }
+                        throw new InvalidDataException("Invalid policy configuration" + msg);
+                    }
+                }
+            } catch (IOException | ProcessingException e) {
+                throw new InvalidDataException("Unable to validate policy configuration", e);
+            }
         }
     }
 

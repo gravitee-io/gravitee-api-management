@@ -19,10 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -52,7 +49,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Optional;
 
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
@@ -61,8 +60,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.*;
 import static java.util.Collections.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
 /**
@@ -108,6 +106,8 @@ public class ApiService_UpdateTest {
     private VirtualHostService virtualHostService;
     @Mock
     private CategoryService categoryService;
+    @Mock
+    private PolicyService policyService;
 
     @Before
     public void setUp() {
@@ -194,6 +194,31 @@ public class ApiService_UpdateTest {
         apiService.update(API_ID, existingApi);
 
         fail("should throw EndpointNameInvalidException");
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldNotUpdateWithInvalidPolicyConfiguration() throws TechnicalException {
+
+        prepareUpdate();
+
+        HashMap<String, Path> paths = new HashMap<>();
+        Path path = new Path();
+        path.setPath("/");
+        ArrayList<Rule> rules = new ArrayList<>();
+        Rule rule = new Rule();
+        Policy policy = new Policy();
+        rule.setPolicy(policy);
+        rule.setEnabled(true);
+        rules.add(rule);
+        path.setRules(rules);
+        paths.put("/", path);
+
+        when(existingApi.getPaths()).thenReturn(paths);
+        doThrow(new InvalidDataException()).when(policyService).validatePolicyConfiguration(any(Policy.class));
+
+        apiService.update(API_ID, existingApi);
+
+        fail("should throw InvalidDataException");
     }
 
     private void prepareUpdate() throws TechnicalException {
