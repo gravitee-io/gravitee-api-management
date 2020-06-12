@@ -27,6 +27,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 
+import java.util.List;
+
 public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> {
 
     /**
@@ -61,21 +63,38 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
         response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
         if (failure.message() != null) {
-            try {
-                Buffer payload;
+
+            List<String> accepts = context.request().headers().get(HttpHeaders.ACCEPT);
+
+            Buffer payload;
+            String contentType;
+
+            if (accepts != null && (accepts.contains(MediaType.APPLICATION_JSON) || accepts.contains(MediaType.WILDCARD))) {
+                // Write error as json when accepted by the client.
+                contentType = MediaType.APPLICATION_JSON;
+
                 if (failure.contentType() != null && failure.contentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
+                    // Message is already json string.
                     payload = Buffer.buffer(failure.message());
                 } else {
-                    String contentAsJson = mapper.writeValueAsString(new ProcessorFailureAsJson(failure));
-                    payload = Buffer.buffer(contentAsJson);
+                    try {
+                        String contentAsJson = mapper.writeValueAsString(new ProcessorFailureAsJson(failure));
+                        payload = Buffer.buffer(contentAsJson);
+                    } catch (JsonProcessingException jpe) {
+                        // There is a problem with json. Just return the content in text/plain.
+                        contentType = MediaType.TEXT_PLAIN;
+                        payload = Buffer.buffer(failure.message());
+                    }
                 }
-
-                response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(payload.length()));
-                response.headers().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                response.write(payload);
-            } catch (JsonProcessingException jpe) {
-                // Do nothing
+            } else {
+                // Fallback to text/plain error.
+                contentType = MediaType.TEXT_PLAIN;
+                payload = Buffer.buffer(failure.message());
             }
+
+            response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(payload.length()));
+            response.headers().set(HttpHeaders.CONTENT_TYPE, contentType);
+            response.write(payload);
         }
     }
 
