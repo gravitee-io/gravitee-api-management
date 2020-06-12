@@ -348,36 +348,38 @@ export class ApiSubscribeComponent implements OnInit {
         this._allSubscriptions = [this._subscription].concat(this._allSubscriptions);
       }
       const plan = this.getCurrentPlan();
-      let disabled = false;
-      let title;
-      this.availableApplications = this._applications.map(application => {
-        disabled = false;
-        title = undefined;
-        const label = `${application.name} (${application.owner.display_name})`;
-        const appSubscriptions = this._allSubscriptions.filter((sub) => sub.application === application.id);
-        if (appSubscriptions.length > 0) {
-          const appPlansSubscriptions = appSubscriptions.filter((subscription) => subscription.plan === plan.id);
-          if (appPlansSubscriptions.length > 0) {
-            subscribedApps.push({
-              item: application,
-              subscriptions: appPlansSubscriptions,
-              type: ItemResourceTypeEnum.APPLICATION,
-            });
-            if (!this.canSubscribe(appPlansSubscriptions, plan)) {
-              return null;
+      if (plan) {
+        let disabled = false;
+        let title;
+        this.availableApplications = this._applications.map(application => {
+          disabled = false;
+          title = undefined;
+          const label = `${application.name} (${application.owner.display_name})`;
+          const appSubscriptions = this._allSubscriptions.filter((sub) => sub.application === application.id);
+          if (appSubscriptions.length > 0) {
+            const appPlansSubscriptions = appSubscriptions.filter((subscription) => subscription.plan === plan.id);
+            if (appPlansSubscriptions.length > 0) {
+              subscribedApps.push({
+                item: application,
+                subscriptions: appPlansSubscriptions,
+                type: ItemResourceTypeEnum.APPLICATION,
+              });
+              if (!this.canSubscribe(appPlansSubscriptions, plan)) {
+                return null;
+              }
             }
           }
-        }
-        if (!disabled) {
-          disabled = !this.isSecure(application, plan);
-          if (disabled) {
-            title = this._missingClientIdLabel;
+          if (!disabled) {
+            disabled = !this.isSecure(application, plan);
+            if (disabled) {
+              title = this._missingClientIdLabel;
+            }
           }
-        }
 
-        return { label, value: application.id, disabled, title };
-      }).filter((app) => app !== null);
-      this.connectedApps = subscribedApps;
+          return { label, value: application.id, disabled, title };
+        }).filter((app) => app !== null);
+        this.connectedApps = subscribedApps;
+      }
     }
   }
 
