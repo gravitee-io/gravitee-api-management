@@ -20,8 +20,8 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -41,7 +41,6 @@ import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -74,7 +73,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         api.setId(API);
         doReturn(api).when(apiMapper).convert(any());
         doReturn(new Page()).when(pageMapper).convert(any());
-        doReturn(new Plan()).when(planMapper).convert(any(), eq(USER_NAME));
+        doReturn(new Plan()).when(planMapper).convert(any());
         doReturn(new Rating()).when(ratingMapper).convert(any(), any());
     }
 

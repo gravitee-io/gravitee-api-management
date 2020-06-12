@@ -16,22 +16,10 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.Plan.SecurityEnum;
 import io.gravitee.rest.api.portal.rest.model.Plan.ValidationEnum;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.SubscriptionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -40,37 +28,18 @@ import java.util.stream.Collectors;
 @Component
 public class PlanMapper {
 
-    @Autowired
-    SubscriptionService subscriptionService;
-
-    @Autowired
-    ApplicationService applicationService;
-
-    public Plan convert(PlanEntity plan, String user) {
+    public Plan convert(PlanEntity plan) {
         final Plan planItem = new Plan();
 
         planItem.setCharacteristics(plan.getCharacteristics());
         planItem.setCommentQuestion(plan.getCommentMessage());
-        planItem.setCommentRequired(Boolean.valueOf(plan.isCommentRequired()));
+        planItem.setCommentRequired(plan.isCommentRequired());
         planItem.setDescription(plan.getDescription());
         planItem.setId(plan.getId());
         planItem.setName(plan.getName());
-        planItem.setOrder(Integer.valueOf(plan.getOrder()));
+        planItem.setOrder(plan.getOrder());
         planItem.setSecurity(SecurityEnum.fromValue(plan.getSecurity().name()));
         planItem.setValidation(ValidationEnum.fromValue(plan.getValidation().name()));
-        if (user != null) {
-            Set<ApplicationListItem> usersApplications = applicationService.findByUser(user);
-
-            SubscriptionQuery query = new SubscriptionQuery();
-            query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
-            query.setPlan(plan.getId());
-            query.setApplications(usersApplications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
-
-            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
-
-            planItem.setSubscribed(subscriptions != null && !subscriptions.isEmpty());
-        }
         return planItem;
     }
-
 }

@@ -15,21 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.permissions.RolePermission.API_PLAN;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
-
-import javax.inject.Inject;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
@@ -42,6 +27,20 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+
+import javax.inject.Inject;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_PLAN;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -62,7 +61,7 @@ public class ApiPlansResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiPlansByApiId(@PathParam("apiId") String apiId, @BeanParam PaginationParam paginationParam) {
         String username = getAuthenticatedUserOrNull();
-        
+
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(username);
         if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
             
@@ -75,7 +74,7 @@ public class ApiPlansResource extends AbstractResource {
                         .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
                         .filter(plan -> groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), username))
                         .sorted(Comparator.comparingInt(PlanEntity::getOrder))
-                        .map(p-> planMapper.convert(p, username))
+                        .map(p-> planMapper.convert(p))
                         .collect(Collectors.toList());
                 
                 return createListResponse(plans, paginationParam);

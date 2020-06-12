@@ -3095,9 +3095,6 @@ components:
         order:
           description: Priority order
           type: integer
-        subscribed:
-          description: True if at least one application linked to the current user has subscribed to this plan.
-          type: boolean
         comment_required:
           description: True if a comment is required when a subscription is created.
           type: boolean

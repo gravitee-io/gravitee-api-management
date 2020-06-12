@@ -15,44 +15,24 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanSecurityType;
-import io.gravitee.rest.api.model.PlanStatus;
-import io.gravitee.rest.api.model.PlanType;
-import io.gravitee.rest.api.model.PlanValidationType;
-import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.Plan.SecurityEnum;
 import io.gravitee.rest.api.portal.rest.model.Plan.ValidationEnum;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.SubscriptionService;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.time.Instant;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -80,12 +60,6 @@ public class PlanMapperTest {
 
     @InjectMocks
     private PlanMapper planMapper;
-    
-    @Mock
-    private SubscriptionService subscriptionService;
-    
-    @Mock
-    private ApplicationService applicationService;
     
     @Before
     public void init() {
@@ -132,15 +106,11 @@ public class PlanMapperTest {
         planEntity.setType(PlanType.API);
         planEntity.setUpdatedAt(nowDate);
         planEntity.setValidation(PlanValidationType.AUTO);
-        
-        
     }
     
     @Test
     public void testConvertWithSubscriptions() {
-        doReturn(Arrays.asList(new SubscriptionEntity())).when(subscriptionService).search(any());
-
-        Plan responsePlan = planMapper.convert(planEntity, "user");
+        Plan responsePlan = planMapper.convert(planEntity);
         assertNotNull(responsePlan);
         
         List<String> characteristics = responsePlan.getCharacteristics();
@@ -154,22 +124,6 @@ public class PlanMapperTest {
         assertEquals(PLAN_NAME, responsePlan.getName());
         assertEquals(1, responsePlan.getOrder().intValue());
         assertEquals(SecurityEnum.API_KEY, responsePlan.getSecurity());
-        assertTrue(responsePlan.getSubscribed());
         assertEquals(ValidationEnum.AUTO, responsePlan.getValidation());
-        
-    }
-    
-    @Test
-    public void testConvertWithoutSubscription() {
-        //Empty subscription lList
-        doReturn(new ArrayList<>()).when(subscriptionService).search(any());
-        Plan responsePlan = planMapper.convert(planEntity, "user");
-        assertFalse(responsePlan.getSubscribed());
-        
-        //Null subscription List
-        doReturn(null).when(subscriptionService).search(any());
-        responsePlan = planMapper.convert(planEntity, "user");
-        assertFalse(responsePlan.getSubscribed());
-        
     }
 }
