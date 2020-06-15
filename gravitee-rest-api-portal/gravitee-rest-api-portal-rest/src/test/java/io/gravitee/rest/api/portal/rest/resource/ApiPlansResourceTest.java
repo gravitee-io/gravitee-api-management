@@ -20,7 +20,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Plan;
-import io.gravitee.rest.api.portal.rest.model.PlansResponse;import org.apache.xpath.axes.HasPositionalPredChecker;
+import io.gravitee.rest.api.portal.rest.model.PlansResponse;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,7 +33,6 @@ import java.util.Set;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,7 +53,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     @Before
     public void init() throws IOException {
         resetAllMocks();
-        
+
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setVisibility(Visibility.PUBLIC);
@@ -79,7 +78,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         planWrongStatus.setSecurity(PlanSecurityType.KEY_LESS);
         planWrongStatus.setValidation(PlanValidationType.MANUAL);
         planWrongStatus.setStatus(PlanStatus.STAGING);
-        
+
         doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, planWrongStatus))).when(planService).findByApi(API);
     }
 
@@ -90,27 +89,27 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
+
         //test
         final Response response = target(API).path("plans").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
         assertEquals(1, errors.size());
-        
+
         Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
+        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
     }
-    
+
     @Test
     public void shouldGetApiPlansWithPublicAPI() {
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        
+
         final Response response = target(API).path("plans").request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -135,11 +134,11 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         assertNotNull(plans);
         assertEquals(2, plans.size());
     }
-    
+
     @Test
     public void shouldGetNoApiPlan() {
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        
+
         final Response response = target(API).path("plans").request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -149,11 +148,11 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         assertNotNull(plans);
         assertEquals(0, plans.size());
     }
-    
+
     @Test
-    public void shouldGetForibddenAccessExceptionPrivateAPIAndNoReadPermission() {
+    public void shouldGetEmptyListPrivateAPIAndNoReadPermission() {
         doReturn(false).when(permissionService).hasPermission(any(), any(), any());
-        
+
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setVisibility(Visibility.PRIVATE);
@@ -161,9 +160,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
 
-        
-        final Response response = target(API).path("plans").request().get();
-        assertEquals(FORBIDDEN_403, response.getStatus());
 
+        final Response response = target(API).path("plans").request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        PlansResponse plansResponse = response.readEntity(PlansResponse.class);
+        List<Plan> plans = plansResponse.getData();
+        assertNotNull(plans);
+        assertEquals(0, plans.size());
     }
 }

@@ -48,7 +48,9 @@ public class ApisParam {
     private FilterApiQuery filter;
     @QueryParam("-filter")
     private FilterApiQuery excludedFilter;
-    
+    @QueryParam("promoted")
+    private Boolean promoted;
+
     public String getContextPath() {
         return contextPath;
     }
@@ -111,5 +113,13 @@ public class ApisParam {
 
     public void setExcludedFilter(FilterApiQuery excludedFilter) {
         this.excludedFilter = excludedFilter;
+    }
+
+    public Boolean getPromoted() {
+        return promoted;
+    }
+
+    public void setPromoted(Boolean promoted) {
+        this.promoted = promoted;
     }
 }

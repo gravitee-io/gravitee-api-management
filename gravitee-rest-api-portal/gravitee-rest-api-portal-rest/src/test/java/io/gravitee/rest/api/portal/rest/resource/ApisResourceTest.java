@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiQuery;
@@ -264,6 +265,154 @@ public class ApisResourceTest extends AbstractResourceTest {
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture());
         assertEquals("3", apiEntityCaptor.getValue().getName());
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(1, apiResponse.getData().size());
+    }
+
+    @Test
+    public void shouldHaveAllButPromotedApiIfNoCategory() throws TechnicalException {
+        final Response response = target().queryParam("size", 2).queryParam("promoted", false).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(4)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
+                .collect(Collectors.toList());
+        assertEquals(4, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("3", "4", "5", "6")));
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(2, apiResponse.getData().size());
+    }
+
+    @Test
+    public void shouldHaveAllButPromotedApiIfCategoryWithoutHighLightedApi() throws TechnicalException {
+        doReturn(new CategoryEntity()).when(categoryService).findById("myCat");
+
+        final Response response = target().queryParam("size", 3).queryParam("promoted", false).queryParam("category", "myCat").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(4)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
+                .collect(Collectors.toList());
+        assertEquals(4, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("3", "4", "5", "6")));
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(3, apiResponse.getData().size());
+    }
+
+    @Test
+    public void shouldHaveAllButPromotedApiIfCategoryWithHighLightedApi() throws TechnicalException {
+        CategoryEntity myCatEntity = new CategoryEntity();
+        myCatEntity.setHighlightApi("4");
+        doReturn(myCatEntity).when(categoryService).findById("myCat");
+
+        final Response response = target().queryParam("size", 3).queryParam("promoted", false).queryParam("category", "myCat").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(4)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
+                .collect(Collectors.toList());
+        assertEquals(4, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "5", "6")));
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(3, apiResponse.getData().size());
+    }
+
+    @Test
+    public void shouldHaveAllButPromotedApiIfCategoryWithHighLightedApiNotInFilteredList() throws TechnicalException {
+        CategoryEntity myCatEntity = new CategoryEntity();
+        myCatEntity.setHighlightApi("7");
+        doReturn(myCatEntity).when(categoryService).findById("myCat");
+
+        final Response response = target().queryParam("size", 3).queryParam("promoted", false).queryParam("category", "myCat").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(4)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
+                .collect(Collectors.toList());
+        assertEquals(4, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("3", "4", "5", "6")));
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(3, apiResponse.getData().size());
+    }
+
+    @Test
+    public void shouldHavePromotedApiIfNoCategory() throws TechnicalException {
+        final Response response = target().queryParam("size", 2).queryParam("promoted", true).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
+                .collect(Collectors.toList());
+        assertEquals(1, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("1")));
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(1, apiResponse.getData().size());
+    }
+
+    @Test
+    public void shouldHavePromotedApiIfCategoryWithoutHighLightedApi() throws TechnicalException {
+        doReturn(new CategoryEntity()).when(categoryService).findById("myCat");
+
+        final Response response = target().queryParam("size", 3).queryParam("promoted", true).queryParam("category", "myCat").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
+                .collect(Collectors.toList());
+        assertEquals(1, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("1")));
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(1, apiResponse.getData().size());
+    }
+
+    @Test
+    public void shouldHavePromotedApiIfCategoryWithHighLightedApi() throws TechnicalException {
+        CategoryEntity myCatEntity = new CategoryEntity();
+        myCatEntity.setHighlightApi("4");
+        doReturn(myCatEntity).when(categoryService).findById("myCat");
+
+        final Response response = target().queryParam("size", 3).queryParam("promoted", true).queryParam("category", "myCat").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
+                .collect(Collectors.toList());
+        assertEquals(1, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("4")));
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(1, apiResponse.getData().size());
+    }
+
+    @Test
+    public void shouldHavePromotedApiIfCategoryWithHighLightedApiNotInFilteredList() throws TechnicalException {
+        CategoryEntity myCatEntity = new CategoryEntity();
+        myCatEntity.setHighlightApi("7");
+        doReturn(myCatEntity).when(categoryService).findById("myCat");
+
+        final Response response = target().queryParam("size", 3).queryParam("promoted", true).queryParam("category", "myCat").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
+        Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
+                .collect(Collectors.toList());
+        assertEquals(1, allNameValues.size());
+        assertTrue(allNameValues.containsAll(Arrays.asList("1")));
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(1, apiResponse.getData().size());

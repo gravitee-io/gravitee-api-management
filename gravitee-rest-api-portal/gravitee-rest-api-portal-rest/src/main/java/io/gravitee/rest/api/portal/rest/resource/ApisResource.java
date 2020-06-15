@@ -25,6 +25,7 @@ import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.resource.param.ApisParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
+import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 
 import javax.inject.Inject;
@@ -33,11 +34,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -54,6 +53,9 @@ public class ApisResource extends AbstractResource {
     @Inject
     private FilteringService filteringService;
 
+    @Inject
+    private CategoryService categoryService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
@@ -63,8 +65,36 @@ public class ApisResource extends AbstractResource {
         FilteringService.FilterType excludeFilter = apisParam.getExcludedFilter() != null ? FilteringService.FilterType.valueOf(apisParam.getExcludedFilter().name()) : null;
 
         FilteredEntities<ApiEntity> filteredApis = filteringService.filterApis(apis, filter, excludeFilter);
+        List<ApiEntity> filteredApisList = filteredApis.getFilteredItems();
 
-        List<Api> apisList = filteredApis.getFilteredItems().stream()
+        Stream<ApiEntity> resultStream = filteredApisList.stream();
+
+        if (filteredApisList.size() > 0 && apisParam.getPromoted() != null) {
+            //By default, the promoted API is the first of the list;
+            String promotedApiId = filteredApisList.get(0).getId();
+
+            if (apisParam.getCategory() != null) {
+                // If apis are searched in a category, looks for the category highlighted API (HL API) and if this HL API is in the searchResult.
+                // If it is, then the HL API becomes the promoted API
+                String highlightedApiId = this.categoryService.findById(apisParam.getCategory()).getHighlightApi();
+                if (highlightedApiId != null) {
+                    Optional<ApiEntity> highlightedApiInResult = filteredApisList.stream().filter(api -> api.getId().equals(highlightedApiId)).findFirst();
+                    if (highlightedApiInResult.isPresent()) {
+                        promotedApiId = highlightedApiInResult.get().getId();
+                    }
+                }
+            }
+            String finalPromotedApiId = promotedApiId;
+            if (apisParam.getPromoted() == Boolean.TRUE) {
+                // Only the promoted API has to be returned
+                resultStream = resultStream.filter(api -> api.getId().equals(finalPromotedApiId));
+            } else if (apisParam.getPromoted() == Boolean.FALSE) {
+                // All filtered API except the promoted API have to be returned
+                resultStream = resultStream.filter(api -> !api.getId().equals(finalPromotedApiId));
+            }
+        }
+
+        List<Api> apisList = resultStream
                 .map(apiMapper::convert)
                 .map(this::addApiLinks)
                 .collect(Collectors.toList());

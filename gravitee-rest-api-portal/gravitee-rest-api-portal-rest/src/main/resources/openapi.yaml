@@ -55,6 +55,7 @@ paths:
         - $ref: '#/components/parameters/apiCategoryQueryParam'
         - $ref: '#/components/parameters/apiFilterQueryParam'
         - $ref: '#/components/parameters/apiFilterExcludedQueryParam'
+        - $ref: '#/components/parameters/apiPromotedQueryParam'
       summary: List APIs
       description: |
         List public APIs for anonymous requests.
@@ -979,9 +980,9 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  -  $ref: '#/components/schemas/DateHistoAnalytics'
-                  -  $ref: '#/components/schemas/GroupByAnalytics'
-                  -  $ref: '#/components/schemas/CountAnalytics'
+                  - $ref: '#/components/schemas/DateHistoAnalytics'
+                  - $ref: '#/components/schemas/GroupByAnalytics'
+                  - $ref: '#/components/schemas/CountAnalytics'
         400:
           description: Invalid query params.
           content:
@@ -1116,7 +1117,7 @@ paths:
           content:
             application/json:
               schema:
-               $ref: '#/components/schemas/Log'
+                $ref: '#/components/schemas/Log'
         403:
           $ref: '#/components/responses/PermissionError'
         404:
@@ -1686,7 +1687,7 @@ paths:
   /user/notifications:
     get:
       tags:
-       - User
+        - User
       parameters:
         - $ref: '#/components/parameters/pageNumberParam'
         - $ref: '#/components/parameters/pageSizeParam'
@@ -1705,7 +1706,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-       - User
+        - User
       summary: Delete all notifications of the current user
       description: |
         Delete all notifications of the current user.
@@ -1717,10 +1718,10 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /user/notifications/{notificationId}:
     parameters:
-        - $ref: '#/components/parameters/notificationIdParam'
+      - $ref: '#/components/parameters/notificationIdParam'
     delete:
       tags:
-       - User
+        - User
       summary: Delete a specific notification of the current user
       description: |
         Delete a specific notification of the current user.
@@ -1792,10 +1793,10 @@ paths:
         User must be authenticated to use this service.
       operationId: createTicket
       responses:
-          201:
-            description: Created
-          500:
-            $ref: '#/components/responses/InternalServerError'
+        201:
+          description: Created
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /categories:
     get:
       tags:
@@ -2353,6 +2354,19 @@ components:
           - TRENDINGS: not subscribed APIs. Sorted by number of subscriptions DESC, alphabetic order.
       schema:
         $ref: '#/components/schemas/FilterApiQuery'
+    apiPromotedQueryParam:
+      name: promoted
+      in: query
+      required: false
+      description: |
+        Allow to filter on promoted APIs or not.
+          - If absent, no effect on the result
+          - If *false*, removes the promoted API of the list
+          - If *true*, returns only the promoted API of the list
+
+        A promoted API is either the highlighted API of a category (if it exists) or the first API in the list.
+      schema:
+        type: boolean
     apiQueryParam:
       name: q
       in: query
@@ -2612,7 +2626,7 @@ components:
     #####################
     ErrorResponse:
       properties:
-        errors :
+        errors:
           description: List of errors
           type: array
           items:
@@ -2626,7 +2640,7 @@ components:
           items:
             $ref: '#/components/schemas/Api'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     ApplicationsResponse:
@@ -2637,7 +2651,7 @@ components:
           items:
             $ref: '#/components/schemas/Application'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     GroupsResponse:
@@ -2648,7 +2662,7 @@ components:
           items:
             $ref: '#/components/schemas/Group'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     PagesResponse:
@@ -2659,7 +2673,7 @@ components:
           items:
             $ref: '#/components/schemas/Page'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     RatingsResponse:
@@ -2670,7 +2684,7 @@ components:
           items:
             $ref: '#/components/schemas/Rating'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     PlansResponse:
@@ -2681,7 +2695,7 @@ components:
           items:
             $ref: '#/components/schemas/Plan'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     MembersResponse:
@@ -2692,7 +2706,7 @@ components:
           items:
             $ref: '#/components/schemas/Member'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     UsersResponse:
@@ -2703,7 +2717,7 @@ components:
           items:
             $ref: '#/components/schemas/User'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     CategoriesResponse:
@@ -2714,7 +2728,7 @@ components:
           items:
             $ref: '#/components/schemas/Category'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     PortalNotificationsResponse:
@@ -2725,7 +2739,7 @@ components:
           items:
             $ref: '#/components/schemas/PortalNotification'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     LogsResponse:
@@ -2736,7 +2750,7 @@ components:
           items:
             $ref: '#/components/schemas/Log'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     SubscriptionsResponse:
@@ -2747,7 +2761,7 @@ components:
           items:
             $ref: '#/components/schemas/Subscription'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     ConfigurationIdentitiesResponse:
@@ -2758,7 +2772,7 @@ components:
           items:
             $ref: '#/components/schemas/IdentityProvider'
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
     ConfigurationApplicationTypesResponse:
@@ -2986,9 +3000,9 @@ components:
           type: number
           description: Number of calls on this API, during last 7 days.
         health:
-           type: number
-           description: Healthcheck ratio over the last 7 days. It's a decimal number between 0 and 1.
-           example: 0.9876
+          type: number
+          description: Healthcheck ratio over the last 7 days. It's a decimal number between 0 and 1.
+          example: 0.9876
     Group:
       required:
         - id
@@ -3017,11 +3031,11 @@ components:
           description: Type of documentation.
           type: string
           enum:
-          - SWAGGER
-          - MARKDOWN
-          - FOLDER
-          - ROOT
-          - LINK
+            - SWAGGER
+            - MARKDOWN
+            - FOLDER
+            - ROOT
+            - LINK
         order:
           description: Order of the documentation page in its folder.
           type: integer
@@ -3174,20 +3188,20 @@ components:
         _links:
           $ref: '#/components/schemas/ApplicationLinks'
     PortalNotification:
-        properties:
-          id:
-            description: Unique identifier of a portal notification.
-            type: string
-          title:
-            description: Title of the portal notification.
-            type: string
-          message:
-            description: Content of the notification.
-            type: string
-          created_at:
-            description: Creation date and time of the notification.
-            type: string
-            format: date-time
+      properties:
+        id:
+          description: Unique identifier of a portal notification.
+          type: string
+        title:
+          description: Title of the portal notification.
+          type: string
+        message:
+          description: Content of the notification.
+          type: string
+        created_at:
+          description: Creation date and time of the notification.
+          type: string
+          format: date-time
     Member:
       properties:
         id:
@@ -3577,7 +3591,7 @@ components:
     ConfigurationCompany:
       properties:
         name:
-          description : The company name
+          description: The company name
           type: string
     ConfigurationPortal:
       properties:
@@ -4169,7 +4183,7 @@ components:
           items:
             type: number
         metadata:
-            $ref: '#/components/schemas/MetadataMap'
+          $ref: '#/components/schemas/MetadataMap'
     Timerange:
       properties:
         from:
