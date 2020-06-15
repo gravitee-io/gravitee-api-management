@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Api, ApiService, FilterApiQuery, Category, ApiMetrics } from '@gravitee/ng-portal-webclient';
+import { Api, ApiMetrics, ApiService, Category, FilterApiQuery } from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-promote';
 import '@gravitee/ui-components/wc/gv-card-list';
 import '@gravitee/ui-components/wc/gv-card-full';
@@ -131,7 +131,7 @@ export class FilteredCatalogComponent implements OnInit {
 
   _load() {
     if (this.page === 1) {
-      this.promotedApi = this._loadPromotedApi({ size: 1, filter: this.filterApiQuery });
+      this.promotedApi = this._loadPromotedApi({ size: 1, filter: this.filterApiQuery, promoted: true });
     }
     return Promise.all([this._loadRandomList(), this._loadCards()]);
   }
@@ -178,20 +178,21 @@ export class FilteredCatalogComponent implements OnInit {
 
   _loadCategory() {
     this.category = this.activatedRoute.snapshot.data.category;
-    this.promotedApi = this._loadPromotedApi({ size: 1, category: this.currentCategory });
+    this.promotedApi = this._loadPromotedApi({ size: 1, category: this.currentCategory, promoted: true });
     return this._loadCards();
   }
 
   async _loadCards() {
-    const size = this.size + (this.promotedApi ? 1 : 0);
-    return this.apiService.getApis({ page: this.page, size, filter: this.filterApiQuery, category: this.currentCategory })
+    return this.apiService.getApis({
+      page: this.page,
+      size: this.size,
+      filter: this.filterApiQuery,
+      category: this.currentCategory,
+      promoted: false
+    })
       .toPromise()
       .then(async ({ data, metadata }) => {
         this.paginationData = metadata.pagination;
-
-        if (this.promotedApi) {
-          data = await this.promotedApi.then((promoted) => data.filter((api) => promoted.id && api.id !== promoted.id));
-        }
 
         this.allApis = data.map((api) => {
           const metrics = this.apiService.getApiMetricsByApiId({ apiId: api.id }).toPromise();
