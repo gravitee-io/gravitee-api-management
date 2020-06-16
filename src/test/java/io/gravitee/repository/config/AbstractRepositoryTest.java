@@ -143,6 +143,8 @@ public abstract class AbstractRepositoryTest {
     protected TokenRepository tokenRepository;
     @Inject
     protected CustomUserFieldsRepository customUserFieldsRepository;
+    @Inject
+    protected IdentityProviderActivationRepository identityProviderActivationRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -191,7 +193,7 @@ public abstract class AbstractRepositoryTest {
             categoryRepository.create((Category) object);
         }
         else if (object instanceof Group) {
-            groupRepository.create((Group)object);
+            groupRepository.create((Group) object);
         }
         else if (object instanceof Membership) {
             membershipRepository.create((Membership) object);
@@ -274,7 +276,7 @@ public abstract class AbstractRepositoryTest {
         else if (object instanceof Dashboard) {
             dashboardRepository.create((Dashboard) object);
         }
-        else if( object instanceof AlertEvent) {
+        else if (object instanceof AlertEvent) {
             alertEventRepository.create((AlertEvent) object);
         }
         else if (object instanceof Environment) {
@@ -285,6 +287,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Theme) {
             themeRepository.create((Theme) object);
+        }
+        else if (object instanceof IdentityProviderActivation) {
+            identityProviderActivationRepository.create((IdentityProviderActivation) object);
         }
         else if( object instanceof Token) {
             tokenRepository.create((Token) object);

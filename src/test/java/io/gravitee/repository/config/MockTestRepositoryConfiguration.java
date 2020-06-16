@@ -236,4 +236,9 @@ public class MockTestRepositoryConfiguration {
     public CustomUserFieldsRepositoryMock customUserFieldsRepositoryMock() {
         return new CustomUserFieldsRepositoryMock();
     }
+
+    @Bean
+    public IdentityProviderActivationRepositoryMock identityProviderActivationRepository() throws Exception {
+        return new IdentityProviderActivationRepositoryMock();
+    }
 }
