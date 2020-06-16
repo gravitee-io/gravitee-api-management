@@ -206,7 +206,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             user.setLoginCount(user.getLoginCount() + 1);
 
             User updatedUser = userRepository.update(user);
-            auditService.createPortalAuditLog(
+            auditService.createOrganizationAuditLog(
                     Collections.singletonMap(USER, userId),
                     User.AuditEvent.USER_CONNECTED,
                     user.getUpdatedAt(),
@@ -392,7 +392,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             user = userRepository.update(user);
-            auditService.createPortalAuditLog(
+            auditService.createOrganizationAuditLog(
                     Collections.singletonMap(USER, user.getId()),
                     User.AuditEvent.USER_CREATED,
                     user.getUpdatedAt(),
@@ -477,7 +477,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             user.setUpdatedAt(user.getCreatedAt());
 
             User createdUser = userRepository.create(user);
-            auditService.createPortalAuditLog(
+            auditService.createOrganizationAuditLog(
                     Collections.singletonMap(USER, user.getId()),
                     User.AuditEvent.USER_CREATED,
                     user.getCreatedAt(),
@@ -630,7 +630,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 .params(params)
                 .build()
         );
-        auditService.createPortalAuditLog(
+        auditService.createEnvironmentAuditLog(
                 Collections.singletonMap(USER, processedUser.getId()),
                 accepted ? User.AuditEvent.USER_CONFIRMED : User.AuditEvent.USER_REJECTED,
                 processedUser.getUpdatedAt(),
@@ -771,7 +771,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             User updatedUser = userRepository.update(user);
-            auditService.createPortalAuditLog(
+            auditService.createOrganizationAuditLog(
                     Collections.singletonMap(USER, user.getId()),
                     User.AuditEvent.USER_UPDATED,
                     user.getUpdatedAt(),
@@ -998,7 +998,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             notifierService.trigger(PortalHook.PASSWORD_RESET, params);
 
-            auditService.createPortalAuditLog(
+            auditService.createOrganizationAuditLog(
                     Collections.singletonMap(USER, user.getId()),
                     User.AuditEvent.PASSWORD_RESET,
                     user.getUpdatedAt(),

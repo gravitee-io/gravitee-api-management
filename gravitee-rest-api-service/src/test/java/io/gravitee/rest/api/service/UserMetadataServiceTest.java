@@ -20,7 +20,10 @@ import io.gravitee.common.util.Maps;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.api.UserRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.CustomUserFieldReferenceType;
+import io.gravitee.repository.management.model.Metadata;
+import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.NewUserMetadataEntity;
 import io.gravitee.rest.api.model.UpdateUserMetadataEntity;
@@ -129,7 +132,7 @@ public class UserMetadataServiceTest {
         final Map<Audit.AuditProperties, String> properties = Maps.<Audit.AuditProperties, String>builder()
                 .put(Audit.AuditProperties.USER, USER_ID)
                 .put(METADATA, newUserMetadata.getKey()).build();
-        verify(auditService).createPortalAuditLog(eq(properties),
+        verify(auditService).createOrganizationAuditLog(eq(properties),
                 eq(METADATA_CREATED), any(), eq(null), eq(newUserMetadata));
     }
 
@@ -164,7 +167,7 @@ public class UserMetadataServiceTest {
         final Map<Audit.AuditProperties, String> properties = Maps.<Audit.AuditProperties, String>builder()
                 .put(Audit.AuditProperties.USER, USER_ID)
                 .put(METADATA, toUserMetadata.getKey()).build();
-        verify(auditService).createPortalAuditLog(eq(properties),
+        verify(auditService).createOrganizationAuditLog(eq(properties),
                 eq(METADATA_UPDATED), any(), any(), any());
     }
 

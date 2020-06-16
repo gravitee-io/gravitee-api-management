@@ -119,7 +119,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
             Theme theme = themeRepository.create(convert(themeEntity));
 
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(THEME, theme.getId()),
                     THEME_CREATED,
                     theme.getCreatedAt(),
@@ -181,7 +181,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                 }
 
                 final ThemeEntity savedTheme = convert(themeRepository.update(theme));
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(THEME, theme.getId()),
                         THEME_UPDATED,
                         new Date(),
@@ -211,7 +211,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             Optional<Theme> themeOptional = themeRepository.findById(themeId);
             if (themeOptional.isPresent()) {
                 themeRepository.delete(themeId);
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(THEME, themeId),
                         THEME_DELETED,
                         new Date(),
@@ -273,7 +273,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                             themeUpdate.setDefinition(MAPPER.writeValueAsString(mergeDefinition));
                             theme.setUpdatedAt(new Date());
                             this.themeRepository.update(themeUpdate);
-                            auditService.createPortalAuditLog(
+                            auditService.createEnvironmentAuditLog(
                                     Collections.singletonMap(THEME, theme.getId()),
                                     THEME_UPDATED,
                                     new Date(),
@@ -342,7 +342,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             LOGGER.debug("Reset to default theme by ID: {}", themeId);
             final ThemeEntity previousTheme = findEnabled();
             themeRepository.delete(DEFAULT_THEME_ID);
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(THEME, themeId),
                     THEME_RESET,
                     new Date(),

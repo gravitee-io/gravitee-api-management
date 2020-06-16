@@ -106,7 +106,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         try {
             final List<Dashboard> dashboards = dashboardRepository.findByReferenceType(dashboardEntity.getReferenceType().name());
             Dashboard dashboard = dashboardRepository.create(convert(dashboardEntity, dashboards));
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(DASHBOARD, dashboard.getId()),
                     DASHBOARD_CREATED,
                     dashboard.getCreatedAt(),
@@ -132,7 +132,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                 } else {
                     savedDashboard = convert(dashboardRepository.update(dashboard));
                 }
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(DASHBOARD, dashboard.getId()),
                         DASHBOARD_UPDATED,
                         new Date(),
@@ -192,7 +192,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             if (dashboardOptional.isPresent()) {
                 dashboardRepository.delete(dashboardId);
                 reorderAndSaveDashboards(dashboardOptional.get(), true);
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(DASHBOARD, dashboardId),
                         DASHBOARD_DELETED,
                         new Date(),

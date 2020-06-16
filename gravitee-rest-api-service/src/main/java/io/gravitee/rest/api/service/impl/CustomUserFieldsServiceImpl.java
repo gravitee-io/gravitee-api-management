@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER_FIELD;
 import static io.gravitee.repository.management.model.CustomUserField.AuditEvent.*;
+import static io.gravitee.repository.management.model.CustomUserFieldReferenceType.ENVIRONMENT;
 import static io.gravitee.repository.management.model.CustomUserFieldReferenceType.ORGANIZATION;
 import static io.gravitee.rest.api.service.sanitizer.CustomFieldSanitizer.formatKeyValue;
 
@@ -165,13 +166,24 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
 
     private void createAuditLog(Audit.AuditEvent event, Date createdAt, CustomUserField oldValue, CustomUserField newValue) {
         String key = oldValue != null ? oldValue.getKey() : newValue.getKey();
-        auditService.createPortalAuditLog(
-                Collections.singletonMap(USER_FIELD, key),
-                event,
-                createdAt,
-                oldValue,
-                newValue
-        );
+        CustomUserFieldReferenceType type = oldValue != null ? oldValue.getReferenceType() : newValue.getReferenceType();
+        if (type == ORGANIZATION) {
+            auditService.createOrganizationAuditLog(
+                    Collections.singletonMap(USER_FIELD, key),
+                    event,
+                    createdAt,
+                    oldValue,
+                    newValue
+            );
+        } else if (type == ENVIRONMENT) {
+            auditService.createEnvironmentAuditLog(
+                    Collections.singletonMap(USER_FIELD, key),
+                    event,
+                    createdAt,
+                    oldValue,
+                    newValue
+            );
+        }
     }
 
     private CustomUserField map(CustomUserFieldEntity entity) {

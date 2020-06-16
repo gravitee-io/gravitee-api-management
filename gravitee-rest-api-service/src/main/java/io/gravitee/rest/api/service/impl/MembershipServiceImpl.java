@@ -218,15 +218,23 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 break;
             case GROUP:
                 properties.put(Audit.AuditProperties.GROUP, referenceId);
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         properties,
                         event,
                         date,
                         oldValue,
                         newValue);
                 break;
-            default:
-                auditService.createPortalAuditLog(
+            case ENVIRONMENT:
+                auditService.createEnvironmentAuditLog(
+                        properties,
+                        event,
+                        date,
+                        oldValue,
+                        newValue);
+                break;
+            case ORGANIZATION:
+                auditService.createOrganizationAuditLog(
                         properties,
                         event,
                         date,

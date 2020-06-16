@@ -84,7 +84,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
 
             final String decodedToken = UUID.toString(UUID.random());
             final Token token = convert(newToken, TokenReferenceType.USER, username, passwordEncoder.encode(decodedToken));
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(TOKEN, token.getId()),
                     TOKEN_CREATED,
                     token.getCreatedAt(),
@@ -110,7 +110,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             Optional<Token> tokenOptional = tokenRepository.findById(tokenId);
             if (tokenOptional.isPresent()) {
                 tokenRepository.delete(tokenId);
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(TOKEN, tokenId),
                         TOKEN_DELETED,
                         new Date(),

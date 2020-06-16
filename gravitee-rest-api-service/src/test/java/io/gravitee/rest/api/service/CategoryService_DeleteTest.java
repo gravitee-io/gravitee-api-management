@@ -62,7 +62,7 @@ public class CategoryService_DeleteTest {
 
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, never()).delete(any());
-        verify(mockAuditService, never()).createPortalAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
+        verify(mockAuditService, never()).createEnvironmentAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
         verify(mockApiService, never()).deleteCategoryFromAPIs(eq("unknown"));
     }
 
@@ -74,7 +74,7 @@ public class CategoryService_DeleteTest {
 
         verify(mockCategoryRepository, times(1)).findById("known");
         verify(mockCategoryRepository, times(1)).delete("known");
-        verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(CATEGORY_DELETED), any(), any(), any());
+        verify(mockAuditService, times(1)).createEnvironmentAuditLog(any(), eq(CATEGORY_DELETED), any(), any(), any());
         verify(mockApiService, times(1)).deleteCategoryFromAPIs(eq("known"));
     }
 }

@@ -323,7 +323,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     private void createAuditLog(Audit.AuditEvent event, Date createdAt, Dictionary oldValue, Dictionary newValue) {
         String dictionaryName = oldValue != null ? oldValue.getName() : newValue.getName();
 
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(DICTIONARY, dictionaryName),
                     event,
                     createdAt,

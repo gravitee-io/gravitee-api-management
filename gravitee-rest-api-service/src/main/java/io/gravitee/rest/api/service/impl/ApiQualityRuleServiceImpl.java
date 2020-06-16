@@ -71,7 +71,7 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
                 throw new ApiQualityRuleAlreadyExistsException(newEntity.getApi(), newEntity.getQualityRule());
             }
             final ApiQualityRule apiQualityRule = convert(newEntity);
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
                     ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED,
                     apiQualityRule.getCreatedAt(),
@@ -94,7 +94,7 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
                 throw new ApiQualityRuleNotFoundException(updateEntity.getApi(), updateEntity.getQualityRule());
             }
             final ApiQualityRule apiQualityRule = apiQualityRuleRepository.update(convert(updateEntity));
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
                     ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED,
                     apiQualityRule.getUpdatedAt(),

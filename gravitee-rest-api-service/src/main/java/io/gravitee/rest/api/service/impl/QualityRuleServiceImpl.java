@@ -90,7 +90,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
         try {
             final QualityRule qualityRule = convert(newEntity);
             final QualityRule createdQualityRule = qualityRuleRepository.create(qualityRule);
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(QUALITY_RULE, createdQualityRule.getId()),
                     QualityRule.AuditEvent.QUALITY_RULE_CREATED,
                     qualityRule.getCreatedAt(),
@@ -111,7 +111,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
                 throw new QualityRuleNotFoundException(updateEntity.getId());
             }
             final QualityRule qualityRule = qualityRuleRepository.update(convert(updateEntity));
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     singletonMap(QUALITY_RULE, qualityRule.getId()),
                     QUALITY_RULE_UPDATED,
                     qualityRule.getUpdatedAt(),
@@ -132,7 +132,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
                 qualityRuleRepository.delete(qualityRule);
                 // delete all reference on api quality rule
                 apiQualityRuleRepository.deleteByQualityRule(qualityRule);
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(QUALITY_RULE, qualityRule),
                         QualityRule.AuditEvent.QUALITY_RULE_DELETED,
                         new Date(),

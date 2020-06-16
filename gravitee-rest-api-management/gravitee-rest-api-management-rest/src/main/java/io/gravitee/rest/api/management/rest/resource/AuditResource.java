@@ -71,8 +71,10 @@ public class AuditResource extends AbstractResource  {
         query.setTo(param.getTo());
         query.setPage(param.getPage());
         query.setSize(param.getSize());
-        if (param.isManagementLogsOnly()) {
-            query.setManagementLogsOnly(true);
+        if (param.isEnvironmentLogsOnly()) {
+            query.setCurrentEnvironmentLogsOnly(true);
+        } else if (param.isOrganizationLogsOnly()) {
+            query.setCurrentOrganizationLogsOnly(true);
         } else {
             if (param.getApiId() != null) {
                 query.setApiIds(Collections.singletonList(param.getApiId()));

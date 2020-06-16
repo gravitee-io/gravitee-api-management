@@ -2114,7 +2114,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
     private void createAuditLog(String apiId, Audit.AuditEvent event, Date createdAt, Page oldValue, Page newValue) {
         String pageId = oldValue != null ? oldValue.getId() : newValue.getId();
         if (apiId == null) {
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(PAGE, pageId),
                     event,
                     createdAt,

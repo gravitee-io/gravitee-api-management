@@ -220,7 +220,7 @@ public abstract class AbstractReferenceMetadataService {
                         metadata);
                 break;
             case USER:
-                auditService.createPortalAuditLog(
+                auditService.createOrganizationAuditLog(
                         Maps.<Audit.AuditProperties, String>builder()
                                 .put(USER, referenceId)
                                 .put(METADATA, key)

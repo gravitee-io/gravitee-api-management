@@ -123,7 +123,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
             try {
                 Tag tag = convert(tagEntity);
                 savedTags.add(convert(tagRepository.create(tag)));
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(TAG, tag.getId()),
                         TAG_CREATED,
                         new Date(),
@@ -146,7 +146,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 Optional<Tag> tagOptional = tagRepository.findById(tag.getId());
                 if (tagOptional.isPresent()) {
                     savedTags.add(convert(tagRepository.update(tag)));
-                    auditService.createPortalAuditLog(
+                    auditService.createEnvironmentAuditLog(
                             Collections.singletonMap(TAG, tag.getId()),
                             TAG_UPDATED,
                             new Date(),
@@ -169,7 +169,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 tagRepository.delete(tagId);
                 // delete all reference on APIs
                 apiService.deleteTagFromAPIs(tagId);
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(TAG, tagId),
                         TAG_DELETED,
                         new Date(),

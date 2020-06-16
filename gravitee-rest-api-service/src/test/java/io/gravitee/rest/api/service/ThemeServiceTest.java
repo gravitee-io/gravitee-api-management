@@ -210,7 +210,7 @@ public class ThemeServiceTest {
                     argument.getCreatedAt() != null &&
                     argument.getUpdatedAt() != null;
         }));
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1)).createEnvironmentAuditLog(
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_CREATED),
                 any(Date.class),
@@ -275,7 +275,7 @@ public class ThemeServiceTest {
                         THEME_ID.equals(argument.getId()) &&
                         argument.getUpdatedAt() != null));
 
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1)).createEnvironmentAuditLog(
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_UPDATED),
                 any(Date.class),
@@ -338,7 +338,7 @@ public class ThemeServiceTest {
 
         verify(themeRepository, times(1)).delete(THEME_ID);
 
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1)).createEnvironmentAuditLog(
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_RESET),
                 any(Date.class),
@@ -354,7 +354,7 @@ public class ThemeServiceTest {
         themeService.delete(THEME_ID);
 
         verify(themeRepository, times(1)).delete(THEME_ID);
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1)).createEnvironmentAuditLog(
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_DELETED),
                 any(Date.class),
@@ -485,7 +485,7 @@ public class ThemeServiceTest {
             }
             return false;
         }));
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1)).createEnvironmentAuditLog(
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_CREATED),
                 any(Date.class),
@@ -534,7 +534,7 @@ public class ThemeServiceTest {
             }
             return false;
         }));
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1)).createEnvironmentAuditLog(
                 eq(ImmutableMap.of(THEME, THEME_ID)),
                 eq(Theme.AuditEvent.THEME_UPDATED),
                 any(Date.class),

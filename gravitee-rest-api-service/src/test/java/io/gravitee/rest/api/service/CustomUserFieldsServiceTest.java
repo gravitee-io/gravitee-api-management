@@ -96,7 +96,7 @@ public class CustomUserFieldsServiceTest {
         CustomUserFieldEntity createdEntity = service.create(newFieldEntity);
 
         verify(customUserFieldsRepository).create(fieldCaptor.capture());
-        verify(auditService).createPortalAuditLog(anyMap(), any(), any(), any(), any());
+        verify(auditService).createOrganizationAuditLog(anyMap(), any(), any(), any(), any());
 
         assertEquals("CustomUserField.key", newFieldEntity.getKey().toLowerCase(), createdEntity.getKey());
         assertEquals("CustomUserField.label", newFieldEntity.getLabel(), createdEntity.getLabel());
@@ -190,7 +190,7 @@ public class CustomUserFieldsServiceTest {
         CustomUserFieldEntity updatedEntity = service.update(toUpdateFieldEntity);
 
         verify(customUserFieldsRepository).update(fieldCaptor.capture());
-        verify(auditService).createPortalAuditLog(anyMap(), any(), any(), any(), any());
+        verify(auditService).createOrganizationAuditLog(anyMap(), any(), any(), any(), any());
 
         assertEquals("updatedCustomField.key", toUpdateFieldEntity.getKey().toLowerCase(), updatedEntity.getKey());
         assertEquals("updatedCustomField.label", toUpdateFieldEntity.getLabel(), updatedEntity.getLabel());
@@ -217,7 +217,7 @@ public class CustomUserFieldsServiceTest {
         service.update(mock(CustomUserFieldEntity.class));
 
         verify(customUserFieldsRepository, never()).update(any());
-        verify(auditService, never()).createPortalAuditLog(anyMap(), any(), any(), any(), any());
+        verify(auditService, never()).createOrganizationAuditLog(anyMap(), any(), any(), any(), any());
     }
 
     @Test
@@ -225,7 +225,7 @@ public class CustomUserFieldsServiceTest {
         service.delete("unknown");
 
         verify(customUserFieldsRepository, never()).delete(anyString(), anyString(), any());
-        verify(auditService, never()).createPortalAuditLog(anyMap(), any(), any(), any(), any());
+        verify(auditService, never()).createOrganizationAuditLog(anyMap(), any(), any(), any(), any());
     }
 
     @Test
@@ -239,7 +239,7 @@ public class CustomUserFieldsServiceTest {
         service.delete("validKEY"); // no issue with upper case here, we want to test the sanitizer on the key
 
         verify(customUserFieldsRepository).delete("validkey", ORG_ID, REF_TYPE);
-        verify(auditService).createPortalAuditLog(anyMap(), any(), any(), any(), any());
+        verify(auditService).createOrganizationAuditLog(anyMap(), any(), any(), any(), any());
         verify(ueUserMetadataService).deleteAllByCustomFieldId("validkey", ORG_ID, REF_TYPE);
     }
 

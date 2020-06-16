@@ -110,7 +110,7 @@ public class ApiQualityRuleServiceTest {
                         argument.isChecked() &&
                         argument.getCreatedAt() != null &&
                         argument.getUpdatedAt() != null));
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1)).createEnvironmentAuditLog(
                 eq(ImmutableMap.of(API_QUALITY_RULE, API_ID)),
                 eq(ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED),
                 any(Date.class),
@@ -154,7 +154,7 @@ public class ApiQualityRuleServiceTest {
                         argument.isChecked() &&
                         argument.getCreatedAt() != null &&
                         argument.getUpdatedAt() != null));
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1)).createEnvironmentAuditLog(
                 eq(ImmutableMap.of(API_QUALITY_RULE, API_ID)),
                 eq(ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED),
                 any(Date.class),

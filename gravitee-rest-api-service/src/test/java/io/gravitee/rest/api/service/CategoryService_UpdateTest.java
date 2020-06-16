@@ -68,7 +68,7 @@ public class CategoryService_UpdateTest {
         assertTrue(list.isEmpty());
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, never()).update(any());
-        verify(mockAuditService, never()).createPortalAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
+        verify(mockAuditService, never()).createEnvironmentAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
     }
 
     @Test(expected = CategoryNotFoundException.class)
@@ -80,7 +80,7 @@ public class CategoryService_UpdateTest {
 
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, never()).update(any());
-        verify(mockAuditService, never()).createPortalAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
+        verify(mockAuditService, never()).createEnvironmentAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
     }
 
     @Test
@@ -113,7 +113,7 @@ public class CategoryService_UpdateTest {
         assertEquals("CreatedAt", new Date(9876543210L), list.get(0).getCreatedAt());
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, times(1)).update(any());
-        verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
+        verify(mockAuditService, times(1)).createEnvironmentAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
     }
 
     @Test
@@ -145,7 +145,7 @@ public class CategoryService_UpdateTest {
         assertEquals("CreatedAt", new Date(9876543210L), category.getCreatedAt());
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, times(1)).update(any());
-        verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
+        verify(mockAuditService, times(1)).createEnvironmentAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
     }
 }
 

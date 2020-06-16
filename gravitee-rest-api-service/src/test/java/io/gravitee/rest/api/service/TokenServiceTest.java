@@ -179,7 +179,7 @@ public class TokenServiceTest {
 
         tokenService.create(newToken);
 
-        verify(auditService).createPortalAuditLog(anyMap(), eq(TOKEN_CREATED), any(Date.class), isNull(), any());
+        verify(auditService).createEnvironmentAuditLog(anyMap(), eq(TOKEN_CREATED), any(Date.class), isNull(), any());
         verify(tokenRepository).create(any());
         verify(tokenRepository).findByReference(eq(USER.name()), eq(USER_ID));
     }
@@ -198,7 +198,7 @@ public class TokenServiceTest {
     public void shouldRevoke() throws TechnicalException {
         tokenService.revoke(TOKEN_ID);
 
-        verify(auditService).createPortalAuditLog(anyMap(), eq(TOKEN_DELETED), any(Date.class), isNull(), eq(token));
+        verify(auditService).createEnvironmentAuditLog(anyMap(), eq(TOKEN_DELETED), any(Date.class), isNull(), eq(token));
         verify(tokenRepository).delete(TOKEN_ID);
     }
 
@@ -208,7 +208,7 @@ public class TokenServiceTest {
 
         tokenService.revokeByUser(USER_ID);
 
-        verify(auditService).createPortalAuditLog(anyMap(), eq(TOKEN_DELETED), any(Date.class), isNull(), eq(token));
+        verify(auditService).createEnvironmentAuditLog(anyMap(), eq(TOKEN_DELETED), any(Date.class), isNull(), eq(token));
         verify(tokenRepository).delete(TOKEN_ID);
     }
 }

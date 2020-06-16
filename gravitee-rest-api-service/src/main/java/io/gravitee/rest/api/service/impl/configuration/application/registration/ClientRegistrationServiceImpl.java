@@ -144,7 +144,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             ClientRegistrationProvider createdClientRegistrationProvider = clientRegistrationProviderRepository.create(clientRegistrationProvider);
 
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     singletonMap(CLIENT_REGISTRATION_PROVIDER, createdClientRegistrationProvider.getId()),
                     ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
                     createdClientRegistrationProvider.getUpdatedAt(),
@@ -197,7 +197,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             ClientRegistrationProvider updatedClientRegistrationProvider = clientRegistrationProviderRepository.update(clientRegistrationProvider);
 
             // Audit
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
                     ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
                     clientRegistrationProvider.getUpdatedAt(),
@@ -260,7 +260,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             clientRegistrationProviderRepository.delete(id);
 
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
                     ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED,
                     new Date(),

@@ -146,7 +146,7 @@ public class QualityRuleServiceTest {
                         !argument.getId().isEmpty() &&
                         argument.getCreatedAt() != null &&
                         argument.getUpdatedAt() != null));
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1)).createEnvironmentAuditLog(
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_CREATED),
                 any(Date.class),
@@ -194,7 +194,7 @@ public class QualityRuleServiceTest {
                         QUALITY_RULE_ID.equals(argument.getId()) &&
                         argument.getCreatedAt() == null &&
                         argument.getUpdatedAt() != null));
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1)).createEnvironmentAuditLog(
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_UPDATED),
                 any(Date.class),
@@ -220,7 +220,7 @@ public class QualityRuleServiceTest {
         qualityRuleService.delete(QUALITY_RULE_ID);
 
         verify(qualityRuleRepository, times(1)).delete(QUALITY_RULE_ID);
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1)).createEnvironmentAuditLog(
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_DELETED),
                 any(Date.class),

@@ -320,7 +320,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 createdApplication.getId(),
                 Collections.emptyMap(),
                 APPLICATION_CREATED,
-                isAuthenticated() ? getAuthenticatedUsername() : userId,
                 createdApplication.getCreatedAt(),
                 null,
                 createdApplication);

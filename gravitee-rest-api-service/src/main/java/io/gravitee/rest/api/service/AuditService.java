@@ -25,15 +25,15 @@ import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface AuditService {
 
     void createApiAuditLog(String apiId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
     void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
-    void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, String username, Date createdAt, Object oldValue, Object newValue);
-    void createPortalAuditLog(Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
-    void createPortalAuditLog(Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, String username, Date createdAt, Object oldValue, Object newValue);
+    void createEnvironmentAuditLog(Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
+    void createOrganizationAuditLog(Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
 
     MetadataPage<AuditEntity> search(AuditQuery query);
 }

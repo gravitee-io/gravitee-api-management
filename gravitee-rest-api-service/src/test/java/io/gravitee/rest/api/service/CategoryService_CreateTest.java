@@ -69,7 +69,7 @@ public class CategoryService_CreateTest {
         CategoryEntity category = categoryService.create(v1);
 
         assertNotNull("result is null", category);
-        verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(CATEGORY_CREATED), any(), isNull(), any());
+        verify(mockAuditService, times(1)).createEnvironmentAuditLog(any(), eq(CATEGORY_CREATED), any(), isNull(), any());
         verify(mockCategoryRepository, times(1)).create(argThat(arg -> arg != null && arg.getName().equals("v1")));
     }
     

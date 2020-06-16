@@ -25,9 +25,13 @@ import javax.ws.rs.QueryParam;
  * @author GraviteeSource Team
  */
 public class AuditParam {
-    @QueryParam("mgmt")
-    @ApiParam(value = "true if you only want logs from the management, false if you also want api and application audit logs")
-    private boolean managementLogsOnly;
+    @QueryParam("envLog")
+    @ApiParam(value = "true if you only want logs from the current environment, false if you also want api, application and organization audit logs")
+    private boolean environmentLogsOnly;
+
+    @QueryParam("orgLog")
+    @ApiParam(value = "true if you only want logs from the current organization, false if you also want api, application and environment audit logs")
+    private boolean organizationLogsOnly;
 
     @QueryParam("api")
     private String apiId;
@@ -59,13 +63,20 @@ public class AuditParam {
     @DefaultValue("1")
     private int page;
 
-
-    public boolean isManagementLogsOnly() {
-        return managementLogsOnly;
+    public boolean isEnvironmentLogsOnly() {
+        return environmentLogsOnly;
     }
 
-    public void setManagementLogsOnly(boolean managementLogsOnly) {
-        this.managementLogsOnly = managementLogsOnly;
+    public void setEnvironmentLogsOnly(boolean environmentLogsOnly) {
+        this.environmentLogsOnly = environmentLogsOnly;
+    }
+
+    public boolean isOrganizationLogsOnly() {
+        return organizationLogsOnly;
+    }
+
+    public void setOrganizationLogsOnly(boolean organizationLogsOnly) {
+        this.organizationLogsOnly = organizationLogsOnly;
     }
 
     public String getApiId() {

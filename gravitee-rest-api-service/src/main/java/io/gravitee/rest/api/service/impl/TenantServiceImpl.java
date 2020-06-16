@@ -106,7 +106,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
             try {
                 Tenant tenant = convert(tenantEntity);
                 savedTenants.add(convert(tenantRepository.create(tenant)));
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(TENANT, tenant.getId()),
                         TENANT_CREATED,
                         new Date(),
@@ -129,7 +129,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                 Optional<Tenant> tenantOptional = tenantRepository.findById(tenant.getId());
                 if (tenantOptional.isPresent()) {
                     savedTenants.add(convert(tenantRepository.update(tenant)));
-                    auditService.createPortalAuditLog(
+                    auditService.createEnvironmentAuditLog(
                             Collections.singletonMap(TENANT, tenant.getId()),
                             TENANT_UPDATED,
                             new Date(),
@@ -150,7 +150,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
             Optional<Tenant> tenantOptional = tenantRepository.findById(tenantId);
             if (tenantOptional.isPresent()) {
                 tenantRepository.delete(tenantId);
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(TENANT, tenantId),
                         TENANT_DELETED,
                         new Date(),

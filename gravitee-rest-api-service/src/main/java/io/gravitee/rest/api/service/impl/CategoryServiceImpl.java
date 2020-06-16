@@ -140,7 +140,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             Category category = convert(newCategory);
             category.setEnvironmentId(environment);
             CategoryEntity createdCategory = convert(categoryRepository.create(category));
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(CATEGORY, category.getId()),
                     CATEGORY_CREATED,
                     new Date(),
@@ -167,7 +167,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             Category category = convert(updateCategoryEntity, optCategoryToUpdate.get().getEnvironmentId());
 
             CategoryEntity updatedCategory = convert(categoryRepository.update(category));
-            auditService.createPortalAuditLog(
+            auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(CATEGORY, category.getId()),
                     CATEGORY_UPDATED,
                     new Date(),
@@ -201,7 +201,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                     }
 
                     savedCategories.add(convert(categoryRepository.update(category)));
-                    auditService.createPortalAuditLog(
+                    auditService.createEnvironmentAuditLog(
                             Collections.singletonMap(CATEGORY, category.getId()),
                             CATEGORY_UPDATED,
                             new Date(),
@@ -222,7 +222,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
             if (categoryOptional.isPresent()) {
                 categoryRepository.delete(categoryId);
-                auditService.createPortalAuditLog(
+                auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(CATEGORY, categoryId),
                         CATEGORY_DELETED,
                         new Date(),

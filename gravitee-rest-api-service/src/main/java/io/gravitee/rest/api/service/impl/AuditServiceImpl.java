@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.AuditCriteria.Builder;
@@ -32,6 +31,8 @@ import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import org.slf4j.Logger;
@@ -48,6 +49,7 @@ import static io.gravitee.rest.api.service.impl.MetadataServiceImpl.getDefaultRe
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -85,27 +87,16 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     @Override
     public MetadataPage<AuditEntity> search(AuditQuery query) {
-
-        Audit.AuditReferenceType referenceType =
-                query.isManagementLogsOnly() ? Audit.AuditReferenceType.PORTAL :
-                        (query.getApiIds() != null && !query.getApiIds().isEmpty()) ? Audit.AuditReferenceType.API :
-                                (query.getApplicationIds() != null && !query.getApplicationIds().isEmpty()) ? Audit.AuditReferenceType.APPLICATION :
-                                        null;
-
         Builder criteria = new Builder().from(query.getFrom()).to(query.getTo());
-        if (referenceType != null) {
-            List<String> referenceIds;
-            switch (referenceType) {
-                case API:
-                    referenceIds = query.getApiIds();
-                    break;
-                case APPLICATION:
-                    referenceIds = query.getApplicationIds();
-                    break;
-                default:
-                    referenceIds = Collections.singletonList("DEFAULT");
-            }
-            criteria.references(referenceType, referenceIds);
+
+        if (query.isCurrentEnvironmentLogsOnly()) {
+            criteria.references(Audit.AuditReferenceType.ENVIRONMENT, Collections.singletonList(GraviteeContext.getCurrentEnvironment()));
+        } else if (query.isCurrentOrganizationLogsOnly()) {
+            criteria.references(Audit.AuditReferenceType.ORGANIZATION, Collections.singletonList(GraviteeContext.getCurrentOrganization()));
+        } else if (query.getApiIds() != null && !query.getApiIds().isEmpty()) {
+            criteria.references(Audit.AuditReferenceType.API, query.getApiIds());
+        } else if (query.getApplicationIds() != null && !query.getApplicationIds().isEmpty()) {
+            criteria.references(Audit.AuditReferenceType.APPLICATION, query.getApplicationIds());
         }
 
         if (query.getEvents() != null && !query.getEvents().isEmpty()) {
@@ -244,11 +235,11 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     @Override
     public void createApiAuditLog(String apiId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt,
                                   Object oldValue, Object newValue) {
-        create(Audit.AuditReferenceType.API,
+        createAuditLog(Audit.AuditReferenceType.API,
                 apiId,
                 properties,
                 event,
-                createdAt==null ? new Date() : createdAt,
+                createdAt,
                 oldValue,
                 newValue);
     }
@@ -256,57 +247,45 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     @Override
     public void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt,
                                           Object oldValue, Object newValue) {
-        createApplicationAuditLog(
+        createAuditLog(Audit.AuditReferenceType.APPLICATION,
                 applicationId,
                 properties,
                 event,
-                getAuthenticatedUsernameOrSystem(),
                 createdAt,
                 oldValue,
                 newValue);
     }
 
     @Override
-    public void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, String userId, Date createdAt,
-                                          Object oldValue, Object newValue) {
-        create(Audit.AuditReferenceType.APPLICATION,
-                applicationId,
-                properties,
-                event,
-                createdAt==null ? new Date() : createdAt,
-                oldValue,
-                newValue);
-    }
-
-    @Override
-    public void createPortalAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue) {
-       createPortalAuditLog(
+    public void createEnvironmentAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue) {
+        createAuditLog(Audit.AuditReferenceType.ENVIRONMENT,
+               GraviteeContext.getCurrentEnvironment(),
                properties,
                event,
-               getAuthenticatedUsernameOrSystem(),
                createdAt,
                oldValue,
                newValue);
     }
+
     @Override
-    public void createPortalAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, String userId, Date createdAt, Object oldValue, Object newValue) {
-        create(Audit.AuditReferenceType.PORTAL,
-                "DEFAULT",
+    public void createOrganizationAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue) {
+        createAuditLog(Audit.AuditReferenceType.ORGANIZATION,
+                GraviteeContext.getCurrentOrganization(),
                 properties,
                 event,
-                createdAt==null ? new Date() : createdAt,
+                createdAt,
                 oldValue,
                 newValue);
     }
 
     @Async
-    protected void create(Audit.AuditReferenceType referenceType, String referenceId, Map<Audit.AuditProperties,String> properties,
-                          Audit.AuditEvent event, Date createdAt,
-                          Object oldValue, Object newValue) {
+    protected void createAuditLog(Audit.AuditReferenceType referenceType, String referenceId, Map<Audit.AuditProperties,String> properties,
+                               Audit.AuditEvent event, Date createdAt,
+                               Object oldValue, Object newValue) {
 
         Audit audit = new Audit();
-        audit.setId(UUID.toString(UUID.random()));
-        audit.setCreatedAt(createdAt);
+        audit.setId(RandomString.generate());
+        audit.setCreatedAt(createdAt==null ? new Date() : createdAt);
 
         final UserDetails authenticatedUser = getAuthenticatedUser();
         final String user;

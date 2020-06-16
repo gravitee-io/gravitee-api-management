@@ -132,7 +132,7 @@ public class ParameterServiceTest {
         parameterService.save(PORTAL_TOP_APIS, "api1");
 
         verify(parameterRepository).create(parameter);
-        verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_CREATED),
+        verify(auditService).createEnvironmentAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_CREATED),
                 any(), eq(null), eq(parameter));
     }
 
@@ -154,7 +154,7 @@ public class ParameterServiceTest {
         parameterService.save(PORTAL_TOP_APIS, "api2");
 
         verify(parameterRepository).update(newParameter);
-        verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_UPDATED),
+        verify(auditService).createEnvironmentAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_UPDATED),
                 any(), eq(parameter), eq(newParameter));
     }
 
@@ -172,7 +172,7 @@ public class ParameterServiceTest {
         parameterService.save(PORTAL_TOP_APIS, Collections.singletonList("api1"));
 
         verify(parameterRepository).create(parameter);
-        verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_CREATED),
+        verify(auditService).createEnvironmentAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_CREATED),
                 any(), eq(null), eq(parameter));
     }
 
@@ -194,7 +194,7 @@ public class ParameterServiceTest {
         parameterService.save(PORTAL_TOP_APIS, Collections.singletonList("api1"));
 
         verify(parameterRepository, never()).update(newParameter);
-        verify(auditService, never()).createPortalAuditLog(any(), any(), any(), any(), any());
+        verify(auditService, never()).createEnvironmentAuditLog(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -217,7 +217,7 @@ public class ParameterServiceTest {
         parameterService.save(PORTAL_TOP_APIS, asList("api1", "api2", "api2"));
 
         verify(parameterRepository).update(newParameter);
-        verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_UPDATED),
+        verify(auditService).createEnvironmentAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_UPDATED),
                 any(), eq(parameter), eq(newParameter));
     }
 
