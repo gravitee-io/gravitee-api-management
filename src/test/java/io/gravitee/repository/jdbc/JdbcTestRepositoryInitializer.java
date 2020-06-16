@@ -110,11 +110,8 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "api_quality_rules",
             "dashboards",
             "alert_events",
-<<<<<<< HEAD
-            "themes"
-=======
+            "themes",
             "tokens"
->>>>>>> b0ee3bf... feat: Allows to generate personal access tokens to access the management API
     );
 
     private static final List<String> tablesToDrop = concatenate(tablesToTruncate
