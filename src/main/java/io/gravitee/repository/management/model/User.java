@@ -33,15 +33,9 @@ public class User {
     private String id;
 
     /**
-     * The external reference id. Depending on the reference type.
+     * The organization id.
      */
-    private String referenceId;
-
-    /**
-     * the reference type. ENVIRONMENT or ORGANIZATION for example.
-     * this helps to know the model of the referenceId
-     */
-    private UserReferenceType referenceType;
+    private String organizationId;
 
     /**
      * The source when user is coming from an external system (LDAP, ...)
@@ -112,8 +106,7 @@ public class User {
 
     public User(User cloned) {
         this.id = cloned.id;
-        this.referenceId = cloned.referenceId;
-        this.referenceType = cloned.referenceType;
+        this.organizationId = cloned.organizationId;
         this.source = cloned.source;
         this.sourceId = cloned.sourceId;
         this.password = cloned.password;
@@ -130,20 +123,12 @@ public class User {
         this.newsletterSubscribed = cloned.newsletterSubscribed;
     }
 
-    public String getReferenceId() {
-        return referenceId;
+    public String getOrganizationId() {
+        return organizationId;
     }
 
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public UserReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(UserReferenceType referenceType) {
-        this.referenceType = referenceType;
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
 
     public String getId() {
@@ -283,8 +268,7 @@ public class User {
     public String toString() {
         final StringBuilder sb = new StringBuilder("User{");
         sb.append("id='").append(id).append('\'');
-        sb.append(", referenceId='").append(referenceId).append('\'');
-        sb.append(", referenceType='").append(referenceType).append('\'');
+        sb.append(", organizationId='").append(organizationId).append('\'');
         sb.append(", source='").append(source).append('\'');
         sb.append(", sourceId='").append(sourceId).append('\'');
         sb.append(", firstname='").append(firstname).append('\'');

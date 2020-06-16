@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.management.api.search;
 
-import io.gravitee.repository.management.model.UserReferenceType;
 import io.gravitee.repository.management.model.UserStatus;
 
 /**
@@ -26,14 +25,12 @@ public class UserCriteria {
 
     private UserStatus[] statuses;
     private boolean noStatus;
-    private String referenceId;
-    private UserReferenceType referenceType;
+    private String organizationId;
 
     UserCriteria(UserCriteria.Builder builder) {
         this.statuses = builder.statuses;
         this.noStatus = builder.noStatus;
-        this.referenceId = builder.referenceId;
-        this.referenceType = builder.referenceType;
+        this.organizationId = builder.organizationId;
     }
 
     public UserStatus[] getStatuses() {
@@ -44,30 +41,18 @@ public class UserCriteria {
         return noStatus;
     }
 
-    public String getReferenceId() {
-        return referenceId;
+    public String getOrganizationId() {
+        return organizationId;
     }
 
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
-
-    public UserReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(UserReferenceType referenceType) {
-        this.referenceType = referenceType;
-    }
-
-
-
 
     public static class Builder {
         private UserStatus[] statuses;
         private boolean noStatus;
-        private String referenceId;
-        private UserReferenceType referenceType;
+        private String organizationId;
 
         public Builder statuses(UserStatus... statuses) {
             this.statuses = statuses;
@@ -79,13 +64,8 @@ public class UserCriteria {
             return this;
         }
 
-        public Builder referenceId(String referenceId) {
-            this.referenceId = referenceId;
-            return this;
-        }
-
-        public Builder referenceType(UserReferenceType referenceType) {
-            this.referenceType = referenceType;
+        public Builder organizationId(String organizationId) {
+            this.organizationId = organizationId;
             return this;
         }
 

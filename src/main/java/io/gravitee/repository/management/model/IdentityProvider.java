@@ -31,15 +31,10 @@ public class IdentityProvider {
     private String id;
 
     /**
-     * Identity provider reference Id
+     * Identity provider organization Id
      */
-    private String referenceId;
-    
-    /**
-     * Identity provider reference Type
-     */
-    private IdentityProviderReferenceType referenceType;
-    
+    private String organizationId;
+
     /**
      * Identity provider name
      */
@@ -94,20 +89,12 @@ public class IdentityProvider {
      */
     private Date updatedAt;
 
-    public String getReferenceId() {
-        return referenceId;
+    public String getOrganizationId() {
+        return organizationId;
     }
 
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public IdentityProviderReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(IdentityProviderReferenceType referenceType) {
-        this.referenceType = referenceType;
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
 
     public String getId() {
@@ -220,13 +207,12 @@ public class IdentityProvider {
         if (o == null || getClass() != o.getClass()) return false;
         IdentityProvider that = (IdentityProvider) o;
         return Objects.equals(id, that.id) &&
-                Objects.equals(referenceId, that.referenceId) &&
-                referenceType == that.referenceType;
+                Objects.equals(organizationId, that.organizationId);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(id, referenceId, referenceType);
+        return Objects.hash(id, organizationId);
     }
 }
