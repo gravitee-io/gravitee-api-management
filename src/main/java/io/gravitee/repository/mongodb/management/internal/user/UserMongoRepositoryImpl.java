@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
@@ -53,12 +52,9 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
             if (criteria.hasNoStatus()) {
                 query.addCriteria(where("status").exists(false));
             }
-            
-            if (criteria.getReferenceId() != null) {
-                query.addCriteria(where("referenceId").is(criteria.getReferenceId()));
-            }
-            if (criteria.getReferenceType() != null) {
-                query.addCriteria(where("referenceType").is(criteria.getReferenceType().name()));
+
+            if (criteria.getOrganizationId() != null) {
+                query.addCriteria(where("organizationId").is(criteria.getOrganizationId()));
             }
         }
         query.with(new Sort(Sort.Direction.ASC, "lastname", "firstname"));

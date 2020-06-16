@@ -30,10 +30,8 @@ public class IdentityProviderMongo extends Auditable {
 	@Id
 	private String id;
 
-    private String referenceId;
+    private String organizationId;
     
-    private String referenceType;
-
 	private String name;
 
 	private String description;
@@ -62,20 +60,12 @@ public class IdentityProviderMongo extends Auditable {
         this.id = id;
     }
 
-    public String getReferenceId() {
-        return referenceId;
+    public String getOrganizationId() {
+        return organizationId;
     }
 
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
 
     public String getName() {

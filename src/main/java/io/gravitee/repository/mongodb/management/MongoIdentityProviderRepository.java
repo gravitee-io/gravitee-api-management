@@ -15,26 +15,19 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.IdentityProviderRepository;
+import io.gravitee.repository.management.model.IdentityProvider;
+import io.gravitee.repository.mongodb.management.internal.identityprovider.IdentityProviderMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderMongo;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.IdentityProviderRepository;
-import io.gravitee.repository.management.model.IdentityProvider;
-import io.gravitee.repository.management.model.IdentityProviderReferenceType;
-import io.gravitee.repository.mongodb.management.internal.identityprovider.IdentityProviderMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderMongo;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -123,7 +116,7 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
         Set<IdentityProvider> res = internalIdentityProviderRepository.findAll().stream()
                 .map(this::map)
                 .collect(Collectors.toSet());
-        
+
         LOGGER.debug("Find all identity providers - Done");
         return res;
     }
@@ -136,7 +129,7 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
         IdentityProviderMongo identityProviderMongo = mapper.map(identityProvider, IdentityProviderMongo.class);
 
         if (identityProvider.getGroupMappings() != null) {
-            Map<String, String []> groupMappings = new HashMap<>(identityProvider.getGroupMappings().size());
+            Map<String, String[]> groupMappings = new HashMap<>(identityProvider.getGroupMappings().size());
             for (Map.Entry<String, String[]> groupEntry : identityProvider.getGroupMappings().entrySet()) {
                 groupMappings.put(new String(Base64.getEncoder().encode(groupEntry.getKey().getBytes())), groupEntry.getValue());
             }
@@ -144,7 +137,7 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
         }
 
         if (identityProvider.getRoleMappings() != null) {
-            Map<String, String []> roleMappings = new HashMap<>(identityProvider.getRoleMappings().size());
+            Map<String, String[]> roleMappings = new HashMap<>(identityProvider.getRoleMappings().size());
             for (Map.Entry<String, String[]> roleEntry : identityProvider.getRoleMappings().entrySet()) {
                 roleMappings.put(new String(Base64.getEncoder().encode(roleEntry.getKey().getBytes())), roleEntry.getValue());
             }
@@ -181,15 +174,14 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
     }
 
     @Override
-    public Set<IdentityProvider> findAllByReferenceIdAndReferenceType(String referenceId,
-            IdentityProviderReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("Find all identity providers by ref");
+    public Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException {
+        LOGGER.debug("Find all identity providers by organization");
 
-        Set<IdentityProvider> res = internalIdentityProviderRepository.findByReferenceIdAndReferenceType(referenceId, referenceType.name()).stream()
+        Set<IdentityProvider> res = internalIdentityProviderRepository.findByOrganizationId(organizationId).stream()
                 .map(this::map)
                 .collect(Collectors.toSet());
-        
-        LOGGER.debug("Find all identity providers by ref - Done");
+
+        LOGGER.debug("Find all identity providers by organization - Done");
         return res;
     }
 }

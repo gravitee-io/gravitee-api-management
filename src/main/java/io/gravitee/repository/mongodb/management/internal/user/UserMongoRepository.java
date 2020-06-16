@@ -31,11 +31,11 @@ import java.util.Set;
 @Repository
 public interface UserMongoRepository extends MongoRepository<UserMongo, String>, UserMongoRepositoryCustom {
 
-	@Query(value = "{ _id: {$in: ?0} }", fields = "{'picture': 0}")
-	Set<UserMongo> findByIds(List<String> ids);
+    @Query(value = "{ _id: {$in: ?0} }", fields = "{'picture': 0}")
+    Set<UserMongo> findByIds(List<String> ids);
 
-	@Query(value = "{ 'source': ?0, 'sourceId': {$regex: '^?1$', $options: 'i'}, 'referenceId': ?2, 'referenceType': ?3 }")
-	UserMongo findBySourceAndSourceId(String source, String sourceId, String referenceId, String referenceType);
+    @Query(value = "{ 'source': ?0, 'sourceId': {$regex: '^?1$', $options: 'i'}, 'organizationId': ?2 }")
+    UserMongo findBySourceAndSourceId(String source, String sourceId, String organizationId);
 }
 
 

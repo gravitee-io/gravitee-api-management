@@ -21,7 +21,6 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
-import io.gravitee.repository.management.model.UserReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -43,110 +42,109 @@ import java.util.regex.Pattern;
 @Component
 public class MongoUserRepository implements UserRepository {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
-	private Pattern escaper = Pattern.compile("([^a-zA-z0-9])");
+    private Logger logger = LoggerFactory.getLogger(getClass());
+    private Pattern escaper = Pattern.compile("([^a-zA-z0-9])");
 
-	@Autowired
-	private UserMongoRepository internalUserRepo;
+    @Autowired
+    private UserMongoRepository internalUserRepo;
 
-	@Autowired
-	private GraviteeMapper mapper;
+    @Autowired
+    private GraviteeMapper mapper;
 
-	@Override
-	public Optional<User> findBySource(String source, String sourceId, String referenceId, UserReferenceType referenceType) throws TechnicalException {
-		logger.debug("Find user by name source[{}] user[{}]", source, sourceId);
+    @Override
+    public Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException {
+        logger.debug("Find user by name source[{}] user[{}]", source, sourceId);
 
-		String escapedSourceId = escaper.matcher(sourceId).replaceAll("\\\\$1");
-		UserMongo user = internalUserRepo.findBySourceAndSourceId(source, escapedSourceId, referenceId, referenceType.name());
-		User res = mapper.map(user, User.class);
+        String escapedSourceId = escaper.matcher(sourceId).replaceAll("\\\\$1");
+        UserMongo user = internalUserRepo.findBySourceAndSourceId(source, escapedSourceId, organizationId);
+        User res = mapper.map(user, User.class);
 
-		return Optional.ofNullable(res);
-	}
+        return Optional.ofNullable(res);
+    }
 
-	@Override
-	public Set<User> findByIds(List<String> ids) throws TechnicalException {
-		logger.debug("Find user by identifiers user [{}]", ids);
+    @Override
+    public Set<User> findByIds(List<String> ids) throws TechnicalException {
+        logger.debug("Find user by identifiers user [{}]", ids);
 
-		Set<UserMongo> usersMongo = internalUserRepo.findByIds(ids);
-		Set<User> users = mapper.collection2set(usersMongo, UserMongo.class, User.class);
+        Set<UserMongo> usersMongo = internalUserRepo.findByIds(ids);
+        Set<User> users = mapper.collection2set(usersMongo, UserMongo.class, User.class);
 
-		logger.debug("Find user by identifiers user [{}] - Done", ids);
-		return users;
-	}
+        logger.debug("Find user by identifiers user [{}] - Done", ids);
+        return users;
+    }
 
-	@Override
-	public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
-		logger.debug("search users");
+    @Override
+    public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
+        logger.debug("search users");
 
-		Page<UserMongo> users = internalUserRepo.search(criteria, pageable);
-		List<User> content = mapper.collection2list(users.getContent(), UserMongo.class, User.class);
+        Page<UserMongo> users = internalUserRepo.search(criteria, pageable);
+        List<User> content = mapper.collection2list(users.getContent(), UserMongo.class, User.class);
 
-		logger.debug("search users - Done");
-		return new Page<>(content, users.getPageNumber(), (int) users.getPageElements(), users.getTotalElements());
-	}
+        logger.debug("search users - Done");
+        return new Page<>(content, users.getPageNumber(), (int) users.getPageElements(), users.getTotalElements());
+    }
 
-	@Override
-	public Optional<User> findById(String id) throws TechnicalException {
-		logger.debug("Find user by ID [{}]", id);
+    @Override
+    public Optional<User> findById(String id) throws TechnicalException {
+        logger.debug("Find user by ID [{}]", id);
 
-		UserMongo user = internalUserRepo.findById(id).orElse(null);
-		User res = mapper.map(user, User.class);
+        UserMongo user = internalUserRepo.findById(id).orElse(null);
+        User res = mapper.map(user, User.class);
 
-		logger.debug("Find user by ID [{}] - Done", id);
-		return Optional.ofNullable(res);
-	}
+        logger.debug("Find user by ID [{}] - Done", id);
+        return Optional.ofNullable(res);
+    }
 
-	@Override
-	public User create(User user) throws TechnicalException {
-		logger.debug("Create user [{}]", user.getId());
+    @Override
+    public User create(User user) throws TechnicalException {
+        logger.debug("Create user [{}]", user.getId());
 
-		UserMongo userMongo = mapper.map(user, UserMongo.class);
-		UserMongo createdUserMongo = internalUserRepo.insert(userMongo);
+        UserMongo userMongo = mapper.map(user, UserMongo.class);
+        UserMongo createdUserMongo = internalUserRepo.insert(userMongo);
 
-		User res = mapper.map(createdUserMongo, User.class);
+        User res = mapper.map(createdUserMongo, User.class);
 
-		logger.debug("Create user [{}] - Done", user.getId());
+        logger.debug("Create user [{}] - Done", user.getId());
 
-		return res;
-	}
+        return res;
+    }
 
-	@Override
-	public User update(User user) throws TechnicalException {
-		if (user == null || user.getId() == null) {
-			throw new IllegalStateException("User to update must have an identifier");
-		}
+    @Override
+    public User update(User user) throws TechnicalException {
+        if (user == null || user.getId() == null) {
+            throw new IllegalStateException("User to update must have an identifier");
+        }
 
-		final UserMongo userMongo = internalUserRepo.findById(user.getId()).orElse(null);
+        final UserMongo userMongo = internalUserRepo.findById(user.getId()).orElse(null);
 
-		if (userMongo == null) {
-			throw new IllegalStateException(String.format("No user found with username [%s]", user.getId()));
-		}
+        if (userMongo == null) {
+            throw new IllegalStateException(String.format("No user found with username [%s]", user.getId()));
+        }
 
-		userMongo.setSource(user.getSource());
-		userMongo.setReferenceId(user.getReferenceId());
-		userMongo.setReferenceType(user.getReferenceType().name());
-		userMongo.setSourceId(user.getSourceId());
-		userMongo.setFirstname(user.getFirstname());
-		userMongo.setLastname(user.getLastname());
-		userMongo.setCreatedAt(user.getCreatedAt());
-		userMongo.setUpdatedAt(user.getUpdatedAt());
-		userMongo.setPassword(user.getPassword());
-		userMongo.setPicture(user.getPicture());
-		userMongo.setEmail(user.getEmail());
-		if (user.getStatus() != null) {
-			userMongo.setStatus(user.getStatus().name());
-		}
-		userMongo.setLastConnectionAt(user.getLastConnectionAt());
-		userMongo.setLoginCount(user.getLoginCount());
+        userMongo.setSource(user.getSource());
+        userMongo.setOrganizationId(user.getOrganizationId());
+        userMongo.setSourceId(user.getSourceId());
+        userMongo.setFirstname(user.getFirstname());
+        userMongo.setLastname(user.getLastname());
+        userMongo.setCreatedAt(user.getCreatedAt());
+        userMongo.setUpdatedAt(user.getUpdatedAt());
+        userMongo.setPassword(user.getPassword());
+        userMongo.setPicture(user.getPicture());
+        userMongo.setEmail(user.getEmail());
+        if (user.getStatus() != null) {
+            userMongo.setStatus(user.getStatus().name());
+        }
+        userMongo.setLastConnectionAt(user.getLastConnectionAt());
+        userMongo.setLoginCount(user.getLoginCount());
 		userMongo.setFirstConnectionAt(user.getFirstConnectionAt());
 		userMongo.setNewsletterSubscribed(user.getNewsletterSubscribed());
 		UserMongo userUpdated = internalUserRepo.save(userMongo);
 		return mapper.map(userUpdated, User.class);
 	}
 
-	@Override
-	public void delete(String id) throws TechnicalException {
-		logger.debug("Delete user [{}]", id);
-		internalUserRepo.deleteById(id);
-	}
+    @Override
+    public void delete(String id) throws TechnicalException {
+        logger.debug("Delete user [{}]", id);
+        internalUserRepo.deleteById(id);
+    }
 }

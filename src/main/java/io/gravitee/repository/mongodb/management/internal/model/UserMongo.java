@@ -27,14 +27,13 @@ import java.util.Objects;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection="users")
+@Document(collection = "users")
 public class UserMongo extends Auditable {
 
     @Id
     private String id;
 
-    private String referenceId;
-    private String referenceType;
+    private String organizationId;
     private String email;
     private String password;
     private String firstname;
@@ -56,20 +55,12 @@ public class UserMongo extends Auditable {
         this.id = id;
     }
 
-    public String getReferenceId() {
-        return referenceId;
+    public String getOrganizationId() {
+        return organizationId;
     }
 
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
 
     public String getEmail() {
@@ -81,28 +72,28 @@ public class UserMongo extends Auditable {
     }
 
     public String getPassword() {
-		return password;
-	}
+        return password;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public String getFirstname() {
-		return firstname;
-	}
+    public String getFirstname() {
+        return firstname;
+    }
 
-	public void setFirstname(String firstname) {
-		this.firstname = firstname;
-	}
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
 
-	public String getLastname() {
-		return lastname;
-	}
+    public String getLastname() {
+        return lastname;
+    }
 
-	public void setLastname(String lastname) {
-		this.lastname = lastname;
-	}
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
+    }
 
     public String getPicture() {
         return picture;
@@ -186,8 +177,7 @@ public class UserMongo extends Auditable {
     public String toString() {
         final StringBuilder sb = new StringBuilder("User{");
         sb.append(" id='").append(id).append(",\'");
-        sb.append(" referenceId='").append(referenceId).append(",\'");
-        sb.append(" referenceType='").append(referenceType).append(",\'");
+        sb.append(" organizationId='").append(organizationId).append(",\'");
         sb.append(" source='").append(source).append(",\'");
         sb.append(" source_id='").append(sourceId).append(",\'");
         sb.append(" email='").append(email).append("\'");
