@@ -34,13 +34,14 @@ import static org.mockito.Mockito.doReturn;
  */
 public class ApplicationsResourceTest extends AbstractResourceTest {
 
+    @Override
     protected String contextPath() {
         return "applications";
     }
 
     @Test
     public void shouldNotCreateApplication_noContent() {
-        final Response response = target().request().post(null);
+        final Response response = envTarget().request().post(null);
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
@@ -55,7 +56,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         doReturn(returnedApp).when(applicationService).create(Mockito.any(NewApplicationEntity.class),
                 Mockito.eq(JerseySpringTest.USER_NAME));
 
-        final Response response = target().request().post(Entity.json(appEntity));
+        final Response response = envTarget().request().post(Entity.json(appEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 }

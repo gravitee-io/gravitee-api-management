@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
@@ -26,11 +25,12 @@ import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
 import io.gravitee.rest.api.security.csrf.CsrfRequestMatcher;
 import io.gravitee.rest.api.security.filter.CsrfIncludeFilter;
-import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.filter.RecaptchaFilter;
+import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
 import io.gravitee.rest.api.service.ReCaptchaService;
+import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,7 +171,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         if (property == null) {
             property = defaultValue;
         }
-        return asList(property.replaceAll("\\s+","").split(","));
+        return asList(property.replaceAll("\\s+", "").split(","));
     }
 
     @Override
@@ -222,27 +222,42 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         String uriPrefix = uriOrgPrefix + "/environments/**";
 
         return security.authorizeRequests()
-                // Swagger
+                /*
+                 * Swagger
+                 */
                 .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
 
                 .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
 
-                // organizations resources
+                /*
+                 * organizations resources
+                 */
+                // Auth resource
+                .antMatchers(HttpMethod.POST, uriOrgPrefix + "/auth/**").permitAll()
+
+                // Current user
+                .antMatchers(HttpMethod.POST, uriOrgPrefix + "/user/login").permitAll()
+                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/user/**").authenticated()
+
+                //Users management
+                .antMatchers(HttpMethod.GET,uriOrgPrefix + "/users/custom-fields").permitAll()
                 .antMatchers(HttpMethod.POST, uriOrgPrefix + "/users/registration/**").permitAll()
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users").authenticated()
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users/**").authenticated()
                 .antMatchers(HttpMethod.PUT, uriOrgPrefix + "/users/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, uriOrgPrefix + "/users/**").authenticated()
 
+                //Organization configuration
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/rolescopes/**").permitAll()
-                .antMatchers(HttpMethod.GET,uriOrgPrefix + "/configuration/custom-user-fields").permitAll()
+                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/custom-user-fields").permitAll()
                 .antMatchers(uriOrgPrefix + "/configuration/**").authenticated()
 
-                // environments resources
-                .antMatchers(HttpMethod.POST, uriPrefix + "/user/login").permitAll()
-                .antMatchers(HttpMethod.GET, uriPrefix + "/user/**").authenticated()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/auth/**").permitAll()
+                //Search for users
+                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/search/users").authenticated()
 
+                /*
+                 * environments resources
+                 */
                 // API requests
                 .antMatchers(HttpMethod.GET, uriPrefix + "/apis/hooks").authenticated()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").permitAll()
@@ -266,14 +281,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 // Platform requests
                 .antMatchers(HttpMethod.GET, uriPrefix + "/platform/**").authenticated()
 
-                // User management
-                .antMatchers(HttpMethod.GET,uriPrefix + "/users/custom-fields").permitAll()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**").permitAll()
-                .antMatchers(HttpMethod.GET, uriPrefix + "/users").authenticated()
-                .antMatchers(HttpMethod.GET, uriPrefix + "/users/**").authenticated()
-                .antMatchers(HttpMethod.PUT, uriPrefix + "/users/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, uriPrefix + "/users/**").authenticated()
-
                 // Configuration Groups
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/groups/**").permitAll()
 
@@ -286,12 +293,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 // Configuration Tenants
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/tenants/**").permitAll()
 
-                // Configuration role scopes
-                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/rolescopes/**").permitAll()
-
-                // Configuration CustomUserFields
-                .antMatchers(HttpMethod.GET,uriPrefix + "/configuration/custom-user-fields").permitAll()
-
                 // Configuration
                 .antMatchers(uriPrefix + "/configuration/**").authenticated()
 
@@ -301,9 +302,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.POST, uriPrefix + "/portal/**").authenticated()
                 .antMatchers(HttpMethod.PUT, uriPrefix + "/portal/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, uriPrefix + "/portal/**").authenticated()
-
-                // Search
-                .antMatchers(HttpMethod.GET, uriPrefix + "/search/users").authenticated()
 
                 // Entrypoints
                 .antMatchers(HttpMethod.GET, uriPrefix + "/entrypoints/**").permitAll()
@@ -331,13 +329,13 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     private HttpSecurity csrf(HttpSecurity security) throws Exception {
 
-        if(environment.getProperty("http.csrf.enabled", Boolean.class, false)) {
+        if (environment.getProperty("http.csrf.enabled", Boolean.class, false)) {
             return security.csrf()
                     .csrfTokenRepository(cookieCsrfSignedTokenRepository())
                     .requireCsrfProtectionMatcher(new CsrfRequestMatcher())
                     .and()
                     .addFilterAfter(new CsrfIncludeFilter(), CsrfFilter.class);
-        }else {
+        } else {
             return security.csrf().disable();
         }
     }

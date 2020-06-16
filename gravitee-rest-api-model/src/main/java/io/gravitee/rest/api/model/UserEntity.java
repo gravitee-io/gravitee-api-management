@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.gravitee.rest.api.model.search.Indexable;
 
 import java.util.Date;
@@ -38,16 +37,16 @@ public class UserEntity implements Indexable {
      */
     private String id;
 
-	/**
-	 * The user first name
-	 */
-	private String firstname;
-	
-	/**
-	 * The user last name
-	 */
-	private String lastname;
-    
+    /**
+     * The user first name
+     */
+    private String firstname;
+
+    /**
+     * The user last name
+     */
+    private String lastname;
+
     /**
      * The user password
      */
@@ -57,11 +56,16 @@ public class UserEntity implements Indexable {
      * The user email
      */
     private String email;
-    
+
     /**
-     * The user roles
+     * The user 'organization' roles
      */
     private Set<UserRoleEntity> roles;
+
+    /**
+     * The user 'environment' roles
+     */
+    private Map<String, Set<UserRoleEntity>> envRoles;
 
     /**
      * The user creation date
@@ -118,25 +122,26 @@ public class UserEntity implements Indexable {
         return id;
     }
 
+    @Override
     public void setId(String id) {
         this.id = id;
     }
 
     public String getFirstname() {
-  		return firstname;
-  	}
+        return firstname;
+    }
 
-  	public void setFirstname(String firstname) {
-  		this.firstname = firstname;
-  	}
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
 
-  	public String getLastname() {
-  		return lastname;
-  	}
+    public String getLastname() {
+        return lastname;
+    }
 
-  	public void setLastname(String lastname) {
-  		this.lastname = lastname;
-  	}
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
+    }
 
     public Date getCreatedAt() {
         return createdAt;
@@ -161,22 +166,30 @@ public class UserEntity implements Indexable {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
-    
+
     public String getPassword() {
-		return password;
-	}
+        return password;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public Set<UserRoleEntity> getRoles() {
-		return roles;
-	}
+    public Set<UserRoleEntity> getRoles() {
+        return roles;
+    }
 
-	public void setRoles(Set<UserRoleEntity> roles) {
-		this.roles = roles;
-	}
+    public void setRoles(Set<UserRoleEntity> roles) {
+        this.roles = roles;
+    }
+
+    public Map<String, Set<UserRoleEntity>> getEnvRoles() {
+        return envRoles;
+    }
+
+    public void setEnvRoles(Map<String, Set<UserRoleEntity>> envRoles) {
+        this.envRoles = envRoles;
+    }
 
     public String getPicture() {
         return picture;
@@ -235,7 +248,7 @@ public class UserEntity implements Indexable {
             } else {
                 displayName = lastname;
             }
-        } else if (email != null && !email.isEmpty() && !"memory".equals(source)){
+        } else if (email != null && !email.isEmpty() && !"memory".equals(source)) {
             displayName = email;
         } else {
             displayName = sourceId;
@@ -306,6 +319,7 @@ public class UserEntity implements Indexable {
                 ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
                 ", roles=" + roles +
+                ", envRoles=" + envRoles +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", picture='" + picture + '\'' +

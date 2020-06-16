@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.FetcherEntity;
-
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -34,6 +33,7 @@ import static org.mockito.Mockito.*;
  */
 public class FetcherResourceTest extends AbstractResourceTest {
 
+    @Override
     protected String contextPath() {
         return "fetchers/my-id";
     }
@@ -43,7 +43,7 @@ public class FetcherResourceTest extends AbstractResourceTest {
         Mockito.reset(fetcherService);
         when(fetcherService.findById("my-id")).thenReturn(null);
 
-        final Response response = target().request().get();
+        final Response response = envTarget().request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
@@ -62,14 +62,14 @@ public class FetcherResourceTest extends AbstractResourceTest {
         when(fetcherService.findById("my-id")).thenReturn(fetcherEntity);
         when(fetcherService.getSchema(anyString())).thenReturn("schema");
 
-        final Response response = target().request().get();
+        final Response response = envTarget().request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         Object o = response.readEntity(Object.class);
         assertThat(o).isNotNull();
         assertThat(o).isInstanceOf(LinkedHashMap.class);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>)o;
+        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
         assertThat(elt).hasSize(1);
         assertThat(elt.get("id")).isEqualTo("my-id");
 
@@ -86,7 +86,7 @@ public class FetcherResourceTest extends AbstractResourceTest {
         when(fetcherService.findById("my-id")).thenReturn(fetcherEntity);
         when(fetcherService.getSchema(anyString())).thenReturn("my-schema");
 
-        final Response response = target().path("schema").request().get();
+        final Response response = envTarget().path("schema").request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);

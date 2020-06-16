@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.repository.management.model.UserReferenceType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,14 +28,12 @@ public class UserAlreadyExistsException extends AbstractManagementException {
 
     private final String source;
     private final String userId;
-    private final String referenceId;
-    private final UserReferenceType referenceType;
+    private final String organizationId;
 
-    public UserAlreadyExistsException(String source, String userId, String referenceId, UserReferenceType referenceType) {
+    public UserAlreadyExistsException(String source, String userId, String organizationId) {
         this.source = source;
         this.userId = userId;
-        this.referenceId = referenceId;
-        this.referenceType = referenceType;
+        this.organizationId = organizationId;
     }
 
     @Override
@@ -46,7 +43,7 @@ public class UserAlreadyExistsException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "A user [" + userId + "] already exists for " + referenceType.name() + " " + referenceId + ".";
+        return "A user [" + userId + "] already exists for organization " + organizationId + ".";
     }
 
     @Override
@@ -59,8 +56,7 @@ public class UserAlreadyExistsException extends AbstractManagementException {
         return new HashMap<String, String>() {
             {
                 put("user", userId);
-                put("referenceId", referenceId);
-                put("referenceType", referenceType.name());
+                put("organizationId", organizationId);
                 put("source", source);
             }
         };

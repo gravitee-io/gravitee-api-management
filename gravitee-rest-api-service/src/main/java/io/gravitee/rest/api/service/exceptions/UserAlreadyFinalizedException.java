@@ -27,10 +27,10 @@ import static java.util.Collections.singletonMap;
  */
 public class UserAlreadyFinalizedException extends AbstractManagementException {
 
-    private final String environment;
+    private final String organization;
 
-    public UserAlreadyFinalizedException(String environment) {
-        this.environment = environment;
+    public UserAlreadyFinalizedException(String organization) {
+        this.organization = organization;
     }
 
     @Override
@@ -40,7 +40,7 @@ public class UserAlreadyFinalizedException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "User already finalized on environment " + environment + ".";
+        return "User already finalized in organization " + organization + ".";
     }
 
     @Override
@@ -50,6 +50,6 @@ public class UserAlreadyFinalizedException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("environment", environment);
+        return singletonMap("organization", organization);
     }
 }

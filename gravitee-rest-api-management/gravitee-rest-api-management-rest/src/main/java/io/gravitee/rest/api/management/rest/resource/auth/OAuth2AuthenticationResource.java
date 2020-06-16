@@ -28,10 +28,7 @@ import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.RoleService;
-import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
@@ -80,20 +77,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2AuthenticationResource.class);
 
     private final static String TEMPLATE_ENGINE_PROFILE_ATTRIBUTE = "profile";
-
-    @Autowired
-    private SocialIdentityProviderService socialIdentityProviderService;
-
-    @Autowired
-    private GroupService groupService;
-
-    @Autowired
-    private RoleService roleService;
-
-    @Autowired
-    private Environment environment;
-
-    private Client client;
+    private static final String ACCESS_TOKEN_PROPERTY = "access_token";
 
     // Dirty hack: only used to force class loading
     static {
@@ -104,7 +88,17 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         }
     }
 
-    private static final String ACCESS_TOKEN_PROPERTY = "access_token";
+    @Autowired
+    private SocialIdentityProviderService socialIdentityProviderService;
+    @Autowired
+    private GroupService groupService;
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private EnvironmentService environmentService;
+    @Autowired
+    private Environment environment;
+    private Client client;
 
     @PostConstruct
     public void initClient() throws NoSuchAlgorithmException, KeyManagementException {
@@ -213,7 +207,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     /**
      * Retrieve profile information about the authenticated oauth end-user and authenticate it in Gravitee.
      *
-     * @return
+     * @return Response
      */
     private Response authenticateUser(final SocialIdentityProviderEntity socialProvider,
                                       final HttpServletResponse servletResponse,
@@ -297,20 +291,22 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             user = userService.create(newUser, true);
             created = true;
         }
+        final String userId = user.getId();
 
         // Memberships must be refresh only when it is a user creation context or mappings should be synced during
         // later authentication
-        List<MembershipService.Membership> groupMemberships = refreshUserGroups(user.getId(), socialProvider.getId(), userGroups);
-        List<MembershipService.Membership> roleMemberships = refreshUserRoles(user.getId(), socialProvider.getId(), userRoles);
+        List<MembershipService.Membership> groupMemberships = refreshUserGroups(userId, socialProvider.getId(), userGroups);
+        List<MembershipService.Membership> roleMemberships = refreshUserRoles(userId, socialProvider.getId(), userRoles);
 
         if (created || socialProvider.isSyncMappings()) {
-            refreshUserMemberships(user.getId(), socialProvider.getId(), groupMemberships, MembershipReferenceType.GROUP);
-            refreshUserMemberships(user.getId(), socialProvider.getId(), roleMemberships,
-                    MembershipReferenceType.ENVIRONMENT);
+            refreshUserMemberships(userId, socialProvider.getId(), groupMemberships, MembershipReferenceType.GROUP);
+            refreshUserMemberships(userId, socialProvider.getId(), roleMemberships,
+                    MembershipReferenceType.ORGANIZATION);
         }
 
-        final Set<RoleEntity> roles = membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), MembershipMemberType.USER, user.getId());
-        roles.addAll(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization(), MembershipMemberType.USER, user.getId()));;
+        final Set<RoleEntity> roles = membershipService.getRoles(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization(), MembershipMemberType.USER, userId);
+        environmentService.findByOrganization(GraviteeContext.getCurrentOrganization())
+                .forEach(env -> roles.addAll(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, env.getId(), MembershipMemberType.USER, userId)));
 
         final Set<GrantedAuthority> authorities = new HashSet<>();
         if (!roles.isEmpty()) {
@@ -319,11 +315,11 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         }
 
         //set user to Authentication Context
-        UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
+        UserDetails userDetails = new UserDetails(userId, "", authorities);
         userDetails.setEmail(email);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
 
-        return connectUser(user.getId(), state, servletResponse);
+        return connectUser(userId, state, servletResponse);
     }
 
     private Map<String, String> extractUserProfileAttributes(Map<String, String> userProfileMapping, String userInfo) {
@@ -390,13 +386,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         return userRoles.stream()
                 .map(roleEntity -> {
                     MembershipService.Membership membership = new MembershipService.Membership(
-                            new MembershipService.MembershipReference(
-                                    RoleScope.ENVIRONMENT == roleEntity.getScope() ?
-                                            MembershipReferenceType.ENVIRONMENT
-                                            : MembershipReferenceType.ORGANIZATION,
-                                    RoleScope.ENVIRONMENT == roleEntity.getScope() ?
-                                            GraviteeContext.getCurrentEnvironment()
-                                            : GraviteeContext.getCurrentOrganization()),
+                            new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization()),
                             new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                             new MembershipService.MembershipRole(
                                     RoleScope.valueOf(roleEntity.getScope().name()),
@@ -417,7 +407,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
      * @param types The types of user memberships to manage
      */
     private void refreshUserMemberships(String userId, String identityProviderId, List<MembershipService.Membership> memberships,
-                                        MembershipReferenceType ... types) {
+                                        MembershipReferenceType... types) {
         // Get existing memberships for a given type
         List<UserMembership> userMemberships = new ArrayList<>();
 
@@ -509,18 +499,6 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
             // Get roles
             if (match) {
-                if (mapping.getEnvironments() != null) {
-                    try {
-                        mapping.getEnvironments().forEach(env ->
-                                roleService
-                                        .findByScopeAndName(RoleScope.ENVIRONMENT, env)
-                                        .ifPresent(roles::add)
-                        );
-                    } catch (RoleNotFoundException rnfe) {
-                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getEnvironments());
-                    }
-                }
-
                 if (mapping.getOrganizations() != null) {
                     try {
                         mapping.getOrganizations().forEach(org ->

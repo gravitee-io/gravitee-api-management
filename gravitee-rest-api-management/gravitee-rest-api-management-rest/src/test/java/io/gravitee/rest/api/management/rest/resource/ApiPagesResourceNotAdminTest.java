@@ -15,13 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -50,33 +48,12 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "apis/"+API_NAME+"/pages/"+PAGE_NAME;
+        return "apis/" + API_NAME + "/pages/" + PAGE_NAME;
     }
 
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
-    }
-
-    @Priority(50)
-    public static class AuthenticationFilter implements ContainerRequestFilter {
-        @Override
-        public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return () -> USER_NAME;
-                }
-                @Override
-                public boolean isUserInRole(String string) {
-                    return false;
-                }
-                @Override
-                public boolean isSecure() { return true; }
-                @Override
-                public String getAuthenticationScheme() { return "BASIC"; }
-            });
-        }
     }
 
     @Test
@@ -94,7 +71,7 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
         doReturn(true).when(pageService).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
 
-        final Response response = target().request().get();
+        final Response response = envTarget().request().get();
 
         assertEquals(OK_200, response.getStatus());
         final PageEntity responsePage = response.readEntity(PageEntity.class);
@@ -102,7 +79,7 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         assertEquals(PAGE_NAME, responsePage.getName());
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
         verify(apiService, times(1)).findById(API_NAME);
-        verify(pageService, times(1)).findById(PAGE_NAME,null);
+        verify(pageService, times(1)).findById(PAGE_NAME, null);
         verify(pageService, times(1)).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
     }
 
@@ -123,11 +100,39 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         when(groupService.isUserAuthorizedToAccessApiData(any(), any(), any())).thenReturn(Boolean.FALSE);
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
 
-        final Response response = target().request().get();
+        final Response response = envTarget().request().get();
 
         assertEquals(UNAUTHORIZED_401, response.getStatus());
         verify(apiService, atLeastOnce()).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
         verify(pageService, times(1)).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
+    }
+
+    @Priority(50)
+    public static class AuthenticationFilter implements ContainerRequestFilter {
+        @Override
+        public void filter(final ContainerRequestContext requestContext) throws IOException {
+            requestContext.setSecurityContext(new SecurityContext() {
+                @Override
+                public Principal getUserPrincipal() {
+                    return () -> USER_NAME;
+                }
+
+                @Override
+                public boolean isUserInRole(String string) {
+                    return false;
+                }
+
+                @Override
+                public boolean isSecure() {
+                    return true;
+                }
+
+                @Override
+                public String getAuthenticationScheme() {
+                    return "BASIC";
+                }
+            });
+        }
     }
 }

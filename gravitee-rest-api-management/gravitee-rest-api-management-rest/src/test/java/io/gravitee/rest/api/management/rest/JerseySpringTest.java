@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.rest;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
-
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
@@ -49,48 +48,54 @@ public abstract class JerseySpringTest {
 
     protected static final String USER_NAME = "UnitTests";
     protected final static Principal PRINCIPAL = () -> USER_NAME;
-
+    protected AuthenticationProviderManager authenticationProviderManager;
     private JerseyTest _jerseyTest;
 
-    protected abstract String contextPath();
-
-    protected AuthenticationProviderManager authenticationProviderManager;
+    private String orgBaseURL = "/organizations/DEFAULT";
+    private String envBaseURL = orgBaseURL + "/environments/DEFAULT";
 
     protected JerseySpringTest(AuthenticationProviderManager authenticationProviderManager) {
         this.authenticationProviderManager = authenticationProviderManager;
     }
 
-    public final WebTarget target()
-    {
-        return target("");
+    protected abstract String contextPath();
+
+    public final WebTarget envTarget() {
+        return envTarget("");
     }
 
-    public final WebTarget target(final String path)
-    {
-        return _jerseyTest.target("/organizations/DEFAULT/environments/DEFAULT/" + contextPath() + path);
+    public final WebTarget orgTarget() {
+        return orgTarget("");
+    }
+
+    public final WebTarget envTarget(final String path) {
+        return envTarget(path, envBaseURL);
+    }
+
+    public final WebTarget orgTarget(final String path) {
+        return envTarget(path, orgBaseURL);
+    }
+
+    private final WebTarget envTarget(final String path, final String baseURL) {
+        return _jerseyTest.target(baseURL + "/" + contextPath() + path);
     }
 
     @Before
-    public void setup() throws Exception
-    {
+    public void setup() throws Exception {
         _jerseyTest.setUp();
     }
 
     @After
-    public void tearDown() throws Exception
-    {
+    public void tearDown() throws Exception {
         _jerseyTest.tearDown();
     }
 
     @Autowired
-    public void setApplicationContext(final ApplicationContext context)
-    {
-        _jerseyTest = new JerseyTest()
-        {
-            
+    public void setApplicationContext(final ApplicationContext context) {
+        _jerseyTest = new JerseyTest() {
+
             @Override
-            protected Application configure()
-            {
+            protected Application configure() {
                 // Find first available port.
                 forceSet(TestProperties.CONTAINER_PORT, "0");
 
@@ -135,14 +140,21 @@ public abstract class JerseySpringTest {
                 public Principal getUserPrincipal() {
                     return () -> USER_NAME;
                 }
+
                 @Override
                 public boolean isUserInRole(String string) {
                     return true;
                 }
+
                 @Override
-                public boolean isSecure() { return true; }
+                public boolean isSecure() {
+                    return true;
+                }
+
                 @Override
-                public String getAuthenticationScheme() { return "BASIC"; }
+                public String getAuthenticationScheme() {
+                    return "BASIC";
+                }
             });
         }
     }

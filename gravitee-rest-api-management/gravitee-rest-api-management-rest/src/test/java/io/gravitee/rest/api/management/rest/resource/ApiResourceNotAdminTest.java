@@ -19,11 +19,9 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.After;
 import org.junit.Before;
@@ -59,6 +57,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
     private static final String API = "my-api";
     private static final String UNKNOWN_API = "unknown";
 
+    @Override
     protected String contextPath() {
         return "apis/";
     }
@@ -113,7 +112,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApi() {
-        final Response response = target(API).request().get();
+        final Response response = envTarget(API).request().get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -124,7 +123,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotAccessToApiState_BecauseNotAMember() {
-        final Response response = target(API+"/state").request().get();
+        final Response response = envTarget(API+"/state").request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
@@ -138,7 +137,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
                 eq(MembershipReferenceType.API)))
                 .thenReturn(Sets.newSet(membershipEntity));
 
-        final Response response = target(API+"/state").request().get();
+        final Response response = envTarget(API+"/state").request().get();
 
         assertEquals(OK_200, response.getStatus());
         ApiStateEntity stateEntity = response.readEntity(ApiStateEntity.class);
@@ -182,7 +181,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
                 return result;
             });
 
-        final Response response = target(API+"/state").request().get();
+        final Response response = envTarget(API+"/state").request().get();
 
         assertEquals(OK_200, response.getStatus());
         ApiStateEntity stateEntity = response.readEntity(ApiStateEntity.class);
@@ -216,7 +215,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
         when(roleService.findById(eq(roleId))).thenReturn(role);
 
-        final Response response = target(API+"/state").request().get();
+        final Response response = envTarget(API+"/state").request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 }

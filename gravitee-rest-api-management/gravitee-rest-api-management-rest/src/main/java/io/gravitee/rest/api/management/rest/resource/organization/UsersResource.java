@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource;
+package io.gravitee.rest.api.management.rest.resource.organization;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
@@ -64,7 +65,7 @@ public class UsersResource extends AbstractResource {
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ))
     @ApiOperation(
             value = "Search for users using the search engine",
-            notes = "User must have the MANAGEMENT_USERS[READ] permission to use this service"
+            notes = "User must have the ORGANIZATION_USERS[READ] permission to use this service"
     )
     @ApiResponses({
             @ApiResponse(code = 200, message = "List users matching the query criteria", response = UserEntity.class, responseContainer = "PagedResult"),
@@ -81,7 +82,7 @@ public class UsersResource extends AbstractResource {
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = CREATE))
     @ApiOperation(
             value = "Create a user",
-            notes = "User must have the MANAGEMENT_USERS[CREATE] permission to use this service"
+            notes = "User must have the ORGANIZATION_USERS[CREATE] permission to use this service"
     )
     @ApiResponses({
             @ApiResponse(code = 200, message = "List users matching the query criteria", response = UserEntity.class),

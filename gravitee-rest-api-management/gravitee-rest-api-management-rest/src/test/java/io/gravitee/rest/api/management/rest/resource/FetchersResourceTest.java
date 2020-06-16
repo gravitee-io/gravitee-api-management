@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.FetcherEntity;
-
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -26,16 +25,16 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com) 
  * @author GraviteeSource Team
  */
 public class FetchersResourceTest extends AbstractResourceTest {
+    @Override
     protected String contextPath() {
         return "fetchers";
     }
@@ -45,7 +44,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         Mockito.reset(fetcherService);
         when(fetcherService.findAll(false)).thenReturn(Collections.emptySet());
 
-        final Response response = target().request().get();
+        final Response response = envTarget().request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -64,7 +63,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         when(fetcherService.findAll(false)).thenReturn(Collections.singleton(fetcherEntity));
         when(fetcherService.getSchema(anyString())).thenReturn("schema");
 
-        final Response response = target().request().get();
+        final Response response = envTarget().request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -74,7 +73,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         Object o = set.iterator().next();
         assertThat(o).isNotNull();
         assertThat(o).isInstanceOf(LinkedHashMap.class);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>)o;
+        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
         assertThat(elt).hasSize(1);
         assertThat(elt.get("id")).isEqualTo("my-id");
 
@@ -91,7 +90,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         when(fetcherService.findAll(false)).thenReturn(Collections.singleton(fetcherEntity));
         when(fetcherService.getSchema(anyString())).thenReturn("my-schema");
 
-        final Response response = target().queryParam("expand", "schema").request().get();
+        final Response response = envTarget().queryParam("expand", "schema").request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -101,7 +100,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         Object o = set.iterator().next();
         assertThat(o).isNotNull();
         assertThat(o).isInstanceOf(LinkedHashMap.class);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>)o;
+        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
         assertThat(elt).hasSize(2);
         assertThat(elt.get("id")).isEqualTo("my-id");
         assertThat(elt.get("schema")).isEqualTo("my-schema");
@@ -119,7 +118,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         when(fetcherService.findAll(false)).thenReturn(Collections.singleton(fetcherEntity));
         when(fetcherService.getSchema(anyString())).thenReturn("my-schema");
 
-        final Response response = target().queryParam("expand", "unknown").request().get();
+        final Response response = envTarget().queryParam("expand", "unknown").request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -129,7 +128,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         Object o = set.iterator().next();
         assertThat(o).isNotNull();
         assertThat(o).isInstanceOf(LinkedHashMap.class);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>)o;
+        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
         assertThat(elt).hasSize(1);
         assertThat(elt.get("id")).isEqualTo("my-id");
 

@@ -42,17 +42,17 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         return "portal/pages/";
     }
 
-    
+
     @Test
     public void shouldNotCreateSystemFolder() {
         NewPageEntity newPageEntity = new NewPageEntity();
         newPageEntity.setType(PageType.SYSTEM_FOLDER);
-        final Response response = target().request().post(Entity.json(newPageEntity));
+        final Response response = envTarget().request().post(Entity.json(newPageEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
-        
+
     }
-    
+
     @Test
     public void shouldNotDeleteSystemFolder() {
         reset(apiService, pageService, membershipService);
@@ -60,13 +60,13 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
-        
-        final Response response = target(PAGE_NAME).request().delete();
+
+        final Response response = envTarget(PAGE_NAME).request().delete();
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
-        
+
     }
-    
+
     @Test
     public void shouldNotUpdateSystemFolder() {
         reset(apiService, pageService, membershipService);
@@ -74,12 +74,12 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
-        
-        final Response response = target(PAGE_NAME).request().put(Entity.json(new UpdatePageEntity()));
+
+        final Response response = envTarget(PAGE_NAME).request().put(Entity.json(new UpdatePageEntity()));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
     }
-    
+
     @Test
     public void shouldNotUpdatePatchSystemFolder() {
         reset(apiService, pageService, membershipService);
@@ -87,8 +87,8 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
-        
-        final Response response = target(PAGE_NAME).request().method(javax.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
+
+        final Response response = envTarget(PAGE_NAME).request().method(javax.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
     }

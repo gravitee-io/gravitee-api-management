@@ -77,7 +77,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
         field.setKey("TestResCreate");
         field.setLabel("TestResCreate");
 
-        final Response response = target().request().post(Entity.json(field));
+        final Response response = orgTarget().request().post(Entity.json(field));
 
         assertEquals(FORBIDDEN_403, response.getStatus());
         verify(customUserFieldService, never()).create(any());
@@ -90,7 +90,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
         field.setKey("test-update");
         field.setLabel("Test");
 
-        final Response response = target("/"+field.getKey()).request().put(Entity.json(field));
+        final Response response = orgTarget("/"+field.getKey()).request().put(Entity.json(field));
 
         assertEquals(FORBIDDEN_403, response.getStatus());
         verify(customUserFieldService, never()).update(any());
@@ -100,7 +100,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
     public void shouldNotDeleteField() {
         reset(customUserFieldService);
 
-        final Response response = target("/some-key").request().delete();
+        final Response response = orgTarget("/some-key").request().delete();
 
         assertEquals(FORBIDDEN_403, response.getStatus());
         verify(customUserFieldService, never()).delete(any());
@@ -110,7 +110,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
     public void shouldListAllFields() {
         reset(customUserFieldService);
 
-        final Response response = target().request().get();
+        final Response response = orgTarget().request().get();
 
         assertEquals(OK_200, response.getStatus());
         verify(customUserFieldService).listAllFields();

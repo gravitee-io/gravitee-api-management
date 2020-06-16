@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource;
+package io.gravitee.rest.api.management.rest.resource.organization;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
 import io.gravitee.rest.api.service.PortalNotificationService;
 import io.swagger.annotations.Api;

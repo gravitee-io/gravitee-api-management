@@ -17,11 +17,9 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.PolicyEntity;
-
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -36,6 +34,7 @@ import static org.mockito.Mockito.when;
  */
 public class PoliciesResourceTest extends AbstractResourceTest {
 
+    @Override
     protected String contextPath() {
         return "policies";
     }
@@ -44,7 +43,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     public void shouldGetPoliciesemptyList() {
         when(policyService.findAll()).thenReturn(Collections.emptySet());
 
-        final Response response = target().request().get();
+        final Response response = envTarget().request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         assertTrue("empty", response.readEntity(Set.class).isEmpty());
@@ -60,7 +59,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
 
         when(policyService.findAll()).thenReturn(policyEntities);
 
-        final Response response = target().request().get();
+        final Response response = envTarget().request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         Set entity = response.readEntity(Set.class);
@@ -68,7 +67,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         assertEquals("one element", 1, entity.size());
         Object o = entity.iterator().next();
         assertTrue(o instanceof LinkedHashMap);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>)o;
+        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
         assertEquals("id", "my-api", elt.get("id"));
         assertEquals("name", "My Api", elt.get("name"));
     }
@@ -83,7 +82,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         when(policyService.findAll()).thenReturn(policyEntities);
         when(policyService.getSchema(any())).thenReturn("policy schema");
 
-        final Response response = target().queryParam("expand", "schema").request().get();
+        final Response response = envTarget().queryParam("expand", "schema").request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         Set entity = response.readEntity(Set.class);
@@ -91,7 +90,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         assertEquals("one element", 1, entity.size());
         Object o = entity.iterator().next();
         assertTrue(o instanceof LinkedHashMap);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>)o;
+        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
         assertEquals("id", "my-api", elt.get("id"));
         assertEquals("schema", "policy schema", elt.get("schema"));
     }
@@ -106,7 +105,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
 
         when(policyService.findAll()).thenReturn(policyEntities);
 
-        final Response response = target().queryParam("expand", "unknown").request().get();
+        final Response response = envTarget().queryParam("expand", "unknown").request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         Set entity = response.readEntity(Set.class);
@@ -114,7 +113,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         assertEquals("one element", 1, entity.size());
         Object o = entity.iterator().next();
         assertTrue(o instanceof LinkedHashMap);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>)o;
+        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
         assertEquals("id", "my-api", elt.get("id"));
         assertFalse("unknown expand", elt.containsKey("schema"));
         assertFalse("unknown expand", elt.containsKey("unknown"));

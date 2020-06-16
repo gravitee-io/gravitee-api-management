@@ -53,7 +53,7 @@ import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
  */
 public abstract class AbstractResource {
 
-    public final static String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
+    public final static String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
     @Context
     protected SecurityContext securityContext;
@@ -67,7 +67,7 @@ public abstract class AbstractResource {
     @Inject
     protected PermissionService permissionService;
 
-    UserDetails getAuthenticatedUserDetails() {
+    protected UserDetails getAuthenticatedUserDetails() {
         return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
@@ -75,7 +75,7 @@ public abstract class AbstractResource {
         return securityContext.getUserPrincipal().getName();
     }
 
-    String getAuthenticatedUserOrNull() {
+    protected String getAuthenticatedUserOrNull() {
         return isAuthenticated() ? getAuthenticatedUser() : null;
     }
 
@@ -84,7 +84,7 @@ public abstract class AbstractResource {
     }
 
     protected boolean isAdmin() {
-        return isUserInRole(ENVIRONMENT_ADMIN);
+        return isUserInRole(ORGANIZATION_ADMIN);
     }
 
     private boolean isUserInRole(String role) {

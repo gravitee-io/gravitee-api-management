@@ -20,11 +20,10 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.NewUserMetadataEntity;
-import io.gravitee.rest.api.model.ReferenceMetadataEntity;
-import io.gravitee.rest.api.model.UpdateUserMetadataEntity;
-import io.gravitee.rest.api.model.UserMetadataEntity;
+import io.gravitee.repository.management.model.CustomUserFieldReferenceType;
+import io.gravitee.repository.management.model.User;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserMetadataService;
 import io.gravitee.rest.api.service.exceptions.MetadataNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -49,6 +48,9 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
 
     @Autowired
     protected UserRepository userRepository;
+
+    @Autowired
+    protected EnvironmentService environmentService;
 
     private UserMetadataEntity convert(ReferenceMetadataEntity record, String userId) {
         UserMetadataEntity metadata = new UserMetadataEntity();
@@ -78,12 +80,21 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
                 .collect(toList());
     }
 
+    @Override
     public void deleteAllByCustomFieldId(String key, String refId, CustomUserFieldReferenceType refType) {
         try {
             // CustomField is linked to an Org
             // we have to retrieve users based on org and then
             // delete the user metadata identifier by the field key and the userId
-            final UserCriteria criteria = new UserCriteria.Builder().referenceId(refId).referenceType(UserReferenceType.valueOf(refType.name())).build();
+            String orgId = null;
+            if (refType.equals(CustomUserFieldReferenceType.ENVIRONMENT)) {
+                final EnvironmentEntity cufEnvironment = this.environmentService.findById(refId);
+                orgId = cufEnvironment.getOrganizationId();
+            } else {
+                orgId = refId;
+            }
+
+            final UserCriteria criteria = new UserCriteria.Builder().organizationId(orgId).build();
             int pageNumber = 0;
             Page<User> pageOfUser = null;
             do {

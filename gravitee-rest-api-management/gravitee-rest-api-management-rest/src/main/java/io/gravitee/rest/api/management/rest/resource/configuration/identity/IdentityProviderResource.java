@@ -16,16 +16,15 @@
 package io.gravitee.rest.api.management.rest.resource.configuration.identity;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.UpdateIdentityProviderEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.swagger.annotations.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -48,11 +47,11 @@ public class IdentityProviderResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get an identity provider",
-            notes = "User must have the IDENTITY_PROVIDER[READ] permission to use this service")
+            notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "An identity provider"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
     public IdentityProviderEntity getIdentityProvider(
             @PathParam("identityProvider") String identityProvider) {
         return identityProviderService.findById(identityProvider);
@@ -62,11 +61,11 @@ public class IdentityProviderResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update an identity provider",
-            notes = "User must have the IDENTITY_PROVIDER[UPDATE] permission to use this service")
+            notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[UPDATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Updated identity provider", response = IdentityProviderEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER, acls = RolePermissionAction.UPDATE))
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.UPDATE))
     public IdentityProviderEntity updateIdentityProvider(
             @PathParam("identityProvider") String identityProvider,
             @ApiParam(name = "dictionary", required = true) @Valid @NotNull final UpdateIdentityProviderEntity updatedIdentityProvider) {
@@ -75,12 +74,12 @@ public class IdentityProviderResource extends AbstractResource {
 
     @DELETE
     @ApiOperation(value = "Delete an identity provider",
-            notes = "User must have the IDENTITY_PROVIDER[DELETE] permission to use this service")
+            notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[DELETE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Identity provider successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.DELETE)
     })
     public Response deleteIdentityProvider(@PathParam("identityProvider") String identityProvider) {
         identityProviderService.delete(identityProvider);

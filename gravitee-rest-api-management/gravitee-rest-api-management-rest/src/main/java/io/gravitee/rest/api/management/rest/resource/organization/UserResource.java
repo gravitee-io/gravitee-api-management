@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource;
+package io.gravitee.rest.api.management.rest.resource.organization;
 
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
@@ -29,6 +30,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
@@ -220,8 +222,8 @@ public class UserResource extends AbstractResource {
     @Permissions(
             @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE)
     )
-    public Response updateUserRoles(@PathParam("id") String userId, List<String> roleIds) {
-        userService.updateUserRoles(userId, roleIds);
+    public Response updateUserRoles(@PathParam("id") String userId, @NotNull UserReferenceRoleEntity userReferenceRoles) {
+        userService.updateUserRoles(userId, userReferenceRoles.getReferenceType(), userReferenceRoles.getReferenceId(), userReferenceRoles.getRoleIds());
         return Response.ok().build();
     }
 

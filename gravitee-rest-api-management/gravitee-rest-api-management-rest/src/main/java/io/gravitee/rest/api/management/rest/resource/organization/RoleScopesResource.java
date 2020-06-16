@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource;
+package io.gravitee.rest.api.management.rest.resource.organization;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
@@ -43,7 +44,7 @@ import static java.util.stream.Collectors.toList;
  * @author GraviteeSource Team
  */
 @Api(tags = {"Roles"})
-public class RoleScopesResource extends AbstractResource  {
+public class RoleScopesResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;

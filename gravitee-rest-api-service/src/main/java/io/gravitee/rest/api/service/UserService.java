@@ -35,26 +35,48 @@ import java.util.Set;
 public interface UserService {
 
     UserEntity connect(String userId);
+
     UserEntity findById(String id);
+
     UserEntity findByIdWithRoles(String id);
+
     UserEntity findBySource(String source, String sourceId, boolean loadRoles);
+
     Set<UserEntity> findByIds(List<String> ids);
+
     UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
+
     UserEntity update(String userId, UpdateUserEntity updateUserEntity);
+
     UserEntity update(String userId, UpdateUserEntity updateUserEntity, String newsletterEmail);
+
     Page<UserEntity> search(String query, Pageable pageable);
+
     Page<UserEntity> search(UserCriteria criteria, Pageable pageable);
+
     UserEntity register(NewExternalUserEntity newExternalUserEntity);
+
     UserEntity register(NewExternalUserEntity newExternalUserEntity, String confirmationPageUrl);
+
     UserEntity finalizeRegistration(RegisterUserEntity registerUserEntity);
+
     UserEntity processRegistration(String userId, boolean accepted);
+
     PictureEntity getPicture(String id);
+
     void delete(String id);
+
     void resetPassword(String id);
+
     UserEntity resetPasswordFromSourceId(String sourceId, String resetPageUrl);
+
     Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action);
+
     Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action, String confirmationPageUrl);
+
     UserEntity create(NewExternalUserEntity newExternalUserEntity);
+
     UserEntity createOrUpdateUserFromSocialIdentityProvider(SocialIdentityProviderEntity socialProvider, String userInfo);
-    void updateUserRoles(String userId, List<String> roleIds);
+
+    void updateUserRoles(String userId, MembershipReferenceType referenceType, String referenceId, List<String> roleIds);
 }

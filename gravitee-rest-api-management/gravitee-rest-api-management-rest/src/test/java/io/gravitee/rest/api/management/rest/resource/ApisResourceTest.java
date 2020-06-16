@@ -32,13 +32,14 @@ import static org.mockito.Mockito.doReturn;
  */
 public class ApisResourceTest extends AbstractResourceTest {
 
+    @Override
     protected String contextPath() {
         return "apis";
     }
 
     @Test
     public void shouldNotCreateApi_noContent() {
-        final Response response = target().request().post(null);
+        final Response response = envTarget().request().post(null);
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
@@ -54,7 +55,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
                 Mockito.eq(USER_NAME));
 
-        final Response response = target().request().post(Entity.json(apiEntity));
+        final Response response = envTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
@@ -70,7 +71,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
                 Mockito.eq(USER_NAME));
 
-        final Response response = target().request().post(Entity.json(apiEntity));
+        final Response response = envTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
@@ -88,7 +89,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
                 Mockito.eq(USER_NAME));
 
-        final Response response = target().request().post(Entity.json(apiEntity));
+        final Response response = envTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
     }
 }

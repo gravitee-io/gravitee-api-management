@@ -18,19 +18,19 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
-
-import java.util.Collections;
-import java.util.Date;
-import javax.ws.rs.core.Response;
+import org.junit.AfterClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 
-import static org.assertj.core.api.Assertions.*;
+import javax.ws.rs.core.Response;
+import java.util.Collections;
+import java.util.Date;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-import org.junit.AfterClass;
-import org.mockito.Mockito;
 
 /**
  * Unit tests for <code>CurrentUserResource</code> class.
@@ -64,7 +64,7 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
 
         setCurrentUserDetails(userDetails);
 
-        final Response response = target().request().get();
+        final Response response = orgTarget().request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -80,7 +80,7 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
 
         setCurrentUserDetails(userDetails);
 
-        final Response response = target().request().get();
+        final Response response = orgTarget().request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -96,7 +96,7 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
 
-        final Response response = target().request().delete();
+        final Response response = orgTarget().request().delete();
 
         verify(userService, times(1)).delete(USER_NAME);
         assertThat(response).isNotNull();

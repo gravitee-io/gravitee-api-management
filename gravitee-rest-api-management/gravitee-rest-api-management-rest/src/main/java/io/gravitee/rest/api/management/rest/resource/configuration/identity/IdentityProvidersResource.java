@@ -16,17 +16,16 @@
 package io.gravitee.rest.api.management.rest.resource.configuration.identity;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
-import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.model.configuration.identity.IdentityProviderListItem;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
+import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.swagger.annotations.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -55,9 +54,9 @@ public class IdentityProvidersResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @GET
-    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
     @ApiOperation(value = "Get the list of identity providers",
-            notes = "User must have the PORTAL_IDENTITY_PROVIDER[READ] permission to use this service")
+            notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "List identity providers", response = IdentityProviderListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -78,10 +77,10 @@ public class IdentityProvidersResource extends AbstractResource {
 
     @POST
     @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.CREATE)
     })
     @ApiOperation(value = "Create an identity provider",
-            notes = "User must have the PORTAL_IDENTITY_PROVIDER[CREATE] permission to use this service")
+            notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Identity provider successfully created", response = IdentityProviderEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})

@@ -19,7 +19,6 @@ import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.model.IdentityProvider;
-import io.gravitee.repository.management.model.IdentityProviderReferenceType;
 import io.gravitee.repository.management.model.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -29,7 +28,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,8 +73,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             }
 
             IdentityProvider identityProvider = convert(newIdentityProviderEntity);
-            identityProvider.setReferenceId(GraviteeContext.getCurrentEnvironment());
-            identityProvider.setReferenceType(IdentityProviderReferenceType.ENVIRONMENT);
+            identityProvider.setOrganizationId(GraviteeContext.getCurrentOrganization());
 
             // If provider is a social type, we must ensure required parameters
             if (identityProvider.getType() == IdentityProviderType.GOOGLE ||
@@ -123,9 +120,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             identityProvider.setType(idpToUpdate.getType());
             identityProvider.setCreatedAt(idpToUpdate.getCreatedAt());
             identityProvider.setUpdatedAt(new Date());
-            identityProvider.setReferenceId(optIdentityProvider.get().getReferenceId());
-            identityProvider.setReferenceType(optIdentityProvider.get().getReferenceType());
-            IdentityProvider updatedIdentityProvider =  identityProviderRepository.update(identityProvider);
+            identityProvider.setOrganizationId(optIdentityProvider.get().getOrganizationId());
+            IdentityProvider updatedIdentityProvider = identityProviderRepository.update(identityProvider);
 
             // Audit
             auditService.createPortalAuditLog(
@@ -206,7 +202,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
     public Set<IdentityProviderEntity> findAll() {
         try {
             return identityProviderRepository
-                    .findAllByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), IdentityProviderReferenceType.ENVIRONMENT)
+                    .findAllByOrganizationId(GraviteeContext.getCurrentOrganization())
                     .stream()
                     .map(this::convert)
                     .collect(Collectors.toSet());
@@ -246,42 +242,42 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
         if (identityProvider.getGroupMappings() != null && !identityProvider.getGroupMappings().isEmpty()) {
             identityProviderEntity.setGroupMappings(
-                identityProvider.getGroupMappings().entrySet().stream().map(entry -> {
-                    GroupMappingEntity groupMapping = new GroupMappingEntity();
-                    groupMapping.setCondition(entry.getKey());
-                    if (entry.getValue() != null) {
-                        groupMapping.setGroups(Arrays.asList(entry.getValue()));
-                    }
-                    return groupMapping;
-                }).collect(Collectors.toList()));
+                    identityProvider.getGroupMappings().entrySet().stream().map(entry -> {
+                        GroupMappingEntity groupMapping = new GroupMappingEntity();
+                        groupMapping.setCondition(entry.getKey());
+                        if (entry.getValue() != null) {
+                            groupMapping.setGroups(Arrays.asList(entry.getValue()));
+                        }
+                        return groupMapping;
+                    }).collect(Collectors.toList()));
         }
 
         if (identityProvider.getRoleMappings() != null && !identityProvider.getRoleMappings().isEmpty()) {
             identityProviderEntity.setRoleMappings(
-            identityProvider.getRoleMappings().entrySet().stream().map(new Function<Map.Entry<String,String[]>, RoleMappingEntity>() {
-                @Override
-                public RoleMappingEntity apply(Map.Entry<String, String[]> entry) {
-                    RoleMappingEntity roleMapping = new RoleMappingEntity();
-                    roleMapping.setCondition(entry.getKey());
-                    if (entry.getValue() != null) {
-                        List<String> organizationsRoles = new ArrayList<>();
-                        List<String> environmentsRoles = new ArrayList<>();
+                    identityProvider.getRoleMappings().entrySet().stream().map(new Function<Map.Entry<String, String[]>, RoleMappingEntity>() {
+                        @Override
+                        public RoleMappingEntity apply(Map.Entry<String, String[]> entry) {
+                            RoleMappingEntity roleMapping = new RoleMappingEntity();
+                            roleMapping.setCondition(entry.getKey());
+                            if (entry.getValue() != null) {
+                                List<String> organizationsRoles = new ArrayList<>();
+                                List<String> environmentsRoles = new ArrayList<>();
 
-                        for (String role : entry.getValue()) {
-                            if (role.startsWith(io.gravitee.repository.management.model.RoleScope.ORGANIZATION.name() + ":")) {
-                                organizationsRoles.add(role.split(":")[1]);
+                                for (String role : entry.getValue()) {
+                                    if (role.startsWith(io.gravitee.repository.management.model.RoleScope.ORGANIZATION.name() + ":")) {
+                                        organizationsRoles.add(role.split(":")[1]);
+                                    }
+                                    if (role.startsWith(io.gravitee.repository.management.model.RoleScope.ENVIRONMENT.name() + ":")) {
+                                        environmentsRoles.add(role.split(":")[1]);
+                                    }
+                                }
+                                roleMapping.setOrganizations(organizationsRoles);
+                                roleMapping.setEnvironments(environmentsRoles);
                             }
-                            if (role.startsWith(io.gravitee.repository.management.model.RoleScope.ENVIRONMENT.name() + ":")) {
-                                environmentsRoles.add(role.split(":")[1]);
-                            }
+
+                            return roleMapping;
                         }
-                        roleMapping.setOrganizations(organizationsRoles);
-                        roleMapping.setEnvironments(environmentsRoles);
-                    }
-
-                    return roleMapping;
-                }
-            }).collect(Collectors.toList()));
+                    }).collect(Collectors.toList()));
         }
 
         identityProviderEntity.setConfiguration(identityProvider.getConfiguration());
@@ -317,7 +313,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                     .collect(Collectors.toMap(
                             GroupMappingEntity::getCondition,
                             groupMappingEntity -> {
-                                String [] groups = new String[groupMappingEntity.getGroups().size()];
+                                String[] groups = new String[groupMappingEntity.getGroups().size()];
                                 return groupMappingEntity.getGroups().toArray(groups);
                             })));
         }
@@ -344,7 +340,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                                     });
                                 }
 
-                                String [] roles = new String[lstRoles.size()];
+                                String[] roles = new String[lstRoles.size()];
                                 return lstRoles.toArray(roles);
                             })));
         }

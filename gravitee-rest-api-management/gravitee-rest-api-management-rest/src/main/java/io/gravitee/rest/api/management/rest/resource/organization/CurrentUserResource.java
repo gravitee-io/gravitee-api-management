@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource;
+package io.gravitee.rest.api.management.rest.resource.organization;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -24,10 +24,13 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetailRole;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.model.TokenEntity;
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.rest.resource.TokensResource;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.utils.ImageUtils;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.TaskService;
 import io.gravitee.rest.api.service.UserService;
@@ -95,6 +98,8 @@ public class CurrentUserResource extends AbstractResource {
     private CookieGenerator cookieGenerator;
     @Autowired
     private TagService tagService;
+    @Autowired
+    private EnvironmentService environmentService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -274,22 +279,23 @@ public class CurrentUserResource extends AbstractResource {
 
             // We must also load permissions from repository for configured management or portal role
             Set<RoleEntity> roles = membershipService.getRoles(
-                    MembershipReferenceType.ENVIRONMENT,
-                    GraviteeContext.getCurrentEnvironment(),
-                    MembershipMemberType.USER,
-                    userDetails.getUsername());
-            if (!roles.isEmpty()) {
-                roles.forEach(role-> authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()));
-            }
-
-            roles = membershipService.getRoles(
                     MembershipReferenceType.ORGANIZATION,
                     GraviteeContext.getCurrentOrganization(),
                     MembershipMemberType.USER,
                     userDetails.getUsername());
             if (!roles.isEmpty()) {
-                roles.forEach(role-> authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()));
+                roles.forEach(role -> authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()));
             }
+
+            this.environmentService.findByOrganization(GraviteeContext.getCurrentOrganization()).stream()
+                    .flatMap(env -> membershipService.getRoles(
+                            MembershipReferenceType.ENVIRONMENT,
+                            env.getId(),
+                            MembershipMemberType.USER,
+                            userDetails.getUsername()).stream())
+                    .filter(Objects::nonNull)
+                    .forEach(role -> authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()));
+
 
             // JWT signer
             Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));

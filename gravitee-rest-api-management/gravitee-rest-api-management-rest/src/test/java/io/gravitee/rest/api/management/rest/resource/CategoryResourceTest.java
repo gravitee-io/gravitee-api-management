@@ -42,6 +42,7 @@ public class CategoryResourceTest extends AbstractResourceTest {
     private static final String CATEGORY = "my-category";
     private static final String UNKNOWN_API = "unknown";
 
+    @Override
     protected String contextPath() {
         return "configuration/categories/";
     }
@@ -69,7 +70,7 @@ public class CategoryResourceTest extends AbstractResourceTest {
         InputStream inputStream = this.getClass().getResourceAsStream("/images/4086_jpeg.b64");
         String picture = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         updateCategoryEntity.setPicture(picture);
-        final Response response = target(CATEGORY).request().put(Entity.json(updateCategoryEntity));
+        final Response response = envTarget(CATEGORY).request().put(Entity.json(updateCategoryEntity));
 
         assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
     }

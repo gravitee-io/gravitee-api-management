@@ -56,13 +56,14 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
     private static final String UNKNOWN_API = "unknown";
+    private static final MediaType IMAGE_SVG_XML_TYPE = MediaType.valueOf("image/svg+xml");
+    private ApiEntity mockApi;
+    private UpdateApiEntity updateApiEntity;
 
+    @Override
     protected String contextPath() {
         return "apis/";
     }
-
-    private ApiEntity mockApi;
-    private UpdateApiEntity updateApiEntity;
 
     @Before
     public void init() {
@@ -90,7 +91,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApi() {
-        final Response response = target(API).request().get();
+        final Response response = envTarget(API).request().get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -101,7 +102,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetApiBecauseNotFound() {
-        final Response response = target(UNKNOWN_API).request().get();
+        final Response response = envTarget(UNKNOWN_API).request().get();
 
         assertEquals(NOT_FOUND_404, response.getStatus());
     }
@@ -111,7 +112,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setState(Lifecycle.State.STOPPED);
         doReturn(mockApi).when(apiService).start(eq(API), any());
 
-        final Response response = target(API).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
+        final Response response = envTarget(API).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
 
         assertEquals(NO_CONTENT_204, response.getStatus());
 
@@ -122,7 +123,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     public void shouldNotStartApiBecauseNotFound() {
         mockApi.setState(Lifecycle.State.STOPPED);
         doReturn(mockApi).when(apiService).start(eq(API), any());
-        final Response response = target(UNKNOWN_API).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
+        final Response response = envTarget(UNKNOWN_API).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
 
         assertEquals(NOT_FOUND_404, response.getStatus());
     }
@@ -132,21 +133,21 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi.setState(Lifecycle.State.STARTED);
         doReturn(mockApi).when(apiService).stop(eq(API), any());
 
-        final Response response = target(API).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
+        final Response response = envTarget(API).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
 
         assertEquals(NO_CONTENT_204, response.getStatus());
     }
 
     @Test
     public void shouldNotStopApiBecauseNotFound() {
-        final Response response = target(UNKNOWN_API).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
+        final Response response = envTarget(UNKNOWN_API).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
 
         assertEquals(NOT_FOUND_404, response.getStatus());
     }
 
     @Test
     public void shouldUpdateApi() {
-        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
     }
@@ -156,15 +157,15 @@ public class ApiResourceTest extends AbstractResourceTest {
         InputStream inputStream = this.getClass().getResourceAsStream("/images/4086_jpeg.b64");
         String picture = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         updateApiEntity.setPicture(picture);
-        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
     }
 
     @Test
     public void shouldNotUpdateApiBecauseTooLargePicture() {
-        updateApiEntity.setPicture("data:image/png;base64,"+ randomAlphanumeric(1_000_000));
-        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+        updateApiEntity.setPicture("data:image/png;base64," + randomAlphanumeric(1_000_000));
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
@@ -174,7 +175,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotUpdateApiBecauseNotAValidImage() {
         updateApiEntity.setPicture(getEncoder().encodeToString("<script>alert('XSS')</script>".getBytes()));
-        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
@@ -183,7 +184,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldAccessToApiState_asAdmin() {
-        final Response response = target(API+"/state").request().get();
+        final Response response = envTarget(API+"/state").request().get();
 
         assertEquals(OK_200, response.getStatus());
         ApiStateEntity stateEntity = response.readEntity(ApiStateEntity.class);
@@ -194,7 +195,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotUpdateApiBecauseSVGImage() {
         updateApiEntity.setPicture("data:image/svg+xml;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
-        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
@@ -204,7 +205,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotUpdateApiBecauseNotAnImage() {
         updateApiEntity.setPicture("data:text/plain;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
-        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
@@ -213,8 +214,8 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotUpdateApiBecauseTooLargeBackground() {
-        updateApiEntity.setBackground("data:image/png;base64,"+ randomAlphanumeric(1_000_000));
-        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+        updateApiEntity.setBackground("data:image/png;base64," + randomAlphanumeric(1_000_000));
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
@@ -224,7 +225,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotUpdateApiBackgroundBecauseNotAValidImage() {
         updateApiEntity.setBackground(getEncoder().encodeToString("<script>alert('XSS')</script>".getBytes()));
-        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
@@ -234,7 +235,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotUpdateApiBackgroundBecauseSVGImage() {
         updateApiEntity.setBackground("data:image/svg+xml;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
-        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
@@ -244,7 +245,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotUpdateApiBackgroundBecauseNotAnImage() {
         updateApiEntity.setBackground("data:text/plain;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
-        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+        final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
@@ -256,7 +257,7 @@ public class ApiResourceTest extends AbstractResourceTest {
                 this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.valueOf("image/svg+xml"));
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
-        final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
+        final Response response = envTarget(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(OK_200, response.getStatus());
     }
 
@@ -265,13 +266,11 @@ public class ApiResourceTest extends AbstractResourceTest {
                 this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.APPLICATION_OCTET_STREAM_TYPE);
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
-        final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
+        final Response response = envTarget(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
         assertTrue(message, message.contains("File format unauthorized"));
     }
-
-    private static final MediaType IMAGE_SVG_XML_TYPE = MediaType.valueOf("image/svg+xml");
 
     @Test
     public void shouldNotUploadApiMediaBecauseXSS1() {
@@ -298,7 +297,7 @@ public class ApiResourceTest extends AbstractResourceTest {
                 this.getClass().getResourceAsStream("/media/" + fileName), fileName, IMAGE_SVG_XML_TYPE);
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
-        final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
+        final Response response = envTarget(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
         assertTrue(message, message.contains("Invalid image format"));

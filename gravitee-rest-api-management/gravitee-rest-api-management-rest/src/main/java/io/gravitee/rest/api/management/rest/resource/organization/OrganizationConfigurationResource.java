@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource;
+package io.gravitee.rest.api.management.rest.resource.organization;
 
+import io.gravitee.rest.api.management.rest.resource.CustomUserFieldsResource;
+import io.gravitee.rest.api.management.rest.resource.configuration.identity.IdentityProvidersResource;
 import io.swagger.annotations.Api;
 
 import javax.ws.rs.Path;
@@ -25,15 +27,24 @@ import javax.ws.rs.core.Context;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/organizations")
-@Api
-public class OrganizationsResource extends AbstractResource {
+@Api(tags = {"Configuration"})
+public class OrganizationConfigurationResource {
 
     @Context
     private ResourceContext resourceContext;
 
-    @Path("/{orgId}")
-    public OrganizationResource getOrganizationResource() {
-        return resourceContext.getResource(OrganizationResource.class);
+    @Path("rolescopes")
+    public RoleScopesResource getRoleScopesResource() {
+        return resourceContext.getResource(RoleScopesResource.class);
+    }
+
+    @Path("identities")
+    public IdentityProvidersResource getAuthenticationProvidersResource() {
+        return resourceContext.getResource(IdentityProvidersResource.class);
+    }
+
+    @Path("custom-user-fields")
+    public CustomUserFieldsResource getCustomUserFields() {
+        return resourceContext.getResource(CustomUserFieldsResource.class);
     }
 }

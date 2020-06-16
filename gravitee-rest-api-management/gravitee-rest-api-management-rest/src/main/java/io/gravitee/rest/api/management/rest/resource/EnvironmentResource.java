@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.rest.resource.auth.OAuth2AuthenticationResource;
-import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.swagger.annotations.*;
@@ -37,7 +35,7 @@ import javax.ws.rs.core.Response.Status;
  */
 @Api
 public class EnvironmentResource extends AbstractResource {
-    
+
     @Context
     private ResourceContext resourceContext;
 
@@ -65,7 +63,7 @@ public class EnvironmentResource extends AbstractResource {
                 .entity(environmentService.createOrUpdate(environmentEntity))
                 .build();
     }
-    
+
     /**
      * Delete an existing Environment.
      * @param environmentId
@@ -91,93 +89,72 @@ public class EnvironmentResource extends AbstractResource {
     public AlertsResource getAlertsResource() {
         return resourceContext.getResource(AlertsResource.class);
     }
-    
+
     @Path("apis")
     public ApisResource getApisResource() {
         return resourceContext.getResource(ApisResource.class);
     }
-    
+
     @Path("applications")
     public ApplicationsResource getApplicationsResource() {
         return resourceContext.getResource(ApplicationsResource.class);
     }
-    
+
     @Path("configuration")
-    public ConfigurationResource getConfigurationResource() {
-        return resourceContext.getResource(ConfigurationResource.class);
+    public EnvironmentConfigurationResource getConfigurationResource() {
+        return resourceContext.getResource(EnvironmentConfigurationResource.class);
     }
-    
-    @Path("user")
-    public CurrentUserResource getCurrentUserResource() {
-        return resourceContext.getResource(CurrentUserResource.class);
-    }
-    
+
     @Path("subscriptions")
     public SubscriptionsResource getSubscriptionsResource() {
         return resourceContext.getResource(SubscriptionsResource.class);
     }
-    
+
     @Path("audit")
     public AuditResource getAuditResource() {
         return resourceContext.getResource(AuditResource.class);
     }
-    
+
     @Path("portal")
     public PortalResource getPortalResource() {
         return resourceContext.getResource(PortalResource.class);
     }
-    
-    // Dynamic authentication provider endpoints
-    @Path("auth/oauth2/{identity}")
-    public OAuth2AuthenticationResource getOAuth2AuthenticationResource() {
-        return resourceContext.getResource(OAuth2AuthenticationResource.class);
-    }
-    
-    @Path("users")
-    public UsersResource getUsersResource() {
-        return resourceContext.getResource(UsersResource.class);
-    }
-    
-    @Path("search")
-    public SearchResource getSearchResource() {
-        return resourceContext.getResource(SearchResource.class);
-    }
-    
+
     @Path("fetchers")
     public FetchersResource getFetchersResource() {
         return resourceContext.getResource(FetchersResource.class);
     }
-    
+
     @Path("policies")
     public PoliciesResource getPoliciesResource() {
         return resourceContext.getResource(PoliciesResource.class);
     }
-    
+
     @Path("resources")
     public ResourcesResource getResourcesResource() {
         return resourceContext.getResource(ResourcesResource.class);
     }
-    
+
     @Path("services-discovery")
     public ServicesDiscoveryResource getServicesDiscoveryResource() {
         return resourceContext.getResource(ServicesDiscoveryResource.class);
     }
-    
+
     @Path("instances")
     public InstancesResource getInstancesResource() {
         return resourceContext.getResource(InstancesResource.class);
     }
-    
+
     @Path("platform")
     public PlatformResource getPlatformResource() {
         return resourceContext.getResource(PlatformResource.class);
     }
-    
+
     @Path("messages")
     public MessagesResource getMessagesResource() {
         return resourceContext.getResource(MessagesResource.class);
     }
-    
+
     @Path("tickets")
     public PlatformTicketsResource getPlatformTicketsResource() {
         return resourceContext.getResource(PlatformTicketsResource.class);

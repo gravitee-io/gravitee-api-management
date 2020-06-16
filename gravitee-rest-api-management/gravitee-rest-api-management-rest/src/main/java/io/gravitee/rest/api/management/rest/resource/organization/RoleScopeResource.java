@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource;
+package io.gravitee.rest.api.management.rest.resource.organization;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.NewRoleEntity;
@@ -42,7 +43,7 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 @Api(tags = {"Roles"})
-public class RoleScopeResource extends AbstractResource  {
+public class RoleScopeResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -60,7 +61,7 @@ public class RoleScopeResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ)
     })
-    public List<RoleEntity> list(@PathParam("scope") RoleScope scope)  {
+    public List<RoleEntity> list(@PathParam("scope") RoleScope scope) {
         return roleService.findByScope(scope);
     }
 
@@ -75,7 +76,8 @@ public class RoleScopeResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE)
     })
-    public RoleEntity create(@PathParam("scope") RoleScope scope, @Valid @NotNull final NewRoleEntity role) {        return roleService.create(role);
+    public RoleEntity create(@PathParam("scope") RoleScope scope, @Valid @NotNull final NewRoleEntity role) {
+        return roleService.create(role);
     }
 
     @Path("{role}")

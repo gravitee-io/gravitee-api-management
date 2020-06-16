@@ -46,7 +46,7 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         ArgumentCaptor<CustomUserFieldEntity> argument = ArgumentCaptor.forClass(CustomUserFieldEntity.class);
         when(customUserFieldService.create(any())).thenReturn(field);
 
-        final Response response = target().request().post(Entity.json(field));
+        final Response response = orgTarget().request().post(Entity.json(field));
 
         assertEquals(CREATED_201, response.getStatus());
         verify(customUserFieldService, times(1)).create(any());
@@ -65,7 +65,7 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         ArgumentCaptor<CustomUserFieldEntity> argument = ArgumentCaptor.forClass(CustomUserFieldEntity.class);
         when(customUserFieldService.update(any())).thenReturn(field);
 
-        final Response response = target("/"+field.getKey()).request().put(Entity.json(field));
+        final Response response = orgTarget("/"+field.getKey()).request().put(Entity.json(field));
 
         assertEquals(OK_200, response.getStatus());
         verify(customUserFieldService, times(1)).update(any());
@@ -83,7 +83,7 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         ArgumentCaptor<CustomUserFieldEntity> argument = ArgumentCaptor.forClass(CustomUserFieldEntity.class);
         when(customUserFieldService.update(any())).thenReturn(field);
 
-        final Response response = target("/invalid-key").request().put(Entity.json(field));
+        final Response response = orgTarget("/invalid-key").request().put(Entity.json(field));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         verify(customUserFieldService, never()).update(any());

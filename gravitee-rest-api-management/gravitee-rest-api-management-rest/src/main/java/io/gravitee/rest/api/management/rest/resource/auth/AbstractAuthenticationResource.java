@@ -19,14 +19,13 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.service.MembershipService;
@@ -59,6 +58,10 @@ import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAUL
  */
 abstract class AbstractAuthenticationResource {
 
+    public static final String CLIENT_ID_KEY = "client_id", REDIRECT_URI_KEY = "redirect_uri",
+            CLIENT_SECRET = "client_secret", CODE_KEY = "code", GRANT_TYPE_KEY = "grant_type",
+            AUTH_CODE = "authorization_code", TOKEN = "token", STATE = "state";
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     @Autowired
     protected Environment environment;
     @Autowired
@@ -67,12 +70,6 @@ abstract class AbstractAuthenticationResource {
     protected MembershipService membershipService;
     @Autowired
     protected CookieGenerator cookieGenerator;
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    public static final String CLIENT_ID_KEY = "client_id", REDIRECT_URI_KEY = "redirect_uri",
-            CLIENT_SECRET = "client_secret", CODE_KEY = "code", GRANT_TYPE_KEY = "grant_type",
-            AUTH_CODE = "authorization_code", TOKEN = "token", STATE = "state";
 
     protected Map<String, Object> getResponseEntity(final Response response) throws IOException {
         return getEntity((getResponseEntityAsString(response)));
@@ -83,10 +80,11 @@ abstract class AbstractAuthenticationResource {
     }
 
     protected Map<String, Object> getEntity(final String response) throws IOException {
-        return MAPPER.readValue(response, new TypeReference<Map<String, Object>>() {});
+        return MAPPER.readValue(response, new TypeReference<Map<String, Object>>() {
+        });
     }
 
-    protected Response connectUser(String userId,final String state, final HttpServletResponse servletResponse) {
+    protected Response connectUser(String userId, final String state, final HttpServletResponse servletResponse) {
         UserEntity user = userService.connect(userId);
 
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -98,14 +96,6 @@ abstract class AbstractAuthenticationResource {
 
         // We must also load permissions from repository for configured management or portal role
         Set<RoleEntity> userRoles = membershipService.getRoles(
-                MembershipReferenceType.ENVIRONMENT,
-                GraviteeContext.getCurrentEnvironment(),
-                MembershipMemberType.USER,
-                userDetails.getId());
-        if (!userRoles.isEmpty()) {
-            userRoles.forEach(role -> authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()));
-        }
-        userRoles = membershipService.getRoles(
                 MembershipReferenceType.ORGANIZATION,
                 GraviteeContext.getCurrentOrganization(),
                 MembershipMemberType.USER,
