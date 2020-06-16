@@ -20,9 +20,18 @@ import io.gravitee.rest.api.management.rest.resource.auth.OAuth2AuthenticationRe
 import io.gravitee.rest.api.management.rest.resource.organization.CurrentUserResource;
 import io.gravitee.rest.api.management.rest.resource.organization.UsersResource;
 import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -33,6 +42,9 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -46,6 +58,12 @@ public class EnvironmentResource extends AbstractResource {
 
     @Inject
     private EnvironmentService environmentService;
+
+    @Inject
+    private IdentityProviderService identityProviderService;
+
+    @Inject
+    private IdentityProviderActivationService identityProviderActivationService;
 
     @PathParam("envId")
     @ApiParam(name = "envId", hidden = true)
@@ -101,6 +119,40 @@ public class EnvironmentResource extends AbstractResource {
         return Response
                 .status(Status.NO_CONTENT)
                 .build();
+    }
+
+    @GET
+    @Path("/identities")
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION, acls = RolePermissionAction.READ))
+    @ApiOperation(value = "Get the list of identity provider activations for current environment",
+            notes = "User must have the ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List identity provider activations for current environment", response = IdentityProviderActivationEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Set<IdentityProviderActivationEntity> getIdentityProviderActivations() {
+        return identityProviderActivationService.findAllByTarget(new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT));
+    }
+
+    @PUT
+    @Path("/identities")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION, acls = {RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE}))
+    @ApiOperation(value = "Update available environment identities", tags = {"Environment"})
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Environment successfully updated"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response updateEnvironmentIdentities(List<IdentityProviderActivationEntity> identityProviderActivations) {
+        this.identityProviderActivationService.updateTargetIdp(
+                new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT),
+                identityProviderActivations.stream()
+                        .filter(ipa -> {
+                            final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
+                            return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
+                        })
+                        .map(IdentityProviderActivationEntity::getIdentityProvider)
+                        .collect(Collectors.toList()));
+        return Response.noContent().build();
     }
 
     @Path("alerts")

@@ -23,6 +23,7 @@ import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,6 +111,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(applicationMetadataService);
         reset(referenceMetadataMapper);
         reset(customUserFieldService);
+        reset(identityProviderActivationService);
         reset(authenticationProvider);
     }
 
@@ -305,6 +307,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ReferenceMetadataMapper referenceMetadataMapper;
+
+    @Autowired
+    protected IdentityProviderActivationService identityProviderActivationService;
 
     @Autowired
     private AuthoritiesProvider authoritiesProvider;
@@ -606,6 +611,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public CustomUserFieldService customUserFieldService() {
             return mock(CustomUserFieldService.class);
+        }
+
+        @Bean
+        public IdentityProviderActivationService identityProviderActivationService() {
+            return mock(IdentityProviderActivationService.class);
         }
 
         @Bean

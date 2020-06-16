@@ -57,6 +57,8 @@ public class IdentityProviderEntity {
     @JsonProperty("updated_at")
     private Date updatedAt;
 
+    private String organization;
+
     public String getId() {
         return id;
     }
@@ -159,6 +161,14 @@ public class IdentityProviderEntity {
 
     public void setSyncMappings(boolean syncMappings) {
         this.syncMappings = syncMappings;
+    }
+
+    public String getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(String organization) {
+        this.organization = organization;
     }
 
     @Override

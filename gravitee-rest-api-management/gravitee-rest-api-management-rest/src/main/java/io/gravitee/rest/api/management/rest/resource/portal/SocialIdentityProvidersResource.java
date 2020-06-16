@@ -17,18 +17,23 @@ package io.gravitee.rest.api.management.rest.resource.portal;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -42,17 +47,26 @@ import java.util.stream.Collectors;
 @Produces(MediaType.APPLICATION_JSON)
 public class SocialIdentityProvidersResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private SocialIdentityProviderService socialIdentityProviderService;
+
+    @Inject
+    private IdentityProviderActivationService identityProviderActivationService;
 
     @GET
     @ApiOperation(value = "Get the list of social identity providers")
     @ApiResponses({
             @ApiResponse(code = 200, message = "List social identity providers", response = SocialIdentityProviderEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<SocialIdentityProviderEntity> getSocialIdentityProvider() {
-        return socialIdentityProviderService.findAll()
+    public List<SocialIdentityProviderEntity> getSocialIdentityProviders() {
+        Set<String> allIdpByTarget = identityProviderActivationService.findAllByTarget(new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION))
                 .stream()
+                .map(IdentityProviderActivationEntity::getIdentityProvider)
+                .collect(Collectors.toSet());
+
+        return socialIdentityProviderService.findAll(false)
+                .stream()
+                .filter(idp -> allIdpByTarget.contains(idp.getId()))
                 .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
                 .collect(Collectors.toList());
     }

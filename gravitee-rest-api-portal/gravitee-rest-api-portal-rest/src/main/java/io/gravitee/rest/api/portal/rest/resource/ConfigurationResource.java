@@ -22,6 +22,8 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.mapper.ConfigurationMapper;
@@ -34,7 +36,9 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.CustomUserFieldService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.inject.Inject;
@@ -63,6 +67,8 @@ public class ConfigurationResource extends AbstractResource {
     private ApplicationTypeService applicationTypeService;
     @Inject
     private CustomUserFieldService customUserFieldService;
+    @Autowired
+    private IdentityProviderActivationService identityProviderActivationService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -90,7 +96,13 @@ public class ConfigurationResource extends AbstractResource {
     @Path("identities")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalIdentityProviders(@BeanParam PaginationParam paginationParam) {
-        List<IdentityProvider> identities = socialIdentityProviderService.findAll().stream()
+        Set<String> allIdpByTarget = identityProviderActivationService.findAllByTarget(new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT))
+                .stream()
+                .map(IdentityProviderActivationEntity::getIdentityProvider)
+                .collect(Collectors.toSet());
+
+        List<IdentityProvider> identities = socialIdentityProviderService.findAll(true).stream()
+                .filter(idp -> allIdpByTarget.contains(idp.getId()))
                 .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
                 .map(identityProviderMapper::convert)
                 .collect(Collectors.toList());

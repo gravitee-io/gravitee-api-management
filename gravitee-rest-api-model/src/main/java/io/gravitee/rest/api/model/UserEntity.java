@@ -118,6 +118,7 @@ public class UserEntity implements Indexable {
 
     private Map<String, Object> customFields;
 
+    @Override
     public String getId() {
         return id;
     }

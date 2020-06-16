@@ -239,6 +239,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                  */
                 // Auth resource
                 .antMatchers(HttpMethod.POST, uriOrgPrefix + "/auth/**").permitAll()
+                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/social-identities").permitAll()
 
                 // Current user
                 .antMatchers(HttpMethod.POST, uriOrgPrefix + "/user/login").permitAll()
@@ -291,6 +292,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.GET, uriPrefix + "/search/users").authenticated()
 
 
+                /*
+                 * environments resources
+                 */
                 // API requests
                 .antMatchers(HttpMethod.GET, uriPrefix + "/apis/hooks").authenticated()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").authenticated()

@@ -16,13 +16,19 @@
 package io.gravitee.rest.api.service.impl.upgrade;
 
 import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.configuration.identity.*;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.Upgrader;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
+import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
+import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.impl.configuration.identity.IdentityProviderNotFoundException;
-import javassist.expr.NewArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +41,10 @@ import java.util.stream.Collectors;
 
 @Component
 public class IdentityProviderUpgrader implements Upgrader, Ordered {
+    private static final String description = "Configuration provided by the system. Every modifications will be overridden at the next startup.";
     private final Logger logger = LoggerFactory.getLogger(IdentityProviderUpgrader.class);
-
     private List<String> notStorableIDPs = Arrays.asList("gravitee", "ldap", "memory");
     private List<String> idpTypeNames = Arrays.stream(IdentityProviderType.values()).map(Enum::name).collect(Collectors.toList());
-    private static final String description = "Configuration provided by the system. Every modifications will be overridden at the next startup.";
-
     @Autowired
     private ConfigurableEnvironment environment;
 
@@ -48,7 +52,16 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
     private GroupService groupService;
 
     @Autowired
+    private OrganizationService organizationService;
+
+    @Autowired
+    private EnvironmentService environmentService;
+
+    @Autowired
     private IdentityProviderService identityProviderService;
+
+    @Autowired
+    private IdentityProviderActivationService identityProviderActivationService;
 
     @Override
     public boolean upgrade() {
@@ -72,6 +85,9 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                     }
                     // always update
                     updateIdp(id, idx);
+
+                    // update idp activations
+                    updateIdpActivations(id, idx);
                 } else {
                     logger.info("Unknown identity provider [{}]", type);
                 }
@@ -99,7 +115,48 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
         return identityProviderService.create(idp).getId();
     }
 
-    private void updateIdp(String id,int providerIndex) {
+    private void updateIdpActivations(String id, int providerIndex) {
+        //remove all previous activations
+        identityProviderActivationService.deactivateIdpOnAllTargets(id);
+
+        ActivationTarget[] targets = getActivationsTarget(providerIndex);
+        if (targets.length > 0) {
+            identityProviderActivationService.activateIdpOnTargets(id, targets);
+        }
+    }
+
+    private ActivationTarget[] getActivationsTarget(int providerIndex) {
+        List<String> targetStrings = getListOfString("security.providers[" + providerIndex + "].activations");
+        List<ActivationTarget> activationTargets = new ArrayList<>();
+        targetStrings.forEach(target -> {
+            final String[] orgEnv = target.split(":");
+            if (orgEnv.length == 1) {
+                try {
+                    this.organizationService.findById(orgEnv[0]);
+                    activationTargets.add(new ActivationTarget(orgEnv[0], IdentityProviderActivationReferenceType.ORGANIZATION));
+                } catch (OrganizationNotFoundException onfe) {
+                    logger.warn("Organization {} does not exist", orgEnv[0]);
+                }
+            } else if (orgEnv.length == 2) {
+                try {
+                    this.organizationService.findById(orgEnv[0]);
+                    EnvironmentEntity env = this.environmentService.findById(orgEnv[1]);
+                    if (env.getOrganizationId().equals(orgEnv[0])) {
+                        activationTargets.add(new ActivationTarget(orgEnv[1], IdentityProviderActivationReferenceType.ENVIRONMENT));
+                    } else {
+                        logger.warn("Environment {} does not exist in organization {}", orgEnv[1], orgEnv[0]);
+                    }
+                } catch (OrganizationNotFoundException onfe) {
+                    logger.warn("Organization {} does not exist", orgEnv[0]);
+                } catch (EnvironmentNotFoundException Enfe) {
+                    logger.warn("Environment {} does not exist", orgEnv[1]);
+                }
+            }
+        });
+        return activationTargets.toArray(new ActivationTarget[activationTargets.size()]);
+    }
+
+    private void updateIdp(String id, int providerIndex) {
         UpdateIdentityProviderEntity idp = new UpdateIdentityProviderEntity();
         idp.setName(id);
         idp.setDescription(description);
@@ -194,7 +251,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                 List<String> groupNames = getListOfString("security.providers[" + providerIndex + "].groupMapping[" + idx + "].groups");
                 if (!groupNames.isEmpty()) {
                     List<String> groups = new ArrayList<>();
-                    groupNames.forEach( groupName -> {
+                    groupNames.forEach(groupName -> {
                         List<GroupEntity> groupsFound = groupService.findByName(groupName);
 
                         if (groupsFound != null && groupsFound.size() == 1) {
@@ -228,7 +285,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                 if (!roles.isEmpty()) {
                     List<String> organizationsRoles = new ArrayList<>();
                     List<String> environmentsRoles = new ArrayList<>();
-                    roles.forEach( role -> {
+                    roles.forEach(role -> {
                         if (role.startsWith(RoleScope.ENVIRONMENT.name())) {
                             environmentsRoles.add(role.replace(RoleScope.ENVIRONMENT.name() + ":", ""));
                         }

@@ -22,8 +22,6 @@ import java.util.Objects;
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team 
- *
- * @deprecated In flavor of EventQuery2
  */
 public class EventQuery {
 

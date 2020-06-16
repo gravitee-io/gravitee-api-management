@@ -88,12 +88,13 @@ public class PortalResource {
     public PortalApisResource getPortalApisResource() {
         return resourceContext.getResource(PortalApisResource.class);
     }
-    
+
     @Path("media")
     public PortalMediaResource getPortalMediaResource() {
         return resourceContext.getResource(PortalMediaResource.class);
     }
 
+    @Deprecated
     @Path("identities")
     public SocialIdentityProvidersResource getSocialIdentityProvidersResource() {
         return resourceContext.getResource(SocialIdentityProvidersResource.class);

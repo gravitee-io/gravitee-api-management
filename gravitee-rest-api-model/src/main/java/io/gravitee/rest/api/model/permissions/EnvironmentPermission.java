@@ -42,7 +42,8 @@ public enum EnvironmentPermission implements Permission {
     TOP_APIS("TOP_APIS", 3200),
     API_HEADER("API_HEADER", 3300),
     CLIENT_REGISTRATION_PROVIDER("CLIENT_REGISTRATION_PROVIDER", 3500),
-    THEME("THEME", 3600);
+    THEME("THEME", 3600),
+    IDENTITY_PROVIDER_ACTIVATION("IDENTITY_PROVIDER_ACTIVATION", 3700);
 
     String name;
     int mask;

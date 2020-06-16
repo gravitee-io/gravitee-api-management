@@ -26,7 +26,6 @@ import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,12 +59,15 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
     private IdentityProviderService identityProviderService;
 
     @Override
-    public Set<SocialIdentityProviderEntity> findAll() {
+    public Set<SocialIdentityProviderEntity> findAll(boolean findEnabled) {
         try {
-            return identityProviderService
-                    .findAll()
-                    .stream()
-                    .filter(IdentityProviderEntity::isEnabled)
+            Stream<IdentityProviderEntity> identityProviderEntityStream = identityProviderService.findAll().stream();
+
+            if (findEnabled) {
+                identityProviderEntityStream = identityProviderEntityStream.filter(IdentityProviderEntity::isEnabled);
+            }
+
+            return identityProviderEntityStream
                     .map(this::convert)
                     .collect(Collectors.toSet());
         } catch (Exception ex) {

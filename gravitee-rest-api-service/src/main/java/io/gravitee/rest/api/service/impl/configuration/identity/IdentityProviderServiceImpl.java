@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
@@ -47,11 +48,9 @@ import static java.util.Collections.singletonMap;
 @Component
 public class IdentityProviderServiceImpl extends AbstractService implements IdentityProviderService {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(IdentityProviderServiceImpl.class);
-
     private final static String CLIENT_ID = "clientId";
     private final static String CLIENT_SECRET = "clientSecret";
-
+    private final Logger LOGGER = LoggerFactory.getLogger(IdentityProviderServiceImpl.class);
     @Autowired
     private IdentityProviderRepository identityProviderRepository;
 
@@ -60,6 +59,9 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    private IdentityProviderActivationService identityProviderActivationService;
 
     @Override
     public IdentityProviderEntity create(NewIdentityProviderEntity newIdentityProviderEntity) {
@@ -176,6 +178,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                     new Date(),
                     identityProvider.get(),
                     null);
+
+            identityProviderActivationService.deactivateIdpOnAllTargets(id);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete an identity provider using its ID {}", id, ex);
             throw new TechnicalManagementException(
@@ -293,6 +297,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProviderEntity.setSyncMappings(identityProvider.getSyncMappings() == null ?
                 false : identityProvider.getSyncMappings());
 
+        identityProviderEntity.setOrganization(identityProvider.getOrganizationId());
         return identityProviderEntity;
     }
 

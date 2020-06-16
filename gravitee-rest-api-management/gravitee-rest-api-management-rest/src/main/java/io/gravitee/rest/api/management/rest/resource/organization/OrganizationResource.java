@@ -19,10 +19,21 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.resource.EnvironmentsResource;
 import io.gravitee.rest.api.management.rest.resource.auth.OAuth2AuthenticationResource;
+import io.gravitee.rest.api.management.rest.resource.portal.SocialIdentityProvidersResource;
 import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -33,6 +44,8 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -46,6 +59,12 @@ public class OrganizationResource extends AbstractResource {
 
     @Inject
     private OrganizationService organizationService;
+
+    @Inject
+    private IdentityProviderService identityProviderService;
+
+    @Inject
+    private IdentityProviderActivationService identityProviderActivationService;
 
     /**
      * Create or update an Organization for the authenticated user.
@@ -85,6 +104,40 @@ public class OrganizationResource extends AbstractResource {
                 .build();
     }
 
+    @GET
+    @Path("/identities")
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION, acls = RolePermissionAction.READ))
+    @ApiOperation(value = "Get the list of identity provider activations for current organization",
+            notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List identity provider activations for current organization", response = IdentityProviderActivationEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Set<IdentityProviderActivationEntity> listIdentityProviderActivations() {
+        return identityProviderActivationService.findAllByTarget(new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION));
+    }
+
+    @PUT
+    @Path("/identities")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION, acls = {RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE}))
+    @ApiOperation(value = "Update available organization identities", tags = {"Organization"})
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Organization successfully updated"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response updateOrganizationIdentities(Set<IdentityProviderActivationEntity> identityProviderActivations) {
+        this.identityProviderActivationService.updateTargetIdp(
+                new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION),
+                identityProviderActivations.stream()
+                        .filter(ipa -> {
+                            final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
+                            return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
+                        })
+                        .map(IdentityProviderActivationEntity::getIdentityProvider)
+                        .collect(Collectors.toList()));
+        return Response.noContent().build();
+    }
+
     // Dynamic authentication provider endpoints
     @Path("auth/oauth2/{identity}")
     public OAuth2AuthenticationResource getOAuth2AuthenticationResource() {
@@ -99,6 +152,11 @@ public class OrganizationResource extends AbstractResource {
     @Path("environments")
     public EnvironmentsResource getEnvironmentsResource() {
         return resourceContext.getResource(EnvironmentsResource.class);
+    }
+
+    @Path("social-identities")
+    public SocialIdentityProvidersResource getSocialIdentityProvidersResource() {
+        return resourceContext.getResource(SocialIdentityProvidersResource.class);
     }
 
     @Path("search")

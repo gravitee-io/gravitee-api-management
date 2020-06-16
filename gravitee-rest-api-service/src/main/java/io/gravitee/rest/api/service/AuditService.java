@@ -30,10 +30,15 @@ import java.util.Map;
  */
 public interface AuditService {
 
-    void createApiAuditLog(String apiId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
-    void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
-    void createEnvironmentAuditLog(Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
-    void createOrganizationAuditLog(Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
+    void createApiAuditLog(String apiId, Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
+
+    void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
+
+    void createEnvironmentAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
+
+    void createOrganizationAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
+
+    void createAuditLog(Audit.AuditReferenceType referenceType, String referenceId, Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
 
     MetadataPage<AuditEntity> search(AuditQuery query);
 }

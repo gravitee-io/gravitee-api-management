@@ -109,14 +109,14 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
         List<AuditEntity> content = auditPage.getContent().stream().map(this::convert).collect(Collectors.toList());
 
-        return new MetadataPage<>(content, query.getPage(), query.getSize() , auditPage.getTotalElements(), getMetadata(content));
+        return new MetadataPage<>(content, query.getPage(), query.getSize(), auditPage.getTotalElements(), getMetadata(content));
     }
 
     private Map<String, String> getMetadata(List<AuditEntity> content) {
         Map<String, String> metadata = new HashMap<>();
         for (AuditEntity auditEntity : content) {
             //add user's display name
-            String metadataKey = "USER:"+auditEntity.getUser()+":name";
+            String metadataKey = "USER:" + auditEntity.getUser() + ":name";
             try {
                 UserEntity user = userService.findById(auditEntity.getUser());
                 metadata.put(metadataKey, user.getDisplayName());
@@ -233,7 +233,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     }
 
     @Override
-    public void createApiAuditLog(String apiId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt,
+    public void createApiAuditLog(String apiId, Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt,
                                   Object oldValue, Object newValue) {
         createAuditLog(Audit.AuditReferenceType.API,
                 apiId,
@@ -245,7 +245,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     }
 
     @Override
-    public void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt,
+    public void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt,
                                           Object oldValue, Object newValue) {
         createAuditLog(Audit.AuditReferenceType.APPLICATION,
                 applicationId,
@@ -259,12 +259,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     @Override
     public void createEnvironmentAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue) {
         createAuditLog(Audit.AuditReferenceType.ENVIRONMENT,
-               GraviteeContext.getCurrentEnvironment(),
-               properties,
-               event,
-               createdAt,
-               oldValue,
-               newValue);
+                GraviteeContext.getCurrentEnvironment(),
+                properties,
+                event,
+                createdAt,
+                oldValue,
+                newValue);
     }
 
     @Override
@@ -279,13 +279,14 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     }
 
     @Async
-    protected void createAuditLog(Audit.AuditReferenceType referenceType, String referenceId, Map<Audit.AuditProperties,String> properties,
+    @Override
+    public void createAuditLog(Audit.AuditReferenceType referenceType, String referenceId, Map<Audit.AuditProperties, String> properties,
                                Audit.AuditEvent event, Date createdAt,
                                Object oldValue, Object newValue) {
 
         Audit audit = new Audit();
         audit.setId(RandomString.generate());
-        audit.setCreatedAt(createdAt==null ? new Date() : createdAt);
+        audit.setCreatedAt(createdAt == null ? new Date() : createdAt);
 
         final UserDetails authenticatedUser = getAuthenticatedUser();
         final String user;

@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
-
-import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
-
-import java.util.Set;
+package io.gravitee.rest.api.model.configuration.identity;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface SocialIdentityProviderService {
-
-    Set<SocialIdentityProviderEntity> findAll(boolean findEnabled);
-
-    SocialIdentityProviderEntity findById(String id);
+public enum IdentityProviderActivationReferenceType {
+    ENVIRONMENT, ORGANIZATION;
 }

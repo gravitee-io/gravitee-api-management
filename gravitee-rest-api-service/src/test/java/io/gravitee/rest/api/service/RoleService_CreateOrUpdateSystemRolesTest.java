@@ -66,7 +66,8 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
             3215,
             3315,
             3515,
-            3615
+            3615,
+            3715
     };
     @InjectMocks
     private RoleServiceImpl roleService = new RoleServiceImpl();

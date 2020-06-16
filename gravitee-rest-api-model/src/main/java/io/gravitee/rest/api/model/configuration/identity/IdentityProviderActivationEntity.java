@@ -13,36 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.rest.api.model.configuration.identity;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Date;
 import java.util.Objects;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UserReferenceRoleEntity {
+public class IdentityProviderActivationEntity {
 
-    private String user;
+    private String identityProvider;
+
     private String referenceId;
-    private MembershipReferenceType referenceType;
-    private List<String> roles;
 
-    public String getUser() {
-        return user;
+    private IdentityProviderActivationReferenceType referenceType;
+
+    @JsonProperty("created_at")
+    private Date createdAt;
+
+    public String getIdentityProvider() {
+        return identityProvider;
     }
 
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public List<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<String> roles) {
-        this.roles = roles;
+    public void setIdentityProvider(String identityProvider) {
+        this.identityProvider = identityProvider;
     }
 
     public String getReferenceId() {
@@ -53,27 +51,34 @@ public class UserReferenceRoleEntity {
         this.referenceId = referenceId;
     }
 
-    public MembershipReferenceType getReferenceType() {
+    public IdentityProviderActivationReferenceType getReferenceType() {
         return referenceType;
     }
 
-    public void setReferenceType(MembershipReferenceType referenceType) {
+    public void setReferenceType(IdentityProviderActivationReferenceType referenceType) {
         this.referenceType = referenceType;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UserReferenceRoleEntity that = (UserReferenceRoleEntity) o;
-        return Objects.equals(user, that.user) &&
+        IdentityProviderActivationEntity that = (IdentityProviderActivationEntity) o;
+        return Objects.equals(identityProvider, that.identityProvider) &&
                 Objects.equals(referenceId, that.referenceId) &&
-                referenceType == that.referenceType &&
-                Objects.equals(roles, that.roles);
+                Objects.equals(referenceType, that.referenceType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(user, referenceId, referenceType, roles);
+        return Objects.hash(identityProvider, referenceId, referenceType);
     }
 }

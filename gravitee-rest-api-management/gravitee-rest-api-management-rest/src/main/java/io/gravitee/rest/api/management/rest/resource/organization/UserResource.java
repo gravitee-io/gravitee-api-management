@@ -226,7 +226,7 @@ public class UserResource extends AbstractResource {
             @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE)
     )
     public Response updateUserRoles(@NotNull UserReferenceRoleEntity userReferenceRoles) {
-        userService.updateUserRoles(userId, userReferenceRoles.getReferenceType(), userReferenceRoles.getReferenceId(), userReferenceRoles.getRoleIds());
+        userService.updateUserRoles(userId, userReferenceRoles.getReferenceType(), userReferenceRoles.getReferenceId(), userReferenceRoles.getRoles());
         return Response.ok().build();
     }
 
