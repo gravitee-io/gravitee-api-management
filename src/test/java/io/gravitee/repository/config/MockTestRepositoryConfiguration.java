@@ -208,7 +208,6 @@ public class MockTestRepositoryConfiguration {
     }
 
     @Bean
-<<<<<<< HEAD
     public EnvironmentRepositoryMock environmentRepository() throws Exception {
         return new EnvironmentRepositoryMock();
     }
@@ -221,9 +220,10 @@ public class MockTestRepositoryConfiguration {
     @Bean
     public ThemeRepositoryMock themeRepository() throws Exception {
         return new ThemeRepositoryMock();
-=======
+    }
+
+    @Bean
     public TokenRepositoryMock tokenRepositoryMock() {
         return new TokenRepositoryMock();
->>>>>>> 8401586... feat: Allows to generate personal access tokens to access the management API
     }
 }
