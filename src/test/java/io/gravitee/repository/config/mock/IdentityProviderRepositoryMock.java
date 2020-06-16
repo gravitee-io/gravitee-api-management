@@ -17,7 +17,6 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.model.IdentityProvider;
-import io.gravitee.repository.management.model.IdentityProviderReferenceType;
 import io.gravitee.repository.management.model.IdentityProviderType;
 
 import java.util.Date;
@@ -27,8 +26,8 @@ import java.util.Set;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
@@ -50,8 +49,7 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
 
         final IdentityProvider newIdentityProvider = mock(IdentityProvider.class);
         when(newIdentityProvider.getName()).thenReturn("My idp 1");
-        when(newIdentityProvider.getReferenceId()).thenReturn("DEFAULT");
-        when(newIdentityProvider.getReferenceType()).thenReturn(IdentityProviderReferenceType.ENVIRONMENT);
+        when(newIdentityProvider.getOrganizationId()).thenReturn("DEFAULT");
         when(newIdentityProvider.getDescription()).thenReturn("Description for my idp 1");
         when(newIdentityProvider.isEnabled()).thenReturn(true);
         when(newIdentityProvider.getCreatedAt()).thenReturn(new Date(1000000000000L));
@@ -63,8 +61,7 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
 
         final IdentityProvider identityProvider1 = new IdentityProvider();
         identityProvider1.setId("github");
-        identityProvider1.setReferenceId("DEFAULT");
-        identityProvider1.setReferenceType(IdentityProviderReferenceType.ENVIRONMENT);
+        identityProvider1.setOrganizationId("DEFAULT");
         identityProvider1.setEnabled(true);
         identityProvider1.setName("Google");
         identityProvider1.setDescription("GitHub Identity Provider");
@@ -75,8 +72,7 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
 
         final IdentityProvider identityProviderUpdated = mock(IdentityProvider.class);
         when(identityProviderUpdated.getName()).thenReturn("Google");
-        when(identityProviderUpdated.getReferenceId()).thenReturn("DEFAULT");
-        when(identityProviderUpdated.getReferenceType()).thenReturn(IdentityProviderReferenceType.ENVIRONMENT);
+        when(identityProviderUpdated.getOrganizationId()).thenReturn("DEFAULT");
         when(identityProviderUpdated.getDescription()).thenReturn("Google Identity Provider");
         when(identityProviderUpdated.getCreatedAt()).thenReturn(new Date(1000000000000L));
         when(identityProviderUpdated.getUpdatedAt()).thenReturn(new Date(1486771200000L));
@@ -93,7 +89,7 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
         final Set<IdentityProvider> identityProvidersAfterAdd = newSet(newIdentityProvider, identityProvider1, mock(IdentityProvider.class), mock(IdentityProvider.class));
         final Set<IdentityProvider> identityProvidersByEnv = newSet(newIdentityProvider, identityProvider1, identityProviderUpdated);
         when(identityProviderRepository.findAll()).thenReturn(identityProviders, identityProvidersAfterAdd, identityProviders, identityProvidersAfterDelete, identityProviders);
-        when(identityProviderRepository.findAllByReferenceIdAndReferenceType("DEFAULT", IdentityProviderReferenceType.ENVIRONMENT)).thenReturn(identityProvidersByEnv);
+        when(identityProviderRepository.findAllByOrganizationId("DEFAULT")).thenReturn(identityProvidersByEnv);
 
         when(identityProviderRepository.create(any(IdentityProvider.class))).thenReturn(newIdentityProvider);
 
@@ -108,8 +104,7 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
     private IdentityProvider createMock() {
         final IdentityProvider identityProvider3 = new IdentityProvider();
         identityProvider3.setId("idp-3");
-        identityProvider3.setReferenceId("DEFAULT");
-        identityProvider3.setReferenceType(IdentityProviderReferenceType.ENVIRONMENT);
+        identityProvider3.setOrganizationId("DEFAULT");
         identityProvider3.setEnabled(false);
         identityProvider3.setName("Gravitee.io AM");
         identityProvider3.setDescription("Gravitee.io AM Identity Provider");
@@ -120,11 +115,11 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
         String condition = "{#jsonPath('$.email_verified')}";
 
         Map<String, String[]> groupMappings = new HashMap<>();
-        groupMappings.put(condition, new String []{"group1", "group2"});
+        groupMappings.put(condition, new String[]{"group1", "group2"});
         identityProvider3.setGroupMappings(groupMappings);
 
         Map<String, String[]> roleMappings = new HashMap<>();
-        roleMappings.put(condition, new String []{"role1", "role2"});
+        roleMappings.put(condition, new String[]{"role1", "role2"});
         identityProvider3.setRoleMappings(roleMappings);
 
         Map<String, String> userProfileMapping = new HashMap<>();

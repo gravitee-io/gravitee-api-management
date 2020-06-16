@@ -17,7 +17,6 @@ package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.IdentityProvider;
-import io.gravitee.repository.management.model.IdentityProviderReferenceType;
 import io.gravitee.repository.management.model.IdentityProviderType;
 import org.junit.Assert;
 import org.junit.Test;
@@ -57,13 +56,13 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldFindAllByReferenceIdAndReferenceType() throws Exception {
-        final Set<IdentityProvider> identityProviders = identityProviderRepository.findAllByReferenceIdAndReferenceType("DEFAULT", IdentityProviderReferenceType.ENVIRONMENT);
+    public void shouldFindAllByOrganizationId() throws Exception {
+        final Set<IdentityProvider> identityProviders = identityProviderRepository.findAllByOrganizationId("DEFAULT");
 
         assertNotNull(identityProviders);
         assertEquals(3, identityProviders.size());
     }
-    
+
     @Test
     public void shouldFindById() throws Exception {
         final Optional<IdentityProvider> identityProviderOpt = identityProviderRepository.findById("idp-3");
@@ -74,8 +73,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(identityProvider);
         assertEquals("Gravitee.io AM", identityProvider.getName());
         assertEquals("Gravitee.io AM Identity Provider", identityProvider.getDescription());
-        assertEquals("DEFAULT", identityProvider.getReferenceId());
-        assertEquals(IdentityProviderReferenceType.ENVIRONMENT, identityProvider.getReferenceType());
+        assertEquals("DEFAULT", identityProvider.getOrganizationId());
         assertFalse(identityProvider.isEnabled());
         assertEquals(IdentityProviderType.GRAVITEEIO_AM, identityProvider.getType());
         assertNull(identityProvider.getEmailRequired());
@@ -110,8 +108,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
     public void shouldCreate() throws Exception {
         final IdentityProvider identityProvider = new IdentityProvider();
         identityProvider.setId("new-idp");
-        identityProvider.setReferenceId("DEFAULT");
-        identityProvider.setReferenceType(IdentityProviderReferenceType.ENVIRONMENT);
+        identityProvider.setOrganizationId("DEFAULT");
         identityProvider.setName("My idp 1");
         identityProvider.setDescription("Description for my idp 1");
         identityProvider.setCreatedAt(new Date(1000000000000L));
@@ -132,8 +129,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
 
         final IdentityProvider identityProviderSaved = optional.get();
         Assert.assertEquals("Invalid saved identity provider name.", identityProvider.getName(), identityProviderSaved.getName());
-        Assert.assertEquals("Invalid saved identity provider reference id.", identityProvider.getReferenceId(), identityProviderSaved.getReferenceId());
-        Assert.assertEquals("Invalid saved identity provider reference type.", identityProvider.getReferenceType(), identityProviderSaved.getReferenceType());
+        Assert.assertEquals("Invalid saved identity provider organization id.", identityProvider.getOrganizationId(), identityProviderSaved.getOrganizationId());
         Assert.assertEquals("Invalid identity provider description.", identityProvider.getDescription(), identityProviderSaved.getDescription());
         Assert.assertTrue("Invalid identity provider createdAt.", compareDate(identityProvider.getCreatedAt(), identityProviderSaved.getCreatedAt()));
         Assert.assertTrue("Invalid identity provider updatedAt.", compareDate(identityProvider.getUpdatedAt(), identityProviderSaved.getUpdatedAt()));
@@ -151,8 +147,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
 
         final IdentityProvider identityProvider = optional.get();
         identityProvider.setName("Google");
-        identityProvider.setReferenceId("DEFAULT");
-        identityProvider.setReferenceType(IdentityProviderReferenceType.ENVIRONMENT);
+        identityProvider.setOrganizationId("DEFAULT");
         identityProvider.setDescription("Google Identity Provider");
         identityProvider.setCreatedAt(new Date(1000000000000L));
         identityProvider.setUpdatedAt(new Date(1486771200000L));
@@ -172,8 +167,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
 
         final IdentityProvider identityProviderUpdated = optionalUpdated.get();
         Assert.assertEquals("Invalid saved identity provider name.", identityProvider.getName(), identityProviderUpdated.getName());
-        Assert.assertEquals("Invalid saved identity provider reference id.", identityProvider.getReferenceId(), identityProviderUpdated.getReferenceId());
-        Assert.assertEquals("Invalid saved identity provider reference type.", identityProvider.getReferenceType(), identityProviderUpdated.getReferenceType());
+        Assert.assertEquals("Invalid saved identity provider organization id.", identityProvider.getOrganizationId(), identityProviderUpdated.getOrganizationId());
         Assert.assertEquals("Invalid identity provider description.", identityProvider.getDescription(), identityProviderUpdated.getDescription());
         Assert.assertTrue("Invalid identity provider createdAt.", compareDate(identityProvider.getCreatedAt(), identityProviderUpdated.getCreatedAt()));
         Assert.assertTrue("Invalid identity provider updatedAt.", compareDate(identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt()));
@@ -196,8 +190,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateUnknownIdentityProvider() throws Exception {
         IdentityProvider unknownIdentityProvider = new IdentityProvider();
         unknownIdentityProvider.setId("unknown");
-        unknownIdentityProvider.setReferenceId("unknown");
-        unknownIdentityProvider.setReferenceType(IdentityProviderReferenceType.ENVIRONMENT);
+        unknownIdentityProvider.setOrganizationId("unknown");
         identityProviderRepository.update(unknownIdentityProvider);
         fail("An unknown identity provider should not be updated");
     }
