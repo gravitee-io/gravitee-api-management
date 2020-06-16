@@ -22,7 +22,6 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
-import io.gravitee.repository.management.model.UserReferenceType;
 import io.gravitee.repository.management.model.UserStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +47,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(User.class, "users", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, UserReferenceType.class)
+            .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("email", Types.NVARCHAR, String.class)
             .addColumn("firstname", Types.NVARCHAR, String.class)
@@ -77,13 +75,13 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     }
 
     @Override
-    public Optional<User> findBySource(String source, String sourceId, String referenceId, UserReferenceType referenceType) throws TechnicalException {
+    public Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException {
         LOGGER.debug("JdbcUserRepository.findBySource({}, {})", source, sourceId);
         try {
-            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and reference_id = ? and reference_type = ?"
+            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and organization_id = ?"
                     , ORM.getRowMapper()
                     , source, sourceId
-                    , referenceId, referenceType.name()
+                    , organizationId
             );
             return users.stream().findFirst();
         } catch (final Exception ex) {
@@ -106,7 +104,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
         LOGGER.debug("JdbcUserRepository.findByIds({})", uniqueIds);
         try {
             final List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.id in ( "
-                    + ORM.buildInClause(uniqueIds) + " )"
+                            + ORM.buildInClause(uniqueIds) + " )"
                     , (PreparedStatement ps) -> ORM.setArguments(ps, uniqueIds, 1)
                     , ORM.getRowMapper()
             );
@@ -120,58 +118,52 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     @Override
     public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
-            LOGGER.debug("JdbcUserRepository<{}>.search()", getOrm().getTableName());
-            
-            try {
-                List result;
-                if (criteria == null) {
-                    result = jdbcTemplate.query(getOrm().getSelectAllSql() + "order by lastname, firstname", getRowMapper());
-                } else {
-                    final StringBuilder query = new StringBuilder(SELECT_ESCAPED_USER_TABLE_NAME);
+        LOGGER.debug("JdbcUserRepository<{}>.search()", getOrm().getTableName());
 
-                    query.append(" where 1=1 ");
+        try {
+            List result;
+            if (criteria == null) {
+                result = jdbcTemplate.query(getOrm().getSelectAllSql() + "order by lastname, firstname", getRowMapper());
+            } else {
+                final StringBuilder query = new StringBuilder(SELECT_ESCAPED_USER_TABLE_NAME);
 
-                    if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
-                        List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
-                        ORM.buildInCondition(false, query, STATUS_FIELD, statuses);
-                    }
+                query.append(" where 1=1 ");
 
-                    if (criteria.hasNoStatus()) {
-                        query.append(" and ").append(escapeReservedWord(STATUS_FIELD)).append(" is null ");
-                    }
-
-                    if (criteria.getReferenceId() != null ) {
-                        query.append(" and reference_id = ? ");
-                    }
-                    if (criteria.getReferenceType() != null ) {
-                        query.append(" and reference_type = ? ");
-                    }
-                    
-                    query.append(" order by lastname, firstname ");
-
-                    result = jdbcTemplate.query(query.toString()
-                            , (PreparedStatement ps) -> {
-                                int idx = 1;
-                                if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
-                                    List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
-                                    idx = ORM.setArguments(ps, statuses, idx);
-                                }
-                                if (criteria.getReferenceId() != null ) {
-                                    idx = ORM.setArguments(ps, Arrays.asList(criteria.getReferenceId()), idx);
-                                }
-                                if (criteria.getReferenceType() != null ) {
-                                    idx = ORM.setArguments(ps, Arrays.asList(criteria.getReferenceType().name()), idx);
-                                }
-                            }
-                            , ORM.getRowMapper()
-                    );
+                if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
+                    List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
+                    ORM.buildInCondition(false, query, STATUS_FIELD, statuses);
                 }
-                return getResultAsPage(
-                        pageable,
-                        result);
-            } catch (final Exception ex) {
-                LOGGER.error("Failed to find all {} items:", getOrm().getTableName(), ex);
-                throw new TechnicalException("Failed to find all " + getOrm().getTableName() + " items", ex);
+
+                if (criteria.hasNoStatus()) {
+                    query.append(" and ").append(escapeReservedWord(STATUS_FIELD)).append(" is null ");
+                }
+
+                if (criteria.getOrganizationId() != null) {
+                    query.append(" and organization_id = ? ");
+                }
+
+                query.append(" order by lastname, firstname ");
+
+                result = jdbcTemplate.query(query.toString()
+                        , (PreparedStatement ps) -> {
+                            int idx = 1;
+                            if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
+                                List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
+                                idx = ORM.setArguments(ps, statuses, idx);
+                            }
+                            if (criteria.getOrganizationId() != null) {
+                                idx = ORM.setArguments(ps, Arrays.asList(criteria.getOrganizationId()), idx);
+                            }
+                        }
+                        , ORM.getRowMapper()
+                );
             }
+            return getResultAsPage(
+                    pageable,
+                    result);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find all {} items:", getOrm().getTableName(), ex);
+            throw new TechnicalException("Failed to find all " + getOrm().getTableName() + " items", ex);
+        }
     }
 }

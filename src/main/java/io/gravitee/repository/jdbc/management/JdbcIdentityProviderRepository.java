@@ -15,25 +15,15 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
-import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
-
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.BiConsumer;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcColumn;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.IdentityProviderRepository;
+import io.gravitee.repository.management.model.IdentityProvider;
+import io.gravitee.repository.management.model.IdentityProviderType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,17 +32,15 @@ import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.sql.*;
+import java.util.Date;
+import java.util.*;
+import java.util.function.BiConsumer;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcColumn;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.IdentityProviderRepository;
-import io.gravitee.repository.management.model.IdentityProvider;
-import io.gravitee.repository.management.model.IdentityProviderReferenceType;
-import io.gravitee.repository.management.model.IdentityProviderType;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -65,15 +53,14 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-    
+
     private final static ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     private final Rm mapper = new Rm();
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(IdentityProvider.class, "identity_providers", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, IdentityProviderReferenceType.class)
+            .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, IdentityProviderType.class)
@@ -100,8 +87,9 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
 
         private <T, C> Map<String, T> convert(String sMap, Class<C> valueType, boolean array) {
             TypeReference<HashMap<String, T>> typeRef
-                    = new TypeReference<HashMap<String, T>>() {};
-            if (sMap != null && ! sMap.isEmpty()) {
+                    = new TypeReference<HashMap<String, T>>() {
+            };
+            if (sMap != null && !sMap.isEmpty()) {
                 try {
                     HashMap<String, Object> value = JSON_MAPPER.readValue(sMap, typeRef);
                     if (array) {
@@ -219,8 +207,7 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
         builder.append(", user_profile_mapping = ?");
 
         builder.append(" where id = ?");
-        builder.append(" and reference_id = ?");
-        builder.append(" and reference_type = ?");
+        builder.append(" and organization_id = ?");
         return builder.toString();
     }
 
@@ -235,7 +222,7 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
     }
 
     protected PreparedStatementCreator buildUpdatePreparedStatementCreator(IdentityProvider identityProvider) {
-        return new Psc(UPDATE_SQL, identityProvider, identityProvider.getId(), identityProvider.getReferenceId(), identityProvider.getReferenceType().name());
+        return new Psc(UPDATE_SQL, identityProvider, identityProvider.getId(), identityProvider.getOrganizationId());
     }
 
     protected PreparedStatementCreator buildInsertPreparedStatementCreator(IdentityProvider identityProvider) {
@@ -293,12 +280,12 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
         LOGGER.debug("JdbcIdentityProviderRepository<{}>.delete({})", getOrm().getTableName(), id);
         try {
             jdbcTemplate.update("delete from identity_providers where id = ?", id);
-            
+
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete {} identityProvider:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to delete " + getOrm().getTableName() + " identityProvider", ex);
         }
-        
+
     }
 
     @Override
@@ -317,19 +304,17 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
     }
 
     @Override
-    public Set<IdentityProvider> findAllByReferenceIdAndReferenceType(String referenceId,
-            IdentityProviderReferenceType referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcIdentityProviderRepository<{}>.findAllByReferenceIdAndReferenceType({}, {})", getOrm().getTableName(), referenceId, referenceType);
+    public Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException {
+        LOGGER.debug("JdbcIdentityProviderRepository<{}>.findAllByOrganizationId({}, {})", getOrm().getTableName(), organizationId);
         try {
-            List<IdentityProvider> identityProviders = jdbcTemplate.query("select * from identity_providers where reference_id = ? and reference_type = ?"
+            List<IdentityProvider> identityProviders = jdbcTemplate.query("select * from identity_providers where organization_id = ?"
                     , getRowMapper()
-                    , referenceId
-                    , referenceType.name()
+                    , organizationId
             );
             return new HashSet<>(identityProviders);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find {} identityProviders by refs:", getOrm().getTableName(), ex);
-            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " identityProviders by refs", ex);
+            LOGGER.error("Failed to find {} identityProviders by org:", getOrm().getTableName(), ex);
+            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " identityProviders by org", ex);
         }
     }
 }

@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.3.0
+      author: GraviteeSource Team
+      changes:
+        - renameColumn:
+            newColumnName: organization_id
+            oldColumnName: reference_id
+            columnDataType: nvarchar(64)
+            tableName: identity_providers
+        - dropColumn:
+            columnName: reference_type
+            tableName: identity_providers
+
+        - renameColumn:
+            newColumnName: organization_id
+            oldColumnName: reference_id
+            columnDataType: nvarchar(64)
+            tableName: users
+        - dropColumn:
+            columnName: reference_type
+            tableName: users
