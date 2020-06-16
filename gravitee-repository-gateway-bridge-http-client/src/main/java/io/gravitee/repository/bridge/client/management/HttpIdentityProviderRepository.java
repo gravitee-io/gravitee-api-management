@@ -15,17 +15,11 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderRepository;
-import io.gravitee.repository.management.api.UserRepository;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.IdentityProvider;
-import io.gravitee.repository.management.model.IdentityProviderReferenceType;
-import io.gravitee.repository.management.model.User;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -62,8 +56,7 @@ public class HttpIdentityProviderRepository extends AbstractRepository implement
     }
 
     @Override
-    public Set<IdentityProvider> findAllByReferenceIdAndReferenceType(String referenceId,
-            IdentityProviderReferenceType referenceType) throws TechnicalException {
+    public Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException {
         throw new IllegalStateException();
     }
 }

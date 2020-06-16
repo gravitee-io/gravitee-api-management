@@ -21,7 +21,6 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
-import io.gravitee.repository.management.model.UserReferenceType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -66,7 +65,7 @@ public class HttpUserRepository extends AbstractRepository implements UserReposi
     }
 
     @Override
-    public Optional<User> findBySource(String source, String sourceId, String referenceId, UserReferenceType referenceType) throws TechnicalException {
+    public Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException {
         throw new IllegalStateException();
     }
 }
