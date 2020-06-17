@@ -58,7 +58,9 @@ class AlertService {
         notifications: alert.notifications,
         filters: alert.filters,
         projections: alert.projections,
-        dampening: alert.dampening
+        dampening: alert.dampening,
+        template: alert.template,
+        event_rules: alert.event_rules
       });
   }
 
@@ -77,7 +79,9 @@ class AlertService {
       notifications: alert.notifications,
       filters: alert.filters,
       projections: alert.projections,
-      dampening: alert.dampening
+      dampening: alert.dampening,
+      template: alert.template,
+      event_rules: alert.event_rules
     });
   }
 
@@ -107,6 +111,10 @@ class AlertService {
 
   delete(alert: Alert) {
     return this.$http.delete(this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts/' + alert.id);
+  }
+
+  associate(alert: Alert, type: string): ng.IPromise<any> {
+    return this.$http.post(this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts/' + alert.id + '?type=' + type, {});
   }
 
   private getReferenceURL(referenceType: Scope, referenceId: string) {

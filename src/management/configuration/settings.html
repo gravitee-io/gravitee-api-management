@@ -145,7 +145,7 @@
             </ul>
             <ul class="aui-nav">
               <li class="iterable-item"
-                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.alerts') || $ctrl.$state.includes('management.settings.alertnew') || $ctrl.$state.includes('management.settings.alert') }"
+                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.alerts.list') || $ctrl.$state.includes('management.settings.alerts.alertnew') || $ctrl.$state.includes('management.settings.alerts.alert') }"
                   ng-if="$ctrl.settingsMenu.alerts.perm">
                 <a class="execute" ui-sref="{{$ctrl.settingsMenu.alerts.goTo}}">Alerts</a>
               </li>

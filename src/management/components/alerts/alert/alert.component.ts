@@ -18,6 +18,7 @@ import AlertService from "../../../../services/alert.service";
 import NotificationService from "../../../../services/notification.service";
 import {Alert, Scope} from "../../../../entities/alert";
 import {Rule} from "../../../../entities/alerts/rule.metrics";
+import {IScope} from "angular";
 
 const AlertComponent: ng.IComponentOptions = {
   bindings: {
@@ -26,7 +27,7 @@ const AlertComponent: ng.IComponentOptions = {
     status: '<'
   },
   template: require('./alert.html'),
-  controller: function(Constants: any, AlertService: AlertService, NotificationService: NotificationService, $state, $mdDialog) {
+  controller: function(Constants: any, $scope: IScope, AlertService: AlertService, NotificationService: NotificationService, $state, $mdDialog) {
     'ngInject';
 
     this.$onInit = () => {
@@ -43,13 +44,16 @@ const AlertComponent: ng.IComponentOptions = {
         referenceType = Scope.API;
         referenceId = $state.params.apiId;
         this.groups = ['API metrics', 'Health-check'];
+        this.titlePrefix = $scope.$parent.$resolve.resolvedApi.data.name;
       } else if ($state.params.applicationId) {
         referenceType = Scope.APPLICATION;
         referenceId = $state.params.applicationId;
         this.groups = ['Application'];
+        this.titlePrefix = $scope.$parent.$resolve.resolvedApplication.data.name;
       } else {
         referenceType = Scope.PLATFORM;
         this.groups = ['Node', 'API metrics'];
+        this.titlePrefix = 'Platform';
       }
 
       this.rules = Rule.findByScope(referenceType);
@@ -64,6 +68,8 @@ const AlertComponent: ng.IComponentOptions = {
         this.alert.reference_type = referenceType;
       }
 
+      this.template = this.alert.template || false;
+      this.apiByDefault = this.alert.event_rules && this.alert.event_rules.findIndex(rule => rule.event === 'API_CREATE') !== -1;
       this.initialAlert = _.cloneDeep(this.alert);
     };
 
@@ -80,6 +86,13 @@ const AlertComponent: ng.IComponentOptions = {
     };
 
     this.save = (alert: Alert) => {
+
+      if (this.apiByDefault) {
+        alert["event_rules"] = [{event: "API_CREATE"}];
+      } else {
+        delete alert["event_rules"];
+      }
+
       let service;
       alert.type = alert.type.split('@')[1];
       if (this.updateMode) {
@@ -121,6 +134,13 @@ const AlertComponent: ng.IComponentOptions = {
       this.formAlert.$setPristine();
     };
 
+    this.associateToApis = () => {
+      AlertService.associate(this.alert, "api").then((response) => {
+        $state.reload();
+        NotificationService.show('Alert \'' + this.alert.name + '\' has been associated to all APIs');
+      });
+    };
+
     this.onRuleChange = () => {
       let rule: Rule = _.find(this.rules, rule => (rule.source + '@' + rule.type) === this.alert.type);
       this.alert.source = rule.source;
@@ -128,15 +148,17 @@ const AlertComponent: ng.IComponentOptions = {
         this.alert.filters.length = 0;
       }
       this.alert.description = rule.description;
+      // Template is a feature only available at platform level
+      this.template = this.alert.reference_type === 2 && rule.category === "API metrics";
     };
 
     this.backToAlerts = () => {
       if ($state.params.apiId) {
-        $state.go('management.apis.detail.alerts', {apiId: $state.params.apiId});
+        $state.go('management.apis.detail.alerts.list', {apiId: $state.params.apiId});
       } else if ($state.params.applicationId) {
-        $state.go('management.applications.application.alerts', {applicationId: $state.params.applicationId});
+        $state.go('management.applications.application.alerts.list', {applicationId: $state.params.applicationId});
       } else {
-        $state.go('management.settings.alerts');
+        $state.go('management.settings.alerts.list');
       }
     };
   }

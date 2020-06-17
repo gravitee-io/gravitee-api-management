@@ -19,8 +19,8 @@
   <div class="gv-forms gv-forms-fluid" layout="column">
     <div class="gv-forms" layout="column">
       <div class="gv-forms-header">
-        <h1 ng-if="$ctrl.updateMode">Alert - {{$ctrl.alert.name}}</h1>
-        <h1 ng-if="!$ctrl.updateMode">Create a new alert</h1>
+        <h1 ng-if="$ctrl.updateMode">[{{ $ctrl.titlePrefix }}] {{$ctrl.alert.name}}</h1>
+        <h1 ng-if="!$ctrl.updateMode">[{{ $ctrl.titlePrefix }}] Create a new alert</h1>
         <a ng-click="$ctrl.backToAlerts()">Back to alerts</a>
       </div>
 
@@ -57,7 +57,7 @@
 
                     <div flex></div>
 
-                    <md-input-container class="md-block" flex="20">
+                    <md-input-container class="md-block" flex="20" ng-if="$ctrl.alert.template === undefined || $ctrl.alert.template === false">
                       <md-checkbox
                         ng-model="$ctrl.alert.enabled"
                         aria-label="Enable this alert trigger"
@@ -94,6 +94,40 @@
                       <label>Description</label>
                       <input ng-model="$ctrl.alert.description" name="name" aria-label="Alert description"/>
                     </md-input-container>
+                  </div>
+                </div>
+              </div>
+
+              <div ng-if="($ctrl.template && !$ctrl.updateMode) || $ctrl.alert.template">
+                <h2>Template</h2>
+                <div class="gv-form-content" layout="column">
+                  <md-input-container class="md-block" flex="20" ng-if="$ctrl.alert.reference_type === 2 && !$ctrl.updateMode">
+                    <md-checkbox
+                      ng-model="$ctrl.alert.template"
+                      ng-disabled="$ctrl.updateMode"
+                      aria-label="Define as template"
+                      class="md-primary md-align-top-left"
+                      flex>
+                      Define as template
+                    </md-checkbox>
+                  </md-input-container>
+
+                  <md-checkbox
+                    ng-model="$ctrl.apiByDefault"
+                    ng-click="$event.stopPropagation()"
+                    aria-label="Associate to every new API"
+                    class="md-primary md-align-top-left"
+                    flex>
+                    Create automatically the alert for every new API
+                  </md-checkbox>
+
+                  <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.updateMode">
+                    <md-button
+                      aria-label="Associate to existing APIs"
+                      ng-click="$ctrl.associateToApis()"
+                      class="md-actions md-raised md-primary">
+                      Associate the alert to existing APIs
+                    </md-button>
                   </div>
                 </div>
               </div>
@@ -164,7 +198,7 @@
             </md-tab-body>
           </md-tab>
 
-          <md-tab md-on-select="$ctrl.currentTab=$ctrl.selectTab(2)" ng-disabled="!$ctrl.updateMode">
+          <md-tab md-on-select="$ctrl.currentTab=$ctrl.selectTab(2)" ng-disabled="!$ctrl.updateMode || $ctrl.alert.template">
             <md-tab-label>History</md-tab-label>
             <md-tab-body>
               <gv-alert-history alert="$ctrl.alert"></gv-alert-history>

@@ -25,15 +25,15 @@ const AlertsComponent: ng.IComponentOptions = {
     application: '<',
   },
   template: require('./alerts.html'),
-  controller: function ($state: StateService, AlertService: AlertService, NotificationService: NotificationService, $mdDialog) {
+  controller: function ($stateParams, $state: StateService, AlertService: AlertService, NotificationService: NotificationService, $mdDialog) {
     'ngInject';
     this.goTo = (suffixState: string, alertId: string) => {
-      if (this.api) {
-        $state.go('management.apis.detail.' + suffixState, {apiId: this.api.id, alertId: alertId});
-      } else if (this.application) {
-        $state.go('management.applications.application.' + suffixState, {applicationId: this.application.id, alertId: alertId});
+      if ($stateParams.apiId) {
+        $state.go('management.apis.detail.alerts.' + suffixState, {apiId: $stateParams.apiId, alertId: alertId});
+      } else if ($stateParams.applicationId) {
+        $state.go('management.applications.application.alerts.' + suffixState, {applicationId: $stateParams.applicationId, alertId: alertId});
       } else {
-        $state.go('management.settings.' + suffixState, {alertId: alertId});
+        $state.go('management.settings.alerts.' + suffixState, {alertId: alertId});
       }
     };
 

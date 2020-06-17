@@ -88,6 +88,8 @@ export class Alert {
   projections: any[];
   notifications: any[];
   filters: any[];
+  template: boolean;
+  event_rules: any;
 
   constructor(name: string, severity: string, source: string, description: string, type: string, reference_type: Scope, reference_id: string) {
     this.name = name;

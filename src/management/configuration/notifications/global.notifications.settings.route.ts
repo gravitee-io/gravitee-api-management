@@ -68,7 +68,11 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       }
     })
     .state('management.settings.alerts', {
-      url: '/alerts',
+      abstract: true,
+      url: '/alerts'
+    })
+    .state('management.settings.alerts.list', {
+      url: '/',
       component: 'alertsComponent',
       data: {
         menu: {
@@ -89,8 +93,8 @@ function applicationsNotificationsRouterConfig($stateProvider) {
           NotifierService.list().then( (response) => response.data)
       }
     })
-    .state('management.settings.alertnew', {
-      url: '/alert/create',
+    .state('management.settings.alerts.alertnew', {
+      url: '/create',
       component: 'alertComponent',
       data: {
         menu: null,
@@ -110,8 +114,8 @@ function applicationsNotificationsRouterConfig($stateProvider) {
           NotifierService.list().then( (response) => response.data)
       }
     })
-    .state('management.settings.alert', {
-      url: '/alert/:alertId',
+    .state('management.settings.alerts.alert', {
+      url: '/:alertId',
       component: 'alertComponent',
       data: {
         menu: null,
