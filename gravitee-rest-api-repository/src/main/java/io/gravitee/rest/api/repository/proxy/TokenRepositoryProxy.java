@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.repository.proxy;
+package io.gravitee.rest.api.repository.proxy;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TokenRepository;
-import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.Token;
 import org.springframework.stereotype.Component;
 
@@ -48,11 +47,6 @@ public class TokenRepositoryProxy extends AbstractProxy<TokenRepository> impleme
     }
 
     @Override
-    public List<Token> findByReference(String referenceType, String referenceId) throws TechnicalException {
-        return target.findByReference(referenceType, referenceId);
-    }
-
-    @Override
     public Set<Token> findAll() throws TechnicalException {
         return target.findAll();
     }
@@ -60,5 +54,10 @@ public class TokenRepositoryProxy extends AbstractProxy<TokenRepository> impleme
     @Override
     public void delete(String s) throws TechnicalException {
         target.delete(s);
+    }
+
+    @Override
+    public List<Token> findByReference(String referenceType, String referenceId) throws TechnicalException {
+        return target.findByReference(referenceType, referenceId);
     }
 }

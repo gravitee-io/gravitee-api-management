@@ -296,4 +296,9 @@ public class CurrentUserResource extends AbstractResource {
     public UserNotificationsResource getUserNotificationsResource() {
         return resourceContext.getResource(UserNotificationsResource.class);
     }
+
+    @Path("/tokens")
+    public TokensResource getTokensResource() {
+        return resourceContext.getResource(TokensResource.class);
+    }
 }
