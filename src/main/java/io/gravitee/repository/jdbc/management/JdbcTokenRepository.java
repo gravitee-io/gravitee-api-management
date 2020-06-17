@@ -18,9 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TokenRepository;
-import io.gravitee.repository.management.model.Invitation;
 import io.gravitee.repository.management.model.Token;
-import io.gravitee.repository.management.model.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -28,11 +26,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
