@@ -151,7 +151,7 @@ const EditPageComponent: ng.IComponentOptions = {
         template: require('../dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Would you like to remove "' + page.name + '" ?',
+          title: 'Would you like to remove "' + page.name + '"?',
           confirmButton: 'Remove'
         }
       }).then(function (response: any) {
