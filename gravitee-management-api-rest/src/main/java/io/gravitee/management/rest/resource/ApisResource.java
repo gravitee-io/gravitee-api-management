@@ -131,8 +131,11 @@ public class ApisResource extends AbstractResource {
         }
 
         return apis.stream()
-                .map(this::convert)
-                .map(this::setManageable)
+                .map(apiEntity -> {
+                    ApiListItem apiListItem = this.convert(apiEntity);
+                    setManageable(apiListItem, apiEntity.getGroups());
+                    return apiListItem;
+                })
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .collect(toList());
     }
@@ -257,8 +260,11 @@ public class ApisResource extends AbstractResource {
 
             return Response.ok().entity(apiService.search(query, filters)
                     .stream()
-                    .map(this::convert)
-                    .map(this::setManageable)
+                    .map(apiEntity -> {
+                        ApiListItem apiListItem = this.convert(apiEntity);
+                        setManageable(apiListItem, apiEntity.getGroups());
+                        return apiListItem;
+                    })
                     .collect(toList())).build();
         } catch (TechnicalException te) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
@@ -325,9 +331,9 @@ public class ApisResource extends AbstractResource {
         return apiItem;
     }
 
-    private ApiListItem setManageable(ApiListItem api) {
+    private ApiListItem setManageable(ApiListItem api, Set<String> apiGroups) {
         api.setManageable(isAuthenticated() &&
-                (isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), RolePermissionAction.READ))
+                (isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), apiGroups, RolePermissionAction.READ))
         );
         return api;
     }

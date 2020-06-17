@@ -25,7 +25,6 @@ import io.gravitee.repository.management.model.MembershipReferenceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -50,7 +49,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
     RoleService roleService;
 
     @Override
-    public boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
+    public boolean hasPermission(RolePermission permission, String referenceId, Set<String> referenceGroups, RolePermissionAction... acls) {
         Optional<String> optionalReferenceId = Optional.ofNullable(referenceId);
         MembershipReferenceType membershipReferenceType;
         MembershipReferenceType groupMembershipReferenceType = null;
@@ -86,12 +85,15 @@ public class PermissionServiceImpl extends AbstractService implements Permission
 
         if (groupMembershipReferenceType != null) {
             Set<String> groups;
-            try {
-                groups = apiService.findById(referenceId).getGroups();
-            } catch (ApiNotFoundException | IllegalArgumentException ane) {
-                groups = applicationService.findById(referenceId).getGroups();
+            if (referenceGroups != null) {
+                groups = referenceGroups;
+            } else {
+                try {
+                    groups = apiService.findById(referenceId).getGroups();
+                } catch (ApiNotFoundException | IllegalArgumentException ane) {
+                    groups = applicationService.findById(referenceId).getGroups();
+                }
             }
-
             if (groups != null && !groups.isEmpty()) {
                 roles.addAll(membershipService.getRoles(groupMembershipReferenceType, groups, getAuthenticatedUsername(), repoRoleScope));
             }

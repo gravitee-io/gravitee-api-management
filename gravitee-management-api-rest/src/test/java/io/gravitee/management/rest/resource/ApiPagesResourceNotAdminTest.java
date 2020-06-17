@@ -39,7 +39,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
@@ -120,7 +120,7 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         doReturn(false).when(pageService).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
         doReturn(true).when(roleService).hasPermission(any(), eq(ApiPermission.DOCUMENTATION), eq(new RolePermissionAction[]{RolePermissionAction.READ}));
         when(groupService.isUserAuthorizedToAccessApiData(any(), any(), any())).thenReturn(Boolean.FALSE);
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
+        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
 
         final Response response = target().request().get();
 

@@ -29,6 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -83,6 +84,10 @@ public abstract class AbstractResource {
     }
 
     protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
-        return isAuthenticated() && (isAdmin() || permissionService.hasPermission(permission, referenceId, acls));
+        return hasPermission(permission, referenceId, null, acls);
+    }
+
+    protected boolean hasPermission(RolePermission permission, String referenceId, Set<String> referenceGroups, RolePermissionAction... acls) {
+        return isAuthenticated() && (isAdmin() || permissionService.hasPermission(permission, referenceId, referenceGroups, acls));
     }
 }

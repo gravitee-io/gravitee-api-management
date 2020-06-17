@@ -18,11 +18,17 @@ package io.gravitee.management.service;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 
+import java.util.Set;
+
 /**
  * @author Nicolas GERAUD(nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface PermissionService {
 
-    boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls);
+    boolean hasPermission(RolePermission permission, String referenceId, Set<String> referenceGroups, RolePermissionAction... acls);
+
+    default boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
+        return hasPermission(permission, referenceId, null, acls);
+    }
 }
