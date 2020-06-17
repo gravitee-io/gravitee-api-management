@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 import static io.gravitee.management.model.alert.AlertReferenceType.PLATFORM;
@@ -94,6 +95,17 @@ public class PlatformAlertsResource extends AbstractResource {
         alertEntity.setReferenceType(PLATFORM);
         alertEntity.setReferenceId(PLATFORM_REFERENCE_ID);
         return alertService.update(alertEntity);
+    }
+
+    @POST
+    @Path("{alert}")
+    @ApiOperation(value = "Associate the alert to multiple references (API, APPLICATION")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = RolePermissionAction.UPDATE)
+    })
+    public Response associate(@PathParam("alert") String alert, @QueryParam("type") String type) {
+        alertService.applyDefaults(alert, AlertReferenceType.valueOf(type.toUpperCase()));
+        return Response.ok().build();
     }
 
     @Path("{alert}")

@@ -17,8 +17,10 @@ package io.gravitee.management.model.alert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.alert.api.trigger.Trigger;
+import io.gravitee.management.model.AlertEventRuleEntity;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -42,6 +44,9 @@ public class UpdateAlertTriggerEntity extends Trigger {
 
     @JsonProperty("reference_id")
     private String referenceId;
+
+    @JsonProperty("event_rules")
+    private List<AlertEventRuleEntity> eventRules;
 
     protected UpdateAlertTriggerEntity() {
         super(null, null, Severity.INFO, null, false);
@@ -95,6 +100,14 @@ public class UpdateAlertTriggerEntity extends Trigger {
     @Override
     public void setSeverity(Severity severity) {
         this.severity = severity;
+    }
+
+    public List<AlertEventRuleEntity> getEventRules() {
+        return eventRules;
+    }
+
+    public void setEventRules(List<AlertEventRuleEntity> eventRules) {
+        this.eventRules = eventRules;
     }
 
     @Override

@@ -82,7 +82,6 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -425,6 +424,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 //TODO add membership log
                 ApiEntity apiEntity = convert(createdApi, primaryOwner, null);
                 searchEngineService.index(apiEntity, false);
+
+                // Create default alerts
+                alertService.createDefaults(AlertReferenceType.API, createdApi.getId());
+
                 return apiEntity;
             } else {
                 LOGGER.error("Unable to create API {} because of previous error.", api.getName());

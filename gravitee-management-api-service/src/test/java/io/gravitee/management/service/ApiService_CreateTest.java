@@ -101,6 +101,9 @@ public class ApiService_CreateTest {
     @Mock
     private ViewService viewService;
 
+    @Mock
+    private AlertService alertService;
+
     @Before
     public void init() {
         final SecurityContext securityContext = mock(SecurityContext.class);

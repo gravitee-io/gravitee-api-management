@@ -102,6 +102,9 @@ public class ApiService_CreateWithDefinitionTest {
     @Mock
     private ApiMetadataService apiMetadataService;
 
+    @Mock
+    private AlertService alertService;
+
     @Before
     public void init() {
         final SecurityContext securityContext = mock(SecurityContext.class);

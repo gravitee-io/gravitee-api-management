@@ -32,4 +32,8 @@ public interface AlertService {
     void delete(String alertId, String referenceId);
     AlertStatusEntity getStatus();
     Page<AlertEventEntity> findEvents(String alertId, AlertEventQuery eventQuery);
+
+    void createDefaults(AlertReferenceType referenceType, String referenceId);
+
+    void applyDefaults(String alertId, AlertReferenceType referenceType);
 }
