@@ -33,7 +33,7 @@ public class SwaggerV2Parser extends AbstractSwaggerParser<Swagger> {
         if (isLocationUrl(content)) {
             return new io.swagger.parser.SwaggerParser().read(content);
         } else {
-            return new io.swagger.parser.SwaggerParser().parse(content);
+            return new io.swagger.parser.SwaggerParser().parse(content.replaceAll("\t", "  "));
         }
     }
 }

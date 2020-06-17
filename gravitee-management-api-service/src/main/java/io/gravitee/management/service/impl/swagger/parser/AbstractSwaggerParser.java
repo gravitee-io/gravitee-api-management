@@ -24,7 +24,7 @@ import java.io.File;
 abstract class AbstractSwaggerParser<T> implements SwaggerParser<T> {
 
     static boolean isLocationUrl(String content) {
-        content = content.replaceAll("\\\\","/");
+        content = content.toLowerCase().replaceAll("\\\\","/");
         return content.startsWith("http") || content.startsWith("file") || content.startsWith(File.separator);
     }
 }
