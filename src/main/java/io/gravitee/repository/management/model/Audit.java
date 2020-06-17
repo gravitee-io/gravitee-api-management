@@ -26,14 +26,14 @@ import java.util.Objects;
 public class Audit {
 
     public enum AuditReferenceType {
-        API, APPLICATION, PORTAL
+        API, APPLICATION, ENVIRONMENT, ORGANIZATION
     }
 
     public interface AuditEvent {
         String name();
     }
 
-    public interface ApiAuditEvent extends AuditEvent{
+    public interface ApiAuditEvent extends AuditEvent {
 
     }
 
@@ -49,7 +49,7 @@ public class Audit {
     private String user;
     private Date createdAt;
     private String event;
-    private Map<String,String> properties;
+    private Map<String, String> properties;
     private String patch;
 
     public String getId() {
@@ -84,11 +84,11 @@ public class Audit {
         this.event = event;
     }
 
-    public Map<String,String> getProperties() {
+    public Map<String, String> getProperties() {
         return properties;
     }
 
-    public void setProperties(Map<String,String> properties) {
+    public void setProperties(Map<String, String> properties) {
         this.properties = properties;
     }
 
