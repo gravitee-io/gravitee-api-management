@@ -107,7 +107,7 @@ export class AuthService {
   }
 
   private _configure(provider) {
-    const redirectUri = window.location.origin;
+    const redirectUri = window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname);
     this.oauthService.configure({
       clientId: provider.client_id,
       loginUrl: provider.authorizationEndpoint,
