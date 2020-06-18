@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -38,7 +39,10 @@ import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -135,8 +139,14 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         mailMessage.setText(html, true);
 
         for (final String res : resources) {
-            final FileSystemResource templateResource = new FileSystemResource(new File(templatesPath, res));
-            mailMessage.addInline(res, templateResource, getContentTypeByFileName(res));
+            if (res.startsWith("data:image/")) {
+                final String value = res.replaceFirst("^data:image/[^;]*;base64,?", "");
+                byte[] bytes = Base64.getDecoder().decode(value.getBytes("UTF-8"));
+                mailMessage.addInline(res, new ByteArrayResource(bytes), extractMimeType(res));
+            } else {
+                final FileSystemResource templateResource = new FileSystemResource(new File(templatesPath, res));
+                mailMessage.addInline(res, templateResource, getContentTypeByFileName(res));
+            }
         }
 
         return html;
@@ -149,5 +159,18 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
             return "image/png";
         }
         return MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(fileName);
+    }
+
+    /**
+     * Extract the MIME type from a base64 string
+     * @param encoded Base64 string
+     * @return MIME type string
+     */
+    private static String extractMimeType(final String encoded) {
+        final Pattern mime = Pattern.compile("^data:([a-zA-Z0-9]+/[a-zA-Z0-9]+).*,.*");
+        final Matcher matcher = mime.matcher(encoded);
+        if (!matcher.find())
+            return "";
+        return matcher.group(1).toLowerCase();
     }
 }
