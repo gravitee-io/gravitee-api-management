@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import {AuditQuery, default as AuditService} from '../../services/audit.service';
+import { AuditQuery, default as AuditService } from '../../services/audit.service';
 
 const AuditComponent: ng.IComponentOptions = {
   template: require('./audit.html'),
@@ -35,6 +35,7 @@ const AuditComponent: ng.IComponentOptions = {
       AuditService.list(null, vm.api).then(response =>
         vm.handleAuditResponseData(response.data)
       );
+      vm.queryLogType = 'all';
     };
 
     vm.handleAuditResponseData = (responseData) => {
@@ -72,6 +73,19 @@ const AuditComponent: ng.IComponentOptions = {
 
     vm.getDisplayableProperties = (properties) => {
       return _.mapValues(properties, (v, k) => vm.metadata[k + ':' + v + ':name']);
+    };
+
+    vm.onOrgEnvFilterChange = ( ) => {
+      if (vm.queryLogType === 'env') {
+        vm.query.orgLog = false;
+        vm.query.envLog = true;
+      } else if (vm.queryLogType === 'org') {
+        vm.query.orgLog = true;
+        vm.query.envLog = false;
+      } else {
+        vm.query.orgLog = false;
+        vm.query.envLog = false;
+      }
     };
 
     vm.search = () => {

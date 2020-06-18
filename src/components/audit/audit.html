@@ -23,9 +23,20 @@
         <div class="gv-form-content" layout="column">
             <div layout="row" layout-align="space-around end">
                 <div layout="column" layout-align="end start">
-                    <md-checkbox aria-label="Only Portal Audit Logs" ng-model="$ctrl.query.mgmt" ng-if="!$ctrl.api">
-                        Show only portal audit logs
-                    </md-checkbox>
+                    <div layout="row" ng-if="!$ctrl.api">
+                        <label id="orgEnvFilter" style="margin-right: 10px;">Show audit logs for: </label>
+                        <md-radio-group ng-model="$ctrl.queryLogType" ng-change="$ctrl.onOrgEnvFilterChange()" aria-labelledby="orgEnvFilter">
+                            <md-radio-button aria-label="All Audit Logs" value="all">
+                                All
+                            </md-radio-button>
+                            <md-radio-button aria-label="Only Current Environment Audit Logs" value="env">
+                                Current environment only
+                            </md-radio-button>
+                            <md-radio-button aria-label="Only Current Organization Audit Logs" value="org">
+                                Current organization only
+                            </md-radio-button>
+                        </md-radio-group>
+                    </div>
                     <div layout="row" layout-align="space-around end">
                         <md-input-container>
                             <label>Events</label>
@@ -36,7 +47,7 @@
                                 </md-option>
                             </md-select>
                         </md-input-container>
-                        <md-input-container ng-if="!$ctrl.query.mgmt && !$ctrl.api">
+                        <md-input-container ng-if="!$ctrl.query.envLog && !$ctrl.query.orgLog && !$ctrl.api">
                             <label>Applications</label>
                             <md-select ng-model="$ctrl.query.application">
                                 <md-option ng-value="undefined"></md-option>
@@ -45,7 +56,7 @@
                                 </md-option>
                             </md-select>
                         </md-input-container>
-                        <md-input-container ng-if="!$ctrl.query.mgmt && !$ctrl.api">
+                        <md-input-container ng-if="!$ctrl.query.envLog && !$ctrl.query.orgLog && !$ctrl.api">
                             <label>APIs</label>
                             <md-select ng-model="$ctrl.query.api">
                                 <md-option ng-value="undefined"></md-option>
