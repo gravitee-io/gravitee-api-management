@@ -44,7 +44,7 @@
           <div layout="row" flex="50">
             <b style="margin: 26px 10px 26px 0">Default API Role</b>
             <md-select placeholder="Default API Role" class="gv-input-number"
-              ng-model="selectedApiRole" aria-label="Default API Role" ng-disabled="!$ctrl.canChangeDefaultApiRole()">
+              ng-model="$ctrl.selectedApiRole" aria-label="Default API Role" ng-disabled="!$ctrl.canChangeDefaultApiRole()">
               <md-option ng-value="role.name"
                          ng-repeat="role in $ctrl.apiRoles"
                          ng-disabled="role.system">{{role.name}}</md-option>
@@ -52,7 +52,7 @@
           </div>
           <div layout="row" flex="50">
             <b style="margin: 26px 10px 26px 0">Default Application Role</b>
-            <md-select placeholder="Default Application Role" ng-model="selectedApplicationRole" class="gv-input-number"
+            <md-select placeholder="Default Application Role" ng-model="$ctrl.selectedApplicationRole" class="gv-input-number"
                        aria-label="Default Application Role" ng-disabled="!$ctrl.canChangeDefaultApplicationRole()">
               <md-option ng-value="role.name"
                          ng-repeat="role in $ctrl.applicationRoles"

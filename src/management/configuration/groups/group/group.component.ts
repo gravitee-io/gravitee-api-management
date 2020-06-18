@@ -59,10 +59,9 @@ const GroupComponent: ng.IComponentOptions = {
       $scope.groupApis = [];
       $scope.groupApplications = [];
       $scope.currentTab= 'users';
-
       if (this.group.roles) {
-        $scope.selectedApiRole = this.group.roles['API'];
-        $scope.selectedApplicationRole = this.group.roles['APPLICATION'];
+        this.selectedApiRole = this.group.roles['API'];
+        this.selectedApplicationRole = this.group.roles['APPLICATION'];
       }
 
       this.apiByDefault = this.group.event_rules && this.group.event_rules.findIndex(rule => rule.event === 'API_CREATE') !== -1;
@@ -101,14 +100,14 @@ const GroupComponent: ng.IComponentOptions = {
       } else {
         let roles = {};
 
-        if ($scope.selectedApiRole) {
-          roles['API'] = $scope.selectedApiRole;
+        if (this.selectedApiRole) {
+          roles['API'] = this.selectedApiRole;
         } else {
           delete roles['API'];
         }
 
-        if ($scope.selectedApplicationRole) {
-          roles['APPLICATION'] = $scope.selectedApplicationRole;
+        if (this.selectedApplicationRole) {
+          roles['APPLICATION'] = this.selectedApplicationRole;
         } else {
           delete roles['APPLICATION'];
         }
@@ -155,8 +154,8 @@ const GroupComponent: ng.IComponentOptions = {
         template: require('./addMember.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          defaultApiRole: $scope.selectedApiRole,
-          defaultApplicationRole: $scope.selectedApplicationRole,
+          defaultApiRole: this.selectedApiRole,
+          defaultApplicationRole: this.selectedApplicationRole,
           group: this.group,
           apiRoles: this.apiRoles,
           applicationRoles: this.applicationRoles,
@@ -248,8 +247,8 @@ const GroupComponent: ng.IComponentOptions = {
         template: require('./inviteMember.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          defaultApiRole: $scope.selectedApiRole,
-          defaultApplicationRole: $scope.selectedApplicationRole,
+          defaultApiRole: this.selectedApiRole,
+          defaultApplicationRole: this.selectedApplicationRole,
           group: this.group,
           apiRoles: this.apiRoles,
           applicationRoles: this.applicationRoles,
