@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
+import io.gravitee.common.utils.Hex;
+import io.gravitee.common.http.IdGenerator;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.standalone.vertx.ws.VertxWebSocketReactorHandler;
 import io.vertx.core.AbstractVerticle;
@@ -33,9 +36,8 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class ReactorVerticle extends AbstractVerticle {
 
-    /**
-     * Logger.
-     */
+    private static final String HEX_FORMAT = "hex";
+
     private final Logger logger = LoggerFactory.getLogger(ReactorVerticle.class);
 
     @Autowired
@@ -60,18 +62,28 @@ public class ReactorVerticle extends AbstractVerticle {
     @Value("${http.websocket.enabled:false}")
     private boolean websocketEnabled;
 
+    @Value("${handlers.request.format:uuid}")
+    private String requestFormat;
+
     @Override
     public void start(Future<Void> startFuture) throws Exception {
         VertxReactorHandler handler;
 
-        if (websocketEnabled) {
-            handler = new VertxWebSocketReactorHandler(reactor, this.legacyDecodeUrlParams);
+        final IdGenerator idGenerator;
+        if (HEX_FORMAT.equals(requestFormat)) {
+            idGenerator = new Hex();
         } else {
-            handler = new VertxReactorHandler(reactor, this.legacyDecodeUrlParams);
+            idGenerator = new UUID();
+        }
+
+        if (websocketEnabled) {
+            handler = new VertxWebSocketReactorHandler(reactor, legacyDecodeUrlParams, idGenerator);
+        } else {
+            handler = new VertxReactorHandler(reactor, legacyDecodeUrlParams, idGenerator);
         }
 
         if (requestTimeout > 0) {
-            handler = new VertxReactorTimeoutHandler(reactor, handler, vertx, requestTimeout, this.legacyDecodeUrlParams);
+            handler = new VertxReactorTimeoutHandler(reactor, handler, vertx, requestTimeout, legacyDecodeUrlParams, idGenerator);
         }
 
         httpServer.requestHandler(handler);
