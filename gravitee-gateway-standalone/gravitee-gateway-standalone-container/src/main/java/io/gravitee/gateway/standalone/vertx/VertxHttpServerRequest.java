@@ -21,7 +21,7 @@ import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
-import io.gravitee.common.utils.UUID;
+import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
@@ -58,10 +58,12 @@ public class VertxHttpServerRequest implements Request {
 
     private Handler<Long> timeoutHandler;
 
-    public VertxHttpServerRequest(HttpServerRequest httpServerRequest, boolean legacyDecodeUrlParams) {
+    public VertxHttpServerRequest(HttpServerRequest httpServerRequest, boolean legacyDecodeUrlParams,
+                                  IdGenerator idGenerator) {
         this.httpServerRequest = httpServerRequest;
         this.timestamp = System.currentTimeMillis();
-        this.id = UUID.toString(UUID.random());
+        this.id = idGenerator.randomString();
+
         this.legacyDecodeUrlParams = legacyDecodeUrlParams;
 
         this.metrics = Metrics.on(timestamp).build();

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
+import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
@@ -33,8 +34,9 @@ public class VertxReactorTimeoutHandler extends VertxReactorHandler {
 
     private final long timeout;
 
-    VertxReactorTimeoutHandler(final Reactor reactor, final VertxReactorHandler handler, final Vertx vertx, final long timeout, boolean legacyDecodeUrlParams) {
-        super(reactor, legacyDecodeUrlParams);
+    VertxReactorTimeoutHandler(final Reactor reactor, final VertxReactorHandler handler, final Vertx vertx, final long timeout,
+                               boolean legacyDecodeUrlParams, IdGenerator idGenerator) {
+        super(reactor, legacyDecodeUrlParams, idGenerator);
         this.handler = handler;
         this.vertx = vertx;
         this.timeout = timeout;

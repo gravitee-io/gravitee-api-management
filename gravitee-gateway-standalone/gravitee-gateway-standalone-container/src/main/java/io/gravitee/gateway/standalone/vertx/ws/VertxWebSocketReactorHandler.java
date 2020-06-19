@@ -16,6 +16,7 @@
 package io.gravitee.gateway.standalone.vertx.ws;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactor.Reactor;
@@ -31,8 +32,12 @@ import io.vertx.core.http.HttpServerRequest;
  */
 public class VertxWebSocketReactorHandler extends VertxReactorHandler {
 
-    public VertxWebSocketReactorHandler(final Reactor reactor, boolean legacyDecodeUrlParams) {
-        super(reactor, legacyDecodeUrlParams);
+    private final IdGenerator idGenerator;
+
+    public VertxWebSocketReactorHandler(final Reactor reactor, boolean legacyDecodeUrlParams,
+                                        IdGenerator idGenerator) {
+        super(reactor, legacyDecodeUrlParams, idGenerator);
+        this.idGenerator = idGenerator;
     }
 
     @Override
@@ -41,7 +46,7 @@ public class VertxWebSocketReactorHandler extends VertxReactorHandler {
         Response response;
 
         if (isWebSocket(httpServerRequest)) {
-            request = new VertxWebSocketServerRequest(httpServerRequest);
+            request = new VertxWebSocketServerRequest(httpServerRequest, idGenerator);
             response = new VertxWebSocketServerResponse(httpServerRequest, request);
             route(request, response);
         } else {

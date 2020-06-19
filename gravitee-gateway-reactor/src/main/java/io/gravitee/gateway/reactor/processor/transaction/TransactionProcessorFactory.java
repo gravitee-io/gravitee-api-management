@@ -25,10 +25,12 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class TransactionProcessorFactory {
 
-    @Value("${handlers.request.transaction.header:" + TransactionProcessor.DEFAULT_TRANSACTIONAL_ID_HEADER + "}")
-    private String transactionHeader = TransactionProcessor.DEFAULT_TRANSACTIONAL_ID_HEADER;
+    @Value("${handlers.request.transaction.header:" + TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER + "}")
+    private String transactionHeader;
+    @Value("${handlers.request.request.header:" + TransactionProcessor.DEFAULT_REQUEST_ID_HEADER + "}")
+    private String requestHeader;
 
     public Processor<ExecutionContext> create() {
-        return new TransactionProcessor(transactionHeader);
+        return new TransactionProcessor(transactionHeader, requestHeader);
     }
 }
