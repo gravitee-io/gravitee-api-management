@@ -30,7 +30,7 @@ public class VertxWebSocketServerRequest extends VertxHttpServerRequest {
     private VertxWebSocket vertxWebSocket;
 
     public VertxWebSocketServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
-        super(httpServerRequest, false, idGenerator);
+        super(httpServerRequest, idGenerator);
         this.vertxWebSocket = new VertxWebSocket(httpServerRequest);
     }
 
