@@ -26,7 +26,7 @@ class TaskService {
   constructor(private $http: ng.IHttpService, Constants, UserService: UserService) {
     'ngInject';
     this.Constants = Constants;
-    this.URL = this.Constants.baseURL + '/user/tasks';
+    this.URL = this.Constants.orgBaseURL + '/user/tasks';
     this.UserService = UserService;
   }
 

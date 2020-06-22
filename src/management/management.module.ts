@@ -179,6 +179,7 @@ import DialogConfigureLoggingEditorController
   from '../management/api/analytics/logs/configure-logging-editor.dialog.controller';
 // Others
 import ThemeElementDirective from '../components/theme/theme-element.directive';
+import EnvironmentService from '../services/environment.service';
 
 import IdentityPictureDirective from '../components/identityPicture/identityPicture.directive';
 import ImageDirective from '../components/image/image.directive';
@@ -764,6 +765,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('ThemeService', ThemeService)
   .service('ReCaptchaService', ReCaptchaService)
   .service('TokenService', TokenService)
+  .service('EnvironmentService', EnvironmentService)
   .controller('DialogGenerateTokenController', DialogGenerateTokenController)
 
   .directive('filecontent', () => FileContentDirective)

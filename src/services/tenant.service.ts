@@ -19,7 +19,7 @@ class TenantService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.tenantsURL = `${Constants.baseURL}/configuration/tenants/`;
+    this.tenantsURL = `${Constants.envBaseURL}/configuration/tenants/`;
   }
 
   list() {

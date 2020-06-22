@@ -26,7 +26,7 @@ class UserNotificationService {
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
     this.Constants = Constants;
-    this.URL = this.Constants.baseURL + '/user/notifications';
+    this.URL = this.Constants.orgBaseURL + '/user/notifications';
   }
 
   getNotificationSchedulerInSeconds(): number {

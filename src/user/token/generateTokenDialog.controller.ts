@@ -19,29 +19,29 @@ function DialogGenerateTokenController($scope, $mdDialog, locals, TokenService, 
   this.title = locals.title;
   this.msg = locals.msg;
 
-  this.cancel = function() {
+  this.cancel = function () {
     $mdDialog.hide(false);
   };
 
-  this.confirm = function() {
+  this.confirm = function () {
     $mdDialog.hide(true);
   };
 
-  this.generate = function() {
+  this.generate = function () {
     TokenService.create({ name: this.name }).then((response) => {
       NotificationService.show('Token "' + this.name + '" has been successfully generated.');
       this.token = response.data;
     });
   };
 
-  this.onClipboardSuccess = function() {
+  this.onClipboardSuccess = function () {
     NotificationService.show('The token has been copied to clipboard');
   };
 
   this.getExampleOfUse = function (token) {
-    const baseURL = Constants.baseURL.startsWith('/') ?
-      $location.absUrl().split('/#')[0] + Constants.baseURL : Constants.baseURL;
-    return `curl -H "Authorization: Bearer ${token}" "${baseURL}"`;
+    const envBaseURL = Constants.envBaseURL.startsWith('/') ?
+      $location.absUrl().split('/#')[0] + Constants.envBaseURL : Constants.envBaseURL;
+    return `curl -H "Authorization: Bearer ${token}" "${envBaseURL}"`;
   };
 }
 

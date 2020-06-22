@@ -22,7 +22,7 @@ class IdentityProviderService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.URL = `${Constants.baseURL}/configuration/identities/`;
+    this.URL = `${Constants.orgBaseURL}/configuration/identities/`;
   }
 
   list(): IPromise<IdentityProvider[]> {

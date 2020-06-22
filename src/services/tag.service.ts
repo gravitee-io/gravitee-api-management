@@ -18,7 +18,7 @@ class TagService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.tagsURL = `${Constants.baseURL}/configuration/tags/`;
+    this.tagsURL = `${Constants.envBaseURL}/configuration/tags/`;
   }
 
   list() {

@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function delegatorConfig($sceDelegateProvider, Constants) {
-  'ngInject';
-  $sceDelegateProvider.resourceUrlWhitelist([
-    'self',
-    Constants.envBaseURL + '/**',
-    Constants.orgBaseURL + '/**',
-  ]);
+
+class EnvironmentService {
+  private environmentURL: string;
+
+  constructor(private $http, Constants, private $q) {
+    'ngInject';
+    this.environmentURL = `${Constants.orgBaseURL}/environments`;
+  }
+
+  list() {
+    return this.$http.get(this.environmentURL);
+  }
+
 }
 
-export default delegatorConfig;
+export default EnvironmentService;

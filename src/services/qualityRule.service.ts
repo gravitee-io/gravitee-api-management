@@ -24,8 +24,8 @@ class QualityRuleService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.URL = `${Constants.baseURL}/configuration/quality-rules/`;
-    this.URL_API = `${Constants.baseURL}/apis/`;
+    this.URL = `${Constants.envBaseURL}/configuration/quality-rules/`;
+    this.URL_API = `${Constants.envBaseURL}/apis/`;
   }
 
   list(): IHttpPromise<QualityRule[]> {

@@ -25,10 +25,10 @@ class AlertService {
 
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
-    this.apisURL = `${Constants.baseURL}/apis/`;
-    this.applicationsURL = `${Constants.baseURL}/applications/`;
-    this.configurationURL = `${Constants.baseURL}/platform/`;
-    this.alertsURL = `${Constants.baseURL}/alerts/`;
+    this.apisURL = `${Constants.envBaseURL}/apis/`;
+    this.applicationsURL = `${Constants.envBaseURL}/applications/`;
+    this.configurationURL = `${Constants.envBaseURL}/platform/`;
+    this.alertsURL = `${Constants.envBaseURL}/alerts/`;
   }
 
   listMetrics(): IHttpPromise<any> {

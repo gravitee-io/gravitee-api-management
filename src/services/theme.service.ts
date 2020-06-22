@@ -21,7 +21,7 @@ class ThemeService {
 
   constructor(private $http, private $q, Constants) {
     'ngInject';
-    this.themeURL = `${Constants.baseURL}/configuration/themes/`;
+    this.themeURL = `${Constants.envBaseURL}/configuration/themes/`;
   }
 
   get() {

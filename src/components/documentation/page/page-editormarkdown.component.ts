@@ -40,9 +40,9 @@ class ComponentCtrl implements ng.IComponentController {
     const initialValue = this.page && this.page.content ? this.page.content : '';
     let mediaURL;
     if (this.$state.params.apiId) {
-      mediaURL = this.Constants.baseURL + '/apis/' + this.$state.params.apiId + '/media/';
+      mediaURL = this.Constants.envBaseURL + '/apis/' + this.$state.params.apiId + '/media/';
     } else {
-      mediaURL = this.Constants.baseURL + '/portal/media/';
+      mediaURL = this.Constants.envBaseURL + '/portal/media/';
     }
     var toolbarItems = [
       'heading',

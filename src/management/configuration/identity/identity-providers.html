@@ -23,34 +23,34 @@
 
       <h3>Configuration</h3>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.authentication.forceLogin.enabled" aria-label="Force login" ng-change="$ctrl.saveForceLogin()">
+        <md-checkbox aria-label="Force login" ng-change="$ctrl.saveForceLogin()" ng-model="$ctrl.settings.authentication.forceLogin.enabled">
           Force authentication to access portal
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.authentication.localLogin.enabled" aria-label="Show login form" ng-change="$ctrl.saveShowLoginForm()">
+        <md-checkbox aria-label="Show login form" ng-change="$ctrl.saveShowLoginForm()" ng-model="$ctrl.settings.authentication.localLogin.enabled">
           Show login form
         </md-checkbox>
       </md-input-container>
 
       <md-table-container ng-if="$ctrl.identityProviders.length > 0">
-        <table md-table class="gv-table-dense">
+        <table class="gv-table-dense" md-table>
           <thead md-head>
           <tr md-row>
-            <th md-column width="1%" nowrap></th>
+            <th md-column nowrap width="1%"></th>
             <th md-column>ID</th>
             <th md-column>Name</th>
             <th md-column>Description</th>
             <th md-column>Enabled</th>
             <th md-column>Sync</th>
             <th md-column>Last updated at</th>
-            <th md-column width="48px" nowrap></th>
+            <th md-column nowrap width="48px"></th>
           </tr>
           </thead>
           <tbody md-body>
           <tr md-row ng-repeat="identityProvider in $ctrl.identityProviders | orderBy: name">
             <td md-cell ng-switch="identityProvider.type">
-              <md-icon 
+              <md-icon
                 md-svg-icon="assets/logo_{{identityProvider.type | lowercase}}-idp.svg"
                 style="fill: black;"
               ></md-icon>
@@ -61,15 +61,15 @@
             <td md-cell>{{identityProvider.name}}</td>
             <td md-cell>{{identityProvider.description}}</td>
             <td md-cell>
-              <ng-md-icon ng-if="identityProvider.enabled" icon="done"></ng-md-icon>
+              <ng-md-icon icon="done" ng-if="identityProvider.enabled"></ng-md-icon>
             </td>
             <td md-cell>
-              <ng-md-icon ng-if="identityProvider.sync" icon="done"></ng-md-icon>
+              <ng-md-icon icon="done" ng-if="identityProvider.sync"></ng-md-icon>
             </td>
             <td md-cell>{{identityProvider.updated_at | date:'MMM d, y h:mm:ss a'}}</td>
-            <td md-cell width="40" nowrap>
-              <ng-md-icon permission permission-only="'environment-identity_provider-d'"
-                          icon="delete" ng-click="$ctrl.delete(identityProvider)">
+            <td md-cell nowrap width="40">
+              <ng-md-icon icon="delete" ng-click="$ctrl.delete(identityProvider)"
+                          permission permission-only="'organization-identity_provider-d'">
                 <md-tooltip md-direction="top" md-visible="false">Delete</md-tooltip>
               </ng-md-icon>
             </td>
@@ -78,31 +78,31 @@
         </table>
       </md-table-container>
 
-      <gravitee-empty-state ng-if="$ctrl.identityProviders.length === 0"
+      <gravitee-empty-state create-mode="true"
                             icon="perm_identity"
-                            model="Identity Provider"
                             message="Identity providers will appear here"
-                            sub-message="Start creating an identity provider"
-                            create-mode="true"></gravitee-empty-state>
+                            model="Identity Provider"
+                            ng-if="$ctrl.identityProviders.length === 0"
+                            sub-message="Start creating an identity provider"></gravitee-empty-state>
 
     </div>
   </div>
-  <md-fab-speed-dial permission permission-only="'environment-identity_provider-c'"
-                     md-direction="{{$ctrl.identityProviders.length > 0 ? 'left' : 'down'}}" md-open="false"
-                     ng-class="{'md-fab-bottom-right md-fab-scrollable' : $ctrl.identityProviders.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}" class="md-scale">
+  <md-fab-speed-dial class="md-scale" md-direction="{{$ctrl.identityProviders.length > 0 ? 'left' : 'down'}}"
+                     md-open="false" ng-class="{'md-fab-bottom-right md-fab-scrollable' : $ctrl.identityProviders.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+                     permission permission-only="'organization-identity_provider-c'">
     <md-fab-trigger>
       <md-button aria-label="menu" class="md-fab md-success">
-        <md-tooltip ng-if="$ctrl.identityProviders.length > 0" md-direction="top" md-visible="false">New identity provider</md-tooltip>
+        <md-tooltip md-direction="top" md-visible="false" ng-if="$ctrl.identityProviders.length > 0">New identity provider</md-tooltip>
         <ng-md-icon icon="add"></ng-md-icon>
       </md-button>
     </md-fab-trigger>
 
     <md-fab-actions>
-      <md-button ng-repeat="provider in $ctrl.availableProviders" class="md-fab md-raised md-mini"  ng-click="$ctrl.create(provider.type)">
+      <md-button class="md-fab md-raised md-mini" ng-click="$ctrl.create(provider.type)" ng-repeat="provider in $ctrl.availableProviders">
         <md-tooltip md-direction="{{$ctrl.availableProviders.length > 0 ? 'top' : 'right'}}">{{provider.name}}</md-tooltip>
-        <md-icon 
+        <md-icon
           md-svg-icon="assets/logo_{{provider.type | lowercase}}-idp.svg"
-         style="fill: black;"
+          style="fill: black;"
         ></md-icon>
       </md-button>
     </md-fab-actions>

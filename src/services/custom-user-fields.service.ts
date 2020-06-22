@@ -18,7 +18,7 @@ class CustomUserFieldsService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.resourceURL = `${Constants.baseURL}/configuration/custom-user-fields`;
+    this.resourceURL = `${Constants.orgBaseURL}/configuration/custom-user-fields`;
   }
 
   valuesAsList = function (field: any) {

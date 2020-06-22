@@ -18,7 +18,7 @@ class TokenService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.tokensURL = `${Constants.baseURL}/user/tokens/`;
+    this.tokensURL = `${Constants.orgBaseURL}/user/tokens/`;
   }
 
   list() {

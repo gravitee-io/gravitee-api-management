@@ -18,7 +18,7 @@ class ResourceService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.resourcesURL = `${Constants.baseURL}/resources/`;
+    this.resourcesURL = `${Constants.envBaseURL}/resources/`;
   }
 
   list() {

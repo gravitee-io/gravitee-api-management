@@ -18,7 +18,7 @@ class TicketService {
 
   constructor(private $http, private Constants) {
     'ngInject';
-    this.ticketURL = `${Constants.baseURL}/platform/tickets`;
+    this.ticketURL = `${Constants.envBaseURL}/platform/tickets`;
   }
 
   create(ticket) {

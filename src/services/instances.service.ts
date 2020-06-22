@@ -18,7 +18,7 @@ class InstancesService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.instancesURL = `${Constants.baseURL}/instances/`;
+    this.instancesURL = `${Constants.envBaseURL}/instances/`;
   }
 
   search(includeStopped?: boolean, from?: number, to?: number, page?: number, size?: number) {

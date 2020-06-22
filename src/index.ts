@@ -42,12 +42,8 @@ function fetchData() {
       ConstantsJSON = responses[0].data;
       let build = responses[1].data;
       angular.module('gravitee-management').constant('Build', build);
-
-      if (ConstantsJSON.baseURL.endsWith('/')) {
-        ConstantsJSON.baseURL = ConstantsJSON.baseURL.slice(0, -1);
-      }
-
-      return $http.get(`${ConstantsJSON.baseURL}/portal`);
+      ConstantsJSON = computeBaseURLs(ConstantsJSON);
+      return $http.get(`${ConstantsJSON.envBaseURL}/portal`);
     })
     .then((response: any) => {
       let constants = _.merge(response.data, ConstantsJSON);
@@ -66,6 +62,25 @@ function fetchData() {
       document.getElementById('gravitee-error').innerText = 'Management API unreachable or error occurs, please check logs';
       throw error;
     });
+}
+
+function computeBaseURLs(constants: any): any {
+  if (constants.baseURL.endsWith('/')) {
+    constants.baseURL = constants.baseURL.slice(0, -1);
+  }
+
+  let basePath;
+  let orgEnvIndex = constants.baseURL.indexOf('/organizations');
+  if (orgEnvIndex < 0) {
+    basePath = constants.baseURL;
+  } else {
+    basePath = constants.baseURL.substr(0, orgEnvIndex + 1);
+  }
+
+  constants.orgBaseURL = `${basePath}/organizations/DEFAULT`;
+  constants.envBaseURL = `${constants.orgBaseURL}/environments/DEFAULT`;
+
+  return constants;
 }
 
 function initLoader(constants: any) {

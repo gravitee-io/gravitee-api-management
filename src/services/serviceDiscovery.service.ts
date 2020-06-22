@@ -18,7 +18,7 @@ class ServiceDiscoveryService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.serviceDiscoveriesURL = `${Constants.baseURL}/services-discovery/`;
+    this.serviceDiscoveriesURL = `${Constants.envBaseURL}/services-discovery/`;
   }
 
   list() {

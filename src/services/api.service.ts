@@ -39,7 +39,7 @@ class ApiService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.apisURL = `${Constants.baseURL}/apis/`;
+    this.apisURL = `${Constants.envBaseURL}/apis/`;
     this.Constants = Constants;
     this.analyticsHttpTimeout = Constants.analytics.clientTimeout as number;
   }
@@ -282,10 +282,17 @@ class ApiService {
     } else {
       return this.$http.post(this.apisURL + apiId + '/plans',
         {
-          name: plan.name, description: plan.description, api: plan.api,
-          validation: plan.validation, policies: plan.policies,
-          characteristics: plan.characteristics, type: plan.type, paths: plan.paths,
-          security: plan.security, securityDefinition: plan.securityDefinition, excluded_groups: plan.excluded_groups,
+          name: plan.name,
+          description: plan.description,
+          api: plan.api,
+          validation: plan.validation,
+          policies: plan.policies,
+          characteristics: plan.characteristics,
+          type: plan.type,
+          paths: plan.paths,
+          security: plan.security,
+          securityDefinition: plan.securityDefinition,
+          excluded_groups: plan.excluded_groups,
           comment_required: plan.comment_required,
           comment_message: plan.comment_message,
           tags: plan.tags,

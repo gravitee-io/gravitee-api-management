@@ -23,9 +23,10 @@ import _ = require('lodash');
 
 interface IUserDetailComponentScope extends ng.IScope {
   selectedOrganizationRole: string[];
-  selectedEnvironmentRole: string[];
+  selectedEnvironmentRole: any;
   userApis: any[];
   userApplications: any[];
+  userEnvironments: any[];
 }
 
 const UserDetailComponent: ng.IComponentOptions = {
@@ -36,7 +37,8 @@ const UserDetailComponent: ng.IComponentOptions = {
     environmentRoles: '<',
     apiRoles: '<',
     applicationRoles: '<',
-    customUserFields: '<'
+    customUserFields: '<',
+    environments: '<'
   },
   template: require('./user.html'),
   controller: function (
@@ -54,7 +56,11 @@ const UserDetailComponent: ng.IComponentOptions = {
     this.$rootScope = $rootScope;
     this.$onInit = () => {
       $scope.selectedOrganizationRole = _.map(_.filter(this.selectedUser.roles, role => role.scope === 'organization'), role => role.id);
-      $scope.selectedEnvironmentRole = _.map(_.filter(this.selectedUser.roles, role => role.scope === 'environment'), role => role.id);
+      let envRoles = {};
+      Object.keys(this.selectedUser.envRoles).forEach(envId => {
+        envRoles[envId] = _.map(this.selectedUser.envRoles[envId], role => role.id);
+      });
+      $scope.selectedEnvironmentRole = envRoles;
       $scope.userApis = [];
       $scope.userApplications = [];
     };
@@ -160,28 +166,15 @@ const UserDetailComponent: ng.IComponentOptions = {
 
     this.updateOrganizationsRole = (selectOpened: boolean, organizationRoles: any[]) => {
       if (selectOpened) {
-        let newRoles = [];
-        if ($scope.selectedEnvironmentRole && $scope.selectedEnvironmentRole.length > 0) {
-          newRoles = _.concat($scope.selectedEnvironmentRole, organizationRoles);
-        } else {
-          newRoles = organizationRoles;
-        }
-
-        UserService.updateUserRoles(this.selectedUser.id, newRoles);
-        NotificationService.show('Organization Role updated');
+        UserService.updateUserRoles(this.selectedUser.id, 'ORGANIZATION', 'DEFAULT', organizationRoles);
+        NotificationService.show('Roles for organization "DEFAULT" updated');
       }
     };
 
-    this.updateEnvironmentsRole = (selectOpened: boolean, environmentRoles: any[]) => {
+    this.updateEnvironmentsRole = (selectOpened: boolean, envId: string, environmentRoles: any[]) => {
       if (selectOpened) {
-        let newRoles = [];
-        if ($scope.selectedOrganizationRole && $scope.selectedOrganizationRole.length > 0) {
-          newRoles = _.concat($scope.selectedOrganizationRole, environmentRoles);
-        } else {
-          newRoles = environmentRoles;
-        }
-        UserService.updateUserRoles(this.selectedUser.id, newRoles);
-        NotificationService.show('Environment Role updated');
+        UserService.updateUserRoles(this.selectedUser.id, 'ENVIRONMENT', envId, environmentRoles);
+        NotificationService.show('Roles for environment "' + envId + '" updated');
       }
     };
 
@@ -255,6 +248,17 @@ const UserDetailComponent: ng.IComponentOptions = {
           $scope.userApplications = _.sortBy(newAppList, 'name');
         }
       );
+    };
+
+    this.loadUserEnvironments = () => {
+      let userEnvironments = [];
+      Object.keys(this.selectedUser.envRoles).forEach(env => {
+        userEnvironments.push({
+          name: env,
+          roles: _.map(this.selectedUser.envRoles[env], role => role.name).join(', ')
+        });
+      });
+      $scope.userEnvironments = userEnvironments;
     };
 
     this.backToUsers = () => {

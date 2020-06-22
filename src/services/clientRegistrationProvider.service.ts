@@ -22,7 +22,7 @@ class ClientRegistrationProviderService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.URL = `${Constants.baseURL}/configuration/applications/registration/providers/`;
+    this.URL = `${Constants.envBaseURL}/configuration/applications/registration/providers/`;
   }
 
   list(): IPromise<ClientRegistrationProvider[]> {

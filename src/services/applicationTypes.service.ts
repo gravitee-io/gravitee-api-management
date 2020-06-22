@@ -21,7 +21,7 @@ class ApplicationTypesService {
 
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
-    this.URL = `${Constants.baseURL}/configuration/applications/types`;
+    this.URL = `${Constants.envBaseURL}/configuration/applications/types`;
   }
 
   getEnabledApplicationTypes(): ng.IHttpPromise<Array<ApplicationType>> {

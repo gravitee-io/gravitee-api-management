@@ -19,7 +19,7 @@ class CategoryService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.categoriesURL = `${Constants.baseURL}/configuration/categories/`;
+    this.categoriesURL = `${Constants.envBaseURL}/configuration/categories/`;
   }
 
   list() {

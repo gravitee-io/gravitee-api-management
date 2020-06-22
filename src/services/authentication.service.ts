@@ -54,7 +54,7 @@ class AuthenticationService {
 
     this.SatellizerConfig.providers[provider.id] = _.merge(satellizerProvider, {
       state: state || this.nonce(32),
-      url: this.Constants.baseURL + '/auth/oauth2/' + provider.id,
+      url: this.Constants.orgBaseURL + '/auth/oauth2/' + provider.id,
       redirectUri: window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname),
     });
 

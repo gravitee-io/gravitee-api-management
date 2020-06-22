@@ -15,23 +15,23 @@
  */
 
 class MessageService {
-  private baseURL: string;
+  private envBaseURL: string;
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.baseURL = Constants.baseURL;
+    this.envBaseURL = Constants.envBaseURL;
   }
 
   sendFromPortal(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {
     return this.$http.post(
-      `${this.baseURL}/messages`,
+      `${this.envBaseURL}/messages`,
       this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders)
     );
   }
 
   sendFromApi(apiId: string, title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {
     return this.$http.post(
-      `${this.baseURL}/apis/${apiId}/messages`,
+      `${this.envBaseURL}/apis/${apiId}/messages`,
       this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders)
     );
   }

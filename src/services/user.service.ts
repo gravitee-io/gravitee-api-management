@@ -50,10 +50,10 @@ class UserService {
               private StringService: StringService,
               private Base64Service: Base64Service) {
     'ngInject';
-    this.searchUsersURL = `${Constants.baseURL}/search/users/`;
-    this.usersURL = `${Constants.baseURL}/users/`;
-    this.userURL = `${Constants.baseURL}/user/`;
-    this.customUserFieldsURL = `${Constants.baseURL}/configuration/custom-user-fields`;
+    this.searchUsersURL = `${Constants.orgBaseURL}/search/users/`;
+    this.usersURL = `${Constants.orgBaseURL}/users/`;
+    this.userURL = `${Constants.orgBaseURL}/user/`;
+    this.customUserFieldsURL = `${Constants.orgBaseURL}/configuration/custom-user-fields`;
   }
 
   list(query?: string, page = 1, size = 10): ng.IPromise<any> {
@@ -271,8 +271,13 @@ class UserService {
     return this.$http.get(`${this.userURL}tags`);
   }
 
-  updateUserRoles(id: string, roles: any[]): ng.IPromise<any> {
-    return this.$http.put(`${this.usersURL}${id}/roles`, roles);
+  updateUserRoles(id: string, referenceType: string, referenceId: string, roles: string[]): ng.IPromise<any> {
+    return this.$http.put(`${this.usersURL}${id}/roles`, {
+      userId: id,
+      referenceId,
+      referenceType,
+      roleIds: roles
+    });
   }
 
   processRegistration(id: string, accepted: boolean): ng.IPromise<any> {

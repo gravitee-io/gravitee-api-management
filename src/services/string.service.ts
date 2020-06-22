@@ -21,8 +21,10 @@ class StringService {
 
   hashCode(str) {
     let hash = 0;
-    if (str.length === 0) { return hash; }
-    for ( let i = 0; i < str.length; i++) {
+    if (str.length === 0) {
+      return hash;
+    }
+    for (let i = 0; i < str.length; i++) {
       let char = str.charCodeAt(i);
       // tslint:disable-next-line:no-bitwise
       hash = ((hash << 5) - hash) + char;

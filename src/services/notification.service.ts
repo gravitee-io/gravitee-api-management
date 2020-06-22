@@ -36,22 +36,23 @@ class NotificationService {
           .position('bottom right')
           .hideDelay(preconditionFailed ? 10000 : 3000)
           .theme(errorStatus ? 'toast-error' : 'toast-success')
-      ).then(function(response) {
+      ).then(function (response) {
         if (response === 'ok') {
-          vm.$state.go(vm.$state.current, {}, {reload: true});
+          vm.$state.go(vm.$state.current, {}, { reload: true });
         }
-      }).catch(() => {});
+      }).catch(() => {
+      });
     });
   }
 
   showError(error: any, message?: string) {
     this.show(message || (
-        error.data ?
-          Array.isArray(error.data) ?
-            error.data[0].message
-            : (error.data.message || (typeof error.data === 'string' ? error.data : error.statusText))
-          : error
-      ), error.status || true);
+      error.data ?
+        Array.isArray(error.data) ?
+          error.data[0].message
+          : (error.data.message || (typeof error.data === 'string' ? error.data : error.statusText))
+        : error
+    ), error.status || true);
   }
 }
 

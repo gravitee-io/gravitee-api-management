@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import SidenavService from '../../components/sidenav/sidenav.service';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 import UserService from '../../services/user.service';
-import _ = require('lodash');
 import { StateService } from '@uirouter/core';
+import _ = require('lodash');
 
 const SettingsComponent: ng.IComponentOptions = {
 
@@ -54,7 +54,7 @@ const SettingsComponent: ng.IComponentOptions = {
       },
       identityProviders: {
         perm: UserService.isUserHasPermissions(
-          ['environment-identity_provider-r']),
+          ['organization-identity_provider-r']),
         goTo: 'management.settings.identityproviders.list'
       },
       documentations: {
@@ -147,14 +147,15 @@ const SettingsComponent: ng.IComponentOptions = {
       alerts: {
         perm: UserService.isUserHasPermissions(['environment-alert-r']) && Constants.alert && Constants.alert.enabled,
         goTo: 'management.settings.alerts.list'
-      }};
+      }
+    };
 
     this.$onInit = () => {
       if ($state.current.name === 'management.settings') {
         $rootScope.$broadcast('reduceSideNav');
         SidenavService.setCurrentResource('SETTINGS');
 
-        for ( let entry of _.keys(this.settingsMenu)) {
+        for (let entry of _.keys(this.settingsMenu)) {
           if (this.settingsMenu[entry].perm) {
             $state.go(this.settingsMenu[entry].goTo);
             break;
