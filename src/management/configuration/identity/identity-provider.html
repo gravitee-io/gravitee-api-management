@@ -25,7 +25,7 @@
       {{$ctrl.identityProvider.name}}
     </h1>
     <h1 ng-if="!$ctrl.updateMode">Create a new {{$ctrl.identityProvider.type}} identity provider</h1>
-    <a ui-sref="management.settings.identityproviders.list">Back to identity providers</a>
+    <a ui-sref="management.settings.organization.identityproviders.list">Back to identity providers</a>
   </div>
 
   <form name="formIdentityProvider" ng-submit="$ctrl.update()" novalidate>
@@ -36,11 +36,11 @@
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
             <md-checkbox
-              aria-label="Enable identity provider"
+              aria-label="Allow identity provider for portal"
               class="md-primary md-align-top-left"
               flex
               ng-model="$ctrl.identityProvider.enabled">
-              Enable authentication using this identity provider.
+              Allow portal authentication to use this identity provider.
             </md-checkbox>
           </md-input-container>
         </div>

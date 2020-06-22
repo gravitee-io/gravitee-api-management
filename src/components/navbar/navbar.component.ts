@@ -15,20 +15,20 @@
  */
 import UserService from '../../services/user.service';
 import TaskService from '../../services/task.service';
-import {IIntervalService, IScope} from 'angular';
-import {PagedResult} from '../../entities/pagedResult';
+import { IIntervalService, IScope } from 'angular';
+import { PagedResult } from '../../entities/pagedResult';
 import UserNotificationService from '../../services/userNotification.service';
 import { StateService } from '@uirouter/core';
-import PortalService from '../../services/portal.service';
+import OrganizationService from '../../services/organization.service';
 import AuthenticationService from '../../services/authentication.service';
 
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),
-  controller: function(
+  controller: function (
     UserService: UserService,
     TaskService: TaskService,
     UserNotificationService: UserNotificationService,
-    PortalService: PortalService,
+    OrganizationService: OrganizationService,
     $scope: IScope,
     Constants,
     $rootScope: IScope,
@@ -54,7 +54,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     vm.localLoginDisabled = (!Constants.authentication.localLogin.enabled) || false;
     vm.refreshUser(UserService.currentUser);
 
-    $scope.$on('graviteeUserRefresh', (event, {user, refresh}) => {
+    $scope.$on('graviteeUserRefresh', (event, { user, refresh }) => {
 
       if (refresh) {
         UserService.current()
@@ -71,7 +71,7 @@ export const NavbarComponent: ng.IComponentOptions = {
       }
     });
 
-    vm.startTasks = function(user) {
+    vm.startTasks = function (user) {
       if (user.authenticated) {
         vm.graviteeUser = user;
         // schedule an automatic refresh of the user tasks
@@ -107,11 +107,11 @@ export const NavbarComponent: ng.IComponentOptions = {
 
     vm.$onInit = function () {
       vm.supportEnabled = Constants.portal.support.enabled;
-      $scope.$emit('graviteeUserRefresh', {user: undefined, refresh: true});
+      $scope.$emit('graviteeUserRefresh', { user: undefined, refresh: true });
       vm.portalURL = Constants.portal.url;
     };
 
-    vm.userShortName = function() {
+    vm.userShortName = function () {
       if (vm.graviteeUser.firstname && vm.graviteeUser.lastname) {
         const capitalizedFirstName = vm.graviteeUser.firstname[0].toUpperCase() + vm.graviteeUser.firstname.slice(1);
         const shotLastName = vm.graviteeUser.lastname[0].toUpperCase();
@@ -129,30 +129,30 @@ export const NavbarComponent: ng.IComponentOptions = {
       return vm.graviteeUser.allowedTo(['environment-application-r']);
     };
 
-    vm.getLogo = function() {
+    vm.getLogo = function () {
       return Constants.theme.logo;
     };
 
-    vm.getUserPicture = function() {
+    vm.getUserPicture = function () {
       return UserService.currentUserPicture();
     };
 
-    vm.openContextualDocumentation = function() {
+    vm.openContextualDocumentation = function () {
       vm.$rootScope.$broadcast('openContextualDocumentation');
     };
 
-    vm.hasAlert = function() {
+    vm.hasAlert = function () {
       return this.getUserTaskCount() > 0;
     };
 
-    vm.getUserTaskCount = function() {
+    vm.getUserTaskCount = function () {
       if (vm.graviteeUser.tasks) {
         return vm.graviteeUser.tasks.page.total_elements;
       }
       return 0;
     };
 
-    vm.refreshUserTasks = function() {
+    vm.refreshUserTasks = function () {
       if (vm.$rootScope.isWindowFocused) {
         TaskService.getTasks().then((response) => {
           const result = new PagedResult();
@@ -162,15 +162,15 @@ export const NavbarComponent: ng.IComponentOptions = {
       }
     };
 
-    vm.cancelRefreshUserTasks = function() {
+    vm.cancelRefreshUserTasks = function () {
       if (vm.tasksScheduler) {
         $interval.cancel(vm.tasksScheduler);
         vm.tasksScheduler = undefined;
       }
     };
 
-    vm.authenticate = function() {
-      PortalService.listSocialIdentityProviders().then((response) => {
+    vm.authenticate = function () {
+      OrganizationService.listSocialIdentityProviders().then((response) => {
         let providers = response.data;
         if (vm.localLoginDisabled && providers.length === 1) {
           AuthenticationService.authenticate(providers[0]);

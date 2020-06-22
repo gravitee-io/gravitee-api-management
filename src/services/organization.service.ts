@@ -16,31 +16,25 @@
 
 import { IdentityProviderActivation } from '../entities/identityProvider';
 
-class EnvironmentService {
-  private environmentsURL: string;
-  private environmentURL: string;
+class OrganizationService {
+  private organizationURL: string;
 
   constructor(private $http, Constants, private $q) {
     'ngInject';
-    this.environmentsURL = `${Constants.orgBaseURL}/environments`;
-    this.environmentURL = Constants.envBaseURL;
+    this.organizationURL = `${Constants.orgBaseURL}`;
   }
 
-  list() {
-    return this.$http.get(this.environmentsURL);
+  listSocialIdentityProviders() {
+    return this.$http.get(this.organizationURL + '/social-identities');
   }
 
-  getCurrent(): ng.IPromise<any> {
-    return this.$http.get(this.environmentURL);
+  listOrganizationIdentities() {
+    return this.$http.get(`${this.organizationURL}/identities`);
   }
 
-  listEnvironmentIdentities(envId: string) {
-    return this.$http.get(`${this.environmentsURL}/${envId}/identities`);
-  }
-
-  updateEnvironmentIdentities(envId: string, updatedIPA: IdentityProviderActivation[]) {
-    return this.$http.put(`${this.environmentsURL}/${envId}/identities`, updatedIPA);
+  updateOrganizationIdentities(updatedIPA: IdentityProviderActivation[]) {
+    return this.$http.put(`${this.organizationURL}/identities`, updatedIPA);
   }
 }
 
-export default EnvironmentService;
+export default OrganizationService;

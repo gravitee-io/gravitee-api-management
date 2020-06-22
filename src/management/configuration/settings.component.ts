@@ -53,10 +53,10 @@ const SettingsComponent: ng.IComponentOptions = {
           ['environment-client_registration_provider-r']),
         goTo: 'management.settings.clientregistrationproviders.list'
       },
-      identityProviders: {
-        perm: UserService.isUserHasPermissions(
-          ['organization-identity_provider-r']),
-        goTo: 'management.settings.identityproviders.list'
+      environmentIdentityProviders: {
+        perm: UserService.isUserHasAllPermissions(
+          ['organization-identity_provider-r', 'environment-identity_provider_activation-r']),
+        goTo: 'management.settings.environment.identityproviders'
       },
       documentations: {
         perm: UserService.isUserHasPermissions(
@@ -94,6 +94,11 @@ const SettingsComponent: ng.IComponentOptions = {
         perm: UserService.isUserHasPermissions(
           ['environment-settings-r']),
         goTo: 'management.settings.management'
+      },
+      organizationIdentityProviders: {
+        perm: UserService.isUserHasAllPermissions(
+          ['organization-identity_provider-r', 'organization-identity_provider_activation-r']),
+        goTo: 'management.settings.organization.identityproviders.list'
       },
 
       // GATEWAYS

@@ -40,7 +40,7 @@ class IdentityProviderController {
     private Constants,
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
-    private IdentityProviderService: IdentityProviderService
+    private IdentityProviderService: IdentityProviderService,
   ) {
     'ngInject';
   }
@@ -102,7 +102,7 @@ class IdentityProviderController {
     if (!this.updateMode) {
       this.IdentityProviderService.create(this.identityProvider).then((response: any) => {
         this.NotificationService.show('Identity provider ' + this.identityProvider.name + ' has been created');
-        this.$state.go('management.settings.identityproviders.identityprovider', { id: response.data.id }, { reload: true });
+        this.$state.go('management.settings.organization.identityproviders.identityprovider', { id: response.data.id }, { reload: true });
       });
     } else {
       this.IdentityProviderService.update(this.identityProvider).then((response) => {

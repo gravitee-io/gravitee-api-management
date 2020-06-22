@@ -33,12 +33,22 @@ export class IdentityProvider {
   public configuration: Map<string, any>;
   public groupMappings: GroupMapping[];
   public roleMappings: RoleMapping[];
-  public userProfileMapping: {id: string, firstname: string, lastname: string, email: string, picture: string};
+  public userProfileMapping: { id: string, firstname: string, lastname: string, email: string, picture: string };
   public emailRequired: boolean;
   public scopes: any;
   public scope: any;
   public userLogoutEndpoint: any;
   public syncMappings: boolean;
+
+  constructor() {
+    'ngInject';
+  }
+}
+
+export class IdentityProviderActivation {
+  public identityProvider: string;
+  public referenceId?: string;
+  public referenceType?: string;
 
   constructor() {
     'ngInject';

@@ -15,11 +15,10 @@
  */
 import UserService from './services/user.service';
 import { User } from './entities/user';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 import { StateService } from '@uirouter/core';
-import {StateProvider, UrlService} from '@uirouter/angularjs';
-import PortalService from './services/portal.service';
-import InstancesService from './services/instances.service';
+import { StateProvider, UrlService } from '@uirouter/angularjs';
+import OrganizationService from './services/organization.service';
 
 function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
   'ngInject';
@@ -29,9 +28,9 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       {
         abstract: true,
         template: '<div layout=\'row\'>' +
-        '<div ui-view=\'sidenav\' class=\'gravitee-sidenav\'></div>' +
-        '<md-content ui-view layout=\'column\' flex style=\'height: 100vh\' class=\'md-content\'></md-content>' +
-        '</div>',
+          '<div ui-view=\'sidenav\' class=\'gravitee-sidenav\'></div>' +
+          '<md-content ui-view layout=\'column\' flex style=\'height: 100vh\' class=\'md-content\'></md-content>' +
+          '</div>',
         resolve: {
           graviteeUser: (UserService: UserService) => UserService.current()
         }
@@ -48,9 +47,9 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
           },
           '': {
             template: '<div flex layout="row">' +
-            '<div class="gv-main-container" ui-view layout="column" flex></div>' +
-            '<gv-contextual-doc></gv-contextual-doc>' +
-            '</div>'
+              '<div class="gv-main-container" ui-view layout="column" flex></div>' +
+              '<gv-contextual-doc></gv-contextual-doc>' +
+              '</div>'
           }
         },
         resolve: {
@@ -58,13 +57,13 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
           menuItems: ($state: StateService, graviteeUser: User, Constants: any) => {
             'ngInject';
             return $state.get()
-                  .filter((state: any) => !state.abstract && state.data && state.data.menu)
-                  .filter(routeMenuItem => {
-                    let isMenuItem = routeMenuItem.data.menu.firstLevel;
-                    let isMenuAllowed = !routeMenuItem.data.perms || !routeMenuItem.data.perms.only
-                      || graviteeUser.allowedTo(routeMenuItem.data.perms.only);
-                      return isMenuItem && isMenuAllowed;
-                  });
+              .filter((state: any) => !state.abstract && state.data && state.data.menu)
+              .filter(routeMenuItem => {
+                let isMenuItem = routeMenuItem.data.menu.firstLevel;
+                let isMenuAllowed = !routeMenuItem.data.perms || !routeMenuItem.data.perms.only
+                  || graviteeUser.allowedTo(routeMenuItem.data.perms.only);
+                return isMenuItem && isMenuAllowed;
+              });
           }
         }
       }
@@ -74,7 +73,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       component: 'user',
       parent: 'withSidenav',
       resolve: {
-        user: ( graviteeUser: User) => graviteeUser
+        user: (graviteeUser: User) => graviteeUser
       }
     })
     .state('login', {
@@ -83,12 +82,12 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       controller: 'LoginController',
       controllerAs: '$ctrl',
       resolve: {
-        checkUser : function (UserService, $state) {
+        checkUser: function (UserService, $state) {
           if (UserService.currentUser && UserService.currentUser.id) {
             $state.go('management');
           }
         },
-        identityProviders: (PortalService: PortalService) => PortalService.listSocialIdentityProviders().then(response => response.data)
+        identityProviders: (OrganizationService: OrganizationService) => OrganizationService.listSocialIdentityProviders().then(response => response.data)
       },
       params: {
         redirectUri: {
@@ -102,7 +101,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       controller: 'RegistrationController',
       controllerAs: '$ctrl',
       resolve: {
-        checkUser : function (UserService, $state) {
+        checkUser: function (UserService, $state) {
           if (UserService.currentUser && UserService.currentUser.id) {
             $state.go('management');
           }

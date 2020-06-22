@@ -106,6 +106,10 @@ class UserService {
     return this.currentUser && this.currentUser.allowedTo(permissions);
   }
 
+  isUserHasAllPermissions(permissions) {
+    return this.currentUser && this.currentUser.allowedToAnd(permissions);
+  }
+
   current(): ng.IPromise<User> {
     let that = this;
 
@@ -275,12 +279,12 @@ class UserService {
     return this.$http.get(`${this.userURL}tags`);
   }
 
-  updateUserRoles(id: string, referenceType: string, referenceId: string, roles: string[]): ng.IPromise<any> {
-    return this.$http.put(`${this.usersURL}${id}/roles`, {
-      userId: id,
+  updateUserRoles(user: string, referenceType: string, referenceId: string, roles: string[]): ng.IPromise<any> {
+    return this.$http.put(`${this.usersURL}${user}/roles`, {
+      user,
       referenceId,
       referenceType,
-      roleIds: roles
+      roles
     });
   }
 

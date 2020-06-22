@@ -178,6 +178,7 @@ import DialogConfigureLoggingEditorController
 // Others
 import ThemeElementDirective from '../components/theme/theme-element.directive';
 import EnvironmentService from '../services/environment.service';
+import OrganizationService from '../services/organization.service';
 
 import ErrorComponent from '../components/error/error.component';
 import ErrorController from '../components/error/error.controller';
@@ -324,7 +325,7 @@ import DictionaryController from '../management/configuration/dictionaries/dicti
 import DialogDictionaryAddPropertyController
   from '../management/configuration/dictionaries/add-property.dialog.controller';
 // Settings - Identity providers
-import IdentityProvidersComponent from '../management/configuration/identity/identity-providers.component';
+import IdentityProvidersComponent from '../components/identityProviders/identity-providers.component';
 import IdentityProviderComponent from '../management/configuration/identity/identity-provider.component';
 import IdentityProviderController from '../management/configuration/identity/identity-provider.controller';
 import IdentityProviderGoogleComponent from '../management/configuration/identity/identity-provider-google.component';
@@ -452,6 +453,7 @@ import TokenService from '../services/token.service';
 import DialogGenerateTokenController from '../user/token/generateTokenDialog.controller';
 // Newsletter
 import NewsletterSubscriptionComponent from '../components/newsletter-subcription/newsletter-subscription.component';
+
 import DialogReviewController from './api/review/reviewDialog.controller';
 import DialogRequestForChangesController from './api/portal/general/dialog/requestForChanges.controller';
 import ApplicationSubscribeComponent from './application/details/subscribe/application-subscribe.component';
@@ -765,6 +767,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('ReCaptchaService', ReCaptchaService)
   .service('TokenService', TokenService)
   .service('EnvironmentService', EnvironmentService)
+  .service('OrganizationService', OrganizationService)
+
   .controller('DialogGenerateTokenController', DialogGenerateTokenController)
 
   .directive('filecontent', () => FileContentDirective)
@@ -1064,7 +1068,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
       return keys;
     };
   })
-  .filter('floor', function() {
+  .filter('floor', function () {
     return function (input) {
       return Math.floor(input);
     };
