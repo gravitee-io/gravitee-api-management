@@ -272,7 +272,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Override
     public void delete(final String alertId, final String referenceId) {
-        checkAlert();
         try {
             final Optional<AlertTrigger> optionalAlert = alertTriggerRepository.findById(alertId);
             if (!optionalAlert.isPresent() || !optionalAlert.get().getReferenceId().equals(referenceId)) {
