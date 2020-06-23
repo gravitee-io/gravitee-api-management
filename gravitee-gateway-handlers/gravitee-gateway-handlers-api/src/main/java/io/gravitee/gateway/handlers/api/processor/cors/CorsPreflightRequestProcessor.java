@@ -20,8 +20,14 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.proxy.ProxyConnection;
+import io.gravitee.gateway.api.stream.ReadStream;
+import io.gravitee.gateway.api.stream.WriteStream;
 
 import java.util.Collection;
 import java.util.Set;
@@ -41,7 +47,15 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
     public void handle(ExecutionContext context) {
         if (isPreflightRequest(context.request())) {
             handlePreflightRequest(context.request(), context.response());
-            exitHandler.handle(null);
+
+            // If we don't want to run policies, exit request processing
+            if (! cors.isRunPolicies()) {
+                exitHandler.handle(null);
+            } else {
+                context.setAttribute("skip-security-chain", true);
+                context.setAttribute(ExecutionContext.ATTR_INVOKER, new CorsPreflightInvoker());
+                next.handle(context);
+            }
         } else {
             // We are in the context of a simple request, let's continue request processing
             next.handle(context);

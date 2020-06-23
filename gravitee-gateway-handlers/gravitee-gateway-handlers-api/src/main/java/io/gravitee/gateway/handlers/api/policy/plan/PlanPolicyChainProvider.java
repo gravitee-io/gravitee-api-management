@@ -45,31 +45,35 @@ public class PlanPolicyChainProvider extends AbstractPolicyChainProvider {
 
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context) {
-        // Store information about the resolved plan (according to the incoming request)
-        String plan = (String) context.getAttribute(ExecutionContext.ATTR_PLAN);
-        String application = (String) context.getAttribute(ExecutionContext.ATTR_APPLICATION);
+        if (context.getAttribute("skip-security-chain") == null) {
+            // Store information about the resolved plan (according to the incoming request)
+            String plan = (String) context.getAttribute(ExecutionContext.ATTR_PLAN);
+            String application = (String) context.getAttribute(ExecutionContext.ATTR_APPLICATION);
 
-        context.request().metrics().setPlan(plan);
-        context.request().metrics().setApplication(application);
-        context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
+            context.request().metrics().setPlan(plan);
+            context.request().metrics().setApplication(application);
+            context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
 
-        // Calculate the list of policies to apply under this policy chain
-        List<Policy> policies = policyResolver.resolve(streamType, context);
+            // Calculate the list of policies to apply under this policy chain
+            List<Policy> policies = policyResolver.resolve(streamType, context);
 
-        // No policies has been calculated on the ON_REQUEST phase
-        // Returning a 401 because no plan is associated to the incoming secured request
-        if (streamType == StreamType.ON_REQUEST && policies == null) {
-            return new DirectPolicyChain(
-                    PolicyResult.failure(
-                            GATEWAY_MISSING_SECURED_REQUEST_PLAN_KEY,
-                            HttpStatusCode.UNAUTHORIZED_401,
-                            "Unauthorized"), context);
-        } else if (policies.isEmpty()) {
-            return new NoOpPolicyChain(context);
+            // No policies has been calculated on the ON_REQUEST phase
+            // Returning a 401 because no plan is associated to the incoming secured request
+            if (streamType == StreamType.ON_REQUEST && policies == null) {
+                return new DirectPolicyChain(
+                        PolicyResult.failure(
+                                GATEWAY_MISSING_SECURED_REQUEST_PLAN_KEY,
+                                HttpStatusCode.UNAUTHORIZED_401,
+                                "Unauthorized"), context);
+            } else if (policies.isEmpty()) {
+                return new NoOpPolicyChain(context);
+            }
+
+            return (streamType == StreamType.ON_REQUEST) ?
+                    RequestPolicyChain.create(policies, context) :
+                    ResponsePolicyChain.create(policies, context);
         }
 
-        return (streamType == StreamType.ON_REQUEST) ?
-                RequestPolicyChain.create(policies, context) :
-                ResponsePolicyChain.create(policies, context);
+        return new NoOpPolicyChain(context);
     }
 }
