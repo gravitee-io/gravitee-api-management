@@ -16,8 +16,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <properties>
@@ -178,6 +178,30 @@
               <descriptors>
                 <descriptor>assembly.xml</descriptor>
               </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!--Plugin used to replace version on several files -->
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <version>1.5.3</version>
+        <executions>
+          <execution>
+            <id>replace-base-url</id>
+            <phase>package</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <file>${project.basedir}/dist/assets/config.json</file>
+              <replacements>
+                <replacement>
+                  <token>"baseURL": "(.*)"</token>
+                  <value>"baseURL": "http://localhost:8083/portal/environments/DEFAULT"</value>
+                </replacement>
+              </replacements>
             </configuration>
           </execution>
         </executions>
