@@ -39,17 +39,21 @@ public class SecurityPolicyChainProvider extends AbstractPolicyChainProvider {
 
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context) {
-        // Calculate the list of policies to apply under this policy chain
-        List<Policy> policies = policyResolver.resolve(StreamType.ON_REQUEST, context);
+        if (context.getAttribute("skip-security-chain") == null) {
+            // Calculate the list of policies to apply under this policy chain
+            List<Policy> policies = policyResolver.resolve(StreamType.ON_REQUEST, context);
 
-        if (policies == null) {
-            return new DirectPolicyChain(
-                    PolicyResult.failure(
-                            PLAN_UNRESOLVABLE,
-                            HttpStatusCode.UNAUTHORIZED_401,
-                            "Unauthorized"), context);
+            if (policies == null) {
+                return new DirectPolicyChain(
+                        PolicyResult.failure(
+                                PLAN_UNRESOLVABLE,
+                                HttpStatusCode.UNAUTHORIZED_401,
+                                "Unauthorized"), context);
+            }
+
+            return RequestPolicyChain.create(policies, context);
         }
 
-        return RequestPolicyChain.create(policies, context);
+        return new NoOpPolicyChain(context);
     }
 }
