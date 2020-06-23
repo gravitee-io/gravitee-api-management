@@ -104,6 +104,10 @@ public class CorsSerializer extends StdScalarSerializer<Cors> {
 
         jgen.writeNumberField("maxAge", cors.getAccessControlMaxAge());
 
+        if (cors.isRunPolicies()) {
+            jgen.writeBooleanField("runPolicies", cors.isRunPolicies());
+        }
+
         jgen.writeEndObject();
     }
 }
