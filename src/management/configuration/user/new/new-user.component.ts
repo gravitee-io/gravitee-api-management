@@ -19,12 +19,23 @@ import { StateService } from '@uirouter/core';
 
 const NewUserComponent: ng.IComponentOptions = {
   template: require('./new-user.html'),
+  bindings: {
+    identityProviders: '<'
+  },
   controller: function (
     UserService: UserService,
     NotificationService: NotificationService,
     $state: StateService
   ) {
     'ngInject';
+
+    this.$onInit = () => {
+      if (this.identityProviders && this.identityProviders.length) {
+        this.identityProviders.unshift({ id: 'gravitee', name: 'Gravitee' });
+        this.user = { source: 'gravitee' };
+      }
+    };
+
     this.create = () => {
       UserService.create(this.user).then(() => {
         NotificationService.show('User registered with success');

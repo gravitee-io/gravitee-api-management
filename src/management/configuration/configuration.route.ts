@@ -562,6 +562,9 @@ function configurationRouterConfig($stateProvider) {
     .state('management.settings.newuser', {
       url: '/users/new',
       component: 'newUser',
+      resolve: {
+        identityProviders: (IdentityProviderService: IdentityProviderService) => IdentityProviderService.list()
+      },
       data: {
         menu: null,
         docs: {
