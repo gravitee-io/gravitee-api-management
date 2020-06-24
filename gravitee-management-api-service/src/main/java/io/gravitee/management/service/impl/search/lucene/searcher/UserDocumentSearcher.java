@@ -43,7 +43,8 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
                 "lastname",
                 "displayname",
                 "displayname_split",
-                "email"
+                "email",
+                "reference"
         }, analyzer);
         parser.setFuzzyMinSim(0.6f);
         parser.setAllowLeadingWildcard(true);
@@ -59,6 +60,7 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
             userFieldsQuery.add(new WildcardQuery(new Term("lastname", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             userFieldsQuery.add(new WildcardQuery(new Term("displayname", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             userFieldsQuery.add(new WildcardQuery(new Term("email", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            userFieldsQuery.add(new WildcardQuery(new Term("reference", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
 
             userQuery.add(userFieldsQuery.build(), BooleanClause.Occur.MUST);
             userQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);

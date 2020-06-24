@@ -31,7 +31,9 @@ import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.common.JWTHelper.ACTION;
 import io.gravitee.management.service.common.JWTHelper.Claims;
+import io.gravitee.management.service.configuration.identity.IdentityProviderService;
 import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.impl.configuration.identity.IdentityProviderNotFoundException;
 import io.gravitee.management.service.impl.search.SearchResult;
 import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.management.service.notification.PortalHook;
@@ -70,6 +72,7 @@ import static io.gravitee.management.service.notification.NotificationParamsBuil
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -118,6 +121,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
     private PasswordValidator passwordValidator;
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private IdentityProviderService identityProviderService;
 
     @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
     private String defaultAvatar;
@@ -497,31 +502,43 @@ public class UserServiceImpl extends AbstractService implements UserService {
             throw new EmailFormatInvalidException(newExternalUserEntity.getEmail());
         }
 
+        if (isBlank(newExternalUserEntity.getSource())) {
+            newExternalUserEntity.setSource(IDP_SOURCE_GRAVITEE);
+        } else {
+            if (!IDP_SOURCE_GRAVITEE.equals(newExternalUserEntity.getSource())) {
+                // check if IDP exists
+                identityProviderService.findById(newExternalUserEntity.getSource());
+            }
+        }
+
+        if (isBlank(newExternalUserEntity.getSourceId())) {
+            newExternalUserEntity.setSourceId(newExternalUserEntity.getEmail());
+        }
+
         final Optional<User> optionalUser;
         try {
-            optionalUser = userRepository.findBySource(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail());
+            optionalUser = userRepository.findBySource(newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId());
             if (optionalUser.isPresent()) {
-                throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail());
+                throw new UserAlreadyExistsException(newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId());
             }
         } catch (final TechnicalException e) {
             LOGGER.error("An error occurs while trying to create user {}", newExternalUserEntity.getEmail(), e);
             throw new TechnicalManagementException(e.getMessage(), e);
         }
 
-        newExternalUserEntity.setSource(IDP_SOURCE_GRAVITEE);
-        newExternalUserEntity.setSourceId(newExternalUserEntity.getEmail());
-
         final UserEntity userEntity = create(newExternalUserEntity, true);
 
-        final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action);
-        notifierService.trigger(ACTION.USER_REGISTRATION.equals(action) ? PortalHook.USER_REGISTERED : PortalHook.USER_CREATED, params);
-        emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                .to(userEntity.getEmail())
-                .subject(format("User %s - %s", USER_REGISTRATION.equals(action)?"registration":"creation", userEntity.getDisplayName()))
-                .template(EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION)
-                .params(params)
-                .build()
-        );
+        if (IDP_SOURCE_GRAVITEE.equals(newExternalUserEntity.getSource())) {
+            final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action);
+            notifierService.trigger(ACTION.USER_REGISTRATION.equals(action) ? PortalHook.USER_REGISTERED : PortalHook.USER_CREATED, params);
+            emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
+                    .to(userEntity.getEmail())
+                    .subject(format("User %s - %s", USER_REGISTRATION.equals(action)?"registration":"creation", userEntity.getDisplayName()))
+                    .template(EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION)
+                    .params(params)
+                    .build()
+            );
+        }
 
         return userEntity;
     }

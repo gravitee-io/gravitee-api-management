@@ -94,9 +94,8 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     @Async
     @Override
     public void index(Indexable source, boolean locally) {
-        if (locally) {
-            indexLocally(source);
-        } else {
+        indexLocally(source);
+        if (!locally) {
             CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
             content.setAction(ACTION_INDEX);
             content.setId(source.getId());
@@ -109,9 +108,8 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     @Async
     @Override
     public void delete(Indexable source, boolean locally) {
-        if (locally) {
-            deleteLocally(source);
-        } else {
+        deleteLocally(source);
+        if (!locally) {
             CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
             content.setAction(ACTION_DELETE);
             content.setId(source.getId());
@@ -150,12 +148,12 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                     try {
                         return Optional.of(searcher.search(query));
                     } catch (TechnicalException te) {
-                        logger.error("Unexpected error while deleting a document", te);
+                        logger.error("Unexpected error while searching a document", te);
                         return Optional.empty();
                     }
                 });
 
-        return results.get();
+        return results.orElse(null);
     }
 
     private void sendCommands(CommandSearchIndexerEntity content) {
@@ -218,7 +216,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             Assert.isAssignable(Indexable.class, clazz);
             return (Indexable) clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            logger.error("Unable to instantiate class: {}", ex);
+            logger.error("Unable to instantiate class: {}", className, ex);
             throw ex;
         }
     }
