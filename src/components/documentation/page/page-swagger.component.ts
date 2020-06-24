@@ -16,7 +16,7 @@
 import * as jsyaml from 'js-yaml';
 import * as _ from 'lodash';
 import UserService from '../../../services/user.service';
-import {SwaggerUIBundle} from 'swagger-ui-dist';
+import { SwaggerUIBundle } from 'swagger-ui-dist';
 import { StateService } from '@uirouter/core';
 
 const DisableTryItOutPlugin = function () {
@@ -37,15 +37,15 @@ const PageSwaggerComponent: ng.IComponentOptions = {
     page: '<',
     edit: '<'
   },
-  controller: function(Constants, UserService: UserService, $state: StateService) {
+  controller: function (Constants, UserService: UserService, $state: StateService) {
     'ngInject';
 
     this.$onChanges = () => {
       this.pageId = (this.page === undefined) ? $state.params.pageId : this.page.id;
       if ($state.params.apiId) {
-        this.url = Constants.baseURL + 'apis/' + $state.params.apiId + '/pages/' + this.pageId + '/content';
+        this.url = Constants.baseURL + '/apis/' + $state.params.apiId + '/pages/' + this.pageId + '/content';
       } else {
-        this.url = Constants.baseURL + 'portal/pages/' + this.pageId + '/content';
+        this.url = Constants.baseURL + '/portal/pages/' + this.pageId + '/content';
       }
 
       this.tryItEnabled = () => {

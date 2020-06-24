@@ -39,7 +39,7 @@ class ApiService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.apisURL = `${Constants.baseURL}apis/`;
+    this.apisURL = `${Constants.baseURL}/apis/`;
     this.Constants = Constants;
     this.analyticsHttpTimeout = Constants.analytics.clientTimeout as number;
   }
@@ -92,11 +92,11 @@ class ApiService {
   }
 
   start(api): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '?action=START', {}, {headers: {'If-Match': api.etag}});
+    return this.$http.post(this.apisURL + api.id + '?action=START', {}, { headers: { 'If-Match': api.etag } });
   }
 
   stop(api): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '?action=STOP', {}, {headers: {'If-Match': api.etag}});
+    return this.$http.post(this.apisURL + api.id + '?action=STOP', {}, { headers: { 'If-Match': api.etag } });
   }
 
   reload(name): ng.IPromise<any> {
@@ -113,11 +113,26 @@ class ApiService {
       });
     }
     return this.$http.put(this.apisURL + api.id,
-      {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private,
-        'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
-        'picture': api.picture, 'resources': api.resources, 'categories': api.categories, 'groups': api.groups,
-        'labels': api.labels, 'path_mappings': api.path_mappings, 'response_templates': api.response_templates, 'lifecycle_state': api.lifecycle_state
-      }, {headers: {'If-Match': api.etag}}
+      {
+        'version': api.version,
+        'description': api.description,
+        'proxy': api.proxy,
+        'paths': api.paths,
+        'private': api.private,
+        'visibility': api.visibility,
+        'name': api.name,
+        'services': api.services,
+        'properties': api.properties,
+        'tags': api.tags,
+        'picture': api.picture,
+        'resources': api.resources,
+        'categories': api.categories,
+        'groups': api.groups,
+        'labels': api.labels,
+        'path_mappings': api.path_mappings,
+        'response_templates': api.response_templates,
+        'lifecycle_state': api.lifecycle_state
+      }, { headers: { 'If-Match': api.etag } }
     );
   }
 
@@ -179,15 +194,15 @@ class ApiService {
       }
     });
 
-    return this.$http.get(url, {timeout: this.analyticsHttpTimeout});
+    return this.$http.get(url, { timeout: this.analyticsHttpTimeout });
   }
 
   findLogs(api: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs?'), {timeout: 30000});
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs?'), { timeout: 30000 });
   }
 
   exportLogsAsCSV(api: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs/export?'), {timeout: 30000});
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs/export?'), { timeout: 30000 });
   }
 
   getLog(api, logId, timestamp): ng.IPromise<any> {
@@ -307,7 +322,7 @@ class ApiService {
       req += query;
     }
 
-    return this.$http.get(req, {timeout: 30000});
+    return this.$http.get(req, { timeout: 30000 });
   }
 
   getSubscribers(apiId: string): ng.IHttpPromise<any> {
@@ -410,7 +425,7 @@ class ApiService {
       req += '&field=' + field;
     }
 
-    return this.$http.get(req, {timeout: 30000});
+    return this.$http.get(req, { timeout: 30000 });
   }
 
   apiHealthLogs(api: string, query: LogsQuery): ng.IPromise<any> {
@@ -424,7 +439,7 @@ class ApiService {
       }
     });
 
-    return this.$http.get(url, {timeout: 30000});
+    return this.$http.get(url, { timeout: 30000 });
   }
 
   getHealthLog(api: string, log: string): ng.IPromise<any> {
@@ -442,7 +457,7 @@ class ApiService {
       }
     });
 
-    return this.$http.get(url, {timeout: 30000});
+    return this.$http.get(url, { timeout: 30000 });
   }
 
   /*
@@ -475,7 +490,7 @@ class ApiService {
 
   updateRating(api, rating): ng.IPromise<any> {
     return this.$http.put(this.apisURL + api + '/ratings/' + rating.id,
-      {'rate': rating.rate, 'title': rating.title, 'comment': rating.comment});
+      { 'rate': rating.rate, 'title': rating.title, 'comment': rating.comment });
   }
 
   deleteRating(api, ratingId): ng.IPromise<any> {
@@ -495,12 +510,12 @@ class ApiService {
 
   getQualityMetricCssClass(score): string {
     if (score !== undefined) {
-      if ( score < 50 ) {
+      if (score < 50) {
         return 'gravitee-qm-score-bad';
       } else if (score >= 50 && score < 80) {
         return 'gravitee-qm-score-medium';
       } else {
-        return  'gravitee-qm-score-good';
+        return 'gravitee-qm-score-good';
       }
     }
     return;
@@ -524,15 +539,15 @@ class ApiService {
   }
 
   askForReview(api, message?): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '/reviews?action=ASK', {message: message}, {headers: {'If-Match': api.etag}});
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=ASK', { message: message }, { headers: { 'If-Match': api.etag } });
   }
 
   acceptReview(api, message): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '/reviews?action=ACCEPT', {message: message}, {headers: {'If-Match': api.etag}});
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=ACCEPT', { message: message }, { headers: { 'If-Match': api.etag } });
   }
 
   rejectReview(api, message): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '/reviews?action=REJECT', {message: message}, {headers: {'If-Match': api.etag}});
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=REJECT', { message: message }, { headers: { 'If-Match': api.etag } });
   }
 
   /*

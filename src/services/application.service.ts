@@ -15,7 +15,7 @@
  */
 
 import * as _ from 'lodash';
-import {PagedResult} from '../entities/pagedResult';
+import { PagedResult } from '../entities/pagedResult';
 
 export class LogsQuery {
   from: number;
@@ -45,7 +45,7 @@ class ApplicationService {
 
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
-    this.applicationsURL = `${Constants.baseURL}applications/`;
+    this.applicationsURL = `${Constants.baseURL}/applications/`;
     this.analyticsHttpTimeout = Constants.analyticsHttpTimeout as number;
   }
 
@@ -112,7 +112,7 @@ class ApplicationService {
   subscribe(applicationId: string, planId: string, request?: string): ng.IHttpPromise<any> {
     let data;
     if (request) {
-      data = {request: request};
+      data = { request: request };
     } else {
       data = '';
     }
@@ -166,15 +166,15 @@ class ApplicationService {
       }
     });
 
-    return this.$http.get(url, {timeout: this.analyticsHttpTimeout});
+    return this.$http.get(url, { timeout: this.analyticsHttpTimeout });
   }
 
   findLogs(application: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.applicationsURL + application + '/logs?'), {timeout: 30000});
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.applicationsURL + application + '/logs?'), { timeout: 30000 });
   }
 
   exportLogsAsCSV(application: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.applicationsURL + application + '/logs/export?'), {timeout: 30000});
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.applicationsURL + application + '/logs/export?'), { timeout: 30000 });
   }
 
   getLog(api, logId, timestamp) {

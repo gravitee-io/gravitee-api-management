@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {IHttpPromise} from 'angular';
-import {Alert, Scope} from '../entities/alert';
+import { IHttpPromise } from 'angular';
+import { Alert, Scope } from '../entities/alert';
 
 class AlertService {
   private apisURL: string;
@@ -25,10 +25,10 @@ class AlertService {
 
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
-    this.apisURL = `${Constants.baseURL}apis/`;
-    this.applicationsURL = `${Constants.baseURL}applications/`;
-    this.configurationURL = `${Constants.baseURL}platform/`;
-    this.alertsURL = `${Constants.baseURL}alerts/`;
+    this.apisURL = `${Constants.baseURL}/apis/`;
+    this.applicationsURL = `${Constants.baseURL}/applications/`;
+    this.configurationURL = `${Constants.baseURL}/platform/`;
+    this.alertsURL = `${Constants.baseURL}/alerts/`;
   }
 
   listMetrics(): IHttpPromise<any> {

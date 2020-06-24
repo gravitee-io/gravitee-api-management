@@ -21,7 +21,7 @@ class DictionaryService {
     private $http: ng.IHttpService,
     Constants) {
     'ngInject';
-    this.dictionariesURL = `${Constants.baseURL}configuration/dictionaries`;
+    this.dictionariesURL = `${Constants.baseURL}/configuration/dictionaries`;
   }
 
   list(): ng.IPromise<any> {
@@ -38,13 +38,13 @@ class DictionaryService {
 
   update(dictionary) {
     return this.$http.put([this.dictionariesURL, dictionary.id].join('/'), {
-        name: dictionary.name,
-        description: dictionary.description,
-        type: dictionary.type,
-        properties: dictionary.properties,
-        provider: dictionary.provider,
-        trigger: dictionary.trigger
-      });
+      name: dictionary.name,
+      description: dictionary.description,
+      type: dictionary.type,
+      properties: dictionary.properties,
+      provider: dictionary.provider,
+      trigger: dictionary.trigger
+    });
   }
 
   delete(dictionary: any) {
@@ -64,7 +64,7 @@ class DictionaryService {
   }
 
   stop(dictionary: any) {
-    return this.$http.post([this.dictionariesURL, dictionary.id].join('/') + '?action=STOP', {} );
+    return this.$http.post([this.dictionariesURL, dictionary.id].join('/') + '?action=STOP', {});
   }
 }
 

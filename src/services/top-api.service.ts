@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+
 class TopApiService {
   private topApisURL: string;
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.topApisURL = `${Constants.baseURL}configuration/top-apis/`;
+    this.topApisURL = `${Constants.baseURL}/configuration/top-apis/`;
   }
 
   list() {
@@ -28,14 +29,14 @@ class TopApiService {
 
   create(topApi) {
     if (topApi) {
-      return this.$http.post(this.topApisURL, {api: topApi.id});
+      return this.$http.post(this.topApisURL, { api: topApi.id });
     }
   }
 
   update(topApis) {
     if (topApis && topApis.length) {
       return this.$http.put(this.topApisURL, _.map(topApis, function (topApi: any) {
-        return {api: topApi.api};
+        return { api: topApi.api };
       }));
     }
   }

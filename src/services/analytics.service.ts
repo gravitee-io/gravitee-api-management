@@ -33,8 +33,8 @@ class AnalyticsService {
 
   constructor(private $http, Constants, public $stateParams) {
     'ngInject';
-    this.platformUrl = `${Constants.baseURL}platform`;
-    this.analyticsURL = `${Constants.baseURL}platform/analytics`;
+    this.platformUrl = `${Constants.baseURL}/platform`;
+    this.analyticsURL = `${Constants.baseURL}/platform/analytics`;
     this.analyticsHttpTimeout = Constants.analytics.clientTimeout as number;
   }
 
@@ -52,15 +52,15 @@ class AnalyticsService {
     });
 
 
-    return this.$http.get(url, {timeout: this.analyticsHttpTimeout});
+    return this.$http.get(url, { timeout: this.analyticsHttpTimeout });
   }
 
   findLogs(query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.platformUrl + '/logs?'), {timeout: 30000});
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.platformUrl + '/logs?'), { timeout: 30000 });
   }
 
   exportLogsAsCSV(query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.platformUrl + '/logs/export?'), {timeout: 30000});
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.platformUrl + '/logs/export?'), { timeout: 30000 });
   }
 
   getLog(logId, timestamp) {

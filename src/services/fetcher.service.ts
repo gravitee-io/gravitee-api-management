@@ -18,7 +18,7 @@ class FetcherService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.resourcesURL = `${Constants.baseURL}fetchers/`;
+    this.resourcesURL = `${Constants.baseURL}/fetchers/`;
   }
 
   list(onlyImportFromDirectory?: boolean) {

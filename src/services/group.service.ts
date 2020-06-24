@@ -17,7 +17,6 @@ import * as _ from 'lodash';
 
 class GroupService {
 
-
   private groupsURL: string;
 
   static _mapToEntity(grp) {
@@ -35,12 +34,13 @@ class GroupService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.groupsURL = `${Constants.baseURL}configuration/groups`;
+    this.groupsURL = `${Constants.baseURL}/configuration/groups`;
   }
 
   get(groupId: string): ng.IPromise<any> {
     return this.$http.get(`${this.groupsURL}/${groupId}`);
   }
+
   list(): ng.IPromise<any> {
     return this.$http.get(this.groupsURL);
   }
@@ -72,10 +72,10 @@ class GroupService {
   updateEventRules(group, defaultApi, defaultApplication) {
     let eventRules = [];
     if (defaultApi) {
-      eventRules.push({event: 'API_CREATE'});
+      eventRules.push({ event: 'API_CREATE' });
     }
     if (defaultApplication) {
-      eventRules.push({event: 'APPLICATION_CREATE'});
+      eventRules.push({ event: 'APPLICATION_CREATE' });
     }
 
     group.event_rules = eventRules;
@@ -123,6 +123,7 @@ class GroupService {
   getInvitationsURL(groupId: string): string {
     return this.groupsURL + '/' + groupId + '/invitations/';
   }
+
   getInvitations(groupId: string): ng.IPromise<any> {
     return this.$http.get(this.getInvitationsURL(groupId));
   }

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import {ClientRegistrationProvider} from '../entities/clientRegistrationProvider';
-import {IHttpPromise, IPromise} from 'angular';
+import { ClientRegistrationProvider } from '../entities/clientRegistrationProvider';
+import { IHttpPromise, IPromise } from 'angular';
 
 class ClientRegistrationProviderService {
   private URL: string;
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.URL = `${Constants.baseURL}configuration/applications/registration/providers/`;
+    this.URL = `${Constants.baseURL}/configuration/applications/registration/providers/`;
   }
 
   list(): IPromise<ClientRegistrationProvider[]> {

@@ -18,7 +18,7 @@ class MetadataService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.metadataURL = `${Constants.baseURL}configuration/metadata/`;
+    this.metadataURL = `${Constants.baseURL}/configuration/metadata/`;
   }
 
   listFormats() {

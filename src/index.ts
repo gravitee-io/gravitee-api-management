@@ -20,12 +20,12 @@ import './management/management.module';
 import './i18n/i18n.module';
 
 // fix angular-schema-form angular<1.7
-Object.assign(angular, {lowercase: _.toLower, uppercase: _.toUpper});
+Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
 
 let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
 let $http: ng.IHttpService = initInjector.get('$http');
 let $q: ng.IQService = initInjector.get('$q');
-let configNoCache = {headers: {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'}};
+let configNoCache = { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } };
 let ConstantsJSON: any;
 
 fetchData()
@@ -42,7 +42,12 @@ function fetchData() {
       ConstantsJSON = responses[0].data;
       let build = responses[1].data;
       angular.module('gravitee-management').constant('Build', build);
-      return $http.get(`${ConstantsJSON.baseURL}portal`);
+
+      if (ConstantsJSON.baseURL.endsWith('/')) {
+        ConstantsJSON.baseURL = ConstantsJSON.baseURL.slice(0, -1);
+      }
+
+      return $http.get(`${ConstantsJSON.baseURL}/portal`);
     })
     .then((response: any) => {
       let constants = _.merge(response.data, ConstantsJSON);

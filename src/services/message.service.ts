@@ -24,14 +24,14 @@ class MessageService {
 
   sendFromPortal(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {
     return this.$http.post(
-      `${this.baseURL}messages`,
+      `${this.baseURL}/messages`,
       this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders)
     );
   }
 
   sendFromApi(apiId: string, title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {
     return this.$http.post(
-      `${this.baseURL}apis/${apiId}/messages`,
+      `${this.baseURL}/apis/${apiId}/messages`,
       this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders)
     );
   }
@@ -39,7 +39,7 @@ class MessageService {
   private getPayload(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {
     if (url) {
       let params = {};
-      for (let idx = 0; idx < httpHeaders.length; idx ++) {
+      for (let idx = 0; idx < httpHeaders.length; idx++) {
         if (httpHeaders[idx].key !== '') {
           params[httpHeaders[idx].key] = httpHeaders[idx].value;
         }

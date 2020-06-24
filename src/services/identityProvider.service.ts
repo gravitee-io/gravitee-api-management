@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import {IdentityProvider} from '../entities/identityProvider';
-import {IHttpPromise, IPromise} from 'angular';
+import { IdentityProvider } from '../entities/identityProvider';
+import { IHttpPromise, IPromise } from 'angular';
 
 class IdentityProviderService {
   private URL: string;
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.URL = `${Constants.baseURL}configuration/identities/`;
+    this.URL = `${Constants.baseURL}/configuration/identities/`;
   }
 
   list(): IPromise<IdentityProvider[]> {

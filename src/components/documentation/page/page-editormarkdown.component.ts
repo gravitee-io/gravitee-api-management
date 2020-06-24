@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import hljs from 'highlight.js';
 
@@ -34,9 +34,9 @@ class ComponentCtrl implements ng.IComponentController {
     const initialValue = this.page && this.page.content ? this.page.content : '';
     let mediaURL;
     if (this.$state.params.apiId) {
-      mediaURL = this.Constants.baseURL + 'apis/' + this.$state.params.apiId + '/media/';
+      mediaURL = this.Constants.baseURL + '/apis/' + this.$state.params.apiId + '/media/';
     } else {
-      mediaURL = this.Constants.baseURL + 'portal/media/';
+      mediaURL = this.Constants.baseURL + '/portal/media/';
     }
 
     var toolbarItems = [
@@ -101,7 +101,7 @@ class ComponentCtrl implements ng.IComponentController {
             return false;
           }
 
-          $http.post(mediaURL + 'upload', fd, {headers: {'Content-Type': undefined}})
+          $http.post(mediaURL + 'upload', fd, { headers: { 'Content-Type': undefined } })
             .then((response) => {
               callback(mediaURL + response.data, blob.name);
             });
@@ -109,7 +109,7 @@ class ComponentCtrl implements ng.IComponentController {
           return false;
         }
       },
-      plugins: [[codeSyntaxHighlight, {hljs}]]
+      plugins: [[codeSyntaxHighlight, { hljs }]]
     }, this.options));
   }
 }

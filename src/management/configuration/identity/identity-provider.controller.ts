@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 
 import NotificationService from '../../../services/notification.service';
 import IdentityProviderService from '../../../services/identityProvider.service';
-import {GroupMapping, IdentityProvider, RoleMapping} from '../../../entities/identityProvider';
+import { GroupMapping, IdentityProvider, RoleMapping } from '../../../entities/identityProvider';
 import angular = require('angular');
 import _ = require('lodash');
 
@@ -68,7 +68,7 @@ class IdentityProviderController {
         };
       }
     } else {
-      this.tokenExchangeEndpoint = this.Constants.baseURL + 'auth/oauth2/' + this.identityProvider.id;
+      this.tokenExchangeEndpoint = this.Constants.baseURL + '/auth/oauth2/' + this.identityProvider.id;
     }
     this.initialIdentityProvider = _.cloneDeep(this.identityProvider);
   }
@@ -102,7 +102,7 @@ class IdentityProviderController {
     if (!this.updateMode) {
       this.IdentityProviderService.create(this.identityProvider).then((response: any) => {
         this.NotificationService.show('Identity provider ' + this.identityProvider.name + ' has been created');
-        this.$state.go('management.settings.identityproviders.identityprovider', {id: response.data.id}, {reload: true});
+        this.$state.go('management.settings.identityproviders.identityprovider', { id: response.data.id }, { reload: true });
       });
     } else {
       this.IdentityProviderService.update(this.identityProvider).then((response) => {
