@@ -71,9 +71,8 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
             }
         }
 
-        api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
-            @Override
-            public void accept(VirtualHost virtualHost) {
+        if (api.getProxy() != null) {
+            api.getProxy().getVirtualHosts().forEach(virtualHost -> {
                 doc.add(new StringField(FIELD_PATHS, virtualHost.getPath(), Field.Store.NO));
                 doc.add(new TextField(FIELD_PATHS_SPLIT, virtualHost.getPath(), Field.Store.NO));
 
@@ -81,8 +80,8 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
                     doc.add(new StringField(FIELD_HOSTS, virtualHost.getHost(), Field.Store.NO));
                     doc.add(new TextField(FIELD_HOSTS_SPLIT, virtualHost.getHost(), Field.Store.NO));
                 }
-            }
-        });
+            });
+        }
 
         // labels
         if (api.getLabels() != null) {

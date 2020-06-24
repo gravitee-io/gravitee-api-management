@@ -30,6 +30,7 @@ import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.CommandService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.AbstractNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.management.service.impl.search.lucene.DocumentTransformer;
@@ -171,12 +172,16 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     }
 
     private Indexable getSource(String clazz, String id) {
-        if (ApiEntity.class.getName().equals(clazz)) {
-            return apiService.findById(id);
-        } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
-            return pageService.findById(id);
-        } else if (UserEntity.class.getName().equals(clazz)) {
-            return userService.findById(id);
+        try {
+            if (ApiEntity.class.getName().equals(clazz)) {
+                return apiService.findById(id);
+            } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
+                return pageService.findById(id);
+            } else if (UserEntity.class.getName().equals(clazz)) {
+                return userService.findById(id);
+            }
+        } catch (final AbstractNotFoundException nfe) {
+            // ignore not found exception because may be due to synchronization not yet processed by DBs
         }
         return null;
     }

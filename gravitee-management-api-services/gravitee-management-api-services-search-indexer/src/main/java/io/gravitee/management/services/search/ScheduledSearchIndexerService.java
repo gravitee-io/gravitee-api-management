@@ -23,6 +23,7 @@ import io.gravitee.management.model.command.CommandSearchIndexerEntity;
 import io.gravitee.management.model.command.CommandTags;
 import io.gravitee.management.service.CommandService;
 import io.gravitee.management.service.search.SearchEngineService;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.model.MessageRecipient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,12 +92,18 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
         query.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
         List<CommandEntity> messageEntities = commandService.search(query);
         messageEntities.forEach(commandEntity -> {
-            commandService.ack(commandEntity.getId());
-            try {
-                searchEngineService.process(
-                        mapper.readValue(commandEntity.getContent(), CommandSearchIndexerEntity.class));
-            } catch (IOException e) {
-                logger.error("Search Indexer has received a bad message.", e);
+            if (commandEntity.isExpired()) {
+                commandService.delete(commandEntity.getId());
+            } else {
+                if (!commandEntity.isProcessedInCurrentNode()) {
+                    commandService.ack(commandEntity.getId());
+                    try {
+                        searchEngineService.process(
+                                mapper.readValue(commandEntity.getContent(), CommandSearchIndexerEntity.class));
+                    } catch (IOException e) {
+                        logger.error("Search Indexer has received a bad message.", e);
+                    }
+                }
             }
         });
 

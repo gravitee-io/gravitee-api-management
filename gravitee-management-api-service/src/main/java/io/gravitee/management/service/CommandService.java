@@ -30,4 +30,5 @@ public interface CommandService {
     void send(NewCommandEntity message);
     List<CommandEntity> search(CommandQuery query);
     void ack(String messageId);
+    void delete(String commandId);
 }

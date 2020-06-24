@@ -28,6 +28,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
+import io.gravitee.repository.management.model.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static io.gravitee.repository.management.model.Audit.AuditProperties.TAG;
+import static io.gravitee.repository.management.model.Tag.AuditEvent.TAG_DELETED;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -94,8 +98,6 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         CommandCriteria criteria = new CommandCriteria.Builder()
                 .to(query.getTo())
                 .tags(tags)
-                .notAckBy(node.id())
-                .notDeleted()
                 .build();
         return commandRepository.search(criteria)
                 .stream()
@@ -122,6 +124,20 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         }
     }
 
+    @Override
+    public void delete(String commandId) {
+        try {
+            Optional<Command> commandOptional = commandRepository.findById(commandId);
+            if (commandOptional.isPresent()) {
+                commandRepository.delete(commandId);
+            }
+        } catch (TechnicalException ex) {
+            final String error = "An error occurs while trying to delete command " + commandId;
+            logger.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
+        }
+    }
+
     private List<String> convert(List<CommandTags> tags) {
         if (tags == null || tags.isEmpty()) {
             return Collections.emptyList();
@@ -139,7 +155,6 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         }
 
         CommandEntity commandEntity = new CommandEntity();
-
         commandEntity.setId(command.getId());
         commandEntity.setTo(command.getTo());
         commandEntity.setContent(command.getContent());
@@ -150,7 +165,8 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
                             .map(CommandTags::valueOf)
                             .collect(Collectors.toList()));
         }
-
+        commandEntity.setExpired(command.getExpiredAt().before(new Date()));
+        commandEntity.setProcessedInCurrentNode(command.getAcknowledgments().contains(node.id()));
         return commandEntity;
     }
 }
