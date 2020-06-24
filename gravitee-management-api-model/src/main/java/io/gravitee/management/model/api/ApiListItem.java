@@ -133,6 +133,12 @@ public class ApiListItem {
     @JsonProperty(value = "workflow_state")
     private WorkflowState workflowState;
 
+    @JsonProperty(value = "context_path")
+    @ApiModelProperty(
+            value = "API's context path.",
+            example = "/my-awesome-api")
+    private String contextPath;
+
     public String getId() {
         return id;
     }
@@ -293,6 +299,14 @@ public class ApiListItem {
         this.workflowState = workflowState;
     }
 
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -307,24 +321,30 @@ public class ApiListItem {
         return Objects.hash(id, version);
     }
 
+    @Override
     public String toString() {
         return "ApiListItem{" +
-            "id='" + id + '\'' +
-            ", name='" + name + '\'' +
-            ", version='" + version + '\'' +
-            ", description='" + description + '\'' +
-            ", createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
-            ", visibility=" + visibility +
-            ", state=" + state +
-            ", primaryOwner=" + primaryOwner +
-            ", role=" + role +
-            ", manageable=" + manageable +
-            ", rate=" + rate +
-            ", numberOfRatings=" + numberOfRatings +
-            ", tags=" + tags +
-            ", lifecycleState=" + lifecycleState +
-            ", workflowState=" + workflowState +
-            '}';
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", version='" + version + '\'' +
+                ", description='" + description + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", visibility=" + visibility +
+                ", state=" + state +
+                ", primaryOwner=" + primaryOwner +
+                ", role='" + role + '\'' +
+                ", pictureUrl='" + pictureUrl + '\'' +
+                ", virtualHosts=" + virtualHosts +
+                ", views=" + views +
+                ", labels=" + labels +
+                ", manageable=" + manageable +
+                ", rate=" + rate +
+                ", numberOfRatings=" + numberOfRatings +
+                ", tags=" + tags +
+                ", lifecycleState=" + lifecycleState +
+                ", workflowState=" + workflowState +
+                ", contextPath='" + contextPath + '\'' +
+                '}';
     }
 }
