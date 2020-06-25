@@ -15,7 +15,8 @@
  */
 const AlertTriggerFiltersComponent: ng.IComponentOptions = {
   bindings: {
-    alert: '<'
+    alert: '<',
+    form: '<',
   },
   template: require('./trigger-filters.html'),
   controller: function () {
@@ -31,6 +32,7 @@ const AlertTriggerFiltersComponent: ng.IComponentOptions = {
 
     this.removeFilter = (idx: number) => {
       this.alert.filters.splice(idx, 1);
+      this.form.$setDirty();
     };
   }
 };
