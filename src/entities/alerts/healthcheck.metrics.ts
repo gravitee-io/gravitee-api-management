@@ -14,17 +14,32 @@
  * limitations under the License.
  */
 
-import {CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple} from "../alert";
-import TenantService from "../../services/tenant.service";
+import {CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple} from '../alert';
+import TenantService from '../../services/tenant.service';
+
+const statusloader = (type: number, id: string, $injector: any) => {
+  let events: Tuple[] = [];
+  events.push(new Tuple("DOWN", "Down"));
+  events.push(new Tuple("TRANSATIONNALY_DOWN", "Transationnaly down"));
+  events.push(new Tuple("TRANSITIONALLY_UP", "Transationnaly up"));
+  events.push(new Tuple("UP", "Up"));
+  return events;
+};
 
 export class HealthcheckMetrics extends Metrics {
+  static OLD_STATUS_NAME: HealthcheckMetrics = new HealthcheckMetrics('status.old', 'Old Status',
+    [StringCondition.TYPE], true, undefined, statusloader);
+
+  static NEW_STATUS_NAME: HealthcheckMetrics = new HealthcheckMetrics('status.new', 'New Status',
+    [StringCondition.TYPE], true, undefined, statusloader);
+
   static ENDPOINT_NAME: HealthcheckMetrics = new HealthcheckMetrics('endpoint.name', 'Endpoint name',
     [StringCondition.TYPE]);
 
   static RESPONSE_TIME: HealthcheckMetrics = new HealthcheckMetrics('response_time', 'Response Time (ms)',
     [ThresholdCondition.TYPE, ThresholdRangeCondition.TYPE, CompareCondition.TYPE]);
 
-  static TENANT: HealthcheckMetrics = new HealthcheckMetrics('tenant', 'Tenant', [StringCondition.TYPE],false, undefined, (type: number, id: string, $injector: any) => {
+  static TENANT: HealthcheckMetrics = new HealthcheckMetrics('tenant', 'Tenant', [StringCondition.TYPE], false, undefined, (type: number, id: string, $injector: any) => {
     let tenants: Tuple[] = [];
 
     // PLATFORM: Search for all registered tenants
@@ -39,6 +54,8 @@ export class HealthcheckMetrics extends Metrics {
   });
 
   static METRICS: HealthcheckMetrics[] = [
+    HealthcheckMetrics.OLD_STATUS_NAME,
+    HealthcheckMetrics.NEW_STATUS_NAME,
     HealthcheckMetrics.ENDPOINT_NAME,
     HealthcheckMetrics.RESPONSE_TIME,
     HealthcheckMetrics.TENANT,

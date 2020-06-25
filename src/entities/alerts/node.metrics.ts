@@ -98,7 +98,7 @@ export class NodeLifecycleMetrics extends Metrics {
     });
 
   static NODE_EVENT: NodeLifecycleMetrics = new NodeLifecycleMetrics('node.event', 'Event',
-    [StringCondition.TYPE], true,undefined, (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], true, undefined, (type: number, id: string, $injector: any) => {
       let events: Tuple[] = [];
       events.push(new Tuple("NODE_START", "Start"));
       events.push(new Tuple("NODE_STOP", "Stop"));
@@ -117,7 +117,7 @@ export class NodeHealthcheckMetrics extends Metrics {
     [StringCondition.TYPE]);
 
   static NODE_APPLICATION: NodeHealthcheckMetrics = new NodeHealthcheckMetrics('node.application', 'Type',
-    [StringCondition.TYPE],undefined, (type: number, id: string, $injector: any) => {
+    [StringCondition.TYPE], undefined, (type: number, id: string, $injector: any) => {
       let applications: Tuple[] = [];
 
       NodeType.TYPES.forEach(app => {
