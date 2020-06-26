@@ -166,7 +166,10 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
                             .collect(Collectors.toList()));
         }
         commandEntity.setExpired(command.getExpiredAt().before(new Date()));
-        commandEntity.setProcessedInCurrentNode(command.getAcknowledgments().contains(node.id()));
+        final List<String> acknowledgments = command.getAcknowledgments();
+        if (acknowledgments != null) {
+            commandEntity.setProcessedInCurrentNode(acknowledgments.contains(node.id()));
+        }
         return commandEntity;
     }
 }
