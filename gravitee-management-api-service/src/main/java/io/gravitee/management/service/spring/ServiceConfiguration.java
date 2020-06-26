@@ -16,9 +16,11 @@
 package io.gravitee.management.service.spring;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -83,12 +85,6 @@ public class ServiceConfiguration {
 		// register API serializer
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(ApiEntity.class, apiSerializer());
-		module.addSerializer(Enum.class, new StdSerializer<Enum>(Enum.class) {
-			@Override
-			public void serialize(Enum anEnum, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-				jsonGenerator.writeString(anEnum.name().toLowerCase());
-			}
-		});
 
 		objectMapper.registerModule(module);
 		return objectMapper;
