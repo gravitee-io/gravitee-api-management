@@ -74,9 +74,9 @@ const AlertsComponent: ng.IComponentOptions = {
     };
 
     this.enhanceAlert = (alert: Alert) => {
-      if (this.api) {
+      if ($stateParams.apiId) {
         alert.reference_type = Scope.API;
-      } else if (this.application) {
+      } else if ($stateParams.applicationId) {
         alert.reference_type = Scope.APPLICATION;
       } else {
         alert.reference_type = Scope.PLATFORM;
