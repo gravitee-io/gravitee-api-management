@@ -32,7 +32,7 @@ import java.util.Optional;
 public class HttpParameterRepository extends AbstractRepository implements ParameterRepository {
 
     @Override
-    public Optional<Parameter> findById(String s) throws TechnicalException {
+    public Optional<Parameter> findById(String s, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
@@ -47,18 +47,17 @@ public class HttpParameterRepository extends AbstractRepository implements Param
     }
 
     @Override
-    public void delete(String s) throws TechnicalException {
+    public void delete(String s, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public List<Parameter> findAll(List<String> keys) throws TechnicalException {
+    public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public List<Parameter> findAllByReferenceIdAndReferenceType(List<String> keys, String referenceId,
-            ParameterReferenceType referenceType) throws TechnicalException {
+    public List<Parameter> findAll(String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 }
