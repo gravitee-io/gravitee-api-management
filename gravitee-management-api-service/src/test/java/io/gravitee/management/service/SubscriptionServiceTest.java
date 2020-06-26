@@ -45,6 +45,7 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -900,10 +901,10 @@ public class SubscriptionServiceTest {
     public void shouldNotCreateBecauseRestricted() {
         // Stub
         when(plan.getExcludedGroups()).thenReturn(asList("excl1", "excl2"));
+        when(plan.getApis()).thenReturn(singleton("api1"));
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         final GroupEntity group = new GroupEntity();
         group.setId("excl2");
-        when(groupService.findByUser(anyString())).thenReturn(singleton(group));
 
         // Run
         subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));

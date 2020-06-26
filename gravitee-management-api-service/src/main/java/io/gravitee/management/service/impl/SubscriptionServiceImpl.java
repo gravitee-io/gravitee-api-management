@@ -177,12 +177,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
 
             if (planEntity.getExcludedGroups() != null && !planEntity.getExcludedGroups().isEmpty()) {
-                final Set<GroupEntity> groups = groupService.findByUser(getAuthenticatedUsername());
-                groups.stream().map(GroupEntity::getId).forEach(group -> {
-                    if (planEntity.getExcludedGroups().contains(group)) {
-                        throw new PlanRestrictedException(plan);
-                    }
-                });
+                final boolean userAuthorizedToAccessApiData = groupService.
+                        isUserAuthorizedToAccessApiData(apiService.findById(planEntity.getApis().iterator().next()),
+                                planEntity.getExcludedGroups(), getAuthenticatedUsername());
+                if (!userAuthorizedToAccessApiData) {
+                    throw new PlanRestrictedException(plan);
+                }
             }
 
             ApplicationEntity applicationEntity = applicationService.findById(application);
