@@ -15,23 +15,21 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import java.util.List;
-
+import io.gravitee.repository.mongodb.management.internal.model.ParameterMongo;
+import io.gravitee.repository.mongodb.management.internal.model.ParameterPkMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import io.gravitee.repository.mongodb.management.internal.model.ParameterMongo;
+import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface ParameterMongoRepository extends MongoRepository<ParameterMongo, String> {
-    @Query("{ _id: {$in: ?0}, referenceId: ?1, referenceType: ?2 }")
-    List<ParameterMongo> findAllByReferenceIdAndReferenceType(List<String> keys, String referenceId, String referenceType);
-    
-    @Query("{ referenceId: ?0, referenceType: ?1 }")
-    List<ParameterMongo> findAllByReferenceIdAndReferenceType(String referenceId, String referenceType);
+public interface ParameterMongoRepository extends MongoRepository<ParameterMongo, ParameterPkMongo> {
+    @Query("{ '_id.referenceId': ?0, '_id.referenceType': ?1 }")
+    List<ParameterMongo> findAll(String referenceId, String referenceType);
 }

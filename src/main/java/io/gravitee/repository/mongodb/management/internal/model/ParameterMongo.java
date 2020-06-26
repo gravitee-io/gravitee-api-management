@@ -22,75 +22,51 @@ import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Document(collection = "parameters")
 public class ParameterMongo {
 
-	@Id
-	private String key;
+    @Id
+    private ParameterPkMongo id;
 
-    private String referenceId;
-    
-    private String referenceType;
-    
-	private String value;
+    private String value;
 
-	
-
-	public String getKey() {
-        return key;
+    public ParameterPkMongo getId() {
+        return id;
     }
 
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
+    public void setId(ParameterPkMongo id) {
+        this.id = id;
     }
 
     public String getValue() {
-		return value;
-	}
+        return value;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof ParameterMongo)) return false;
-		ParameterMongo that = (ParameterMongo) o;
-		return Objects.equals(key, that.key) &&
-				Objects.equals(value, that.value);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ParameterMongo)) return false;
+        ParameterMongo that = (ParameterMongo) o;
+        return Objects.equals(id, that.id);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(key, value);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
-	@Override
-	public String toString() {
-		return "ParameterMongo{" +
-				"key='" + key + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-				", value='" + value + '\'' +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "ParameterMongo{" +
+                "id='" + id + '\'' +
+                ", value='" + value + '\'' +
+                '}';
+    }
 }
