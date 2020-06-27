@@ -20,8 +20,8 @@ import TenantService from '../../services/tenant.service';
 const statusloader = (type: number, id: string, $injector: any) => {
   let events: Tuple[] = [];
   events.push(new Tuple("DOWN", "Down"));
-  events.push(new Tuple("TRANSATIONNALY_DOWN", "Transationnaly down"));
-  events.push(new Tuple("TRANSITIONALLY_UP", "Transationnaly up"));
+  events.push(new Tuple("TRANSITIONALLY_DOWN", "Transitionally down"));
+  events.push(new Tuple("TRANSITIONALLY_UP", "Transitionally up"));
   events.push(new Tuple("UP", "Up"));
   return events;
 };
