@@ -46,6 +46,8 @@ public class Cors {
 
     private int errorStatusCode = DEFAULT_ERROR_STATUS_CODE;
 
+    private boolean runPolicies;
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -124,5 +126,13 @@ public class Cors {
 
     public void setAccessControlAllowOriginRegex(Set<Pattern> accessControlAllowOriginRegex) {
         this.accessControlAllowOriginRegex = accessControlAllowOriginRegex;
+    }
+
+    public boolean isRunPolicies() {
+        return runPolicies;
+    }
+
+    public void setRunPolicies(boolean runPolicies) {
+        this.runPolicies = runPolicies;
     }
 }

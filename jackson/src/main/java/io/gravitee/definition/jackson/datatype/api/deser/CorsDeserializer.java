@@ -118,6 +118,7 @@ public class CorsDeserializer extends StdScalarDeserializer<Cors> {
             } else {
                 cors.setAccessControlMaxAge(-1);
             }
+            cors.setRunPolicies(node.path("runPolicies").asBoolean(false));
         }
 
         return cors;
