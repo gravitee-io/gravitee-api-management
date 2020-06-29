@@ -111,6 +111,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "dashboards",
             "alert_events",
             "themes",
+            "alert_event_rules",
             "tokens"
     );
 
