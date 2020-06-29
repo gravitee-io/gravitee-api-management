@@ -226,10 +226,16 @@ services:
 #    unit: MILLISECONDS
 #    storeSystemProperties: true
 
-handlers:
-  request:
-    transaction:
-      header: X-Gravitee-Transaction-Id
+#handlers:
+#  request:
+#    # possible values: hex, uuid. Default: uuid.
+#    format: uuid
+#    transaction:
+#      # Default: X-Gravitee-Transaction-Id.
+#      header: X-Gravitee-Transaction-Id
+#    request:
+#      # Default: X-Gravitee-Request-Id.
+#      header: X-Gravitee-Request-Id
 
 # Referenced properties
 ds:
