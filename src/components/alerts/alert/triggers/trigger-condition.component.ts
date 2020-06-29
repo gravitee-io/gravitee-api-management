@@ -31,22 +31,24 @@ const AlertTriggerConditionComponent: ng.IComponentOptions = {
     };
 
     this.onMetricsChange = (reset: boolean) => {
-      if (reset) {
-        delete this.condition.type;
-        delete this.condition.operator;
-        delete this.condition.multiplier;
-        delete this.condition.property2;
+      if (this.metrics) {
+        if (reset) {
+          delete this.condition.type;
+          delete this.condition.operator;
+          delete this.condition.multiplier;
+          delete this.condition.property2;
+        }
+
+        // If no property initialized, takes the first from the select alert
+        if (this.condition.property === undefined) {
+          this.condition.property = this.metrics[0].key;
+        }
+
+        // Get the metric field according to the condition property
+        this.conditions = _.find(this.metrics as Metrics[], metric => metric.key === this.condition.property).conditions;
+
+        this.onConditionChange();
       }
-
-      // If no property initialized, takes the first from the select alert
-      if (this.condition.property === undefined) {
-        this.condition.property = this.metrics[0].key;
-      }
-
-      // Get the metric field according to the condition property
-      this.conditions = _.find(this.metrics as Metrics[], metric => metric.key === this.condition.property).conditions;
-
-      this.onConditionChange();
     };
 
     this.onConditionChange = () => {

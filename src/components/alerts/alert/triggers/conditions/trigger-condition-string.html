@@ -16,7 +16,7 @@
 
 -->
 
-<md-input-container class="md-block" ng-if="$ctrl.values === undefined">
+<md-input-container class="md-block" ng-if="!$ctrl.displaySelect()">
   <label>Pattern</label>
   <input ng-model="$ctrl.condition.pattern" required type="text" name="condition-string-value" aria-label="string value condition" />
   <!--
@@ -29,7 +29,7 @@
   </div>
 </md-input-container>
 
-<md-input-container class="md-block" ng-if="$ctrl.values !== undefined">
+<md-input-container class="md-block" ng-if="$ctrl.displaySelect()">
   <label>Value</label>
   <md-select ng-model="$ctrl.condition.pattern" required>
     <md-option

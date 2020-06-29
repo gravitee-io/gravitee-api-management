@@ -75,7 +75,11 @@ function apisNotificationsRouterConfig($stateProvider) {
       }
     })
     .state('management.apis.detail.alerts', {
-      url: '/alerts',
+      abstract: true,
+      url: '/alerts'
+    })
+    .state('management.apis.detail.alerts.list', {
+      url: '/',
       component: 'alertsComponent',
       data: {
         menu: {
@@ -88,9 +92,6 @@ function apisNotificationsRouterConfig($stateProvider) {
         }
       },
       resolve: {
-        api: function ($stateParams, ApiService) {
-          return ApiService.get($stateParams.apiId).then((response) => response.data);
-        },
         alerts: (AlertService: AlertService, $stateParams) =>
           AlertService.listAlerts($stateParams.apiId, 0).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
@@ -99,8 +100,8 @@ function apisNotificationsRouterConfig($stateProvider) {
           NotifierService.list().then( (response) => response.data)
       }
     })
-    .state('management.apis.detail.alertnew', {
-      url: '/alert/create',
+    .state('management.apis.detail.alerts.alertnew', {
+      url: '/create',
       component: 'alertComponent',
       data: {
         menu: null,
@@ -120,8 +121,8 @@ function apisNotificationsRouterConfig($stateProvider) {
         NotifierService.list().then( (response) => response.data)
       }
     })
-    .state('management.apis.detail.alert', {
-      url: '/alert/:alertId?:tab',
+    .state('management.apis.detail.alerts.alert', {
+      url: '/:alertId?:tab',
       component: 'alertComponent',
       data: {
         menu: null,

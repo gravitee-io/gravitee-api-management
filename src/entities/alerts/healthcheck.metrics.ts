@@ -17,7 +17,22 @@
 import {CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple} from '../alert';
 import TenantService from '../../services/tenant.service';
 
+const statusloader = (type: number, id: string, $injector: any) => {
+  let events: Tuple[] = [];
+  events.push(new Tuple('DOWN', 'Down'));
+  events.push(new Tuple('TRANSATIONNALY_DOWN', 'Transationnaly down'));
+  events.push(new Tuple('TRANSITIONALLY_UP', 'Transationnaly up'));
+  events.push(new Tuple('UP', 'Up'));
+  return events;
+};
+
 export class HealthcheckMetrics extends Metrics {
+  static OLD_STATUS_NAME: HealthcheckMetrics = new HealthcheckMetrics('status.old', 'Old Status',
+    [StringCondition.TYPE], true, undefined, statusloader);
+
+  static NEW_STATUS_NAME: HealthcheckMetrics = new HealthcheckMetrics('status.new', 'New Status',
+    [StringCondition.TYPE], true, undefined, statusloader);
+
   static ENDPOINT_NAME: HealthcheckMetrics = new HealthcheckMetrics('endpoint.name', 'Endpoint name',
     [StringCondition.TYPE]);
 
@@ -39,6 +54,8 @@ export class HealthcheckMetrics extends Metrics {
   });
 
   static METRICS: HealthcheckMetrics[] = [
+    HealthcheckMetrics.OLD_STATUS_NAME,
+    HealthcheckMetrics.NEW_STATUS_NAME,
     HealthcheckMetrics.ENDPOINT_NAME,
     HealthcheckMetrics.RESPONSE_TIME,
     HealthcheckMetrics.TENANT,
