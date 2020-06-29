@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -49,6 +50,12 @@ public class AlertTrigger {
     private Date updatedAt;
 
     private String severity;
+
+    private String parentId;
+
+    private List<AlertEventRule> eventRules;
+
+    private boolean template;
 
     public String getId() {
         return id;
@@ -136,6 +143,30 @@ public class AlertTrigger {
 
     public void setSeverity(String severity) {
         this.severity = severity;
+    }
+
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+
+    public boolean isTemplate() {
+        return template;
+    }
+
+    public void setTemplate(boolean template) {
+        this.template = template;
+    }
+
+    public List<AlertEventRule> getEventRules() {
+        return eventRules;
+    }
+
+    public void setEventRules(List<AlertEventRule> eventRules) {
+        this.eventRules = eventRules;
     }
 
     @Override
