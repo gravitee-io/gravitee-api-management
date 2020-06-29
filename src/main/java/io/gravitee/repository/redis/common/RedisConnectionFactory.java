@@ -47,6 +47,7 @@ public class RedisConnectionFactory implements FactoryBean<org.springframework.d
         jedisConnectionFactory.setPort(readPropertyValue(propertyPrefix + "port", int.class, 6379));
         jedisConnectionFactory.setPassword(readPropertyValue(propertyPrefix + "password", String.class, null));
         jedisConnectionFactory.setTimeout(readPropertyValue(propertyPrefix + "timeout", int.class, -1));
+        jedisConnectionFactory.setUseSsl(readPropertyValue(propertyPrefix + "ssl", boolean.class, false));
 
         int poolMax = readPropertyValue(propertyPrefix + "pool.max", int.class, 256);
 
