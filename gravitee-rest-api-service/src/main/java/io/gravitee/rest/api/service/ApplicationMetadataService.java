@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationMetadataEntity;
+import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
+import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
 
 import java.util.List;
 
@@ -23,15 +25,15 @@ import java.util.List;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiMetadataService {
+public interface ApplicationMetadataService {
 
-    List<ApiMetadataEntity> findAllByApi(String apiId);
+    List<ApplicationMetadataEntity> findAllByApplication(String applicationId);
 
-    ApiMetadataEntity findByIdAndApi(String metadataId, String apiId);
+    ApplicationMetadataEntity findByIdAndApplication(String metadataId, String applicationId);
 
-    ApiMetadataEntity create(NewApiMetadataEntity metadata);
+    ApplicationMetadataEntity create(NewApplicationMetadataEntity metadata);
 
-    ApiMetadataEntity update(UpdateApiMetadataEntity metadata);
+    ApplicationMetadataEntity update(UpdateApplicationMetadataEntity metadata);
 
-    void delete(String metadataId, String api);
+    void delete(String metadataId, String application);
 }

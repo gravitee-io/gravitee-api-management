@@ -21,16 +21,16 @@ import java.util.Objects;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiMetadataEntity extends ReferenceMetadataEntity {
+public class NewApplicationMetadataEntity extends NewReferenceMetadataEntity {
 
-    private String apiId;
+    private String applicationId;
 
-    public String getApiId() {
-        return apiId;
+    public String getApplicationId() {
+        return applicationId;
     }
 
-    public void setApiId(String apiId) {
-        this.apiId = apiId;
+    public void setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
     }
 
     @Override
@@ -38,19 +38,19 @@ public class ApiMetadataEntity extends ReferenceMetadataEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
-        ApiMetadataEntity that = (ApiMetadataEntity) o;
-        return Objects.equals(apiId, that.apiId);
+        NewApplicationMetadataEntity that = (NewApplicationMetadataEntity) o;
+        return Objects.equals(applicationId, that.applicationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), apiId);
+        return Objects.hash(super.hashCode(), applicationId);
     }
 
     @Override
     public String toString() {
-        return "ApiMetadataEntity{" +
-                "apiId='" + apiId + '\'' +
+        return "NewApplicationMetadataEntity{" +
+                "applicationId='" + applicationId + '\'' +
                 "} " + super.toString();
     }
 }
