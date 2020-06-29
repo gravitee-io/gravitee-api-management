@@ -26,19 +26,18 @@ import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.notification.*;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
-import static io.gravitee.rest.api.service.notification.ApiHook.*;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static io.gravitee.rest.api.service.notification.ApiHook.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -113,7 +112,10 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         else if (hook.equals(ApiHook.APIKEY_EXPIRED)) {
             return EmailNotificationBuilder.EmailTemplate.EXPIRE_API_KEY;
         }
-        else if (hook.equals(SUBSCRIPTION_ACCEPTED) || hook.equals(SUBSCRIPTION_NEW)) {
+        else if (hook.equals(SUBSCRIPTION_ACCEPTED)) {
+            return EmailNotificationBuilder.EmailTemplate.APPROVE_SUBSCRIPTION;
+        }
+        else if (hook.equals(SUBSCRIPTION_NEW)) {
             return EmailNotificationBuilder.EmailTemplate.NEW_SUBSCRIPTION;
         }
         else if (hook.equals(ApiHook.SUBSCRIPTION_CLOSED)) {
@@ -221,13 +223,16 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         else if (hook.equals(ApiHook.APIKEY_RENEWED)) {
             return "API key renewed";
         }
-        else if (hook.equals(ApiHook.SUBSCRIPTION_ACCEPTED) || hook.equals(ApiHook.SUBSCRIPTION_NEW)) {
+        else if (hook.equals(ApiHook.SUBSCRIPTION_NEW)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
                 return "New subscription for " + apiName + " with plan " + ((PlanEntity)plan).getName();
             }
+        }
+        else if (hook.equals(ApiHook.SUBSCRIPTION_ACCEPTED)) {
+            return "Subscription approved";
         }
         else if (hook.equals(ApiHook.SUBSCRIPTION_CLOSED)) {
             return "Subscription closed";

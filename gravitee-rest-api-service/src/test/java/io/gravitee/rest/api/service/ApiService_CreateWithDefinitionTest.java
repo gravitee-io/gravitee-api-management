@@ -98,6 +98,8 @@ public class ApiService_CreateWithDefinitionTest {
     private GenericNotificationConfigService genericNotificationConfigService;
     @Mock
     private ApiMetadataService apiMetadataService;
+    @Mock
+    private AlertService alertService;
 
     @Before
     public void init() {

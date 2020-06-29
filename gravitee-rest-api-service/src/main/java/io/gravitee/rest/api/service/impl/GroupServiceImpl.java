@@ -327,7 +327,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     stream().
                     map(this::map).
                     sorted(Comparator.comparing(GroupEntity::getName)).
-                    collect(Collectors.toSet());
+                    collect(Collectors.toCollection(LinkedHashSet::new));
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find groups", ex);
@@ -347,7 +347,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                             contains(event)).
                     map(this::map).
                     sorted(Comparator.comparing(GroupEntity::getName)).
-                    collect(Collectors.toSet());
+                    collect(Collectors.toCollection(LinkedHashSet::new));
             logger.debug("findByEvent : {} - DONE", set);
             return set;
         } catch (TechnicalException ex) {

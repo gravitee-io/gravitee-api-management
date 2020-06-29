@@ -13,22 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
-
-import io.gravitee.rest.api.model.command.CommandEntity;
-import io.gravitee.rest.api.model.command.CommandQuery;
-import io.gravitee.rest.api.model.command.NewCommandEntity;
-
-import java.util.List;
+package io.gravitee.rest.api.model;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface CommandService {
+public class AlertEventRuleEntity {
+    private String event;
 
-    void send(NewCommandEntity message);
-    List<CommandEntity> search(CommandQuery query);
-    void ack(String messageId);
-    void delete(String commandId);
+    public AlertEventRuleEntity() {}
+
+    public AlertEventRuleEntity(String event) {
+        this.event = event;
+    };
+
+    public String getEvent() {
+        return event;
+    }
+
+    public void setEvent(String event) {
+        this.event = event;
+    }
+
+    @Override
+    public String toString() {
+        return "AlertEventRuleEntity{" +
+                ", event='" + event + '\'' +
+                "}";
+    }
 }

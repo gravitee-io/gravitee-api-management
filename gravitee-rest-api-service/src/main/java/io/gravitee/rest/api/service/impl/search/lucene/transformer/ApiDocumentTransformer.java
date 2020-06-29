@@ -15,14 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
-import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import org.apache.lucene.document.*;
 import org.springframework.stereotype.Component;
-
-import java.util.function.Consumer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -71,18 +68,16 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
             }
         }
 
-        api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
-            @Override
-            public void accept(VirtualHost virtualHost) {
-                doc.add(new StringField(FIELD_PATHS, virtualHost.getPath(), Field.Store.NO));
+        if (api.getProxy() != null) {
+            api.getProxy().getVirtualHosts().forEach(virtualHost -> {
+            doc.add(new StringField(FIELD_PATHS, virtualHost.getPath(), Field.Store.NO));
                 doc.add(new TextField(FIELD_PATHS_SPLIT, virtualHost.getPath(), Field.Store.NO));
-
                 if (virtualHost.getHost() != null && !virtualHost.getHost().isEmpty()) {
                     doc.add(new StringField(FIELD_HOSTS, virtualHost.getHost(), Field.Store.NO));
                     doc.add(new TextField(FIELD_HOSTS_SPLIT, virtualHost.getHost(), Field.Store.NO));
                 }
-            }
-        });
+            });
+        }
 
         // labels
         if (api.getLabels() != null) {

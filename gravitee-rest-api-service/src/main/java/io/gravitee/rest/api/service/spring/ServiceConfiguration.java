@@ -15,14 +15,11 @@
  */
 package io.gravitee.rest.api.service.spring;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -42,7 +39,6 @@ import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
-
 import io.gravitee.rest.api.service.validator.RegexPasswordValidator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -50,7 +46,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import java.io.IOException;
 import java.util.Collections;
 
 /**
@@ -83,12 +78,6 @@ public class ServiceConfiguration {
 		// register API serializer
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(ApiEntity.class, apiSerializer());
-		module.addSerializer(Enum.class, new StdSerializer<Enum>(Enum.class) {
-			@Override
-			public void serialize(Enum anEnum, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-				jsonGenerator.writeString(anEnum.name().toLowerCase());
-			}
-		});
 
 		objectMapper.registerModule(module);
 		return objectMapper;
