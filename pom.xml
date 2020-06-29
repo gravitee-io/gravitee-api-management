@@ -243,7 +243,7 @@
 
     <properties>
         <gravitee-node.version>1.6.6</gravitee-node.version>
-        <gravitee-definition.version>1.22.0</gravitee-definition.version>
+        <gravitee-definition.version>1.22.1-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>1.17.2</gravitee-common.version>
         <gravitee-expression-language.version>1.4.0</gravitee-expression-language.version>
         <gravitee-repository.version>3.0.4-SNAPSHOT</gravitee-repository.version>
