@@ -17,8 +17,11 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.model.AlertEventRule;
+import io.gravitee.repository.management.model.AlertEventType;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.repository.mongodb.management.internal.api.AlertMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.AlertEventRuleMongo;
 import io.gravitee.repository.mongodb.management.internal.model.AlertTriggerMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
@@ -95,6 +98,15 @@ public class MongoAlertRepository implements AlertTriggerRepository {
             alertTriggerMongo.setCreatedAt(trigger.getCreatedAt());
             alertTriggerMongo.setUpdatedAt(trigger.getUpdatedAt());
 
+            if (trigger.getEventRules() != null && !trigger.getEventRules().isEmpty()) {
+                alertTriggerMongo.setEventRules(trigger.getEventRules()
+                        .stream()
+                        .map(alertEventRule -> new AlertEventRuleMongo(alertEventRule.getEvent().name()))
+                        .collect(Collectors.toList()));
+            } else {
+                alertTriggerMongo.setEventRules(null);
+            }
+
             AlertTriggerMongo alertTriggerMongoUpdated = internalAlertRepo.save(alertTriggerMongo);
             return mapper.map(alertTriggerMongoUpdated, AlertTrigger.class);
 
@@ -147,6 +159,16 @@ public class MongoAlertRepository implements AlertTriggerRepository {
         trigger.setDescription(alertTriggerMongo.getDescription());
         trigger.setDefinition(alertTriggerMongo.getDefinition());
         trigger.setEnabled(alertTriggerMongo.isEnabled());
+        trigger.setParentId(alertTriggerMongo.getParentId());
+        trigger.setTemplate(alertTriggerMongo.isTemplate());
+
+        if (alertTriggerMongo.getEventRules() != null && !alertTriggerMongo.getEventRules().isEmpty()) {
+            trigger.setEventRules(alertTriggerMongo.getEventRules()
+                    .stream()
+                    .map(alertEventRuleMongo -> new AlertEventRule(AlertEventType.valueOf(alertEventRuleMongo.getEvent().toUpperCase())))
+                    .collect(Collectors.toList()));
+        }
+
         trigger.setCreatedAt(alertTriggerMongo.getCreatedAt());
         trigger.setUpdatedAt(alertTriggerMongo.getUpdatedAt());
         return trigger;

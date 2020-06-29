@@ -19,6 +19,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -38,8 +39,11 @@ public class AlertTriggerMongo {
 	private String definition;
 	private String severity;
 	private boolean enabled;
+	private String parentId;
 	private Date createdAt;
 	private Date updatedAt;
+	private boolean template;
+	private List<AlertEventRuleMongo> eventRules;
 
 	public String getId() {
 		return id;
@@ -127,6 +131,30 @@ public class AlertTriggerMongo {
 
 	public void setSeverity(String severity) {
 		this.severity = severity;
+	}
+
+	public String getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(String parentId) {
+		this.parentId = parentId;
+	}
+
+	public boolean isTemplate() {
+		return template;
+	}
+
+	public void setTemplate(boolean template) {
+		this.template = template;
+	}
+
+	public List<AlertEventRuleMongo> getEventRules() {
+		return eventRules;
+	}
+
+	public void setEventRules(List<AlertEventRuleMongo> eventRules) {
+		this.eventRules = eventRules;
 	}
 
 	@Override

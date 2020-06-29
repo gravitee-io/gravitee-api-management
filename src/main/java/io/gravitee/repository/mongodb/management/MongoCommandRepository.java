@@ -22,16 +22,11 @@ import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.mongodb.management.internal.message.CommandMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.CommandMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.index.IndexDefinition;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,26 +44,6 @@ public class MongoCommandRepository implements CommandRepository {
 
     @Autowired
     private GraviteeMapper mapper;
-
-    @Autowired
-    @Qualifier("managementMongoTemplate")
-    private MongoOperations mongoOperations;
-
-    @PostConstruct
-    public void ensureTTLIndex() {
-        mongoOperations.indexOps("commands").ensureIndex(new IndexDefinition() {
-            @Override
-            public Document getIndexKeys() {
-                return new Document("expiredAt", 1L);
-            }
-
-            @Override
-            public Document getIndexOptions() {
-                // To expire Documents at a Specific Clock Time we have to specify an expireAfterSeconds value of 0.
-                return new Document("expireAfterSeconds", 0L);
-            }
-        });
-    }
 
     @Override
     public Optional<Command> findById(String commandId) throws TechnicalException {
