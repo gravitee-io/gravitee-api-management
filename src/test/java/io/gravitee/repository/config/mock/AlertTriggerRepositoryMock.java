@@ -16,11 +16,14 @@
 package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.model.AlertEventRule;
+import io.gravitee.repository.management.model.AlertEventType;
 import io.gravitee.repository.management.model.AlertTrigger;
 
 import java.util.Date;
 import java.util.Set;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.any;
@@ -58,9 +61,9 @@ public class AlertTriggerRepositoryMock extends AbstractRepositoryMock<AlertTrig
         alert2.setId("alert");
         alert2.setName("Health-check");
 
-        final AlertTrigger alertBeforUpdate = new AlertTrigger();
-        alertBeforUpdate.setId("quota80");
-        alertBeforUpdate.setName("Quota80");
+        final AlertTrigger alertBeforeUpdate = new AlertTrigger();
+        alertBeforeUpdate.setId("quota80");
+        alertBeforeUpdate.setName("Quota80");
 
         final AlertTrigger alert2Updated = new AlertTrigger();
         alert2Updated.setId("quota80");
@@ -85,6 +88,15 @@ public class AlertTriggerRepositoryMock extends AbstractRepositoryMock<AlertTrig
         alertQuota.setEnabled(true);
         alertQuota.setCreatedAt(date);
         alertQuota.setUpdatedAt(new Date(1439022010883L));
+        alertQuota.setTemplate(true);
+        alertQuota.setEventRules(singletonList(new AlertEventRule()));
+
+        final AlertTrigger alertTriggerEvents = new AlertTrigger();
+        alertTriggerEvents.setId("health-check");
+        alertTriggerEvents.setName("Health-check");
+        AlertEventRule eventRule1 = new AlertEventRule();
+        eventRule1.setEvent(AlertEventType.API_CREATE);
+        alertTriggerEvents.setEventRules(asList(eventRule1));
 
         final Set<AlertTrigger> alerts = newSet(alert, alertQuota, alert2Updated);
         final Set<AlertTrigger> alertsAfterDelete = newSet(alert, alertQuota);
@@ -94,8 +106,9 @@ public class AlertTriggerRepositoryMock extends AbstractRepositoryMock<AlertTrig
 
         when(alertRepository.create(any(AlertTrigger.class))).thenReturn(alert);
 
+        when(alertRepository.findById("health-check")).thenReturn(of(alertTriggerEvents));
         when(alertRepository.findById("new-alert")).thenReturn(of(alert));
-        when(alertRepository.findById("quota80")).thenReturn(of(alertBeforUpdate), of(alert2Updated));
+        when(alertRepository.findById("quota80")).thenReturn(of(alertBeforeUpdate), of(alert2Updated));
 
         when(alertRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
