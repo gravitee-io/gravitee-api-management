@@ -51,6 +51,7 @@
                 <th md-column md-order-by="name"><span>Name</span></th>
                 <th width="1%"></th>
                 <th md-column md-order-by="target"><span>Target</span></th>
+                <th md-column><span>Type</span></th>
                 <th ng-if="apiProxyCtrl.hasTenants()" md-column md-order-by="tenant" hide-gt-xs show-gt-sm>Tenants</th>
                 <th width="1%" md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
                 <th width="1%" nowrap md-column permission permission-only="'api-definition-u'">
@@ -74,6 +75,7 @@
                   </ng-md-icon>
                 </td>
                 <td md-cell ng-style="endpoint.backup ? {'font-style': 'italic','color': 'darkgrey'} : ''">{{endpoint.target}}</td>
+                <td md-cell>{{endpoint.type}}</td>
                 <td ng-if="apiProxyCtrl.hasTenants()" md-cell hide-gt-xs show-gt-sm>{{apiProxyCtrl.getTenants(endpoint.tenants)}}</td>
                 <td md-cell hide-gt-xs show-gt-sm ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
                 <td md-cell permission permission-only="'api-definition-u'">

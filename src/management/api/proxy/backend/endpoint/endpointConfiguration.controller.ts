@@ -26,6 +26,7 @@ class ApiEndpointController {
   private initialEndpoints: any;
   private tenants: any;
   private creation: boolean = false;
+  private types: string [];
 
   constructor(
     private ApiService: ApiService,
@@ -56,6 +57,8 @@ class ApiEndpointController {
 
       this.creation = true;
     }
+
+    this.types = ['HTTP', 'GRPC'];
   }
 
   update(api) {

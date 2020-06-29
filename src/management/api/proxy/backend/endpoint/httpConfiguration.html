@@ -18,7 +18,7 @@
 <md-input-container ng-if="$ctrl.inheritHttpConfiguration" class="md-block">
   <md-checkbox ng-model="$ctrl.httpConfiguration.inherit" aria-label="Inherit http configuration"
                class="md-align-top-left" ng-change="$ctrl.toggleInherit($ctrl.httpConfiguration.inherit)" flex>
-    <span>Inherit HTTP configuration from group</span>
+    <span>Inherit endpoint configuration from group</span>
   </md-checkbox>
 </md-input-container>
 
@@ -26,7 +26,7 @@
   <section>
     <md-subheader>
       HTTP Request
-      <div class="hints">Default configuration of HTTP requests emitted by the API gateway to upstream</div>
+      <div class="hints">Default HTTP requests emitted by the API gateway to upstream</div>
     </md-subheader>
     <div layout="column" layout-wrap layout-gt-sm="row">
       <div layout="column" layout-sm="column">
@@ -60,82 +60,121 @@
   <md-subheader>HTTP Configuration</md-subheader>
 
   <section>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <div flex-xs flex="50">
-        <md-input-container flex-xs flex="50">
-          <label>Connect timeout (ms)</label>
-          <input ng-model="$ctrl.httpConfiguration.http.connectTimeout" type="number" required min="0">
-        </md-input-container>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container flex-xs flex="50">
-          <label>Read timeout (ms)</label>
-          <input ng-model="$ctrl.httpConfiguration.http.readTimeout" type="number" required min="0">
-        </md-input-container>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container flex-xs flex="50">
-          <label>Idle timeout (ms)</label>
-          <input ng-model="$ctrl.httpConfiguration.http.idleTimeout" type="number" required min="0">
-        </md-input-container>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container flex-xs flex="50">
-          <label>Max concurrent connections</label>
-          <input ng-model="$ctrl.httpConfiguration.http.maxConcurrentConnections" type="number" required min="10">
-        </md-input-container>
-      </div>
+    <div flex-xs flex="50" ng-if="$ctrl.httpConfiguration.type === 'HTTP'">
+      <md-input-container class="md-block" flex-gt-sm>
+        <label>Version</label>
+        <md-select ng-model="$ctrl.httpConfiguration.http.version" ng-change="$ctrl.onProtocolVersionChange()">
+          <md-option ng-repeat="version in $ctrl.protocolVersions" value="{{version.value}}">
+            {{version.name}}
+          </md-option>
+        </md-select>
+        <div class="hint ipsum">Enforce the HTTP protocol version.</div>
+      </md-input-container>
     </div>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <div flex-xs flex="50">
-        <div layout-xs="column" flex-xs="50">
-          <md-checkbox
-            ng-model="$ctrl.httpConfiguration.http.keepAlive"
-            aria-label="Enable keep-alive"
-            class="md-align-top-left" flex>
-            Enable keep-alive<br/>
-            <span class="ipsum">
+
+    <br />
+
+    <div layout="row">
+      <div layout="column" layout-wrap layout-gt-sm="row" flex="45">
+        <div flex="80">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Connect timeout (ms)</label>
+            <input ng-model="$ctrl.httpConfiguration.http.connectTimeout" type="number" required min="0">
+            <div class="hint ipsum">Maximum time to connect to the remote host.</div>
+          </md-input-container>
+        </div>
+        <div flex="80">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Read timeout (ms)</label>
+            <input ng-model="$ctrl.httpConfiguration.http.readTimeout" type="number" required min="0">
+            <div class="hint ipsum">Maximum time to complete the request (including response).</div>
+          </md-input-container>
+        </div>
+        <div flex="80">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Idle timeout (ms)</label>
+            <input ng-model="$ctrl.httpConfiguration.http.idleTimeout" type="number" required min="0">
+            <div class="hint ipsum">Maximum time a connection will timeout and be closed if no data is received within the timeout.</div>
+          </md-input-container>
+        </div>
+        <div flex="80">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Max concurrent connections</label>
+            <input ng-model="$ctrl.httpConfiguration.http.maxConcurrentConnections" type="number" required min="10">
+            <div class="hint ipsum">Maximum pool size for connections.</div>
+          </md-input-container>
+        </div>
+      </div>
+
+      <div flex="5" hide-xs hide-sm>
+        <!-- Spacer //-->
+      </div>
+
+      <div layout="column" layout-gt-sm="row" flex="50">
+        <div flex-xs flex="50">
+          <div layout-xs="column" flex-xs="50">
+            <md-checkbox
+              ng-model="$ctrl.httpConfiguration.http.keepAlive"
+              aria-label="Enable keep-alive"
+              class="md-align-top-left" flex>
+              Enable keep-alive<br/>
+              <span class="ipsum">
                           Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
                         </span>
-          </md-checkbox>
-        </div>
-        <div layout-xs="column" flex-xs="50">
-          <md-checkbox
-            ng-model="$ctrl.httpConfiguration.http.pipelining"
-            aria-label="HTTP pipe-lining"
-            class="md-align-top-left" flex>
-            HTTP pipe-lining<br/>
-            <span class="ipsum">
+            </md-checkbox>
+          </div>
+          <div layout-xs="column" flex-xs="50">
+            <md-checkbox
+              ng-model="$ctrl.httpConfiguration.http.pipelining"
+              aria-label="HTTP pipe-lining"
+              class="md-align-top-left" flex>
+              HTTP pipe-lining<br/>
+              <span class="ipsum">
                           When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.
                         </span>
-          </md-checkbox>
-        </div>
-        <div layout-xs="column" flex-xs="50">
-          <md-checkbox
-            ng-model="$ctrl.httpConfiguration.http.useCompression"
-            aria-label="Enables compression"
-            class="md-align-top-left" flex>
-            Enables compression (gzip, deflate)<br/>
-            <span class="ipsum">
+            </md-checkbox>
+          </div>
+          <div layout-xs="column" flex-xs="50">
+            <md-checkbox
+              ng-model="$ctrl.httpConfiguration.http.useCompression"
+              aria-label="Enables compression"
+              class="md-align-top-left" flex>
+              Enables compression (gzip, deflate)<br/>
+              <span class="ipsum">
                           The gateway can let the remote http server know that it supports compression, and will be able to handle compressed response bodies.
                         </span>
-          </md-checkbox>
-        </div>
+            </md-checkbox>
+          </div>
 
-        <div layout-xs="column" flex-xs="50">
-          <md-checkbox
-            ng-model="$ctrl.httpConfiguration.http.followRedirects"
-            aria-label="Enables follow HTTP redirections"
-            class="md-align-top-left" flex>
-            Follow HTTP redirections<br/>
-            <span class="ipsum">
-            when the client receives an <code>301</code>, <code>302</code>, <code>303</code> or <code>307</code> status code,
+          <div layout-xs="column" flex-xs="50">
+            <md-checkbox
+              ng-model="$ctrl.httpConfiguration.http.followRedirects"
+              aria-label="Enables follow HTTP redirections"
+              class="md-align-top-left" flex>
+              Follow HTTP redirections<br/>
+              <span class="ipsum">
+            When the client receives an <code>301</code>, <code>302</code>, <code>303</code> or <code>307</code> status code,
             it follows the redirection provided by the <code>Location</code> response header
           </span>
-          </md-checkbox>
+            </md-checkbox>
+          </div>
+
+          <div layout-xs="column" flex-xs="50" ng-if="$ctrl.httpConfiguration.http.version === 'HTTP_2'">
+            <md-checkbox
+              ng-model="$ctrl.httpConfiguration.http.clearTextUpgrade"
+              aria-label="Enables clear text upgrade"
+              class="md-align-top-left" flex>
+              Allow h2c Clear Text Upgrade<br/>
+              <span class="ipsum">
+                If enabled, an h2c connection is established using an HTTP/1.1 Upgrade request. If disabled, h2c connection
+                is established directly (with prior knowledge)
+              </span>
+            </md-checkbox>
+          </div>
         </div>
       </div>
     </div>
+
   </section>
 
   <section>
@@ -165,34 +204,38 @@
         </md-input-container>
       </div>
     </div>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Host</label>
-          <input ng-model="$ctrl.httpConfiguration.proxy.host" type="text" ng-required="$ctrl.httpConfiguration.proxy.enabled" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
-          <div class="hint">Proxy host to connect to</div>
-        </md-input-container>
+    <div layout="column" layout-wrap>
+      <div layout="row">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Host</label>
+            <input ng-model="$ctrl.httpConfiguration.proxy.host" type="text" ng-required="$ctrl.httpConfiguration.proxy.enabled" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+            <div class="hint">Proxy host to connect to</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Port</label>
+            <input ng-model="$ctrl.httpConfiguration.proxy.port" type="number" min="0" max="65536" ng-required="$ctrl.httpConfiguration.proxy.enabled" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+            <div class="hint">Proxy port to connect to</div>
+          </md-input-container>
+        </div>
       </div>
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Port</label>
-          <input ng-model="$ctrl.httpConfiguration.proxy.port" type="number" min="0" max="65536" ng-required="$ctrl.httpConfiguration.proxy.enabled" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
-          <div class="hint">Proxy port to connect to</div>
-        </md-input-container>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Username</label>
-          <input ng-model="$ctrl.httpConfiguration.proxy.username" type="text" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
-          <div class="hint">Optional proxy username</div>
-        </md-input-container>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Password</label>
-          <input ng-model="$ctrl.httpConfiguration.proxy.password" type="password" autocomplete="new-password" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
-          <div class="hint">Optional proxy password</div>
-        </md-input-container>
+      <div layout="row">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Username</label>
+            <input ng-model="$ctrl.httpConfiguration.proxy.username" type="text" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+            <div class="hint">Optional proxy username</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Password</label>
+            <input ng-model="$ctrl.httpConfiguration.proxy.password" type="password" autocomplete="new-password" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+            <div class="hint">Optional proxy password</div>
+          </md-input-container>
+        </div>
       </div>
     </div>
   </section>

@@ -20,7 +20,7 @@
   <div class="gv-forms" layout="column">
     <div class="gv-forms-header">
       <h1>Endpoint configuration</h1>
-      <a ng-click="endpointCtrl.backToEndpointsConfiguration()">Back to endpoints configuration</a>
+      <a ng-click="endpointCtrl.backToEndpointsConfiguration()">Back to endpoints</a>
     </div>
 
     <md-tabs md-dynamic-height>
@@ -29,14 +29,25 @@
         <md-tab-body>
           <h3></h3>
           <div layout="column" layout-wrap layout-gt-sm="row">
-            <md-input-container flex="30">
-              <label>Name</label>
-              <input ng-model="endpointCtrl.endpoint.name" type="text" name="endpointName" required ng-change="endpointCtrl.checkEndpointNameUniqueness()" ng-pattern="/^[^:]*$/">
-              <div class="hint" style="color:rgb(221,44,0);" ng-if="duplicateEndpointNames">This name is used by another endpoint and/or an endpoint group.</div>
-              <div ng-messages="formEndpoint.endpointName.$error">
-              <div ng-message="pattern">Endpoint name does not support <code>:</code> in its name.</div>
-        </div>
-            </md-input-container>
+            <div layout="row" flex="100">
+              <md-input-container flex="20">
+                <label>Type</label>
+                <md-select ng-model="endpointCtrl.endpoint.type" required>
+                  <md-option ng-repeat="type in endpointCtrl.types" ng-value="type">
+                    {{type}}
+                  </md-option>
+                </md-select>
+              </md-input-container>
+
+              <md-input-container flex="40">
+                <label>Name</label>
+                <input ng-model="endpointCtrl.endpoint.name" type="text" name="endpointName" required ng-change="endpointCtrl.checkEndpointNameUniqueness()" ng-pattern="/^[^:]*$/">
+                <div class="hint" style="color:rgb(221,44,0);" ng-if="duplicateEndpointNames">This name is used by another endpoint and/or an endpoint group.</div>
+                <div ng-messages="formEndpoint.endpointName.$error">
+                  <div ng-message="pattern">Endpoint name does not support <code>:</code> in its name.</div>
+                </div>
+              </md-input-container>
+            </div>
             <md-input-container flex="30">
               <label>Target</label>
               <input ng-model="endpointCtrl.endpoint.target" type="text" required>
@@ -74,7 +85,7 @@
       </md-tab>
 
       <md-tab>
-        <md-tab-label>HTTP configuration</md-tab-label>
+        <md-tab-label>Configuration</md-tab-label>
         <md-tab-body>
           <gv-http-configuration http-configuration="endpointCtrl.endpoint" inherit-http-configuration="endpointCtrl.group"
                                  form="formEndpoint"></gv-http-configuration>
