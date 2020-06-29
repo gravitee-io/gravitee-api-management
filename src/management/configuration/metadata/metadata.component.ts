@@ -19,7 +19,7 @@ const MetadataComponent: ng.IComponentOptions = {
     metadataFormats: '<'
   },
   controller: 'MetadataController',
-  template: require('./metadata.html')
+  template: require('../../../components/metadata/metadata.html')
 };
 
 export default MetadataComponent;

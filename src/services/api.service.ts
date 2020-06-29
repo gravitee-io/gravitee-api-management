@@ -382,10 +382,6 @@ class ApiService {
     return this.$http.get(this.apisURL + apiId + '/metadata');
   }
 
-  getApiMetadata(apiId, metadataId): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + apiId + '/metadata/' + metadataId);
-  }
-
   createMetadata(apiId, metadata): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/metadata', metadata);
   }
