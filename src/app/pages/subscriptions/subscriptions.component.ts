@@ -32,6 +32,7 @@ import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 export class SubscriptionsComponent implements OnInit {
   applications: Array<Application>;
   subscriptions: Array<Subscription>;
+  subscriptionsMetadata: any;
   apis: Array<Api>;
   format: (key) => Promise<any>;
   options: object;
@@ -115,6 +116,7 @@ export class SubscriptionsComponent implements OnInit {
       this.applications = response.data;
       this.subscriptionService.getSubscriptions({ size: -1, statuses: [StatusEnum.ACCEPTED] }).toPromise().then((responseSubscriptions) => {
         this.subscriptions = responseSubscriptions.data;
+        this.subscriptionsMetadata = responseSubscriptions.metadata;
         this.apiService.getApis({ size: -1 }).toPromise().then((responseApis) => {
           this.apis = responseApis.data;
           this.skeleton = false;
@@ -195,16 +197,13 @@ export class SubscriptionsComponent implements OnInit {
       if (this.subsByApplication[this.selectedApplicationId] == null) {
         const applicationSubscriptions = this.selectedApplicationId ?
           this.subscriptions.filter((subscription) => this.selectedApplicationId === subscription.application) : this.subscriptions;
-        const promises = applicationSubscriptions.map(applicationSubscription => {
-          return this.apiService.getApiPlansByApiId({ apiId: applicationSubscription.api, size: -1 }).toPromise().then((response) => {
-            return {
-              subscription: applicationSubscription,
-              api: this.apis.find((api) => applicationSubscription.api === api.id),
-              plan: response.data.find((plan) => applicationSubscription.plan === plan.id),
-            };
-          });
+        this.subsByApplication[this.selectedApplicationId] = applicationSubscriptions.map(applicationSubscription => {
+          return {
+            subscription: applicationSubscription,
+            api: this.apis.find((api) => applicationSubscription.api === api.id),
+            plan: this.subscriptionsMetadata[applicationSubscription.plan],
+          };
         });
-        this.subsByApplication[this.selectedApplicationId] = await Promise.all(promises);
       }
 
       this.subs = this.subsByApplication[this.selectedApplicationId];
