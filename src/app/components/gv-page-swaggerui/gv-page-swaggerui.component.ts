@@ -21,6 +21,7 @@ import {  Page, User } from '@gravitee/ng-portal-webclient';
 import { SwaggerUIBundle } from 'swagger-ui-dist';
 import { CurrentUserService } from 'src/app/services/current-user.service';
 import { PageService } from 'src/app/services/page.service';
+import {PlatformLocation} from '@angular/common';
 
 @Component({
   selector: 'app-gv-page-swaggerui',
@@ -32,6 +33,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
   constructor(
     private currentUserService: CurrentUserService,
     private pageService: PageService,
+    private platformLocation: PlatformLocation
   ) {
   }
 
@@ -110,6 +112,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
         return req;
       },
       spec: contentAsJson,
+      oauth2RedirectUrl: window.location.origin + this.platformLocation.getBaseHrefFromDOM() + 'oauth2-redirect.html',
     };
 
     if (page.configuration) {
