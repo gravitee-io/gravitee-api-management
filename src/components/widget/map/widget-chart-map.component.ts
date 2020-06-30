@@ -16,8 +16,6 @@
 import * as _ from 'lodash';
 import * as Highcharts from 'highcharts';
 
-const worldMap = require('@highcharts/map-collection/custom/world.geo.json');
-
 const WidgetChartMapComponent: ng.IComponentOptions = {
   template: require('./widget-chart-map.html'),
   bindings: {
@@ -65,7 +63,7 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
 
           series: [{
             data: data,
-            mapData: worldMap,
+            mapData: require('@highcharts/map-collection/custom/world.geo.json'),
             joinBy: ['hc-a2', 'key'],
             name: 'Number of API requests',
             states: {
