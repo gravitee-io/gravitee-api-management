@@ -21,7 +21,7 @@ import {  Page, User } from '@gravitee/ng-portal-webclient';
 import { SwaggerUIBundle } from 'swagger-ui-dist';
 import { CurrentUserService } from 'src/app/services/current-user.service';
 import { PageService } from 'src/app/services/page.service';
-import {PlatformLocation} from '@angular/common';
+import { PlatformLocation } from '@angular/common';
 
 @Component({
   selector: 'app-gv-page-swaggerui',
