@@ -15,8 +15,6 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.model.analytics.query.StatsQuery;
-import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.TenantEntity;
@@ -24,6 +22,8 @@ import io.gravitee.management.model.analytics.*;
 import io.gravitee.management.model.analytics.query.CountQuery;
 import io.gravitee.management.model.analytics.query.DateHistogramQuery;
 import io.gravitee.management.model.analytics.query.GroupByQuery;
+import io.gravitee.management.model.analytics.query.StatsQuery;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.ApiLifecycleState;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
@@ -68,6 +68,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private static final String METADATA_VERSION = "version";
     private static final String METADATA_UNKNOWN_API_NAME = "Unknown API (not found)";
     private static final String METADATA_UNKNOWN_APPLICATION_NAME = "Unknown application (keyless)";
+    private static final String METADATA_UNKNOWN_PLAN_NAME = "Unknown plan (keyless)";
     private static final String METADATA_DELETED_API_NAME = "Deleted API";
     private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
     private static final String METADATA_DELETED_TENANT_NAME = "Deleted tenant";
@@ -380,8 +381,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Map<String, String> metadata = new HashMap<>();
 
         try {
-            PlanEntity planEntity = planService.findById(plan);
-            metadata.put(METADATA_NAME, planEntity.getName());
+            if (plan.equals(UNKNOWN_SERVICE) || plan.equals(UNKNOWN_SERVICE_MAPPED)) {
+                metadata.put(METADATA_NAME, METADATA_UNKNOWN_PLAN_NAME);
+                metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
+            } else {
+                PlanEntity planEntity = planService.findById(plan);
+                metadata.put(METADATA_NAME, planEntity.getName());
+            }
         } catch (PlanNotFoundException anfe) {
             metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
             metadata.put(METADATA_NAME, METADATA_DELETED_PLAN_NAME);

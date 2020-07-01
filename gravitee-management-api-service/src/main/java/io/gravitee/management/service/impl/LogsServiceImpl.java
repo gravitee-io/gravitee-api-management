@@ -66,6 +66,7 @@ public class LogsServiceImpl implements LogsService {
     private static final String METADATA_VERSION = "version";
     private static final String METADATA_UNKNOWN_API_NAME = "Unknown API (not found)";
     private static final String METADATA_UNKNOWN_APPLICATION_NAME = "Unknown application (keyless)";
+    private static final String METADATA_UNKNOWN_PLAN_NAME = "Unknown plan";
     private static final String METADATA_DELETED_API_NAME = "Deleted API";
     private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
     private static final String METADATA_DELETED_PLAN_NAME = "Deleted plan";
@@ -329,8 +330,13 @@ public class LogsServiceImpl implements LogsService {
             Map<String, String> metadata = new HashMap<>();
 
             try {
-                PlanEntity planEntity = planService.findById(plan);
-                metadata.put(METADATA_NAME, planEntity.getName());
+                if (plan.equals(UNKNOWN_SERVICE) || plan.equals(UNKNOWN_SERVICE_MAPPED)) {
+                    metadata.put(METADATA_NAME, METADATA_UNKNOWN_PLAN_NAME);
+                    metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
+                } else {
+                    PlanEntity planEntity = planService.findById(plan);
+                    metadata.put(METADATA_NAME, planEntity.getName());
+                }
             } catch (PlanNotFoundException anfe) {
                 metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
                 metadata.put(METADATA_NAME, METADATA_DELETED_PLAN_NAME);
