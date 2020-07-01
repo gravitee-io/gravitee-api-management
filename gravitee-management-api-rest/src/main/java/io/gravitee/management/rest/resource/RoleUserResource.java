@@ -16,7 +16,6 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
@@ -27,12 +26,13 @@ import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import java.net.URI;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.PathParam;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -46,6 +46,11 @@ public class RoleUserResource extends AbstractResource  {
 
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Delete the role for a given user",
+            notes = "User must have the MANAGEMENT_ROLE[DELETE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Role successfully removed"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.DELETE)
     })

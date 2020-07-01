@@ -42,7 +42,7 @@ import static java.lang.String.format;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Application"})
+@Api(tags = {"Platform Logs"})
 public class PlatformLogsResource extends AbstractResource {
 
     @Inject
@@ -50,16 +50,16 @@ public class PlatformLogsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get platform logs")
+    @ApiOperation(value = "Get platform logs",
+            notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Platform logs"),
+            @ApiResponse(code = 200, message = "Platform logs", response = SearchLogResponse.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_PLATFORM, acls = RolePermissionAction.READ)
     })
     public SearchLogResponse platformLogs(
             @BeanParam LogsParam param) {
-
         param.validate();
 
         LogQuery logQuery = new LogQuery();
@@ -77,9 +77,10 @@ public class PlatformLogsResource extends AbstractResource {
     @GET
     @Path("/{log}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a specific log")
+    @ApiOperation(value = "Get a specific log",
+            notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Single log"),
+            @ApiResponse(code = 200, message = "Single log", response = ApiRequest.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_PLATFORM, acls = RolePermissionAction.READ)
@@ -93,7 +94,8 @@ public class PlatformLogsResource extends AbstractResource {
     @GET
     @Path("export")
     @Produces(MediaType.TEXT_PLAIN)
-    @ApiOperation(value = "Export platform logs as CSV")
+    @ApiOperation(value = "Export platform logs as CSV",
+            notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Platform logs as CSV"),
             @ApiResponse(code = 500, message = "Internal server error")})

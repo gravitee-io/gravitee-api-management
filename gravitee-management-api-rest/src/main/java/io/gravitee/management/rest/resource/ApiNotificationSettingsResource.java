@@ -42,7 +42,7 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API", "Notifications"})
+@Api(tags = {"API Notifications"})
 public class ApiNotificationSettingsResource extends AbstractResource {
 
     @Autowired

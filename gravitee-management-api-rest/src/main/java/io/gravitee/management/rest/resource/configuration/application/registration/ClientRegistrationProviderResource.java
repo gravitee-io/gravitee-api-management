@@ -36,7 +36,7 @@ import javax.ws.rs.core.Response;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Configuration", "Application", "Client registration"})
+@Api(tags = {"Client Registration Providers"})
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class ClientRegistrationProviderResource extends AbstractResource {

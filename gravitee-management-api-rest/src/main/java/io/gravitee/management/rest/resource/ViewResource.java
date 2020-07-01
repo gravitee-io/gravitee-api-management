@@ -46,7 +46,7 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"View"})
+@Api(tags = {"Views"})
 public class ViewResource extends AbstractViewResource {
 
     @Autowired
@@ -54,8 +54,8 @@ public class ViewResource extends AbstractViewResource {
 
     @GET
     @Produces(APPLICATION_JSON)
-    @ApiOperation(value = "Get the View",
-            notes = "User must have the READ permission to use this service")
+    @ApiOperation(value = "Get the view",
+            notes = "User must have the PORTAL_VIEW[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "View's definition", response = ViewEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -74,8 +74,8 @@ public class ViewResource extends AbstractViewResource {
 
     @GET
     @Path("picture")
-    @ApiOperation(value = "Get the View's picture",
-            notes = "User must have the READ permission to use this service")
+    @ApiOperation(value = "Get the view's picture",
+            notes = "User must have the PORTAL_VIEW[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "View's picture"),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -122,8 +122,8 @@ public class ViewResource extends AbstractViewResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-            value = "Update the View",
-            notes = "User must have the UPDATE permission to use this service")
+            value = "Update the view",
+            notes = "User must have the PORTAL_VIEW[UPDATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "View successfully updated", response = ViewEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -145,8 +145,8 @@ public class ViewResource extends AbstractViewResource {
 
     @DELETE
     @ApiOperation(
-            value = "Delete the View",
-            notes = "User must have the DELETE permission to use this service")
+            value = "Delete the view",
+            notes = "User must have the PORTAL_VIEW[DELETE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "View successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})

@@ -39,7 +39,7 @@ import java.util.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"API Audits"})
 public class ApiAuditResource extends AbstractResource {
 
     private static final List<Audit.AuditEvent> events = new ArrayList<>();
@@ -48,7 +48,8 @@ public class ApiAuditResource extends AbstractResource {
     private AuditService auditService;
 
     @GET
-    @ApiOperation("Retrieve audit logs for a dedicated API")
+    @ApiOperation(value = "Retrieve audit logs for the API",
+            notes = "User must have the API_AUDIT[READ] permission to use this service")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
@@ -75,6 +76,8 @@ public class ApiAuditResource extends AbstractResource {
 
     @Path("/events")
     @GET
+    @ApiOperation(value = "List available audit event type for API",
+            notes = "User must have the API_AUDIT[READ] permission to use this service")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
             @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ)

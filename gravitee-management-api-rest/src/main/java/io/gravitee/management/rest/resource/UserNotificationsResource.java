@@ -20,6 +20,9 @@ import io.gravitee.management.model.notification.PortalNotificationEntity;
 import io.gravitee.management.rest.model.PagedResult;
 import io.gravitee.management.service.PortalNotificationService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
@@ -32,7 +35,7 @@ import java.util.stream.Collectors;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Notifications"})
+@Api(tags = {"User Notifications"})
 public class UserNotificationsResource extends AbstractResource  {
 
     @Autowired
@@ -40,6 +43,11 @@ public class UserNotificationsResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List user's notifications")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "User's notifications"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public PagedResult<PortalNotificationEntity> list()  {
         List<PortalNotificationEntity> notifications = portalNotificationService.findByUser(getAuthenticatedUser())
                 .stream()
@@ -50,6 +58,11 @@ public class UserNotificationsResource extends AbstractResource  {
     }
 
     @DELETE
+    @ApiOperation(value = "Delete all user's notifications")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Notifications successfully deleted"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public Response deleteAll() {
         portalNotificationService.deleteAll(getAuthenticatedUser());
         return Response
@@ -59,6 +72,11 @@ public class UserNotificationsResource extends AbstractResource  {
 
     @Path("{notification}")
     @DELETE
+    @ApiOperation(value = "Delete a single user's notification")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Notification successfully deleted"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public Response delete(@PathParam("notification") String notificationId) {
         portalNotificationService.delete(notificationId);
         return Response

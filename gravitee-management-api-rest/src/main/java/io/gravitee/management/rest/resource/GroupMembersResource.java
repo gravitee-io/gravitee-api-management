@@ -27,6 +27,7 @@ import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.exceptions.GroupInvitationForbiddenException;
 import io.gravitee.management.service.exceptions.GroupMembersLimitationExceededException;
 import io.gravitee.repository.management.model.RoleScope;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -53,6 +54,7 @@ import static java.util.stream.Collectors.toList;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
+@Api(tags = {"Group Memberships"})
 public class GroupMembersResource extends AbstractResource {
 
     @Context
@@ -64,9 +66,9 @@ public class GroupMembersResource extends AbstractResource {
 
     @GET
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List Group members")
+    @ApiOperation(value = "List group members")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "List of Group's members", response = MemberEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "List of group's members", response = MemberEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = MANAGEMENT_GROUP, acls = RolePermissionAction.READ),

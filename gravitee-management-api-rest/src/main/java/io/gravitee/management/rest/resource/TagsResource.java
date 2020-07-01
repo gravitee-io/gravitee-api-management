@@ -49,6 +49,10 @@ public class TagsResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List sharding tags")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of sharding tags", response = TagEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public List<TagEntity> list()  {
         return tagService.findAll()
                 .stream()
@@ -59,8 +63,8 @@ public class TagsResource extends AbstractResource  {
     @GET
     @Path("{tag}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get an tag",
-            notes = "User must have the MANAGEMENT_TAG permission to use this service")
+    @ApiOperation(value = "Get a sharding tag",
+            notes = "User must have the MANAGEMENT_TAG[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Tag", response = TagEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -75,7 +79,7 @@ public class TagsResource extends AbstractResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create a sharding tag",
-            notes = "User must have the MANAGEMENT_TAG permission to use this service")
+            notes = "User must have the MANAGEMENT_TAG[CREATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "A new sharding tag", response = TagEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -90,10 +94,10 @@ public class TagsResource extends AbstractResource  {
     @Path("{tag}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a sharding tag",
-            notes = "User must have the MANAGEMENT_TAG permission to use this service")
+    @ApiOperation(value = "Update an existing sharding tag",
+            notes = "User must have the MANAGEMENT_TAG[UPDATE] permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 201, message = "Sharding tag", response = TagEntity.class),
+            @ApiResponse(code = 200, message = "Sharding tag", response = TagEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.UPDATE)
@@ -105,6 +109,11 @@ public class TagsResource extends AbstractResource  {
     @Path("{tag}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Delete an existing sharding tag",
+            notes = "User must have the MANAGEMENT_TAG[DELETE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Sharding tag successfully deleted"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.DELETE)
     })

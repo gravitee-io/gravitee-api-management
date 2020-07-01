@@ -62,7 +62,7 @@ public class GraviteeApplication extends ResourceConfig {
         BeanConfig beanConfig = new BeanConfig();
         beanConfig.setVersion(Version.RUNTIME_VERSION.MAJOR_VERSION);
         beanConfig.setResourcePackage("io.gravitee.management.rest.resource");
-        beanConfig.setTitle("Gravitee.io - Rest API");
+        beanConfig.setTitle("Gravitee.io - Management API");
         beanConfig.setScan(true);
 
         ModelConverters.getInstance().addConverter(new ModelConverter() {

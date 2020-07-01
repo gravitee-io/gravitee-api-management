@@ -55,7 +55,7 @@ import static java.util.Collections.singletonList;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"API Health"})
 public class ApiHealthResource extends AbstractResource {
 
     @Inject

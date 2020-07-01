@@ -19,6 +19,9 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.FetcherEntity;
 import io.gravitee.management.service.FetcherService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -33,7 +36,7 @@ import javax.ws.rs.core.Context;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugin", "Fetcher"})
+@Api(tags = {"Plugins"})
 public class FetcherResource {
 
     @Context
@@ -44,6 +47,11 @@ public class FetcherResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get a fetcher plugin")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Fetcher", response = FetcherEntity.class),
+            @ApiResponse(code = 404, message = "Fetcher not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public FetcherEntity getFetcher(
             @PathParam("fetcher") String fetcher) {
         return fetcherService.findById(fetcher);
@@ -52,6 +60,11 @@ public class FetcherResource {
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get a fetcher plugin's schema")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Fetcher's schema"),
+            @ApiResponse(code = 404, message = "Fetcher not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public String getFetcherSchema(
             @PathParam("fetcher") String fetcher) {
         // Check that the fetcher exists

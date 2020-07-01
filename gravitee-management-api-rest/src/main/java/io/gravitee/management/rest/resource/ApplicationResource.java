@@ -47,7 +47,7 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Application"})
+@Api(tags = {"Applications"})
 public class ApplicationResource extends AbstractResource {
 
     @Context
@@ -133,6 +133,11 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("notifiers")
+    @ApiOperation(value = "List available notifiers for application",
+            notes = "User must have the APPLICATION_NOTIFICATION[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "LList of notifiers", response = NotifierEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ)
     })

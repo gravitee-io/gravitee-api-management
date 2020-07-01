@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Path("/applications")
-@Api(tags = {"Application"})
+@Api(tags = {"Applications"})
 public class ApplicationsResource extends AbstractResource {
 
     @Context
@@ -141,6 +141,9 @@ public class ApplicationsResource extends AbstractResource {
     @GET
     @Path("/hooks")
     @ApiOperation("Get the list of available hooks")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of hooks"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Produces(MediaType.APPLICATION_JSON)
     public Hook[] getHooks() {
         return ApplicationHook.values();

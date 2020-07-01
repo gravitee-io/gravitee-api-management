@@ -44,8 +44,7 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-
-@Api(tags = {"Group"})
+@Api(tags = {"Groups"})
 public class GroupResource extends AbstractResource {
 
     @Context
@@ -73,7 +72,7 @@ public class GroupResource extends AbstractResource {
     }
 
     @DELETE
-    @ApiOperation(value = "Delete the Group")
+    @ApiOperation(value = "Delete an existing group")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Group successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -89,7 +88,7 @@ public class GroupResource extends AbstractResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @ApiOperation(value = "Update a group")
+    @ApiOperation(value = "Update an existing group")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Group successfully updated", response = GroupEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -121,7 +120,7 @@ public class GroupResource extends AbstractResource {
     @GET
     @Path("/memberships")
     @Produces(APPLICATION_JSON)
-    @ApiOperation(value = "get apis or applications linked to this group")
+    @ApiOperation(value = "List APIs or applications linked to this group")
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.READ)
     })

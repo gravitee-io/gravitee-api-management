@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Configuration", "Application", "Client registration"})
+@Api(tags = {"Client Registration Providers"})
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class ClientRegistrationProvidersResource extends AbstractResource {

@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  * @author Guillaume GILLON (guillaume.gillon@outlook.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"API Pages"})
 public class ApiPagesResource extends AbstractResource {
 
     @Inject

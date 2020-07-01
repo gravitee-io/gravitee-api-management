@@ -27,6 +27,8 @@ import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.AlertService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -42,7 +44,7 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.READ
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Platform", "Alerts"})
+@Api(tags = {"Platform Alerts"})
 public class PlatformAlertsResource extends AbstractResource {
 
     private final static String PLATFORM_REFERENCE_ID = "default";
@@ -51,7 +53,11 @@ public class PlatformAlertsResource extends AbstractResource {
     private AlertService alertService;
 
     @GET
-    @ApiOperation(value = "List configured alerts of the platform")
+    @ApiOperation(value = "List configured alerts of the platform",
+            notes = "User must have the MANAGEMENT_ALERT[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of alerts", response = AlertTriggerEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = READ)
@@ -62,7 +68,11 @@ public class PlatformAlertsResource extends AbstractResource {
 
     @GET
     @Path("status")
-    @ApiOperation(value = "Get the status of alerting module")
+    @ApiOperation(value = "Get alerting status",
+            notes = "User must have the MANAGEMENT_ALERT[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Alerting status", response = AlertStatusEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = READ)
@@ -74,6 +84,11 @@ public class PlatformAlertsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create an alert for the platform",
+            notes = "User must have the MANAGEMENT_ALERT[CREATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Alert successfully created", response = AlertTriggerEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = RolePermissionAction.CREATE)
     })
@@ -87,6 +102,11 @@ public class PlatformAlertsResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update an alert for the platform",
+            notes = "User must have the MANAGEMENT_ALERT[UPDATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Alert successfully updated", response = AlertTriggerEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = RolePermissionAction.UPDATE)
     })
@@ -99,7 +119,11 @@ public class PlatformAlertsResource extends AbstractResource {
 
     @POST
     @Path("{alert}")
-    @ApiOperation(value = "Associate the alert to multiple references (API, APPLICATION")
+    @ApiOperation(value = "Associate the alert to multiple references (API, APPLICATION",
+            notes = "User must have the MANAGEMENT_ALERT[UPDATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Alert successfully associated"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = RolePermissionAction.UPDATE)
     })
@@ -111,6 +135,11 @@ public class PlatformAlertsResource extends AbstractResource {
     @Path("{alert}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Delete an alert for the platform",
+            notes = "User must have the MANAGEMENT_ALERT[DELETE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Alert successfully deleted", response = AlertTriggerEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = RolePermissionAction.DELETE)
     })
@@ -120,7 +149,11 @@ public class PlatformAlertsResource extends AbstractResource {
 
     @GET
     @Path("{alert}/events")
-    @ApiOperation(value = "Get the list of events for an alert")
+    @ApiOperation(value = "Retrieve the list of events for an alert",
+            notes = "User must have the MANAGEMENT_ALERT[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of events"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = READ)

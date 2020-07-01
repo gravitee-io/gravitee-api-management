@@ -52,7 +52,7 @@ import static java.util.stream.Collectors.toList;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Portal", "API"})
+@Api(tags = {"Portal APIs"})
 public class PortalApisResource extends AbstractResource {
 
     @Inject

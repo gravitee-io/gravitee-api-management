@@ -40,14 +40,15 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.READ
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API", "Quality Rules"})
+@Api(tags = {"API Quality"})
 public class ApiQualityRulesResource extends AbstractResource {
 
     @Autowired
     private ApiQualityRuleService apiQualityRuleService;
 
     @GET
-    @ApiOperation(value = "List quality rules of a given API")
+    @ApiOperation(value = "List quality rules for an API",
+            notes = "User must have the API_QUALITY_RULE[READ] permission to use this service")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
             @Permission(value = API_QUALITY_RULE, acls = READ)
@@ -59,6 +60,8 @@ public class ApiQualityRulesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create a new quality rules for an API",
+            notes = "User must have the API_QUALITY_RULE[CREATE] permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.CREATE)
     })
@@ -71,8 +74,10 @@ public class ApiQualityRulesResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update an existing quality rules for an API",
+            notes = "User must have the API_QUALITY_RULE[UPDATE] permission to use this service")
     @Permissions({
-            @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.UPDATE)
     })
     public ApiQualityRuleEntity update(@PathParam("api") String api, @PathParam("qualityRule") String qualityRule, @Valid @NotNull final UpdateApiQualityRuleEntity apiQualityRuleEntity) {
         apiQualityRuleEntity.setApi(api);

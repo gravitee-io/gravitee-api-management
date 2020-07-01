@@ -55,7 +55,7 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API", "Plan"})
+@Api(tags = {"API Plans"})
 public class ApiPlansResource extends AbstractResource {
 
     @Inject

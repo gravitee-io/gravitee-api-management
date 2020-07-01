@@ -26,6 +26,9 @@ import io.gravitee.management.rest.utils.ImageUtils;
 import io.gravitee.management.service.MediaService;
 import io.gravitee.management.service.exceptions.UploadUnauthorized;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -37,7 +40,7 @@ import javax.ws.rs.core.*;
 import java.io.IOException;
 import java.io.InputStream;
 
-@Api(tags = {"Portal"})
+@Api(tags = {"Portal Media"})
 public class PortalMediaResource extends AbstractResource {
     @Inject
     private MediaService mediaService;
@@ -49,6 +52,11 @@ public class PortalMediaResource extends AbstractResource {
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces("text/plain")
+    @ApiOperation(value = "Create a media for the portal",
+            notes = "User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Media successfully created"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public Response upload(
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetail,
@@ -80,6 +88,10 @@ public class PortalMediaResource extends AbstractResource {
 
     @GET
     @Path("/{hash}")
+    @ApiOperation(value = "Retrieve a media")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "A media"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public Response getImage(
             @Context Request request,
             @PathParam("hash") String hash) {

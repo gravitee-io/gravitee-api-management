@@ -61,7 +61,7 @@ import static java.util.stream.Collectors.toSet;
  * @author GraviteeSource Team
  */
 @Path("/apis")
-@Api(tags = {"API"})
+@Api(tags = {"APIs"})
 public class ApisResource extends AbstractResource {
 
     @Context

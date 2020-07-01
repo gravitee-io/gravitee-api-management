@@ -16,7 +16,10 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.NewViewEntity;
+import io.gravitee.management.model.UpdateViewEntity;
+import io.gravitee.management.model.ViewEntity;
+import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -26,6 +29,7 @@ import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ViewService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -61,6 +65,7 @@ public class ViewsResource extends AbstractViewResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Retrieve list of views")
     public List<ViewEntity> list(@QueryParam("all") boolean all)  {
         Set<ApiEntity> apis;
         if (isAdmin()) {
@@ -85,6 +90,7 @@ public class ViewsResource extends AbstractViewResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get the default view")
     @Path("/default")
     public ViewEntity getDefault() {
         List<ViewEntity> views = this.list(false);
@@ -101,6 +107,9 @@ public class ViewsResource extends AbstractViewResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Create a view",
+            notes = "User must have the PORTAL_VIEW[CREATE] permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.CREATE)
     })
@@ -111,6 +120,9 @@ public class ViewsResource extends AbstractViewResource  {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Update an existing view",
+            notes = "User must have the PORTAL_VIEW[UPDATE] permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.UPDATE)
     })

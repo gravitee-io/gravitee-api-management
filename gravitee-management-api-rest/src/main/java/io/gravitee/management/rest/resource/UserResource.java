@@ -27,6 +27,9 @@ import io.gravitee.management.service.UserService;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -48,7 +51,7 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"User"})
+@Api(tags = {"Users"})
 public class UserResource extends AbstractResource {
 
     @Context
@@ -62,6 +65,12 @@ public class UserResource extends AbstractResource {
 
     @GET
     @Produces(APPLICATION_JSON)
+    @ApiOperation(value = "Retrieve a user",
+            notes = "User must have the MANAGEMENT_USERS[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "A user", response = UserEntity.class),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions(
             @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.READ)
     )
@@ -76,6 +85,12 @@ public class UserResource extends AbstractResource {
     }
 
     @DELETE
+    @ApiOperation(value = "Delete a user",
+            notes = "User must have the MANAGEMENT_USERS[DELETE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "User successfully deleted"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions(
             @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.DELETE)
     )
@@ -87,6 +102,12 @@ public class UserResource extends AbstractResource {
     @GET
     @Path("/groups")
     @Produces(APPLICATION_JSON)
+    @ApiOperation(value = "List of groups the user belongs to",
+            notes = "User must have the MANAGEMENT_USERS[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of user groups"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions(
             @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.READ)
     )
@@ -113,6 +134,12 @@ public class UserResource extends AbstractResource {
     @GET
     @Path("/memberships")
     @Produces(APPLICATION_JSON)
+    @ApiOperation(value = "List of memberships the user belongs to",
+            notes = "User must have the MANAGEMENT_USERS[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of user memberships"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions(
             @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.READ)
     )
@@ -130,6 +157,12 @@ public class UserResource extends AbstractResource {
     }
 
     @POST
+    @ApiOperation(value = "Reset the user's password",
+            notes = "User must have the MANAGEMENT_USERS[UPDATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "User's password resetted"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions(
             @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.UPDATE)
     )
@@ -141,6 +174,11 @@ public class UserResource extends AbstractResource {
 
     @GET
     @Path("/avatar")
+    @ApiOperation(value = "Get the user's avatar")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "User's avatar"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public Response getUserAvatar(@PathParam("id") String id, @Context Request request) {
         PictureEntity picture = userService.getPicture(id);
 

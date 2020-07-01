@@ -26,9 +26,7 @@ import io.gravitee.management.service.MembershipService;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -59,6 +57,11 @@ public class RoleUsersResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List users with the given role",
+            notes = "User must have the MANAGEMENT_ROLE[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "List of user's memberships", response = MembershipListItem.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.READ)
     })
@@ -97,7 +100,11 @@ public class RoleUsersResource extends AbstractResource  {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Add or update a role to a user")
+    @ApiOperation(value = "Add or update a role for a user",
+            notes = "User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Membership successfully created / updated"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.CREATE),
             @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.UPDATE),

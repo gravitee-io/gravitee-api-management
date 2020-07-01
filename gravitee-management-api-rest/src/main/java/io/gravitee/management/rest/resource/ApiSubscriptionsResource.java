@@ -18,7 +18,6 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.log.SearchLogResponse;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
@@ -27,7 +26,6 @@ import io.gravitee.management.rest.model.PagedResult;
 import io.gravitee.management.rest.model.Subscription;
 import io.gravitee.management.rest.resource.param.ListStringParam;
 import io.gravitee.management.rest.resource.param.ListSubscriptionStatusParam;
-import io.gravitee.management.rest.resource.param.LogsParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApplicationService;
@@ -54,7 +52,7 @@ import static java.lang.String.format;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API", "Subscription"})
+@Api(tags = {"API Subscriptions"})
 public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
@@ -83,10 +81,12 @@ public class ApiSubscriptionsResource extends AbstractResource {
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
     public PagedResult<SubscriptionEntity> listApiSubscriptions(
+            @PathParam("api") String api,
             @BeanParam SubscriptionParam subscriptionParam,
             @Valid @BeanParam Pageable pageable) {
         // Transform query parameters to a subscription query
         SubscriptionQuery subscriptionQuery = subscriptionParam.toQuery();
+        subscriptionQuery.setApi(api);
 
         Page<SubscriptionEntity> subscriptions = subscriptionService
                 .search(subscriptionQuery, pageable.toPageable());
@@ -140,7 +140,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             @PathParam("api") String api,
             @BeanParam SubscriptionParam subscriptionParam,
             @Valid @BeanParam Pageable pageable) {
-        final PagedResult<SubscriptionEntity> subscriptions = listApiSubscriptions(subscriptionParam, pageable);
+        final PagedResult<SubscriptionEntity> subscriptions = listApiSubscriptions(api, subscriptionParam, pageable);
         return Response
                 .ok(subscriptionService.exportAsCsv(subscriptions.getData(), subscriptions.getMetadata()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=subscriptions-%s-%s.csv", api, System.currentTimeMillis()))
@@ -191,9 +191,6 @@ public class ApiSubscriptionsResource extends AbstractResource {
     }
 
     private static class SubscriptionParam {
-        @PathParam("api")
-        private String api;
-
         @QueryParam("plan")
         @ApiParam(value = "plan", required = true)
         private ListStringParam plans;
@@ -209,14 +206,6 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         @QueryParam("api_key")
         private String apiKey;
-
-        public String getApi() {
-            return api;
-        }
-
-        public void setApi(String api) {
-            this.api = api;
-        }
 
         public ListStringParam getPlans() {
             return plans;
@@ -252,8 +241,6 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         private SubscriptionQuery toQuery() {
             SubscriptionQuery query = new SubscriptionQuery();
-
-            query.setApi(this.api);
 
             if (plans != null && plans.getValue() != null) {
                 query.setPlans(plans.getValue());

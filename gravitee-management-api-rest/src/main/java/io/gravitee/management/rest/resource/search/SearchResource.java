@@ -26,7 +26,7 @@ import javax.ws.rs.core.Context;
  * @author GraviteeSource Team
  */
 @Path("/search")
-@Api(tags = {"Search"})
+@Api(tags = {"Users"})
 public class SearchResource {
 
     @Context

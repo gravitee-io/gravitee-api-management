@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.NewTopApiEntity;
+import io.gravitee.management.model.TagEntity;
 import io.gravitee.management.model.TopApiEntity;
 import io.gravitee.management.model.UpdateTopApiEntity;
 import io.gravitee.management.model.permissions.RolePermission;
@@ -25,6 +26,9 @@ import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.TopApiService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -53,6 +57,11 @@ public class TopApisResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List of top APIs",
+            notes = "User must have the PORTAL_TOP_APIS[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of top APIs", response = TopApiEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.PORTAL_TOP_APIS, acls = RolePermissionAction.READ)
     })
@@ -65,6 +74,11 @@ public class TopApisResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create a top API",
+            notes = "User must have the PORTAL_TOP_APIS[CREATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of top APIs", response = TopApiEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.PORTAL_TOP_APIS, acls = RolePermissionAction.CREATE)
     })
@@ -77,6 +91,11 @@ public class TopApisResource extends AbstractResource  {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update a top API",
+            notes = "User must have the PORTAL_TOP_APIS[UPDATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of top APIs", response = TopApiEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.PORTAL_TOP_APIS, acls = RolePermissionAction.UPDATE)
     })
@@ -89,6 +108,11 @@ public class TopApisResource extends AbstractResource  {
     @Path("{topAPI}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Delete an existing top API",
+            notes = "User must have the PORTAL_TOP_APIS[DELETE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Top API successfully deleted"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.PORTAL_TOP_APIS, acls = RolePermissionAction.DELETE)
     })

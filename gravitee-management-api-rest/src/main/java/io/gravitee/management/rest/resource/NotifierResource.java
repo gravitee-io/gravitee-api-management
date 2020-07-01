@@ -19,11 +19,14 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.NotifierEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.model.platform.plugin.PluginEntity;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.NotifierService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -38,7 +41,7 @@ import javax.ws.rs.core.Context;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugin", "Notifier"})
+@Api(tags = {"Plugins"})
 public class NotifierResource {
 
     @Context
@@ -49,7 +52,12 @@ public class NotifierResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a notifier")
+    @ApiOperation(value = "Get a notifier",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Notifier plugin", response = NotifierEntity.class),
+            @ApiResponse(code = 404, message = "Notifier not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
     })
@@ -61,7 +69,12 @@ public class NotifierResource {
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a notifier's schema")
+    @ApiOperation(value = "Get a notifier's schema",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Notifier's schema"),
+            @ApiResponse(code = 404, message = "Notifier not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
     })

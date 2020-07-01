@@ -42,7 +42,7 @@ import static java.lang.String.format;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"API Logs"})
 public class ApiLogsResource extends AbstractResource {
 
     @Inject

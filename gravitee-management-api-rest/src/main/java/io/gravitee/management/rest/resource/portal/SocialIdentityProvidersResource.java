@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Portal", "Social Authentication", "Identity Providers"})
+@Api(tags = {"Portal", "Authentication", "Identity Providers"})
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class SocialIdentityProvidersResource extends AbstractResource {

@@ -22,6 +22,9 @@ import io.gravitee.management.model.permissions.ManagementPermission;
 import io.gravitee.management.model.permissions.PortalPermission;
 import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -47,6 +50,10 @@ public class RoleScopesResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List availables role scopes")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of role scopes"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public Map<String, List<String>> list()  {
         final Map<String, List<String>> roles = new LinkedHashMap<>(4);
         roles.put(RoleScope.MANAGEMENT.name(), stream(ManagementPermission.values()).map(ManagementPermission::getName).sorted().collect(toList()));

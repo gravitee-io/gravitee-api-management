@@ -41,7 +41,7 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.UPDA
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API", "Subscription"})
+@Api(tags = {"API Subscriptions"})
 public class ApiSubscriptionResource extends AbstractResource {
 
     @Inject

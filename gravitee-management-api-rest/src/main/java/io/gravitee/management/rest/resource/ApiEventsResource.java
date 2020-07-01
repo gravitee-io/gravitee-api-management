@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"API Events"})
 public class ApiEventsResource extends AbstractResource {
 
     @Inject

@@ -16,6 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.ApplicationMetadataEntity;
 import io.gravitee.management.model.EntrypointEntity;
 import io.gravitee.management.model.NewEntryPointEntity;
 import io.gravitee.management.model.UpdateEntryPointEntity;
@@ -25,6 +26,9 @@ import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.EntrypointService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -47,6 +51,12 @@ public class EntrypointsResource extends AbstractResource  {
     @GET
     @Path("{entrypoint}")
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get a platform entrypoints",
+            notes = "User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "A platform entrypoint", response = EntrypointEntity.class),
+            @ApiResponse(code = 404, message = "Entrypoint not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.READ)
     })
@@ -56,6 +66,11 @@ public class EntrypointsResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List the platform entrypoints",
+            notes = "User must have the MANAGEMENT_ENTRYPOINT[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of platform entrypoints", response = EntrypointEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.READ)
     })
@@ -69,6 +84,11 @@ public class EntrypointsResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create a platform entrypoint",
+            notes = "User must have the MANAGEMENT_ENTRYPOINT[CREATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Entrypoint successfully created", response = EntrypointEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.CREATE)
     })
@@ -79,6 +99,11 @@ public class EntrypointsResource extends AbstractResource  {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update a platform entrypoint",
+            notes = "User must have the MANAGEMENT_ENTRYPOINT[UPDATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Updated entrypoint", response = EntrypointEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.UPDATE)
     })
@@ -89,6 +114,11 @@ public class EntrypointsResource extends AbstractResource  {
     @Path("{entrypoint}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Delete a platform entrypoint",
+            notes = "User must have the MANAGEMENT_ENTRYPOINT[DELETE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Entrrypoint successfully deleted"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ENTRYPOINT, acls = RolePermissionAction.DELETE)
     })

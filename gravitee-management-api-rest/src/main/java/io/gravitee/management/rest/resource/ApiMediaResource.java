@@ -44,16 +44,16 @@ import java.io.InputStream;
 /**
  * @author Guillaume Gillon
  */
-@Api(tags = {"API"})
+@Api(tags = {"API Media"})
 public class ApiMediaResource extends AbstractResource {
     @Inject
     private MediaService mediaService;
 
     @POST
-    @ApiOperation(value = "Create a picture for an API",
-            notes = "User must have the API_DOCUMENTATION permission to use this service")
+    @ApiOperation(value = "Create a media for an API",
+            notes = "User must have the API_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
+            @ApiResponse(code = 201, message = "Media successfully created", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE)
@@ -93,11 +93,11 @@ public class ApiMediaResource extends AbstractResource {
 
     @GET
     @Path("/{hash}")
+    @ApiOperation(value = "Retrieve a media for an API")
     public Response getImage(
             @Context Request request,
             @PathParam("api") String api,
             @PathParam("hash") String hash) {
-
         MediaEntity mediaEntity = mediaService.findby(hash, api);
 
         if (mediaEntity == null) {
@@ -110,7 +110,6 @@ public class ApiMediaResource extends AbstractResource {
         cc.setNoCache(false);
         cc.setMaxAge(86400);
 
-
         EntityTag etag = new EntityTag(hash);
         Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
 
@@ -120,7 +119,6 @@ public class ApiMediaResource extends AbstractResource {
                     .cacheControl(cc)
                     .build();
         }
-
 
         return Response
                 .ok(mediaEntity.getData())

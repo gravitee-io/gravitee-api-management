@@ -39,6 +39,8 @@ import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +78,7 @@ import static javax.ws.rs.core.Response.status;
  * @author GraviteeSource Team
  */
 @Path("/user")
-@Api(tags = {"User"})
+@Api(tags = {"Current User"})
 public class CurrentUserResource extends AbstractResource {
 
     private static Logger LOG = LoggerFactory.getLogger(CurrentUserResource.class);
@@ -99,6 +101,10 @@ public class CurrentUserResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get the authenticated user")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Authenticated user", response = UserDetails.class),
+            @ApiResponse(code = 401, message = "Unauthorized user"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public Response getCurrentUser() {
         if (isAuthenticated()) {
             final UserDetails details = getAuthenticatedUserDetails();
@@ -146,16 +152,15 @@ public class CurrentUserResource extends AbstractResource {
     }
 
     @PUT
-    @ApiOperation(value = "Update user")
+    @ApiOperation(value = "Update the authenticated user")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Updated user", response = UserEntity.class),
+            @ApiResponse(code = 400, message = "Invalid user profile"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public Response updateCurrentUser(@Valid @NotNull final UpdateUserEntity user) {
         UserEntity userEntity = userService.findById(getAuthenticatedUser());
 
-        // TODO: how to ensure that we can update the user profile?
-/*
-        if (!userEntity.get.equals(userService.findById(getAuthenticatedUser()).getUsername())) {
-            throw new ForbiddenAccessException();
-        }
-*/
         try {
             user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
         } catch (InvalidImageException e) {
@@ -168,6 +173,10 @@ public class CurrentUserResource extends AbstractResource {
     @GET
     @Path("avatar")
     @ApiOperation(value = "Get user's avatar")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "User's avatar"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public Response getCurrentUserPicture(@Context Request request) {
         String userId = userService.findById(getAuthenticatedUser()).getId();
         PictureEntity picture = userService.getPicture(userId);
@@ -276,6 +285,11 @@ public class CurrentUserResource extends AbstractResource {
     @GET
     @Path("/tasks")
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get the user's tasks")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "User's tasks"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public PagedResult getUserTasks() {
         List<TaskEntity> tasks = taskService.findAll(getAuthenticatedUserOrNull());
         Map<String, Map<String, Object>> metadata = taskService.getMetadata(tasks).getMetadata();
@@ -286,6 +300,11 @@ public class CurrentUserResource extends AbstractResource {
 
     @GET
     @Path("/tags")
+    @ApiOperation(value = "Get the user's allowed sharding tags")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "User's sharding tags"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserShardingTags() {
         return Response.ok(tagService.findByUser(getAuthenticatedUser())).build();
@@ -296,7 +315,6 @@ public class CurrentUserResource extends AbstractResource {
     public UserNotificationsResource getUserNotificationsResource() {
         return resourceContext.getResource(UserNotificationsResource.class);
     }
-
 
     @Path("/tokens")
     public TokensResource getTokensResource() {

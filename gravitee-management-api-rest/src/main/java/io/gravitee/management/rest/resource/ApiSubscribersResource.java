@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API", "Subscription"})
+@Api(tags = {"API Subscriptions"})
 public class ApiSubscribersResource extends AbstractResource {
 
     @Inject

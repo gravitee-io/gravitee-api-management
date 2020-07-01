@@ -77,7 +77,7 @@ import static org.springframework.security.core.authority.AuthorityUtils.commaSe
  */
 @Singleton
 @Path("/auth/oauth2/{identity}")
-@Api(tags = {"Portal", "OAuth2 Authentication"})
+@Api(tags = {"Authentication"})
 public class OAuth2AuthenticationResource extends AbstractAuthenticationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2AuthenticationResource.class);

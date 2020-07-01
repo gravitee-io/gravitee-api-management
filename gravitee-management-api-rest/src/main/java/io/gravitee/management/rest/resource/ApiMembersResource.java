@@ -57,7 +57,7 @@ import static io.gravitee.management.model.permissions.SystemRole.PRIMARY_OWNER;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"API Memberships"})
 public class ApiMembersResource extends AbstractResource {
 
     @Inject

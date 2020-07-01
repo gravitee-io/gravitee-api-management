@@ -40,7 +40,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-@Api(tags = {"Group"})
+@Api(tags = {"Group Memberships"})
 public class GroupMemberResource extends AbstractResource {
 
     @Context

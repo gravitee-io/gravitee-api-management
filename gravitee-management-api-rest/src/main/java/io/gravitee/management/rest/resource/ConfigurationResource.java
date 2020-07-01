@@ -32,6 +32,8 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -68,6 +70,10 @@ public class ConfigurationResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("notifiers")
+    @ApiOperation(value = "List of available notifiers")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of notifiers", response = NotifierEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_NOTIFICATION, acls = RolePermissionAction.READ)
     })

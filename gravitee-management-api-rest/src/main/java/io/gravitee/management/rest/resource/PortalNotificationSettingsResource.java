@@ -43,7 +43,7 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Portal", "Notifications"})
+@Api(tags = {"Portal Notifications"})
 public class PortalNotificationSettingsResource extends AbstractResource {
 
     @Autowired

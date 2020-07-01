@@ -38,7 +38,7 @@ import javax.ws.rs.core.Context;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugin", "Policy"})
+@Api(tags = {"Plugins"})
 public class PolicyResource {
 
     @Context
@@ -49,7 +49,8 @@ public class PolicyResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a policy")
+    @ApiOperation(value = "Get a policy",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
     })
@@ -61,7 +62,8 @@ public class PolicyResource {
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a policy's schema")
+    @ApiOperation(value = "Get a policy's schema",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
     })

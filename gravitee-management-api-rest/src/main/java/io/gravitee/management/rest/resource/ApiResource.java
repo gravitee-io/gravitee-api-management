@@ -68,7 +68,7 @@ import static java.lang.String.format;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"APIs"})
 public class ApiResource extends AbstractResource {
 
     @Context
@@ -454,6 +454,8 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("notifiers")
+    @ApiOperation(value = "List available notifiers for API",
+            notes = "User must have the API_NOTIFICATION[READ] permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.API_NOTIFICATION, acls = RolePermissionAction.READ)
     })
@@ -499,6 +501,8 @@ public class ApiResource extends AbstractResource {
     @Path("/messages")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Send a message to existing consumers of an API",
+            notes = "User must have the API_MESSAGE[CREATE] permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.API_MESSAGE, acls = RolePermissionAction.CREATE)
     })
@@ -518,7 +522,7 @@ public class ApiResource extends AbstractResource {
     @Path("reviews")
     @ApiOperation(
             value = "Manage the API's review state",
-            notes = "User must have the API_DEFINITION or API_REVIEWS permission to use this service (depending on the action)")
+            notes = "User must have the API_DEFINITION[UPDATE] or API_REVIEWS[UPDATE] permission to use this service (depending on the action)")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Updated API"),
             @ApiResponse(code = 500, message = "Internal server error")})

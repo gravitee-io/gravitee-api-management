@@ -43,7 +43,7 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"API Pages"})
 public class ApiPageResource extends AbstractResource {
 
     @Inject

@@ -46,7 +46,7 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.READ
  * @author GraviteeSource Team
  */
 @Path("/users")
-@Api(tags = {"User"})
+@Api(tags = {"Users"})
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
 public class UsersResource extends AbstractResource {

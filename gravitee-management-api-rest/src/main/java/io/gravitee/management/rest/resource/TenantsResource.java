@@ -25,6 +25,9 @@ import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.TenantService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -38,7 +41,7 @@ import java.util.stream.Collectors;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Configuration", "Tenants"})
+@Api(tags = {"Tenants"})
 public class TenantsResource extends AbstractResource  {
 
     @Autowired
@@ -46,6 +49,10 @@ public class TenantsResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List tenants")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of tenants", response = TenantEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public List<TenantEntity> list()  {
         return tenantService.findAll()
                 .stream()
@@ -56,6 +63,11 @@ public class TenantsResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create a tenant",
+            notes = "User must have the MANAGEMENT_TENANT[CREATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of tenants", response = TenantEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_TENANT, acls = RolePermissionAction.CREATE)
     })
@@ -66,6 +78,11 @@ public class TenantsResource extends AbstractResource  {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update a tenant",
+            notes = "User must have the MANAGEMENT_TENANT[UPDATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of tenants", response = TenantEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_TENANT, acls = RolePermissionAction.UPDATE)
     })
@@ -76,6 +93,11 @@ public class TenantsResource extends AbstractResource  {
     @Path("{tenant}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Delete a tenant",
+            notes = "User must have the MANAGEMENT_TENANT[DELETE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of tenants", response = TenantEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_TENANT, acls = RolePermissionAction.DELETE)
     })

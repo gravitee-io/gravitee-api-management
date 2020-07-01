@@ -27,7 +27,7 @@ import javax.ws.rs.core.Context;
  * @author GraviteeSource Team
  */
 @Path("/platform")
-@Api(tags = {"Gateway"})
+@Api(tags = {"Platform"})
 public class PlatformResource {
 
     @Context

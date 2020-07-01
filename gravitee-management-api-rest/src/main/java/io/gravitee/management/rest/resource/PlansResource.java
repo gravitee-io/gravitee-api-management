@@ -19,6 +19,9 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.PlansConfigurationEntity;
 import io.gravitee.management.service.PlanService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.GET;
@@ -41,6 +44,10 @@ public class PlansResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List of available plan's type")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of plans", response = PlansConfigurationEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public PlansConfigurationEntity getConfiguration() {
         return planService.getConfiguration();
     }

@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  * @author Guillaume GILLON
  */
-@Api(tags = {"Portal"})
+@Api(tags = {"Portal Pages"})
 public class PortalPagesResource extends AbstractResource {
 
     @Inject
@@ -123,7 +123,7 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create a page",
-            notes = "User must be ADMIN to use this service")
+            notes = "User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -151,7 +151,7 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update a page",
-            notes = "User must be ADMIN to use this service")
+            notes = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -172,7 +172,7 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update a page",
-            notes = "User must be ADMIN to use this service")
+            notes = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -192,7 +192,7 @@ public class PortalPagesResource extends AbstractResource {
     @Path("/{page}/_fetch")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Refresh page by calling the associated fetcher",
-            notes = "User must have the MANAGE_PAGES permission to use this service")
+            notes = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully refreshed", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -211,7 +211,7 @@ public class PortalPagesResource extends AbstractResource {
     @Path("/_fetch")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Refresh all pages by calling their associated fetcher",
-            notes = "User must have the MANAGE_PAGES permission to use this service")
+            notes = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Pages successfully refreshed", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -227,7 +227,7 @@ public class PortalPagesResource extends AbstractResource {
     @DELETE
     @Path("/{page}")
     @ApiOperation(value = "Delete a page",
-            notes = "User must be ADMIN to use this service")
+            notes = "User must have the PORTAL_DOCUMENTATION[DELETE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Page successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -246,7 +246,7 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Import pages",
-            notes = "User must be ADMIN to use this service")
+            notes = "User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -264,7 +264,7 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Import pages",
-            notes = "User must be ADMIN to use this service")
+            notes = "User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})

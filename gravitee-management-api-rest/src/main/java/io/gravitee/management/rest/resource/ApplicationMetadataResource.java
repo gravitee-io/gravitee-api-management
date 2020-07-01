@@ -41,7 +41,7 @@ import java.util.List;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Application", "Metadata"})
+@Api(tags = {"Application Metadata"})
 public class ApplicationMetadataResource extends AbstractResource {
 
     @Inject
@@ -49,10 +49,10 @@ public class ApplicationMetadataResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List metadata for the given APPLICATION",
-            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+    @ApiOperation(value = "List metadata for ans application",
+            notes = "User must have the APPLICATION_METADATA[READ] permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "List of metadata", response = ApplicationMetadataEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "List of metadata for an application", response = ApplicationMetadataEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ)
@@ -65,8 +65,8 @@ public class ApplicationMetadataResource extends AbstractResource {
     @GET
     @Path("{metadata}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "A metadata for the given APPLICATION and metadata id",
-            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+    @ApiOperation(value = "A metadata for an application and metadata id",
+            notes = "User must have the APPLICATION_METADATA[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "A metadata", response = ApplicationMetadataEntity.class),
             @ApiResponse(code = 404, message = "Metadata not found"),
@@ -81,10 +81,10 @@ public class ApplicationMetadataResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create an APPLICATION metadata",
-            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+    @ApiOperation(value = "Create an application metadata",
+            notes = "User must have the APPLICATION_METADATA[CREATE] permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 201, message = "A new APPLICATION metadata", response = ApplicationMetadataEntity.class),
+            @ApiResponse(code = 201, message = "Application metadata successfully created", response = ApplicationMetadataEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.CREATE)
@@ -104,10 +104,10 @@ public class ApplicationMetadataResource extends AbstractResource {
     @Path("{metadata}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update an APPLICATION metadata",
-            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+    @ApiOperation(value = "Update an application metadata",
+            notes = "User must have the APPLICATION_METADATA[UPDATE] permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 201, message = "APPLICATION metadata", response = ApplicationMetadataEntity.class),
+            @ApiResponse(code = 200, message = "Updated application metadata", response = ApplicationMetadataEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.UPDATE)
@@ -124,7 +124,7 @@ public class ApplicationMetadataResource extends AbstractResource {
     @DELETE
     @Path("{metadata}")
     @ApiOperation(value = "Delete a metadata",
-            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+            notes = "User must have the APPLICATION_METADATA[DELETE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Metadata successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})

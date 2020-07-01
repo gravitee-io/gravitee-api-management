@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.EventEntity;
+import io.gravitee.management.model.log.SearchLogResponse;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.EventSearchParam;
@@ -28,6 +29,9 @@ import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.EventService;
 import io.gravitee.repository.management.model.Event;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -45,7 +49,7 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.READ
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Gateway"})
+@Api(tags = {"Platform Events"})
 public class PlatformEventsResource  extends AbstractResource {
     
     @Inject
@@ -56,6 +60,11 @@ public class PlatformEventsResource  extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List platform events",
+            notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Platform events", response = EventEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_PLATFORM, acls = RolePermissionAction.READ)
     })
