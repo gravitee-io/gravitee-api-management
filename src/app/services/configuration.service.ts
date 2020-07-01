@@ -35,14 +35,18 @@ export class ConfigurationService {
   public load() {
     return new Promise((resolve) => {
       this.http.get('./assets/config.json').subscribe((configJson: any) => {
-        document.documentElement.style.setProperty('--gv-theme-loader', `url('${configJson.loaderUrl}')`);
+        document.documentElement.style.setProperty('--gv-theme-loader', `url('${configJson.loaderURL}')`);
 
-        this.http.get(configJson.baseUrl + '/theme').toPromise()
+        if (configJson.baseURL.endsWith('/')) {
+          configJson.baseURL = configJson.baseURL.slice(0, -1);
+        }
+
+        this.http.get(configJson.baseURL + '/theme').toPromise()
           .then((theme) => {
             applyTheme(theme);
           });
 
-        this.http.get(configJson.baseUrl + '/configuration').subscribe((configPortal) => {
+        this.http.get(configJson.baseURL + '/configuration').subscribe((configPortal) => {
           this.config = this._deepMerge(configJson, configPortal);
           resolve(true);
         }, () => resolve(false));

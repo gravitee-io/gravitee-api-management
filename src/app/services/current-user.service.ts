@@ -43,9 +43,9 @@ export class CurrentUserService {
   }
 
   load() {
-    const baseUrl = this.configurationService.get('baseUrl');
+    const baseURL = this.configurationService.get('baseURL');
     return new Promise((resolve) => {
-      this.http.get(baseUrl + '/user').toPromise()
+      this.http.get(baseURL + '/user').toPromise()
         .then((data) => {
           this.currentUserSource.next(data);
         })

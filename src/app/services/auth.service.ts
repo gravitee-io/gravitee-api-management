@@ -102,16 +102,16 @@ export class AuthService {
       }
       this.router.navigate(['']);
     })
-    .catch(() => resolve(false))
-    .finally(() => resolve(true));
+      .catch(() => resolve(false))
+      .finally(() => resolve(true));
   }
 
   private _configure(provider) {
-    const redirectUri = window.location.origin;
+    const redirectUri = window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname);
     this.oauthService.configure({
       clientId: provider.client_id,
       loginUrl: provider.authorizationEndpoint,
-      tokenEndpoint: this.configurationService.get('baseUrl') + '/auth/oauth2/' + provider.id,
+      tokenEndpoint: this.configurationService.get('baseURL') + '/auth/oauth2/' + provider.id,
       requireHttps: false,
       issuer: provider.tokenIntrospectionEndpoint,
       logoutUrl: provider.userLogoutEndpoint,

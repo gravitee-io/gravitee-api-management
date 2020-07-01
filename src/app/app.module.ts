@@ -141,7 +141,11 @@ import { ReCaptchaService } from './services/recaptcha.service';
       deps: [ConfigurationService, AuthService, CurrentUserService, TranslationService, ReCaptchaService],
       multi: true
     },
-    { provide: BASE_PATH, useFactory: (config: ConfigurationService) => config.get('baseUrl'), deps: [ConfigurationService] },
+    {
+      provide: BASE_PATH,
+      useFactory: (config: ConfigurationService) => config.get('baseURL'),
+      deps: [ConfigurationService]
+    },
     { provide: MESSAGE_FORMAT_CONFIG, useValue: { locales: environment.locales } },
     { provide: HTTP_INTERCEPTORS, useClass: ApiRequestInterceptor, multi: true },
     CookieService,
