@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import {IHttpPromise} from 'angular';
-import {IPromise} from 'angular';
+import { IHttpPromise, IPromise } from 'angular';
 import _ = require('lodash');
 
 export class DocumentationQuery {
@@ -64,9 +63,9 @@ class DocumentationService {
 
   url = (apiId: string, pageId?: string, importFiles?: boolean): string => {
     if (apiId) {
-      return `${this.Constants.baseURL}apis/${apiId}/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
+      return `${this.Constants.baseURL}/apis/${apiId}/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
     }
-    return `${this.Constants.baseURL}portal/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
+    return `${this.Constants.baseURL}/portal/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
   }
 
   supportedTypes = (folderSituation: FolderSituation): string[] => {
@@ -147,7 +146,7 @@ class DocumentationService {
       if (translated) {
         params.translated = translated;
       }
-      return this.$http.get(url, {params});
+      return this.$http.get(url, { params });
     }
   }
 
@@ -155,8 +154,8 @@ class DocumentationService {
     let deferred = this.$q.defer();
     let that = this;
     this.$http
-      .get(this.url(apiId), {params: {'homepage': true}})
-      .then(function(response) {
+      .get(this.url(apiId), { params: { 'homepage': true } })
+      .then(function (response) {
         if ((<any[]>response.data).length > 0) {
           that
             .get(apiId, response.data[0].id, true)
@@ -165,7 +164,7 @@ class DocumentationService {
           deferred.resolve({});
         }
       })
-      .catch( msg => deferred.reject(msg) );
+      .catch(msg => deferred.reject(msg));
 
     return deferred.promise;
   }
@@ -178,15 +177,15 @@ class DocumentationService {
     entity.source = newPage.source;
     entity.configuration = newPage.configuration;
     entity.excluded_groups = newPage.excluded_groups;
-    return this.$http.post(this.url(apiId, null, true), entity, {timeout: 30000});
+    return this.$http.post(this.url(apiId, null, true), entity, { timeout: 30000 });
   }
 
   fetch = (pageId: string, apiId?: string): IHttpPromise<any> => {
-    return this.$http.post(this.url(apiId, pageId) + '/_fetch', null, {timeout: 30000});
+    return this.$http.post(this.url(apiId, pageId) + '/_fetch', null, { timeout: 30000 });
   }
 
   fetchAll = (apiId: string): IHttpPromise<any> => {
-    return this.$http.post(this.url(apiId) + '_fetch', null, {timeout: 30000});
+    return this.$http.post(this.url(apiId) + '_fetch', null, { timeout: 30000 });
   }
 }
 

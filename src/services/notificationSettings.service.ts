@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {Scope} from '../entities/scope';
-import {IHttpPromise} from 'angular';
-import {NotificationConfig} from '../entities/notificationConfig';
+import { Scope } from '../entities/scope';
+import { IHttpPromise } from 'angular';
+import { NotificationConfig } from '../entities/notificationConfig';
 
 class NotificationSettingsService {
   private Constants: any;
@@ -27,9 +27,9 @@ class NotificationSettingsService {
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
     this.Constants = Constants;
-    this.applicationsURL = `${Constants.baseURL}applications/`;
-    this.apisURL = `${Constants.baseURL}apis/`;
-    this.portalgCfgURL = `${Constants.baseURL}configuration/`;
+    this.applicationsURL = `${Constants.baseURL}/applications/`;
+    this.apisURL = `${Constants.baseURL}/apis/`;
+    this.portalgCfgURL = `${Constants.baseURL}/configuration/`;
   }
 
   getHooks(scope: Scope): IHttpPromise<any> {
@@ -61,7 +61,7 @@ class NotificationSettingsService {
   getNotificationSettings(scope: Scope, id: string): IHttpPromise<any> {
     switch (scope) {
       case Scope.APPLICATION:
-        return this.$http.get(this.applicationsURL + id  + '/notificationsettings');
+        return this.$http.get(this.applicationsURL + id + '/notificationsettings');
       case Scope.API:
         return this.$http.get(this.apisURL + id + '/notificationsettings');
       case Scope.PORTAL:
@@ -74,7 +74,7 @@ class NotificationSettingsService {
   delete(scope: Scope, referenceId: string, notificationSettingId: string): IHttpPromise<any> {
     switch (scope) {
       case Scope.APPLICATION:
-        return this.$http.delete(this.applicationsURL + referenceId  + '/notificationsettings/' + notificationSettingId);
+        return this.$http.delete(this.applicationsURL + referenceId + '/notificationsettings/' + notificationSettingId);
       case Scope.API:
         return this.$http.delete(this.apisURL + referenceId + '/notificationsettings/' + notificationSettingId);
       case Scope.PORTAL:

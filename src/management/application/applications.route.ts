@@ -22,6 +22,7 @@ import { StateParams } from '@uirouter/core';
 import ApiService from '../../services/api.service';
 import DashboardService from '../../services/dashboard.service';
 import ApplicationTypesService from '../../services/applicationTypes.service';
+import MetadataService from '../../services/metadata.service';
 
 export default applicationsConfig;
 
@@ -112,6 +113,30 @@ function applicationsConfig($stateProvider) {
           return GroupService.list().then((groups) => {
             return _.filter(groups.data, 'manageable');
           });
+        }
+      }
+    })
+    .state('management.applications.application.metadata', {
+      url: '/metadata',
+      component: 'metadata',
+      resolve: {
+        metadataFormats: (MetadataService: MetadataService) => MetadataService.listFormats(),
+        metadata: function ($stateParams, ApplicationService) {
+          return ApplicationService.listMetadata($stateParams.applicationId).then(function (response) {
+            return response.data;
+          });
+        }
+      },
+      data: {
+        menu: {
+          label: 'Metadata',
+          icon: 'collections_bookmark'
+        },
+        perms: {
+          only: ['application-metadata-r']
+        },
+        docs: {
+          page: 'management-application-metadata'
         }
       }
     })

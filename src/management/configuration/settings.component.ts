@@ -141,7 +141,7 @@ const SettingsComponent: ng.IComponentOptions = {
       },
       alerts: {
         perm: UserService.isUserHasPermissions(['environment-alert-r']) && Constants.alert && Constants.alert.enabled,
-        goTo: 'management.settings.alerts'
+        goTo: 'management.settings.alerts.list'
       }};
 
     this.$onInit = () => {

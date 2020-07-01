@@ -15,14 +15,15 @@
  */
 import AnalyticsService from './analytics.service';
 import * as _ from 'lodash';
-import {Dashboard} from '../entities/dashboard';
+import { Dashboard } from '../entities/dashboard';
+
 class DashboardService {
   private dashboardsURL: string;
   private AnalyticsService: AnalyticsService;
 
   constructor(private $http, Constants, AnalyticsService: AnalyticsService) {
     'ngInject';
-    this.dashboardsURL = `${Constants.baseURL}configuration/dashboards/`;
+    this.dashboardsURL = `${Constants.baseURL}/configuration/dashboards/`;
     this.AnalyticsService = AnalyticsService;
   }
 
@@ -60,7 +61,7 @@ class DashboardService {
       chart: {
         service: {
           caller: this.AnalyticsService,
-            function: this.AnalyticsService.analytics
+          function: this.AnalyticsService.analytics
         }
       }
     };

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import {User} from '../entities/user';
-import {PagedResult} from '../entities/pagedResult';
-import {UserNotification} from '../entities/userNotification';
-import {IHttpPromise, IRequestShortcutConfig} from 'angular';
+import { User } from '../entities/user';
+import { PagedResult } from '../entities/pagedResult';
+import { UserNotification } from '../entities/userNotification';
+import { IHttpPromise } from 'angular';
 
 class UserNotificationService {
   private URL: string;
@@ -26,7 +26,7 @@ class UserNotificationService {
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
     this.Constants = Constants;
-    this.URL = this.Constants.baseURL + 'user/notifications';
+    this.URL = this.Constants.baseURL + '/user/notifications';
   }
 
   getNotificationSchedulerInSeconds(): number {
@@ -37,7 +37,7 @@ class UserNotificationService {
   }
 
   getNotifications(): IHttpPromise<any> {
-    const config = { ignoreLoadingBar: true, silentCall: true  } as ng.IRequestShortcutConfig;
+    const config = { ignoreLoadingBar: true, silentCall: true } as ng.IRequestShortcutConfig;
     return this.$http.get(this.URL, config);
   }
 

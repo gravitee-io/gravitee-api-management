@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 
 class CategoryService {
   private categoriesURL: string;
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.categoriesURL = `${Constants.baseURL}configuration/categories/`;
+    this.categoriesURL = `${Constants.baseURL}/configuration/categories/`;
   }
 
   list() {

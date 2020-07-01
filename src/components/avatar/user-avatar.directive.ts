@@ -16,7 +16,7 @@
 class UserAvatarDirective {
 
   constructor() {
-  'ngInject';
+    'ngInject';
 
     let directive = {
       restrict: 'A',
@@ -34,7 +34,7 @@ class UserAvatarDirective {
             image.onload = function () {
               deferred.resolve(true);
             };
-            image.src = ctrl.Constants.baseURL + 'users/' + attrs.graviteeUserAvatar + '/avatar';
+            image.src = ctrl.Constants.baseURL + '/users/' + attrs.graviteeUserAvatar + '/avatar';
             return deferred.promise;
           } else {
             // Default image

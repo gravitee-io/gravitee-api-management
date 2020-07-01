@@ -69,7 +69,7 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
   $scope.methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
   $scope.timeUnits = ['SECONDS', 'MINUTES', 'HOURS', 'DAYS'];
   $scope.types = [ConditionType];
-  $scope.conditions = [Condition];
+  $scope.conditions = [];
 
   $scope.types.push(new ConditionType('Plan', 'plan', '#context.plan'));
   $scope.types.push(new ConditionType('Application', 'application', '#context.application'));

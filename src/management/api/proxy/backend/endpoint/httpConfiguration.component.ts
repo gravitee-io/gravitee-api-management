@@ -76,6 +76,15 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
       this.initModel();
     }
 
+    $onDestroy() {
+      // init to the correct model structure (useful when the user do not save)
+      if (Array.isArray(this.httpConfiguration.headers)) {
+        const headers = {};
+        this.httpConfiguration.headers.forEach(header => headers[header.name] = header.value);
+        this.httpConfiguration.headers = headers;
+      }
+    }
+
     toggleInherit(inherit) {
       if (inherit) {
         delete this.httpConfiguration.http;

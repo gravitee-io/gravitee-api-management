@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import {IHttpPromise} from 'angular';
-import {Alert, Scope} from '../entities/alert';
+import { IHttpPromise } from 'angular';
+import { Alert, Scope } from '../entities/alert';
 
 class AlertService {
   private apisURL: string;
@@ -25,10 +25,10 @@ class AlertService {
 
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
-    this.apisURL = `${Constants.baseURL}apis/`;
-    this.applicationsURL = `${Constants.baseURL}applications/`;
-    this.configurationURL = `${Constants.baseURL}platform/`;
-    this.alertsURL = `${Constants.baseURL}alerts/`;
+    this.apisURL = `${Constants.baseURL}/apis/`;
+    this.applicationsURL = `${Constants.baseURL}/applications/`;
+    this.configurationURL = `${Constants.baseURL}/platform/`;
+    this.alertsURL = `${Constants.baseURL}/alerts/`;
   }
 
   listMetrics(): IHttpPromise<any> {
@@ -58,7 +58,9 @@ class AlertService {
         notifications: alert.notifications,
         filters: alert.filters,
         projections: alert.projections,
-        dampening: alert.dampening
+        dampening: alert.dampening,
+        template: alert.template,
+        event_rules: alert.event_rules
       });
   }
 
@@ -77,7 +79,9 @@ class AlertService {
       notifications: alert.notifications,
       filters: alert.filters,
       projections: alert.projections,
-      dampening: alert.dampening
+      dampening: alert.dampening,
+      template: alert.template,
+      event_rules: alert.event_rules
     });
   }
 
@@ -107,6 +111,10 @@ class AlertService {
 
   delete(alert: Alert) {
     return this.$http.delete(this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts/' + alert.id);
+  }
+
+  associate(alert: Alert, type: string): ng.IPromise<any> {
+    return this.$http.post(this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts/' + alert.id + '?type=' + type, {});
   }
 
   private getReferenceURL(referenceType: Scope, referenceId: string) {

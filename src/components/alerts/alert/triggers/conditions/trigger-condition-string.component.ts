@@ -27,7 +27,6 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.$onInit = () => {
-
       // Get the metric field according to the condition property
       let metric = _.find(this.metrics as Metrics[], metric => metric.key === this.condition.property);
 
@@ -47,6 +46,10 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
 
         this.values = metric.loader(referenceType, referenceId, $injector);
       }
+    };
+
+    this.displaySelect = () => {
+      return this.values !== undefined && this.condition.operator === 'equals' || this.condition.operator === 'not_equals';
     };
   }
 };

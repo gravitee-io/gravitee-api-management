@@ -18,14 +18,14 @@ class PolicyService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.policiesURL = `${Constants.baseURL}policies/`;
+    this.policiesURL = `${Constants.baseURL}/policies/`;
   }
 
   list() {
     let url = this.policiesURL;
-/*    if(expandSchema) {
-      url += "?expand=schema";
-    }*/
+    /*    if(expandSchema) {
+          url += "?expand=schema";
+        }*/
     return this.$http.get(url);
   }
 

@@ -17,12 +17,11 @@ import { User } from '../entities/user';
 import RoleService from './role.service';
 import ApplicationService from './application.service';
 import ApiService from './api.service';
-import _ = require('lodash');
 import StringService from './string.service';
 import { UrlService } from '@uirouter/angularjs';
 import { PagedResult } from '../entities/pagedResult';
 import Base64Service from './base64.service';
-import {IRequestShortcutConfig} from 'angular';
+import _ = require('lodash');
 
 class UserService {
 
@@ -37,22 +36,22 @@ class UserService {
   private isLogout: boolean = false;
 
   constructor(private $http: ng.IHttpService,
-    private $q: ng.IQService,
-    Constants,
-    private RoleService: RoleService,
-    private PermPermissionStore,
-    private $urlService: UrlService,
-    private ApplicationService: ApplicationService,
-    private ApiService: ApiService,
-    private $location,
-    private $cookies,
-    private $window,
-    private StringService: StringService,
-    private Base64Service: Base64Service) {
+              private $q: ng.IQService,
+              Constants,
+              private RoleService: RoleService,
+              private PermPermissionStore,
+              private $urlService: UrlService,
+              private ApplicationService: ApplicationService,
+              private ApiService: ApiService,
+              private $location,
+              private $cookies,
+              private $window,
+              private StringService: StringService,
+              private Base64Service: Base64Service) {
     'ngInject';
-    this.searchUsersURL = `${Constants.baseURL}search/users/`;
-    this.usersURL = `${Constants.baseURL}users/`;
-    this.userURL = `${Constants.baseURL}user/`;
+    this.searchUsersURL = `${Constants.baseURL}/search/users/`;
+    this.usersURL = `${Constants.baseURL}/users/`;
+    this.userURL = `${Constants.baseURL}/user/`;
   }
 
   list(query?: string, page = 1, size = 10): ng.IPromise<any> {
@@ -97,7 +96,10 @@ class UserService {
     let that = this;
 
     if (!this.currentUser || !this.currentUser.authenticated) {
-      const promises = [this.$http.get(this.userURL, { silentCall: true, forceSessionExpired: true } as ng.IRequestShortcutConfig)];
+      const promises = [this.$http.get(this.userURL, {
+        silentCall: true,
+        forceSessionExpired: true
+      } as ng.IRequestShortcutConfig)];
 
       const applicationRegex = /applications\/([\w|\-]+)/;
       let applicationId = applicationRegex.exec(this.$location.$$path);

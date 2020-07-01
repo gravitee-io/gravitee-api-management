@@ -157,6 +157,7 @@ class ApiProxyController {
           _(_that.api.proxy.groups).forEach(function (group) {
             _(group.endpoints).forEach(function (endpoint2, index, object) {
               if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
+                // @ts-ignore
                 object.splice(index, 1);
               }
             });
@@ -279,6 +280,7 @@ class ApiProxyController {
       if (response) {
         _(that.api.proxy.groups).forEach(function (group, index, object) {
           if (group.name !== undefined && group.name === groupname) {
+            // @ts-ignore
             object.splice(index, 1);
             that.update(that.api);
           }

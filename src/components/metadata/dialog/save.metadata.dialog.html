@@ -15,10 +15,10 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="{{$ctrl.metadata.key?'Update':'Create'}} API metadata">
+<md-dialog aria-label="{{$ctrl.metadata.key?'Update':'Create'}} {{$ctrl.referenceType ? $ctrl.referenceType + '\'s ' : ''}}metadata">
   <form name="formMetadata" ng-submit="$ctrl.save()" novalidate>
     <md-dialog-content layout-padding>
-      <h4>{{$ctrl.metadata.key?'Update':'Create'}} API metadata</h4>
+      <h4>{{$ctrl.metadata.key?'Update':'Create'}} {{$ctrl.referenceType ? $ctrl.referenceType + '\'s ' : ''}}metadata</h4>
       <div layout="column">
         <div layout="row">
           <md-input-container ng-if="$ctrl.metadata.key">
@@ -28,12 +28,12 @@
           <md-input-container flex>
             <label>Name</label>
             <input ng-model="$ctrl.metadata.name" md-autofocus="{{$ctrl.metadata.key?'false':'true'}}"
-                   required ng-disabled="$ctrl.metadata.key && !$ctrl.metadata.apiId">
+                   required ng-disabled="$ctrl.metadata.key && !$ctrl.referenceId">
           </md-input-container>
         </div>
         <md-input-container>
           <label>Format</label>
-          <md-select ng-model="$ctrl.metadata.format" ng-disabled="$ctrl.metadata.key && !$ctrl.metadata.apiId">
+          <md-select ng-model="$ctrl.metadata.format" ng-disabled="$ctrl.metadata.key && !$ctrl.referenceId">
             <md-option ng-repeat="metadataFormat in $ctrl.metadataFormats" ng-value="metadataFormat">
               {{metadataFormat}}
             </md-option>
@@ -43,7 +43,7 @@
         <div layout="row">
           <md-input-container ng-if="$ctrl.metadata.format === 'boolean'" flex>
             <md-checkbox ng-model="$ctrl.metadata.value"
-                         md-autofocus="{{$ctrl.metadata.key && !$ctrl.metadata.apiId?'true':'false'}}"
+                         md-autofocus="{{$ctrl.metadata.key && !$ctrl.referenceId ? 'true' : 'false'}}"
                          gv-metadata-format="$ctrl.metadata.format" ng-pattern="pattern"
                          ng-true-value="'true'" ng-false-value="'false'" gv-metadata-validator>
               Value
@@ -51,18 +51,18 @@
           </md-input-container>
           <md-input-container ng-if="$ctrl.metadata.format === 'date'" flex>
             <label>Value</label>
-            <md-datepicker ng-model="$ctrl.metadata.value" md-autofocus="{{$ctrl.metadata.key && !$ctrl.metadata.apiId?'true':'false'}}"
+            <md-datepicker ng-model="$ctrl.metadata.value" md-autofocus="{{$ctrl.metadata.key && !$ctrl.referenceId ? 'true' : 'false'}}"
                            gv-metadata-format="$ctrl.metadata.format" ng-pattern="pattern"></md-datepicker>
           </md-input-container>
           <md-input-container ng-if="$ctrl.metadata.format !== 'boolean' && $ctrl.metadata.format !== 'date'" flex>
             <label>Value</label>
             <input type="text" ng-model="$ctrl.metadata.value" placeholder="{{$ctrl.metadata.defaultValue}}"
-                   md-autofocus="{{$ctrl.metadata.key && !$ctrl.metadata.apiId?'true':'false'}}"
+                   md-autofocus="{{$ctrl.metadata.key && !$ctrl.metadata.referenceId ? 'true' : 'false'}}"
                    gv-metadata-format="$ctrl.metadata.format" ng-pattern="pattern" gv-metadata-validator>
             <div class="hint">Supports Freemarker</div>
           </md-input-container>
 
-          <md-input-container ng-if="$ctrl.metadata.key && !$ctrl.metadata.apiId && $ctrl.metadata.format === 'boolean'" flex>
+          <md-input-container ng-if="$ctrl.metadata.key && !$ctrl.metadata.referenceId && $ctrl.metadata.format === 'boolean'" flex>
             <md-checkbox ng-model="$ctrl.metadata.defaultValue"
                          gv-metadata-format="$ctrl.metadata.format" ng-pattern="pattern"
                          ng-true-value="'true'" ng-false-value="'false'" gv-metadata-validator disabled>
@@ -70,12 +70,12 @@
             </md-checkbox>
 
           </md-input-container>
-          <md-input-container ng-if="$ctrl.metadata.key && !$ctrl.metadata.apiId && $ctrl.metadata.format === 'date'">
+          <md-input-container ng-if="$ctrl.metadata.key && !$ctrl.metadata.referenceId && $ctrl.metadata.format === 'date'">
             <label>Default value</label>
             <md-datepicker ng-model="$ctrl.metadata.defaultValue" gv-metadata-format="$ctrl.metadata.format"
                            ng-pattern="pattern" disabled></md-datepicker>
           </md-input-container>
-          <md-input-container ng-if="$ctrl.metadata.key && !$ctrl.metadata.apiId && $ctrl.metadata.format !== 'boolean' && $ctrl.metadata.format !== 'date'">
+          <md-input-container ng-if="$ctrl.metadata.key && !$ctrl.metadata.referenceId && $ctrl.metadata.format !== 'boolean' && $ctrl.metadata.format !== 'date'">
             <label>Default value</label>
             <input type="text" ng-model="$ctrl.metadata.defaultValue"
                    gv-metadata-format="$ctrl.metadata.format" ng-pattern="pattern" gv-metadata-validator disabled>
@@ -88,7 +88,7 @@
         Cancel
       </md-button>
       <md-button  type="submit" class="md-raised md-primary" ng-disabled="formMetadata.$invalid">
-        {{$ctrl.metadata.key?'Update':'Create'}}
+        {{$ctrl.metadata.key?'Update':'Create'}} {{$ctrl.referenceType ? $ctrl.referenceType + '\'s ' : ''}}metadata
       </md-button>
     </md-dialog-actions>
   </form>

@@ -21,20 +21,20 @@ class ThemeService {
 
   constructor(private $http, private $q, Constants) {
     'ngInject';
-    this.themeURL = `${ Constants.baseURL }configuration/themes/`;
+    this.themeURL = `${Constants.baseURL}/configuration/themes/`;
   }
 
   get() {
-    return this.$http.get(`${ this.themeURL }default`);
+    return this.$http.get(`${this.themeURL}default`);
   }
 
   restoreDefaultTheme(theme: Theme) {
-    return this.$http.post(`${ this.themeURL }${ theme.id }/reset`);
+    return this.$http.post(`${this.themeURL}${theme.id}/reset`);
   }
 
   update(theme: Theme) {
     if (theme) {
-      return this.$http.put(`${ this.themeURL }${ theme.id }`, {
+      return this.$http.put(`${this.themeURL}${theme.id}`, {
         id: theme.id,
         name: theme.name,
         reference_type: theme.reference_type,
@@ -70,7 +70,7 @@ class ThemeService {
   }
 
   private getImageUrl(theme, image) {
-    return `${ this.themeURL }${ theme.id }/${ image }?${theme.updated_at}`;
+    return `${this.themeURL}${theme.id}/${image}?${theme.updated_at}`;
   }
 
 }

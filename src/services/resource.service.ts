@@ -18,14 +18,14 @@ class ResourceService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.resourcesURL = `${Constants.baseURL}resources/`;
+    this.resourcesURL = `${Constants.baseURL}/resources/`;
   }
 
   list() {
     let url = this.resourcesURL;
-/*    if(expandSchema) {
-      url += "?expand=schema";
-    }*/
+    /*    if(expandSchema) {
+          url += "?expand=schema";
+        }*/
     return this.$http.get(url);
   }
 

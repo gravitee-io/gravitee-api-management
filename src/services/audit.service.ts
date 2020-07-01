@@ -31,8 +31,8 @@ class AuditService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.auditURL = `${Constants.baseURL}audit`;
-    this.apiAuditURL = `${Constants.baseURL}apis/`;
+    this.auditURL = `${Constants.baseURL}/audit`;
+    this.apiAuditURL = `${Constants.baseURL}/apis/`;
   }
 
   list(query?: AuditQuery, api?: string) {

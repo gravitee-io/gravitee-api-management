@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import {QualityRule} from '../entities/QualityRule';
-import {IHttpPromise} from 'angular';
-import {ApiQualityRule} from '../entities/apiQualityRule';
+import { QualityRule } from '../entities/QualityRule';
+import { IHttpPromise } from 'angular';
+import { ApiQualityRule } from '../entities/apiQualityRule';
 
 class QualityRuleService {
   private URL: string;
@@ -24,8 +24,8 @@ class QualityRuleService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.URL = `${Constants.baseURL}configuration/quality-rules/`;
-    this.URL_API = `${Constants.baseURL}apis/`;
+    this.URL = `${Constants.baseURL}/configuration/quality-rules/`;
+    this.URL_API = `${Constants.baseURL}/apis/`;
   }
 
   list(): IHttpPromise<QualityRule[]> {
