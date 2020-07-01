@@ -18,7 +18,6 @@ package io.gravitee.gateway.core.loadbalancer;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,7 +33,6 @@ public class WeightedRoundRobinLoadBalancer extends WeightedLoadBalancer {
 
     @Override
     public synchronized Endpoint nextEndpoint() {
-        List<Endpoint> endpoints = endpoints();
         if (endpoints.isEmpty()) {
             return null;
         }

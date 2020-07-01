@@ -44,7 +44,7 @@ public class WeightedRandomLoadBalancer extends WeightedLoadBalancer {
     private void loadRatios() {
         int sum = 0;
 
-        for(Endpoint endpoint : endpoints()) {
+        for (Endpoint endpoint : endpoints) {
             sum += endpoint.weight();
         }
 
@@ -54,7 +54,6 @@ public class WeightedRandomLoadBalancer extends WeightedLoadBalancer {
 
     @Override
     public synchronized Endpoint nextEndpoint() {
-        List<Endpoint> endpoints = endpoints();
         if (endpoints.isEmpty()) {
             return null;
         }

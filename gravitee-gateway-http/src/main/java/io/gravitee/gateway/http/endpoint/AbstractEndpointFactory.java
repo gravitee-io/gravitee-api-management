@@ -17,6 +17,7 @@ package io.gravitee.gateway.http.endpoint;
 
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.Connector;
+import io.gravitee.gateway.core.endpoint.ManagedEndpoint;
 import io.gravitee.gateway.core.endpoint.factory.template.TemplateAwareEndpointFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,7 @@ import java.util.Objects;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractEndpointFactory extends TemplateAwareEndpointFactory<io.gravitee.definition.model.Endpoint, EndpointConnector>
+public abstract class AbstractEndpointFactory extends TemplateAwareEndpointFactory<io.gravitee.definition.model.Endpoint, ManagedEndpoint>
         implements ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(HttpEndpointFactory.class);
@@ -70,7 +71,7 @@ public abstract class AbstractEndpointFactory extends TemplateAwareEndpointFacto
     }
 
     @Override
-    protected EndpointConnector create0(io.gravitee.definition.model.Endpoint endpoint) {
+    protected ManagedEndpoint create0(io.gravitee.definition.model.Endpoint endpoint) {
         URI uri = getURI(endpoint.getTarget());
 
         if (uri.getPath().isEmpty()) {
@@ -83,7 +84,7 @@ public abstract class AbstractEndpointFactory extends TemplateAwareEndpointFacto
 
         applicationContext.getAutowireCapableBeanFactory().autowireBean(connector);
 
-        return new EndpointConnector(endpoint, connector);
+        return new ManagedEndpoint(endpoint, connector);
     }
 
     protected abstract Connector create(io.gravitee.definition.model.Endpoint endpoint);

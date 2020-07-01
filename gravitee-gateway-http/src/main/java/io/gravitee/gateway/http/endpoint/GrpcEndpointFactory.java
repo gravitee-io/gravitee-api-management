@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.http.endpoint;
 
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.endpoint.GrpcEndpoint;
 import io.gravitee.gateway.api.Connector;
@@ -27,8 +28,8 @@ import io.gravitee.gateway.http.connector.grpc.GrpcConnector;
 public final class GrpcEndpointFactory extends HttpEndpointFactory {
 
     @Override
-    public boolean support(EndpointType endpointType) {
-        return EndpointType.GRPC == endpointType;
+    public boolean support(Endpoint endpointType) {
+        return EndpointType.GRPC == endpointType.getType();
     }
 
     @Override

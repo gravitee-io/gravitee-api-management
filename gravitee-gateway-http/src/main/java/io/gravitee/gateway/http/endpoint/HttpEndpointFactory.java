@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.http.endpoint;
 
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.Connector;
@@ -27,8 +28,8 @@ import io.gravitee.gateway.http.connector.http.HttpConnector;
 public class HttpEndpointFactory extends AbstractEndpointFactory {
 
     @Override
-    public boolean support(EndpointType endpointType) {
-        return EndpointType.HTTP == endpointType;
+    public boolean support(Endpoint endpoint) {
+        return EndpointType.HTTP == endpoint.getType();
     }
 
     @Override

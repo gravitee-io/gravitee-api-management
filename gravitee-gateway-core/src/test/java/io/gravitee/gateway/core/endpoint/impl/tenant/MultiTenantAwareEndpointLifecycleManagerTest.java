@@ -90,7 +90,7 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
     }
 
     @Test
-    public void shouldNotStartEndpoint_backup() throws Exception {
+    public void shouldStartEndpoint_backup() throws Exception {
         io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.endpoint.HttpEndpoint.class);
 
         when(endpoint.isBackup()).thenReturn(true);
@@ -98,7 +98,7 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
         endpointLifecycleManager.start();
 
-        verify(endpointFactory, never()).create(any(io.gravitee.definition.model.Endpoint.class), any(EndpointContext.class));
+        verify(endpointFactory, atLeastOnce()).create(any(io.gravitee.definition.model.Endpoint.class), any(EndpointContext.class));
 
         assertTrue(endpointLifecycleManager.endpoints().isEmpty());
     }

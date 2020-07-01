@@ -15,38 +15,99 @@
  */
 package io.gravitee.gateway.core.loadbalancer;
 
+import io.gravitee.common.util.ChangeListener;
+import io.gravitee.common.util.ObservableCollection;
 import io.gravitee.gateway.api.endpoint.Endpoint;
+import io.gravitee.gateway.api.endpoint.EndpointAvailabilityListener;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class LoadBalancer implements LoadBalancerStrategy {
-
-    protected Collection<Endpoint> endpoints;
-
-    LoadBalancer(Collection<Endpoint> endpoints) {
-        this.endpoints = endpoints;
-    }
+public abstract class LoadBalancer implements LoadBalancerStrategy, EndpointAvailabilityListener, ChangeListener<Endpoint> {
 
     /**
-     * Select only available endpoints
-     * @return
+     * Primary endpoints
      */
-    protected List<Endpoint> endpoints() {
-        return endpoints
-                .stream()
-                .filter(Endpoint::available)
-                .collect(Collectors.toList());
+    protected final List<Endpoint> endpoints = new ArrayList<>();
+
+    /**
+     * Secondary (ie. backup) endpoints
+     * @param endpoints
+     */
+    private final List<Endpoint> secondaryEndpoints = new ArrayList<>();
+
+    private final AtomicInteger secondaryCounter = new AtomicInteger(0);
+
+    LoadBalancer(Collection<Endpoint> endpoints) {
+        if (endpoints instanceof ObservableCollection) {
+            ((ObservableCollection<Endpoint>) endpoints).addListener(this);
+        }
+
+        endpoints.forEach(this::postAdd);
+    }
+
+    @Override
+    public void onAvailabilityChange(Endpoint endpoint, boolean available) {
+        if (available && !endpoints.contains(endpoint)) {
+            endpoints.add(endpoint);
+        } else if (! available){
+            endpoints.remove(endpoint);
+        }
     }
 
     @Override
     public Endpoint next() {
-        return nextEndpoint();
+        Endpoint endpoint = nextEndpoint();
+        return (endpoint != null) ? endpoint : nextSecondary();
+    }
+
+    private Endpoint nextSecondary() {
+        int size = secondaryEndpoints.size();
+        if (size == 0) {
+            return null;
+        }
+
+        return secondaryEndpoints.get(Math.abs(secondaryCounter.getAndIncrement() % size));
+    }
+
+    @Override
+    public boolean preAdd(Endpoint object) {
+        return false;
+    }
+
+    @Override
+    public boolean preRemove(Endpoint object) {
+        return false;
+    }
+
+    @Override
+    public boolean postAdd(Endpoint endpoint) {
+        if (endpoint.primary()) {
+            endpoint.addEndpointAvailabilityListener(LoadBalancer.this);
+            endpoints.add(endpoint);
+        } else {
+            secondaryEndpoints.add(endpoint);
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean postRemove(Endpoint endpoint) {
+        if (endpoint.primary()) {
+            endpoint.removeEndpointAvailabilityListener(LoadBalancer.this);
+            endpoints.remove(endpoint);
+        } else {
+            secondaryEndpoints.remove(endpoint);
+        }
+
+        return false;
     }
 
     abstract Endpoint nextEndpoint();
