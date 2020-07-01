@@ -35,6 +35,8 @@ public class EndpointStatusDecorator {
 
     private final Counter counter = new Counter();
 
+    private Endpoint.Status previousStatus;
+
     private final Endpoint endpoint;
 
     public EndpointStatusDecorator(Endpoint endpoint) {
@@ -49,8 +51,11 @@ public class EndpointStatusDecorator {
             counter.fall();
         }
 
-        // Set status
-        endpoint.setStatus(counter.status());
+        // Set status only if changed
+        if (previousStatus == null || previousStatus != counter.status()) {
+            endpoint.setStatus(counter.status());
+            previousStatus = endpoint.getStatus();
+        }
     }
 
     private class Counter {

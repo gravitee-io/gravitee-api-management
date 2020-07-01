@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.endpoint.factory.spring;
 
 import io.gravitee.common.spring.factory.SpringFactoriesLoader;
-import io.gravitee.definition.model.EndpointType;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
 import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
@@ -29,14 +28,14 @@ public final class SpringFactoriesEndpointFactory
         extends SpringFactoriesLoader<EndpointFactory> implements EndpointFactory {
 
     @Override
-    public boolean support(EndpointType endpointType) {
+    public boolean support(io.gravitee.definition.model.Endpoint endpoint) {
         return true;
     }
 
     @Override
     public Endpoint create(io.gravitee.definition.model.Endpoint model, EndpointContext context) {
         for (EndpointFactory factory : getFactoriesInstances()) {
-            if (factory.support(model.getType())) {
+            if (factory.support(model)) {
                 return factory.create(model, context);
             }
         }

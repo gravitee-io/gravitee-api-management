@@ -75,9 +75,27 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
         if (groupEndpoints == null) {
             groupEndpoints = new LinkedHashSet<>();
         }
-        ObservableSet<Endpoint> endpoints = new ObservableSet<>(groupEndpoints);
+        final ObservableSet<Endpoint> endpoints = new ObservableSet<>(groupEndpoints);
         endpoints.addListener(EndpointGroupLifecycleManager.this);
         group.setEndpoints(endpoints);
+
+        endpoints
+                .stream()
+                .filter(filter())
+                .peek(endpoint -> {
+                    if (HttpEndpoint.class.isAssignableFrom(endpoint.getClass())) {
+                        final HttpEndpoint httpEndpoint = ((HttpEndpoint) endpoint);
+                        final boolean inherit = endpoint.getInherit() != null && endpoint.getInherit();
+                        // inherit or discovered endpoints
+                        if (inherit || httpEndpoint.getHttpClientOptions() == null) {
+                            httpEndpoint.setHttpClientOptions(group.getHttpClientOptions());
+                            httpEndpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
+                            httpEndpoint.setHttpProxy(group.getHttpProxy());
+                            httpEndpoint.setHeaders(group.getHeaders());
+                        }
+                    }
+                })
+                .forEach(this::start);
 
         LoadBalancer loadBalancerDef = group.getLoadBalancer();
         LoadBalancerStrategy strategy;
@@ -102,24 +120,6 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
         }
 
         lbGroup = new LoadBalancedEndpointGroup(group.getName(), strategy);
-
-        endpoints
-                .stream()
-                .filter(filter())
-                .peek(endpoint -> {
-                    if (HttpEndpoint.class.isAssignableFrom(endpoint.getClass())) {
-                        final HttpEndpoint httpEndpoint = ((HttpEndpoint) endpoint);
-                        final boolean inherit = endpoint.getInherit() != null && endpoint.getInherit();
-                        // inherit or discovered endpoints
-                        if (inherit || httpEndpoint.getHttpClientOptions() == null) {
-                            httpEndpoint.setHttpClientOptions(group.getHttpClientOptions());
-                            httpEndpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
-                            httpEndpoint.setHttpProxy(group.getHttpProxy());
-                            httpEndpoint.setHeaders(group.getHeaders());
-                        }
-                    }
-                })
-                .forEach(this::start);
     }
 
     @Override
@@ -132,13 +132,13 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
     }
 
     protected Predicate<Endpoint> filter() {
-        return endpoint -> !endpoint.isBackup();
+        return endpoint -> true;
     }
 
     public void start(io.gravitee.definition.model.Endpoint model) {
         try {
-            logger.info("Create new endpoint: name[{}] type[{}] target[{}]",
-                    model.getName(), model.getType(), model.getTarget());
+            logger.info("Create new endpoint: name[{}] type[{}] target[{}] primary[{}]",
+                    model.getName(), model.getType(), model.getTarget(), !model.isBackup());
 
             EndpointContext context = new EndpointContext();
             if (api.getProperties() != null) {

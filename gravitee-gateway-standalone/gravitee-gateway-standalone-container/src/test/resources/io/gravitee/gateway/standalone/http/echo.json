@@ -12,6 +12,11 @@
       {
         "name": "endpoint-2",
         "target": "http://localhost:8080/api2"
+      },
+      {
+        "name": "endpoint-3",
+        "target": "http://localhost:8080/api3",
+        "backup": true
       }
     ],
     "strip_context_path": false,

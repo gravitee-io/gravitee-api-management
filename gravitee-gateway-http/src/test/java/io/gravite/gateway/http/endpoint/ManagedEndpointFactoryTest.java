@@ -18,7 +18,7 @@ package io.gravite.gateway.http.endpoint;
 import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
-import io.gravitee.gateway.http.endpoint.EndpointConnector;
+import io.gravitee.gateway.core.endpoint.ManagedEndpoint;
 import io.gravitee.gateway.http.endpoint.HttpEndpointFactory;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.*;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointConnectorFactoryTest {
+public class ManagedEndpointFactoryTest {
 
     @Mock
     private HttpEndpoint endpoint;
@@ -62,7 +62,7 @@ public class EndpointConnectorFactoryTest {
     public void shouldSupportHttpEndpoint() {
         when(endpoint.getType()).thenReturn(EndpointType.HTTP);
 
-        boolean supports = factory.support(endpoint.getType());
+        boolean supports = factory.support(endpoint);
         Assert.assertTrue(supports);
     }
 
@@ -71,7 +71,7 @@ public class EndpointConnectorFactoryTest {
         when(endpoint.getTarget()).thenReturn("http://mydomain");
         when(endpoint.getType()).thenReturn(EndpointType.HTTP);
 
-        EndpointConnector endpoint = factory.create(this.endpoint, null);
+        ManagedEndpoint endpoint = factory.create(this.endpoint, null);
         Assert.assertNotNull(endpoint);
     }
 
@@ -82,7 +82,7 @@ public class EndpointConnectorFactoryTest {
 
         EndpointContext context = new EndpointContext();
 
-        EndpointConnector endpoint = factory.create(this.endpoint, context);
+        ManagedEndpoint endpoint = factory.create(this.endpoint, context);
         Assert.assertNotNull(endpoint);
     }
 
@@ -96,7 +96,7 @@ public class EndpointConnectorFactoryTest {
         properties.put("my_property", "http://localhost:8082");
         context.setProperties(properties);
 
-        EndpointConnector endpoint = factory.create(endpointDef, context);
+        ManagedEndpoint endpoint = factory.create(endpointDef, context);
         Assert.assertNotNull(endpoint);
         Assert.assertEquals(properties.get("my_property") + "/", endpoint.target());
     }

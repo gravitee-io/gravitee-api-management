@@ -84,7 +84,7 @@ public class EndpointGroupLifecycleManagerTest {
     }
 
     @Test
-    public void shouldNotStartEndpoint_backupEndpoint() throws Exception {
+    public void shouldStartEndpoint_backupEndpoint() throws Exception {
         io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.Endpoint.class);
 
         when(endpoint.isBackup()).thenReturn(true);
@@ -92,7 +92,7 @@ public class EndpointGroupLifecycleManagerTest {
 
         endpointLifecycleManager.start();
 
-        verify(endpointFactory, never()).create(any(io.gravitee.definition.model.Endpoint.class), any(EndpointContext.class));
+        verify(endpointFactory, atLeast(1)).create(any(io.gravitee.definition.model.Endpoint.class), any(EndpointContext.class));
 
         assertTrue(endpointLifecycleManager.endpoints().isEmpty());
     }

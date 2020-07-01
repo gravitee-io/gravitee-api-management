@@ -18,7 +18,6 @@ package io.gravitee.gateway.core.loadbalancer;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -35,7 +34,6 @@ public class RoundRobinLoadBalancer extends LoadBalancer {
 
     @Override
     public Endpoint nextEndpoint() {
-        List<Endpoint> endpoints = endpoints();
         int size = endpoints.size();
         if (size == 0) {
             return null;

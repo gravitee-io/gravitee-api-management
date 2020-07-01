@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.endpoint;
+package io.gravitee.gateway.core.endpoint;
 
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.endpoint.EndpointStatusListener;
 import io.gravitee.gateway.api.Connector;
+import io.gravitee.gateway.api.endpoint.AbstractEndpoint;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointConnector implements io.gravitee.gateway.api.endpoint.Endpoint {
+public class ManagedEndpoint extends AbstractEndpoint implements EndpointStatusListener {
 
     private final io.gravitee.definition.model.Endpoint endpoint;
     private final Connector connector;
 
-    EndpointConnector(final io.gravitee.definition.model.Endpoint endpoint, final Connector connector) {
+    public ManagedEndpoint(final io.gravitee.definition.model.Endpoint endpoint, final Connector connector) {
         this.endpoint = endpoint;
+        this.endpoint.addEndpointAvailabilityListener(this);
         this.connector = connector;
     }
 
@@ -53,6 +56,11 @@ public class EndpointConnector implements io.gravitee.gateway.api.endpoint.Endpo
     }
 
     @Override
+    public boolean primary() {
+        return !endpoint.isBackup();
+    }
+
+    @Override
     public int weight() {
         return endpoint.getWeight();
     }
@@ -62,7 +70,7 @@ public class EndpointConnector implements io.gravitee.gateway.api.endpoint.Endpo
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        EndpointConnector that = (EndpointConnector) o;
+        ManagedEndpoint that = (ManagedEndpoint) o;
 
         return name().equals(that.name());
     }
@@ -70,5 +78,10 @@ public class EndpointConnector implements io.gravitee.gateway.api.endpoint.Endpo
     @Override
     public int hashCode() {
         return name().hashCode();
+    }
+
+    @Override
+    public void onStatusChanged(Endpoint.Status status) {
+        listeners.forEach(listener -> listener.onAvailabilityChange(this, status != Endpoint.Status.DOWN));
     }
 }

@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
  * @author GraviteeSource Team
  */
 @RunWith(VertxUnitRunner.class)
-public class EndpointConnectorRuleHandlerTest {
+public class ManagedEndpointRuleHandlerTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());

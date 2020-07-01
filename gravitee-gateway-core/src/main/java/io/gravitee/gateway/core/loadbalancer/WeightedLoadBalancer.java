@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.core.loadbalancer;
 
-import io.gravitee.common.util.ChangeListener;
-import io.gravitee.common.util.ObservableCollection;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 
 import java.util.ArrayList;
@@ -27,17 +25,14 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class WeightedLoadBalancer extends LoadBalancer implements ChangeListener<Endpoint> {
+public abstract class WeightedLoadBalancer extends LoadBalancer {
 
     transient int lastIndex;
 
-    private List<WeightRatio> runtimeRatios = new ArrayList<>();
+    private List<WeightRatio> runtimeRatios;
 
     WeightedLoadBalancer(Collection<Endpoint> endpoints) {
         super(endpoints);
-        if (endpoints instanceof ObservableCollection) {
-            ((ObservableCollection<Endpoint>) endpoints).addListener(this);
-        }
     }
 
     protected void refresh() {
@@ -45,11 +40,15 @@ public abstract class WeightedLoadBalancer extends LoadBalancer implements Chang
     }
 
     private void loadRuntimeRatios() {
-        runtimeRatios.clear();
+        if (runtimeRatios == null) {
+            runtimeRatios = new ArrayList<>(endpoints.size());
+        } else {
+            runtimeRatios.clear();
+        }
 
         int position = 0;
 
-        for(Endpoint endpoint : endpoints()) {
+        for (Endpoint endpoint : endpoints) {
             runtimeRatios.add(new WeightRatio(position++, endpoint.weight()));
         }
     }
@@ -76,23 +75,15 @@ public abstract class WeightedLoadBalancer extends LoadBalancer implements Chang
     }
 
     @Override
-    public boolean preAdd(Endpoint object) {
-        return false;
-    }
-
-    @Override
-    public boolean preRemove(Endpoint object) {
-        return false;
-    }
-
-    @Override
     public boolean postAdd(Endpoint object) {
+        super.postAdd(object);
         this.refresh();
         return false;
     }
 
     @Override
     public boolean postRemove(Endpoint object) {
+        super.postRemove(object);
         this.refresh();
         return false;
     }

@@ -15,12 +15,15 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
+
+import java.util.Iterator;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
@@ -36,6 +39,7 @@ public class RoundRobinLoadBalancingMultipleTest extends AbstractWiremockGateway
     public void call_round_robin_lb_multiple_endpoints() throws Exception {
         wireMockRule.stubFor(get("/api1").willReturn(ok()));
         wireMockRule.stubFor(get("/api2").willReturn(ok()));
+        wireMockRule.stubFor(get("/api3").willReturn(ok()));
 
         Request request = Request.Get("http://localhost:8082/api");
 
@@ -50,5 +54,35 @@ public class RoundRobinLoadBalancingMultipleTest extends AbstractWiremockGateway
 
         wireMockRule.verify(calls / 2, getRequestedFor(urlPathEqualTo("/api1")));
         wireMockRule.verify(calls / 2, getRequestedFor(urlPathEqualTo("/api2")));
+        wireMockRule.verify(0, getRequestedFor(urlPathEqualTo("/api3")));
+    }
+
+    @Test
+    public void call_round_robin_lb_multiple_endpoints_only_secondary() throws Exception {
+        wireMockRule.stubFor(get("/api1").willReturn(ok()));
+        wireMockRule.stubFor(get("/api2").willReturn(ok()));
+        wireMockRule.stubFor(get("/api3").willReturn(ok()));
+
+        Iterator<Endpoint> endpointsIte = api.getProxy().getGroups().iterator().next().getEndpoints().iterator();
+
+        // Set the first endpoint with down status
+        endpointsIte.next().setStatus(Endpoint.Status.DOWN);
+
+        // Set the second endpoint with down status
+        endpointsIte.next().setStatus(Endpoint.Status.DOWN);
+
+        Request request = Request.Get("http://localhost:8082/api");
+
+        int calls = 20;
+
+        for(int i = 0 ; i < calls ; i++) {
+            HttpResponse response = request.execute().returnResponse();
+
+            assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        }
+
+        wireMockRule.verify(0, getRequestedFor(urlPathEqualTo("/api1")));
+        wireMockRule.verify(0, getRequestedFor(urlPathEqualTo("/api2")));
+        wireMockRule.verify(calls, getRequestedFor(urlPathEqualTo("/api3")));
     }
 }
