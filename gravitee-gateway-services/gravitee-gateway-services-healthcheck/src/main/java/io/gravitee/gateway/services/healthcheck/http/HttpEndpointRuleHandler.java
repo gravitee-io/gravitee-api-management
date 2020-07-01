@@ -328,49 +328,56 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
                 request.setMethod(step.getRequest().getMethod());
                 request.setUri(hcRequestUri.toString());
 
-                healthRequest.handler(response -> response.bodyHandler(buffer -> {
-                    long endTime = currentTimeMillis();
-                    logger.debug("Health-check endpoint returns a response with a {} status code", response.statusCode());
+                healthRequest.handler(response -> {
+                    response.bodyHandler(buffer -> {
+                        long endTime = currentTimeMillis();
+                        logger.debug("Health-check endpoint returns a response with a {} status code", response.statusCode());
 
-                    String body = buffer.toString();
+                        String body = buffer.toString();
 
-                    EndpointStatus.StepBuilder stepBuilder = validateAssertions(step, new EvaluableHttpResponse(response, body));
-                    stepBuilder.request(request);
-                    stepBuilder.responseTime(endTime - startTime);
+                        EndpointStatus.StepBuilder stepBuilder = validateAssertions(step, new EvaluableHttpResponse(response, body));
+                        stepBuilder.request(request);
+                        stepBuilder.responseTime(endTime - startTime);
 
-                    Response healthResponse = new Response();
-                    healthResponse.setStatus(response.statusCode());
+                        Response healthResponse = new Response();
+                        healthResponse.setStatus(response.statusCode());
 
-                    // If validation fail, store request and response data
-                    if (!stepBuilder.isSuccess()) {
-                        request.setBody(step.getRequest().getBody());
+                        // If validation fail, store request and response data
+                        if (!stepBuilder.isSuccess()) {
+                            request.setBody(step.getRequest().getBody());
 
-                        if (step.getRequest().getHeaders() != null) {
-                            HttpHeaders reqHeaders = new HttpHeaders();
-                            step.getRequest().getHeaders().forEach(httpHeader -> reqHeaders.put(httpHeader.getName(), Collections.singletonList(httpHeader.getValue())));
-                            request.setHeaders(reqHeaders);
+                            if (step.getRequest().getHeaders() != null) {
+                                HttpHeaders reqHeaders = new HttpHeaders();
+                                step.getRequest().getHeaders().forEach(httpHeader -> reqHeaders.put(httpHeader.getName(), Collections.singletonList(httpHeader.getValue())));
+                                request.setHeaders(reqHeaders);
+                            }
+
+                            // Extract headers
+                            HttpHeaders headers = new HttpHeaders();
+                            response.headers().names().forEach(headerName ->
+                                    headers.put(headerName, response.headers().getAll(headerName)));
+                            healthResponse.setHeaders(headers);
+
+                            // Store body
+                            healthResponse.setBody(body);
                         }
 
-                        // Extract headers
-                        HttpHeaders headers = new HttpHeaders();
-                        response.headers().names().forEach(headerName ->
-                                headers.put(headerName, response.headers().getAll(headerName)));
-                        healthResponse.setHeaders(headers);
+                        stepBuilder.response(healthResponse);
 
-                        // Store body
-                        healthResponse.setBody(body);
-                    }
+                        // Append step stepBuilder
+                        healthBuilder.step(stepBuilder.build());
 
-                    stepBuilder.response(healthResponse);
+                        report(healthBuilder.build());
 
-                    // Append step stepBuilder
-                    healthBuilder.step(stepBuilder.build());
-
-                    report(healthBuilder.build());
-
-                    // Close client
-                    httpClient.close();
-                }));
+                        // Close client
+                        httpClient.close();
+                    });
+                    response.exceptionHandler(throwable -> {
+                        logger.error("An error has occurred during Health check response handler", throwable);
+                        // Close client
+                        httpClient.close();
+                    });
+                });
 
                 healthRequest.exceptionHandler(event -> {
                     long endTime = currentTimeMillis();

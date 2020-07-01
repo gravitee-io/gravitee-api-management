@@ -28,27 +28,33 @@ import io.gravitee.gateway.core.processor.AbstractProcessor;
  */
 public class TransactionProcessor extends AbstractProcessor<ExecutionContext> {
 
-    final static String DEFAULT_TRANSACTIONAL_ID_HEADER = "X-Gravitee-Transaction-Id";
+    final static String DEFAULT_TRANSACTION_ID_HEADER = "X-Gravitee-Transaction-Id";
+    final static String DEFAULT_REQUEST_ID_HEADER = "X-Gravitee-Request-Id";
 
-    private String transactionHeader = DEFAULT_TRANSACTIONAL_ID_HEADER;
+    private String transactionHeader = DEFAULT_TRANSACTION_ID_HEADER;
+    private String requestHeader = DEFAULT_REQUEST_ID_HEADER;
 
     TransactionProcessor() {
     }
 
-    TransactionProcessor(String transactionHeader) {
+    TransactionProcessor(String transactionHeader, String requestHeader) {
         this.transactionHeader = transactionHeader;
+        this.requestHeader = requestHeader;
     }
 
     @Override
-    public void handle(ExecutionContext context) {
+    public void handle(final ExecutionContext context) {
+        final String requestId = context.request().id();
         String transactionId = context.request().headers().getFirst(transactionHeader);
         if (transactionId == null) {
-            transactionId = context.request().id();
+            transactionId = requestId;
             context.request().headers().set(transactionHeader, transactionId);
         }
-        context.response().headers().set(transactionHeader,transactionId);
-
         context.request().metrics().setTransactionId(transactionId);
+        context.response().headers().set(transactionHeader, transactionId);
+
+        context.request().headers().set(requestHeader, requestId);
+        context.response().headers().set(requestHeader, requestId);
 
         ((MutableExecutionContext)context).request(new TransactionRequest(transactionId, context.request()));
 

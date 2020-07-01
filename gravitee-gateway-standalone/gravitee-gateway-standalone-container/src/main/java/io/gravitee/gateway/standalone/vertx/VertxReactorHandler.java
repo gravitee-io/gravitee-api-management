@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
+import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactor.Reactor;
@@ -29,14 +30,16 @@ import io.vertx.core.http.HttpServerRequest;
 public class VertxReactorHandler implements Handler<HttpServerRequest> {
 
     private final Reactor reactor;
+    private IdGenerator idGenerator;
 
-    public VertxReactorHandler(final Reactor reactor) {
+    public VertxReactorHandler(final Reactor reactor, IdGenerator idGenerator) {
         this.reactor = reactor;
+        this.idGenerator = idGenerator;
     }
 
     @Override
     public void handle(HttpServerRequest httpServerRequest) {
-        Request request = new VertxHttpServerRequest(httpServerRequest);
+        Request request = new VertxHttpServerRequest(httpServerRequest, idGenerator);
         Response response = new VertxHttpServerResponse(httpServerRequest, request.metrics());
 
         route(request, response);
