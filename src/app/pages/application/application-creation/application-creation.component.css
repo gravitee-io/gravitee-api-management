@@ -231,6 +231,7 @@ gv-input, gv-text, gv-option, gv-select, .form-control-grants, gv-switch {
   height: 100px;
   width: 100px;
   margin-right: 1rem;
+  --gv-image--of: contain;
 }
 
 .general-summary {
