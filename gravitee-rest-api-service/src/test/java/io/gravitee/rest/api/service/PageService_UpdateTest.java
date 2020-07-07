@@ -69,6 +69,9 @@ public class PageService_UpdateTest {
     private Page page1;
 
     @Mock
+    private ApiService apiService;
+
+    @Mock
     private AuditService auditService;
 
     @Mock
@@ -264,7 +267,7 @@ public class PageService_UpdateTest {
         translationPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         translationPage.setType("TRANSLATION");
         translationPage.setConfiguration(translationConf);
-        
+
         Page linkTranslationPage = new Page();
         linkTranslationPage.setId("LINK_TRANSLATION_ID");
         linkTranslationPage.setParentId("LINK_ID");
@@ -274,12 +277,12 @@ public class PageService_UpdateTest {
         linkTranslationPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         linkTranslationPage.setType("TRANSLATION");
         linkTranslationPage.setConfiguration(translationConf);
-        
-        doReturn(asList(linkPage)).when(pageRepository).search(argThat(p-> PageType.LINK.name().equals(p.getType())));
-        doReturn(asList(translationPage)).when(pageRepository).search(argThat(p-> PageType.TRANSLATION.name().equals(p.getType()) && PAGE_ID.equals(p.getParent())));
-        doReturn(asList(linkTranslationPage)).when(pageRepository).search(argThat(p-> PageType.TRANSLATION.name().equals(p.getType()) && "LINK_ID".equals(p.getParent())));
 
-        
+        doReturn(asList(linkPage)).when(pageRepository).search(argThat(p -> PageType.LINK.name().equals(p.getType())));
+        doReturn(asList(translationPage)).when(pageRepository).search(argThat(p -> PageType.TRANSLATION.name().equals(p.getType()) && PAGE_ID.equals(p.getParent())));
+        doReturn(asList(linkTranslationPage)).when(pageRepository).search(argThat(p -> PageType.TRANSLATION.name().equals(p.getType()) && "LINK_ID".equals(p.getParent())));
+
+
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setPublished(true);
         updatePageEntity.setOrder(1);
@@ -301,7 +304,7 @@ public class PageService_UpdateTest {
         verify(pageRepository).update(argThat(p -> p.getId().equals("TRANSLATION_ID") && p.isPublished()));
         verify(pageRepository).update(argThat(p -> p.getId().equals("LINK_TRANSLATION_ID") && p.isPublished()));
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateTranslationPageWithoutLang() throws TechnicalException {
         Page translationPage = new Page();
@@ -323,13 +326,13 @@ public class PageService_UpdateTest {
 
         pageService.update("TRANSLATION_ID", updateTranslation);
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateTranslationPageIfParentIsSystemFolder() throws TechnicalException {
         Page parentPage = new Page();
         parentPage.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(parentPage)).when(pageRepository).findById("SYS_FOLDER");
-        
+
         Page translationPage = new Page();
         translationPage.setId("TRANSLATION_ID");
         translationPage.setParentId(PAGE_ID);
@@ -349,13 +352,13 @@ public class PageService_UpdateTest {
 
         pageService.update("TRANSLATION_ID", updateTranslation);
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateTranslationPageIfParentIsRoot() throws TechnicalException {
         Page parentPage = new Page();
         parentPage.setType("ROOT");
         doReturn(Optional.of(parentPage)).when(pageRepository).findById("ROOT");
-        
+
         Page translationPage = new Page();
         translationPage.setId("TRANSLATION_ID");
         translationPage.setParentId(PAGE_ID);
@@ -384,6 +387,8 @@ public class PageService_UpdateTest {
 
         when(existingPage.getContent()).thenReturn("<script />");
         when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
+        when(page1.getReferenceId()).thenReturn(API_ID);
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
 
         pageService.update(PAGE_ID, existingPage);
