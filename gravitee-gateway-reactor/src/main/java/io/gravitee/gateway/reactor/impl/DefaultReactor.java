@@ -78,6 +78,9 @@ public class DefaultReactor extends AbstractService implements
         // Set gateway tenant
         gatewayConfiguration.tenant().ifPresent(tenant -> serverRequest.metrics().setTenant(tenant));
 
+        // Set gateway zone
+        gatewayConfiguration.zone().ifPresent(zone -> serverRequest.metrics().setZone(zone));
+
         // Prepare handler chain
         requestProcessorChainFactory
                 .create()

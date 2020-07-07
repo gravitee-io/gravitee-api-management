@@ -32,11 +32,13 @@ public class GatewayConfiguration implements InitializingBean {
     static final String SHARDING_TAGS_SYSTEM_PROPERTY = "tags";
     private static final String SHARDING_TAGS_SEPARATOR = ",";
 
+    static final String ZONE_SYSTEM_PROPERTY = "zone";
+
     static final String MULTI_TENANT_CONFIGURATION = "tenant";
     static final String MULTI_TENANT_SYSTEM_PROPERTY = "gravitee." + MULTI_TENANT_CONFIGURATION;
 
     private Optional<List<String>> shardingTags;
-
+    private Optional<String> zone;
     private Optional<String> tenant;
 
     @Autowired
@@ -44,6 +46,7 @@ public class GatewayConfiguration implements InitializingBean {
 
     public void afterPropertiesSet() {
         this.initShardingTags();
+        this.initZone();
         this.initTenant();
     }
 
@@ -60,6 +63,24 @@ public class GatewayConfiguration implements InitializingBean {
 
     public Optional<List<String>> shardingTags() {
         return shardingTags;
+    }
+
+    private void initZone() {
+        String systemPropertyZone = System.getProperty(ZONE_SYSTEM_PROPERTY);
+        if (systemPropertyZone == null || systemPropertyZone.isEmpty()) {
+            systemPropertyZone = null;
+        }
+
+        String envPropertyZone = environment.getProperty(ZONE_SYSTEM_PROPERTY);
+        if (envPropertyZone == null || envPropertyZone.isEmpty()) {
+            envPropertyZone = null;
+        }
+
+        zone = Optional.ofNullable(systemPropertyZone == null ? envPropertyZone : systemPropertyZone);
+    }
+
+    public Optional<String> zone() {
+        return zone;
     }
 
     private void initTenant() {

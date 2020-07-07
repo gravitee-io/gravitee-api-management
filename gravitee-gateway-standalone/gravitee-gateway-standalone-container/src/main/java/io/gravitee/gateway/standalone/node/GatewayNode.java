@@ -57,6 +57,9 @@ public class GatewayNode extends AbstractNode {
         if (configuration.shardingTags().isPresent()) {
             metadata.put("tags", configuration.shardingTags().get());
         }
+        if (configuration.zone().isPresent()) {
+            metadata.put("zone", configuration.zone().get());
+        }
 
         return metadata;
     }
