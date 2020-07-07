@@ -146,6 +146,9 @@ class DashboardService {
     }, {
       label: 'Operating system',
       value: 'user_agent.os_name'
+    }, {
+      label: 'Zone',
+      value: 'zone'
     }];
   }
 
