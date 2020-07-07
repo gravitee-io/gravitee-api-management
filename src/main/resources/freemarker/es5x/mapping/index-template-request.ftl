@@ -134,6 +134,9 @@
                 },
                 "subscription": {
                     "type": "keyword"
+                },
+                "zone": {
+                    "type": "keyword"
                 }
                 <#if extendedRequestMappingTemplate??>,<#include "/${extendedRequestMappingTemplate}"></#if>
             }

@@ -121,6 +121,9 @@
                 },
                 "subscription": {
                     "type": "keyword"
+                },
+                "zone": {
+                    "type": "keyword"
                 }
             }
         },
