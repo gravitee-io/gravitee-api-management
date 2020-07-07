@@ -67,4 +67,7 @@
   <#if metrics.getSubscription()??>
   ,"subscription":"${metrics.getSubscription()}"
   </#if>
+  <#if metrics.getZone()??>
+  ,"zone":"${metrics.getZone()}"
+  </#if>
 }</@compress>
