@@ -15,13 +15,19 @@
  */
 package io.gravitee.definition.model;
 
+import io.gravitee.definition.model.endpoint.EndpointStatusListener;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class Endpoint {
+
+    private final Set<EndpointStatusListener> listeners = new HashSet<>();
 
     public static int DEFAULT_WEIGHT = 1;
     private String name;
@@ -77,6 +83,7 @@ public abstract class Endpoint {
 
     public void setStatus(Status status) {
         this.status = status;
+        listeners.forEach(endpointStatusListener -> endpointStatusListener.onStatusChanged(status));
     }
 
     public List<String> getTenants() {
@@ -97,6 +104,10 @@ public abstract class Endpoint {
 
     public void setInherit(Boolean inherit) {
         this.inherit = inherit;
+    }
+
+    public void addEndpointAvailabilityListener(EndpointStatusListener listener) {
+        listeners.add(listener);
     }
 
     @Override
