@@ -73,12 +73,12 @@
           </section>
           <md-checkbox
             ng-model="endpointCtrl.endpoint.backup"
-            aria-label="Backup endpoint"
+            aria-label="Secondary endpoint"
             class="md-align-top-left" flex>
-            Backup endpoint<br/>
+            Secondary endpoint<br/>
             <span class="ipsum">
-                      A "backup" endpoint is not included in the load-balancing algorithm, meaning that an incoming HTTP
-                      request is never transmitted to the endpoint.
+                      A secondary endpoint is not included in load-balancer pool and can only be selected to handle
+              requests when all primary endpoints are marked as "DOWN" by health-check service.
                     </span>
           </md-checkbox>
         </md-tab-body>
