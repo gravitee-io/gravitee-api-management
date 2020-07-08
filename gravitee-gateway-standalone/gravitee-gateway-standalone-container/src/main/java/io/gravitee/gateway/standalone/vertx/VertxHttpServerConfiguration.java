@@ -80,6 +80,9 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.websocket.enabled:false}")
     private boolean websocketEnabled;
 
+    @Value("${http.websocket.subProtocols:#{null}}")
+    private String websocketSubProtocols;
+
     public int getPort() {
         return port;
     }
@@ -214,6 +217,14 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     public void setTrustStoreType(String trustStoreType) {
         this.trustStoreType = trustStoreType;
+    }
+
+    public String getWebsocketSubProtocols() {
+        return websocketSubProtocols;
+    }
+
+    public void setWebsocketSubProtocols(String websocketSubProtocols) {
+        this.websocketSubProtocols = websocketSubProtocols;
     }
 
     @Override

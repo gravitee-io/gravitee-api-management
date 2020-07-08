@@ -36,6 +36,7 @@
 #      password: secret
 #  websocket:
 #    enabled: false
+#    subProtocols: v10.stomp, v11.stomp, v12.stomp
 
 # Plugins repository
 #plugins:
