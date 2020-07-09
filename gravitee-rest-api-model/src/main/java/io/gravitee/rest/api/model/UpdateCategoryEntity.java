@@ -39,6 +39,7 @@ public class UpdateCategoryEntity {
     private int order;
     private String highlightApi;
     private String picture;
+    private String background;
 
     public String getId() {
         return id;
@@ -102,6 +103,14 @@ public class UpdateCategoryEntity {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 
     @Override

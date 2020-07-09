@@ -222,7 +222,7 @@ public class ApiMapperTest {
     public void testApiLinks() {
         String basePath = "/" + API;
 
-        ApiLinks links = apiMapper.computeApiLinks(basePath);
+        ApiLinks links = apiMapper.computeApiLinks(basePath, null);
 
         assertNotNull(links);
 
@@ -230,7 +230,8 @@ public class ApiMapperTest {
         assertEquals(basePath + "/metrics", links.getMetrics());
         assertEquals(basePath + "/links", links.getLinks());
         assertEquals(basePath + "/pages", links.getPages());
-        assertEquals(basePath + "/picture", links.getPicture());
+        assertEquals(basePath + "/picture?", links.getPicture());
+        assertEquals(basePath + "/background?", links.getBackground());
         assertEquals(basePath + "/plans", links.getPlans());
         assertEquals(basePath + "/ratings", links.getRatings());
     }

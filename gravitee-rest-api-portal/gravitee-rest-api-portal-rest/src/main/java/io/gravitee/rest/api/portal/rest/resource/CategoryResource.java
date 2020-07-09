@@ -60,15 +60,19 @@ public class CategoryResource extends AbstractResource {
                 .build();
     }
 
-
     @GET
     @Path("picture")
     public Response picture(@Context Request request, @PathParam("categoryId") String categoryId) {
         categoryService.findNotHiddenById(categoryId);
-
         InlinePictureEntity image = categoryService.getPicture(categoryId);
-
         return createPictureResponse(request, image);
     }
 
+    @GET
+    @Path("background")
+    public Response background(@Context Request request, @PathParam("categoryId") String categoryId) {
+        categoryService.findNotHiddenById(categoryId);
+        InlinePictureEntity image = categoryService.getBackground(categoryId);
+        return createPictureResponse(request, image);
+    }
 }

@@ -15,39 +15,35 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.repository.management.model.Audit.AuditProperties.CATEGORY;
-import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_CREATED;
-import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_DELETED;
-import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_UPDATED;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.xml.bind.DatatypeConverter;
-
 import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.model.Category;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.NewCategoryEntity;
+import io.gravitee.rest.api.model.UpdateCategoryEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
+import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.CategoryRepository;
-import io.gravitee.repository.management.model.Category;
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.NewCategoryEntity;
-import io.gravitee.rest.api.model.UpdateCategoryEntity;
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
-import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
+import javax.xml.bind.DatatypeConverter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static io.gravitee.repository.management.model.Audit.AuditProperties.CATEGORY;
+import static io.gravitee.repository.management.model.Category.AuditEvent.*;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -146,7 +142,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public CategoryEntity update(String categoryId, UpdateCategoryEntity Entity) {
+    public CategoryEntity update(String categoryId, UpdateCategoryEntity updateCategoryEntity) {
         try {
             LOGGER.debug("Update Category {}", categoryId);
 
@@ -155,12 +151,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                 throw new CategoryNotFoundException(categoryId);
             }
 
-            Category category = convert(Entity, optCategoryToUpdate.get().getEnvironmentId());
-
-            // check if picture has been set
-            if (Entity.getPicture() == null) {
-                category.setPicture(optCategoryToUpdate.get().getPicture());
-            }
+            Category category = convert(updateCategoryEntity, optCategoryToUpdate.get().getEnvironmentId());
 
             CategoryEntity updatedCategory = convert(categoryRepository.update(category));
             auditService.createPortalAuditLog(
@@ -172,8 +163,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
             return updatedCategory;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update category {}", Entity.getName(), ex);
-            throw new TechnicalManagementException("An error occurs while trying to update category " + Entity.getName(), ex);
+            LOGGER.error("An error occurs while trying to update category {}", updateCategoryEntity.getName(), ex);
+            throw new TechnicalManagementException("An error occurs while trying to update category " + updateCategoryEntity.getName(), ex);
         }
     }
 
@@ -189,6 +180,11 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                     if (category.getPicture() == null) {
                         // Picture can not be updated when re-ordering categories
                         category.setPicture(Optional.get().getPicture());
+                    }
+                    // check if background has been set
+                    if (category.getBackground() == null) {
+                        // Background can not be updated when re-ordering categories
+                        category.setBackground(Optional.get().getBackground());
                     }
 
                     savedCategories.add(convert(categoryRepository.update(category)));
@@ -239,7 +235,19 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             String base64Content = categoryEntity.getPicture().split(",", 2)[1];
             imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
         }
+        return imageEntity;
+    }
 
+    @Override
+    public InlinePictureEntity getBackground(String categoryId) {
+        CategoryEntity categoryEntity = findById(categoryId);
+        InlinePictureEntity imageEntity = new InlinePictureEntity();
+        if (categoryEntity.getBackground() != null) {
+            String[] parts = categoryEntity.getBackground().split(";", 2);
+            imageEntity.setType(parts[0].split(":")[1]);
+            String base64Content = categoryEntity.getBackground().split(",", 2)[1];
+            imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
+        }
         return imageEntity;
     }
 
@@ -253,6 +261,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         category.setHidden(categoryEntity.isHidden());
         category.setHighlightApi(categoryEntity.getHighlightApi());
         category.setPicture(categoryEntity.getPicture());
+        category.setBackground(categoryEntity.getBackground());
         return category;
     }
 
@@ -267,6 +276,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         category.setHidden(categoryEntity.isHidden());
         category.setHighlightApi(categoryEntity.getHighlightApi());
         category.setPicture(categoryEntity.getPicture());
+        category.setBackground(categoryEntity.getBackground());
         return category;
     }
 
@@ -280,6 +290,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         categoryEntity.setHidden(category.isHidden());
         categoryEntity.setHighlightApi(category.getHighlightApi());
         categoryEntity.setPicture(category.getPicture());
+        categoryEntity.setBackground(category.getBackground());
         categoryEntity.setUpdatedAt(category.getUpdatedAt());
         categoryEntity.setCreatedAt(category.getCreatedAt());
         return categoryEntity;

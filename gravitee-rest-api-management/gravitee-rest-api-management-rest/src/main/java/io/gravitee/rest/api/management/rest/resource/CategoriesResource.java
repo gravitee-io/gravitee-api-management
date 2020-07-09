@@ -71,7 +71,7 @@ public class CategoriesResource extends AbstractCategoryResource  {
                 .filter(c -> All || !c.isHidden())
                 .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
                 // set picture
-                .map(c -> setPicture(c, true))
+                .map(c -> setPictures(c, true))
                 .map(c -> {
                     c.setTotalApis(categoryService.getTotalApisByCategory(apis, c));
                     return c;

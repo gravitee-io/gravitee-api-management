@@ -69,10 +69,9 @@ public class CategoryResource extends AbstractCategoryResource {
         }
 
         // set picture
-        setPicture(category, false);
+        setPictures(category, false);
         return category;
     }
-
 
     @GET
     @Path("picture")
@@ -84,6 +83,23 @@ public class CategoryResource extends AbstractCategoryResource {
     public Response picture(
             @Context Request request,
             @PathParam("id") String categoryId) throws CategoryNotFoundException {
+        return getImageResponse(request, categoryId, categoryService.getPicture(categoryId));
+    }
+
+    @GET
+    @Path("background")
+    @ApiOperation(value = "Get the Category's background",
+            notes = "User must have the READ permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Category's background"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response background(
+            @Context Request request,
+            @PathParam("id") String categoryId) throws CategoryNotFoundException {
+        return getImageResponse(request, categoryId, categoryService.getBackground(categoryId));
+    }
+
+    private Response getImageResponse(Request request, String categoryId, InlinePictureEntity image) {
         boolean canShowCategory = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
         CategoryEntity category = categoryService.findById(categoryId);
 
@@ -97,7 +113,6 @@ public class CategoryResource extends AbstractCategoryResource {
         cc.setNoCache(false);
         cc.setMaxAge(86400);
 
-        InlinePictureEntity image = categoryService.getPicture(categoryId);
         if (image == null || image.getContent() == null) {
             return Response.ok().build();
         }
@@ -138,12 +153,13 @@ public class CategoryResource extends AbstractCategoryResource {
     public Response update(@PathParam("id") String categoryId, @Valid @NotNull final UpdateCategoryEntity category) {
         try {
             ImageUtils.verify(category.getPicture());
+            ImageUtils.verify(category.getBackground());
         } catch (InvalidImageException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
         }
 
         CategoryEntity categoryEntity = categoryService.update(categoryId, category);
-        setPicture(categoryEntity, false);
+        setPictures(categoryEntity, false);
 
         return Response.ok(categoryEntity).build();
     }

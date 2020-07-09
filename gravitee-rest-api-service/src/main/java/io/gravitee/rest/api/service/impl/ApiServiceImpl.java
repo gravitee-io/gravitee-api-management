@@ -886,6 +886,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (updateApiEntity.getPicture() == null) {
                     api.setPicture(apiToUpdate.getPicture());
                 }
+                if (updateApiEntity.getBackground() == null) {
+                    api.setBackground(apiToUpdate.getBackground());
+                }
                 if (updateApiEntity.getGroups() == null) {
                     api.setGroups(apiToUpdate.getGroups());
                 }
@@ -1650,6 +1653,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
+    public InlinePictureEntity getBackground(String apiId) {
+        ApiEntity apiEntity = findById(apiId);
+        InlinePictureEntity imageEntity = new InlinePictureEntity();
+        if (apiEntity.getBackground() != null) {
+            String[] parts = apiEntity.getBackground().split(";", 2);
+            imageEntity.setType(parts[0].split(":")[1]);
+            String base64Content = apiEntity.getBackground().split(",", 2)[1];
+            imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
+        }
+
+        return imageEntity;
+    }
+
+    @Override
     public void deleteCategoryFromAPIs(final String categoryId) {
         findAll().forEach(api -> {
             if (api.getCategories() != null && api.getCategories().contains(categoryId)) {
@@ -1885,6 +1902,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         updateApiEntity.setLabels(apiEntity.getLabels());
         updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
         updateApiEntity.setPicture(apiEntity.getPicture());
+        updateApiEntity.setBackground(apiEntity.getBackground());
         updateApiEntity.setProperties(apiEntity.getProperties());
         updateApiEntity.setProxy(apiEntity.getProxy());
         updateApiEntity.setResources(apiEntity.getResources());
@@ -2116,6 +2134,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
         apiEntity.setPicture(api.getPicture());
+        apiEntity.setBackground(api.getBackground());
         apiEntity.setLabels(api.getLabels());
 
         final Set<String> apiCategories = api.getCategories();
@@ -2167,6 +2186,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setName(updateApiEntity.getName().trim());
         api.setDescription(updateApiEntity.getDescription().trim());
         api.setPicture(updateApiEntity.getPicture());
+        api.setBackground(updateApiEntity.getBackground());
 
         final Set<String> apiCategories = updateApiEntity.getCategories();
         if (apiCategories != null) {
@@ -2181,7 +2201,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         if (updateApiEntity.getLabels() != null) {
-            api.setLabels(new ArrayList(new LinkedHashSet<>(updateApiEntity.getLabels())));
+            api.setLabels(updateApiEntity.getLabels());
         }
 
         api.setGroups(updateApiEntity.getGroups());

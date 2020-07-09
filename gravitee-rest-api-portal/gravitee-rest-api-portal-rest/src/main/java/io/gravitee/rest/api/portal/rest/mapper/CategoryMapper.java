@@ -15,15 +15,14 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import javax.ws.rs.core.UriBuilder;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.model.CategoryLinks;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.ws.rs.core.UriBuilder;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -49,7 +48,9 @@ public class CategoryMapper {
         if(highlightApi != null) {
             categoryLinks.setHighlightedApi(PortalApiLinkHelper.apisURL(baseUriBuilder.clone(), highlightApi));
         }
-        categoryLinks.setPicture(basePath+"/picture");
+        final String hash = categoryEntity.getUpdatedAt() == null ? "" : String.valueOf(categoryEntity.getUpdatedAt().getTime());
+        categoryLinks.setPicture(basePath+"/picture?" + hash);
+        categoryLinks.setBackground(basePath+"/background?" + hash);
         categoryLinks.setSelf(basePath);
         category.setLinks(categoryLinks);
         return category;

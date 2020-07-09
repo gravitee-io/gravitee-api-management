@@ -99,7 +99,7 @@ public class ApiResource extends AbstractResource {
                 api.setPlans(plans);
             }
 
-            api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())));
+            api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), apiEntity.getUpdatedAt()));
             if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER)) {
                 api.setLabels(new ArrayList<>());
             }
@@ -119,6 +119,20 @@ public class ApiResource extends AbstractResource {
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             InlinePictureEntity image = apiService.getPicture(apiId);
+
+            return createPictureResponse(request, image);
+        }
+        throw new ApiNotFoundException(apiId);
+    }
+
+    @GET
+    @Path("background")
+    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
+    public Response getBAckgroundByApiId(@Context Request request, @PathParam("apiId") String apiId) {
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+
+            InlinePictureEntity image = apiService.getBackground(apiId);
 
             return createPictureResponse(request, image);
         }

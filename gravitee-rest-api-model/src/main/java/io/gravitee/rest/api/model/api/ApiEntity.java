@@ -203,6 +203,16 @@ public class ApiEntity implements Indexable, FilterableItem {
 
     private List<ApiEntrypointEntity> entrypoints;
 
+    @ApiModelProperty(
+            value = "the API background encoded in base64")
+    private String background;
+
+    @JsonProperty(value = "background_url")
+    @ApiModelProperty(
+            value = "the API background url.",
+            example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background")
+    private String backgroundUrl;
+
     public String getId() {
         return id;
     }
@@ -425,6 +435,22 @@ public class ApiEntity implements Indexable, FilterableItem {
 
     public void setContextPath(String contextPath) {
         this.contextPath = contextPath;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
+    }
+
+    public String getBackgroundUrl() {
+        return backgroundUrl;
+    }
+
+    public void setBackgroundUrl(String backgroundUrl) {
+        this.backgroundUrl = backgroundUrl;
     }
 
     @Override

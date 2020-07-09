@@ -100,6 +100,7 @@ public interface ApiService {
         updateApiEntity.setGroups(apiEntity.getGroups());
         updateApiEntity.setPaths(apiEntity.getPaths());
         updateApiEntity.setPicture(apiEntity.getPicture());
+        updateApiEntity.setBackground(apiEntity.getBackground());
         updateApiEntity.setResources(apiEntity.getResources());
         updateApiEntity.setTags(apiEntity.getTags());
         updateApiEntity.setServices(apiEntity.getServices());
@@ -122,4 +123,6 @@ public interface ApiService {
     ApiEntity rejectReview(String apiId, String userId, ReviewEntity reviewEntity);
 
     ApiEntity duplicate(String apiId, DuplicateApiEntity duplicateApiEntity);
+
+    InlinePictureEntity getBackground(String apiId);
 }

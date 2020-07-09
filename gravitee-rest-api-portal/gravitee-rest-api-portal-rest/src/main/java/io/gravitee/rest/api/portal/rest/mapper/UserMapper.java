@@ -74,7 +74,8 @@ public class UserMapper {
 
     public UserLinks computeUserLinks(String basePath, Date updateDate) {
         UserLinks userLinks = new UserLinks();
-        userLinks.setAvatar(basePath + "/avatar" + (updateDate == null? "" : "?" + updateDate.hashCode()));
+        final String hash = updateDate == null ? "" : String.valueOf(updateDate.getTime());
+        userLinks.setAvatar(basePath + "/avatar?" + hash);
         userLinks.setNotifications(basePath + "/notifications");
         userLinks.setSelf(basePath);
         return userLinks;

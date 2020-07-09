@@ -82,6 +82,8 @@ public class ApplicationEntity {
     @JsonProperty("settings")
     private ApplicationSettings settings;
 
+    private String background;
+
     public String getId() {
         return id;
     }
@@ -168,6 +170,14 @@ public class ApplicationEntity {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 
     @Override

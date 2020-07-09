@@ -117,7 +117,8 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals("tag", query.getTag());
 
         ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).computeApiLinks(basePathCaptor.capture());
+        Mockito.verify(apiMapper, Mockito.times(5)).computeApiLinks(basePathCaptor.capture(),
+                ArgumentCaptor.forClass(Date.class).capture());
         final String expectedBasePath = target().getUri().toString();
         final List<String> bastPathList = basePathCaptor.getAllValues();
         assertTrue(bastPathList.contains(expectedBasePath + "/1"));
@@ -257,7 +258,8 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertNull(query.getTag());
 
         ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(basePathCaptor.capture());
+        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(basePathCaptor.capture(),
+                ArgumentCaptor.forClass(Date.class).capture());
         final String expectedBasePath = target().getUri().toString();
         final List<String> bastPathList = basePathCaptor.getAllValues();
         assertTrue(bastPathList.contains(expectedBasePath + "/3"));

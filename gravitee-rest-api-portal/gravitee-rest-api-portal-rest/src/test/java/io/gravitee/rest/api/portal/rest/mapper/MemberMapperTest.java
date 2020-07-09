@@ -107,7 +107,7 @@ public class MemberMapperTest {
         assertEquals(MEMBER_DISPLAYNAME, user.getDisplayName());
         assertEquals(MEMBER_EMAIL, user.getEmail());
         assertEquals(MEMBER_ID, user.getId());
-        assertEquals("environments/DEFAULT/users/" + MEMBER_ID + "/avatar", user.getLinks().getAvatar());
+        assertEquals("environments/DEFAULT/users/" + MEMBER_ID + "/avatar?", user.getLinks().getAvatar());
     }
     
 }

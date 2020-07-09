@@ -67,7 +67,9 @@ public class NewApplicationEntity {
             example = "MY_GROUP1, MY_GROUP2")
     private Set<String> groups;
 
-    private String Picture;
+    private String picture;
+
+    private String background;
 
     public String getDescription() {
         return description;
@@ -118,11 +120,19 @@ public class NewApplicationEntity {
     }
 
     public String getPicture() {
-        return Picture;
+        return picture;
     }
 
     public void setPicture(String picture) {
-        Picture = picture;
+        this.picture = picture;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 
     @Override

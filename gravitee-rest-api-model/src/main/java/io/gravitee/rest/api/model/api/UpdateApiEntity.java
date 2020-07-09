@@ -130,6 +130,10 @@ public class UpdateApiEntity {
     @JsonProperty(value = "lifecycle_state")
     private ApiLifecycleState lifecycleState;
 
+    @ApiModelProperty(
+            value = "the API background encoded in base64")
+    private String background;
+
     public Visibility getVisibility() {
         return visibility;
     }
@@ -272,5 +276,13 @@ public class UpdateApiEntity {
 
     public void setLifecycleState(ApiLifecycleState lifecycleState) {
         this.lifecycleState = lifecycleState;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 }

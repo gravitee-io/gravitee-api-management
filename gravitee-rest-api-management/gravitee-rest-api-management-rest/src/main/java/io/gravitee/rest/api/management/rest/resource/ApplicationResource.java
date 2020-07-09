@@ -136,11 +136,27 @@ public class ApplicationResource extends AbstractResource {
             @ApiResponse(code = 200, message = "Application's picture"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
     })
     public Response picture(@Context Request request, @PathParam("application") String application) throws ApplicationNotFoundException {
-        PictureEntity picture = applicationService.getPicture(application);
+        return getImageResponse(request, applicationService.getPicture(application));
+    }
 
+    @GET
+    @Path("background")
+    @ApiOperation(value = "Get the application's background",
+            notes = "User must have the READ permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Application's background"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
+    })
+    public Response background(@Context Request request, @PathParam("application") String application) throws ApplicationNotFoundException {
+        return getImageResponse(request, applicationService.getBackground(application));
+    }
+
+    private Response getImageResponse(final Request request, PictureEntity picture) {
         if (picture instanceof UrlPictureEntity) {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
         }

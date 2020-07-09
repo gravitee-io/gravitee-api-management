@@ -34,6 +34,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -139,8 +140,14 @@ public class ApisResource extends AbstractResource {
 
 
     private Api addApiLinks(Api api) {
-        return api.links(
-                apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())));
+        final OffsetDateTime updatedAt = api.getUpdatedAt();
+        Date updateDate = null;
+        if (updatedAt != null) {
+            long epochMilli = updatedAt.toInstant().toEpochMilli();
+            updateDate = new Date(epochMilli);
+        }
+        return api.links(apiMapper
+                .computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), updateDate));
     }
 
     @Path("{apiId}")

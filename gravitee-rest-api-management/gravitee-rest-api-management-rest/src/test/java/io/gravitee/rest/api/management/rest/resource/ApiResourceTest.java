@@ -186,6 +186,46 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertTrue(message, message.contains("Invalid image format"));
     }
 
+    @Test
+    public void shouldNotUpdateApiBecauseTooLargeBackground() {
+        updateApiEntity.setBackground("data:image/png;base64,"+ randomAlphanumeric(1_000_000));
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("Invalid image format"));
+    }
+
+    @Test
+    public void shouldNotUpdateApiBackgroundBecauseNotAValidImage() {
+        updateApiEntity.setBackground(getEncoder().encodeToString("<script>alert('XSS')</script>".getBytes()));
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("Invalid image format"));
+    }
+
+    @Test
+    public void shouldNotUpdateApiBackgroundBecauseSVGImage() {
+        updateApiEntity.setBackground("data:image/svg+xml;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("Invalid image format"));
+    }
+
+    @Test
+    public void shouldNotUpdateApiBackgroundBecauseNotAnImage() {
+        updateApiEntity.setBackground("data:text/plain;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("Invalid image format"));
+    }
+
     public void shouldUploadApiMedia() {
         StreamDataBodyPart filePart = new StreamDataBodyPart("file",
                 this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.valueOf("image/svg+xml"));

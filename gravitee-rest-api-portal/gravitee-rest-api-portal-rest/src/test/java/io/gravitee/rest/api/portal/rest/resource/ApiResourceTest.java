@@ -87,7 +87,8 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertNotNull(responseApi);
 
         ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(ac.capture());
+        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(ac.capture(),
+                ArgumentCaptor.forClass(Date.class).capture());
 
         String expectedBasePath = target(API).getUriBuilder().build().toString();
         List<String> bastPathList = ac.getAllValues();

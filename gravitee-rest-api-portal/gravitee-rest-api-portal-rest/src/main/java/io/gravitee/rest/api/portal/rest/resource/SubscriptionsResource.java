@@ -142,7 +142,8 @@ public class SubscriptionsResource extends AbstractResource {
             if (api != null) {
                 final Map<String, Object> m = new HashMap<>();
                 m.put("name", api.getName());
-                m.put("pictureUrl", apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())).getPicture());
+                m.put("pictureUrl", apiMapper
+                        .computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), api.getUpdatedAt()).getPicture());
                 m.put("version", api.getVersion());
                 metadata.put(api.getId(), m);
             }

@@ -15,22 +15,20 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.time.Instant;
-import java.util.Date;
-
-import javax.ws.rs.core.UriBuilder;
-
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.portal.rest.model.Category;
+import io.gravitee.rest.api.portal.rest.model.CategoryLinks;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.portal.rest.model.Category;
-import io.gravitee.rest.api.portal.rest.model.CategoryLinks;
+import javax.ws.rs.core.UriBuilder;
+import java.time.Instant;
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -46,6 +44,8 @@ public class CategoryMapperTest {
     private static final String CATEGORY_NAME = "my-category-name";
     private static final String CATEGORY_PICTURE = "my-category-picture";
     private static final String CATEGORY_PICTURE_URL = "my-category-picture-url";
+    private static final String CATEGORY_BACKGROUND = "my-category-background";
+    private static final String CATEGORY_BACKGROUND_URL = "my-category-background-url";
 
     private static final String CATEGORY_BASE_URL = "http://foo/bar";
 
@@ -70,7 +70,8 @@ public class CategoryMapperTest {
         categoryEntity.setPictureUrl(CATEGORY_PICTURE_URL);
         categoryEntity.setTotalApis(42);
         categoryEntity.setUpdatedAt(nowDate);
-        
+        categoryEntity.setPicture(CATEGORY_BACKGROUND);
+        categoryEntity.setPictureUrl(CATEGORY_BACKGROUND_URL);
         
         //init
         Category category = categoryMapper.convert(categoryEntity, UriBuilder.fromPath(CATEGORY_BASE_URL));
@@ -82,7 +83,8 @@ public class CategoryMapperTest {
         CategoryLinks links = category.getLinks();
         assertNotNull(links);
         assertEquals(CATEGORY_BASE_URL+"/environments/DEFAULT/apis/"+CATEGORY_HIGHLIGHT_API, links.getHighlightedApi());
-        assertEquals(CATEGORY_BASE_URL+"/environments/DEFAULT/categories/"+CATEGORY_ID+"/picture", links.getPicture());
+        assertEquals(CATEGORY_BASE_URL+"/environments/DEFAULT/categories/"+CATEGORY_ID+"/picture?" + nowDate.getTime(), links.getPicture());
+        assertEquals(CATEGORY_BASE_URL+"/environments/DEFAULT/categories/"+CATEGORY_ID+"/background?" + nowDate.getTime(), links.getBackground());
         assertEquals(CATEGORY_BASE_URL+"/environments/DEFAULT/categories/"+CATEGORY_ID, links.getSelf());
     }
 }

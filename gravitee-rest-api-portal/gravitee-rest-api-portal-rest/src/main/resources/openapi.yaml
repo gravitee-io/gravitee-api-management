@@ -293,6 +293,26 @@ paths:
           $ref: '#/components/responses/APINotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /apis/{apiId}/background:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+    get:
+      tags:
+        - Api
+      summary: Get the API's background
+      description: |
+        Get the API's background.
+
+        This API has to be accessible by the current user, otherwise a 404 will be returned.
+      operationId: getBackgroundByApiId
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/PictureSuccess'
+        404:
+          $ref: '#/components/responses/APINotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /apis/{apiId}/plans:
     parameters:
       - $ref: '#/components/parameters/apiIdParam'
@@ -713,6 +733,27 @@ paths:
 
         User must have APPLICATION_DEFINITION[READ] permission.
       operationId: getApplicationPictureByApplicationId
+      responses:
+        200:
+          $ref: '#/components/responses/PictureSuccess'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /applications/{applicationId}/background:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Application
+      summary: Get the application's background
+      description: |
+        Get the application's background.
+
+        User must have APPLICATION_DEFINITION[READ] permission.
+      operationId: getApplicationBackgroundByApplicationId
       responses:
         200:
           $ref: '#/components/responses/PictureSuccess'
@@ -1854,6 +1895,28 @@ paths:
       description: |
         Get the picture of a category.
       operationId: getPictureByCategoryId
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/PictureSuccess'
+        404:
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /categories/{categoryId}/background:
+    parameters:
+      - $ref: '#/components/parameters/categoryIdParam'
+    get:
+      tags:
+        - Portal
+      summary: Get background of a Category
+      description: |
+        Get the background of a category.
+      operationId: getBackgroundByCategoryId
       security: []
       responses:
         200:
@@ -3183,6 +3246,12 @@ components:
             To get the application picture, use /application/{applicationId}/picture.
           type: string
           writeOnly: true
+        background:
+          description: |
+            Background of the application. This attribute is only used to update a picture.\
+            To get the application picture, use /application/{applicationId}/background.
+          type: string
+          writeOnly: true
         settings:
           $ref: '#/components/schemas/ApplicationSettings'
         _links:
@@ -3820,6 +3889,8 @@ components:
             type: string
         settings:
           $ref: '#/components/schemas/ApplicationSettings'
+        background:
+          type: string
     MemberInput:
       properties:
         user:
@@ -4242,6 +4313,8 @@ components:
           type: string
         picture:
           type: string
+        background:
+          type: string
         plans:
           type: string
         ratings:
@@ -4255,6 +4328,8 @@ components:
         notifications:
           type: string
         picture:
+          type: string
+        background:
           type: string
     PageLinks:
       properties:
@@ -4289,6 +4364,8 @@ components:
         highlighted_api:
           type: string
         picture:
+          type: string
+        background:
           type: string
 
   responses:

@@ -15,14 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+
 import java.util.List;
 import java.util.Set;
-
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.NewApplicationEntity;
-import io.gravitee.rest.api.model.UpdateApplicationEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -50,4 +47,6 @@ public interface ApplicationService {
     void archive(String applicationId);
     
     InlinePictureEntity getPicture(String apiId);
+
+    InlinePictureEntity getBackground(String application);
 }

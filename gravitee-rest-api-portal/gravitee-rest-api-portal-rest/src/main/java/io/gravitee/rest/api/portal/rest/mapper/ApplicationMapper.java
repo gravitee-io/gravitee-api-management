@@ -86,6 +86,7 @@ public class ApplicationMapper {
         applicationLinks.setMembers(basePath+"/members");
         applicationLinks.setNotifications(basePath+"/notifications");
         applicationLinks.setPicture(basePath + "/picture" + (updateDate == null? "" : "?" + updateDate.hashCode()));
+        applicationLinks.setBackground(basePath + "/background" + (updateDate == null? "" : "?" + updateDate.hashCode()));
         applicationLinks.setSelf(basePath);
 
         return applicationLinks;
@@ -116,6 +117,7 @@ public class ApplicationMapper {
         
         application.setUpdatedAt(applicationEntity.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         application.setPicture(applicationEntity.getPicture());
+        application.setBackground(applicationEntity.getBackground());
 
         final ApplicationSettings applicationEntitySettings = applicationEntity.getSettings();
         if(applicationEntitySettings != null) {

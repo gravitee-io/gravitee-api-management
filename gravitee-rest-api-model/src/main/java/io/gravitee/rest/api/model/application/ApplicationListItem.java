@@ -87,6 +87,11 @@ public class ApplicationListItem implements FilterableItem {
     @JsonProperty(value = "picture_url")
     private String pictureUrl;
 
+    private String background;
+
+    @JsonProperty(value = "background_url")
+    private String backgroundUrl;
+
     public String getId() {
         return id;
     }
@@ -181,6 +186,22 @@ public class ApplicationListItem implements FilterableItem {
 
     public void setPictureUrl(String pictureUrl) {
         this.pictureUrl = pictureUrl;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
+    }
+
+    public String getBackgroundUrl() {
+        return backgroundUrl;
+    }
+
+    public void setBackgroundUrl(String backgroundUrl) {
+        this.backgroundUrl = backgroundUrl;
     }
 
     @Override

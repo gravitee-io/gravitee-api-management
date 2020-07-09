@@ -43,6 +43,9 @@ public class CategoryEntity {
     private String picture;
     @JsonProperty(value = "picture_url")
     private String pictureUrl;
+    private String background;
+    @JsonProperty(value = "background_url")
+    private String backgroundUrl;
 
     public String getId() {
         return id;
@@ -138,6 +141,22 @@ public class CategoryEntity {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
+    }
+
+    public String getBackgroundUrl() {
+        return backgroundUrl;
+    }
+
+    public void setBackgroundUrl(String backgroundUrl) {
+        this.backgroundUrl = backgroundUrl;
     }
 
     @Override

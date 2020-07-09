@@ -27,9 +27,9 @@ import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
-import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -123,16 +124,17 @@ public class ApiMapper {
         return apiItem;
     }
 
-    public ApiLinks computeApiLinks(String basePath) {
+    public ApiLinks computeApiLinks(String basePath, Date updateDate) {
         ApiLinks apiLinks = new ApiLinks();
         apiLinks.setLinks(basePath + "/links");
         apiLinks.setMetrics(basePath + "/metrics");
         apiLinks.setPages(basePath + "/pages");
-        apiLinks.setPicture(basePath + "/picture");
         apiLinks.setPlans(basePath + "/plans");
         apiLinks.setRatings(basePath + "/ratings");
         apiLinks.setSelf(basePath);
-
+        final String hash = updateDate == null ? "" : String.valueOf(updateDate.getTime());
+        apiLinks.setPicture(basePath + "/picture?" + hash);
+        apiLinks.setBackground(basePath + "/background?" + hash);
         return apiLinks;
     }
 }

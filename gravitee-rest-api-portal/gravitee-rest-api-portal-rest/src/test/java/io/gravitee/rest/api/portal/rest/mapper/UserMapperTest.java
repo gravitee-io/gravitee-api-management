@@ -23,8 +23,6 @@ import io.gravitee.rest.api.portal.rest.model.FinalizeRegistrationInput;
 import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserLinks;
-
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -161,7 +159,7 @@ public class UserMapperTest {
         assertNotNull(links);
 
         assertEquals(basePath, links.getSelf());
-        assertEquals(basePath + "/avatar", links.getAvatar());
+        assertEquals(basePath + "/avatar?", links.getAvatar());
         assertEquals(basePath + "/notifications", links.getNotifications());
         assertEquals(basePath, links.getSelf());
     }

@@ -684,6 +684,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 item.setType(applicationEntity.getType());
                 item.setStatus(applicationEntity.getStatus());
                 item.setPicture(applicationEntity.getPicture());
+                item.setBackground(applicationEntity.getBackground());
 
                 ApplicationListItemSettings settings = new ApplicationListItemSettings();
                 if (applicationEntity.getSettings().getApp() != null) {
@@ -718,6 +719,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
         applicationEntity.setStatus(application.getStatus().toString());
         applicationEntity.setPicture(application.getPicture());
+        applicationEntity.setBackground(application.getBackground());
         applicationEntity.setGroups(application.getGroups());
         applicationEntity.setCreatedAt(application.getCreatedAt());
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
@@ -788,6 +790,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setType(ApplicationType.valueOf(newApplicationEntity.getSettings().getoAuthClient().getApplicationType().toUpperCase()));
         }
         application.setPicture(newApplicationEntity.getPicture());
+        application.setBackground(newApplicationEntity.getBackground());
         application.setMetadata(metadata);
 
         return application;
@@ -798,6 +801,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         application.setName(updateApplicationEntity.getName().trim());
         application.setPicture(updateApplicationEntity.getPicture());
+        application.setBackground(updateApplicationEntity.getBackground());
         application.setDescription(updateApplicationEntity.getDescription().trim());
         application.setGroups(updateApplicationEntity.getGroups());
         Map<String, String> metadata = new HashMap<>();
@@ -826,7 +830,19 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             String base64Content = applicationEntity.getPicture().split(",", 2)[1];
             imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
         }
+        return imageEntity;
+    }
 
+    @Override
+    public InlinePictureEntity getBackground(String applicationId) {
+        ApplicationEntity applicationEntity = findById(applicationId);
+        InlinePictureEntity imageEntity = new InlinePictureEntity();
+        if (applicationEntity.getBackground() != null) {
+            String[] parts = applicationEntity.getBackground().split(";", 2);
+            imageEntity.setType(parts[0].split(":")[1]);
+            String base64Content = applicationEntity.getBackground().split(",", 2)[1];
+            imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
+        }
         return imageEntity;
     }
 }

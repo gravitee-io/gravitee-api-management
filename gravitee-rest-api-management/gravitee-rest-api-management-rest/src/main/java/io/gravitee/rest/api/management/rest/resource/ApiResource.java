@@ -94,7 +94,7 @@ public class ApiResource extends AbstractResource {
     public Response get(@PathParam("api") String api) {
         ApiEntity apiEntity = apiService.findById(api);
         if (hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
-            setPicture(apiEntity);
+            setPictures(apiEntity);
         } else {
             filterSensitiveData(apiEntity);
         }
@@ -105,14 +105,20 @@ public class ApiResource extends AbstractResource {
                 .build();
     }
 
-    private void setPicture(final ApiEntity apiEntity) {
+    private void setPictures(final ApiEntity apiEntity) {
         if (apiEntity.getPicture() != null) {
-            final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-            final UriBuilder uriBuilder = ub.path("picture");
+            final UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder().path("picture");
             // force browser to get if updated
             uriBuilder.queryParam("hash", apiEntity.getPicture().hashCode());
             apiEntity.setPictureUrl(uriBuilder.build().toString());
             apiEntity.setPicture(null);
+        }
+        if (apiEntity.getBackground() != null) {
+            final UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder().path("background");
+            // force browser to get if updated
+            uriBuilder.queryParam("hash", apiEntity.getBackground().hashCode());
+            apiEntity.setBackgroundUrl(uriBuilder.build().toString());
+            apiEntity.setBackground(null);
         }
     }
 
@@ -126,6 +132,23 @@ public class ApiResource extends AbstractResource {
     public Response picture(
             @Context Request request,
             @PathParam("api") String api) throws ApiNotFoundException {
+        return getImageResponse(request, api, apiService.getPicture(api));
+    }
+
+    @GET
+    @Path("background")
+    @ApiOperation(value = "Get the API's background",
+            notes = "User must have the READ permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API's background"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response background(
+            @Context Request request,
+            @PathParam("api") String api) throws ApiNotFoundException {
+        return getImageResponse(request, api, apiService.getBackground(api));
+    }
+
+    private Response getImageResponse(final Request request, final String api, InlinePictureEntity image) {
         canReadAPI(api);
         CacheControl cc = new CacheControl();
         cc.setNoTransform(true);
@@ -133,7 +156,6 @@ public class ApiResource extends AbstractResource {
         cc.setNoCache(false);
         cc.setMaxAge(86400);
 
-        InlinePictureEntity image = apiService.getPicture(api);
         if (image == null || image.getContent() == null) {
             return Response.ok().build();
         }
@@ -229,6 +251,7 @@ public class ApiResource extends AbstractResource {
 
         try {
             ImageUtils.verify(apiToUpdate.getPicture());
+            ImageUtils.verify(apiToUpdate.getBackground());
         } catch (InvalidImageException e) {
             return Response.status(Status.BAD_REQUEST).entity("Invalid image format").build();
         }
@@ -241,7 +264,7 @@ public class ApiResource extends AbstractResource {
         }
 
         final ApiEntity updatedApi = apiService.update(api, apiToUpdate);
-        setPicture(updatedApi);
+        setPictures(updatedApi);
 
         return Response
                 .ok(updatedApi)

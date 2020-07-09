@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
@@ -28,14 +27,11 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
-import io.gravitee.rest.api.portal.rest.model.ApplicationType;
-import io.gravitee.rest.api.portal.rest.model.Group;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -46,7 +42,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -124,6 +119,8 @@ public class ApplicationResource extends AbstractResource {
         updateApplicationEntity.setDescription(application.getDescription());
         updateApplicationEntity.setName(application.getName());
         updateApplicationEntity.setPicture(checkAndScaleImage(application.getPicture()));
+        checkImageFormat(application.getBackground());
+        updateApplicationEntity.setBackground(application.getBackground());
 
         if (application.getSettings() != null) {
             ApplicationSettings settings = new ApplicationSettings();
@@ -158,9 +155,19 @@ public class ApplicationResource extends AbstractResource {
     })
     public Response getPictureByApplicationId(@Context Request request, @PathParam("applicationId") String applicationId) {
         applicationService.findById(applicationId);
-
         InlinePictureEntity image = applicationService.getPicture(applicationId);
+        return createPictureResponse(request, image);
+    }
 
+    @GET
+    @Path("background")
+    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
+    })
+    public Response getBackgroundByApplicationId(@Context Request request, @PathParam("applicationId") String applicationId) {
+        applicationService.findById(applicationId);
+        InlinePictureEntity image = applicationService.getBackground(applicationId);
         return createPictureResponse(request, image);
     }
 

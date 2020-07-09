@@ -180,14 +180,16 @@ public abstract class AbstractResource {
         return encodedPicture;
     }
 
-    private void checkImageFormat(final String picture) {
-        if (!picture.startsWith("data:")) {
-            throw new UploadUnauthorized("The image is not in a valid format");
-        }
+    protected void checkImageFormat(final String encodedPicture) {
+        if (encodedPicture != null) {
+            if (!encodedPicture.startsWith("data:")) {
+                throw new UploadUnauthorized("The image is not in a valid format");
+            }
 
-        String mediaType = picture.substring("data:".length(), picture.indexOf((int) ';'));
-        if (!mediaType.startsWith("image/")) {
-            throw new UploadUnauthorized("Image file format unauthorized " + mediaType);
+            String mediaType = encodedPicture.substring("data:".length(), encodedPicture.indexOf((int) ';'));
+            if (!mediaType.startsWith("image/")) {
+                throw new UploadUnauthorized("Image file format unauthorized " + mediaType);
+            }
         }
     }
 

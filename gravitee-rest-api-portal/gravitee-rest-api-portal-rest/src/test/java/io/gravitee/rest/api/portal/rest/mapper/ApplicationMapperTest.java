@@ -226,7 +226,7 @@ public class ApplicationMapperTest {
         assertEquals(APPLICATION_USER_DISPLAYNAME, owner.getDisplayName());
         assertEquals(APPLICATION_USER_EMAIL, owner.getEmail());
         assertEquals(APPLICATION_USER_ID, owner.getId());
-        assertEquals("environments/DEFAULT/users/" + APPLICATION_USER_ID + "/avatar", owner.getLinks().getAvatar());
+        assertEquals("environments/DEFAULT/users/" + APPLICATION_USER_ID + "/avatar?", owner.getLinks().getAvatar());
         
         io.gravitee.rest.api.portal.rest.model.ApplicationSettings applicationSettings = responseApplication.getSettings();
         if(AppSettingsEnum.NO_SETTINGS == appSettingsType) {

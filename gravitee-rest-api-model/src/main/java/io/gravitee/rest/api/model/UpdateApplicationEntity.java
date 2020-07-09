@@ -72,6 +72,8 @@ public class UpdateApplicationEntity {
     @Deprecated
     private String clientId;
 
+    private String background;
+
     public String getName() {
         return name;
     }
@@ -127,6 +129,14 @@ public class UpdateApplicationEntity {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 
     @Override
