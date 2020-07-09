@@ -53,6 +53,8 @@ public class ApplicationMongo extends Auditable {
 
     private Map<String, String> metadata;
 
+    private String background;
+
     public String getId() {
         return id;
     }
@@ -124,6 +126,14 @@ public class ApplicationMongo extends Auditable {
 
     public void setMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 
     @Override

@@ -66,6 +66,8 @@ public class ApiMongo extends Auditable {
 
     private String apiLifecycleState;
 
+    private String background;
+
     public String getId() {
         return id;
     }
@@ -184,6 +186,14 @@ public class ApiMongo extends Auditable {
 
     public void setApiLifecycleState(String apiLifecycleState) {
         this.apiLifecycleState = apiLifecycleState;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 
     @Override
