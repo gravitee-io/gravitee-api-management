@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import java.sql.Types;
-import java.util.*;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.model.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.CategoryRepository;
-import io.gravitee.repository.management.model.Category;
+import java.sql.Types;
+import java.util.*;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
@@ -55,6 +54,7 @@ public class JdbcCategoryRepository implements CategoryRepository {
             .addColumn("picture", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("background", Types.NVARCHAR, String.class)
             .build();
 
     @Override
@@ -116,6 +116,7 @@ public class JdbcCategoryRepository implements CategoryRepository {
                                         + " , " + escapeReservedWord("order") + " = ?"
                                         + " , highlight_api = ?"
                                         + " , picture = ?"
+                                        + " , background = ?"
                                         + " , created_at = ? "
                                         + " , updated_at = ? "
                                         + " where "
@@ -131,6 +132,7 @@ public class JdbcCategoryRepository implements CategoryRepository {
                                 , item.getOrder()
                                 , item.getHighlightApi()
                                 , item.getPicture()
+                                , item.getBackground()
                                 , item.getCreatedAt()
                                 , item.getUpdatedAt()
                                 , item.getId()

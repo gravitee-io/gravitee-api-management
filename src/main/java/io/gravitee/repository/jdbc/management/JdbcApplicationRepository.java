@@ -15,36 +15,27 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import static java.lang.String.format;
-import static java.util.Collections.emptySet;
-import static org.springframework.util.CollectionUtils.isEmpty;
-
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Repository;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.*;
+
+import static java.lang.String.format;
+import static java.util.Collections.emptySet;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  *
@@ -68,6 +59,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("picture", Types.NVARCHAR, String.class)
             .addColumn(STATUS_FIELD, Types.NVARCHAR, ApplicationStatus.class)
+            .addColumn("background", Types.NVARCHAR, String.class)
             .build();
 
     private static final JdbcHelper.ChildAdder<Application> CHILD_ADDER = (Application parent, ResultSet rs) -> {

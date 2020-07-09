@@ -66,6 +66,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .addColumn("lifecycle_state", Types.NVARCHAR, LifecycleState.class)
             .addColumn("picture", Types.NVARCHAR, String.class)
             .addColumn("api_lifecycle_state", Types.NVARCHAR, ApiLifecycleState.class)
+            .addColumn("background", Types.NVARCHAR, String.class)
             .build();
 
     private static final JdbcHelper.ChildAdder<Api> CHILD_ADDER = (Api parent, ResultSet rs) -> {
