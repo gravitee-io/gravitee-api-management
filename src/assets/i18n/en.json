@@ -146,6 +146,7 @@
       },
       "search": "Search"
     },
+    "change_background": "Change background",
     "change_picture": "Change picture",
     "client_id": {
       "label": "Client ID",

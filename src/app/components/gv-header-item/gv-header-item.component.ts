@@ -29,6 +29,7 @@ import { NavRouteService } from '../../services/nav-route.service';
 export class GvHeaderItemComponent implements OnInit, OnDestroy {
   static RELOAD_EVENT = ':gv-header-item:reload';
   static UPDATE_PICTURE = ':gv-header-item:picture';
+  static UPDATE_BACKGROUND = ':gv-header-item:background';
   static UPDATE_NAME = ':gv-header-item:name';
 
   public item: Promise<Api | Application>;
@@ -61,6 +62,8 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
         this.loadData(true);
       } else if (event.type === GvHeaderItemComponent.UPDATE_PICTURE) {
         this.item = Object.assign({}, this.item, { picture: event.details.data });
+      } else if (event.type === GvHeaderItemComponent.UPDATE_BACKGROUND) {
+        this.item = Object.assign({}, this.item, { background: event.details.data });
       } else if (event.type === GvHeaderItemComponent.UPDATE_NAME) {
         this.item = Object.assign({}, this.item, { name: event.details.data });
       }

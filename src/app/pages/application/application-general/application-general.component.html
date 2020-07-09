@@ -27,41 +27,52 @@
       <div class="page__box-content grid">
         <div>
           <gv-input
-              [attr.readonly]="!canUpdate ? 'readonly' : null"
-              class="form__control"
-              required
-              label="{{ 'application.name.title' | translate }}"
-              placeholder="{{ 'application.name.label' | translate }}"
-              formControlName="name"
-              name="application.name"
-              ngDefaultControl>
+            [attr.readonly]="!canUpdate ? 'readonly' : null"
+            class="form__control"
+            required
+            label="{{ 'application.name.title' | translate }}"
+            placeholder="{{ 'application.name.label' | translate }}"
+            formControlName="name"
+            name="application.name"
+            ngDefaultControl>
           </gv-input>
 
           <gv-text
-              [attr.readonly]="!canUpdate ? 'readonly' : null"
-              class="form__control"
-              required
-              rows="7"
-              label="{{ 'application.description.title' | translate }}"
-              placeholder="{{ 'application.description.label' | translate }}"
-              formControlName="description"
-              name="application.description"
-              ngDefaultControl>
+            [attr.readonly]="!canUpdate ? 'readonly' : null"
+            class="form__control"
+            required
+            rows="7"
+            label="{{ 'application.description.title' | translate }}"
+            placeholder="{{ 'application.description.label' | translate }}"
+            formControlName="description"
+            name="application.description"
+            ngDefaultControl>
           </gv-text>
           <div formGroupName="settings" *ngIf="application.settings.app">
             <div formGroupName="app">
               <gv-input
-                  [attr.readonly]="!canUpdate ? 'readonly' : null"
-                  class="form__control"
-                  label="{{ 'application.type.title' | translate }}"
-                  placeholder="{{ 'application.type.label' | translate }}"
-                  formControlName="type"
-                  name="application.type"
-                  ngDefaultControl>
+                [attr.readonly]="!canUpdate ? 'readonly' : null"
+                class="form__control"
+                label="{{ 'application.type.title' | translate }}"
+                placeholder="{{ 'application.type.label' | translate }}"
+                formControlName="type"
+                name="application.type"
+                ngDefaultControl>
               </gv-input>
             </div>
           </div>
 
+          <gv-file-upload *ngIf="canUpdate"
+                          name="background"
+                          formControlName="background"
+                          ngDefaultControl
+                          accept="image/*"
+                          except=".svg"
+                          limit="500000"
+                          [label]="'application.change_background' | translate"></gv-file-upload>
+
+          <gv-identity-picture *ngIf="!canUpdate" [picture]="application.background" [display_name]="'bg-' + displayName">
+          </gv-identity-picture>
         </div>
 
         <div>
@@ -90,24 +101,24 @@
           <div formGroupName="oauth">
 
             <gv-input
-                clipboard
-                class="form__control"
-                label="{{ 'application.client_id.title' | translate }}"
-                placeholder="{{ 'application.client_id.label' | translate }}"
-                formControlName="client_id"
-                name="application.client_id"
-                ngDefaultControl>
+              clipboard
+              class="form__control"
+              label="{{ 'application.client_id.title' | translate }}"
+              placeholder="{{ 'application.client_id.label' | translate }}"
+              formControlName="client_id"
+              name="application.client_id"
+              ngDefaultControl>
             </gv-input>
 
             <div class="form__control form__control_inline">
               <gv-input
-                  clipboard
-                  type="password"
-                  label="{{ 'application.client_secret.title' | translate }}"
-                  placeholder="{{ 'application.client_secret.label' | translate }}"
-                  formControlName="client_secret"
-                  name="application.client_secret"
-                  ngDefaultControl>
+                clipboard
+                type="password"
+                label="{{ 'application.client_secret.title' | translate }}"
+                placeholder="{{ 'application.client_secret.label' | translate }}"
+                formControlName="client_secret"
+                name="application.client_secret"
+                ngDefaultControl>
               </gv-input>
               <gv-confirm *ngIf="canUpdate && application.settings.oauth.renew_client_secret_supported"
                           [message]="'application.renewSecret.message' | translate" (:gv-confirm:ok)="renewSecret()">
@@ -137,17 +148,17 @@
               <div class="grid-column" *ngIf="requiresRedirectUris">
                 <div class="form__control">
                   <gv-input
-                      autofocus
-                      clickable
-                      no-submit
-                      (:gv-input:submit)="addRedirectUri($event)"
-                      (blur)="addRedirectUri($event)"
-                      [label]="('applicationType.security.redirectUris.label' | translate)"
-                      [valid]="validRedirectUris"
-                      [invalid]="!validRedirectUris"
-                      type="url"
-                      placeholder="https://example.com"
-                      icon="code:plus"></gv-input>
+                    autofocus
+                    clickable
+                    no-submit
+                    (:gv-input:submit)="addRedirectUri($event)"
+                    (blur)="addRedirectUri($event)"
+                    [label]="('applicationType.security.redirectUris.label' | translate)"
+                    [valid]="validRedirectUris"
+                    [invalid]="!validRedirectUris"
+                    type="url"
+                    placeholder="https://example.com"
+                    icon="code:plus"></gv-input>
                 </div>
                 <div *ngIf="redirectURIs.controls.length > 0">
                   <div class="label">{{ 'applicationType.security.redirectUris.description' | translate }}</div>
@@ -200,18 +211,19 @@
       </div>
       <div class="page__box-content">
         <ul class="info__miscellaneous">
-            <li class="info__miscellaneous_item">
-              <span>{{'application.information.owner' | translate}}</span> {{ application.owner.display_name }}
-            </li>
-            <li class="info__miscellaneous_item">
-              <span>{{'application.information.type' | translate}}</span> {{ 'application.types' | translate: {type: application.applicationType} }}
-            </li>
-            <li class="info__miscellaneous_item">
-              <span>{{'application.information.createdDate' | translate}}</span> {{ toLocaleDateString(application.created_at.toString()) }}
-            </li>
-            <li class="info__miscellaneous_item">
-              <span>{{'application.information.lastUpdate' | translate}}</span> <gv-relative-time [datetime]="application.updated_at" noFuture></gv-relative-time>
-            </li>
+          <li class="info__miscellaneous_item">
+            <span>{{'application.information.owner' | translate}}</span> {{ application.owner.display_name }}
+          </li>
+          <li class="info__miscellaneous_item">
+            <span>{{'application.information.type' | translate}}</span> {{ 'application.types' | translate: { type: application.applicationType } }}
+          </li>
+          <li class="info__miscellaneous_item">
+            <span>{{'application.information.createdDate' | translate}}</span> {{ toLocaleDateString(application.created_at.toString()) }}
+          </li>
+          <li class="info__miscellaneous_item">
+            <span>{{'application.information.lastUpdate' | translate}}</span>
+            <gv-relative-time [datetime]="application.updated_at" noFuture></gv-relative-time>
+          </li>
         </ul>
       </div>
     </div>

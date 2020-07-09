@@ -84,6 +84,9 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       this.applicationForm.get('picture').valueChanges.subscribe((picture) => {
         this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.UPDATE_PICTURE, { data: picture }));
       });
+      this.applicationForm.get('background').valueChanges.subscribe((background) => {
+        this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.UPDATE_BACKGROUND, { data: background }));
+      });
 
       this.connectedApis = this.applicationService.getSubscriberApisByApplicationId({
         applicationId: this.application.id,
@@ -128,6 +131,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       name: new FormControl(this.application.name, [Validators.required]),
       description: new FormControl(this.application.description, [Validators.required]),
       picture: new FormControl(this.application.picture),
+      background: new FormControl(this.application.background),
       settings
     });
   }
