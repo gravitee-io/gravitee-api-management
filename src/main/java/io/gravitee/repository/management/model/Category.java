@@ -36,6 +36,7 @@ public class Category {
     private int order;
     private String highlightApi;
     private String picture;
+    private String background;
     private Date createdAt;
     private Date updatedAt;
 
@@ -125,6 +126,14 @@ public class Category {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 
     @Override

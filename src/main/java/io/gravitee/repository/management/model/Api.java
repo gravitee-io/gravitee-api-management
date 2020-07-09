@@ -105,6 +105,8 @@ public class Api {
 
     private ApiLifecycleState apiLifecycleState = ApiLifecycleState.CREATED;
 
+    private String background;
+
     public Api(){}
 
     public Api(Api cloned) {
@@ -120,6 +122,7 @@ public class Api {
         this.visibility = cloned.visibility;
         this.lifecycleState = cloned.lifecycleState;
         this.picture = cloned.picture;
+        this.background = cloned.background;
         this.groups = cloned.groups;
         this.categories = cloned.categories;
         this.labels = cloned.labels;
@@ -252,6 +255,14 @@ public class Api {
 
     public void setApiLifecycleState(ApiLifecycleState apiLifecycleState) {
         this.apiLifecycleState = apiLifecycleState;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 
     @Override
