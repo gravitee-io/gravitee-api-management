@@ -38,6 +38,7 @@ class ImageDirective {
         changeLabel: '@',
         deleteLabel: '@',
         canDelete: '=',
+        successEventName: '@',
       },
       template: require('./image.html'),
       controller: ImageController,
@@ -71,7 +72,9 @@ class ImageController {
           if (this.$scope.imageForm) {
             this.$scope.imageForm.$setDirty();
           }
-          this.$rootScope.$broadcast('apiPictureChangeSuccess', { image: image });
+          if (this.$scope.successEventName) {
+            this.$rootScope.$broadcast(this.$scope.successEventName, { image: image });
+          }
         }
       });
     }
@@ -87,7 +90,7 @@ class ImageController {
 
   onDelete() {
     this.$scope.image = null;
-    this.$rootScope.$broadcast('apiPictureChangeSuccess', { image: this.$scope.image });
+    this.$rootScope.$broadcast(this.$scope.successEventName, { image: this.$scope.image });
     if (this.$scope.imageForm) {
       this.$scope.imageForm.$setDirty();
     }

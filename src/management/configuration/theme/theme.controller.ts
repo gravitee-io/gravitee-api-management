@@ -146,7 +146,7 @@ class ThemeController {
     };
     $scope.isDetached = false;
 
-    $scope.$on('apiPictureChangeSuccess', (event, args) => {
+    $scope.$on('themePictureChangeSuccess', (event, args) => {
       if ($scope.hasPreview()) {
         setTimeout(() => {
           this.onDataChanged();
@@ -444,6 +444,7 @@ class ThemeController {
       const reader = new FileReader();
       reader.readAsText(file);
       reader.onload = (event) => {
+        // @ts-ignore
         const theme = Object.assign({}, this.$scope.theme, JSON.parse(event.target.result));
         this.setTheme(theme);
         this.onDataChanged();

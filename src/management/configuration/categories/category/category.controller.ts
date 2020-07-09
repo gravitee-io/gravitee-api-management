@@ -48,10 +48,13 @@ class CategoryController {
   $onInit() {
     this.addedAPIs = [];
     this.selectedAPIs = (this.categoryApis) ? this.categoryApis.slice(0) : [];
-    let self = this;
-    this.$scope.$on('apiPictureChangeSuccess', function(event, args) {
-      self.category.picture = args.image;
-      self.formChanged = true;
+    this.$scope.$on('categoryPictureChangeSuccess', (event, args) => {
+      this.category.picture = args.image;
+      this.formChanged = true;
+    });
+    this.$scope.$on('categoryBackgroundChangeSuccess', (event, args) => {
+      this.category.background = args.image;
+      this.formChanged = true;
     });
   }
 

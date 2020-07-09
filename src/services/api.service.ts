@@ -125,6 +125,7 @@ class ApiService {
         'properties': api.properties,
         'tags': api.tags,
         'picture': api.picture,
+        'background': api.background,
         'resources': api.resources,
         'categories': api.categories,
         'groups': api.groups,

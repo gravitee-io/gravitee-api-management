@@ -79,7 +79,6 @@ import {SubmenuComponent} from '../components/sidenav/submenu.component';
 import { NavbarComponent } from '../components/navbar/navbar.component';
 
 // Api
-import ApiHeaderComponent from '../management/api/header/api-header.component';
 import ApiCreationComponent from '../management/api/creation/steps/api-creation.component';
 import ApiCreationController from '../management/api/creation/steps/api-creation.controller';
 import ApiCreationStep1Component from '../management/api/creation/steps/api-creation-step1.component';
@@ -344,7 +343,6 @@ import runBlock from './management.run';
 
 import uiRouter from '@uirouter/angularjs';
 import {permission, uiPermission} from 'angular-permission';
-import ApiHeaderController from './api/header/api-header.controller';
 
 import ChartService from '../services/chart.service';
 import DialogAddNotificationSettingsController
@@ -627,7 +625,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .run(runBlock)
   .controller('ApisController', ApisController)
   .controller('ApiAdminController', ApiAdminController)
-  .controller('ApiHeaderController', ApiHeaderController)
   .controller('ApiAnalyticsController', ApiAnalyticsController)
   .controller('ApiPoliciesController', ApiPoliciesController)
   .controller('AddPoliciesPathController', AddPoliciesPathController)
@@ -778,7 +775,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('instanceEnvironment', InstanceEnvironmentComponent)
   .component('instanceMonitoring', InstanceMonitoringComponent)
 
-  .component('apiHeader', ApiHeaderComponent)
   .component('apiCreation', ApiCreationComponent)
   .controller('ApiCreationController', ApiCreationController)
   .controller('NewApiController', NewApiController)

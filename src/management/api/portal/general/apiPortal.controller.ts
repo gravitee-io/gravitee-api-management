@@ -236,6 +236,7 @@ class ApiPortalController {
         _(_that.$scope.selected).forEach(function (endpoint) {
           _(_that.api.proxy.endpoints).forEach(function (endpoint2, index, object) {
             if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
+              // @ts-ignore
               object.splice(index, 1);
             }
           });

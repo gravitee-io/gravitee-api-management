@@ -62,14 +62,17 @@ class ApiAdminController {
   }
 
   init() {
-    var self = this;
-    this.$scope.$on('apiPictureChangeSuccess', function (event, args) {
-      self.api.picture = args.image;
-      self.updatePicture(self.api);
+    this.$scope.$on('apiPictureChangeSuccess', (event, args) => {
+      this.api.picture = args.image;
+      this.update(this.api);
     });
-    this.$scope.$on('apiChangeSuccess', function (event, args) {
-      self.api = args.api;
-      self.checkAPISynchronization(self.api);
+    this.$scope.$on('apiBackgroundChangeSuccess', (event, args) => {
+      this.api.background = args.image;
+      this.update(this.api);
+    });
+    this.$scope.$on('apiChangeSuccess', (event, args) => {
+      this.api = args.api;
+      this.checkAPISynchronization(this.api);
     });
 
     this.menu = {
@@ -116,7 +119,6 @@ class ApiAdminController {
 
   showDeployAPIConfirm(ev, api) {
     ev.stopPropagation();
-    let self = this;
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
@@ -126,9 +128,9 @@ class ApiAdminController {
         title: 'Would you like to deploy your API?',
         confirmButton: 'OK'
       }
-    }).then(function (response) {
+    }).then((response) => {
       if (response) {
-        self.deploy(api);
+        this.deploy(api);
       }
     });
   }
@@ -185,7 +187,7 @@ class ApiAdminController {
     });
   }
 
-  updatePicture(api) {
+  update(api) {
     this.ApiService.update(api).then(updatedApi => {
       this.api = updatedApi.data;
       this.api.etag = updatedApi.headers('etag');

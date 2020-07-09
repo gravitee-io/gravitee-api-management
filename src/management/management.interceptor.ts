@@ -38,7 +38,7 @@ function interceptorConfig(
         let errorMessage = '';
 
         const notificationService = ($injector.get('NotificationService') as NotificationService);
-        const userService =  ($injector.get('UserService') as UserService);
+        const userService = ($injector.get('UserService') as UserService);
         const $timeout = $injector.get('$timeout');
         if (unauthorizedError) {
           if (error.config.headers.Authorization) {
@@ -61,7 +61,7 @@ function interceptorConfig(
                 userService.removeCurrentUserData();
                 $injector.get('$rootScope').$broadcast('graviteeUserRefresh', {});
                 $injector.get('$rootScope').$broadcast('graviteeUserCancelScheduledServices');
-                $injector.get('$rootScope').$broadcast('graviteeLogout', {redirectUri: redirectUri});
+                $injector.get('$rootScope').$broadcast('graviteeLogout', { redirectUri: redirectUri });
               }, 2000);
             }
           }
@@ -79,7 +79,9 @@ function interceptorConfig(
           notificationService.showError(error, errorMessage);
           if (error.status === 403) {
             // if the user try to access a forbidden resource (after redirection for example), do not stay on login form
-            $timeout(function () {$state.go('management'); });
+            $timeout(function () {
+              $state.go('management');
+            });
           }
         }
       }
@@ -119,13 +121,13 @@ function interceptorConfig(
         config.headers['X-Xsrf-Token'] = xsrfToken;
         return config;
       },
-      response: function(response) {
+      response: function (response) {
         if (response.headers('X-Xsrf-Token')) {
           xsrfToken = response.headers('X-Xsrf-Token');
         }
         return response;
       },
-      responseError: function(response) {
+      responseError: function (response) {
         if (response.headers('X-Xsrf-Token')) {
           xsrfToken = response.headers('X-Xsrf-Token');
         }
