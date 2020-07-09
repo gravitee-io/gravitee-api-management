@@ -67,6 +67,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiUpdated.getGroups()).thenReturn(singleton("New group"));
         when(apiUpdated.getLifecycleState()).thenReturn(STARTED);
         when(apiUpdated.getPicture()).thenReturn("New picture");
+        when(apiUpdated.getBackground()).thenReturn("New background");
         when(apiUpdated.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(apiUpdated.getUpdatedAt()).thenReturn(parse("13/11/2016"));
         when(apiUpdated.getVersion()).thenReturn("New version");

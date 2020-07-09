@@ -114,6 +114,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         metadata.put("type", "update-type");
         application.setMetadata(metadata);
         application.setPicture("New picture");
+        application.setBackground("New background");
         application.setStatus(ApplicationStatus.ARCHIVED);
         application.setType(ApplicationType.SIMPLE);
         application.setCreatedAt(parse("11/02/2016"));
@@ -134,6 +135,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Invalid updated application updateAt.", compareDate(application.getUpdatedAt(), appUpdated.getUpdatedAt()));
         assertEquals("Invalid application metadata.", application.getMetadata().get("type"), appUpdated.getMetadata().get("type"));
         assertEquals("Invalid updated application picture.", application.getPicture(), appUpdated.getPicture());
+        assertEquals("Invalid updated application background.", application.getBackground(), appUpdated.getBackground());
     }
 
     @Test

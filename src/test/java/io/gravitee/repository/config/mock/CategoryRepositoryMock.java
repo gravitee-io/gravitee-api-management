@@ -16,8 +16,6 @@
 package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.CategoryRepository;
-import io.gravitee.repository.management.api.CategoryRepository;
-import io.gravitee.repository.management.model.Category;
 import io.gravitee.repository.management.model.Category;
 
 import java.util.Date;
@@ -52,6 +50,7 @@ public class CategoryRepositoryMock extends AbstractRepositoryMock<CategoryRepos
         when(newCategory.isHidden()).thenReturn(true);
         when(newCategory.getOrder()).thenReturn(1);
         when(newCategory.getPicture()).thenReturn("New picture");
+        when(newCategory.getBackground()).thenReturn("New background");
 
         final Category categoryProducts = new Category();
         categoryProducts.setId("category");
@@ -72,6 +71,7 @@ public class CategoryRepositoryMock extends AbstractRepositoryMock<CategoryRepos
         when(categoryProductsUpdated.getOrder()).thenReturn(10);
         when(categoryProductsUpdated.getHighlightApi()).thenReturn("new Highlighted API");
         when(categoryProductsUpdated.getPicture()).thenReturn("New picture");
+        when(categoryProductsUpdated.getBackground()).thenReturn("New background");
 
         final Category myCategory = new Category();
         myCategory.setId("123");

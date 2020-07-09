@@ -72,6 +72,7 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         category.setHidden(true);
         category.setOrder(1);
         category.setPicture("New picture");
+        category.setBackground("New background");
 
         int nbCategorysBeforeCreation = categoryRepository.findAll().size();
         categoryRepository.create(category);
@@ -93,6 +94,7 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid category hidden.", category.isHidden(), categorySaved.isHidden());
         Assert.assertEquals("Invalid category order.", category.getOrder(), categorySaved.getOrder());
         Assert.assertEquals("Invalid category picture.", "New picture", categorySaved.getPicture());
+        Assert.assertEquals("Invalid category background.", "New background", categorySaved.getBackground());
     }
 
     @Test
@@ -110,6 +112,7 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         category.setUpdatedAt(new Date(1486771200000L));
         category.setHighlightApi("new Highlighted API");
         category.setPicture("New picture");
+        category.setBackground("New background");
 
         int nbCategorysBeforeUpdate = categoryRepository.findAll().size();
         categoryRepository.update(category);
@@ -130,6 +133,7 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid category order.", category.getOrder(), categoryUpdated.getOrder());
         Assert.assertEquals("Invalid category highlight API.", category.getHighlightApi(), categoryUpdated.getHighlightApi());
         Assert.assertEquals("Invalid category picture.", "New picture", categoryUpdated.getPicture());
+        Assert.assertEquals("Invalid category background.", "New background", categoryUpdated.getBackground());
     }
 
     @Test
