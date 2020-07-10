@@ -419,15 +419,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         userMembership.setReference(membership.getReferenceId());
                         userMembership.setSource(membership.getSource());
                         RoleEntity role = roleMap.get(membership.getRoleId());
-                        int key = userMembership.hashCode();
-                        if (userMembershipMap.containsKey(key)) {
-                            userMembershipMap.get(key).getRoles().put(role.getScope().name(), role.getName());
+                        if (role != null) {
+                            int key = userMembership.hashCode();
+                            if (userMembershipMap.containsKey(key)) {
+                                userMembershipMap.get(key).getRoles().put(role.getScope().name(), role.getName());
 
-                        } else {
-                            HashMap<String, String> roles = new HashMap<>();
-                            roles.put(role.getScope().name(), role.getName());
-                            userMembership.setRoles(roles);
-                            userMembershipMap.put(userMembership.hashCode(), userMembership);
+                            } else {
+                                HashMap<String, String> roles = new HashMap<>();
+                                roles.put(role.getScope().name(), role.getName());
+                                userMembership.setRoles(roles);
+                                userMembershipMap.put(userMembership.hashCode(), userMembership);
+                            }
                         }
                     });
             Set<UserMembership> userMemberships = new HashSet<>(userMembershipMap.values());
