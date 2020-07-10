@@ -62,6 +62,9 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.ssl.truststore.password:#{null}}")
     private String trustStorePassword;
 
+    @Value("${http.ssl.tlsProtocols:#{null}}")
+    private String tlsProtocols;
+
     @Value("${http.compressionSupported:" + HttpServerOptions.DEFAULT_COMPRESSION_SUPPORTED + "}")
     private boolean compressionSupported;
 
@@ -126,6 +129,14 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     public void setTrustStorePassword(String trustStorePassword) {
         this.trustStorePassword = trustStorePassword;
+    }
+
+    public String getTlsProtocols() {
+        return tlsProtocols;
+    }
+
+    public void setTlsProtocols(String tlsProtocols) {
+        this.tlsProtocols = tlsProtocols;
     }
 
     public String getTrustStorePath() {

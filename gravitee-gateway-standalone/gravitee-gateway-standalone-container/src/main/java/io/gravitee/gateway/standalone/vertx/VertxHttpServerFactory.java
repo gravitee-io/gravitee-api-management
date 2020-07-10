@@ -26,6 +26,9 @@ import io.vertx.core.net.PfxOptions;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -56,6 +59,9 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
         if (httpServerConfiguration.isSecured()) {
             options.setSsl(httpServerConfiguration.isSecured());
             options.setUseAlpn(httpServerConfiguration.isAlpn());
+            if(httpServerConfiguration.getTlsProtocols() != null) {
+                options.setEnabledSecureTransportProtocols(new HashSet<String>(Arrays.asList(httpServerConfiguration.getTlsProtocols().split(","))));
+            }
 
             if (httpServerConfiguration.isClientAuth() == VertxHttpServerConfiguration.ClientAuthMode.NONE) {
                 options.setClientAuth(ClientAuth.NONE);
