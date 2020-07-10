@@ -42,6 +42,9 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.alpn:false}")
     private boolean alpn;
 
+    @Value("${http.tlsv13:false}")
+    private boolean tlsv13;
+    
     private ClientAuthMode clientAuth;
 
     @Value("${http.ssl.keystore.type:#{null}}")
@@ -176,6 +179,14 @@ public class VertxHttpServerConfiguration implements InitializingBean {
         this.alpn = alpn;
     }
 
+    public boolean isTlsv13() {
+        return tlsv13;
+    }
+
+    public void setTlsv13(boolean tlsv13) {
+        this.tlsv13 = tlsv13;
+    }
+    
     public int getMaxHeaderSize() {
         return maxHeaderSize;
     }
