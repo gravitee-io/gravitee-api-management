@@ -27,6 +27,8 @@ import java.util.List;
  */
 public class ImportSwaggerDescriptorEntity {
 
+    private Format format = Format.API;
+
     private Type type = Type.INLINE;
 
     @NotNull
@@ -60,6 +62,14 @@ public class ImportSwaggerDescriptorEntity {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public Format getFormat() {
+        return format;
+    }
+
+    public void setFormat(Format format) {
+        this.format = format;
     }
 
     public String getPayload() {
@@ -105,5 +115,10 @@ public class ImportSwaggerDescriptorEntity {
     public enum Type {
         INLINE,
         URL
+    }
+
+    public enum Format {
+        WSDL,
+        API
     }
 }

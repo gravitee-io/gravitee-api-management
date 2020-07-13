@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Format;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
@@ -24,6 +26,7 @@ import io.gravitee.rest.api.service.impl.swagger.converter.api.SwaggerV2ToAPICon
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.parser.SwaggerV1Parser;
 import io.gravitee.rest.api.service.impl.swagger.parser.SwaggerV2Parser;
+import io.gravitee.rest.api.service.impl.swagger.parser.WsdlParser;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v2.SwaggerOperationVisitor;
@@ -42,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.print.DocFlavor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
@@ -70,7 +72,13 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     @Override
     public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        SwaggerDescriptor descriptor = parse(swaggerDescriptor.getPayload());
+        boolean wsdlImport = Format.WSDL.equals(swaggerDescriptor.getFormat());
+        SwaggerDescriptor descriptor = parse(swaggerDescriptor.getPayload(), wsdlImport);
+        if (wsdlImport) {
+            overridePayload(swaggerDescriptor, descriptor);
+            populateXmlToJsonPolicy(swaggerDescriptor);
+        }
+
         if (descriptor != null) {
             if (descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V1 || descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V2) {
                 List<SwaggerOperationVisitor> visitors = policyOperationVisitorManager.getPolicyVisitors().stream()
@@ -95,6 +103,32 @@ public class SwaggerServiceImpl implements SwaggerService {
         throw new SwaggerDescriptorException();
     }
 
+    /**
+     * Override the payload attribute of swaggerDescriptor by the JSON representation of the descriptor.
+     * This is useful in case of WSDL import to generate a swagger page instead of exposing the WSDL.
+     *
+     * @param swaggerDescriptor
+     * @param descriptor
+     */
+    private void overridePayload(ImportSwaggerDescriptorEntity swaggerDescriptor, SwaggerDescriptor descriptor) {
+        try {
+            swaggerDescriptor.setPayload(descriptor.toYaml());
+            swaggerDescriptor.setType(ImportSwaggerDescriptorEntity.Type.INLINE);
+        } catch (JsonProcessingException e) {
+            logger.debug("JSON serialization failed, unable to override payload attribute", e);
+        }
+    }
+
+    /**
+     * Enable the Xml-to-Json policy OperationVisitor if the rest-to-soap policy is required.
+     * @param swaggerDescriptor
+     */
+    private void populateXmlToJsonPolicy(ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        if (swaggerDescriptor.getWithPolicies().contains("rest-to-soap")) {
+            swaggerDescriptor.getWithPolicies().add("xml-json");
+        }
+    }
+
     @Override
     public <Y, T extends SwaggerDescriptor<Y>> void transform(T descriptor, Collection<SwaggerTransformer<T>> transformers) {
         if (transformers != null) {
@@ -104,35 +138,50 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     @Override
     public SwaggerDescriptor parse(String content) {
+        return parse(content, false);
+    }
+
+    public SwaggerDescriptor parse(String content, boolean wsdl) {
         Object descriptor;
 
-        // try to read swagger in version 2
-        logger.debug("Trying to load a Swagger v2 descriptor");
-
-        if(isUrl(content)) {
+        if (isUrl(content)) {
             UrlSanitizerUtils.checkAllowed(content, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
         }
 
-        descriptor = new SwaggerV2Parser().parse(content);
+        if (wsdl) {
+            // try to read wsdl
+            logger.debug("Trying to load a Wsdl descriptor");
 
-        if (descriptor != null) {
-            return new SwaggerV2Descriptor((Swagger) descriptor);
-        }
+            descriptor = new WsdlParser().parse(content);
 
-        // try to read swagger in version 3 (openAPI)
-        logger.debug("Trying to load an OpenAPI descriptor");
-        descriptor = new OAIParser().parse(content);
+            if (descriptor != null) {
+                return new OAIDescriptor((OpenAPI) descriptor);
+            }
+        } else {
+            // try to read swagger in version 2
+            logger.debug("Trying to load a Swagger v2 descriptor");
 
-        if (descriptor != null) {
-            return new OAIDescriptor((OpenAPI) descriptor);
-        }
+            descriptor = new SwaggerV2Parser().parse(content);
 
-        // try to read swagger in version 1
-        logger.debug("Trying to load an old Swagger descriptor");
-        descriptor = new SwaggerV1Parser().parse(content);
+            if (descriptor != null) {
+                return new SwaggerV2Descriptor((Swagger) descriptor);
+            }
 
-        if (descriptor != null) {
-            return new SwaggerV1Descriptor((Swagger) descriptor);
+            // try to read swagger in version 3 (openAPI)
+            logger.debug("Trying to load an OpenAPI descriptor");
+            descriptor = new OAIParser().parse(content);
+
+            if (descriptor != null) {
+                return new OAIDescriptor((OpenAPI) descriptor);
+            }
+
+            // try to read swagger in version 1
+            logger.debug("Trying to load an old Swagger descriptor");
+            descriptor = new SwaggerV1Parser().parse(content);
+
+            if (descriptor != null) {
+                return new SwaggerV1Descriptor((Swagger) descriptor);
+            }
         }
 
         throw new SwaggerDescriptorException();

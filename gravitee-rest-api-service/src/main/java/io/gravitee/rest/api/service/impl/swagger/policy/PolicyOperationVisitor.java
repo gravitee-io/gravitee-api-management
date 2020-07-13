@@ -63,4 +63,10 @@ public class PolicyOperationVisitor {
     public void setOaiOperationVisitor(OAIOperationVisitor oaiOperationVisitor) {
         this.oaiOperationVisitor = oaiOperationVisitor;
     }
+
+    public boolean display() {
+        return (oaiOperationVisitor == null && swaggerOperationVisitor == null)
+                || (swaggerOperationVisitor != null && swaggerOperationVisitor.display())
+                || (oaiOperationVisitor != null && oaiOperationVisitor.display());
+    }
 }

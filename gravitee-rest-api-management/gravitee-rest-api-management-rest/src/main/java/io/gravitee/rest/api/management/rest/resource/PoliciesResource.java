@@ -104,6 +104,7 @@ public class PoliciesResource {
     public List<PolicyListItem> getSwaggerPolicy() {
         return policyOperationVisitorManager.getPolicyVisitors()
                 .stream()
+                .filter(operationVisitor -> operationVisitor.display())
                 .map(operationVisitor -> {
                     PolicyListItem item = new PolicyListItem();
                     item.setId(operationVisitor.getId());

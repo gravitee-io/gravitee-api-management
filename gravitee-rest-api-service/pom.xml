@@ -66,6 +66,11 @@
 			<artifactId>gravitee-rest-api-fetcher</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.gravitee.rest.api</groupId>
+			<artifactId>gravitee-spec-converter</artifactId>
+			<version>${project.version}</version>
+		</dependency>
         <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-api</artifactId>
