@@ -46,7 +46,8 @@ const ImportComponent: ng.IComponentOptions = {
       this.importURLMode = false;
       this.importURLTypes = [
         {id: 'SWAGGER', name: 'Swagger / OpenAPI'},
-        {id: 'GRAVITEE', name: 'API Definition'}
+        {id: 'GRAVITEE', name: 'API Definition'},
+        {id: 'WSDL', name: 'WSDL'}
       ];
       this.importURLType = 'SWAGGER';
       this.apiDescriptorURL = null;
@@ -67,6 +68,8 @@ const ImportComponent: ng.IComponentOptions = {
         return 'Enter Swagger descriptor URL';
       } else if (this.importURLType === 'GRAVITEE') {
         return 'Enter API definition URL';
+      } else if (this.importURLType === 'WSDL') {
+        return 'Enter WSDL definition URL';
       }
     };
 
@@ -75,12 +78,12 @@ const ImportComponent: ng.IComponentOptions = {
     };
 
     this.isSwaggerImport = () => {
-      if (this.importURLMode && this.importURLType === 'SWAGGER') {
+      if (this.importURLMode && this.importURLType !== 'GRAVITEE') {
         return true;
       }
 
       if (this.importFileMode && this.importAPIFile) {
-        var extension = this.importAPIFile.name.split('.').pop();
+        var extension = this.importAPIFile.name.split('.').pop().toLowerCase( );
         switch (extension) {
           case 'yml' :
           case 'yaml' :
@@ -90,6 +93,9 @@ const ImportComponent: ng.IComponentOptions = {
               return true;
             }
             break;
+          case 'wsdl' :
+          case 'xml' :
+            return true;
           default:
             return false;
         }
@@ -123,9 +129,26 @@ const ImportComponent: ng.IComponentOptions = {
       }
     };
 
+    this.isWsdl = () => {
+      if (this.importFileMode) {
+        var extension = this.importAPIFile.name.split('.').pop().toLowerCase( );
+        switch (extension) {
+          case 'wsdl' :
+          case 'xml' :
+              return true;
+          default:
+            return false;
+        }
+      } else if (this.importURLType === 'WSDL') {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
     this.importAPI = () => {
       if (this.importFileMode) {
-        var extension = this.importAPIFile.name.split('.').pop();
+        var extension = this.importAPIFile.name.split('.').pop().toLowerCase( );
         switch (extension) {
           case 'yml' :
           case 'yaml' :
@@ -141,6 +164,10 @@ const ImportComponent: ng.IComponentOptions = {
               }
             }
             break;
+          case 'wsdl' :
+          case 'xml' :
+              this.importWSDL();
+              break;
           default:
             this.enableFileImport = false;
             NotificationService.showError('Input file must be a valid API definition file.');
@@ -149,6 +176,8 @@ const ImportComponent: ng.IComponentOptions = {
         this.importSwagger();
       } else if (this.importURLType === 'GRAVITEE') {
         this.importGraviteeIODefinition();
+      } else if (this.importURLType === 'WSDL') {
+        this.importWSDL();
       }
       if (this.isForUpdate()) {
         this.cancel();
@@ -170,6 +199,14 @@ const ImportComponent: ng.IComponentOptions = {
     };
 
     this.importSwagger = () => {
+      this.importApiSpecification('API');
+    };
+
+    this.importWSDL = () => {
+      this.importApiSpecification('WSDL');
+    };
+
+    this.importApiSpecification = (format) => {
       let swagger: any = {
         with_documentation: this.importCreateDocumentation,
         with_path_mapping: this.importCreatePathMapping,
@@ -184,6 +221,8 @@ const ImportComponent: ng.IComponentOptions = {
         swagger.type = 'URL';
         swagger.payload = this.apiDescriptorURL;
       }
+
+      swagger.format = format;
 
       if (this.isForUpdate()) {
         // @ts-ignore

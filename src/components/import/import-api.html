@@ -33,22 +33,22 @@
   </md-tabs>
 
   <div style="margin:24px;" ng-class="{'gv-swagger-conf-update': $ctrl.isForUpdate() }" layout="column" ng-if="$ctrl.isSwaggerImport()">
-    <h4>Swagger import configurations:</h4>
+    <h4>{{($ctrl.isWsdl() ? 'WSDL' : 'Swagger')}} import configurations:</h4>
     <div class="gv-warn" style="padding-bottom: 10px" ng-show="$ctrl.isForUpdate()">This will overwrite the name, the description and the version.</div>
     <md-checkbox ng-model="$ctrl.importCreateDocumentation" aria-label="($ctrl.isForUpdate() ? 'Update' : 'Create') documentation pages" flex ng-change="$ctrl.updateWarnText()">
       {{($ctrl.isForUpdate() ? 'Update' : 'Create')}} documentation
-      <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update the' : 'Add a')}} documentation page with the content of the swagger descriptor.</div>
+      <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update the' : 'Add a')}} documentation page with the content of the {{($ctrl.isWsdl() ? 'WSDL' : 'swagger')}} descriptor.</div>
       <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreateDocumentation">This will overwrite the swagger documentation if there is only one existing, or create it if it does not exist yet.</div>
     </md-checkbox>
     <md-checkbox ng-model="$ctrl.importCreatePathMapping" aria-label="($ctrl.isForUpdate() ? 'Update' : 'Create') the path-mapping for analytics" flex ng-change="$ctrl.updateWarnText()">
       {{($ctrl.isForUpdate() ? 'Update' : 'Create')}} the path-mapping for analytics
-      <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update' : 'Create')}} each path from the swagger descriptor.</div>
+      <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update' : 'Create')}} each path from the {{($ctrl.isWsdl() ? 'WSDL' : 'swagger')}} descriptor.</div>
       <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreatePathMapping">This will overwrite all the path-mappings.</div>
     </md-checkbox>
     <md-checkbox ng-model="$ctrl.importCreatePolicyPaths" aria-label="($ctrl.isForUpdate() ? 'Update' : 'Create') paths for policies"
                   ng-click="$ctrl.importCreateMocks = false" flex ng-change="$ctrl.updateWarnText()">
                   {{($ctrl.isForUpdate() ? 'Update' : 'Create')}} policies on paths
-      <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update' : 'Create')}} each path from the swagger descriptor.</div>
+      <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update' : 'Create')}} each path from the {{($ctrl.isWsdl() ? 'WSDL' : 'swagger')}} descriptor.</div>
       <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreatePolicyPaths">This will overwrite all the policies.</div>
     </md-checkbox>
 
@@ -61,7 +61,7 @@
       ng-disabled="!$ctrl.importCreatePolicyPaths" style="margin-left: 20px;">
 
       Apply {{::policy.name}} policy
-      <div class="ipsum" style="color: grey;">Apply policy on each path from the swagger descriptor.</div>
+      <div class="ipsum" style="color: grey;">Apply policy on each path from the {{($ctrl.isWsdl() ? 'WSDL' : 'swagger')}} descriptor.</div>
       <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreateMocks">This will overwrite all the existing policy.</div>
     </md-checkbox>
   </div>
