@@ -207,8 +207,10 @@ export class AnalyticsService {
   private static buildQueryParam(queryParam, q: string) {
     queryParam = (q === 'body') ? ('*' + queryParam + '*') : queryParam;
     queryParam = (q === 'uri') ? (queryParam + '*') : queryParam;
-    queryParam = '\\"' + queryParam + '\\"';
-    queryParam = queryParam.replace(/\//g, '\\\\/');
+    if (queryParam !== '?') {
+      queryParam = '\\"' + queryParam + '\\"';
+      queryParam = queryParam.replace(/\//g, '\\\\/');
+    }
     return queryParam;
   }
 
