@@ -73,9 +73,8 @@ class AnalyticsService {
       const queryFilters = {};
       q.split(/\s(OR|AND)\s/).forEach(q => {
         if (q.includes(':')) {
-          let param = q.split(':');
-          let keyParam = this.cleanParam(param[0]);
-          let valueParam = this.cleanParam(param[1]);
+          let keyParam = this.cleanParam(q.substring(0, q.indexOf(':')));
+          let valueParam = this.cleanParam(q.substring(q.indexOf(':') + 1));
           if (queryFilters[keyParam]) {
             queryFilters[keyParam].push(valueParam);
           } else {
@@ -91,8 +90,10 @@ class AnalyticsService {
   buildQueryParam(queryParam, q: string) {
     queryParam = (q === 'body') ? ('*' + queryParam + '*') : queryParam;
     queryParam = (q === 'uri') ? (queryParam + '*') : queryParam;
-    queryParam = '\\"' + queryParam + '\\"';
-    queryParam = queryParam.replace(/\//g, '\\\\/');
+    if (queryParam !== '?') {
+      queryParam = '\\"' + queryParam + '\\"';
+      queryParam = queryParam.replace(/\//g, '\\\\/');
+    }
     return queryParam;
   }
 
