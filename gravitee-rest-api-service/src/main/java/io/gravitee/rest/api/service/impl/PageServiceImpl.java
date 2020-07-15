@@ -29,11 +29,12 @@ import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
@@ -496,7 +497,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
             //only one homepage is allowed
             onlyOneHomepage(page);
-            createAuditLog(apiId, PAGE_CREATED, page.getCreatedAt(), null, page);
+            createAuditLog(PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
+                    PAGE_CREATED, page.getCreatedAt(), null, page);
             PageEntity pageEntity = convert(createdPage);
 
             // add document in search engine
@@ -714,7 +716,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
                     this.changeRelatedPagesPublicationStatus(pageId, updatePageEntity.isPublished());
                 }
 
-                createAuditLog(page.getReferenceId(), PAGE_UPDATED, page.getUpdatedAt(), pageToUpdate, page);
+                createAuditLog(PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
+                        PAGE_UPDATED, page.getUpdatedAt(), pageToUpdate, page);
 
                 PageEntity pageEntity = convert(updatedPage);
 
@@ -1293,7 +1296,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 this.deleteRelatedPages(pageId);
             }
 
-			createAuditLog(page.getReferenceId(), PAGE_DELETED, new Date(), page, null);
+			createAuditLog(PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
+                    PAGE_DELETED, new Date(), page, null);
 
 			// remove from search engine
             searchEngineService.delete(convert(page), false);
@@ -1390,7 +1394,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
             page.setLastContributor(contributor);
 
             Page updatedPage = validateContentAndUpdate(page);
-            createAuditLog(page.getReferenceId(), PAGE_UPDATED, page.getUpdatedAt(), page, page);
+            createAuditLog(PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
+                    PAGE_UPDATED, page.getUpdatedAt(), page, page);
             return convert(updatedPage);
         } catch (TechnicalException ex) {
             throw onUpdateFail(pageId, ex);
@@ -1745,7 +1750,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 		// Validate the url is allowed.
 		UrlSanitizerUtils.checkAllowed(urlOpt.get(), importConfiguration.getImportWhitelist(), false);
-	}private void createAuditLog(String apiId, Audit.AuditEvent event, Date createdAt, Page oldValue, Page newValue) {
+	}
+
+	private void createAuditLog(String apiId, Audit.AuditEvent event, Date createdAt, Page oldValue, Page newValue) {
         String pageId = oldValue != null ? oldValue.getId() : newValue.getId();
         if (apiId == null) {
             auditService.createPortalAuditLog(
