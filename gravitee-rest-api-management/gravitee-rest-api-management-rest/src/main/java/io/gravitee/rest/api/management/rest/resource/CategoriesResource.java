@@ -16,15 +16,18 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.NewCategoryEntity;
+import io.gravitee.rest.api.model.UpdateCategoryEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.CategoryService;
 import io.swagger.annotations.Api;
-
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -54,6 +57,7 @@ public class CategoriesResource extends AbstractCategoryResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Retrieve list of categories")
     public List<CategoryEntity> list()  {
         Set<ApiEntity> apis;
         if (isAdmin()) {
@@ -82,6 +86,9 @@ public class CategoriesResource extends AbstractCategoryResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Create a category",
+            notes = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE)
     })
@@ -92,6 +99,9 @@ public class CategoriesResource extends AbstractCategoryResource  {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Update an existing category",
+            notes = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE)
     })

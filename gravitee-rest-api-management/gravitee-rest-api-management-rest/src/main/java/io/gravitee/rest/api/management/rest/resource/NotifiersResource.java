@@ -16,15 +16,17 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.NotifierEntity;
 import io.gravitee.rest.api.model.NotifierListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.NotifierService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -46,7 +48,7 @@ import java.util.stream.Stream;
  * @author GraviteeSource Team
  */
 @Path("/notifiers")
-@Api(tags = {"Plugin", "Notifier"})
+@Api(tags = {"Plugins"})
 public class NotifiersResource {
 
     @Context
@@ -57,7 +59,11 @@ public class NotifiersResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List notifiers")
+    @ApiOperation(value = "List notifier plugins",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of notifiers", response = NotifierListItem.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })

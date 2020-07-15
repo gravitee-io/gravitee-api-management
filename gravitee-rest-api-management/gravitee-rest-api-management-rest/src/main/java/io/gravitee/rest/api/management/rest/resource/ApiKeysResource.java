@@ -37,7 +37,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"API Keys"})
 public class ApiKeysResource extends AbstractResource {
 
     @Context

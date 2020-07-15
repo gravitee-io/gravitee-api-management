@@ -16,7 +16,12 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
+import io.gravitee.rest.api.management.rest.resource.param.AnalyticsAverageParam;
+import io.gravitee.rest.api.management.rest.resource.param.healthcheck.HealthcheckFieldParam;
+import io.gravitee.rest.api.management.rest.resource.param.healthcheck.HealthcheckTypeParam;
+import io.gravitee.rest.api.management.rest.resource.param.healthcheck.LogsParam;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.query.AggregationType;
 import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
@@ -25,14 +30,6 @@ import io.gravitee.rest.api.model.healthcheck.Log;
 import io.gravitee.rest.api.model.healthcheck.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.resource.param.Aggregation;
-import io.gravitee.rest.api.management.rest.resource.param.AnalyticsAverageParam;
-import io.gravitee.rest.api.management.rest.resource.param.AnalyticsParam;
-import io.gravitee.rest.api.management.rest.resource.param.healthcheck.HealthcheckFieldParam;
-import io.gravitee.rest.api.management.rest.resource.param.healthcheck.HealthcheckTypeParam;
-import io.gravitee.rest.api.management.rest.resource.param.healthcheck.LogsParam;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -42,10 +39,6 @@ import io.swagger.annotations.ApiResponses;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 
@@ -55,7 +48,7 @@ import static java.util.Collections.singletonList;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"API Health"})
 public class ApiHealthResource extends AbstractResource {
 
     @Inject

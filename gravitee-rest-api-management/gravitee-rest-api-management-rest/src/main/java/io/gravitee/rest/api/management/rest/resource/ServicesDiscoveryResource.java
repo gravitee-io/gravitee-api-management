@@ -16,15 +16,17 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ResourceListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ServiceDiscoveryService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -45,7 +47,7 @@ import java.util.stream.Stream;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugin", "Service Discovery"})
+@Api(tags = {"Plugins"})
 public class ServicesDiscoveryResource {
 
     @Context
@@ -56,7 +58,11 @@ public class ServicesDiscoveryResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List service discovery plugins")
+    @ApiOperation(value = "List service discovery plugins",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of service discovery plugins", response = ResourceListItem.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })

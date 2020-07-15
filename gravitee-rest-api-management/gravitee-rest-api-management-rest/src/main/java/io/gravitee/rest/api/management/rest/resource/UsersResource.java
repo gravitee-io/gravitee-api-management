@@ -45,7 +45,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"User"})
+@Api(tags = {"Users"})
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
 public class UsersResource extends AbstractResource {

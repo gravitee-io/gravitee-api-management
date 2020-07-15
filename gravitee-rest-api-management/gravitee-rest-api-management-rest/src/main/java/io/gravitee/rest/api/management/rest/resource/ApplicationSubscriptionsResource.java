@@ -48,7 +48,7 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Application", "Subscription"})
+@Api(tags = {"Application Subscriptions"})
 public class ApplicationSubscriptionsResource {
 
     @Inject

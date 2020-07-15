@@ -30,6 +30,9 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -49,7 +52,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Gateway"})
+@Api(tags = {"Platform Analytics"})
 public class PlatformAnalyticsResource extends AbstractResource  {
 
     @Inject
@@ -63,8 +66,14 @@ public class PlatformAnalyticsResource extends AbstractResource  {
 
     @Inject
     ApplicationService applicationService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get platform analytics",
+            notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Platform analytics"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = ENVIRONMENT_PLATFORM, acls = READ)
     })

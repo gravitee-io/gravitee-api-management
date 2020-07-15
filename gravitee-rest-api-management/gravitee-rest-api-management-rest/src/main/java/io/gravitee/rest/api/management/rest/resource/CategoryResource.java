@@ -47,7 +47,7 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Category"})
+@Api(tags = {"Categories"})
 public class CategoryResource extends AbstractCategoryResource {
 
     @Autowired
@@ -55,8 +55,8 @@ public class CategoryResource extends AbstractCategoryResource {
 
     @GET
     @Produces(APPLICATION_JSON)
-    @ApiOperation(value = "Get the Category",
-            notes = "User must have the READ permission to use this service")
+    @ApiOperation(value = "Get the category",
+            notes = "User must have the PORTAL_CATEGORY[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Category's definition", response = CategoryEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -73,11 +73,10 @@ public class CategoryResource extends AbstractCategoryResource {
         return category;
     }
 
-
     @GET
     @Path("picture")
-    @ApiOperation(value = "Get the Category's picture",
-            notes = "User must have the READ permission to use this service")
+    @ApiOperation(value = "Get the category's picture",
+            notes = "User must have the PORTAL_CATEGORY[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Category's picture"),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -127,8 +126,8 @@ public class CategoryResource extends AbstractCategoryResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-            value = "Update the Category",
-            notes = "User must have the UPDATE permission to use this service")
+            value = "Update the category",
+            notes = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Category successfully updated", response = CategoryEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -150,8 +149,8 @@ public class CategoryResource extends AbstractCategoryResource {
 
     @DELETE
     @ApiOperation(
-            value = "Delete the Category",
-            notes = "User must have the DELETE permission to use this service")
+            value = "Delete the category",
+            notes = "User must have the PORTAL_CATEGORY[DELETE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Category successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})

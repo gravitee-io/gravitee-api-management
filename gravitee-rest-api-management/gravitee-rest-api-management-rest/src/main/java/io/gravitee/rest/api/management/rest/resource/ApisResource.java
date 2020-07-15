@@ -59,7 +59,7 @@ import static java.util.stream.Collectors.toSet;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"APIs"})
 public class ApisResource extends AbstractResource {
 
     @Context

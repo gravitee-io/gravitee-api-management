@@ -18,16 +18,17 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.rest.api.management.rest.resource.param.AuditParam;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.resource.param.AuditParam;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.AuditService;
-import io.swagger.annotations.Api;
-
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -53,6 +54,11 @@ public class AuditResource extends AbstractResource  {
     private AuditService auditService;
 
     @GET
+    @ApiOperation(value = "Retrieve audit logs for the platform",
+            notes = "User must have the MANAGEMENT_AUDIT[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of audits"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
@@ -86,6 +92,11 @@ public class AuditResource extends AbstractResource  {
     @Path("/events")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List available audit event type for platform",
+            notes = "User must have the MANAGEMENT_AUDIT[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of audits", response = Audit.AuditEvent.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ)
     })

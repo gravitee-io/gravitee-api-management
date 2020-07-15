@@ -28,6 +28,9 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EventService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -45,7 +48,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Gateway"})
+@Api(tags = {"Platform Events"})
 public class PlatformEventsResource  extends AbstractResource {
     
     @Inject
@@ -56,6 +59,11 @@ public class PlatformEventsResource  extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List platform events",
+            notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Platform events", response = EventEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)
     })

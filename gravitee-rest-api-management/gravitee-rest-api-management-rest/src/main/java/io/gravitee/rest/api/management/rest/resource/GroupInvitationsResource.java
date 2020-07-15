@@ -46,7 +46,7 @@ import static io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenEx
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Group", "Invitations"})
+@Api(tags = {"Group Invitations"})
 public class GroupInvitationsResource extends AbstractResource {
 
     @Autowired
@@ -55,8 +55,8 @@ public class GroupInvitationsResource extends AbstractResource {
     private GroupService groupService;
 
     @GET
-    @ApiOperation(value = "List configured invitations of a given group")
-    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List existing invitations of a group",
+            notes = "User must have the GROUP_INVITATION[READ] permission to use this service")    @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
             @Permission(value = GROUP_INVITATION, acls = READ)
     })
@@ -67,6 +67,8 @@ public class GroupInvitationsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create an invitation to join a group",
+            notes = "User must have the GROUP_INVITATION[CREATE] permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.CREATE)
     })
@@ -93,6 +95,8 @@ public class GroupInvitationsResource extends AbstractResource {
 
     @Path("{invitation}")
     @PUT
+    @ApiOperation(value = "Update an invitation to join a group",
+            notes = "User must have the GROUP_INVITATION[UPDATE] permission to use this service")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
@@ -108,6 +112,8 @@ public class GroupInvitationsResource extends AbstractResource {
 
     @Path("{invitation}")
     @DELETE
+    @ApiOperation(value = "Delete an invitation to join a group",
+            notes = "User must have the GROUP_INVITATION[DELETE] permission to use this service")
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
             @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.DELETE)
