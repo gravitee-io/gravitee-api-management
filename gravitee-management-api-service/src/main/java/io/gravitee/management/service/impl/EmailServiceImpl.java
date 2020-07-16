@@ -92,6 +92,10 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                     mailMessage.setFrom(from, emailNotification.getFromName());
                 }
 
+                if (! isEmpty(emailNotification.getReplyTo())) {
+                    mailMessage.setReplyTo(emailNotification.getReplyTo());
+                }
+
                 mailMessage.setTo(emailNotification.getTo());
                 if (emailNotification.isCopyToSender() && emailNotification.getFrom() != null) {
                     mailMessage.setBcc(emailNotification.getFrom());

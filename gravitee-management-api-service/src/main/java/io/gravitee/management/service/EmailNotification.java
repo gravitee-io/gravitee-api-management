@@ -34,6 +34,7 @@ public class EmailNotification {
     private String template;
     private Map<String, Object> params = new HashMap<>();
     private boolean copyToSender;
+    private String replyTo;
 
     public String getFromName() {
         return fromName;
@@ -99,6 +100,13 @@ public class EmailNotification {
         this.bcc = bcc;
     }
 
+    public String getReplyTo() {
+        return replyTo;
+    }
+    public void setReplyTo(String replyTo) {
+        this.replyTo = replyTo;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -111,18 +119,21 @@ public class EmailNotification {
                 Objects.equals(template, that.template) &&
                 Objects.equals(params, that.params) &&
                 Objects.equals(bcc, that.bcc) &&
-                Objects.equals(copyToSender, that.copyToSender);
+                Objects.equals(copyToSender, that.copyToSender) &&
+                Objects.equals(replyTo, that.replyTo);
+
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(from, fromName, to, subject, template, params, copyToSender, bcc);
+        return Objects.hash(from, fromName, to, subject, template, params, copyToSender, bcc, replyTo);
     }
 
     @Override
     public String toString() {
         return "EmailNotification{" +
                 "from='" + from + '\'' +
+                ", reply-to='" + replyTo + '\'' +
                 ", fromName='" + fromName + '\'' +
                 ", to=" + Arrays.toString(to) +
                 ", subject='" + subject + '\'' +

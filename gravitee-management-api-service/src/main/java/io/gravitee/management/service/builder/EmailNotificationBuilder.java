@@ -76,6 +76,11 @@ public class EmailNotificationBuilder {
         return this;
     }
 
+    public EmailNotificationBuilder replyTo(String replyTo) {
+        this.emailNotification.setReplyTo(replyTo);
+        return this;
+    }
+
     public EmailNotification build() {
         return this.emailNotification;
     }

@@ -114,7 +114,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         final String fromName = user.getFirstname() == null ? user.getEmail() : user.getFirstname() + ' ' + user.getLastname();
         emailService.sendEmailNotification(
                 new EmailNotificationBuilder()
-                        .from(user.getEmail())
+                        .replyTo(user.getEmail())
                         .fromName(fromName)
                         .to(emailTo)
                         .subject(ticketEntity.getSubject())

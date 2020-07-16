@@ -155,7 +155,7 @@ public class TicketServiceTest {
 
         verify(emailService).sendEmailNotification(
                 new EmailNotificationBuilder()
-                        .from(USER_EMAIL)
+                        .replyTo(USER_EMAIL)
                         .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
                         .to(EMAIL_SUPPORT)
                         .subject(EMAIL_SUBJECT)
