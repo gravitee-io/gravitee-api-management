@@ -106,8 +106,8 @@ export class ApplicationCreationStep4Component implements OnInit {
             label: values[0],
           },
           {
-            field: (item) => item.plan.validation.toUpperCase === Plan.ValidationEnum.AUTO ? values[3] : values[4],
-            label: values[2],
+            field: (item) => item.plan.validation.toUpperCase() === Plan.ValidationEnum.AUTO ? values[2] : values[3],
+            label: values[1],
           }
         ]
       };
