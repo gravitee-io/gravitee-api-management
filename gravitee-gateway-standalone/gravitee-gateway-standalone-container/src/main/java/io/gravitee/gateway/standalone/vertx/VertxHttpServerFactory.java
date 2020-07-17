@@ -26,6 +26,9 @@ import io.vertx.core.net.PfxOptions;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -109,6 +112,9 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
 
         // Configure websocket
         System.setProperty("vertx.disableWebsockets", Boolean.toString(!httpServerConfiguration.isWebsocketEnabled()));
+        if (httpServerConfiguration.isWebsocketEnabled() && httpServerConfiguration.getWebsocketSubProtocols() != null) {
+            options.setWebSocketSubProtocols(new ArrayList<>(Arrays.asList(httpServerConfiguration.getWebsocketSubProtocols().split("\\s*,\\s*"))));
+        }
 
         return vertx.createHttpServer(options);
     }

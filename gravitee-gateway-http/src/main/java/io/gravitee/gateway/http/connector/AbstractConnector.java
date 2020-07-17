@@ -124,6 +124,7 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
         options.setUsePooledBuffers(true);
         options.setMaxPoolSize(endpoint.getHttpClientOptions().getMaxConcurrentConnections());
         options.setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
+        options.setLogActivity(true);
 
         if (endpoint.getHttpClientOptions().getVersion() == ProtocolVersion.HTTP_2) {
             options.setProtocolVersion(HttpVersion.HTTP_2);
