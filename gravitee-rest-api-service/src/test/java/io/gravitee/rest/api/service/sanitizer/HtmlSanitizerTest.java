@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.service.sanitizer;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ErrorCollector;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 /**
@@ -24,6 +27,30 @@ import static org.junit.Assert.*;
  * @author GraviteeSource Team
  */
 public class HtmlSanitizerTest {
+
+    @Rule
+    public ErrorCollector collector = new ErrorCollector();
+
+    private static String ONLY_OPENED_IMG_TAG = "<img src=\"myPic.png\">";
+    private static String SELF_CLOSING_IMG_TAG = "<img src=\"myPic.png\"/>";
+    private static String CLOSED_IMG_TAG = "<img src=\"myPic.png\"></img>";
+    private static String BASE64_IMG_TAG = "<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==\"/>";
+
+    private static String DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD = "<div style=\"margin:auto\"></div>";
+    private static String DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES = "<div style=\" margin : auto \"></div>";
+    private static String DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SEMICOLON = "<div style=\"margin:auto;\"></div>";
+    private static String DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES_AND_SEMICOLON = "<div style=\" margin : auto ; \"></div>";
+
+    private static String DIV_TAG_WITH_STYLE_ATT_WITH_FLOAT_FIELD = "<div style=\"float:left\"></div>";
+
+    private static String DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD = "<div style=\"margin:auto;width:100px\"></div>";
+    private static String DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES = "<div style=\" margin : auto ; width :   100px    \"></div>";
+    private static String DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SEMICOLON = "<div style=\"margin:auto;width:100px;\"></div>";
+    private static String DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES_AND_SEMICOLON = "<div style=\" margin : auto ; width :   100px   ;  \"></div>";
+
+    private static String DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE = "<div style='margin:auto'></div>";
+    private static String DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON = "<div style=\"margin:auto;;\"></div>";
+
 
     @Test
     public void sanitize() {
@@ -46,7 +73,7 @@ public class HtmlSanitizerTest {
         HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(getSafe());
 
         assertTrue(sanitizeInfos.isSafe());
-        assertNull(sanitizeInfos.getRejectedMessage());
+        assertEquals("[]", sanitizeInfos.getRejectedMessage());
     }
 
 
@@ -56,7 +83,7 @@ public class HtmlSanitizerTest {
         HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(getNotSafe());
 
         assertFalse(sanitizeInfos.isSafe());
-        assertEquals("The content [<script src=\"/external.jpg\"><div onClick=\"alert('test');\">onclick alert<div>] is not allowed (~line 1)", sanitizeInfos.getRejectedMessage());
+        assertEquals("[Tag not allowed: script]", sanitizeInfos.getRejectedMessage());
     }
 
     private String getSafe() {
@@ -77,8 +104,28 @@ public class HtmlSanitizerTest {
 
         String html = "";
         html += "<script src=\"/external.jpg\" />";
-        html += "<div onClick=\"alert('test');\">onclick alert<div>";
+        html += "<div onClick=\"alert('test');\" style=\"margin: auto\">onclick alert<div>";
 
         return html;
+    }
+
+
+    @Test
+    public void shouldBeSafe() {
+        collector.checkThat("ONLY_OPENED_IMG_TAG", HtmlSanitizer.isSafe(ONLY_OPENED_IMG_TAG).isSafe(), is(true));
+        collector.checkThat("SELF_CLOSING_IMG_TAG", HtmlSanitizer.isSafe(SELF_CLOSING_IMG_TAG).isSafe(), is(true));
+        collector.checkThat("CLOSED_IMG_TAG", HtmlSanitizer.isSafe(CLOSED_IMG_TAG).isSafe(), is(true));
+        collector.checkThat("BASE64_IMG_TAG", HtmlSanitizer.isSafe(BASE64_IMG_TAG).isSafe(), is(true));
+        collector.checkThat("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD", HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD).isSafe(), is(true));
+        collector.checkThat("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES", HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES).isSafe(), is(true));
+        collector.checkThat("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SEMICOLON", HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SEMICOLON).isSafe(), is(true));
+        collector.checkThat("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES_AND_SEMICOLON", HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_FIELD_WITH_SPACES_AND_SEMICOLON).isSafe(), is(true));
+        collector.checkThat("DIV_TAG_WITH_STYLE_ATT_WITH_FLOAT_FIELD", HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_FLOAT_FIELD).isSafe(), is(true));
+        collector.checkThat("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD", HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD).isSafe(), is(true));
+        collector.checkThat("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES", HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES).isSafe(), is(true));
+        collector.checkThat("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SEMICOLON", HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SEMICOLON).isSafe(), is(true));
+        collector.checkThat("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES_AND_SEMICOLON", HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_FIELD_WITH_SPACES_AND_SEMICOLON).isSafe(), is(true));
+        collector.checkThat("DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE", HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE).isSafe(), is(true));
+        collector.checkThat("DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON", HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON).isSafe(), is(true));
     }
 }

@@ -59,7 +59,7 @@ import static java.util.stream.Collectors.toSet;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"APIs"})
 public class ApisResource extends AbstractResource {
 
     @Context
@@ -310,6 +310,13 @@ public class ApisResource extends AbstractResource {
         if (api.getWorkflowState() != null) {
             apiItem.setWorkflowState(WorkflowState.valueOf(api.getWorkflowState().toString()));
         }
+
+        // Issue https://github.com/gravitee-io/issues/issues/3356
+        if (api.getProxy().getVirtualHosts() != null &&
+                !api.getProxy().getVirtualHosts().isEmpty()) {
+            apiItem.setContextPath(api.getProxy().getVirtualHosts().get(0).getPath());
+        }
+
         return apiItem;
     }
 }

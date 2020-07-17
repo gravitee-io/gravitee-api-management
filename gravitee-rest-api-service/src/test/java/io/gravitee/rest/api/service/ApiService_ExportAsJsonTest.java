@@ -25,6 +25,10 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -32,13 +36,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.*;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Membership;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -168,8 +166,13 @@ public class ApiService_ExportAsJsonTest {
         page.setOrder(1);
         page.setType(PageType.MARKDOWN.toString());
         page.setContent("Read the doc");
-        when(pageService.search(any(), eq(true))).thenReturn(Collections.singletonList(page));
-        
+        PageEntity asideFolder = new PageEntity();
+        asideFolder.setName("Aside");
+        asideFolder.setOrder(1);
+        asideFolder.setPublished(true);
+        asideFolder.setType(PageType.SYSTEM_FOLDER.toString());
+        when(pageService.search(any(), eq(true))).thenReturn(Arrays.asList(page, asideFolder));
+
         RoleEntity poRole = new RoleEntity();
         poRole.setName("PRIMARY_OWNER");
         poRole.setId("API_PRIMARY_OWNER");
@@ -178,7 +181,7 @@ public class ApiService_ExportAsJsonTest {
         membership.setRoleId("API_PRIMARY_OWNER");
         when(membershipService.getPrimaryOwner(eq(MembershipReferenceType.API), eq(API_ID)))
                 .thenReturn(membership);
-        
+
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setId(membership.getMemberId());
         memberEntity.setRoles(Collections.singletonList(poRole));
@@ -377,7 +380,7 @@ public class ApiService_ExportAsJsonTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         String jsonForExport = apiService.exportAsJson(API_ID, ApiSerializer.Version.V_1_15.getVersion(), SystemRole.PRIMARY_OWNER.name());
 
-        URL url =  Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportMultipleEndpointGroups-1_15.json");
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportMultipleEndpointGroups-1_15.json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
@@ -408,7 +411,7 @@ public class ApiService_ExportAsJsonTest {
     private void shouldConvertAsJsonForExport(ApiSerializer.Version version, String filename) throws TechnicalException, IOException {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name());
 
-        URL url =  Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExport" + (filename != null ? "-"+ filename : "") +".json");
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExport" + (filename != null ? "-" + filename : "") + ".json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
@@ -416,9 +419,9 @@ public class ApiService_ExportAsJsonTest {
     }
 
     private void shouldConvertAsJsonWithoutMembers(ApiSerializer.Version version, String filename) throws IOException {
-        String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(),SystemRole.PRIMARY_OWNER.name(), "members");
+        String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "members");
 
-        URL url =  Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMembers" + (filename != null ? "-"+ filename : "") +".json");
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMembers" + (filename != null ? "-" + filename : "") + ".json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
@@ -428,7 +431,7 @@ public class ApiService_ExportAsJsonTest {
     private void shouldConvertAsJsonWithoutPages(ApiSerializer.Version version, String filename) throws IOException {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "pages");
 
-        URL url =  Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPages" + (filename != null ? "-"+ filename : "") +".json");
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPages" + (filename != null ? "-" + filename : "") + ".json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
@@ -438,7 +441,7 @@ public class ApiService_ExportAsJsonTest {
     private void shouldConvertAsJsonWithoutPlans(ApiSerializer.Version version, String filename) throws IOException {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "plans");
 
-        URL url =  Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPlans" + (filename != null ? "-"+ filename : "") +".json");
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPlans" + (filename != null ? "-" + filename : "") + ".json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
@@ -448,7 +451,7 @@ public class ApiService_ExportAsJsonTest {
     private void shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version version, String filename) throws IOException {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "metadata");
 
-        URL url =  Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMetadata" + (filename != null ? "-"+ filename : "") +".json");
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMetadata" + (filename != null ? "-" + filename : "") + ".json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();

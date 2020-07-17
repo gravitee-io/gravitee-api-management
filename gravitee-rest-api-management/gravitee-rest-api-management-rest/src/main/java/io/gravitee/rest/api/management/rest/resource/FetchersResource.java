@@ -16,20 +16,24 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.param.FetchersParam;
 import io.gravitee.rest.api.model.FetcherEntity;
 import io.gravitee.rest.api.model.FetcherListItem;
-import io.gravitee.rest.api.management.rest.resource.param.FetchersParam;
 import io.gravitee.rest.api.service.FetcherService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,7 +42,7 @@ import java.util.stream.Stream;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugin", "Fetcher"})
+@Api(tags = {"Plugins"})
 public class FetchersResource {
 
     @Context
@@ -49,7 +53,10 @@ public class FetchersResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List fetchers")
+    @ApiOperation(value = "List of fetcher plugins")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of fetchers", response = FetcherListItem.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public Collection<FetcherListItem> list(@BeanParam FetchersParam params) {
         Stream<FetcherListItem> stream = fetcherService.findAll(params.isOnlyFilesFetchers()).stream().map(this::convert);
 

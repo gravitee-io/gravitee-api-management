@@ -24,7 +24,6 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
-
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
@@ -71,7 +70,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         }
         if (apiEntity.getTags() != null && !apiEntity.getTags().isEmpty()) {
             jsonGenerator.writeArrayFieldStart("tags");
-            for(String tag : apiEntity.getTags()) {
+            for (String tag : apiEntity.getTags()) {
                 jsonGenerator.writeObject(tag);
             }
             jsonGenerator.writeEndArray();
@@ -81,7 +80,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         }
         if (apiEntity.getPaths() != null) {
             jsonGenerator.writeObjectFieldStart("paths");
-            for(Map.Entry<String, Path> entry : apiEntity.getPaths().entrySet()) {
+            for (Map.Entry<String, Path> entry : apiEntity.getPaths().entrySet()) {
                 jsonGenerator.writeObjectField(entry.getKey(), entry.getValue());
             }
             jsonGenerator.writeEndObject();
@@ -93,7 +92,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         if (apiEntity.getResources() != null) {
             jsonGenerator.writeArrayFieldStart("resources");
-            for(Resource resource : apiEntity.getResources()) {
+            for (Resource resource : apiEntity.getResources()) {
                 jsonGenerator.writeObject(resource);
             }
             jsonGenerator.writeEndArray();
@@ -105,7 +104,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         if (apiEntity.getCategories() != null && !apiEntity.getCategories().isEmpty()) {
             jsonGenerator.writeArrayFieldStart("categories");
-            for(String category : apiEntity.getCategories()) {
+            for (String category : apiEntity.getCategories()) {
                 jsonGenerator.writeObject(category);
             }
             jsonGenerator.writeEndArray();
@@ -113,7 +112,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         if (apiEntity.getLabels() != null && !apiEntity.getLabels().isEmpty()) {
             jsonGenerator.writeArrayFieldStart("labels");
-            for(String label : apiEntity.getLabels()) {
+            for (String label : apiEntity.getLabels()) {
                 jsonGenerator.writeObject(label);
             }
             jsonGenerator.writeEndArray();
@@ -152,6 +151,9 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             // pages
             if (!filteredFieldsList.contains("pages")) {
                 List<PageEntity> pages = applicationContext.getBean(PageService.class).search(new PageQuery.Builder().api(apiEntity.getId()).build(), true);
+                if (this.version().getVersion().startsWith("1.")) {
+                    pages = pages.stream().filter(pageEntity -> !pageEntity.getType().equals(PageType.LINK.name()) && !pageEntity.getType().equals(PageType.TRANSLATION.name()) && !pageEntity.getType().equals(PageType.SYSTEM_FOLDER.name())).collect(Collectors.toList());
+                }
                 jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
             }
 
@@ -199,7 +201,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         private String sourceId;
         private String role;
         private List<String> roles;
-        
+
         public String getSource() {
             return source;
         }
@@ -240,7 +242,6 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             this.username = username;
         }
     }
-
 
     private static Pattern uid = Pattern.compile("uid=(.*?),");
     public static  String getUsernameFromSourceId(String sourceId) {

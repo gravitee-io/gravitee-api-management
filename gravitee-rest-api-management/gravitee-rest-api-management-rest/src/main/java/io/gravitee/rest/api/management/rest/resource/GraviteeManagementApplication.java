@@ -15,32 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.util.Date;
-import java.util.Iterator;
-
-import javax.inject.Inject;
-
-import io.gravitee.rest.api.management.rest.filter.*;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.ServerProperties;
-
 import com.fasterxml.jackson.databind.JavaType;
-
 import io.gravitee.common.util.Version;
+import io.gravitee.rest.api.management.rest.filter.*;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
-import io.gravitee.rest.api.management.rest.provider.BadRequestExceptionMapper;
-import io.gravitee.rest.api.management.rest.provider.ByteArrayOutputStreamWriter;
-import io.gravitee.rest.api.management.rest.provider.ConstraintValidationExceptionMapper;
-import io.gravitee.rest.api.management.rest.provider.ManagementExceptionMapper;
-import io.gravitee.rest.api.management.rest.provider.NotAllowedExceptionMapper;
-import io.gravitee.rest.api.management.rest.provider.NotFoundExceptionMapper;
-import io.gravitee.rest.api.management.rest.provider.ThrowableMapper;
-import io.gravitee.rest.api.management.rest.provider.UnrecognizedPropertyExceptionMapper;
-import io.gravitee.rest.api.management.rest.provider.UriBuilderRequestFilter;
+import io.gravitee.rest.api.management.rest.provider.*;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
@@ -52,6 +31,16 @@ import io.swagger.models.Model;
 import io.swagger.models.properties.LongProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
+
+import javax.inject.Inject;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.Date;
+import java.util.Iterator;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -69,7 +58,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
         BeanConfig beanConfig = new BeanConfig();
         beanConfig.setVersion(Version.RUNTIME_VERSION.MAJOR_VERSION);
         beanConfig.setResourcePackage("io.gravitee.rest.api.management.rest.resource");
-        beanConfig.setTitle("Gravitee.io - Rest API");
+        beanConfig.setTitle("Gravitee.io - Management API");
         beanConfig.setScan(true);
 
         ModelConverters.getInstance().addConverter(new ModelConverter() {

@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
@@ -94,9 +95,8 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     @Async
     @Override
     public void index(Indexable source, boolean locally) {
-        if (locally) {
-            indexLocally(source);
-        } else {
+        indexLocally(source);
+        if (!locally) {
             CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
             content.setAction(ACTION_INDEX);
             content.setId(source.getId());
@@ -109,9 +109,8 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     @Async
     @Override
     public void delete(Indexable source, boolean locally) {
-        if (locally) {
-            deleteLocally(source);
-        } else {
+        deleteLocally(source);
+        if (!locally) {
             CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
             content.setAction(ACTION_DELETE);
             content.setId(source.getId());
@@ -155,12 +154,16 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     }
 
     private Indexable getSource(String clazz, String id) {
-        if (ApiEntity.class.getName().equals(clazz)) {
-            return apiService.findById(id);
-        } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
-            return pageService.findById(id);
-        } else if (UserEntity.class.getName().equals(clazz)) {
-            return userService.findById(id);
+        try {
+            if (ApiEntity.class.getName().equals(clazz)) {
+                return apiService.findById(id);
+            } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
+                return pageService.findById(id);
+            } else if (UserEntity.class.getName().equals(clazz)) {
+                return userService.findById(id);
+            }
+        } catch (final AbstractNotFoundException nfe) {
+            // ignore not found exception because may be due to synchronization not yet processed by DBs
         }
         return null;
     }
@@ -197,7 +200,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             Assert.isAssignable(Indexable.class, clazz);
             return (Indexable) clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            logger.error("Unable to instantiate class: {}", ex);
+            logger.error("Unable to instantiate class: {}", className, ex);
             throw ex;
         }
     }
@@ -211,11 +214,11 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                     try {
                         return Optional.of(searcher.search(query));
                     } catch (TechnicalException te) {
-                        logger.error("Unexpected error while deleting a document", te);
+                        logger.error("Unexpected error while searching a document", te);
                         return Optional.empty();
                     }
                 });
 
-        return results.get();
+        return results.orElse(null);
     }
 }

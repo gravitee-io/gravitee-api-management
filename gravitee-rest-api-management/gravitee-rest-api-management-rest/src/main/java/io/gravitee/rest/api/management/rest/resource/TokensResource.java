@@ -37,7 +37,7 @@ import static java.util.stream.Collectors.toList;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Tokens"})
+@Api(tags = {"User Tokens"})
 public class TokensResource extends AbstractResource  {
 
     @Autowired
@@ -45,6 +45,11 @@ public class TokensResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List user's personal tokens")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "User's personal tokens"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public List<TokenEntity> list()  {
         return tokenService.findByUser(getAuthenticatedUser())
                 .stream()
@@ -65,6 +70,11 @@ public class TokensResource extends AbstractResource  {
 
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Revoke all user's personal tokens")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "User's personal tokens revoked"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public void revokeAll() {
         tokenService.revokeByUser(getAuthenticatedUser());
     }
@@ -72,6 +82,11 @@ public class TokensResource extends AbstractResource  {
     @Path("{token}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Revoke a single user's personal tokens")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "User's personal token revoked"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public void revoke(@PathParam("token") String tokenId) {
         tokenService.revoke(tokenId);
     }

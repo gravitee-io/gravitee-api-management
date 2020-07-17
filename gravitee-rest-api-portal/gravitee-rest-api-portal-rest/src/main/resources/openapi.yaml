@@ -12,7 +12,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0
   version: "3.0.0"
 servers:
-  - url: http://demo.gravitee.io/portal/{envId}
+  - url: http://localhost:8083/portal/environments/{envId}
     description: The portal API for a given environment
     variables:
       envId:

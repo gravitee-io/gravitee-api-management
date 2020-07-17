@@ -16,14 +16,16 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ResourceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -38,7 +40,7 @@ import javax.ws.rs.core.Context;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugin", "Resource"})
+@Api(tags = {"Plugins"})
 public class ResourceResource {
 
     @Context
@@ -49,7 +51,12 @@ public class ResourceResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a resource")
+    @ApiOperation(value = "Get a resource",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Resource plugin", response = PluginEntity.class),
+            @ApiResponse(code = 404, message = "Resource not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
@@ -61,7 +68,8 @@ public class ResourceResource {
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a resource's schema")
+    @ApiOperation(value = "Get a resource's schema",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })

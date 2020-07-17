@@ -15,71 +15,15 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiMetadataEntity {
-
-    @NotNull
-    @Size(min = 1)
-    private String key;
-
-    private String name;
-
-    private MetadataFormat format;
-
-    @NotNull
-    @Size(min = 1)
-    private String value;
-
-    private String defaultValue;
+public class ApiMetadataEntity extends ReferenceMetadataEntity {
 
     private String apiId;
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public MetadataFormat getFormat() {
-        return format;
-    }
-
-    public void setFormat(MetadataFormat format) {
-        this.format = format;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getDefaultValue() {
-        return defaultValue;
-    }
-
-    public void setDefaultValue(String defaultValue) {
-        this.defaultValue = defaultValue;
-    }
 
     public String getApiId() {
         return apiId;
@@ -92,26 +36,21 @@ public class ApiMetadataEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ApiMetadataEntity)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
         ApiMetadataEntity that = (ApiMetadataEntity) o;
-        return Objects.equals(key, that.key) &&
-                Objects.equals(apiId, that.apiId);
+        return Objects.equals(apiId, that.apiId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(key, apiId);
+        return Objects.hash(super.hashCode(), apiId);
     }
 
     @Override
     public String toString() {
         return "ApiMetadataEntity{" +
-                "key='" + key + '\'' +
-                ", name='" + name + '\'' +
-                ", format=" + format +
-                ", value='" + value + '\'' +
-                ", defaultValue='" + defaultValue + '\'' +
-                ", apiId=" + apiId +
-                '}';
+                "apiId='" + apiId + '\'' +
+                "} " + super.toString();
     }
 }

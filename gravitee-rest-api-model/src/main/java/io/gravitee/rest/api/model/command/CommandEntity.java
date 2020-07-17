@@ -28,6 +28,8 @@ public class CommandEntity {
     private List<CommandTags> tags;
     private String content;
     private long ttlInSeconds;
+    private boolean expired;
+    private boolean processedInCurrentNode;
 
     public String getId() {
         return id;
@@ -67,5 +69,21 @@ public class CommandEntity {
 
     public void setTtlInSeconds(long ttlInSeconds) {
         this.ttlInSeconds = ttlInSeconds;
+    }
+
+    public boolean isExpired() {
+        return expired;
+    }
+
+    public void setExpired(boolean expired) {
+        this.expired = expired;
+    }
+
+    public boolean isProcessedInCurrentNode() {
+        return processedInCurrentNode;
+    }
+
+    public void setProcessedInCurrentNode(boolean processedInCurrentNode) {
+        this.processedInCurrentNode = processedInCurrentNode;
     }
 }

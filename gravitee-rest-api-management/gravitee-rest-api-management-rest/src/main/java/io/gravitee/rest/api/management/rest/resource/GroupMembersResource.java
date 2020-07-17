@@ -16,18 +16,19 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.model.GroupMembership;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.management.rest.model.GroupMembership;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException;
 import io.gravitee.rest.api.service.exceptions.GroupMembersLimitationExceededException;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -51,6 +52,7 @@ import static java.util.stream.Collectors.toList;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
+@Api(tags = {"Group Memberships"})
 public class GroupMembersResource extends AbstractResource {
 
     @Context
@@ -60,9 +62,9 @@ public class GroupMembersResource extends AbstractResource {
     
     @GET
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List Group members")
+    @ApiOperation(value = "List group members")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "List of Group's members", response = MemberEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "List of group's members", response = MemberEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),

@@ -135,6 +135,7 @@ public interface DefaultRoleEntityDefinition {
                 .put(ApplicationPermission.ANALYTICS.getName(), new char[]{READ.getId()})
                 .put(ApplicationPermission.LOG.getName(), new char[]{READ.getId()})
                 .put(ApplicationPermission.SUBSCRIPTION.getName(), new char[]{CREATE.getId(), READ.getId()})
+                .put(ApplicationPermission.METADATA.getName(), new char[]{READ.getId()})
                 .build()
             );
     
@@ -151,6 +152,7 @@ public interface DefaultRoleEntityDefinition {
                 .put(ApplicationPermission.SUBSCRIPTION.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
                 .put(ApplicationPermission.NOTIFICATION.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
                 .put(ApplicationPermission.ALERT.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
+                .put(ApplicationPermission.METADATA.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
                 .build()
             );
 }

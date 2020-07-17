@@ -16,16 +16,16 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.model.ApiMembership;
+import io.gravitee.rest.api.management.rest.model.TransferOwnership;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.management.rest.model.ApiMembership;
-import io.gravitee.rest.api.management.rest.model.TransferOwnership;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
@@ -38,20 +38,19 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
-import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
-
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API"})
+@Api(tags = {"API Memberships"})
 public class ApiMembersResource extends AbstractResource {
 
     @Inject

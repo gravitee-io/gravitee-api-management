@@ -16,12 +16,12 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
 import io.swagger.annotations.*;
 
@@ -30,19 +30,18 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-
-import static io.gravitee.rest.api.model.SubscriptionStatus.*;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
-
 import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static io.gravitee.rest.api.model.SubscriptionStatus.*;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API", "Subscription"})
+@Api(tags = {"API Subscriptions"})
 public class ApiSubscriptionResource extends AbstractResource {
 
     @Inject

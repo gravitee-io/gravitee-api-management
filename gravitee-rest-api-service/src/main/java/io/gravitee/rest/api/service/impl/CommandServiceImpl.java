@@ -97,8 +97,6 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         CommandCriteria criteria = new CommandCriteria.Builder()
                 .to(query.getTo())
                 .tags(tags)
-                .notAckBy(node.id())
-                .notDeleted()
                 .environmentId(GraviteeContext.getCurrentEnvironment())
                 .build();
         return commandRepository.search(criteria)
@@ -126,6 +124,20 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         }
     }
 
+    @Override
+    public void delete(String commandId) {
+        try {
+            Optional<Command> commandOptional = commandRepository.findById(commandId);
+            if (commandOptional.isPresent()) {
+                commandRepository.delete(commandId);
+            }
+        } catch (TechnicalException ex) {
+            final String error = "An error occurs while trying to delete command " + commandId;
+            logger.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
+        }
+    }
+
     private List<String> convert(List<CommandTags> tags) {
         if (tags == null || tags.isEmpty()) {
             return Collections.emptyList();
@@ -143,7 +155,6 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         }
 
         CommandEntity commandEntity = new CommandEntity();
-
         commandEntity.setId(command.getId());
         commandEntity.setTo(command.getTo());
         commandEntity.setContent(command.getContent());
@@ -154,7 +165,11 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
                             .map(CommandTags::valueOf)
                             .collect(Collectors.toList()));
         }
-
+        commandEntity.setExpired(command.getExpiredAt().before(new Date()));
+        final List<String> acknowledgments = command.getAcknowledgments();
+        if (acknowledgments != null) {
+            commandEntity.setProcessedInCurrentNode(acknowledgments.contains(node.id()));
+        }
         return commandEntity;
     }
 }

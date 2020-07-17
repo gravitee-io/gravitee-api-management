@@ -16,14 +16,16 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ServiceDiscoveryService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -37,7 +39,7 @@ import javax.ws.rs.core.Context;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugin", "Service Discovery"})
+@Api(tags = {"Plugins"})
 public class ServiceDiscoveryResource {
 
     @Context
@@ -48,7 +50,12 @@ public class ServiceDiscoveryResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a service discovery")
+    @ApiOperation(value = "Get a service discovery",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Service discovery plugin", response = PluginEntity.class),
+            @ApiResponse(code = 404, message = "Resource not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
@@ -60,7 +67,12 @@ public class ServiceDiscoveryResource {
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a service discovery's schema")
+    @ApiOperation(value = "Get a service discovery's schema",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Service discovery plugin's schema"),
+            @ApiResponse(code = 404, message = "Service discovery not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })

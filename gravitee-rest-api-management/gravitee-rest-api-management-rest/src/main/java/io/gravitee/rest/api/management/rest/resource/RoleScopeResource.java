@@ -16,16 +16,18 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.RoleService;
 import io.swagger.annotations.Api;
-
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -50,6 +52,11 @@ public class RoleScopeResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List of roles",
+            notes = "User must have the MANAGEMENT_ROLE[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Role successfully removed", response = RoleEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ)
     })
@@ -60,6 +67,11 @@ public class RoleScopeResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create a role",
+            notes = "User must have the MANAGEMENT_ROLE[CREATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Role successfully created", response = RoleEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE)
     })

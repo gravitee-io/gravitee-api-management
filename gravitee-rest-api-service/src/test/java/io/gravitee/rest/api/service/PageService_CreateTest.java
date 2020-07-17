@@ -66,6 +66,9 @@ public class PageService_CreateTest {
     private Page page1;
 
     @Mock
+    private ApiService apiService;
+
+    @Mock
     private AuditService auditService;
 
     @Mock
@@ -100,15 +103,15 @@ public class PageService_CreateTest {
         final PageEntity createdPage = pageService.createPage(API_ID, newPage);
 
         verify(pageRepository).create(argThat(pageToCreate -> pageToCreate.getId().split("-").length == 5 &&
-            API_ID.equals(pageToCreate.getReferenceId()) &&
-            PageReferenceType.API.equals(pageToCreate.getReferenceType()) &&
-            name.equals(pageToCreate.getName()) &&
-            contrib.equals(pageToCreate.getLastContributor()) &&
-            content.equals(pageToCreate.getContent()) &&
-            PageType.SWAGGER.name().equals(pageToCreate.getType()) &&
-            pageToCreate.getCreatedAt() != null &&
-            pageToCreate.getUpdatedAt() != null &&
-            pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt())));
+                API_ID.equals(pageToCreate.getReferenceId()) &&
+                PageReferenceType.API.equals(pageToCreate.getReferenceType()) &&
+                name.equals(pageToCreate.getName()) &&
+                contrib.equals(pageToCreate.getLastContributor()) &&
+                content.equals(pageToCreate.getContent()) &&
+                PageType.SWAGGER.name().equals(pageToCreate.getType()) &&
+                pageToCreate.getCreatedAt() != null &&
+                pageToCreate.getUpdatedAt() != null &&
+                pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt())));
         assertNotNull(createdPage);
         assertEquals(5, createdPage.getId().split("-").length);
         assertEquals(1, createdPage.getOrder());
@@ -135,32 +138,32 @@ public class PageService_CreateTest {
         systemFolder.setId("SYS");
         systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
-        
+
         Page folderInSystemFolder = new Page();
         folderInSystemFolder.setId("FOLD_IN_SYS");
         folderInSystemFolder.setType("FOLDER");
         folderInSystemFolder.setParentId("SYS");
         doReturn(Optional.of(folderInSystemFolder)).when(pageRepository).findById("FOLD_IN_SYS");
-        
+
         NewPageEntity newFolder = new NewPageEntity();
         newFolder.setType(PageType.FOLDER);
         newFolder.setParentId("FOLD_IN_SYS");
-        
+
         pageService.createPage(newFolder);
     }
-    
+
     @Test
     public void shouldCreateFolderInSystemFolderPage() throws TechnicalException {
         Page systemFolder = new Page();
         systemFolder.setId("SYS");
         systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
-        
-        
+
+
         NewPageEntity newFolder = new NewPageEntity();
         newFolder.setType(PageType.FOLDER);
         newFolder.setParentId("SYS");
-        
+
         Page createdPage = new Page();
         createdPage.setId("NEW_FOLD");
         createdPage.setReferenceId("DEFAULT");
@@ -170,44 +173,44 @@ public class PageService_CreateTest {
         final PageEntity createdFolder = pageService.createPage(newFolder);
         assertNotNull(createdFolder);
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateSwaggerInSystemFolderPage() throws TechnicalException {
         Page systemFolder = new Page();
         systemFolder.setId("SYS");
         systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
-        
-        
+
+
         NewPageEntity newFolder = new NewPageEntity();
         newFolder.setType(PageType.SWAGGER);
         newFolder.setParentId("SYS");
-        
+
         pageService.createPage(newFolder);
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateMarkdownInSystemFolderPage() throws TechnicalException {
         Page systemFolder = new Page();
         systemFolder.setId("SYS");
         systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
-        
-        
+
+
         NewPageEntity newFolder = new NewPageEntity();
         newFolder.setType(PageType.MARKDOWN);
         newFolder.setParentId("SYS");
-        
+
         pageService.createPage(newFolder);
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateLinkOfSystemFolder() throws TechnicalException {
         Page systemFolder = new Page();
         systemFolder.setId("SYS");
         systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
-        
+
         Map<String, String> conf = new HashMap<>();
         conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_PAGE);
 
@@ -216,57 +219,57 @@ public class PageService_CreateTest {
         newLink.setParentId("SYS");
         newLink.setConfiguration(conf);
         newLink.setContent("SYS");
-        
+
         pageService.createPage(newLink);
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateLinkOfFolderInSystemFolder() throws TechnicalException {
         Page systemFolder = new Page();
         systemFolder.setId("SYS");
         systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
-        
+
         Page folderInSystemFolder = new Page();
         folderInSystemFolder.setId("FOLD_IN_SYS");
         folderInSystemFolder.setType("FOLDER");
         folderInSystemFolder.setParentId("SYS");
         doReturn(Optional.of(folderInSystemFolder)).when(pageRepository).findById("FOLD_IN_SYS");
-        
+
         Map<String, String> conf = new HashMap<>();
         conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_PAGE);
-        
+
         NewPageEntity newLink = new NewPageEntity();
         newLink.setType(PageType.LINK);
         newLink.setParentId("SYS");
         newLink.setConfiguration(conf);
         newLink.setContent("FOLD_IN_SYS");
-        
+
         pageService.createPage(newLink);
     }
-    
+
     @Test
     public void shouldCreatePublishedLinkForRoot() throws TechnicalException {
         Map<String, String> conf = new HashMap<>();
         conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL);
-        
+
         NewPageEntity newFolder = new NewPageEntity();
         newFolder.setType(PageType.LINK);
         newFolder.setParentId("SYS");
         newFolder.setConfiguration(conf);
         newFolder.setContent("root");
-        
+
         Page createdPage = new Page();
         createdPage.setId("NEW_LINK");
         createdPage.setReferenceId("DEFAULT");
         createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         doReturn(createdPage).when(pageRepository).create(any());
-        
+
         pageService.createPage(newFolder);
         verify(pageRepository).create(argThat(p -> p.isPublished() == true));
 
     }
-    
+
     @Test
     public void shouldCopyPublishedStateWhenCreateLink() throws TechnicalException {
         Page page = new Page();
@@ -274,94 +277,94 @@ public class PageService_CreateTest {
         page.setType("MARKDOWN");
         page.setPublished(true);
         doReturn(Optional.of(page)).when(pageRepository).findById(PAGE_ID);
-        
+
         Map<String, String> conf = new HashMap<>();
         conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_PAGE);
-        
+
         NewPageEntity newLink = new NewPageEntity();
         newLink.setType(PageType.LINK);
         newLink.setParentId("SYS");
         newLink.setConfiguration(conf);
         newLink.setContent(PAGE_ID);
-        
+
         Page createdPage = new Page();
         createdPage.setId("NEW_LINK");
         createdPage.setReferenceId("DEFAULT");
         createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         doReturn(createdPage).when(pageRepository).create(any());
-        
+
         pageService.createPage(newLink);
         verify(pageRepository).create(argThat(p -> p.isPublished() == true));
 
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateTranslationPageIfNoParent() throws TechnicalException {
         NewPageEntity newTranslation = new NewPageEntity();
         newTranslation.setType(PageType.TRANSLATION);
-        
+
         pageService.createPage(newTranslation);
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateTranslationPageWithoutConfiguration() throws TechnicalException {
         NewPageEntity newTranslation = new NewPageEntity();
         newTranslation.setType(PageType.TRANSLATION);
         newTranslation.setParentId("FOLDER");
-        
+
         pageService.createPage(newTranslation);
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateTranslationPageWithoutLang() throws TechnicalException {
         NewPageEntity newTranslation = new NewPageEntity();
         newTranslation.setType(PageType.TRANSLATION);
         newTranslation.setParentId("FOLDER");
-        
+
         Map<String, String> conf = new HashMap<>();
         newTranslation.setConfiguration(conf);
 
         pageService.createPage(newTranslation);
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateTranslationPageIfParentIsSystemFolder() throws TechnicalException {
         Page parentPage = new Page();
         parentPage.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(parentPage)).when(pageRepository).findById("SYS_FOLDER");
-        
+
         NewPageEntity newTranslation = new NewPageEntity();
         newTranslation.setType(PageType.TRANSLATION);
         newTranslation.setParentId("SYS_FOLDER");
         Map<String, String> conf = new HashMap<>();
         conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
         newTranslation.setConfiguration(conf);
-        
+
         pageService.createPage(newTranslation);
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateTranslationPageIfParentIsRoot() throws TechnicalException {
         Page parentPage = new Page();
         parentPage.setType("ROOT");
         doReturn(Optional.of(parentPage)).when(pageRepository).findById("ROOT");
-        
+
         NewPageEntity newTranslation = new NewPageEntity();
         newTranslation.setType(PageType.TRANSLATION);
         newTranslation.setParentId("ROOT");
         Map<String, String> conf = new HashMap<>();
         conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
         newTranslation.setConfiguration(conf);
-        
+
         pageService.createPage(newTranslation);
     }
-    
+
     @Test(expected = PageActionException.class)
     public void shouldNotCreateTranslationPageIfParentIsTranslation() throws TechnicalException {
         Page parentPage = new Page();
         parentPage.setType("TRANSLATION");
         doReturn(Optional.of(parentPage)).when(pageRepository).findById("TRANSLATION");
-        
+
         NewPageEntity newTranslation = new NewPageEntity();
         newTranslation.setType(PageType.TRANSLATION);
         newTranslation.setParentId("TRANSLATION");
@@ -372,7 +375,7 @@ public class PageService_CreateTest {
 
         pageService.createPage(newTranslation);
     }
-    
+
     @Test
     public void shouldCopyPublishedStateWhenCreateTranslation() throws TechnicalException {
         Page page = new Page();
@@ -380,8 +383,8 @@ public class PageService_CreateTest {
         page.setType("MARKDOWN");
         page.setPublished(true);
         doReturn(Optional.of(page)).when(pageRepository).findById(PAGE_ID);
-        
-        
+
+
         NewPageEntity newTranslation = new NewPageEntity();
         newTranslation.setType(PageType.TRANSLATION);
         newTranslation.setParentId(PAGE_ID);
@@ -389,13 +392,13 @@ public class PageService_CreateTest {
         conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
         newTranslation.setConfiguration(conf);
         newTranslation.setPublished(false);
-        
+
         Page createdPage = new Page();
         createdPage.setId("NEW_TRANSLATION");
         createdPage.setReferenceId("DEFAULT");
         createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         doReturn(createdPage).when(pageRepository).create(any());
-        
+
         pageService.createPage(newTranslation);
         verify(pageRepository).create(argThat(p -> p.isPublished() == true));
 
