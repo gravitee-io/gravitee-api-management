@@ -36,7 +36,7 @@ RUN apk update \
   && chmod +x /bin/confd
 
 # Support running as arbitrary user which belongs to the root group
-RUN chown -R 1001:0 /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/
+RUN chown -R 1001:0 /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/ /var/log/
 
 USER 1001
 
