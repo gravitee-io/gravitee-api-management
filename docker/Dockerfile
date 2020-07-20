@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM nginx:1.18-alpine
+FROM nginxinc/nginx-unprivileged:1.18-alpine
 LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
@@ -36,9 +36,9 @@ RUN apk update \
   && chmod +x /bin/confd
 
 # Support running as arbitrary user which belongs to the root group
-RUN chown -R 1001:0 /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/  /var/log/
+#RUN chown -R 1001:0 /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/
 
-USER 1001
+#USER 1001
 
 ADD config /etc/confd
 
