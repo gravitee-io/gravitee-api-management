@@ -16,6 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.rest.JerseySpringTest;
+import io.gravitee.management.rest.enhancer.ViewEnhancer;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.gravitee.management.security.cookies.CookieGenerator;
@@ -260,6 +261,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public VirtualHostService virtualHostService() {
     	    return mock(VirtualHostService.class);
+        }
+
+        @Bean
+        public ViewEnhancer viewEnhancer() {
+            return mock(ViewEnhancer.class);
         }
 
         @Bean

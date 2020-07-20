@@ -49,4 +49,10 @@ public class ImageUtilsTest {
         ImageUtils.verify(picture);
     }
 
+    @Test
+    public void shouldVerify_jpegFormat_issue4086() throws InvalidImageException, IOException {
+        InputStream inputStream = this.getClass().getResourceAsStream("/images/4086_jpeg.b64");
+        String picture = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        ImageUtils.verify(picture);
+    }
 }

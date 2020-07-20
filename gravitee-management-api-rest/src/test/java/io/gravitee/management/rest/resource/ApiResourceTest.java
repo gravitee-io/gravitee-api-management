@@ -24,6 +24,7 @@ import io.gravitee.management.model.api.ApiLifecycleState;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.junit.Before;
@@ -38,6 +39,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
@@ -149,6 +151,16 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldUpdateApi() {
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+
+        assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldUpdateApi_ImageWithUpperCaseType_issue4086() throws IOException {
+        InputStream inputStream = this.getClass().getResourceAsStream("/images/4086_jpeg.b64");
+        String picture = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        updateApiEntity.setPicture(picture);
         final Response response = target(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(response.readEntity(String.class), OK_200, response.getStatus());

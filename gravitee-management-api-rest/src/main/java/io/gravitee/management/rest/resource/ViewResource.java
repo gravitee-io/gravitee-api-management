@@ -134,7 +134,7 @@ public class ViewResource extends AbstractViewResource {
         try {
             ImageUtils.verify(view.getPicture());
         } catch (InvalidImageException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
+            throw new BadRequestException("Invalid image format");
         }
 
         ViewEntity viewEntity = viewService.update(viewId, view);
