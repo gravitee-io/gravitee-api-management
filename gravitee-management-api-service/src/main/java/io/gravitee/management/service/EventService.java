@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * @author Titouan COMPIEGNE
@@ -45,6 +46,10 @@ public interface EventService {
     <T> Page<T> search(List<EventType> eventTypes,
                        Map<String, Object> properties, long from, long to, int page, int size,
                        Function<EventEntity, T> mapper);
+
+    <T> Page<T> search(List<EventType> eventTypes,
+                       Map<String, Object> properties, long from, long to, int page, int size,
+                       Function<EventEntity, T> mapper, Predicate<T> filter);
 
     Collection<EventEntity> search(EventQuery query);
 }

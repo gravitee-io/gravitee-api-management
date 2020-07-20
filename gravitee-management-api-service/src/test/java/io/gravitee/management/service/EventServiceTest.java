@@ -17,6 +17,8 @@ package io.gravitee.management.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.model.EventEntity;
+import io.gravitee.management.model.InstanceListItem;
+import io.gravitee.management.model.InstanceQuery;
 import io.gravitee.management.model.NewEventEntity;
 import io.gravitee.management.service.exceptions.EventNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -33,6 +35,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -288,6 +292,59 @@ public class EventServiceTest {
 
         assertTrue(2L == eventPageEntity.getTotalElements());
         assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
+    }
+
+    @Test
+    public void shouldFilterEvent() throws TechnicalException {
+
+        when(eventRepository.search(any(), any())).thenReturn(new Page<>(Arrays.asList(generateInstanceEvent("evt1", false),
+                generateInstanceEvent("evt2", true),
+                generateInstanceEvent("evt3", true),
+                generateInstanceEvent("evt4", false),
+                generateInstanceEvent("evt5", true)), 1,5,5));
+
+        // test without predicate
+        Page<Map<String, String>> page = eventService.search(Arrays.asList(io.gravitee.management.model.EventType.GATEWAY_STARTED),
+                Collections.EMPTY_MAP, 0,0,1,10, (evt) -> {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("id", evt.getId());
+                    map.put("state", evt.getType().name());
+                    return map;
+                });
+        assertNotNull(page);
+        assertNotNull(page.getContent());
+        assertEquals(5, page.getContent().size());
+
+        // test with predicate
+        page = eventService.search(Arrays.asList(io.gravitee.management.model.EventType.GATEWAY_STARTED),
+                Collections.EMPTY_MAP, 0,0,1,10, (evt) -> {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("id", evt.getId());
+                    map.put("state", evt.getType().name());
+                    return map;
+                }, (map) -> !map.get("state").equals(io.gravitee.management.model.EventType.GATEWAY_STOPPED.name()));
+        assertNotNull(page);
+        assertNotNull(page.getContent());
+        assertEquals(3, page.getContent().size());
+    }
+
+    private Event generateInstanceEvent(String name, boolean isUnknown) {
+        Event event = new Event();
+        event.setId("evt1");
+        event.setCreatedAt(new Date(Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli()));
+        event.setUpdatedAt(new Date(Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli()));
+        Map<String, String> properties = new HashMap<>();
+        properties.put("started_at", ""+Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli());
+        if (isUnknown) {
+            event.setType(EventType.GATEWAY_STARTED);
+            properties.put("last_heartbeat_at", ""+Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
+        } else {
+            event.setType(EventType.GATEWAY_STOPPED);
+            properties.put("last_heartbeat_at", ""+Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
+            properties.put("stopped_at", ""+Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
+        }
+        event.setProperties(properties);
+        return event;
     }
 
 }

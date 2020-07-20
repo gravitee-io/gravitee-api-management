@@ -37,6 +37,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
@@ -156,9 +157,13 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     @Override
     public <T> Page<T> search(List<EventType> eventTypes,
                                     Map<String, Object> properties, long from, long to, int page, int size, Function<EventEntity, T> mapper) {
-        Page<EventEntity> result = search(eventTypes, properties, from, to, page, size);
+        return search(eventTypes, properties, from, to, page, size, mapper, (T t) -> true);
+    }
 
-        return new Page<>(result.getContent().stream().map(mapper).collect(Collectors.toList()), page, size, result.getTotalElements());
+    @Override
+    public <T> Page<T> search(List<EventType> eventTypes, Map<String, Object> properties, long from, long to, int page, int size, Function<EventEntity, T> mapper, Predicate<T> filter) {
+        Page<EventEntity> result = search(eventTypes, properties, from, to, page, size);
+        return new Page<>(result.getContent().stream().map(mapper).filter(filter).collect(Collectors.toList()), page, size, result.getTotalElements());
     }
 
     @Override

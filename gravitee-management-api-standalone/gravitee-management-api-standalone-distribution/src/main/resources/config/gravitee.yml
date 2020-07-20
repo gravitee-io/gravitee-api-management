@@ -417,3 +417,8 @@ notifiers:
 #  secretKey:
 #  minScore: 0.5
 #  reCaptcha: https://www.google.com/recaptcha/api/siteverify
+
+# Specify the visibility duration of a gateway in Unknown State (in seconds)
+# Default : 604800 seconds (7 days)
+#gateway:
+#  unknown-expire-after: 604800
