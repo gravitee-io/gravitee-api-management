@@ -36,8 +36,8 @@ RUN apk update \
   && chmod +x /bin/confd
 
 # Support running as arbitrary user which belongs to the root group
-RUN chgrp -R 0 /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/ && \
-    chmod -R g=u /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/
+RUN chgrp -R nginx /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/ && \
+    chmod -R nginx:nginx /usr/share/nginx/ /var/log/nginx /var/cache/nginx/ /etc/nginx/ /var/run/
 
 ADD config /etc/confd
 
