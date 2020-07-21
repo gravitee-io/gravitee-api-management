@@ -82,7 +82,13 @@
                 <td md-cell nowrap ng-if="!$ctrl.api">{{log.referenceType}}</td>
                 <td md-cell nowrap ng-if="!$ctrl.api">{{$ctrl.getNameByReference({type: log.referenceType, id: log.referenceId})}}</td>
                 <td md-cell nowrap>{{log.event}}</td>
-                <td md-cell><span ng-repeat="prop in  $ctrl.getDisplayableProperties(log.properties)">{{prop}}</span></td>
+                <td md-cell>
+                    <div class="audit-properties"
+                         ng-repeat="(key, prop) in  $ctrl.getDisplayableProperties(log.properties)">
+                        <div class="audit-property">{{key}}:</div>
+                        <div>{{prop}}</div>
+                    </div>
+                </td>
                 <td md-cell>
                     <div ui-codemirror
                          ui-refresh='true'

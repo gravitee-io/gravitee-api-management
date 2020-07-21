@@ -71,7 +71,7 @@ const AuditComponent: ng.IComponentOptions = {
     };
 
     vm.getDisplayableProperties = (properties)=> {
-      return _.map(properties, (v, k)=> vm.metadata[k+":"+v+":name"]);
+      return _.mapValues(properties, (v, k)=> vm.metadata[k+":"+v+":name"]);
     };
 
     vm.search = ()=> {

@@ -50,6 +50,15 @@ table.md-table.gv-table-dense {
     }
   }
 }
+
 .md-table-pagination.gv-table-dense > * {
   height: 42px;
+}
+
+.audit-properties {
+  display: grid; grid-gap: 5px; grid-template-columns: 90px 1fr; line-height: 20px;
+}
+
+.audit-property {
+  font-weight: bold; 
 }
