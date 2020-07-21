@@ -26,6 +26,8 @@ import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.Audit;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +39,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.ApiKey.AuditEvent.*;
-import static io.gravitee.repository.management.model.Audit.AuditProperties.API_KEY;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -85,12 +87,17 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             apiKey = apiKeyRepository.create(apiKey);
 
             //TODO: Send a notification to the application owner
-
             // Audit
             final PlanEntity plan = planService.findById(apiKey.getPlan());
+
+            Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
+            properties.put(API_KEY, apiKey.getKey());
+            properties.put(API, plan.getApis().iterator().next());
+            properties.put(APPLICATION, apiKey.getApplication());
+
             auditService.createApiAuditLog(
                     plan.getApis().iterator().next(),
-                    Collections.singletonMap(API_KEY, apiKey.getKey()),
+                    properties,
                     APIKEY_CREATED,
                     apiKey.getCreatedAt(),
                     null,
@@ -125,9 +132,15 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             // Audit
             final PlanEntity plan = planService.findById(newApiKey.getPlan());
+
+            Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
+            properties.put(API_KEY, newApiKey.getKey());
+            properties.put(API, plan.getApis().iterator().next());
+            properties.put(APPLICATION, newApiKey.getApplication());
+
             auditService.createApiAuditLog(
                     plan.getApis().iterator().next(),
-                    Collections.singletonMap(API_KEY, newApiKey.getKey()),
+                    properties,
                     APIKEY_RENEWED,
                     newApiKey.getCreatedAt(),
                     null,
@@ -203,10 +216,16 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             apiKeyRepository.update(key);
 
             final PlanEntity plan = planService.findById(key.getPlan());
+
             // Audit
+            Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
+            properties.put(API_KEY, key.getKey());
+            properties.put(API, plan.getApis().iterator().next());
+            properties.put(APPLICATION, key.getApplication());
+
             auditService.createApiAuditLog(
                     plan.getApis().iterator().next(),
-                    Collections.singletonMap(API_KEY, key.getKey()),
+                    properties,
                     APIKEY_REVOKED,
                     key.getUpdatedAt(),
                     previousApiKey,
@@ -365,9 +384,14 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             notifierService.trigger(ApiHook.APIKEY_EXPIRED, api.getId(), params);
 
             // Audit
+            Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
+            properties.put(API_KEY, key.getKey());
+            properties.put(API, api.getId());
+            properties.put(APPLICATION, application.getId());
+
             auditService.createApiAuditLog(
                     plan.getApis().iterator().next(),
-                    Collections.singletonMap(API_KEY, key.getKey()),
+                    properties,
                     APIKEY_EXPIRED,
                     key.getUpdatedAt(),
                     oldkey,

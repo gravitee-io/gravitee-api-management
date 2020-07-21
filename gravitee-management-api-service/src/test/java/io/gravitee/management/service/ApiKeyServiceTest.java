@@ -24,8 +24,10 @@ import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.Audit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -33,6 +35,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
@@ -119,6 +122,14 @@ public class ApiKeyServiceTest {
         assertFalse(apiKey.isRevoked());
         assertEquals(subscription.getEndingAt(), apiKey.getExpireAt());
         assertEquals(subscription.getId(), apiKey.getSubscription());
+
+        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
+        verify(auditService).createApiAuditLog(any(),argument.capture(), any(), any(), any(), any());
+        Map<Audit.AuditProperties, String> properties = argument.getValue();
+        assertEquals(3, properties.size());
+        assertTrue(properties.containsKey(Audit.AuditProperties.API));
+        assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
+        assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -155,6 +166,14 @@ public class ApiKeyServiceTest {
 
         // Verify
         verify(apiKeyRepository, times(1)).update(any());
+
+        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
+        verify(auditService).createApiAuditLog(any(),argument.capture(), any(), any(), any(), any());
+        Map<Audit.AuditProperties, String> properties = argument.getValue();
+        assertEquals(3, properties.size());
+        assertTrue(properties.containsKey(Audit.AuditProperties.API));
+        assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
+        assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
     }
 
     @Test(expected = ApiKeyAlreadyExpiredException.class)
@@ -226,6 +245,15 @@ public class ApiKeyServiceTest {
         // A new API Key has been created
         verify(apiKeyRepository, times(1)).create(any());
         assertEquals(API_KEY, apiKeyEntity.getKey());
+
+        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
+        verify(auditService, times(2)).createApiAuditLog(any(),argument.capture(), any(), any(), any(), any());
+        for (Map<Audit.AuditProperties, String> properties : argument.getAllValues()) {
+            assertEquals(3, properties.size());
+            assertTrue(properties.containsKey(Audit.AuditProperties.API));
+            assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
+            assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+        }
 
         // Old API Key has been revoked
         verify(apiKeyRepository, times(1)).update(apiKey);
