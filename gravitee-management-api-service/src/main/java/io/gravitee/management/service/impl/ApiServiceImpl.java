@@ -851,7 +851,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
                     planService.findByApi(api.getId()).forEach(plan -> {
                         if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
-                            planService.depreciate(plan.getId());
+                            planService.depreciate(plan.getId(), true);
                         }
                     });
                     notifierService.trigger(ApiHook.API_DEPRECATED, apiId,

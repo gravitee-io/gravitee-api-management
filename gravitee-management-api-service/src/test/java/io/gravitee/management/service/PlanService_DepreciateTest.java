@@ -88,11 +88,41 @@ public class PlanService_DepreciateTest {
         planService.depreciate(PLAN_ID);
     }
 
+    @Test
+    public void shouldDepreciateWithStagingPlanAndAllowStaging() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+
+        planService.depreciate(PLAN_ID, true);
+
+        verify(plan, times(1)).setStatus(Plan.Status.DEPRECATED);
+        verify(planRepository, times(1)).update(plan);
+    }
+
+    @Test(expected = PlanNotYetPublishedException.class)
+    public void shouldNotDepreciateWithStagingPlanAndNotAllowStaging() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+
+        planService.depreciate(PLAN_ID, false);
+
+        verify(plan, times(1)).setStatus(Plan.Status.DEPRECATED);
+        verify(planRepository, times(1)).update(plan);
+    }
+
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotDepreciateBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
         planService.depreciate(PLAN_ID);
+
     }
 
     @Test

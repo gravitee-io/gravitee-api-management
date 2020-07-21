@@ -49,6 +49,8 @@ public interface PlanService {
 
     PlanEntity depreciate(String plan);
 
+    PlanEntity depreciate(String plan, boolean allowStaging);
+
     PlansConfigurationEntity getConfiguration();
 
     PlanEntity create(String apiId, PlanEntity planEntity);
