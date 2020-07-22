@@ -19,25 +19,43 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.core.processor.chain.DefaultProcessorChain;
 import io.gravitee.gateway.reactor.processor.forward.XForwardForProcessor;
+import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessor;
+import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RequestProcessorChainFactory {
+public class RequestProcessorChainFactory implements InitializingBean {
 
     @Autowired
     private TransactionProcessorFactory transactionHandlerFactory;
 
+    @Autowired
+    private TraceContextProcessorFactory traceContextHandlerFactory;
+
+    @Value("${handlers.request.trace-context.enabled:false}")
+    private boolean traceContext;
+
+    private final List<Processor<ExecutionContext>> processors = new ArrayList<>();
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        processors.add(new XForwardForProcessor());
+        processors.add(transactionHandlerFactory.create());
+
+        if (traceContext) processors.add(traceContextHandlerFactory.create());
+    }
+
     public Processor<ExecutionContext> create() {
-        return new DefaultProcessorChain<>(
-                Arrays.asList(
-                        new XForwardForProcessor(),
-                        transactionHandlerFactory.create()
-                ));
+        return new DefaultProcessorChain<>(processors);
     }
 }
