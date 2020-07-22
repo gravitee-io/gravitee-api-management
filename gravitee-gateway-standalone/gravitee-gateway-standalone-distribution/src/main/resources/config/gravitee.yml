@@ -228,6 +228,9 @@ services:
 
 #handlers:
 #  request:
+#    # manage traceparent header defined by W3C trace-context specification
+#    trace-context:
+#      enabled: false
 #    # possible values: hex, uuid. Default: uuid.
 #    format: uuid
 #    transaction:
