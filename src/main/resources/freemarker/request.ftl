@@ -53,7 +53,7 @@
   ,"mapped-path":"${metrics.getMappedPath()}"
   </#if>
   <#if metrics.getUserAgent()??> || pipeline?has_content>
-  ,"user-agent":"${metrics.getUserAgent()!""}"
+  ,"user-agent":"${metrics.getUserAgent()?j_string!""}"
   </#if>
   <#if metrics.getUser()??>
   ,"user":"${metrics.getUser()}"
