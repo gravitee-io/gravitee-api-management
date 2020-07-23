@@ -15,11 +15,15 @@
  */
 package io.gravitee.management.service.impl.swagger.parser;
 
+import io.gravitee.management.service.exceptions.SwaggerDescriptorException;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.AuthorizationValue;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -27,6 +31,8 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
+
+    private final Logger logger = LoggerFactory.getLogger(OAIParser.class);
 
     static {
         System.setProperty(String.format("%s.trustAll", io.swagger.v3.parser.util.RemoteUrl.class.getName()), Boolean.TRUE.toString());
@@ -41,6 +47,12 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
             parseResult = parser.readContents(content);
         } else {
             parseResult = parser.readWithInfo(content, (List<AuthorizationValue>) null);
+        }
+
+        if (parseResult != null && parseResult.getOpenAPI() != null &&
+                (parseResult.getMessages() != null && !parseResult.getMessages().isEmpty())) {
+            logger.error("Error while parsing OpenAPI descriptor: {}", parseResult.getMessages().get(0));
+            throw new SwaggerDescriptorException();
         }
 
         return (parseResult != null && parseResult.getOpenAPI() != null && parseResult.getOpenAPI().getInfo() != null)
