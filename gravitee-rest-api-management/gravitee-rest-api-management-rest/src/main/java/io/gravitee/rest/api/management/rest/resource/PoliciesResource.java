@@ -69,14 +69,14 @@ public class PoliciesResource {
     public Collection<PolicyListItem> listPolicies(@QueryParam("expand") List<String> expand) {
         Stream<PolicyListItem> stream = policyService.findAll().stream().map(this::convert);
 
-        if(expand!=null && !expand.isEmpty()) {
+        if(expand != null && !expand.isEmpty()) {
             for (String s : expand) {
                 switch (s) {
                     case "schema":
-                        stream = stream.map(policyListItem -> {
-                            policyListItem.setSchema(policyService.getSchema(policyListItem.getId()));
-                            return policyListItem;
-                        });
+                        stream = stream.peek(policyListItem -> policyListItem.setSchema(policyService.getSchema(policyListItem.getId())));
+                        break;
+                    case "icon":
+                        stream = stream.peek(policyListItem -> policyListItem.setIcon(policyService.getIcon(policyListItem.getId())));
                         break;
                     default: break;
                 }

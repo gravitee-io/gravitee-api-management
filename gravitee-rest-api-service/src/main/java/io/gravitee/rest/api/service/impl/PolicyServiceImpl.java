@@ -21,7 +21,6 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ListProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.rest.api.model.PluginEntity;
@@ -29,15 +28,10 @@ import io.gravitee.rest.api.model.PolicyDevelopmentEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
-import io.gravitee.rest.api.service.exceptions.PolicyNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,55 +42,23 @@ import static io.gravitee.rest.api.service.validator.PolicyCleaner.clearNullValu
  * @author GraviteeSource Team
  */
 @Component
-public class PolicyServiceImpl extends TransactionalService implements PolicyService {
-
-    /**
-     * Logger.
-     */
-    private final Logger LOGGER = LoggerFactory.getLogger(PolicyServiceImpl.class);
-
-    @Autowired
-    private ConfigurablePluginManager<PolicyPlugin> policyManager;
+public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, PolicyEntity> implements PolicyService {
 
     @Autowired
     private JsonSchemaFactory jsonSchemaFactory;
 
     @Override
     public Set<PolicyEntity> findAll() {
-        try {
-            LOGGER.debug("List all policies");
-            final Collection<PolicyPlugin> policyDefinitions = policyManager.findAll();
-
-            return policyDefinitions.stream()
-                    .map(policyDefinition -> convert(policyDefinition, false))
-                    .collect(Collectors.toSet());
-        } catch (Exception ex) {
-            LOGGER.error("An error occurs while trying to list all policies", ex);
-            throw new TechnicalManagementException("An error occurs while trying to list all policies", ex);
-        }
+        return super.list()
+                .stream()
+                .map(policyDefinition -> convert(policyDefinition, false))
+                .collect(Collectors.toSet());
     }
 
     @Override
     public PolicyEntity findById(String policyId) {
-        LOGGER.debug("Find policy by ID: {}", policyId);
-        PolicyPlugin policyDefinition = policyManager.get(policyId);
-
-        if (policyDefinition == null) {
-            throw new PolicyNotFoundException(policyId);
-        }
-
+        PolicyPlugin policyDefinition = super.get(policyId);
         return convert(policyDefinition, true);
-    }
-
-    @Override
-    public String getSchema(String policyId) {
-        try {
-            LOGGER.debug("Find policy schema by ID: {}", policyId);
-            return policyManager.getSchema(policyId);
-        } catch (IOException ioex) {
-            LOGGER.error("An error occurs while trying to get policy schema for policy {}", policyId, ioex);
-            throw new TechnicalManagementException("An error occurs while trying to get policy schema for policy " + policyId, ioex);
-        }
     }
 
     @Override

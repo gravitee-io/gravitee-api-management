@@ -15,89 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Objects;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FetcherEntity {
+public class FetcherEntity extends io.gravitee.rest.api.model.platform.plugin.PluginEntity {
 
-    /**
-     * The fetcher identifier
-     */
-    private String id;
-
-    /**
-     * The fetcher name
-     */
-    private String name;
-
-    /**
-     * The fetcher description
-     */
-    private String description;
-
-    /**
-     * The fetcher version
-     */
-    private String version;
-
-    @JsonProperty("plugin")
-    private PluginEntity plugin;
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public PluginEntity getPlugin() {
-        return plugin;
-    }
-
-    public void setPlugin(PluginEntity plugin) {
-        this.plugin = plugin;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FetcherEntity that = (FetcherEntity) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
 }

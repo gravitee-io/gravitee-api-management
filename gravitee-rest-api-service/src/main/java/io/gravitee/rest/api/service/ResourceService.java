@@ -15,19 +15,12 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.Set;
-
 import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ResourceService {
+public interface ResourceService extends PluginService<PluginEntity> {
 
-    Set<PluginEntity> findAll();
-
-    PluginEntity findById(String resource);
-
-    String getSchema(String resource);
 }

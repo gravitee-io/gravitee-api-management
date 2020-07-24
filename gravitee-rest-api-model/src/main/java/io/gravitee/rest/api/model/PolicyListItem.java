@@ -46,6 +46,8 @@ public class PolicyListItem {
 
     private String schema;
 
+    private String icon;
+
     public String getDescription() {
         return description;
     }
@@ -92,6 +94,14 @@ public class PolicyListItem {
 
     public void setSchema(String schema) {
         this.schema = schema;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 
     @Override

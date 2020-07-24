@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.Set;
-
 import io.gravitee.definition.model.Policy;
 import io.gravitee.rest.api.model.PolicyEntity;
 
@@ -24,13 +22,7 @@ import io.gravitee.rest.api.model.PolicyEntity;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyService {
-
-    Set<PolicyEntity> findAll();
-
-    PolicyEntity findById(String policy);
-
-    String getSchema(String policy);
+public interface PolicyService extends PluginService<PolicyEntity> {
 
     void validatePolicyConfiguration(Policy policy);
 }

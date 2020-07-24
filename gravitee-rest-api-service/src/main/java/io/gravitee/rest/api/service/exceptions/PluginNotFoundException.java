@@ -13,14 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
+import java.util.Map;
+
+import static java.util.Collections.singletonMap;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ServiceDiscoveryService extends PluginService<PluginEntity> {
+public class PluginNotFoundException extends AbstractNotFoundException {
 
+    private final String plugin;
+
+    public PluginNotFoundException(String plugin) {
+        this.plugin = plugin;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Plugin [" + plugin + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "plugin.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("plugin", plugin);
+    }
 }

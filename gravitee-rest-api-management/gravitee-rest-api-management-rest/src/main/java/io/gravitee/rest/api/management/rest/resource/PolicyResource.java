@@ -16,11 +16,11 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.PolicyService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -73,5 +73,37 @@ public class PolicyResource {
         policyService.findById(policy);
 
         return policyService.getSchema(policy);
+    }
+
+    @GET
+    @Path("icon")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Get a policy's icon",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
+    })
+    public String getPolicyIcon(
+            @PathParam("policy") String policy) {
+        // Check that the policy exists
+        policyService.findById(policy);
+
+        return policyService.getIcon(policy);
+    }
+
+    @GET
+    @Path("doc")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Get a policy's documentation",
+            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
+    })
+    public String getPolicyDoc(
+            @PathParam("policy") String policy) {
+        // Check that the policy exists
+        policyService.findById(policy);
+
+        return policyService.getDocumentation(policy);
     }
 }

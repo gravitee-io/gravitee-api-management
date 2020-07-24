@@ -15,24 +15,24 @@
  */
 package io.gravitee.rest.api.idp.core.plugin;
 
-import io.gravitee.plugin.core.api.PluginClassLoaderFactory;
 import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginClassLoaderFactory;
 import io.gravitee.plugin.core.api.PluginHandler;
-import io.gravitee.plugin.core.api.PluginType;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class IdentityProviderPluginHandler implements PluginHandler {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(IdentityProviderPluginHandler.class);
+
+    private final static String PLUGIN_TYPE = "identity_provider";
 
     @Autowired
     private PluginClassLoaderFactory pluginClassLoaderFactory;
@@ -42,7 +42,7 @@ public class IdentityProviderPluginHandler implements PluginHandler {
 
     @Override
     public boolean canHandle(Plugin plugin) {
-        return plugin.type() == PluginType.IDENTITY_PROVIDER;
+        return PLUGIN_TYPE.equalsIgnoreCase(plugin.type());
     }
 
     @Override
