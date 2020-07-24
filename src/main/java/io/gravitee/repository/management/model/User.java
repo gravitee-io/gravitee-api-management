@@ -89,6 +89,11 @@ public class User {
 	private Date lastConnectionAt;
 
 	/**
+	 * The user first connection date
+	 */
+	private Date firstConnectionAt;
+
+	/**
 	 * The user picture
 	 */
 	private String picture;
@@ -99,6 +104,8 @@ public class User {
 	 * The user login count
 	 */
 	private long loginCount;
+
+	private Boolean newsletterSubscribed;
 
 	public User() {}
 
@@ -118,6 +125,8 @@ public class User {
 		this.picture = cloned.picture;
 		this.status = cloned.status;
 		this.loginCount = cloned.loginCount;
+		this.firstConnectionAt = cloned.firstConnectionAt;
+		this.newsletterSubscribed = cloned.newsletterSubscribed;
 	}
 
     public String getReferenceId() {
@@ -238,6 +247,22 @@ public class User {
 
 	public void setLoginCount(long loginCount) {
 		this.loginCount = loginCount;
+	}
+
+	public Date getFirstConnectionAt() {
+		return firstConnectionAt;
+	}
+
+	public void setFirstConnectionAt(Date firstConnectionAt) {
+		this.firstConnectionAt = firstConnectionAt;
+	}
+
+	public Boolean getNewsletterSubscribed() {
+		return newsletterSubscribed;
+	}
+
+	public void setNewsletterSubscribed(Boolean newsletterSubscribed) {
+		this.newsletterSubscribed = newsletterSubscribed;
 	}
 
 	@Override
