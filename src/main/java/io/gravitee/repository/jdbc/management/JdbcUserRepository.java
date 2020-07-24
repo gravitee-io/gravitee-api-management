@@ -62,6 +62,8 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn(STATUS_FIELD, Types.NVARCHAR, UserStatus.class)
             .addColumn("login_count", Types.BIGINT, long.class)
+            .addColumn("first_connection_at", Types.TIMESTAMP, Date.class)
+            .addColumn("newsletter_subscribed", Types.BOOLEAN, Boolean.class)
             .build();
 
     @Override
