@@ -45,6 +45,8 @@ public class UserMongo extends Auditable {
     private String status;
     private Date lastConnectionAt;
     private long loginCount;
+    private Date firstConnectionAt;
+    private Boolean newsletterSubscribed;
 
     public String getId() {
         return id;
@@ -148,6 +150,22 @@ public class UserMongo extends Auditable {
 
     public void setLoginCount(long loginCount) {
         this.loginCount = loginCount;
+    }
+
+    public Date getFirstConnectionAt() {
+        return firstConnectionAt;
+    }
+
+    public void setFirstConnectionAt(Date firstConnectionAt) {
+        this.firstConnectionAt = firstConnectionAt;
+    }
+
+    public Boolean getNewsletterSubscribed() {
+        return newsletterSubscribed;
+    }
+
+    public void setNewsletterSubscribed(Boolean newsletterSubscribed) {
+        this.newsletterSubscribed = newsletterSubscribed;
     }
 
     @Override
