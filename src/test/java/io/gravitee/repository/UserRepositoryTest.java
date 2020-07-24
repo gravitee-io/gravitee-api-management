@@ -56,6 +56,8 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         user.setSource("gravitee");
         user.setSourceId("createuser1");
         user.setLoginCount(123);
+        user.setFirstConnectionAt(new Date(1439052010883L));
+        user.setNewsletterSubscribed(false);
         User userCreated = userRepository.create(user);
 
         assertNotNull("User created is null", userCreated);
@@ -71,6 +73,8 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid saved user mail.", user.getEmail(), userFound.getEmail());
         assertEquals("Invalid saved user status.", user.getStatus(), userFound.getStatus());
         assertEquals("Invalid saved user login count.", user.getLoginCount(), userFound.getLoginCount());
+        assertEquals("Invalid saved user first connection at.", user.getFirstConnectionAt(), userFound.getFirstConnectionAt());
+        assertEquals("Invalid saved user newsletter.", user.getNewsletterSubscribed(), false);
     }
 
     @Test
@@ -93,6 +97,8 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         user.setUpdatedAt(new Date(1439042010883L));
         user.setLastConnectionAt(new Date(1439052010883L));
         user.setLoginCount(123);
+        user.setNewsletterSubscribed(true);
+        user.setFirstConnectionAt(new Date(1439052010883L));
 
         long nbUsersBeforeUpdate = userRepository.search(null,
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
@@ -122,6 +128,8 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Invalid saved lastConnection", compareDate(new Date(1439052010883L), userUpdated.getLastConnectionAt()));
         assertEquals("Invalid status", UserStatus.ARCHIVED, userUpdated.getStatus());
         assertEquals("Invalid saved user login count.", 123, userUpdated.getLoginCount());
+        assertEquals("Invalid saved user newsletter subscribed", true, userUpdated.getNewsletterSubscribed());
+        assertEquals("Invalid saved user first connection at.", user.getFirstConnectionAt(), userUpdated.getFirstConnectionAt());
     }
 
     @Test
@@ -134,7 +142,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid user numbers in search", 1, users.size());
         assertEquals("user0", users.get(0).getId());
     }
-    
+
     @Test
     public void shouldSearchAllWithNullCriteria() throws Exception {
         List<User> users = userRepository.search(null,
