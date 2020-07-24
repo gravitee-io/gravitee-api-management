@@ -353,6 +353,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check if there is regex errors in plaintext fields
             validateRegexfields(api);
 
+            // check policy configurations.
+            checkPolicyConfigurations(api);
+
             Api repoApi = convert(id, api);
 
             if (repoApi != null) {

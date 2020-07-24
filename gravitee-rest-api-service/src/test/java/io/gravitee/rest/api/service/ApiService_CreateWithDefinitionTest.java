@@ -100,6 +100,8 @@ public class ApiService_CreateWithDefinitionTest {
     private ApiMetadataService apiMetadataService;
     @Mock
     private AlertService alertService;
+    @Spy
+    private PolicyService policyService;
 
     @Before
     public void init() {
