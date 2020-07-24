@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactor.processor.transaction;
 
 import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -25,10 +26,21 @@ public class TraceparentHelper {
     private static final String FLAGS = "-01";
     private static final String VERSION = "00-";
 
+    public static String leftPad(String value, int length) {
+        if (value.length() < length) {
+            StringBuilder builder = new StringBuilder(length);
+            for (int i = value.length(); i < length; ++i) {
+                builder.append('0');
+            }
+            builder.append(value);
+            return builder.toString();
+        }
+        return value;
+    }
     public static String buildTraceparentFrom(UUID uuid) {
         String parentId = Long.toHexString(uuid.getLeastSignificantBits()); // 8-byte array (16 hex digits) - all bytes as zero is forbidden
         String traceId = Long.toHexString(uuid.getMostSignificantBits()) + parentId; // 16-byte array  (32 hex digits) - all bytes as zero is forbidden
-        return VERSION + traceId + "-" + parentId + FLAGS;
+        return VERSION + leftPad(traceId, 32) + "-" + leftPad(parentId, 16) + FLAGS;
     }
 
     public static boolean isValid(String traceparent) {
