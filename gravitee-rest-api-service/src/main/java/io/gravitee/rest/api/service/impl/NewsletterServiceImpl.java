@@ -16,8 +16,12 @@
 package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.service.EmailValidator;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.NewsletterService;
+import io.gravitee.rest.api.service.exceptions.EmailFormatInvalidException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,13 +55,14 @@ public class NewsletterServiceImpl extends TransactionalService implements Newsl
 
     @Override
     @Async
-    public void subscribe(final Object user) {
+    public void subscribe(final String email) {
         try {
             if (isEnabled()) {
-                final Map<String, Object> userEntity = mapper.convertValue(user, Map.class);
-
+                if (!EmailValidator.isValid(email)) {
+                    throw new EmailFormatInvalidException(email);
+                }
                 final Map<String, Object> newsletterInfo = new HashMap<>();
-                newsletterInfo.put("email", userEntity.get("email"));
+                newsletterInfo.put("email", email);
                 httpClientService.request(POST, newsletterUrl, emptyMap(), mapper.writeValueAsString(newsletterInfo), null);
             }
         } catch (final Exception e) {

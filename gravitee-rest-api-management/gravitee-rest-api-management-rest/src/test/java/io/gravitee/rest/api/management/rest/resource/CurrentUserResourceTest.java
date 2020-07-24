@@ -20,6 +20,7 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
 
 import java.util.Collections;
+import java.util.Date;
 import javax.ws.rs.core.Response;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
@@ -91,6 +92,7 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         final UserEntity userEntity = new UserEntity();
         userEntity.setId(ID);
         userEntity.setRoles(Collections.emptySet());
+        userEntity.setFirstConnectionAt(new Date());
 
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userService.findByIdWithRoles(USER_NAME)).thenReturn(userEntity);

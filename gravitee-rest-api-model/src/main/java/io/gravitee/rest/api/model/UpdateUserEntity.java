@@ -32,7 +32,7 @@ public class UpdateUserEntity {
 
 	private String status;
 
-	private boolean newsletter;
+	private Boolean newsletter;
 
 	public String getStatus() {
 		return status;
@@ -84,11 +84,11 @@ public class UpdateUserEntity {
 		this.picture = picture;
 	}
 
-	public boolean isNewsletter() {
+	public Boolean isNewsletter() {
 		return newsletter;
 	}
 
-	public void setNewsletter(boolean newsletter) {
+	public void setNewsletter(Boolean newsletter) {
 		this.newsletter = newsletter;
 	}
 

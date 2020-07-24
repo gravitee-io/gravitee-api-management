@@ -168,11 +168,13 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             User user = checkUser.get();
             User previousUser = new User(user);
+
             // First connection: create default application for user & notify
-            if (user.getLastConnectionAt() == null) {
+            if (user.getLastConnectionAt() == null && user.getFirstConnectionAt() == null) {
                 notifierService.trigger(PortalHook.USER_FIRST_LOGIN, new NotificationParamsBuilder()
-                        .user(convert(user, false))
-                        .build());
+                    .user(convert(user, false))
+                    .build());
+                user.setFirstConnectionAt(new Date());
                 if (defaultApplicationForFirstConnection) {
                     LOGGER.debug("Create a default application for {}", userId);
                     NewApplicationEntity defaultApp = new NewApplicationEntity();
@@ -192,20 +194,22 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     }
                 }
             }
-
             // Set date fields
             user.setLastConnectionAt(new Date());
+            if (user.getFirstConnectionAt() == null) {
+                user.setFirstConnectionAt(user.getLastConnectionAt());
+            }
             user.setUpdatedAt(user.getLastConnectionAt());
 
             user.setLoginCount(user.getLoginCount() + 1);
 
             User updatedUser = userRepository.update(user);
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(USER, userId),
-                    User.AuditEvent.USER_CONNECTED,
-                    user.getUpdatedAt(),
-                    previousUser,
-                    user);
+                Collections.singletonMap(USER, userId),
+                User.AuditEvent.USER_CONNECTED,
+                user.getUpdatedAt(),
+                previousUser,
+                user);
 
             final UserEntity userEntity = convert(updatedUser, true);
             searchEngineService.index(userEntity, false);
@@ -580,8 +584,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
             );
         }
 
-        if (newExternalUserEntity.isNewsletter()) {
-            newsletterService.subscribe(newExternalUserEntity);
+        if (newExternalUserEntity.getNewsletter() != null && newExternalUserEntity.getNewsletter()) {
+            newsletterService.subscribe(newExternalUserEntity.getEmail());
         }
 
         return userEntity;
@@ -644,6 +648,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public UserEntity update(String id, UpdateUserEntity updateUserEntity) {
+        return this.update(id, updateUserEntity, updateUserEntity.getEmail());
+    }
+
+    @Override
+    public UserEntity update(String id, UpdateUserEntity updateUserEntity, String newsletterEmail) {
         try {
             LOGGER.debug("Updating {}", updateUserEntity);
             Optional<User> checkUser = userRepository.findById(id);
@@ -673,8 +682,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 user.setStatus(UserStatus.valueOf(updateUserEntity.getStatus()));
             }
 
-            if (updateUserEntity.isNewsletter() && user.getEmail() != null) {
-                newsletterService.subscribe(user);
+            user.setNewsletterSubscribed(updateUserEntity.isNewsletter());
+            if (updateUserEntity.isNewsletter() != null && updateUserEntity.isNewsletter() && newsletterEmail != null) {
+                newsletterService.subscribe(newsletterEmail);
             }
 
             User updatedUser = userRepository.update(user);
@@ -911,6 +921,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         user.setSourceId(newExternalUserEntity.getSourceId());
         user.setStatus(UserStatus.ACTIVE);
         user.setPicture(newExternalUserEntity.getPicture());
+        user.setNewsletterSubscribed(newExternalUserEntity.getNewsletter());
         return user;
     }
 
@@ -947,6 +958,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         userEntity.setCreatedAt(user.getCreatedAt());
         userEntity.setUpdatedAt(user.getUpdatedAt());
         userEntity.setLastConnectionAt(user.getLastConnectionAt());
+        userEntity.setFirstConnectionAt(user.getFirstConnectionAt());
         userEntity.setPicture(user.getPicture());
         if (user.getStatus() != null) {
             userEntity.setStatus(user.getStatus().name());
@@ -976,6 +988,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
 
         userEntity.setLoginCount(user.getLoginCount());
+        userEntity.setNewsletterSubscribed(user.getNewsletterSubscribed());
 
         return userEntity;
     }

@@ -62,6 +62,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static io.gravitee.rest.api.management.rest.model.TokenType.BEARER;
@@ -136,6 +137,14 @@ public class CurrentUserResource extends AbstractResource {
                 userDetails.setEmail(details.getEmail());
             }
 
+            if (userEntity.getNewsletterSubscribed() == null) {
+                long diffInMs = Math.abs(new Date().getTime() - userEntity.getFirstConnectionAt().getTime());
+                long diff = TimeUnit.DAYS.convert(diffInMs, TimeUnit.MILLISECONDS);
+                userDetails.setDisplayNewsletterSubscription(diff >= 7);
+            } else {
+                userDetails.setDisplayNewsletterSubscription(false);
+            }
+
             //convert UserEntityRoles to UserDetailsRoles
             userDetails.setRoles(userEntity.getRoles().
                     stream().
@@ -173,6 +182,21 @@ public class CurrentUserResource extends AbstractResource {
         }
 
         return ok(userService.update(userEntity.getId(), user)).build();
+    }
+
+    @POST
+    @Path("/subscribeNewsletter")
+    @ApiOperation(value = "Subscribe to the newsletter the authenticated user")
+    @ApiResponses({
+        @ApiResponse(code = 200, message = "Updated user", response = UserEntity.class),
+        @ApiResponse(code = 400, message = "Invalid user profile"),
+        @ApiResponse(code = 404, message = "User not found"),
+        @ApiResponse(code = 500, message = "Internal server error")})
+    public Response subscribeNewsletter(@Valid @NotNull final String email) {
+        UserEntity userEntity = userService.findById(getAuthenticatedUser());
+        UpdateUserEntity user = new UpdateUserEntity(userEntity);
+        user.setNewsletter(true);
+        return ok(userService.update(userEntity.getId(), user, email)).build();
     }
 
     @GET

@@ -41,6 +41,7 @@ public interface UserService {
     Set<UserEntity> findByIds(List<String> ids);
     UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
     UserEntity update(String userId, UpdateUserEntity updateUserEntity);
+    UserEntity update(String userId, UpdateUserEntity updateUserEntity, String newsletterEmail);
     Page<UserEntity> search(String query, Pageable pageable);
     Page<UserEntity> search(UserCriteria criteria, Pageable pageable);
     UserEntity register(NewExternalUserEntity newExternalUserEntity);

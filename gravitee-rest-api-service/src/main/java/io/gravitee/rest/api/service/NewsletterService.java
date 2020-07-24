@@ -23,8 +23,8 @@ public interface NewsletterService {
 
     /**
      * Subscribe to newsletters.
-     * @param user a user with email, firstname and lastname.
+     * @param email
      */
-    void subscribe(Object user);
+    void subscribe(String email);
     boolean isEnabled();
 }

@@ -39,6 +39,7 @@ public class UserDetails extends User implements org.springframework.security.co
     private String username;
     private byte[] picture;
     private boolean firstLogin;
+    private boolean displayNewsletterSubscription;
 
     public UserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
@@ -136,7 +137,7 @@ public class UserDetails extends User implements org.springframework.security.co
 
         return displayName;
     }
-    
+
     public void setLastname(String lastname) {
         this.lastname = lastname;
     }
@@ -171,6 +172,14 @@ public class UserDetails extends User implements org.springframework.security.co
 
     public void setFirstLogin(boolean firstLogin) {
         this.firstLogin = firstLogin;
+    }
+
+    public void setDisplayNewsletterSubscription(boolean displayNewsletterSubscription) {
+        this.displayNewsletterSubscription = displayNewsletterSubscription;
+    }
+
+    public boolean isDisplayNewsletterSubscription() {
+        return displayNewsletterSubscription;
     }
 
     @Override
