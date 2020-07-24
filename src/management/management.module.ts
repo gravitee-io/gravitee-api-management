@@ -434,6 +434,9 @@ import AnalyticsDashboardComponent from './configuration/analytics/dashboard/das
 import TokenService from '../services/token.service';
 import DialogGenerateTokenController from '../user/token/generateTokenDialog.controller';
 
+// Newsletter
+import NewsletterSubscriptionComponent from '../components/newsletter-subcription/newsletter-subscription.component';
+
 (<any>window).jQuery = jQuery;
 
 import angular = require('angular');
@@ -876,6 +879,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DialogConfigureLoggingEditorController', DialogConfigureLoggingEditorController)
 
   .component('gvAudit', AuditComponent)
+  .component('gvNewsletterSubscription', NewsletterSubscriptionComponent)
   .component('gvContextualDoc', ContextualDocComponent)
   .controller('ContextualDocController', ContextualDocController)
 
