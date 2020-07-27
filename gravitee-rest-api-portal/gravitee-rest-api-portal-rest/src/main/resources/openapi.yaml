@@ -948,6 +948,146 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /applications/{applicationId}/metadata:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Application
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      summary: List application metadata
+      description: |
+        List application metadata.
+
+        User must have the APPLICATION_METADATA[READ] permission.
+      operationId: getMetadataByApplicationId
+      responses:
+        200:
+          description: List of metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferenceMetadataResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Application
+      requestBody:
+        description: Use to create a metadata.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReferenceMetadataInput'
+      summary: Create an application metadata
+      description: |
+        Create an application metadata.
+
+        User must have the APPLICATION_METADATA[CREATE] permission.
+      operationId: createApplicationMetadata
+      responses:
+        201:
+          description: Created metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferenceMetadata'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /applications/{applicationId}/metadata/{metadataId}:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+      - $ref: '#/components/parameters/metadataIdParam'
+    get:
+      tags:
+        - Application
+      summary: Get an application metadata
+      description: |
+        Get an application metadata.
+
+        User must have the APPLICATION_METADATA[READ] permission.
+      operationId: getApplicationMetadataByApplicationIdAndMetadataId
+      responses:
+        200:
+          description: A metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferenceMetadata'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Application or Metadata not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Application
+      requestBody:
+        description: Use to update a metadata.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReferenceMetadataInput'
+      summary: Update an application metadata.
+      description: |
+        Update an application metadata.
+
+        User must have the APPLICATION_METADATA[UPDATE] permission.
+      operationId: updateApplicationMetadataByApplicationIdAndMetadataId
+      responses:
+        200:
+          description: Updated metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferenceMetadata'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Application or Metadata not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Application
+      summary: Remove an application metadata
+      description: |
+        Remove an application metadata.
+
+        User must have the APPLICATION_METADATA[DELETE] permission.
+      operationId: deleteApplicationMetadata
+      responses:
+        204:
+          description: No-Content
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          description: Application or Metadata not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/analytics:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -1182,6 +1322,7 @@ paths:
           $ref: '#/components/responses/ApplicationNotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+
   /groups:
     get:
       tags:
@@ -2184,6 +2325,13 @@ components:
       description: Id of a member.
       schema:
         type: string
+    metadataIdParam:
+      name: metadataId
+      in: path
+      required: true
+      description: Id of an application metadata.
+      schema:
+        type: string
     notificationIdParam:
       name: notificationId
       in: path
@@ -2709,6 +2857,17 @@ components:
           $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
+    ReferenceMetadataResponse:
+      properties:
+        data:
+          description: List of application metadata.
+          type: array
+          items:
+            $ref: '#/components/schemas/ReferenceMetadata'
+        metadata:
+          $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
     UsersResponse:
       properties:
         data:
@@ -3220,7 +3379,29 @@ components:
         role:
           description: Role of the member. (OWNER, USER, ...).
           type: string
-
+    ReferenceMetadata:
+      required:
+        - key
+        - name
+      properties:
+        key:
+          description: Unique identifier of a metadata.
+          type: string
+        name:
+          description: Name of the metadata.
+          type: string
+        application:
+          description: Id of the application to which the metadata refers.
+          type: string
+        format:
+          description: format of the metadata value.
+          $ref: '#/components/schemas/ReferenceMetadataFormatType'
+        value:
+          description: value of the metadata. Supports freemarker syntax.
+          type: string
+        defaultValue:
+          description: default value of the metadata.
+          type: string
     DateHistoAnalytics:
       properties:
         timestamp:
@@ -3831,6 +4012,20 @@ components:
         role:
           type: string
           description: Role's name
+    ReferenceMetadataInput:
+      properties:
+        name:
+          description: Name of the metadata.
+          type: string
+        format:
+          description: format of the metadata value.
+          $ref: '#/components/schemas/ReferenceMetadataFormatType'
+        value:
+          description: value of the metadata. Supports freemarker syntax.
+          type: string
+        defaultValue:
+          description: default value of the metadata.
+          type: string
     SubscriptionInput:
       properties:
         application:
@@ -4215,6 +4410,16 @@ components:
         - GITHUB
         - GRAVITEEIO_AM
         - OIDC
+    ReferenceMetadataFormatType:
+      type: string
+      enum:
+        - STRING
+        - NUMERIC
+        - BOOLEAN
+        - DATE
+        - MAIL
+        - URL
+      default: STRING
     #################
     # Links Objects #
     #################

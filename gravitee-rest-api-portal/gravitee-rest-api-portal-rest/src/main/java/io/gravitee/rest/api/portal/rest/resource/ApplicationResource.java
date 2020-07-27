@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
@@ -28,14 +27,11 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
-import io.gravitee.rest.api.portal.rest.model.ApplicationType;
-import io.gravitee.rest.api.portal.rest.model.Group;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -46,7 +42,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -190,6 +185,11 @@ public class ApplicationResource extends AbstractResource {
     @Path("members")
     public ApplicationMembersResource getApplicationMembersResource() {
         return resourceContext.getResource(ApplicationMembersResource.class);
+    }
+
+    @Path("metadata")
+    public ApplicationMetadataResource getApplicationMetadataResource() {
+        return resourceContext.getResource(ApplicationMetadataResource.class);
     }
 
     @Path("notifications")
