@@ -49,8 +49,10 @@
   <#if metrics.getHost()??>
   ,"host":"${metrics.getHost()}"
   </#if>
-  <#if metrics.getUserAgent()?? || pipeline?has_content>
-  ,"user-agent":"${metrics.getUserAgent()?j_string!""}"
+  <#if metrics.getUserAgent()?? && pipeline?has_content>
+  ,"user-agent":"${metrics.getUserAgent()?j_string}"
+  <#else>
+  ,"user-agent":""
   </#if>
   <#if metrics.getUser()??>
   ,"user":"${metrics.getUser()}"
