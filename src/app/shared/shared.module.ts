@@ -21,6 +21,7 @@ import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-transl
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
+import { GvCheckboxControlValueAccessorDirective } from '../directives/gv-checkbox-control-value-accessor.directive';
 import { GvFormControlDirective } from '../directives/gv-form-control.directive';
 import { LocalizedDatePipe } from '../pipes/localized-date.pipe';
 
@@ -34,6 +35,7 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
     LocalizedDatePipe,
     SafePipe,
     GvFormControlDirective,
+    GvCheckboxControlValueAccessorDirective,
   ],
   imports: [
     CommonModule,
@@ -59,6 +61,7 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
     GvFormControlDirective,
     SafePipe,
     LocalizedDatePipe,
+    GvCheckboxControlValueAccessorDirective,
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA
